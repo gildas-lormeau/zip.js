@@ -13,20 +13,22 @@ HOWTO:
 - include zip.js in your project
 - write a zip file:
 var zipper = zip.createWriter(/* File */file);
-- add files into the zip:
+- add a file into the zip:
 zipper.add(/* String */filename, /* Array or Uint8Array */data, /* options */null, function() {
 	// end callback 
 }, function(/* Number */current, /* Number */total) {
-	// progress callback
+	// zip progress callback
 });
 - read a zip file:
 var unzipper = zip.createReader(/* File */file);
-- list entries from the zip:
+- list all entries from the zip:
 unzipper.getEntries(function(/* Array */entries) {
 	// entries is an array of Object with zip entry details
 });
 - get the content from a zip entry:
 entry.getData(function(/* Array or Uint8Array */ data) {
 	// data contains the file entry content
+}, function(/* Number */current, /* Number */total) {
+	// unzip progress callback
 });
 
