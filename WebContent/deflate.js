@@ -1,14 +1,7 @@
 /*
  * Port of a script by Masanao Izumo.
  * 
- * Only changes : wrap all the variables in a function and add the main function to JSZip (DEFLATE compression method). Everything else was
- * written by M. Izumo.
- * 
  * Original code can be found here: http://www.onicos.com/staff/iz/amuse/javascript/expert/inflate.txt
- */
-
-/*
- * Original: http://www.onicos.com/staff/iz/amuse/javascript/expert/deflate.txt
  */
 
 (function() {
