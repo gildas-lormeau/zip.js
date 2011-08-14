@@ -8,3 +8,25 @@ This library is implemented with these HTML5 features:
 - Blob and BlobBuilder
 - FileReader
 - FileWriter
+
+HOWTO:
+- include zip.js in your project
+- write a zip file:
+var zipper = zip.createWriter(/* File */file);
+- add files into the zip:
+zipper.add(/* String */filename, /* Array or Uint8Array */data, /* options */null, function() {
+	// end callback 
+}, function(/* Number */current, /* Number */total) {
+	// progress callback
+});
+- read a zip file:
+var unzipper = zip.createReader(/* File */file);
+- list entries from the zip:
+unzipper.getEntries(function(/* Array */entries) {
+	// entries is an array of Object with zip entry details
+});
+- get the content from a zip entry:
+entry.getData(function(/* Array or Uint8Array */ data) {
+	// data contains the file entry content
+});
+
