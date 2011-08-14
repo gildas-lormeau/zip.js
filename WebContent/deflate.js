@@ -4,20 +4,16 @@
  * Original code can be found here: http://www.onicos.com/staff/iz/amuse/javascript/expert/inflate.txt
  */
 
+/*
+ * Modified version by Gildas Lormeau.
+ * 
+ * zip_deflate accepts an ArrayBuffer or Array object instead of a String object and returns an Array object.
+ */
+
 (function() {
 
 	/*
-	 * Modified version by Gildas Lormeau.
-	 * 
-	 * zip_deflate accepts an ArrayBuffer or Array object instead of a String object.
-	 */
-
-	/*
 	 * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp> Version: 1.0.1 LastModified: Dec 25 1999
-	 */
-
-	/*
-	 * Interface: data = zip_deflate(src);
 	 */
 
 	/* constant parameters */

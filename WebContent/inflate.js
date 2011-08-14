@@ -1,18 +1,19 @@
-(function(globalObject) {
+/*
+ * Port of a script by Masanao Izumo.
+ * 
+ * Original code can be found here: http://www.onicos.com/staff/iz/amuse/javascript/expert/inflate.txt
+ */
+
+/*
+ * Modified version by Gildas Lormeau.
+ * 
+ * zip_inflate accepts an ArrayBuffer or Array object instead of a String object and returns an Array object.
+ */
+
+(function() {
 
 	/*
-	 * Modified version by Gildas Lormeau.
-	 * 
-	 * inflate returns an Array object instead of a String object.
-	 */
-
-	/*
-	 * Port of script by Masanao Izumo.
-	 * 
-	 * Wrapped all the variables in a function, created a constructor for interacting with the lib. Everything else was written by M. Izumo.
-	 * 
-	 * Original code can be found here: http://www.onicos.com/staff/iz/amuse/javascript/expert/inflate.txt
-	 * 
+	 * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp> Version: 1.0.0.1 LastModified: Dec 25 1999
 	 */
 
 	var zip_WSIZE = 32768; // Sliding Window size
@@ -725,6 +726,10 @@
 		return Array.prototype.concat.apply([], aout);
 	}
 
+	//
+	// end of the script of Masanao Izumo.
+	//
+
 	addEventListener("message", function(event) {
 		var message = event.data;
 
@@ -744,4 +749,4 @@
 		}
 	}, false);
 
-}(this));
+}());
