@@ -1,0 +1,10 @@
+zip.js is a library for zipping and unzipping files.
+
+It offers a low-level API for writing and reading (big) zip files.and supports UTF8 or ASCII filenames.
+
+This library is implemented with these HTML5 features: 
+- Web workers
+- Typed arrays
+- Blob and BlobBuilder
+- FileReader
+- FileWriter

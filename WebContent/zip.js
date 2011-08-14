@@ -2,7 +2,6 @@
  * Copyright 2011 Gildas Lormeau
  * contact : gildas.lormeau <at> gmail.com
  * 
- * A low-level Javascript API for writing and reading (big) zip files. This library implemented with HTML5 features (Web workers, Typed arrays, Blob, BlobBuilder, FileReader, and FileWriter).
  */
 (function(obj) {
 	
