@@ -1,0 +1,7 @@
+{
+	"name": "AAAZIP",
+	"version": "0.0.1",
+	"description": "Zip fast !",
+	"background_page" : "background.html",
+	"permissions" : ["unlimitedStorage"]	
+}
