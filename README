@@ -32,7 +32,7 @@ unzipper.getEntries(function(/* Array */entries) {
 	// entries is an array of Object with zip entry details
 });
 - get the content from a zip entry:
-entry.getData(function(/* Array or Uint8Array */ data) {
+entry.getData(function(/* Array */ data) {
 	// data contains the file entry content
 }, function(/* Number */current, /* Number */total) {
 	// unzip progress callback
