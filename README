@@ -11,6 +11,7 @@ This library is implemented with these HTML5 features:
 
 HOWTO:
 - include zip.js in your project
+
 - write a zip file:
 var zipper = zip.createWriter(/* File */file);
 - add a file into the zip:
@@ -19,6 +20,11 @@ zipper.add(/* String */filename, /* Array or Uint8Array */data, /* options */nul
 }, function(/* Number */current, /* Number */total) {
 	// zip progress callback
 });
+- close the zip file
+zipper.close(function() {
+    // onclose callback
+});
+
 - read a zip file:
 var unzipper = zip.createReader(/* File */file);
 - list all entries from the zip:
@@ -31,4 +37,7 @@ entry.getData(function(/* Array or Uint8Array */ data) {
 }, function(/* Number */current, /* Number */total) {
 	// unzip progress callback
 });
-
+- close the zip file
+unzipper.close(function() {
+    // onclose callback
+});
