@@ -201,6 +201,10 @@
 						callback(entries);
 					});
 				});
+			},
+			close : function(callback) {
+				worker.terminate();
+				callback();
 			}
 		};
 	}
@@ -308,12 +312,11 @@
 				writer.onwrite = callback;
 				writer.onerror = callback;
 				writer.write(blobBuilder.getBlob());
-			} else {
+			} else
 				file.createWriter(function(fileWriter) {
 					writer = fileWriter;
 					writeDataBuffer(dataBuffer, callback);
 				});
-			}
 		}
 
 		return {
