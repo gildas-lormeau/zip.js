@@ -4,18 +4,10 @@
  * 
  */
 (function(obj) {
-	
+
 	var WORKER_SCRIPTS_PATH = "";
 
 	// COMMON
-
-	function swap16(val) {
-		return ((val & 0xFF) << 8) | ((val >> 8) & 0xFF);
-	}
-
-	function swap32(val) {
-		return ((val & 0xFF) << 24) | ((val & 0xFF00) << 8) | ((val >> 8) & 0xFF00) | ((val >> 24) & 0xFF);
-	}
 
 	function getDataHelper(size, bytes) {
 		var dataBuffer, dataArray, dataView;
@@ -165,16 +157,16 @@
 						terminate(null, "File format is not recognized.", callback);
 						return;
 					}
-					datalength = swap32(dataView.getUint32(16));
-					fileslength = swap16(dataView.getUint16(8));
+					datalength = dataView.getUint32(16, true);
+					fileslength = dataView.getUint16(8, true);
 					readFile(datalength, file.size - datalength, function(bytes) {
 						var i, index = 0, entries = [], entry, filename, data = getDataHelper(bytes.length, bytes);
 						for (i = 0; i < fileslength; i++) {
 							entry = {}, signature = data.view.getUint32(index);
-							entry.versionNeeded = swap16(data.view.getUint16(index + 6));
-							entry.bitFlag = swap16(data.view.getUint16(index + 8));
-							entry.compressionMethod = swap16(data.view.getUint16(index + 10));
-							entry.timeBlob = swap32(data.view.getUint32(index + 12));
+							entry.versionNeeded = data.view.getUint16(index + 6, true);
+							entry.bitFlag = data.view.getUint16(index + 8, true);
+							entry.compressionMethod = data.view.getUint16(index + 10, true);
+							entry.timeBlob = data.view.getUint32(index + 12, true);
 							if ((entry.bitFlag & 0x01) === 0x01) {
 								terminate(entry, "File contains encrypted entry.", callback);
 								return;
@@ -183,19 +175,19 @@
 								terminate(entry, "File is using bit 3 trailing data descriptor.", callback);
 								return;
 							}
-							entry.crc32 = swap32(data.view.getUint32(index + 16));
-							entry.compressedSize = swap32(data.view.getUint32(index + 20));
-							entry.uncompressedSize = swap32(data.view.getUint32(index + 24));
+							entry.crc32 = data.view.getUint32(index + 16, true);
+							entry.compressedSize = data.view.getUint32(index + 20, true);
+							entry.uncompressedSize = data.view.getUint32(index + 24, true);
 
 							if (entry.compressedSize === 0xFFFFFFFF || entry.uncompressedSize === 0xFFFFFFFF) {
 								terminate(entry, "File is using Zip64 (4gb+ file size).", callback);
 								return;
 							}
-							entry.filenameLength = swap16(data.view.getUint16(index + 28));
-							entry.extraLength = swap16(data.view.getUint16(index + 30));
+							entry.filenameLength = data.view.getUint16(index + 28, true);
+							entry.extraLength = data.view.getUint16(index + 30, true);
 							entry.extra = getString(data.array.subarray(index + 32, index + 32 + entry.extraLength));
 							entry.directory = data.view.getUint8(index + 37 + entry.extraLength) == 1;
-							entry.offset = swap32(data.view.getUint32(index + 42 + entry.extraLength));
+							entry.offset = data.view.getUint32(index + 42 + entry.extraLength, true);
 							filename = getString(data.array.subarray(index + 46 + entry.extraLength, index + 46 + entry.extraLength + entry.filenameLength));
 							entry.filename = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);
 							(function(entry) {
@@ -357,12 +349,12 @@
 					header.view.setUint32(0, 0x0a000008);
 					if (!dontDeflate)
 						header.view.setUint16(4, 0x0800);
-					header.view.setUint16(6, swap16((((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2));
-					header.view.setUint16(8, swap16(((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate()));
-					header.view.setUint32(10, swap32(crc32(uncompressedData)));
-					header.view.setUint32(14, swap32(fileData.length));
-					header.view.setUint32(18, swap32(uncompressedData.length));
-					header.view.setUint16(22, swap16(filename.length));
+					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
+					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
+					header.view.setUint32(10, crc32(uncompressedData), true);
+					header.view.setUint32(14, fileData.length, true);
+					header.view.setUint32(18, uncompressedData.length, true);
+					header.view.setUint16(22, filename.length, true);
 					data.view.setUint32(0, 0x504b0304);
 					data.array.set(header.array, 4);
 					data.array.set(getBytes(filename), 30);
@@ -393,15 +385,15 @@
 					data.array.set(file.headerArray, index + 6);
 					if (file.directory)
 						data.view.setUint16(index + 38, 0x0100);
-					data.view.setUint32(index + 42, swap32(file.offset));
+					data.view.setUint32(index + 42, file.offset, true);
 					data.array.set(getBytes(file.filename), index + 46);
 					index += 46 + file.filename.length;
 				});
 				data.view.setUint32(index, 0x504b0506);
-				data.view.setUint16(index + 8, swap16(filenames.length));
-				data.view.setUint16(index + 10, swap16(filenames.length));
-				data.view.setUint32(index + 12, swap32(length));
-				data.view.setUint32(index + 16, swap32(datalength));
+				data.view.setUint16(index + 8, filenames.length, true);
+				data.view.setUint16(index + 10, filenames.length, true);
+				data.view.setUint32(index + 12, length, true);
+				data.view.setUint32(index + 16, datalength, true);
 				writeDataBuffer(data.buffer, callback);
 				worker.terminate();
 			}
