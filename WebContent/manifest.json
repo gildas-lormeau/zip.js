@@ -1,7 +1,0 @@
-{
-	"name": "zip.js demo",
-	"version": "0.0.1",
-	"description": "zip.js chrome extension simple demo",
-	"background_page" : "background.html",
-	"permissions" : ["unlimitedStorage"]	
-}

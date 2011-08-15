@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>zip.js demo #1</title>
+</head>
+<body>
+	<div>
+		<div>
+			<label>
+				<span>Zip file name:</span>
+				<input type="text" id="filename-input" value="output.zip">
+			</label>
+		</div>
+		<div>
+			<label>
+				<span>Choose files to add into the zip:</span>
+				<input type="file" multiple accept="application/zip" id="file-input">
+			</label>
+		</div>
+		<div>
+			<label>
+				<span>Zipping progress:</span>
+				<progress id="zip-progress" value="0"></progress>
+			</label>
+		</div>
+		<div>
+			<span>Zip content:</span>
+			<ul id="file-list"></ul>
+		</div>
+		<div>
+			<button id="download-button" disabled>Download</button>
+		</div>
+	</div>
+	<script type="text/javascript" src="zip.js"></script>
+	<script type="text/javascript" src="demo1.js"></script>
+</body>
+</html>
