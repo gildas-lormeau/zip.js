@@ -3,6 +3,10 @@
 	var requestFileSystem = requestFileSystem || webkitRequestFileSystem || mozRequestFileSystem;
 	var model, view, controller;
 
+	function onerror(message) {
+		console.error(message);
+	}
+	
 	function createFile(filesystem, filename, callback) {
 		var rootReader = filesystem.root.createReader("/");
 
@@ -44,18 +48,15 @@
 				var addIndex = 0;
 
 				function nextFile() {
-					var reader = new FileReader(), inputFile = files[addIndex];
-					reader.onload = function(e) {
-						zipper.add(inputFile.name, new Uint8Array(e.target.result), null, function() {
-							addIndex++;
-							onaddFile(inputFile);
-							if (addIndex < files.length)
-								nextFile();
-							else
-								onaddFiles();
-						}, onprogressFile);
-					};
-					reader.readAsArrayBuffer(inputFile);
+					var file = files[addIndex];
+					zipper.add(file.name, file, null, function() {
+						addIndex++;
+						onaddFile(file);
+						if (addIndex < files.length)
+							nextFile();
+						else
+							onaddFiles();
+					}, onprogressFile, onerror);
 				}
 
 				if (outputFile)
@@ -76,7 +77,7 @@
 					zipper = null;
 					outputFile = null;
 					filename = "";
-				});
+				}, onerror);
 			}
 		};
 	})();
@@ -113,6 +114,7 @@
 		downloadButton.addEventListener('click', function(event) {
 			downloadButton.disabled = true;
 			view.onDownloadZip();
+			return false;
 		}, false);
 		return {
 			initZip : function() {

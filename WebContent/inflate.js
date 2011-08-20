@@ -7,7 +7,7 @@
 /*
  * Modified version by Gildas Lormeau.
  * 
- * zip_inflate accepts an ArrayBuffer or Array object instead of a String object and returns an Array object.
+ * zip_inflate accepts a Blob object instead of a String object and returns a Blob object.
  */
 
 (function() {
@@ -293,11 +293,18 @@
 
 	/* routines (inflate) */
 
+	var curr_chunk, curr_chunk_pos, CHUNK_SIZE = 65536, zip_file_reader = new FileReaderSync();
+
 	function zip_GET_BYTE() {
-		if (zip_inflate_data.length == zip_inflate_pos)
+		if (zip_inflate_data.size == zip_inflate_pos)
 			return -1;
-		return zip_inflate_data[zip_inflate_pos++];
-		// return zip_inflate_data[zip_inflate_pos++];
+
+		if (!curr_chunk || zip_inflate_pos < curr_chunk_pos || zip_inflate_pos > curr_chunk_pos + curr_chunk.length - 1) {
+			curr_chunk_pos = Math.floor(zip_inflate_pos / CHUNK_SIZE) * CHUNK_SIZE;
+			curr_chunk = new Uint8Array(zip_file_reader.readAsArrayBuffer(zip_inflate_data.webkitSlice(curr_chunk_pos, Math.min(curr_chunk_pos + CHUNK_SIZE,
+					zip_inflate_data.size))));
+		}
+		return curr_chunk[zip_inflate_pos++ - curr_chunk_pos];
 	}
 
 	function zip_NEEDBITS(n) {
@@ -455,7 +462,7 @@
 
 			h = new zip_HuftBuild(l, 288, 257, zip_cplens, zip_cplext, zip_fixed_bl);
 			if (h.status != 0) {
-				alert("HufBuild error: " + h.status);
+				console.error("HufBuild error: " + h.status);
 				return -1;
 			}
 			zip_fixed_tl = h.root;
@@ -470,7 +477,7 @@
 			h = new zip_HuftBuild(l, 30, 0, zip_cpdist, zip_cpdext, zip_fixed_bd);
 			if (h.status > 1) {
 				zip_fixed_tl = null;
-				alert("HufBuild error: " + h.status);
+				console.error("HufBuild error: " + h.status);
 				return -1;
 			}
 			zip_fixed_td = h.root;
@@ -706,24 +713,17 @@
 		return n;
 	}
 
-	function zip_inflate(data, onprogress/* , uncompressedSize (chrome > 13) */) {
-		var buff = [], length;
-		// var index = 0, arrayBuffer = new ArrayBuffer(uncompressedSize), uint8Array = new Uint8Array(arrayBuffer) (chrome > 13)
-		var aout = [];
-		buff.length = 1024;
+	function zip_inflate(data, onprogress) {
+		var buff = new Uint8Array(1024), blobBuilder = new (WebKitBlobBuilder || MozBlobBuilder || BlobBuilder)(), length;
 		zip_inflate_start();
 		zip_inflate_data = data;
 		zip_inflate_pos = 0;
 		while ((length = zip_inflate_internal(buff, 0, buff.length)) > 0) {
-			buff.length = length;
-			// uint8Array.set(buff, index); (chrome > 13)
-			aout.push(buff.slice(0));
-			// index += length; (chrome > 13)
-			onprogress(zip_inflate_pos, data.length);
+			blobBuilder.append(buff.subarray(0, length).buffer);
+			onprogress(zip_inflate_pos, data.size);
 		}
 		zip_inflate_data = null; // G.C.
-		// return uint8Array; (chrome > 13)
-		return Array.prototype.concat.apply([], aout);
+		return blobBuilder.getBlob();
 	}
 
 	//
@@ -744,7 +744,7 @@
 		if (message.inflate) {
 			postMessage({
 				end : true,
-				data : zip_inflate(message.data, onprogress/* , message.uncompressedSize (chrome > 13) */)
+				data : zip_inflate(message.data, onprogress)
 			});
 		}
 	}, false);

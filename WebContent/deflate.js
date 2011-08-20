@@ -1,13 +1,13 @@
 /*
  * Port of a script by Masanao Izumo.
  * 
- * Original code can be found here: http://www.onicos.com/staff/iz/amuse/javascript/expert/inflate.txt
+ * Original code can be found here: http://www.onicos.com/staff/iz/amuse/javascript/expert/deflate.txt
  */
 
 /*
  * Modified version by Gildas Lormeau.
  * 
- * zip_deflate accepts an ArrayBuffer or Array object instead of a String object and returns an Array object.
+ * zip_deflate accepts a Blob object instead of a String object and returns a Blob object.
  */
 
 (function() {
@@ -33,22 +33,22 @@
 	var zip_MAX_MATCH = 258;
 	var zip_BITS = 16;
 	// for SMALL_MEM
-	// var zip_LIT_BUFSIZE = 0x2000;
-	// var zip_HASH_BITS = 13;
+	var zip_LIT_BUFSIZE = 0x2000;
+	var zip_HASH_BITS = 13;
 	// for MEDIUM_MEM
-	var zip_LIT_BUFSIZE = 0x4000;
-	var zip_HASH_BITS = 14;
+	// var zip_LIT_BUFSIZE = 0x4000;
+	// var zip_HASH_BITS = 14;
 	// for BIG_MEM
 	// var zip_LIT_BUFSIZE = 0x8000;
 	// var zip_HASH_BITS = 15;
 	if (zip_LIT_BUFSIZE > zip_INBUFSIZ)
-		alert("error: zip_INBUFSIZ is too small");
+		console.error("error: zip_INBUFSIZ is too small");
 	if ((zip_WSIZE << 1) > (1 << zip_BITS))
-		alert("error: zip_WSIZE is too large");
+		console.log("error: zip_WSIZE is too large");
 	if (zip_HASH_BITS > zip_BITS - 1)
-		alert("error: zip_HASH_BITS is too large");
+		console.error("error: zip_HASH_BITS is too large");
 	if (zip_HASH_BITS < 8 || zip_MAX_MATCH != 258)
-		alert("error: Code too clever");
+		console.error("error: Code too clever");
 	var zip_DIST_BUFSIZE = zip_LIT_BUFSIZE;
 	var zip_HASH_SIZE = 1 << zip_HASH_BITS;
 	var zip_HASH_MASK = zip_HASH_SIZE - 1;
@@ -194,7 +194,7 @@
 
 		zip_free_queue = zip_qhead = zip_qtail = null;
 		zip_outbuf = new Array(zip_OUTBUFSIZ);
-		zip_window = new Array(zip_window_size);
+		zip_window = new Uint8Array(zip_window_size);
 		zip_d_buf = new Array(zip_DIST_BUFSIZE);
 		zip_l_buf = new Array(zip_INBUFSIZ + zip_INBUF_EXTRA);
 		zip_prev = new Array(1 << zip_BITS);
@@ -334,14 +334,15 @@
 		return tree[n].fc < tree[m].fc || (tree[n].fc == tree[m].fc && zip_depth[n] <= zip_depth[m]);
 	};
 
+	var zip_file_reader = new FileReaderSync();
+
 	/*
 	 * ========================================================================== read string data
 	 */
 	var zip_read_buff = function(buff, offset, n) {
-		var i;
-		/* for (i = 0; i < n && zip_deflate_pos < zip_deflate_data.length; i++) buff[offset + i] = zip_deflate_data[zip_deflate_pos++] */
-		for (i = 0; i < n && zip_deflate_pos < zip_deflate_data.length; i++)
-			buff[offset + i] = zip_deflate_data[zip_deflate_pos++];
+		var offset_end = Math.min(zip_deflate_data.size, zip_deflate_pos + n), i = offset_end - zip_deflate_pos;
+		buff.set(new Uint8Array(zip_file_reader.readAsArrayBuffer(zip_deflate_data.webkitSlice(zip_deflate_pos, offset_end))), offset);
+		zip_deflate_pos = offset_end;
 		return i;
 	};
 
@@ -1589,22 +1590,21 @@
 	};
 
 	var zip_deflate = function(data, level, onprogress) {
-		var i, last_zip_deflate_pos = -1;
+		var buff = new Uint8Array(1024), blobBuilder = new (WebKitBlobBuilder || MozBlobBuilder || BlobBuilder)(), last_zip_deflate_pos = -1;
 		zip_deflate_data = data;
 		zip_deflate_pos = 0;
 		if (!level)
 			level = zip_DEFAULT_LEVEL;
 		zip_deflate_start(level);
-		var buff = new Array(1024);
-		var aout = [];
-		while ((i = zip_deflate_internal(buff, 0, buff.length)) > 0) {
-			aout.push(buff.slice(0));
+		while (zip_deflate_internal(buff, 0, buff.length) > 0) {
+			blobBuilder.append(buff.buffer);
+			buff = new Uint8Array(1024);
 			if (last_zip_deflate_pos != zip_deflate_pos)
-				onprogress(zip_deflate_pos, data.length);
+				onprogress(zip_deflate_pos, data.size);
 			last_zip_deflate_pos = zip_deflate_pos;
 		}
 		zip_deflate_data = null; // G.C.
-		return Array.prototype.concat.apply([], aout);
+		return blobBuilder.getBlob();
 	};
 
 	//

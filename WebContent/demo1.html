@@ -5,31 +5,26 @@
 <title>zip.js demo #1</title>
 </head>
 <body>
-	<div>
-		<div>
+	<div class="main">
+		<div class="row">
 			<label>
-				<span>Zip file name:</span>
+				<span>1 - Choose file name</span>
 				<input type="text" id="filename-input" value="output.zip">
 			</label>
 		</div>
-		<div>
+		<div class="row">
 			<label>
-				<span>Choose files to add into the zip:</span>
-				<input type="file" multiple accept="application/zip" id="file-input">
+				<span>2 - Add files into the zip</span>
+				<input type="file" multiple id="file-input">
+				<progress id="zip-progress" value="0" max="0"></progress>
 			</label>
 		</div>
-		<div>
-			<label>
-				<span>Zipping progress:</span>
-				<progress id="zip-progress" value="0"></progress>
-			</label>
-		</div>
-		<div>
-			<span>Zip content:</span>
+		<div class="row">
+			<span>3 - View Zip content</span>
 			<ul id="file-list"></ul>
 		</div>
-		<div>
-			<button id="download-button" disabled>Download</button>
+		<div class="row">
+			&nbsp;<button id="download-button" disabled>4 - Download!</button>
 		</div>
 	</div>
 	<script type="text/javascript" src="zip.js"></script>
