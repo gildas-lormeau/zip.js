@@ -1596,9 +1596,8 @@
 		if (!level)
 			level = zip_DEFAULT_LEVEL;
 		zip_deflate_start(level);
-		while (zip_deflate_internal(buff, 0, buff.length) > 0) {
-			blobBuilder.append(buff.buffer);
-			buff = new Uint8Array(1024);
+		while ((length = zip_deflate_internal(buff, 0, buff.length)) > 0) {
+			blobBuilder.append(buff.subarray(0, length).buffer);
 			if (last_zip_deflate_pos != zip_deflate_pos)
 				onprogress(zip_deflate_pos, data.size);
 			last_zip_deflate_pos = zip_deflate_pos;
