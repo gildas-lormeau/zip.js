@@ -1080,7 +1080,6 @@
 				// Compute an upper bound for the compressed length
 				out_length = last_lit * 8;
 				in_length = strstart - block_start;
-				dcode;
 				for (dcode = 0; dcode < D_CODES; dcode++) {
 					out_length += dyn_dtree[dcode * 2] * (5 + Tree.extra_dbits[dcode]);
 				}
