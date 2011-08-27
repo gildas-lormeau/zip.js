@@ -1,12 +1,13 @@
 (function() {
 
-	var requestFileSystem = webkitRequestFileSystem || mozRequestFileSystem || requestFileSystem;
+	var requestFileSystem = this.webkitRequestFileSystem || this.mozRequestFileSystem || this.requestFileSystem;
+
 	var model, view, controller;
 
 	function onerror(message) {
 		console.error(message);
 	}
-	
+
 	function createFile(filesystem, filename, callback) {
 		var rootReader = filesystem.root.createReader("/");
 

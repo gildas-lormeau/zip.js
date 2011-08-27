@@ -6,7 +6,7 @@
  */
 (function(obj) {
 
-	var BlobBuilder = WebKitBlobBuilder || MozBlobBuilder || BlobBuilder;
+	var BlobBuilder = this.WebKitBlobBuilder || this.MozBlobBuilder || this.BlobBuilder;
 
 	var WORKER_SCRIPTS_PATH = "";
 

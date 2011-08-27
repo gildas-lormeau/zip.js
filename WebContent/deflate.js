@@ -37,7 +37,7 @@
 
 (function() {
 
-	var BlobBuilder = WebKitBlobBuilder || MozBlobBuilder || BlobBuilder;
+	var BlobBuilder = this.WebKitBlobBuilder || this.MozBlobBuilder || this.BlobBuilder;
 
 	// Global
 
