@@ -29,11 +29,11 @@
 	// READER
 
 	function decodeASCII(str) {
-		var i = 0, out = "", charCode, extendedASCII = [ 'Ç', 'ü', 'é', 'â', 'ä', 'à', 'å', 'ç', 'ê', 'ë', 'è', 'ï', 'î', 'ì', 'Ä', 'Å', 'É', 'æ', 'Æ', 'ô',
-				'ö', 'ò', 'û', 'ù', 'ÿ', 'Ö', 'Ü', 'ø', '£', 'Ø', '×', 'ƒ', 'á', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ª', 'º', '¿', '®', '¬', '½', '¼', '¡', '«', '»',
-				'_', '_', '_', '¦', '¦', 'Á', 'Â', 'À', '©', '¦', '¦', '+', '+', '¢', '¥', '+', '+', '-', '-', '+', '-', '+', 'ã', 'Ã', '+', '+', '-', '-',
-				'¦', '-', '+', '¤', 'ð', 'Ð', 'Ê', 'Ë', 'È', 'i', 'Í', 'Î', 'Ï', '+', '+', '_', '_', '¦', 'Ì', '_', 'Ó', 'ß', 'Ô', 'Ò', 'õ', 'Õ', 'µ', 'þ',
-				'Þ', 'Ú', 'Û', 'Ù', 'ý', 'Ý', '¯', '´', '­', '±', '_', '¾', '¶', '§', '÷', '¸', '°', '¨', '·', '¹', '³', '²', '_', ' ' ];
+		var i, out = "", charCode, extendedASCII = [ 'Ç', 'ü', 'é', 'â', 'ä', 'à', 'å', 'ç', 'ê', 'ë', 'è', 'ï', 'î', 'ì', 'Ä', 'Å', 'É', 'æ', 'Æ', 'ô', 'ö',
+				'ò', 'û', 'ù', 'ÿ', 'Ö', 'Ü', 'ø', '£', 'Ø', '×', 'ƒ', 'á', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ª', 'º', '¿', '®', '¬', '½', '¼', '¡', '«', '»', '_',
+				'_', '_', '¦', '¦', 'Á', 'Â', 'À', '©', '¦', '¦', '+', '+', '¢', '¥', '+', '+', '-', '-', '+', '-', '+', 'ã', 'Ã', '+', '+', '-', '-', '¦',
+				'-', '+', '¤', 'ð', 'Ð', 'Ê', 'Ë', 'È', 'i', 'Í', 'Î', 'Ï', '+', '+', '_', '_', '¦', 'Ì', '_', 'Ó', 'ß', 'Ô', 'Ò', 'õ', 'Õ', 'µ', 'þ', 'Þ',
+				'Ú', 'Û', 'Ù', 'ý', 'Ý', '¯', '´', '­', '±', '_', '¾', '¶', '§', '÷', '¸', '°', '¨', '·', '¹', '³', '²', '_', ' ' ];
 		for (i = 0; i < str.length; i++) {
 			charCode = str.charCodeAt(i) & 0xFF;
 			if (charCode > 127)
@@ -78,7 +78,7 @@
 
 	function createZipReader(file) {
 		var worker;
-
+		
 		function readBlob(index, length) {
 			if (file.webkitSlice)
 				return file.webkitSlice(index, index + length);
@@ -126,25 +126,29 @@
 			});
 		}
 
-		function getData(entry, callback, onprogress, onerror) {
-			readArrayBuffer(entry.offset, 4, function(bytes) {
-				if (getDataHelper(bytes.length, bytes).view.getUint32(0) == 0x504b0304) {
-					bytes = readBlob(entry.offset + 30 + entry.filenameLength + entry.extraLength, entry.compressedSize);
-					if (entry.compressionMethod === 0)
-						callback(bytes);
-					else
-						inflate(bytes, entry.uncompressedSize, function(data) {
-							callback(data);
-						}, onprogress);
-				} else
-					terminate(onerror, "File format is not recognized.");
-			}, function() {
-				terminate(onerror, "Error while reading zip file.");
-			});
-		}
-
 		return {
 			getEntries : function(callback, onerror) {
+				function Entry(){			
+				}
+				
+				Entry.prototype.getData = function(callback, onprogress) {
+					var entry = this;
+					readArrayBuffer(entry.offset, 4, function(bytes) {
+						if (getDataHelper(bytes.length, bytes).view.getUint32(0) == 0x504b0304) {
+							bytes = readBlob(entry.offset + 30 + entry.filenameLength + entry.extraLength, entry.compressedSize);
+							if (entry.compressionMethod === 0)
+								callback(bytes);
+							else
+								inflate(bytes, entry.uncompressedSize, function(data) {
+									callback(data);
+								}, onprogress);
+						} else
+							terminate(onerror, "File format is not recognized.");
+					}, function() {
+						terminate(onerror, "Error while reading zip file.");
+					});
+				};
+
 				if (file.size < 22) {
 					terminate(onerror, "File format is not recognized.");
 					return;
@@ -160,7 +164,7 @@
 					readArrayBuffer(datalength, file.size - datalength, function(bytes) {
 						var i, signature, index = 0, entries = [], entry, filename, data = getDataHelper(bytes.length, bytes);
 						for (i = 0; i < fileslength; i++) {
-							entry = {};
+							entry = new Entry();
 							signature = data.view.getUint32(index);
 							entry.versionNeeded = data.view.getUint16(index + 6, true);
 							entry.bitFlag = data.view.getUint16(index + 8, true);
@@ -188,12 +192,7 @@
 							entry.directory = data.view.getUint8(index + 37 + entry.extraLength) == 1;
 							entry.offset = data.view.getUint32(index + 42 + entry.extraLength, true);
 							filename = getString(data.array.subarray(index + 46 + entry.extraLength, index + 46 + entry.extraLength + entry.filenameLength));
-							entry.filename = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);
-							(function(entry) {
-								entry.getData = function(callback, onprogress) {
-									getData(entry, callback, onprogress, onerror);
-								};
-							})(entry);
+							entry.filename = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);							
 							entries.push(entry);
 							index += 46 + entry.extraLength + entry.filenameLength;
 						}
