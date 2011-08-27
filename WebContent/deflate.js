@@ -38,7 +38,7 @@
 (function() {
 
 	var BlobBuilder = WebKitBlobBuilder || MozBlobBuilder || BlobBuilder;
-	
+
 	// Global
 
 	var MAX_BITS = 15;
@@ -69,10 +69,6 @@
 	// length codes.
 
 	var Buf_size = 8 * 2;
-
-	function arraycopy(src, srcPos, dest, destPos, length) {
-		dest.set(src.subarray(srcPos, srcPos + length), destPos);
-	}
 
 	// JZlib
 
@@ -1192,7 +1188,7 @@
 				put_short(~len);
 			}
 
-			arraycopy(window, buf, that.pending_buf, that.pending, len);
+			that.pending_buf.set(window.subarray(buf, buf + len), that.pending);
 			that.pending += len;
 		}
 
@@ -1309,7 +1305,8 @@
 					// move the upper half to the lower one to make room in the
 					// upper half.
 				} else if (strstart >= w_size + w_size - MIN_LOOKAHEAD) {
-					arraycopy(window, w_size, window, 0, w_size);
+					window.set(window.subarray(w_size, w_size + w_size), 0);
+
 					match_start -= w_size;
 					strstart -= w_size; // we now have strstart >= MAX_DIST
 					block_start -= w_size;
@@ -1891,7 +1888,8 @@
 				length = w_size - MIN_LOOKAHEAD;
 				index = dictLength - length; // use the tail of the dictionary
 			}
-			arraycopy(dictionary, index, window, 0, length);
+			window.set(dictionary.subarray(index, index + length), 0);
+
 			strstart = length;
 			block_start = length;
 
@@ -2097,7 +2095,6 @@
 				slice = that.next_in.mozSlice(that.next_in_index, that.next_in_index + len);
 			else
 				slice = that.next_in.slice(that.next_in_index, that.next_in_index + len);
-			// arraycopy(that.next_in, that.next_in_index, buf, start, len); // Uint8Array
 			buf.set(new Uint8Array(fileReader.readAsArrayBuffer(slice)), start);
 			that.next_in_index += len;
 			that.total_in += len;
@@ -2166,7 +2163,7 @@
 			// console.log("avail_out=" + that.avail_out);
 			// }
 
-			arraycopy(that.dstate.pending_buf, that.dstate.pending_out, that.next_out, that.next_out_index, len);
+			that.next_out.set(that.dstate.pending_buf.subarray(that.dstate.pending_out, that.dstate.pending_out + len), that.next_out_index);
 
 			that.next_out_index += len;
 			that.dstate.pending_out += len;
