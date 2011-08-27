@@ -12,6 +12,8 @@
 
 (function() {
 
+	var BlobBuilder = WebKitBlobBuilder || MozBlobBuilder || BlobBuilder;
+	
 	/*
 	 * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp> Version: 1.0.0.1 LastModified: Dec 25 1999
 	 */
@@ -714,7 +716,7 @@
 	}
 
 	function zip_inflate(data, onprogress) {
-		var buff = new Uint8Array(1024), blobBuilder = new (WebKitBlobBuilder || MozBlobBuilder || BlobBuilder)(), length;
+		var buff = new Uint8Array(1024), blobBuilder = new BlobBuilder(), length;
 		zip_inflate_start();
 		zip_inflate_data = data;
 		zip_inflate_pos = 0;

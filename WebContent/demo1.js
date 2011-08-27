@@ -1,6 +1,6 @@
 (function() {
 
-	var requestFileSystem = requestFileSystem || webkitRequestFileSystem || mozRequestFileSystem;
+	var requestFileSystem = webkitRequestFileSystem || mozRequestFileSystem || requestFileSystem;
 	var model, view, controller;
 
 	function onerror(message) {

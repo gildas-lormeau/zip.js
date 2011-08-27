@@ -6,6 +6,8 @@
  */
 (function(obj) {
 
+	var BlobBuilder = WebKitBlobBuilder || MozBlobBuilder || BlobBuilder;
+
 	var WORKER_SCRIPTS_PATH = "";
 
 	// COMMON
@@ -87,12 +89,12 @@
 		}
 
 		function readBlob(index, length) {
-			if (file.slice)
-				return file.slice(index, index + length);
-			else if (file.webkitSlice)
+			if (file.webkitSlice)
 				return file.webkitSlice(index, index + length);
 			else if (file.mozSlice)
 				return file.mozSlice(index, index + length);
+			else
+				return file.slice(index, index + length);
 		}
 
 		function terminate(callback, param) {
@@ -267,7 +269,7 @@
 		}
 
 		function writeArrayBuffer(arrayBuffer, callback, onerror) {
-			blobBuilder = new (WebKitBlobBuilder || MozBlobBuilder || BlobBuilder)();
+			blobBuilder = new BlobBuilder();
 			blobBuilder.append(arrayBuffer);
 			writeBlob(blobBuilder.getBlob(), callback, onerror);
 		}

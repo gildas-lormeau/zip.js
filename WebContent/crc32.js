@@ -25,13 +25,19 @@
 			3020668471, 3272380065, 1510334235, 755167117 ];
 
 	function crc32(blob) {
-		var chunkIndex, chunkOffset, maxChunkIndex, chunkLength, index, chunk, fileReader = new FileReaderSync(), crc = -1;
+		var slice, chunkIndex, chunkOffset, maxChunkIndex, chunkLength, index, chunk, fileReader = new FileReaderSync(), crc = -1;
 		if (blob.size) {
 			maxChunkIndex = Math.ceil(blob.size / CHUNK_SIZE);
 			for (chunkIndex = 0; chunkIndex < maxChunkIndex; chunkIndex++) {
 				chunkLength = Math.min(CHUNK_SIZE, blob.size - (chunkIndex * CHUNK_SIZE));
 				index = chunkIndex * CHUNK_SIZE;
-				chunk = new Uint8Array(fileReader.readAsArrayBuffer(blob.webkitSlice(index, index + chunkLength)));
+				if (blob.webkitSlice)
+					slice = blob.webkitSlice(index, index + chunkLength);
+				else if (blob.mozSlice)
+					slice = blob.mozSlice(index, index + chunkLength);
+				else
+					slice = blob.slice(index, index + chunkLength);
+				chunk = new Uint8Array(fileReader.readAsArrayBuffer(slice));
 				for (chunkOffset = 0; chunkOffset < chunkLength; chunkOffset++)
 					crc = (crc >>> 8) ^ table[(crc ^ chunk[chunkOffset]) & 0xFF];
 			}

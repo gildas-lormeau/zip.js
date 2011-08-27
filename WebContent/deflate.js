@@ -37,6 +37,8 @@
 
 (function() {
 
+	var BlobBuilder = WebKitBlobBuilder || MozBlobBuilder || BlobBuilder;
+	
 	// Global
 
 	var MAX_BITS = 15;
@@ -2077,6 +2079,7 @@
 		that.read_buf = function(buf, start, size) {
 			var that = this;
 			var len = that.avail_in;
+			var slice;
 
 			if (len > size)
 				len = size;
@@ -2088,8 +2091,14 @@
 			if (that.dstate.noheader === 0) {
 				that.adler = adler32(that.adler, that.next_in, that.next_in_index, len);
 			}
+			if (that.next_in.webkitSlice)
+				slice = that.next_in.webkitSlice(that.next_in_index, that.next_in_index + len);
+			else if (that.next_in.mozSlice)
+				slice = that.next_in.mozSlice(that.next_in_index, that.next_in_index + len);
+			else
+				slice = that.next_in.slice(that.next_in_index, that.next_in_index + len);
 			// arraycopy(that.next_in, that.next_in_index, buf, start, len); // Uint8Array
-			buf.set(new Uint8Array(fileReader.readAsArrayBuffer(that.next_in.webkitSlice(that.next_in_index, that.next_in_index + len))), start);
+			buf.set(new Uint8Array(fileReader.readAsArrayBuffer(slice)), start);
 			that.next_in_index += len;
 			that.total_in += len;
 			return len;
@@ -2178,7 +2187,7 @@
 		var bufsize = 512;
 		var flush = JZlib.Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
-		var output = new WebKitBlobBuilder();
+		var output = new BlobBuilder();
 
 		that.NO_COMPRESSION = 0;
 		that.BEST_SPEED = 1;
