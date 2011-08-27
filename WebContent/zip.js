@@ -79,15 +79,6 @@
 	function createZipReader(file) {
 		var worker;
 
-		function readArrayBuffer(index, length, callback, onerror) {
-			var reader = new FileReader();
-			reader.onload = function(e) {
-				callback(new Uint8Array(e.target.result));
-			};
-			reader.onerror = onerror;
-			reader.readAsArrayBuffer(readBlob(index, length));
-		}
-
 		function readBlob(index, length) {
 			if (file.webkitSlice)
 				return file.webkitSlice(index, index + length);
@@ -95,6 +86,15 @@
 				return file.mozSlice(index, index + length);
 			else
 				return file.slice(index, index + length);
+		}
+
+		function readArrayBuffer(index, length, callback, onerror) {
+			var reader = new FileReader();
+			reader.onload = function(e) {
+				callback(new Uint8Array(e.target.result));
+			};
+			reader.onerror = onerror;
+			reader.readAsArrayBuffer(readBlob(index, length));
 		}
 
 		function terminate(callback, param) {
@@ -129,8 +129,8 @@
 		function getData(entry, callback, onprogress, onerror) {
 			readArrayBuffer(entry.offset, 4, function(bytes) {
 				if (getDataHelper(bytes.length, bytes).view.getUint32(0) == 0x504b0304) {
-					var bytes = readBlob(entry.offset + 30 + entry.filenameLength + entry.extraLength, entry.compressedSize);
-					if (entry.compressionMethod == 0)
+					bytes = readBlob(entry.offset + 30 + entry.filenameLength + entry.extraLength, entry.compressedSize);
+					if (entry.compressionMethod === 0)
 						callback(bytes);
 					else
 						inflate(bytes, entry.uncompressedSize, function(data) {
@@ -158,9 +158,10 @@
 					datalength = dataView.getUint32(16, true);
 					fileslength = dataView.getUint16(8, true);
 					readArrayBuffer(datalength, file.size - datalength, function(bytes) {
-						var i, index = 0, entries = [], entry, filename, data = getDataHelper(bytes.length, bytes);
+						var i, signature, index = 0, entries = [], entry, filename, data = getDataHelper(bytes.length, bytes);
 						for (i = 0; i < fileslength; i++) {
-							entry = {}, signature = data.view.getUint32(index);
+							entry = {};
+							signature = data.view.getUint32(index);
 							entry.versionNeeded = data.view.getUint16(index + 6, true);
 							entry.bitFlag = data.view.getUint16(index + 8, true);
 							entry.compressionMethod = data.view.getUint16(index + 10, true);
@@ -268,14 +269,7 @@
 				callback(message);
 		}
 
-		function writeArrayBuffer(arrayBuffer, callback, onerror) {
-			blobBuilder = new BlobBuilder();
-			blobBuilder.append(arrayBuffer);
-			writeBlob(blobBuilder.getBlob(), callback, onerror);
-		}
-
 		function writeBlob(blob, callback, onerror) {
-			var blobBuilder;
 			if (writer) {
 				writer.onwrite = callback;
 				writer.onerror = onerror;
@@ -285,6 +279,12 @@
 					writer = fileWriter;
 					writeBlob(blob, callback, onerror);
 				}, onerror);
+		}
+
+		function writeArrayBuffer(arrayBuffer, callback, onerror) {
+			var blobBuilder = new BlobBuilder();
+			blobBuilder.append(arrayBuffer);
+			writeBlob(blobBuilder.getBlob(), callback, onerror);
 		}
 
 		return {

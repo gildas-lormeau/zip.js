@@ -13,7 +13,7 @@
 (function() {
 
 	var BlobBuilder = WebKitBlobBuilder || MozBlobBuilder || BlobBuilder;
-	
+
 	/*
 	 * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp> Version: 1.0.0.1 LastModified: Dec 25 1999
 	 */
@@ -147,13 +147,13 @@
 
 		// Find minimum and maximum length, bound *m by those
 		for (j = 1; j <= this.BMAX; j++)
-			if (c[j] != 0)
+			if (c[j] !== 0)
 				break;
 		k = j; // minimum code length
 		if (mm < j)
 			mm = j;
-		for (i = this.BMAX; i != 0; i--)
-			if (c[i] != 0)
+		for (i = this.BMAX; i !== 0; i--)
+			if (c[i] !== 0)
 				break;
 		g = i; // maximum code length
 		if (mm > i)
@@ -187,7 +187,7 @@
 		pidx = 0;
 		i = 0;
 		do {
-			if ((j = p[pidx++]) != 0)
+			if ((j = p[pidx++]) !== 0)
 				v[x[j]++] = i;
 		} while (++i < n);
 		n = x[g]; // set n to length of v
@@ -231,7 +231,7 @@
 						q[o] = new zip_HuftNode();
 					}
 
-					if (tail == null)
+					if (!tail)
 						tail = this.root = new zip_HuftList();
 					else
 						tail = tail.next = new zip_HuftList();
@@ -274,7 +274,7 @@
 				}
 
 				// backwards increment the k-bit code i
-				for (j = 1 << (k - 1); (i & j) != 0; j >>= 1)
+				for (j = 1 << (k - 1); (i & j) !== 0; j >>= 1)
 					i ^= j;
 				i ^= j;
 
@@ -290,7 +290,7 @@
 		this.m = lx[1];
 
 		/* Return true (1) if we were given an incomplete table */
-		this.status = ((y != 0 && g != 1) ? 1 : 0);
+		this.status = ((y !== 0 && g != 1) ? 1 : 0);
 	}
 
 	/* routines (inflate) */
@@ -333,7 +333,7 @@
 		var t; // (zip_HuftNode) pointer to table entry
 		var n;
 
-		if (size == 0)
+		if (size === 0)
 			return 0;
 
 		// inflate the coded data
@@ -434,19 +434,20 @@
 			zip_DUMPBITS(8);
 		}
 
-		if (zip_copy_leng == 0)
+		if (zip_copy_leng === 0)
 			zip_method = -1; // done
 		return n;
 	}
 
 	function zip_inflate_fixed(buff, off, size) {
+		var zip_fixed_bd;
 		/*
 		 * decompress an inflated type 1 (fixed Huffman codes) block. We should either replace this with a custom decoder, or at least
 		 * precompute the Huffman tables.
 		 */
 
 		// if first time, set up tables for fixed blocks
-		if (zip_fixed_tl == null) {
+		if (!zip_fixed_tl) {
 			var i; // temporary variable
 			var l = new Array(288); // length list for huft_build
 			var h; // zip_HuftBuild
@@ -463,7 +464,7 @@
 			zip_fixed_bl = 7;
 
 			h = new zip_HuftBuild(l, 288, 257, zip_cplens, zip_cplext, zip_fixed_bl);
-			if (h.status != 0) {
+			if (h.status !== 0) {
 				console.error("HufBuild error: " + h.status);
 				return -1;
 			}
@@ -532,7 +533,7 @@
 		// build decoding table for trees--single level, 7 bit lookup
 		zip_bl = 7;
 		h = new zip_HuftBuild(ll, 19, 19, null, null, zip_bl);
-		if (h.status != 0)
+		if (h.status !== 0)
 			return -1; // incomplete code set
 		zip_tl = h.root;
 		zip_bl = h.m;
@@ -580,11 +581,11 @@
 		// build the decoding tables for literal/length and distance codes
 		zip_bl = zip_lbits;
 		h = new zip_HuftBuild(ll, nl, 257, zip_cplens, zip_cplext, zip_bl);
-		if (zip_bl == 0) // no literals or lengths
+		if (zip_bl === 0) // no literals or lengths
 			h.status = 1;
-		if (h.status != 0) {
-			if (h.status == 1)
-				; // **incomplete literal tree**
+		if (h.status !== 0) {
+			// if (h.status == 1)
+			// **incomplete literal tree**
 			return -1; // incomplete code set
 		}
 		zip_tl = h.root;
@@ -597,15 +598,15 @@
 		zip_td = h.root;
 		zip_bd = h.m;
 
-		if (zip_bd == 0 && nl > 257) { // lengths but no distances
+		if (zip_bd === 0 && nl > 257) { // lengths but no distances
 			// **incomplete distance tree**
 			return -1;
 		}
 
-		if (h.status == 1) {
-			; // **incomplete distance tree**
-		}
-		if (h.status != 0)
+		// if (h.status == 1)
+		// **incomplete distance tree**
+
+		if (h.status !== 0)
 			return -1;
 
 		// decompress until an end-of-block code
@@ -615,7 +616,7 @@
 	function zip_inflate_start() {
 		var i;
 
-		if (zip_slide == null)
+		if (!zip_slide)
 			zip_slide = new Array(2 * zip_WSIZE);
 		zip_wp = 0;
 		zip_bit_buf = 0;
@@ -652,7 +653,7 @@
 						buff[off + n++] = zip_slide[zip_wp++] = zip_GETBITS(8);
 						zip_DUMPBITS(8);
 					}
-					if (zip_copy_leng == 0)
+					if (zip_copy_leng === 0)
 						zip_method = -1; // done
 				}
 				if (n == size)
@@ -665,7 +666,7 @@
 
 				// read in last block bit
 				zip_NEEDBITS(1);
-				if (zip_GETBITS(1) != 0)
+				if (zip_GETBITS(1) !== 0)
 					zip_eof = true;
 				zip_DUMPBITS(1);
 
@@ -685,7 +686,7 @@
 
 			case 1:
 				// zip_STATIC_TREES
-				if (zip_tl != null)
+				if (zip_tl)
 					i = zip_inflate_codes(buff, off + n, size - n);
 				else
 					i = zip_inflate_fixed(buff, off + n, size - n);
@@ -693,7 +694,7 @@
 
 			case 2:
 				// zip_DYN_TREES
-				if (zip_tl != null)
+				if (zip_tl)
 					i = zip_inflate_codes(buff, off + n, size - n);
 				else
 					i = zip_inflate_dynamic(buff, off + n, size - n);
