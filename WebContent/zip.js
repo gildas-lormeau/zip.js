@@ -111,13 +111,14 @@
 				if (message.progress && onprogress)
 					onprogress(message.current, message.total);
 				if (message.end) {
-					worker.removeEventListener("message", onmesssage, false);
+					worker.terminate();
+					// worker.removeEventListener("message", onmesssage, false);
 					callback(message.data);
 				}
 			}
 
-			if (!worker)
-				worker = new Worker(WORKER_SCRIPTS_PATH + "inflate.js");
+			// if (!worker)
+			worker = new Worker(WORKER_SCRIPTS_PATH + "inflate.js");
 			worker.addEventListener("message", onmesssage, false);
 			worker.postMessage({
 				inflate : true,
