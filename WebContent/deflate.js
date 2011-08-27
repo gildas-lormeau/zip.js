@@ -310,6 +310,7 @@
 			var code = 0; // running code value
 			var bits; // bit index
 			var n; // code index
+			var len;
 
 			// The distribution counts are first used to generate the code values
 			// without bit reversal.
@@ -324,7 +325,7 @@
 			// Tracev((stderr,"\ngen_codes: max_code %d ", max_code));
 
 			for (n = 0; n <= max_code; n++) {
-				var len = tree[n * 2 + 1];
+				len = tree[n * 2 + 1];
 				if (len === 0)
 					continue;
 				// Now reverse the bits
@@ -678,12 +679,6 @@
 		var d_desc = new Tree(); // desc for distance tree
 		var bl_desc = new Tree(); // desc for bit length tree
 
-		// number of codes at each bit length for an optimal tree
-		that.bl_count = [];
-
-		// heap used to build the Huffman trees
-		that.heap = [];
-
 		// that.heap_len; // number of elements in the heap
 		// that.heap_max; // element of largest frequency
 		// The sons of heap[n] are heap[2*n] and heap[2*n+1]. heap[0] is not used.
@@ -734,15 +729,22 @@
 		// are always zero.
 		var bi_valid;
 
+		// number of codes at each bit length for an optimal tree
+		that.bl_count = [];
+
+		// heap used to build the Huffman trees
+		that.heap = [];
+
 		dyn_ltree = [];
 		dyn_dtree = [];
 		bl_tree = [];
 
 		function lm_init() {
+			var i;
 			window_size = 2 * w_size;
 
 			head[hash_size - 1] = 0;
-			for ( var i = 0; i < hash_size - 1; i++) {
+			for (i = 0; i < hash_size - 1; i++) {
 				head[i] = 0;
 			}
 
@@ -919,9 +921,9 @@
 		}
 
 		function send_bits(value, length) {
-			var len = length;
+			var val, len = length;
 			if (bi_valid > Buf_size - len) {
-				var val = value;
+				val = value;
 				// bi_buf |= (val << bi_valid);
 				bi_buf |= ((val << bi_valid) & 0xffff);
 				put_short(bi_buf);
@@ -1056,6 +1058,7 @@
 		function _tr_tally(dist, // distance of matched string
 		lc // match length-MIN_MATCH or unmatched char (if dist==0)
 		) {
+			var out_length, in_length, dcode;
 			that.pending_buf[d_buf + last_lit * 2] = (dist >>> 8) & 0xff;
 			that.pending_buf[d_buf + last_lit * 2 + 1] = dist & 0xff;
 
@@ -1075,9 +1078,9 @@
 
 			if ((last_lit & 0x1fff) === 0 && level > 2) {
 				// Compute an upper bound for the compressed length
-				var out_length = last_lit * 8;
-				var in_length = strstart - block_start;
-				var dcode;
+				out_length = last_lit * 8;
+				in_length = strstart - block_start;
+				dcode;
 				for (dcode = 0; dcode < D_CODES; dcode++) {
 					out_length += dyn_dtree[dcode * 2] * (5 + Tree.extra_dbits[dcode]);
 				}
@@ -1617,6 +1620,7 @@
 			// short hash_head = 0; // head of hash chain
 			var hash_head = 0; // head of hash chain
 			var bflush; // set if current block must be flushed
+			var max_insert;
 
 			// Process the input block.
 			while (true) {
@@ -1671,7 +1675,7 @@
 				// If there was a match at the previous step and the current
 				// match is not better, output the previous match:
 				if (prev_length >= MIN_MATCH && match_length <= prev_length) {
-					var max_insert = strstart + lookahead - MIN_MATCH;
+					max_insert = strstart + lookahead - MIN_MATCH;
 					// Do not insert strings in hash table beyond this.
 
 					// check_match(strstart-1, prev_match, prev_length);
@@ -1875,7 +1879,7 @@
 
 		that.deflateSetDictionary = function(strm, dictionary, dictLength) {
 			var length = dictLength;
-			var index = 0;
+			var n, index = 0;
 
 			if (!dictionary || status != INIT_STATE)
 				return Z_STREAM_ERROR;
@@ -1900,7 +1904,7 @@
 			ins_h = window[0] & 0xff;
 			ins_h = (((ins_h) << hash_shift) ^ (window[1] & 0xff)) & hash_mask;
 
-			for ( var n = 0; n <= length - MIN_MATCH; n++) {
+			for (n = 0; n <= length - MIN_MATCH; n++) {
 				ins_h = (((ins_h) << hash_shift) ^ (window[(n) + (MIN_MATCH - 1)] & 0xff)) & hash_mask;
 				prev[n & w_mask] = head[ins_h];
 				head[ins_h] = n;
@@ -1909,7 +1913,7 @@
 		};
 
 		that.deflate = function(_strm, flush) {
-			var old_flush;
+			var i, header, level_flags, old_flush, bstate;
 
 			if (flush > Z_FINISH || flush < 0) {
 				return Z_STREAM_ERROR;
@@ -1930,8 +1934,8 @@
 
 			// Write the zlib header
 			if (status == INIT_STATE) {
-				var header = (Z_DEFLATED + ((w_bits - 8) << 4)) << 8;
-				var level_flags = ((level - 1) & 0xff) >> 1;
+				header = (Z_DEFLATED + ((w_bits - 8) << 4)) << 8;
+				level_flags = ((level - 1) & 0xff) >> 1;
 
 				if (level_flags > 3)
 					level_flags = 3;
@@ -1982,7 +1986,7 @@
 
 			// Start a new block or continue the current one.
 			if (strm.avail_in !== 0 || lookahead !== 0 || (flush != Z_NO_FLUSH && status != FINISH_STATE)) {
-				var bstate = -1;
+				bstate = -1;
 				switch (config_table[level].func) {
 				case STORED:
 					bstate = deflate_stored(flush);
@@ -2021,7 +2025,7 @@
 						// as a special marker by inflate_sync().
 						if (flush == Z_FULL_FLUSH) {
 							// state.head[s.hash_size-1]=0;
-							for ( var i = 0; i < hash_size/*-1*/; i++)
+							for (i = 0; i < hash_size/*-1*/; i++)
 								// forget history
 								head[i] = 0;
 						}
@@ -2217,7 +2221,7 @@
 			} while (z.avail_in > 0 || z.avail_out === 0);
 		};
 		that.getBlob = function() {
-			var err;
+			var err, ab;
 			z.next_out = buf;
 			do {
 				z.next_out_index = 0;
@@ -2226,7 +2230,7 @@
 				if (err != JZlib.Z_STREAM_END && err != JZlib.Z_OK)
 					throw "deflating: " + z.msg;
 				if (bufsize - z.avail_out > 0) {
-					var ab = new ArrayBuffer(z.next_out_index);
+					ab = new ArrayBuffer(z.next_out_index);
 					new Uint8Array(ab).set(buf.subarray(0, z.next_out_index));
 					output.append(ab);
 				}
@@ -2239,7 +2243,7 @@
 	this.DeflateBlobBuilder = DeflateBlobBuilder;
 
 	addEventListener("message", function(event) {
-		var message = event.data;
+		var message = event.data, bb;
 
 		function onprogress(current, total) {
 			postMessage({
@@ -2250,7 +2254,7 @@
 		}
 
 		if (message.deflate) {
-			var bb = new DeflateBlobBuilder();
+			bb = new DeflateBlobBuilder();
 			bb.append(message.data, onprogress);
 			postMessage({
 				end : true,
