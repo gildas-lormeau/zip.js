@@ -722,7 +722,10 @@
 		zip_inflate_data = data;
 		zip_inflate_pos = 0;
 		while ((length = zip_inflate_internal(buff, 0, buff.length)) > 0) {
-			blobBuilder.append(buff.subarray(0, length).buffer);
+			if (length == 1024)
+				blobBuilder.append(buff.buffer);
+			else
+				blobBuilder.append(new Uint8Array(buff.subarray(0, length)).buffer);
 			onprogress(zip_inflate_pos, data.size);
 		}
 		zip_inflate_data = null; // G.C.

@@ -2214,7 +2214,10 @@
 				if (err != JZlib.Z_OK)
 					throw "deflating: " + z.msg;
 				if (z.next_out_index)
-					output.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
+					if (z.next_out_index == bufsize)
+						output.append(buf.buffer);
+					else
+						output.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
 				if (onprogress)
 					onprogress(z.next_in_index, len);
 			} while (z.avail_in > 0 || z.avail_out === 0);
