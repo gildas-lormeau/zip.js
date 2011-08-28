@@ -50,9 +50,9 @@
 
 				function nextFile() {
 					var file = files[addIndex];
+					onaddFile(file);
 					zipper.add(file.name, file, null, function() {
 						addIndex++;
-						onaddFile(file);
 						if (addIndex < files.length)
 							nextFile();
 						else
@@ -100,7 +100,7 @@
 
 	view = (function() {
 		var fileInput = document.getElementById("file-input");
-		var zipProgress = document.getElementById("zip-progress");
+		var zipProgress = document.createElement("progress");
 		var downloadButton = document.getElementById("download-button");
 		var fileList = document.getElementById("file-list");
 		var filenameInput = document.getElementById("filename-input");
@@ -122,6 +122,7 @@
 				filenameInput.disabled = true;
 			},
 			addFiles : function() {
+				zipProgress.parentNode.removeChild(zipProgress);
 				fileInput.value = "";
 				fileInput.disabled = false;
 				downloadButton.disabled = false;
@@ -131,6 +132,7 @@
 				zipProgress.value = 0;
 				zipProgress.max = 0;
 				li.innerText = file.name;
+				li.appendChild(zipProgress);
 				fileList.appendChild(li);
 			},
 			progressFile : function(current, total) {
