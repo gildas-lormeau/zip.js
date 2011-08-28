@@ -295,12 +295,12 @@
 						if (message.progress && onprogress)
 							onprogress(message.current, message.total);
 						if (message.end) {
-							worker.removeEventListener("message", onmessage, false);
+							worker.terminate();
+							worker = null;
 							callback(message.data);
 						}
 					}
-					if (!worker)
-						worker = new Worker(WORKER_SCRIPTS_PATH + "deflate.js");
+					worker = new Worker(WORKER_SCRIPTS_PATH + "deflate.js");
 					worker.addEventListener("message", onmessage, false);
 					worker.postMessage({
 						deflate : true,
@@ -312,7 +312,8 @@
 				function writeFile(fileData, onerror) {
 					function onmessage(event) {
 						var crc = event.data, date = new Date(), filename = encodeUTF8(name), header = getDataHelper(26), data = getDataHelper(30 + filename.length);
-						crcWorker.removeEventListener("message", onmessage, false);
+						crcWorker.terminate();
+						crcWorker = null;
 						filenames.push(name);
 						files[name] = {
 							headerArray : header.array,
@@ -343,8 +344,7 @@
 							terminate(onerror, "Error while writing zip file.");
 						});
 					}
-					if (!crcWorker)
-						crcWorker = new Worker(WORKER_SCRIPTS_PATH + "crc32.js");
+					crcWorker = new Worker(WORKER_SCRIPTS_PATH + "crc32.js");
 					crcWorker.addEventListener("message", onmessage, false);
 					crcWorker.postMessage(uncompressedData);
 				}
