@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Create zip file demo</title>
+<link rel="stylesheet" href="../default.css">
+<link rel="stylesheet" href="demo.css">
+</head>
+
+<body>
+	<a href="http://github.com/gildas-lormeau/zip.js"><img style="position: absolute; top: 0; right: 0; border: 0;"
+		src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /> </a>
+	<div id="container">
+		<div class="download">
+			<a href="http://github.com/gildas-lormeau/zip.js/zipball/master"> <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"> </a> <a
+				href="http://github.com/gildas-lormeau/zip.js/tarball/master"> <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"> </a>
+		</div>
+
+		<h1>
+			<a href="../">zip.js</a> <span class="small"></span>
+		</h1>
+
+		<div class="description">
+			A modern JavasScript library for zipping and unzipping files
+			<hr>
+		</div>
+		
+		<h2>Create zip file demo</h2>		
+		
+		<ol id="demo1-container">
+			<li>
+				<label>
+					<span>choose file name</span>
+					<input type="text" id="filename-input" value="output.zip">
+				</label>
+			</li>
+			<li>
+				<label>
+					<span>add files into the zip</span>
+					<input type="file" multiple id="file-input">
+				</label>
+			</li>
+			<li>
+				<span>view zip content</span>
+				<ul id="file-list"></ul>
+			</li>
+			<li>
+				<button id="download-button" disabled>download the zip file!</button>
+			</li>
+		</ol>
+
+	</div>
+	<script type="text/javascript" src="zip.js"></script>
+	<script type="text/javascript" src="demo1.js"></script>	
+</body>
+</html>

@@ -1,88 +1,127 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset='utf-8'>
-
-  <title>gildas-lormeau/zip.js @ GitHub</title>
-
-  <style type="text/css">
-    body {
-      margin-top: 1.0em;
-      background-color: #c1a89c;
-      font-family: Helvetica, Arial, FreeSans, san-serif;
-      color: #000000;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
-    h1 { font-size: 3.8em; color: #3e5763; margin-bottom: 3px; }
-    h1 .small { font-size: 0.4em; }
-    h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #3e5763; }
-    h3 { text-align: center; color: #3e5763; }
-    a { color: #3e5763; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-    pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-  </style>
+<meta charset='utf-8'>
+<title>zip.js</title>
+<link rel="stylesheet" href="default.css">
+<link href="google-code-prettify/prettify.css" type="text/css" rel="stylesheet" />
 </head>
 
 <body>
-  <a href="http://github.com/gildas-lormeau/zip.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+	<a href="http://github.com/gildas-lormeau/zip.js"><img style="position: absolute; top: 0; right: 0; border: 0;"
+		src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /> </a>
+	<div id="container">
+		<div class="download">
+			<a href="http://github.com/gildas-lormeau/zip.js/zipball/master"> <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"> </a> <a
+				href="http://github.com/gildas-lormeau/zip.js/tarball/master"> <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"> </a>
+		</div>
 
-  <div id="container">
+		<h1>
+			<a href="http://github.com/gildas-lormeau/zip.js">zip.js</a> <span class="small"></span>
+		</h1>
 
-    <div class="download">
-      <a href="http://github.com/gildas-lormeau/zip.js/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/gildas-lormeau/zip.js/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-    </div>
+		<div class="description">
+			A modern JavasScript library for zipping and unzipping files
+			<hr>
+		</div>
+		
 
-    <h1><a href="http://github.com/gildas-lormeau/zip.js">zip.js</a>
-      <span class="small">by <a href="http://github.com/gildas-lormeau">gildas-lormeau</a></span></h1>
+		<p>zip.js is a library 100% written in vanilla JavaScript. It supports UTF8 or ASCII filenames and offers a low-level API for writing and reading (big) zip files.</p>
 
-    <div class="description">
-      A modern JavasScript library for zipping and unzipping files
-    </div>
+		<p>This library is implemented with these HTML5 features:
+		<ul>
+			<li><a href="https://developer.mozilla.org/en/Using_web_workers">Web workers</a></li>
+			<li><a href="https://developer.mozilla.org/en/DOM/FileReader">FileReaderSync</a></li>
+			<li><a href="https://developer.mozilla.org/en/DOM/Blob">Blob</a> and <a href="https://developer.mozilla.org/en/DOM/BlobBuilder">BlobBuilder</a></li>
+			<li><a href="https://developer.mozilla.org/en/javascript_typed_arrays">Typed arrays</a></li>
+		</ul>
 
-    <p>zip.js is a library for zipping and unzipping files.
+		<h2>Install</h2>
+		<ul>
+			<li>include zip.js, crc32.js, deflate.js, and inflate.js file in your project</li>
+			<li>add zip.js in your HTML page
+				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip.js&quot;&gt;&lt;/script&gt;</code></pre>
+			</li>
+			<li>set <code>WORKER_SCRIPTS_PATH</code> value in zip.js 
+				<pre><code class="prettyprint">var WORKER_SCRIPTS_PATH = "/lib/";</code></pre>
+			</li>
+		</ul>
+		
+		<h2>API</h2>
+		<ul>
+			<li>create a ZipWriter object to create a zip file
+			<pre><code class="prettyprint">var zipper = zip.createWriter(blob);</code></pre>
+			</li>
+			<li>add a file into the zip file
+			<pre><code class="prettyprint">zipper.add(filename, blob, null, function() {
+  // end callback 
+}, function(currentIndex, totalIndex) {
+  // progress callback
+}, function(error) {
+  // error callback
+});</code></pre>
+			</li>
+			<li>close the zip file
+			<pre><code class="prettyprint">zipper.close(function() {
+  // onclose callback
+}, function(error) {
+  // error callback
+});</code></pre>
+			</li>
+			<li>get the zip file as a Blob
+			<pre><code class="prettyprint">var blob = zipper.getBlob();</code></pre>
+			</li>
+		</ul>
+		
+		<br>
 
-It supports UTF8 or ASCII filenames and offers a low-level API for writing and reading (big) zip files.
+		<ul>
+			<li>creater a ZipReader object to read a zip file
+			<pre><code class="prettyprint">var unzipper = zip.createReader(blob);</code></pre>
+			</li>
+			<li>get all entries from the zip file
+			<pre><code class="prettyprint">unzipper.getEntries(function(entries) {
+  // entries is an array of Entry objects
+}, function(error) {
+  // error callback
+});</code></pre>
+			</li>
+			<li>get the content from an Entry object as a Blob
+			<pre><code class="prettyprint">entry.getData(function(blob) {
+  // data contains the file entry content
+}, function(current, total) {
+  // unzip progress callback
+}, function(error) {
+  // error callback
+});</code></pre>
+			</li>
+			<li>close the zip file
+			<pre><code class="prettyprint">unzipper.close(function() {
+  // onclose callback
+}, function(error) {
+  // error callback
+});</code></pre>
+			</li>
+		</ul>
+		
+		<h2>Demos</h2>
+		<p><a href="demos/demo1.html">Click here</a> to launch the &quot;Create zip file demo&quot; (works only with chrome).</p>
 
-This library is implemented with these HTML5 features: 
- * Web workers
- * Typed arrays
- * Blob and BlobBuilder
- * FileReader
- * FileWriter</p><h2>Install</h2>
-<p>include the zip.js file in your page</p>
-<h2>Authors</h2>
-<p>Gildas Lormeau (gildas.lormeau@gmail.com)<br/><br/>      </p>
-<h2>Contact</h2>
-<p>Gildas Lormeau (gildas.lormeau@gmail.com)<br/>      </p>
-
-
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/gildas-lormeau/zip.js/zipball/master">zip</a> or
-      <a href="http://github.com/gildas-lormeau/zip.js/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/gildas-lormeau/zip.js</pre>
-    </p>
-
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/gildas-lormeau/zip.js">gildas-lormeau/zip.js</a>
-    </div>
-
-  </div>
-
-  
+		<h2>Download</h2>
+		<p>You can download this project in either <a href="http://github.com/gildas-lormeau/zip.js/zipball/master">zip</a> or <a
+			href="http://github.com/gildas-lormeau/zip.js/tarball/master">tar</a> formats.
+		</p>
+		<p>You can also clone the project with <a href="http://git-scm.com">Git</a> by running:
+			<pre>$ git clone git://github.com/gildas-lormeau/zip.js</pre>
+		</p>
+		<div class="footer">
+			get the source code on GitHub : <a href="http://github.com/gildas-lormeau/zip.js">gildas-lormeau/zip.js</a>
+			- contact: gildas.lormeau &lt;at&gt; gmail.com
+		</div>
+	</div>
+	<script type="text/javascript" src="google-code-prettify/prettify.js"></script>
+	<script type="text/javascript">
+		prettyPrint();
+	</script>
 </body>
 </html>

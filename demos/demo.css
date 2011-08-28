@@ -1,0 +1,44 @@
+li {
+	margin-bottom: 1em;
+}
+
+li li {
+	margin: .5em;
+}
+
+input[type=file] {
+	direction: rtl;
+}
+
+#demo1-container #file-list {
+	padding-left: 10px;
+	font-family: courier;
+	font-size: 12pt;
+	overflow: hidden;
+	white-space: nowrap;	
+}
+
+#demo1-container #file-list li {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	position: relative;
+}
+
+#demo1-container {
+	width: 400px;
+}
+
+#demo1-container input {
+	float: right;
+}
+
+#demo1-container progress {
+	position: absolute;
+	right: 0px;
+	top: 1px;
+}
+
+#demo1-container progress {
+	opacity: .7;
+	width: 80px;
+}
