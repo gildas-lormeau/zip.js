@@ -31,7 +31,7 @@
 		<p>This library is implemented with these HTML5 features:
 		<ul>
 			<li><a href="https://developer.mozilla.org/en/Using_web_workers">Web workers</a></li>
-			<li><a href="https://developer.mozilla.org/en/DOM/FileReader">FileReaderSync</a></li>
+			<li><a href="http://www.w3.org/TR/FileAPI/#FileReaderSync">FileReaderSync</a> and <a href="http://www.w3.org/TR/file-writer-api/#idl-def-FileWriter">FileWriter</a></li>
 			<li><a href="https://developer.mozilla.org/en/DOM/Blob">Blob</a> and <a href="https://developer.mozilla.org/en/DOM/BlobBuilder">BlobBuilder</a></li>
 			<li><a href="https://developer.mozilla.org/en/javascript_typed_arrays">Typed arrays</a></li>
 		</ul>
@@ -51,10 +51,10 @@
 		
 		<h2>API</h2>
 		<ul>
-			<li>create a ZipWriter object to create a zip file
+			<li>get a ZipWriter object to create a new zip file
 			<pre><code class="prettyprint">var zipper = zip.createWriter(blob);</code></pre>
 			</li>
-			<li>add a file into the zip file
+			<li>add a file into the zip
 			<pre><code class="prettyprint">zipper.add(filename, blob, null, function() {
   // end callback 
 }, function(currentIndex, totalIndex) {
@@ -63,14 +63,14 @@
   // error callback
 });</code></pre>
 			</li>
-			<li>close the zip file
+			<li>close the zip
 			<pre><code class="prettyprint">zipper.close(function() {
   // onclose callback
 }, function(error) {
   // error callback
 });</code></pre>
 			</li>
-			<li>get the zip file as a Blob
+			<li>get the zip as a Blob
 			<pre><code class="prettyprint">var blob = zipper.getBlob();</code></pre>
 			</li>
 		</ul>
@@ -78,17 +78,17 @@
 		<br>
 
 		<ul>
-			<li>creater a ZipReader object to read a zip file
+			<li>get a ZipReader object to read a zip file
 			<pre><code class="prettyprint">var unzipper = zip.createReader(blob);</code></pre>
 			</li>
-			<li>get all entries from the zip file
+			<li>get all entries from the zip
 			<pre><code class="prettyprint">unzipper.getEntries(function(entries) {
   // entries is an array of Entry objects
 }, function(error) {
   // error callback
 });</code></pre>
 			</li>
-			<li>get the content from an Entry object as a Blob
+			<li>get entry content as a Blob
 			<pre><code class="prettyprint">entry.getData(function(blob) {
   // data contains the file entry content
 }, function(current, total) {
@@ -97,7 +97,7 @@
   // error callback
 });</code></pre>
 			</li>
-			<li>close the zip file
+			<li>close the zip
 			<pre><code class="prettyprint">unzipper.close(function() {
   // onclose callback
 }, function(error) {
