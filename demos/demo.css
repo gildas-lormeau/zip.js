@@ -1,35 +1,67 @@
-li {
+#demo1-container li {
 	margin-bottom: 1em;
+	min-height: 40px;
 }
 
-li li {
-	margin: .5em;
-}
-
-input[type=file] {
-	direction: rtl;
+#demo1-container .form-label {
+	width: 200px;
+	display: inline-block;
+	font-size: 12pt;
 }
 
 #demo1-container #file-list {
 	padding-left: 10px;
+	padding-top: 5px;
 	font-family: courier;
 	font-size: 12pt;
 	overflow: hidden;
-	white-space: nowrap;	
+	white-space: nowrap;
+	margin-top: 14px;
+	padding: 4px;
+	border: solid 1px #AACFE4;
+	border-radius: 5px;
+	min-height: 28px;
 }
 
 #demo1-container #file-list li {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	position: relative;
+	font-size: 11pt;
+	margin: .5em;
+	min-height: 28px;
 }
 
 #demo1-container {
-	width: 400px;
+	margin-right: 50px;
 }
 
-#demo1-container input {
-	float: right;
+#demo1-container input[type=text] {
+	font-size: 12pt;
+	padding: 4px;
+	border: solid 1px #AACFE4;
+	width: 200px;
+	border-radius: 5px;
+}
+
+#demo1-container input[type=file] {
+	font-size: 12pt;
+	width: 400px;
+	border-radius: 5px;
+}
+
+#demo1-container input[type=file]::-webkit-file-upload-button,#demo1-container button
+	{
+	margin: 0px;
+	font-size: 12pt;
+	padding: 4px;
+	border: solid 1px #AACFE4;
+	width: 208px;
+	border-radius: 5px;
+}
+
+#demo1-container button {
+	margin-left: 4px;
 }
 
 #demo1-container progress {
