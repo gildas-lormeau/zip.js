@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset='utf-8'>
-<title>Create a zip file demo</title>
+<title>Read a zip file demo</title>
 <link rel="stylesheet" href="../default.css">
 <link rel="stylesheet" href="demo.css">
 </head>
@@ -25,19 +25,13 @@
 			<hr>
 		</div>
 		
-		<h2>Create a zip file demo</h2>
+		<h2>Read a zip file demo</h2>
 		
 		<ol id="demo-container">
 			<li>
 				<label>
-					<span class="form-label">choose file name</span>
-					<input type="text" id="filename-input" value="Example.zip">
-				</label>
-			</li>
-			<li>
-				<label>
-					<span class="form-label">add files into the zip</span>
-					<input type="file" multiple id="file-input">
+					<span class="form-label">choose a zip file</span>
+					<input type="file" accept="application/zip" id="file-input">
 				</label>
 			</li>
 			<li>
@@ -45,14 +39,11 @@
 				<ul id="file-list">
 				</ul>
 			</li>
-			<li>
-				<span class="form-label">download the zip file!</span><button id="download-button" disabled>Download</button>
-			</li>
 		</ol>
 
 	</div>
 	<script type="text/javascript" src="zip.js"></script>
-	<script type="text/javascript" src="demo1.js"></script>
+	<script type="text/javascript" src="demo2.js"></script>
 	<script type="text/javascript">
 
   var _gaq = _gaq || [];
