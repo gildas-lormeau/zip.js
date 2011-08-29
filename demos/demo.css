@@ -1,15 +1,4 @@
-#demo1-container li {
-	margin-bottom: 1em;
-	min-height: 40px;
-}
-
-#demo1-container .form-label {
-	width: 200px;
-	display: inline-block;
-	font-size: 12pt;
-}
-
-#demo1-container #file-list {
+#file-list {
 	padding-left: 10px;
 	padding-top: 5px;
 	font-family: courier;
@@ -23,7 +12,7 @@
 	min-height: 28px;
 }
 
-#demo1-container #file-list li {
+#file-list li {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	position: relative;
@@ -32,11 +21,22 @@
 	min-height: 28px;
 }
 
-#demo1-container {
+#demo-container li {
+	margin-bottom: 1em;
+	min-height: 40px;
+}
+
+.form-label {
+	width: 200px;
+	display: inline-block;
+	font-size: 12pt;
+}
+
+#demo-container {
 	margin-right: 50px;
 }
 
-#demo1-container input[type=text] {
+input[type=text] {
 	font-size: 12pt;
 	padding: 4px;
 	border: solid 1px #AACFE4;
@@ -45,14 +45,14 @@
 	text-align: center;
 }
 
-#demo1-container input[type=file] {
+input[type=file] {
 	color: transparent;
 	font-size: 12pt;
 	width: 400px;
 	border-radius: 5px;
 }
 
-#demo1-container input[type=file]::-webkit-file-upload-button,#demo1-container button
+input[type=file]::-webkit-file-upload-button, button
 	{
 	margin: 0px;
 	font-size: 12pt;
@@ -62,17 +62,14 @@
 	border-radius: 5px;
 }
 
-#demo1-container button {
+button {
 	margin-left: 4px;
 }
 
-#demo1-container progress {
+progress {
 	position: absolute;
 	right: 0px;
 	top: 1px;
-}
-
-#demo1-container progress {
 	opacity: .7;
 	width: 80px;
 }

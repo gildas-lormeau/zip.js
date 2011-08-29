@@ -122,7 +122,8 @@
 				filenameInput.disabled = true;
 			},
 			addFiles : function() {
-				zipProgress.parentNode.removeChild(zipProgress);
+				if (zipProgress.parentNode)
+					zipProgress.parentNode.removeChild(zipProgress);
 				fileInput.value = "";
 				fileInput.disabled = false;
 				downloadButton.disabled = false;
@@ -132,7 +133,8 @@
 				zipProgress.value = 0;
 				zipProgress.max = 0;
 				li.innerText = file.name;
-				li.appendChild(zipProgress);
+				if (!zipProgress.parentNode)
+					li.appendChild(zipProgress);
 				fileList.appendChild(li);
 			},
 			progressFile : function(current, total) {
