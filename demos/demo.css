@@ -42,9 +42,11 @@
 	border: solid 1px #AACFE4;
 	width: 200px;
 	border-radius: 5px;
+	text-align: center;
 }
 
 #demo1-container input[type=file] {
+	color: transparent;
 	font-size: 12pt;
 	width: 400px;
 	border-radius: 5px;
@@ -56,7 +58,7 @@
 	font-size: 12pt;
 	padding: 4px;
 	border: solid 1px #AACFE4;
-	width: 208px;
+	width: 209px;
 	border-radius: 5px;
 }
 

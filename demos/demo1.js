@@ -64,7 +64,7 @@
 					nextFile();
 				else
 					requestFileSystem(TEMPORARY, 1024 * 1024 * 1024, function(filesystem) {
-						createFile(filesystem, filename || "output.zip", function(zipFile) {
+						createFile(filesystem, filename || "Example.zip", function(zipFile) {
 							outputFile = zipFile;
 							zipper = zip.createWriter(outputFile);
 							oninit();
