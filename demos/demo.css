@@ -6,7 +6,7 @@
 #file-list {
 	padding-left: 10px;
 	padding-top: 5px;
-	font-family: courier;
+	font-family: 'Droid Sans Mono', courier;
 	font-size: 12pt;
 	overflow: hidden;
 	white-space: nowrap;
