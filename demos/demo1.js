@@ -133,8 +133,7 @@
 				zipProgress.value = 0;
 				zipProgress.max = 0;
 				li.innerText = file.name;
-				if (!zipProgress.parentNode)
-					li.appendChild(zipProgress);
+				li.appendChild(zipProgress);
 				fileList.appendChild(li);
 			},
 			progressFile : function(current, total) {

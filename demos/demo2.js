@@ -65,8 +65,7 @@
 			progressUnzip : function(current, total, li) {
 				unzipProgress.value = current;
 				unzipProgress.max = total;
-				if (!unzipProgress.parentNode)
-					li.appendChild(unzipProgress);
+				li.appendChild(unzipProgress);
 			}
 		};
 	})();
