@@ -51,10 +51,9 @@ input[type=text] {
 input[type=file] {
 	color: transparent;
 	font-size: 12pt;
-	width: 400px;
 }
 
-input[type=file]::-webkit-file-upload-button,button {
+input[type=file]::-webkit-file-upload-button, button {
 	margin: 0px;
 	font-size: 12pt;
 	padding: 4px;

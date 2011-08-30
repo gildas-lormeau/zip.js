@@ -1,7 +1,7 @@
 body {
 	margin-top: 1.0em;
 	background-color: #A69373;
-	font-family: Helvetica, Arial, FreeSans, san-serif;
+	font-family: Helvetica, Arial, FreeSans, sans-serif;
 	color: #000000;
 }
 
@@ -15,9 +15,12 @@ body {
 }
 
 h1 {
-	font-size: 3.8em;
+	font-size: 4em;
 	color: #3e5763;
 	margin-bottom: 3px;
+	margin-top: 20px;
+	font-family: 'Maven Pro', Helvetica;
+	font-weight: normal;
 }
 
 h1 .small {
@@ -46,7 +49,7 @@ a {
 	font-size: 1.2em;
 	margin-bottom: 30px;
 	margin-top: 30px;
-	font-style: italic;
+	font-family: 'Muli', Helvetica;
 }
 
 .download {
