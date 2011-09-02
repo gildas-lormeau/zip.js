@@ -7,7 +7,6 @@
 <link href="google-code-prettify/prettify.css" type="text/css" rel="stylesheet" />
 <link href='http://fonts.googleapis.com/css?family=Maven+Pro|Muli|Istok+Web' rel='stylesheet' type='text/css'>
 </head>
-
 <body>
 	<a href="http://github.com/gildas-lormeau/zip.js"><img style="position: absolute; top: 0; right: 0; border: 0;"
 		src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /> </a>
@@ -37,7 +36,8 @@
 			<li><a href="https://developer.mozilla.org/en/javascript_typed_arrays">Typed arrays</a></li>
 		</ul>
 
-		<p>Note: the library is currently only supported with chrome</p>
+		<h2>Note</h2>
+		<p>This library is currently only supported with chrome but will work with firefox when these features will be implemented.</p>
 
 		<h2>Install</h2>
 		<ul>
@@ -45,21 +45,25 @@
 			<li>add zip.js in your HTML page
 				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip.js&quot;&gt;&lt;/script&gt;</code></pre>
 			</li>
-			<li>set <code>WORKER_SCRIPTS_PATH</code> value in zip.js 
+			<li>set <code>WORKER_SCRIPTS_PATH</code> value in zip.js if needed
 				<pre><code class="prettyprint">var WORKER_SCRIPTS_PATH = "/lib/";</code></pre>
 			</li>
 		</ul>
 		
 		<h2>API</h2>
 		<ul>
-			<li>get a ZipWriter object to create a new zip file
-			<pre><code class="prettyprint">var zipper = zip.createWriter(blob);</code></pre>
+			<li>get a ZipWriter object to create a new zip file into a Blob object
+			<pre><code class="prettyprint">var resourceWriter = new zip.BlobResourceWriter();
+resourceWriter.init(blob, function() {
+  var zipper = zip.createWriter(resourceWriter);
+  // ...
+});</code></pre>
 			</li>
 			<li>add a file into the zip
 			<pre><code class="prettyprint">zipper.add(filename, blob, null, function() {
   // end callback 
 }, function(currentIndex, totalIndex) {
-  // progress callback
+  // onprogress callback
 }, function(error) {
   // error callback
 });</code></pre>
@@ -68,7 +72,7 @@
 			<pre><code class="prettyprint">zipper.close(function() {
   // onclose callback
 }, function(error) {
-  // error callback
+  // onerror callback
 });</code></pre>
 			</li>
 			<li>get the zip as a Blob
@@ -79,23 +83,34 @@
 		<br>
 
 		<ul>
-			<li>get a ZipReader object to read a zip file
-			<pre><code class="prettyprint">var unzipper = zip.createReader(blob);</code></pre>
+			<li>get a ZipReader object to read a zip file from a Blob object
+			<pre><code class="prettyprint">var resourceReader = new zip.BlobResourceReader();
+resourceReader.init(blob, function() {
+  var unzipper = zip.createReader(resourceReader);
+  // ...
+});</code></pre>
+			</li>
+			<li>get a ZipReader object to read a zip file from a given URL
+			<pre><code class="prettyprint">var httpResourceReader = new zip.HttpRangeResourceReader();
+httpResourceReader.init(URL, function() {
+  var unzipper = zip.createReader(resourceReader);
+  // ...
+});</code></pre>
 			</li>
 			<li>get all entries from the zip
 			<pre><code class="prettyprint">unzipper.getEntries(function(entries) {
   // entries is an array of Entry objects
 }, function(error) {
-  // error callback
+  // onerror callback
 });</code></pre>
 			</li>
 			<li>get entry content as a Blob
 			<pre><code class="prettyprint">entry.getData(function(blob) {
   // data contains the file entry content
 }, function(current, total) {
-  // unzip progress callback
+  // unzip onprogress callback
 }, function(error) {
-  // error callback
+  // onerror callback
 });</code></pre>
 			</li>
 			<li>close the zip
