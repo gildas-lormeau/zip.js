@@ -1,4 +1,4 @@
-(function() {
+(function(obj) {
 
 	var model, view, controller;
 
@@ -11,8 +11,11 @@
 
 		return {
 			getEntries : function(file, onend) {
-				unzipper = zip.createReader(file);
-				unzipper.getEntries(onend, onerror);
+				var resourceReader = new zip.BlobResourceReader();
+				resourceReader.init(file, function() {
+					unzipper = zip.createReader(resourceReader);
+					unzipper.getEntries(onend, onerror);
+				}, onerror);
 			},
 			getEntryFile : function(entry, onend, onprogress) {
 				entry.getData(onend, onprogress, onerror);
@@ -55,17 +58,17 @@
 				});
 			},
 			getEntryFile : function(blob) {
-				var URL = webkitURL || mozURL || URL;
+				var URL = obj.webkitURL || obj.mozURL || obj.URL;
 				if (unzipProgress.parentNode)
 					unzipProgress.parentNode.removeChild(unzipProgress);
 				unzipProgress.value = 0;
 				unzipProgress.max = 0;
 				location.href = URL.createObjectURL(blob);
 			},
-			progressUnzip : function(current, total, li) {
+			progressUnzip : function(current, total, element) {
 				unzipProgress.value = current;
 				unzipProgress.max = total;
-				li.appendChild(unzipProgress);
+				element.appendChild(unzipProgress);
 			}
 		};
 	})();
@@ -73,10 +76,10 @@
 	view.onFileInputChange = function(fileInput) {
 		controller.getEntries(fileInput.files[0], view.getEntries);
 	};
-	view.onEntryClick = function(entry, li) {
+	view.onEntryClick = function(entry, element) {
 		controller.getEntryFile(entry, view.getEntryFile, function(current, total) {
-			view.progressUnzip(current, total, li);
+			view.progressUnzip(current, total, element);
 		});
 	};
 
-})();
+})(this);

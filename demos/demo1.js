@@ -1,6 +1,6 @@
-(function() {
+(function(obj) {
 
-	var requestFileSystem = this.webkitRequestFileSystem || this.mozRequestFileSystem || this.requestFileSystem;
+	var requestFileSystem = obj.webkitRequestFileSystem || obj.mozRequestFileSystem || obj.requestFileSystem;
 
 	var model, view, controller;
 
@@ -66,9 +66,12 @@
 					requestFileSystem(TEMPORARY, 1024 * 1024 * 1024, function(filesystem) {
 						createFile(filesystem, filename || "Example.zip", function(zipFile) {
 							outputFile = zipFile;
-							zipper = zip.createWriter(outputFile);
-							oninit();
-							addFiles(files, oninit, onaddFiles, onaddFile, onprogressFile);
+							var resourceWriter = new zip.BlobResourceWriter();
+							resourceWriter.init(outputFile, function() {
+								zipper = zip.createWriter(resourceWriter);
+								oninit();
+								addFiles(files, oninit, onaddFiles, onaddFile, onprogressFile);
+							}, onerror);							
 						});
 					});
 			},
@@ -158,4 +161,4 @@
 		controller.downloadZip(view.downloadZip);
 	};
 
-})();
+})(this);

@@ -35,9 +35,9 @@
  * and contributors of zlib.
  */
 
-(function() {
+(function(obj) {
 
-	var BlobBuilder = this.WebKitBlobBuilder || this.MozBlobBuilder || this.BlobBuilder;
+	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
 
 	// Global
 
@@ -2265,4 +2265,4 @@
 		}
 	}, false);
 
-})();
+})(this);

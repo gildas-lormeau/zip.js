@@ -10,9 +10,9 @@
  * zip_inflate accepts a Blob object instead of a String object and returns a Blob object.
  */
 
-(function() {
+(function(obj) {
 
-	var BlobBuilder = this.WebKitBlobBuilder || this.MozBlobBuilder || this.BlobBuilder;
+	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
 
 	/*
 	 * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp> Version: 1.0.0.1 LastModified: Dec 25 1999
@@ -755,4 +755,4 @@
 		}
 	}, false);
 
-}());
+})(this);
