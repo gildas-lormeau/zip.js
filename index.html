@@ -55,13 +55,16 @@
 			<li>get a ZipWriter object to create a new zip file into a Blob object
 			<pre><code class="prettyprint">var resourceWriter = new zip.BlobResourceWriter();
 resourceWriter.init(blob, function() {
+  // onsuccess callback
   var zipper = zip.createWriter(resourceWriter);
   // ...
+}, function(error) {
+  // onerror callback
 });</code></pre>
 			</li>
 			<li>add a file into the zip
-			<pre><code class="prettyprint">zipper.add(filename, blob, null, function() {
-  // end callback 
+			<pre><code class="prettyprint">zipper.add(filename, blob, null /* options */, function() {
+  // onend callback
 }, function(currentIndex, totalIndex) {
   // onprogress callback
 }, function(error) {
@@ -86,29 +89,35 @@ resourceWriter.init(blob, function() {
 			<li>get a ZipReader object to read a zip file from a Blob object
 			<pre><code class="prettyprint">var resourceReader = new zip.BlobResourceReader();
 resourceReader.init(blob, function() {
+  // onsuccess callback
   var unzipper = zip.createReader(resourceReader);
   // ...
+}, function(error) {
+  // onerror callback
 });</code></pre>
 			</li>
 			<li>get a ZipReader object to read a zip file from a given URL
 			<pre><code class="prettyprint">var httpResourceReader = new zip.HttpRangeResourceReader();
 httpResourceReader.init(URL, function() {
-  var unzipper = zip.createReader(resourceReader);
+  // onsuccess callback
+  var unzipper = zip.createReader(httpResourceReader);
   // ...
 });</code></pre>
 			</li>
 			<li>get all entries from the zip
 			<pre><code class="prettyprint">unzipper.getEntries(function(entries) {
-  // entries is an array of Entry objects
+  // onsuccess callback
+  //   entries parameter is an Array of Entry objects
 }, function(error) {
   // onerror callback
 });</code></pre>
 			</li>
 			<li>get entry content as a Blob
 			<pre><code class="prettyprint">entry.getData(function(blob) {
-  // data contains the file entry content
+  // onend callback
+  //   data parameter contains the file entry content
 }, function(current, total) {
-  // unzip onprogress callback
+  // onprogress callback
 }, function(error) {
   // onerror callback
 });</code></pre>
@@ -117,7 +126,7 @@ httpResourceReader.init(URL, function() {
 			<pre><code class="prettyprint">unzipper.close(function() {
   // onclose callback
 }, function(error) {
-  // error callback
+  // onerror callback
 });</code></pre>
 			</li>
 		</ul>
