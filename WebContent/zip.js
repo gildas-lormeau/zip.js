@@ -6,7 +6,7 @@
  */
 (function(obj) {
 
-	var BlobBuilder = this.WebKitBlobBuilder || this.MozBlobBuilder || this.BlobBuilder;
+	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
 
 	var WORKER_SCRIPTS_PATH = "";
 
@@ -26,7 +26,96 @@
 		};
 	}
 
-	// READER
+	// BlobResourceReader
+
+	function BlobResourceReader() {
+		var blob, that = this;
+
+		function init(inputBlob, callback, onerror) {
+			blob = inputBlob;
+			that.size = blob.size;
+			callback();
+		}
+
+		function readUint8Array(index, length, callback, onerror) {
+			readBlob(index, length, function(slice) {
+				var reader = new FileReader();
+				reader.onload = function(e) {
+					callback(new Uint8Array(e.target.result));
+				};
+				reader.onerror = onerror;
+				reader.readAsArrayBuffer(slice);
+			}, onerror);
+		}
+
+		function readBlob(index, length, callback, onerror) {
+			if (blob.webkitSlice)
+				callback(blob.webkitSlice(index, index + length));
+			else if (file.mozSlice)
+				callback(blob.mozSlice(index, index + length));
+			else
+				callback(blob.slice(index, index + length));
+		}
+
+		that.size = 0;
+		that.init = init;
+		that.readBlob = readBlob;
+		that.readUint8Array = readUint8Array;
+	}
+
+	// HttpRangeResourceReader
+
+	function HttpRangeResourceReader() {
+		var url, that = this;
+
+		function init(initUrl, callback, onerror) {
+			var request = new XMLHttpRequest();
+			url = initUrl;
+			request.addEventListener("load", function() {
+				that.size = Number(request.getResponseHeader("Content-Length"));
+				if (request.getResponseHeader("Accept-Ranges") == "bytes")
+					callback();
+				else
+					onerror("HTTP Range not supported!");
+			}, false);
+			request.addEventListener("error", onerror, false);
+			request.open("HEAD", url);
+			request.send();
+		}
+
+		function readArrayBuffer(index, length, callback, onerror) {
+			var request = new XMLHttpRequest();
+			request.open("GET", url);
+			request.responseType = "arraybuffer";
+			request.setRequestHeader("Range", "bytes=" + index + "-" + (index + length - 1));
+			request.addEventListener("load", function() {
+				callback(request.response);
+			}, false);
+			request.addEventListener("error", onerror, false);
+			request.send();
+		}
+
+		function readBlob(index, length, callback, onerror) {
+			readArrayBuffer(index, length, function(arraybuffer) {
+				var blobBuilder = new BlobBuilder();
+				blobBuilder.append(arraybuffer);
+				callback(blobBuilder.getBlob());
+			}, onerror);
+		}
+
+		function readUint8Array(index, length, callback, onerror) {
+			readArrayBuffer(index, length, function(arraybuffer) {
+				callback(new Uint8Array(arraybuffer));
+			}, onerror);
+		}
+
+		that.size = 0;
+		that.init = init;
+		that.readBlob = readBlob;
+		that.readUint8Array = readUint8Array;
+	}
+
+	// ZipReader
 
 	function decodeASCII(str) {
 		var i, out = "", charCode, extendedASCII = [ 'Ç', 'ü', 'é', 'â', 'ä', 'à', 'å', 'ç', 'ê', 'ë', 'è', 'ï', 'î', 'ì', 'Ä', 'Å', 'É', 'æ', 'Æ', 'ô', 'ö',
@@ -76,26 +165,8 @@
 		return str;
 	}
 
-	function createZipReader(file) {
+	function createZipReader(resourceReader) {
 		var worker;
-		
-		function readBlob(index, length) {
-			if (file.webkitSlice)
-				return file.webkitSlice(index, index + length);
-			else if (file.mozSlice)
-				return file.mozSlice(index, index + length);
-			else
-				return file.slice(index, index + length);
-		}
-
-		function readArrayBuffer(index, length, callback, onerror) {
-			var reader = new FileReader();
-			reader.onload = function(e) {
-				callback(new Uint8Array(e.target.result));
-			};
-			reader.onerror = onerror;
-			reader.readAsArrayBuffer(readBlob(index, length));
-		}
 
 		function terminate(callback, param) {
 			if (worker)
@@ -112,12 +183,11 @@
 					onprogress(message.current, message.total);
 				if (message.end) {
 					worker.terminate();
-					// worker.removeEventListener("message", onmesssage, false);
+					worker = null;
 					callback(message.data);
 				}
 			}
 
-			// if (!worker)
 			worker = new Worker(WORKER_SCRIPTS_PATH + "inflate.js");
 			worker.addEventListener("message", onmesssage, false);
 			worker.postMessage({
@@ -129,20 +199,23 @@
 
 		return {
 			getEntries : function(callback, onerror) {
-				function Entry(){			
+				function Entry() {
 				}
-				
+
 				Entry.prototype.getData = function(callback, onprogress) {
 					var entry = this;
-					readArrayBuffer(entry.offset, 4, function(bytes) {
+					resourceReader.readUint8Array(entry.offset, 4, function(bytes) {
 						if (getDataHelper(bytes.length, bytes).view.getUint32(0) == 0x504b0304) {
-							bytes = readBlob(entry.offset + 30 + entry.filenameLength + entry.extraLength, entry.compressedSize);
-							if (entry.compressionMethod === 0)
-								callback(bytes);
-							else
-								inflate(bytes, entry.uncompressedSize, function(data) {
-									callback(data);
-								}, onprogress);
+							resourceReader.readBlob(entry.offset + 30 + entry.filenameLength + entry.extraLength, entry.compressedSize, function(bytes) {
+								if (entry.compressionMethod === 0)
+									callback(bytes);
+								else
+									inflate(bytes, entry.uncompressedSize, function(data) {
+										callback(data);
+									}, onprogress);
+							}, function() {
+								terminate(onerror, "File format is not recognized.");
+							});
 						} else
 							terminate(onerror, "File format is not recognized.");
 					}, function() {
@@ -150,11 +223,11 @@
 					});
 				};
 
-				if (file.size < 22) {
+				if (resourceReader.size < 22) {
 					terminate(onerror, "File format is not recognized.");
 					return;
 				}
-				readArrayBuffer(file.size - 22, 22, function(bytes) {
+				resourceReader.readUint8Array(resourceReader.size - 22, 22, function(bytes) {
 					var dataView = getDataHelper(bytes.length, bytes).view, datalength, fileslength;
 					if (dataView.getUint32(0) != 0x504b0506) {
 						terminate(onerror, "File format is not recognized.");
@@ -162,7 +235,7 @@
 					}
 					datalength = dataView.getUint32(16, true);
 					fileslength = dataView.getUint16(8, true);
-					readArrayBuffer(datalength, file.size - datalength, function(bytes) {
+					resourceReader.readUint8Array(datalength, resourceReader.size - datalength, function(bytes) {
 						var i, signature, index = 0, entries = [], entry, filename, data = getDataHelper(bytes.length, bytes);
 						for (i = 0; i < fileslength; i++) {
 							entry = new Entry();
@@ -193,7 +266,7 @@
 							entry.directory = data.view.getUint8(index + 37 + entry.extraLength) == 1;
 							entry.offset = data.view.getUint32(index + 42 + entry.extraLength, true);
 							filename = getString(data.array.subarray(index + 46 + entry.extraLength, index + 46 + entry.extraLength + entry.filenameLength));
-							entry.filename = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);							
+							entry.filename = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);
 							entries.push(entry);
 							index += 46 + entry.extraLength + entry.filenameLength;
 						}
@@ -209,7 +282,36 @@
 		};
 	}
 
-	// WRITER
+	// BlobResourceWriter
+
+	function BlobResourceWriter() {
+		var writer, that = this;
+
+		function init(file, callback, onerror) {
+			file.createWriter(function(fileWriter) {
+				writer = fileWriter;
+				callback();
+			}, onerror);
+		}
+
+		function appendArrayBuffer(arrayBuffer, callback, onerror) {
+			var blobBuilder = new BlobBuilder();
+			blobBuilder.append(arrayBuffer);
+			appendBlob(blobBuilder.getBlob(), callback, onerror);
+		}
+
+		function appendBlob(blob, callback, onerror) {
+			writer.onwrite = callback;
+			writer.onerror = onerror;
+			writer.write(blob);
+		}
+
+		that.init = init;
+		that.appendBlob = appendBlob;
+		that.appendArrayBuffer = appendArrayBuffer;
+	}
+
+	// ZipWriter
 
 	function encodeUTF8(argString) {
 		if (argString === null || typeof argString === "undefined") {
@@ -255,8 +357,8 @@
 		return array;
 	}
 
-	function createZipWriter(file, dontDeflate) {
-		var worker, crcWorker, writer, files = [], filenames = [], datalength = 0;
+	function createZipWriter(resourceWriter, dontDeflate) {
+		var worker, crcWorker, files = [], filenames = [], datalength = 0;
 
 		function terminate(callback, message) {
 			if (worker)
@@ -267,24 +369,6 @@
 			crcWorker = null;
 			if (callback)
 				callback(message);
-		}
-
-		function writeBlob(blob, callback, onerror) {
-			if (writer) {
-				writer.onwrite = callback;
-				writer.onerror = onerror;
-				writer.write(blob);
-			} else
-				file.createWriter(function(fileWriter) {
-					writer = fileWriter;
-					writeBlob(blob, callback, onerror);
-				}, onerror);
-		}
-
-		function writeArrayBuffer(arrayBuffer, callback, onerror) {
-			var blobBuilder = new BlobBuilder();
-			blobBuilder.append(arrayBuffer);
-			writeBlob(blobBuilder.getBlob(), callback, onerror);
 		}
 
 		return {
@@ -333,8 +417,8 @@
 						data.view.setUint32(0, 0x504b0304);
 						data.array.set(header.array, 4);
 						data.array.set(getBytes(filename), 30);
-						writeArrayBuffer(data.buffer, function() {
-							writeBlob(fileData, function() {
+						resourceWriter.appendArrayBuffer(data.buffer, function() {
+							resourceWriter.appendBlob(fileData, function() {
 								datalength += data.buffer.byteLength + fileData.size;
 								onend();
 							}, function() {
@@ -380,7 +464,7 @@
 				data.view.setUint16(index + 10, filenames.length, true);
 				data.view.setUint32(index + 12, length, true);
 				data.view.setUint32(index + 16, datalength, true);
-				writeArrayBuffer(data.buffer, function() {
+				resourceWriter.appendArrayBuffer(data.buffer, function() {
 					terminate(callback);
 				}, function() {
 					terminate(onerror, "Error while writing zip file.");
@@ -391,7 +475,10 @@
 
 	obj.zip = {
 		createReader : createZipReader,
-		createWriter : createZipWriter
+		BlobResourceReader : BlobResourceReader,
+		HttpRangeResourceReader : HttpRangeResourceReader,
+		createWriter : createZipWriter,
+		BlobResourceWriter : BlobResourceWriter
 	};
 
-})(window);
+})(this);
