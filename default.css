@@ -37,7 +37,6 @@ h2 {
 }
 
 h3 {
-	text-align: center;
 	color: #3e5763;
 }
 
@@ -78,4 +77,16 @@ hr {
 
 li {
 	margin-bottom: 0.5em;
+}
+
+ul {
+	padding-left: 40px;
+}
+
+ol {
+	padding-left: 25px;
+}
+
+ol ul {
+	padding-left: 15px;
 }
