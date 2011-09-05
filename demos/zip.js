@@ -193,6 +193,10 @@
 			worker.postMessage({
 				inflate : true,
 				data : data,
+				type : {
+					isUint8Array : data instanceof Uint8Array,
+					isBlob : data instanceof Blob
+				},
 				uncompressedSize : uncompressedSize
 			});
 		}
@@ -389,6 +393,10 @@
 					worker.postMessage({
 						deflate : true,
 						data : uncompressedData,
+						type : {
+							isUint8Array : uncompressedData instanceof Uint8Array,
+							isBlob : uncompressedData instanceof Blob
+						},
 						level : level
 					});
 				}
