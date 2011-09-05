@@ -568,7 +568,6 @@
 				// get literal/length code
 				while (k < (20)) { // max bits for literal/length code
 					n--;
-					// b |= (z.next_in[p++] & 0xff) << k;
 					b |= (z.read_byte(p++) & 0xff) << k;
 					k += 8;
 				}
@@ -600,7 +599,6 @@
 						// decode distance base of block to copy
 						while (k < (15)) { // max bits for distance code
 							n--;
-							// b |= (z.next_in[p++] & 0xff) << k;
 							b |= (z.read_byte(p++) & 0xff) << k;
 							k += 8;
 						}
@@ -621,7 +619,6 @@
 								e &= 15;
 								while (k < (e)) { // get extra bits (up to 13)
 									n--;
-									// b |= (z.next_in[p++] & 0xff) << k;
 									b |= (z.read_byte(p++) & 0xff) << k;
 									k += 8;
 								}
@@ -860,7 +857,6 @@
 							return s.inflate_flush(z, r);
 						}
 						n--;
-						// b |= (z.next_in[p++] & 0xff) << k;
 						b |= (z.read_byte(p++) & 0xff) << k;
 						k += 8;
 					}
@@ -921,7 +917,6 @@
 							return s.inflate_flush(z, r);
 						}
 						n--;
-						// b |= (z.next_in[p++] & 0xff) << k;
 						b |= (z.read_byte(p++) & 0xff) << k;
 						k += 8;
 					}
@@ -952,7 +947,6 @@
 							return s.inflate_flush(z, r);
 						}
 						n--;
-						// b |= (z.next_in[p++] & 0xff) << k;
 						b |= (z.read_byte(p++) & 0xff) << k;
 						k += 8;
 					}
@@ -1003,7 +997,6 @@
 							return s.inflate_flush(z, r);
 						}
 						n--;
-						// b |= (z.next_in[p++] & 0xff) << k;
 						b |= (z.read_byte(p++) & 0xff) << k;
 						k += 8;
 					}
@@ -1331,7 +1324,6 @@
 							return that.inflate_flush(z, r);
 						}
 						n--;
-						// b |= (z.next_in[p++] & 0xff) << k;
 						b |= (z.read_byte(p++) & 0xff) << k;
 						k += 8;
 					}
@@ -1413,7 +1405,6 @@
 							return that.inflate_flush(z, r);
 						}
 						n--;
-						// b |= (z.next_in[p++] & 0xff) << k;
 						b |= (z.read_byte(p++) & 0xff) << k;
 						k += 8;
 					}
@@ -1478,7 +1469,6 @@
 						t = n;
 					if (t > m)
 						t = m;
-					// that.window.set(z.next_in.subarray(p, p + t), q);
 					that.window.set(z.read_buf(p, t), q);
 					p += t;
 					n -= t;
@@ -1504,7 +1494,6 @@
 						}
 
 						n--;
-						// b |= (z.next_in[p++] & 0xff) << k;
 						b |= (z.read_byte(p++) & 0xff) << k;
 						k += 8;
 					}
@@ -1554,7 +1543,6 @@
 								return that.inflate_flush(z, r);
 							}
 							n--;
-							// b |= (z.next_in[p++] & 0xff) << k;
 							b |= (z.read_byte(p++) & 0xff) << k;
 							k += 8;
 						}
@@ -1616,7 +1604,6 @@
 								return that.inflate_flush(z, r);
 							}
 							n--;
-							// b |= (z.next_in[p++] & 0xff) << k;
 							b |= (z.read_byte(p++) & 0xff) << k;
 							k += 8;
 						}
@@ -1649,7 +1636,6 @@
 									return that.inflate_flush(z, r);
 								}
 								n--;
-								// b |= (z.next_in[p++] & 0xff) << k;
 								b |= (z.read_byte(p++) & 0xff) << k;
 								k += 8;
 							}
@@ -1927,7 +1913,7 @@
 
 					z.avail_in--;
 					z.total_in++;
-					if (((z.istate.method = z.read_byte(z.next_in_index++)/* z.next_in[z.next_in_index++] */) & 0xf) != Z_DEFLATED) {
+					if (((z.istate.method = z.read_byte(z.next_in_index++)) & 0xf) != Z_DEFLATED) {
 						z.istate.mode = BAD;
 						z.msg = "unknown compression method";
 						z.istate.marker = 5; // can't try inflateSync
@@ -1948,7 +1934,6 @@
 
 					z.avail_in--;
 					z.total_in++;
-					// b = (z.next_in[z.next_in_index++]) & 0xff;
 					b = (z.read_byte(z.next_in_index++)) & 0xff;
 
 					if ((((z.istate.method << 8) + b) % 31) !== 0) {
@@ -1971,7 +1956,6 @@
 
 					z.avail_in--;
 					z.total_in++;
-					// z.istate.need = ((z.next_in[z.next_in_index++] & 0xff) << 24) & 0xff000000;
 					z.istate.need = ((z.read_byte(z.next_in_index++) & 0xff) << 24) & 0xff000000;
 					z.istate.mode = DICT3;
 				case DICT3:
@@ -1982,7 +1966,6 @@
 
 					z.avail_in--;
 					z.total_in++;
-					// z.istate.need += ((z.next_in[z.next_in_index++] & 0xff) << 16) & 0xff0000;
 					z.istate.need += ((z.read_byte(z.next_in_index++) & 0xff) << 16) & 0xff0000;
 					z.istate.mode = DICT2;
 				case DICT2:
@@ -1993,7 +1976,6 @@
 
 					z.avail_in--;
 					z.total_in++;
-					// z.istate.need += ((z.next_in[z.next_in_index++] & 0xff) << 8) & 0xff00;
 					z.istate.need += ((z.read_byte(z.next_in_index++) & 0xff) << 8) & 0xff00;
 					z.istate.mode = DICT1;
 				case DICT1:
@@ -2004,7 +1986,6 @@
 
 					z.avail_in--;
 					z.total_in++;
-					// z.istate.need += (z.next_in[z.next_in_index++] & 0xff);
 					z.istate.need += (z.read_byte(z.next_in_index++) & 0xff);
 					z.adler = z.istate.need;
 					z.istate.mode = DICT0;
@@ -2043,7 +2024,6 @@
 
 					z.avail_in--;
 					z.total_in++;
-					// z.istate.need = ((z.next_in[z.next_in_index++] & 0xff) << 24) & 0xff000000;
 					z.istate.need = ((z.read_byte(z.next_in_index++) & 0xff) << 24) & 0xff000000;
 					z.istate.mode = CHECK3;
 				case CHECK3:
@@ -2054,7 +2034,6 @@
 
 					z.avail_in--;
 					z.total_in++;
-					// z.istate.need += ((z.next_in[z.next_in_index++] & 0xff) << 16) & 0xff0000;
 					z.istate.need += ((z.read_byte(z.next_in_index++) & 0xff) << 16) & 0xff0000;
 					z.istate.mode = CHECK2;
 				case CHECK2:
@@ -2065,7 +2044,6 @@
 
 					z.avail_in--;
 					z.total_in++;
-					// z.istate.need += ((z.next_in[z.next_in_index++] & 0xff) << 8) & 0xff00;
 					z.istate.need += ((z.read_byte(z.next_in_index++) & 0xff) << 8) & 0xff00;
 					z.istate.mode = CHECK1;
 				case CHECK1:
@@ -2076,7 +2054,6 @@
 
 					z.avail_in--;
 					z.total_in++;
-					// z.istate.need += (z.next_in[z.next_in_index++] & 0xff);
 					z.istate.need += (z.read_byte(z.next_in_index++) & 0xff);
 
 					if (z.istate.was[0] != z.istate.need) {
@@ -2138,9 +2115,9 @@
 
 			// search
 			while (n !== 0 && m < 4) {
-				if (/* z.next_in[p] */z.read_byte(p) == mark[m]) {
+				if (z.read_byte(p) == mark[m]) {
 					m++;
-				} else if (/* z.next_in[p] */z.read_byte(p) !== 0) {
+				} else if (z.read_byte(p) !== 0) {
 					m = 0;
 				} else {
 					m = 4 - m;
