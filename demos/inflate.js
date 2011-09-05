@@ -2277,7 +2277,7 @@
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
-				if ((z.avail_in == 0) && (!nomoreinput)) { // if buffer is empty and more input is available, refill it
+				if ((z.avail_in === 0) && (!nomoreinput)) { // if buffer is empty and more input is available, refill it
 					z.next_in_index = 0;
 					nomoreinput = true;
 				}
