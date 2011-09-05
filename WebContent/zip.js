@@ -193,6 +193,10 @@
 			worker.postMessage({
 				inflate : true,
 				data : data,
+				type : {
+					isUint8Array : data instanceof Uint8Array,
+					isBlob : data instanceof Blob
+				},
 				uncompressedSize : uncompressedSize
 			});
 		}
@@ -282,9 +286,9 @@
 		};
 	}
 
-	// BlobResourceWriter
+	// FileResourceWriter
 
-	function BlobResourceWriter() {
+	function FileResourceWriter() {
 		var writer, that = this;
 
 		function init(file, callback, onerror) {
@@ -389,6 +393,10 @@
 					worker.postMessage({
 						deflate : true,
 						data : uncompressedData,
+						type : {
+							isUint8Array : uncompressedData instanceof Uint8Array,
+							isBlob : uncompressedData instanceof Blob
+						},
 						level : level
 					});
 				}
@@ -478,7 +486,7 @@
 		BlobResourceReader : BlobResourceReader,
 		HttpRangeResourceReader : HttpRangeResourceReader,
 		createWriter : createZipWriter,
-		BlobResourceWriter : BlobResourceWriter
+		FileResourceWriter : FileResourceWriter
 	};
 
 })(this);

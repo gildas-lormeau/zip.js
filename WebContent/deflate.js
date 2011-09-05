@@ -1788,7 +1788,7 @@
 			strm.msg = null;
 
 			if (_level == Z_DEFAULT_COMPRESSION)
-				_level = 6; // FIXME
+				_level = 6;
 
 			if (bits < 0) { // undocumented feature: suppress zlib header
 				_noheader = 1;
@@ -2242,7 +2242,7 @@
 		};
 	}
 
-	this.DeflateBlobBuilder = DeflateBlobBuilder;
+	obj.DeflateBlobBuilder = DeflateBlobBuilder;
 
 	addEventListener("message", function(event) {
 		var message = event.data, bb;
