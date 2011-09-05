@@ -51,85 +51,118 @@
 		</ul>
 		
 		<h2>API</h2>
-		<ul>
-			<li>get a ZipWriter object to create a new zip file into a Blob object
-			<pre><code class="prettyprint">var resourceWriter = new zip.BlobResourceWriter();
-resourceWriter.init(blob, function() {
-  // onsuccess callback
+		<ol>
+			<li>
+				<h3>Write a zip into a File object</h3>
+				<ul>
+					<li>get a ZipWriter object to create a new zip file
+					<pre><code class="prettyprint">// Get a new FileResourceWriter
+var resourceWriter = new zip.FileResourceWriter();
+
+// Init the FileResourceWriter object with the file object as parameter
+resourceWriter.init(file, function() {
+
+  // Get the ZipWriter object
   var zipper = zip.createWriter(resourceWriter);
   // ...
+
 }, function(error) {
   // onerror callback
 });</code></pre>
-			</li>
-			<li>add a file into the zip
-			<pre><code class="prettyprint">zipper.add(filename, blob, null /* options */, function() {
+					</li>
+					<li>add a file as a Blob object into the zip
+					<pre><code class="prettyprint">// Use the add method of the ZipWriter object to add the blob
+zipper.add(filename, blob, null /* options */, function() {
+
   // onend callback
+
 }, function(currentIndex, totalIndex) {
   // onprogress callback
 }, function(error) {
   // error callback
 });</code></pre>
-			</li>
-			<li>close the zip
-			<pre><code class="prettyprint">zipper.close(function() {
+					</li>
+					<li>close the zip
+					<pre><code class="prettyprint">zipper.close(function() {
+
   // onclose callback
+
 }, function(error) {
   // onerror callback
 });</code></pre>
+					</li>
+					<li>get the zip as a Blob object
+					<pre><code class="prettyprint">var blob = zipper.getBlob();</code></pre>
+					</li>
+				</ul>
 			</li>
-			<li>get the zip as a Blob
-			<pre><code class="prettyprint">var blob = zipper.getBlob();</code></pre>
-			</li>
-		</ul>
-		
-		<br>
+			<li>
+				<h3>Read a zip from a Blob object</h3>
+				<ul>
+					<li>get a ZipReader object to read a zip from a Blob object
+					<pre><code class="prettyprint">// Get a new BlobResourceReader
+var resourceReader = new zip.BlobResourceReader();
 
-		<ul>
-			<li>get a ZipReader object to read a zip file from a Blob object
-			<pre><code class="prettyprint">var resourceReader = new zip.BlobResourceReader();
+// Init the BlobResourceReader object with the blob object as parameter
 resourceReader.init(blob, function() {
-  // onsuccess callback
+
+  // Get the ZipReader object
   var unzipper = zip.createReader(resourceReader);
   // ...
+
 }, function(error) {
   // onerror callback
 });</code></pre>
-			</li>
-			<li>get a ZipReader object to read a zip file from a given URL
-			<pre><code class="prettyprint">var httpResourceReader = new zip.HttpRangeResourceReader();
+					</li>
+					<li>get a ZipReader object to read a zip file from a given URL
+					<pre><code class="prettyprint">// Get a new HttpRangeResourceReader
+var httpResourceReader = new zip.HttpRangeResourceReader();
+
+// Init the HttpRangeResourceReader object with the URL as parameter
 httpResourceReader.init(URL, function() {
-  // onsuccess callback
+
+  // Get the ZipReader object
   var unzipper = zip.createReader(httpResourceReader);
   // ...
-});</code></pre>
-			</li>
-			<li>get all entries from the zip
-			<pre><code class="prettyprint">unzipper.getEntries(function(entries) {
-  // onsuccess callback
-  //   entries parameter is an Array of Entry objects
+
 }, function(error) {
   // onerror callback
 });</code></pre>
-			</li>
-			<li>get entry content as a Blob
-			<pre><code class="prettyprint">entry.getData(function(blob) {
-  // onend callback
-  //   data parameter contains the file entry content
+					</li>
+					<li>get all entries from the zip
+					<pre><code class="prettyprint">// Use the getEntries method of the ZipWriter object
+unzipper.getEntries(function(entries) {
+
+  // entries parameter is an Array of Entry objects
+
+}, function(error) {
+  // onerror callback
+});</code></pre>
+					</li>
+					<li>get entry content as a Blob object
+					<pre><code class="prettyprint">// Use the getData method of an Entry object
+entry.getData(function(blob) {
+
+  // data parameter contains the file entry content
+
 }, function(current, total) {
   // onprogress callback
 }, function(error) {
   // onerror callback
 });</code></pre>
-			</li>
-			<li>close the zip
-			<pre><code class="prettyprint">unzipper.close(function() {
+					</li>
+					<li>close the zip
+					<pre><code class="prettyprint">unzipper.close(function() {
+
   // onclose callback
+
 }, function(error) {
   // onerror callback
 });</code></pre>
+					</li>
+				</ul>
 			</li>
-		</ul>
+		</ol>
 		
 		<h2>Demos</h2>
 		<ul>
