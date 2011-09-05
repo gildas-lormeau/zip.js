@@ -66,7 +66,7 @@
 					requestFileSystem(TEMPORARY, 1024 * 1024 * 1024, function(filesystem) {
 						createFile(filesystem, filename || "Example.zip", function(zipFile) {
 							outputFile = zipFile;
-							var resourceWriter = new zip.BlobResourceWriter();
+							var resourceWriter = new zip.FileResourceWriter();
 							resourceWriter.init(outputFile, function() {
 								zipper = zip.createWriter(resourceWriter);
 								oninit();

@@ -286,9 +286,9 @@
 		};
 	}
 
-	// BlobResourceWriter
+	// FileResourceWriter
 
-	function BlobResourceWriter() {
+	function FileResourceWriter() {
 		var writer, that = this;
 
 		function init(file, callback, onerror) {
@@ -486,7 +486,7 @@
 		BlobResourceReader : BlobResourceReader,
 		HttpRangeResourceReader : HttpRangeResourceReader,
 		createWriter : createZipWriter,
-		BlobResourceWriter : BlobResourceWriter
+		FileResourceWriter : FileResourceWriter
 	};
 
 })(this);
