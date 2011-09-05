@@ -2166,14 +2166,20 @@
 		var that = this, chunk, chunkPos = 0;
 
 		that.read_buf = function(start, size) {
-			var fileReader;
+			var fileReader, slice;
 			if (that.isUint8Array)
 				return that.next_in.subarray(start, start + size);
 			else if (that.isBlob) {
 				if (!chunk || start < chunkPos || start + size > chunkPos + chunk.length) {
 					fileReader = new FileReaderSync();
 					chunkPos = start;
-					chunk = new Uint8Array(fileReader.readAsArrayBuffer(that.next_in.webkitSlice(start, Math.min(start + CHUNK_SIZE, that.next_in.size))));
+					if (blob.webkitSlice)
+						slice = that.next_in.webkitSlice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
+					else if (blob.mozSlice)
+						slice = that.next_in.mozSlice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
+					else
+						slice = that.next_in.slice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
+					chunk = new Uint8Array(fileReader.readAsArrayBuffer(slice));
 				}
 				return chunk.subarray(start - chunkPos, start - chunkPos + size);
 			}
