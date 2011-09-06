@@ -2173,9 +2173,9 @@
 				if (!chunk || start < chunkPos || start + size > chunkPos + chunk.length) {
 					fileReader = new FileReaderSync();
 					chunkPos = start;
-					if (blob.webkitSlice)
+					if (that.next_in.webkitSlice)
 						slice = that.next_in.webkitSlice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
-					else if (blob.mozSlice)
+					else if (that.next_in.mozSlice)
 						slice = that.next_in.mozSlice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
 					else
 						slice = that.next_in.slice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
