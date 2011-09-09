@@ -26,9 +26,9 @@
 		};
 	}
 
-	// BlobResourceReader
+	// BlobReader
 
-	function BlobResourceReader() {
+	function BlobReader() {
 		var blob, that = this;
 
 		function init(inputBlob, callback, onerror) {
@@ -286,9 +286,23 @@
 		};
 	}
 
-	// FileResourceWriter
+	function createBlobReader(blob, callback, onerror) {
+		var blobReader = new BlobReader();
+		blobReader.init(blob, function() {
+			callback(createZipReader(blobReader));
+		}, onerror);
+	}
 
-	function FileResourceWriter() {
+	function createHttpRangeReader(url, callback, onerror) {
+		var httpReader = new HttpRangeResourceReader();
+		httpReader.init(url, function() {
+			callback(createZipReader(httpReader));
+		}, onerror);
+	}
+
+	// FileWriter
+
+	function FileWriter() {
 		var writer, that = this;
 
 		function init(file, callback, onerror) {
@@ -481,12 +495,19 @@
 		};
 	}
 
+	function createFileWriter(file, callback, onerror, dontDeflate) {
+		var fileWriter = new FileWriter();
+		fileWriter.init(file, function() {
+			callback(createZipWriter(fileWriter, dontDeflate));
+		}, onerror);
+	}
+
 	obj.zip = {
 		createReader : createZipReader,
-		BlobResourceReader : BlobResourceReader,
-		HttpRangeResourceReader : HttpRangeResourceReader,
+		createBlobReader : createBlobReader,
+		createHttpRangeReader : createHttpRangeReader,
 		createWriter : createZipWriter,
-		FileResourceWriter : FileResourceWriter
+		createFileWriter : createFileWriter
 	};
 
 })(this);

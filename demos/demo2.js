@@ -7,14 +7,10 @@
 	}
 
 	model = (function() {
-		var unzipper, outputFile;
-
 		return {
 			getEntries : function(file, onend) {
-				var resourceReader = new zip.BlobResourceReader();
-				resourceReader.init(file, function() {
-					unzipper = zip.createReader(resourceReader);
-					unzipper.getEntries(onend, onerror);
+				zip.createBlobReader(file, function(reader) {
+					reader.getEntries(onend, onerror);
 				}, onerror);
 			},
 			getEntryFile : function(entry, onend, onprogress) {

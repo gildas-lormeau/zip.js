@@ -9,11 +9,11 @@
 </head>
 <body>
 	<a href="http://github.com/gildas-lormeau/zip.js"><img style="position: absolute; top: 0; right: 0; border: 0;"
-		src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /> </a>
+		src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
 	<div id="container">
 		<div class="download">
-			<a href="http://github.com/gildas-lormeau/zip.js/zipball/master"> <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"> </a> <a
-				href="http://github.com/gildas-lormeau/zip.js/tarball/master"> <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"> </a>
+			<a href="http://github.com/gildas-lormeau/zip.js/zipball/master"> <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
+			<a href="http://github.com/gildas-lormeau/zip.js/tarball/master"> <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
 		</div>
 
 		<h1>
@@ -21,7 +21,7 @@
 		</h1>
 
 		<div class="description">
-			A new JavasScript library for zipping and unzipping files
+			A new JavasScript library to zip and unzip files
 			<hr>
 		</div>
 		
@@ -55,15 +55,11 @@
 			<li>
 				<h3>Write a zip into a File object</h3>
 				<ul>
-					<li>get a ZipWriter object to create a new zip file
-					<pre><code class="prettyprint">// Get a new FileResourceWriter
-var resourceWriter = new zip.FileResourceWriter();
-
-// Init the FileResourceWriter object with the file object as parameter
-resourceWriter.init(file, function() {
-
-  // Get the ZipWriter object
-  var zipper = zip.createWriter(resourceWriter);
+					<li>get a FileWriter object to write the zip into a File object
+					<pre><code class="prettyprint">// fileWriter is used in add method example
+var fileWriter;
+zip.createFileWriter(outputFile, function(writer) {
+  fileWriter = writer;
   // ...
 
 }, function(error) {
@@ -71,58 +67,47 @@ resourceWriter.init(file, function() {
 });</code></pre>
 					</li>
 					<li>add a file as a Blob object into the zip
-					<pre><code class="prettyprint">// Use the add method of the ZipWriter object to add the blob
-zipper.add(filename, blob, null /* options */, function() {
+					<pre><code class="prettyprint">// Use the add method of the FileWriter object to add the blob
+fileWriter.add(filename, blob, null /* options */, function() {
 
   // onend callback
 
 }, function(currentIndex, totalIndex) {
   // onprogress callback
 }, function(error) {
-  // error callback
+  // onerror callback
 });</code></pre>
 					</li>
 					<li>close the zip
-					<pre><code class="prettyprint">zipper.close(function() {
+					<pre><code class="prettyprint">fileWriter.close(function() {
 
   // onclose callback
 
 }, function(error) {
   // onerror callback
 });</code></pre>
-					</li>
-					<li>get the zip as a Blob object
-					<pre><code class="prettyprint">var blob = zipper.getBlob();</code></pre>
-					</li>
+					</li>					
 				</ul>
 			</li>
 			<li>
 				<h3>Read a zip from a Blob object</h3>
 				<ul>
-					<li>get a ZipReader object to read a zip from a Blob object
-					<pre><code class="prettyprint">// Get a new BlobResourceReader
-var resourceReader = new zip.BlobResourceReader();
-
-// Init the BlobResourceReader object with the blob object as parameter
-resourceReader.init(blob, function() {
-
-  // Get the ZipReader object
-  var unzipper = zip.createReader(resourceReader);
+					<li>get a BlobReader object to read a zip from a Blob object
+					<pre><code class="prettyprint">// zipReader is used in getEntries method example
+var zipReader;
+zip.createBlobReader(blob, function(reader) {
+  zipReader = reader;
   // ...
 
 }, function(error) {
   // onerror callback
 });</code></pre>
 					</li>
-					<li>get a ZipReader object to read a zip file from a given URL
-					<pre><code class="prettyprint">// Get a new HttpRangeResourceReader
-var httpResourceReader = new zip.HttpRangeResourceReader();
-
-// Init the HttpRangeResourceReader object with the URL as parameter
-httpResourceReader.init(URL, function() {
-
-  // Get the ZipReader object
-  var unzipper = zip.createReader(httpResourceReader);
+					<li>get a HttpRangeReader object to read a zip file from a given URL
+					<pre><code class="prettyprint">// zipReader is used in getEntries method example
+var zipReader;
+httpResourceReader.init(URL, function(reader) {
+  zipReader = reader;
   // ...
 
 }, function(error) {
@@ -130,8 +115,10 @@ httpResourceReader.init(URL, function() {
 });</code></pre>
 					</li>
 					<li>get all entries from the zip
-					<pre><code class="prettyprint">// Use the getEntries method of the ZipWriter object
-unzipper.getEntries(function(entries) {
+					<pre><code class="prettyprint">// Use the getEntries method of the BlobReader or HttpRangeReader object
+// entry is used is used in getData method example
+var entry;
+zipReader.getEntries(function(entries) {
 
   // entries parameter is an Array of Entry objects
 
@@ -152,7 +139,7 @@ entry.getData(function(blob) {
 });</code></pre>
 					</li>
 					<li>close the zip
-					<pre><code class="prettyprint">unzipper.close(function() {
+					<pre><code class="prettyprint">zipReader.close(function() {
 
   // onclose callback
 

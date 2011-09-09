@@ -39,7 +39,7 @@
 	}
 
 	model = (function() {
-		var zipper, outputFile, filename;
+		var fileWriter, outputFile, filename;
 
 		return {
 			setZipFilename : function(name) {
@@ -51,7 +51,7 @@
 				function nextFile() {
 					var file = files[addIndex];
 					onaddFile(file);
-					zipper.add(file.name, file, null, function() {
+					fileWriter.add(file.name, file, null, function() {
 						addIndex++;
 						if (addIndex < files.length)
 							nextFile();
@@ -66,9 +66,8 @@
 					requestFileSystem(TEMPORARY, 1024 * 1024 * 1024, function(filesystem) {
 						createFile(filesystem, filename || "Example.zip", function(zipFile) {
 							outputFile = zipFile;
-							var resourceWriter = new zip.FileResourceWriter();
-							resourceWriter.init(outputFile, function() {
-								zipper = zip.createWriter(resourceWriter);
+							zip.createFileWriter(outputFile, function(writer) {
+								fileWriter = writer;
 								oninit();
 								addFiles(files, oninit, onaddFiles, onaddFile, onprogressFile);
 							}, onerror);							
@@ -76,9 +75,9 @@
 					});
 			},
 			getZipURL : function(callback) {
-				zipper.close(function() {
+				fileWriter.close(function() {
 					callback(outputFile.toURL());
-					zipper = null;
+					fileWriter = null;
 					outputFile = null;
 					filename = "";
 				}, onerror);
