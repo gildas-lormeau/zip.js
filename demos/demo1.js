@@ -51,6 +51,7 @@
 				function nextFile() {
 					var file = files[addIndex];
 					onaddFile(file);
+
 					fileWriter.add(file.name, file, null, function() {
 						addIndex++;
 						if (addIndex < files.length)
@@ -58,6 +59,12 @@
 						else
 							onaddFiles();
 					}, onprogressFile, onerror);
+
+					/*
+					 * var fileReader = new FileReader(); fileReader.onload = function(e) { fileWriter.add(file.name, new
+					 * Uint8Array(e.target.result), null, function() { addIndex++; if (addIndex < files.length) nextFile(); else
+					 * onaddFiles(); }, onprogressFile, onerror); }; fileReader.readAsArrayBuffer(file);
+					 */
 				}
 
 				if (outputFile)
@@ -70,7 +77,7 @@
 								fileWriter = writer;
 								oninit();
 								addFiles(files, oninit, onaddFiles, onaddFile, onprogressFile);
-							}, onerror);							
+							}, onerror);
 						});
 					});
 			},

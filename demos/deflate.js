@@ -2058,7 +2058,7 @@
 
 	function ZStream() {
 		var that = this;
-		var fileReader = new FileReaderSync();
+		var fileReader;
 		that.next_in_index = 0;
 		that.next_out_index = 0;
 		// that.next_in; // next input byte
@@ -2092,13 +2092,26 @@
 			if (that.dstate.noheader === 0) {
 				that.adler = adler32(that.adler, that.next_in, that.next_in_index, len);
 			}
-			if (that.next_in.webkitSlice)
-				slice = that.next_in.webkitSlice(that.next_in_index, that.next_in_index + len);
-			else if (that.next_in.mozSlice)
-				slice = that.next_in.mozSlice(that.next_in_index, that.next_in_index + len);
-			else
-				slice = that.next_in.slice(that.next_in_index, that.next_in_index + len);
-			buf.set(new Uint8Array(fileReader.readAsArrayBuffer(slice)), start);
+			if (that.isUint8Array)
+				buf.set(that.next_in.subarray(that.next_in_index, that.next_in_index + len), start);
+			else if (that.isBlob) {
+				if (!fileReader)
+					fileReader = new FileReaderSync();
+				if (that.next_in.webkitSlice)
+					slice = that.next_in.webkitSlice(that.next_in_index, that.next_in_index + len);
+				else if (that.next_in.mozSlice)
+					slice = that.next_in.mozSlice(that.next_in_index, that.next_in_index + len);
+				else
+					slice = that.next_in.slice(that.next_in_index, that.next_in_index + len);
+
+				// memory leak with chrome (http://crbug.com/96214)
+				// buf.set(new Uint8Array(fileReader.readAsArrayBuffer(slice)), start);
+
+				// leak temporary fix
+				var i, str = fileReader.readAsBinaryString(slice);
+				for (i = 0; i < str.length; i++)
+					buf[start + i] = str.charCodeAt(i);
+			}
 			that.next_in_index += len;
 			that.total_in += len;
 			return len;
@@ -2189,24 +2202,29 @@
 		var buf = new Uint8Array(bufsize);
 		var output = new BlobBuilder();
 
-		that.NO_COMPRESSION = 0;
-		that.BEST_SPEED = 1;
-		that.BEST_COMPRESSION = 9;
-		that.DEFAULT_COMPRESSION = -1;
 		if (typeof level == "undefined")
 			level = that.DEFAULT_COMPRESSION;
 		z.deflateInit(level, !wrap);
 		z.next_in_index = 0;
+		z.next_out = buf;
 
-		that.append = function(blob, onprogress) {
-			var err;
-			// var len = blob.length; // Uint8Array
-			var len = blob.size;
+		that.append = function(data, dataType) {
+			var err, len = 0, blobBuilder = new BlobBuilder();
+			z.isUint8Array = dataType.isUint8Array;
+			z.isBlob = dataType.isBlob;
+			if (z.isUint8Array)
+				len = data.length;
+			else if (z.isBlob)
+				len = data.size;
 			if (len === 0)
 				return;
-			z.next_in = blob;
-			z.avail_in = len;
-			z.next_out = buf;
+
+			var bb = new BlobBuilder();
+			if (z.next_in)
+				bb.append(z.next_in);
+			bb.append(data);
+			z.next_in = bb.getBlob();
+			z.avail_in += len;
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
@@ -2215,54 +2233,52 @@
 					throw "deflating: " + z.msg;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
-						output.append(buf.buffer);
+						blobBuilder.append(buf.buffer);
 					else
-						output.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
-				if (onprogress)
-					onprogress(z.next_in_index, len);
+						blobBuilder.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
 			} while (z.avail_in > 0 || z.avail_out === 0);
+			return blobBuilder.getBlob();
 		};
-		that.getBlob = function() {
-			var err, ab;
-			z.next_out = buf;
+		that.flush = function() {
+			var err, ab, blobBuilder = new BlobBuilder();
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
 				err = z.deflate(JZlib.Z_FINISH);
 				if (err != JZlib.Z_STREAM_END && err != JZlib.Z_OK)
 					throw "deflating: " + z.msg;
-				if (bufsize - z.avail_out > 0) {
-					ab = new ArrayBuffer(z.next_out_index);
-					new Uint8Array(ab).set(buf.subarray(0, z.next_out_index));
-					output.append(ab);
-				}
+				if (bufsize - z.avail_out > 0)
+					blobBuilder.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
 			} while (z.avail_in > 0 || z.avail_out === 0);
 			z.deflateEnd();
-			return output.getBlob();
+			return blobBuilder.getBlob();
 		};
 	}
 
+	DeflateBlobBuilder.prototype = {
+		NO_COMPRESSION : 0,
+		BEST_SPEED : 1,
+		BEST_COMPRESSION : 9,
+		DEFAULT_COMPRESSION : -1
+	};
+
 	obj.DeflateBlobBuilder = DeflateBlobBuilder;
 
+	var bb = new DeflateBlobBuilder();
+
 	addEventListener("message", function(event) {
-		var message = event.data, bb;
+		var message = event.data;
 
-		function onprogress(current, total) {
+		if (message.append)
 			postMessage({
-				progress : true,
-				current : current,
-				total : total
+				onappend : true,
+				data : bb.append(message.data, message.type)
 			});
-		}
-
-		if (message.deflate) {
-			bb = new DeflateBlobBuilder();
-			bb.append(message.data, onprogress);
+		if (message.flush)
 			postMessage({
-				end : true,
-				data : bb.getBlob()
+				onflush : true,
+				data : bb.flush()
 			});
-		}
 	}, false);
 
 })(this);

@@ -319,14 +319,33 @@
 		}
 
 		function appendBlob(blob, callback, onerror) {
-			writer.onwrite = callback;
+			writer.onwrite = function() {
+				writer.onwrite = null;
+				callback();
+			};
 			writer.onerror = onerror;
 			writer.write(blob);
+		}
+
+		function seek(offset, callback, onerror) {
+			if (offset > writer.length) {
+				writer.onwrite = function() {
+					writer.onwrite = null;
+					writer.seek(offset);
+					callback();
+				};
+				writer.onerror = onerror;
+				writer.truncate(offset + 1);
+			} else {
+				writer.seek(offset);
+				callback();
+			}
 		}
 
 		that.init = init;
 		that.appendBlob = appendBlob;
 		that.appendArrayBuffer = appendArrayBuffer;
+		that.seek = seek;
 	}
 
 	// ZipWriter
@@ -389,35 +408,68 @@
 				callback(message);
 		}
 
+		function onWriteError() {
+			terminate(onerror, "Error while writing zip file.");
+		}
+
 		return {
 			add : function(name, uncompressedData, options, onend, onprogress) {
+				var filename = getBytes(encodeUTF8(name)), compressedDataSize = 0, CHUNK_SIZE = 512 * 1024, chunkIndex = 0, isBlob = uncompressedData instanceof Blob, isUint8Array = uncompressedData instanceof Uint8Array;
+
+				function iterate(level, callback) {
+					var maxIndex, index = chunkIndex * CHUNK_SIZE, size = isUint8Array ? uncompressedData.length : isBlob ? uncompressedData.size : 0;
+					if (onprogress)
+						onprogress(index, size);
+					if (index < size) {
+						maxIndex = index + Math.min(CHUNK_SIZE, size - index);
+						worker.postMessage({
+							append : true,
+							data : isUint8Array ? uncompressedData.subarray(index, maxIndex) : isBlob ? uncompressedData.webkitSlice(index, maxIndex) : null,
+							type : {
+								isBlob : isBlob,
+								isUint8Array : isUint8Array
+							},
+							level : level
+						});
+						chunkIndex++;
+					} else
+						worker.postMessage({
+							flush : true
+						});
+				}
+
+				function appendBlob(blob, callback) {
+					compressedDataSize += blob.size;
+					resourceWriter.appendBlob(blob, function() {
+						callback();
+					}, onWriteError);
+				}
+
 				function deflate(level, callback) {
 					function onmessage(event) {
-						var message = event.data;
-						if (message.progress && onprogress)
-							onprogress(message.current, message.total);
-						if (message.end) {
-							worker.terminate();
-							worker = null;
-							callback(message.data);
+						var blob, message = event.data;
+						if (message.onappend) {
+							appendBlob(message.data, function() {
+								iterate(level, callback);
+							});
+						}
+						if (message.onflush) {
+							appendBlob(message.data, function() {
+								worker.terminate();
+								worker = null;
+								callback();
+							});
 						}
 					}
 					worker = new Worker(WORKER_SCRIPTS_PATH + "deflate.js");
 					worker.addEventListener("message", onmessage, false);
-					worker.postMessage({
-						deflate : true,
-						data : uncompressedData,
-						type : {
-							isUint8Array : uncompressedData instanceof Uint8Array,
-							isBlob : uncompressedData instanceof Blob
-						},
-						level : level
-					});
+					blobBuilder = new BlobBuilder();
+					iterate(level, callback);
 				}
 
-				function writeFile(fileData, onerror) {
+				function writeFile() {
 					function onmessage(event) {
-						var crc = event.data, date = new Date(), filename = encodeUTF8(name), header = getDataHelper(26), data = getDataHelper(30 + filename.length);
+						var crc = event.data, date = new Date(), header = getDataHelper(26), data = getDataHelper(30 + filename.length);
 						crcWorker.terminate();
 						crcWorker = null;
 						filenames.push(name);
@@ -433,22 +485,18 @@
 						header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 						header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
 						header.view.setUint32(10, crc, true);
-						header.view.setUint32(14, fileData.size, true);
+						header.view.setUint32(14, compressedDataSize, true);
 						header.view.setUint32(18, uncompressedData.size, true);
 						header.view.setUint16(22, filename.length, true);
 						data.view.setUint32(0, 0x504b0304);
 						data.array.set(header.array, 4);
-						data.array.set(getBytes(filename), 30);
-						resourceWriter.appendArrayBuffer(data.buffer, function() {
-							resourceWriter.appendBlob(fileData, function() {
-								datalength += data.buffer.byteLength + fileData.size;
+						data.array.set(filename, 30);
+						resourceWriter.seek(datalength, function() {
+							resourceWriter.appendArrayBuffer(data.buffer, function() {
+								datalength += data.buffer.byteLength + compressedDataSize;
 								onend();
-							}, function() {
-								terminate(onerror, "Error while writing zip file.");
-							});
-						}, function() {
-							terminate(onerror, "Error while writing zip file.");
-						});
+							}, onWriteError);
+						}, onWriteError);
 					}
 					crcWorker = new Worker(WORKER_SCRIPTS_PATH + "crc32.js");
 					crcWorker.addEventListener("message", onmessage, false);
@@ -457,12 +505,14 @@
 
 				name = name.trim();
 				if (files[name])
-					throw name + " already exists";
+					throw "File " + name + " already exists.";
 				options = options || {};
-				if (dontDeflate)
-					writeFile(uncompressedData);
-				else
-					deflate(options.level, writeFile);
+				resourceWriter.seek(datalength + 30 + filename.length, function() {
+					if (dontDeflate)
+						appendBlob(uncompressedData, writeFile);
+					else
+						deflate(options.level, writeFile);
+				}, onWriteError);
 			},
 			close : function(callback) {
 				var data, length = 0, index = 0;
@@ -478,7 +528,7 @@
 					if (file.directory)
 						data.view.setUint16(index + 38, 0x0100);
 					data.view.setUint32(index + 42, file.offset, true);
-					data.array.set(getBytes(file.filename), index + 46);
+					data.array.set(file.filename, index + 46);
 					index += 46 + file.filename.length;
 				});
 				data.view.setUint32(index, 0x504b0506);
@@ -486,11 +536,11 @@
 				data.view.setUint16(index + 10, filenames.length, true);
 				data.view.setUint32(index + 12, length, true);
 				data.view.setUint32(index + 16, datalength, true);
-				resourceWriter.appendArrayBuffer(data.buffer, function() {
-					terminate(callback);
-				}, function() {
-					terminate(onerror, "Error while writing zip file.");
-				});
+				resourceWriter.seek(datalength, function() {
+					resourceWriter.appendArrayBuffer(data.buffer, function() {
+						terminate(callback);
+					}, onWriteError);
+				}, onWriteError);
 			}
 		};
 	}
