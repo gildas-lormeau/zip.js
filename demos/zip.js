@@ -520,6 +520,7 @@
 						}
 						if (message.onflush) {
 							appendBlob(message.data, function() {
+								worker.removeEventListener("message", onmessage, false);
 								worker.terminate();
 								worker = null;
 								callback();
@@ -531,37 +532,39 @@
 					stepDeflate(level);
 				}
 
-				function writeFile() {
-					function onmessage(event) {
-						var crc = event.data, date = new Date(), header = getDataHelper(26), data = getDataHelper(30 + filename.length);
-						crcWorker.terminate();
-						crcWorker = null;
-						filenames.push(name);
-						files[name] = {
-							headerArray : header.array,
-							directory : options.directory,
-							filename : filename,
-							offset : datalength
-						};
-						header.view.setUint32(0, 0x0a000008);
-						if (!dontDeflate)
-							header.view.setUint16(4, 0x0800);
-						header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
-						header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
-						header.view.setUint32(10, crc, true);
-						header.view.setUint32(14, compressedDataSize, true);
-						header.view.setUint32(18, reader.size, true);
-						header.view.setUint16(22, filename.length, true);
-						data.view.setUint32(0, 0x504b0304);
-						data.array.set(header.array, 4);
-						data.array.set(filename, 30);
-						writer.seek(datalength, function() {
-							writer.appendArrayBuffer(data.buffer, function() {
-								datalength += data.buffer.byteLength + compressedDataSize;
-								onend();
-							}, onWriteError);
+				function onmessage(event) {
+					var crc = event.data, date = new Date(), header = getDataHelper(26), data = getDataHelper(30 + filename.length);
+					crcWorker.removeEventListener("message", onmessage, false);
+					crcWorker.terminate();
+					crcWorker = null;
+					filenames.push(name);
+					files[name] = {
+						headerArray : header.array,
+						directory : options.directory,
+						filename : filename,
+						offset : datalength
+					};
+					header.view.setUint32(0, 0x0a000008);
+					if (!dontDeflate)
+						header.view.setUint16(4, 0x0800);
+					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
+					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
+					header.view.setUint32(10, crc, true);
+					header.view.setUint32(14, compressedDataSize, true);
+					header.view.setUint32(18, reader.size, true);
+					header.view.setUint16(22, filename.length, true);
+					data.view.setUint32(0, 0x504b0304);
+					data.array.set(header.array, 4);
+					data.array.set(filename, 30);
+					writer.seek(datalength, function() {
+						writer.appendArrayBuffer(data.buffer, function() {
+							datalength += data.buffer.byteLength + compressedDataSize;
+							onend();
 						}, onWriteError);
-					}
+					}, onWriteError);
+				}
+
+				function writeFileMetadata() {
 					crcWorker = new Worker(WORKER_SCRIPTS_PATH + "crc32.js");
 					crcWorker.addEventListener("message", onmessage, false);
 					// TODO : buffered read instead of getBlob call in order to support HttpRangeReader
@@ -573,12 +576,13 @@
 					throw "File " + name + " already exists.";
 				options = options || {};
 				writer.seek(datalength + 30 + filename.length, function() {
-					// TODO : buffered read instead of getBlob call in order to support HttpRangeReader
 					reader.init(function() {
-						if (dontDeflate)
-							writeFile(reader.getBlob());
-						else
-							deflate(options.level, writeFile);
+						if (dontDeflate) {
+							// TODO : buffered read instead of getBlob call in order to support HttpRangeReader
+							writer.appendBlob(reader.getBlob());
+							writeFileMetadata();
+						} else
+							deflate(options.level, writeFileMetadata);
 					}, onerror);
 				}, onWriteError);
 			},
