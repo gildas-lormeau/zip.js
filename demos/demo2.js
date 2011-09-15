@@ -9,12 +9,15 @@
 	model = (function() {
 		return {
 			getEntries : function(file, onend) {
-				zip.createBlobReader(file, function(reader) {
-					reader.getEntries(onend, onerror);
+				var blobReader = new zip.BlobReader(file);
+				zip.createReader(blobReader, function(zipReader) {
+					zipReader.getEntries(onend);
 				}, onerror);
 			},
 			getEntryFile : function(entry, onend, onprogress) {
-				entry.getData(onend, onprogress, onerror);
+				// TODO: use FileWriter instead ?
+				var blobWriter = new zip.BlobWriter();
+				entry.getData(blobWriter, onend, onprogress);
 			}
 		};
 	})();

@@ -39,7 +39,7 @@
 	}
 
 	model = (function() {
-		var fileWriter, outputFile, filename;
+		var zipWriter, outputFile, filename, fileWriter;
 
 		return {
 			setZipFilename : function(name) {
@@ -49,32 +49,25 @@
 				var addIndex = 0;
 
 				function nextFile() {
-					var file = files[addIndex];
+					var file = files[addIndex], blobReader = new zip.BlobReader(file);
 					onaddFile(file);
-
-					fileWriter.add(file.name, file, null, function() {
+					zipWriter.add(file.name, blobReader, null, function() {
 						addIndex++;
 						if (addIndex < files.length)
 							nextFile();
 						else
 							onaddFiles();
 					}, onprogressFile, onerror);
-
-					/*
-					 * var fileReader = new FileReader(); fileReader.onload = function(e) { fileWriter.add(file.name, new
-					 * Uint8Array(e.target.result), null, function() { addIndex++; if (addIndex < files.length) nextFile(); else
-					 * onaddFiles(); }, onprogressFile, onerror); }; fileReader.readAsArrayBuffer(file);
-					 */
 				}
 
-				if (outputFile)
+				if (zipWriter)
 					nextFile();
 				else
 					requestFileSystem(TEMPORARY, 1024 * 1024 * 1024, function(filesystem) {
 						createFile(filesystem, filename || "Example.zip", function(zipFile) {
-							outputFile = zipFile;
-							zip.createFileWriter(outputFile, function(writer) {
-								fileWriter = writer;
+							fileWriter = new zip.FileWriter(zipFile);
+							zip.createWriter(fileWriter, false, function(writer) {
+								zipWriter = writer;
 								oninit();
 								addFiles(files, oninit, onaddFiles, onaddFile, onprogressFile);
 							}, onerror);
@@ -82,10 +75,9 @@
 					});
 			},
 			getZipURL : function(callback) {
-				fileWriter.close(function() {
-					callback(outputFile.toURL());
-					fileWriter = null;
-					outputFile = null;
+				zipWriter.close(function() {
+					callback(fileWriter.getBlob().toURL());
+					zipWriter = null;
 					filename = "";
 				}, onerror);
 			}
