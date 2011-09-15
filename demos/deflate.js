@@ -2105,12 +2105,12 @@
 					slice = that.next_in.slice(that.next_in_index, that.next_in_index + len);
 
 				// memory leak with chrome (http://crbug.com/96214)
-				// buf.set(new Uint8Array(fileReader.readAsArrayBuffer(slice)), start);
+				buf.set(new Uint8Array(fileReader.readAsArrayBuffer(slice)), start);
 
 				// leak temporary fix
-				var i, str = fileReader.readAsBinaryString(slice);
-				for (i = 0; i < str.length; i++)
-					buf[start + i] = str.charCodeAt(i);
+				/*
+				 * var i, str = fileReader.readAsBinaryString(slice); for (i = 0; i < str.length; i++) buf[start + i] = str.charCodeAt(i);
+				 */
 			}
 			that.next_in_index += len;
 			that.total_in += len;

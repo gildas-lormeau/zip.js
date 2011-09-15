@@ -2181,14 +2181,13 @@
 						slice = that.next_in.slice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
 
 					// memory leak with chrome (http://crbug.com/96214)
-					// chunk = new Uint8Array(fileReader.readAsArrayBuffer(slice));
+					chunk = new Uint8Array(fileReader.readAsArrayBuffer(slice));
 
-					chunk = new Uint8Array(slice.size);
 					// leak temporary fix
-					var i, str = fileReader.readAsBinaryString(slice);
-					for (i = 0; i < str.length; i++)
-						chunk[i] = str.charCodeAt(i);
-
+					/*
+					 * chunk = new Uint8Array(slice.size); var i, str = fileReader.readAsBinaryString(slice); for (i = 0; i < str.length;
+					 * i++) chunk[i] = str.charCodeAt(i);
+					 */
 				}
 				return chunk.subarray(start - chunkPos, start - chunkPos + size);
 			}

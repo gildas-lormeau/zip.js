@@ -39,13 +39,10 @@
 					slice = blob.slice(index, index + chunkLength);
 
 				// memory leak with chrome (http://crbug.com/96214)
-				// chunk = new Uint8Array(fileReader.readAsArrayBuffer(slice));
-
-				// leak temporary fix
-				chunk = fileReader.readAsBinaryString(slice);
+				chunk = new Uint8Array(fileReader.readAsArrayBuffer(slice));
 
 				for (chunkOffset = 0; chunkOffset < chunkLength; chunkOffset++)
-					crc = (crc >>> 8) ^ table[(crc ^ /* chunk[chunkOffset] */chunk.charCodeAt(chunkOffset)) & 0xFF];
+					crc = (crc >>> 8) ^ table[(crc ^ chunk[chunkOffset]) & 0xFF];
 			}
 			return crc ^ (-1);
 		}
