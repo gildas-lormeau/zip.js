@@ -2200,18 +2200,15 @@
 		var bufsize = 512;
 		var flush = JZlib.Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
-		var output = new BlobBuilder();
 
 		if (typeof level == "undefined")
 			level = that.DEFAULT_COMPRESSION;
 		z.deflateInit(level, !wrap);
-		z.next_in_index = 0;
 		z.next_out = buf;
 
-		that.append = function(data, dataType) {
+		that.append = function(data) {
 			var err, len = 0, blobBuilder = new BlobBuilder();
-			z.isUint8Array = dataType.isUint8Array;
-			z.isBlob = dataType.isBlob;
+			z.isBlob = true;
 			if (z.isUint8Array)
 				len = data.length;
 			else if (z.isBlob)
@@ -2219,12 +2216,9 @@
 			if (len === 0)
 				return;
 
-			var bb = new BlobBuilder();
-			if (z.next_in)
-				bb.append(z.next_in);
-			bb.append(data);
-			z.next_in = bb.getBlob();
-			z.avail_in += len;
+			z.next_in_index = 0;
+			z.next_in = data;
+			z.avail_in = len;
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
@@ -2264,7 +2258,7 @@
 
 	obj.DeflateBlobBuilder = DeflateBlobBuilder;
 
-	var bb = new DeflateBlobBuilder();
+	var deflateBlobBuilder = new DeflateBlobBuilder();
 
 	addEventListener("message", function(event) {
 		var message = event.data;
@@ -2272,12 +2266,12 @@
 		if (message.append)
 			postMessage({
 				onappend : true,
-				data : bb.append(message.data, message.type)
+				data : deflateBlobBuilder.append(message.data, message.type)
 			});
 		if (message.flush)
 			postMessage({
 				onflush : true,
-				data : bb.flush()
+				data : deflateBlobBuilder.flush()
 			});
 	}, false);
 
