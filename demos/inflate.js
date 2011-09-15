@@ -2179,7 +2179,16 @@
 						slice = that.next_in.mozSlice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
 					else
 						slice = that.next_in.slice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
-					chunk = new Uint8Array(fileReader.readAsArrayBuffer(slice));
+
+					// memory leak with chrome (http://crbug.com/96214)
+					// chunk = new Uint8Array(fileReader.readAsArrayBuffer(slice));
+
+					chunk = new Uint8Array(slice.size);
+					// leak temporary fix
+					var i, str = fileReader.readAsBinaryString(slice);
+					for (i = 0; i < str.length; i++)
+						chunk[i] = str.charCodeAt(i);
+
 				}
 				return chunk.subarray(start - chunkPos, start - chunkPos + size);
 			}
@@ -2237,26 +2246,24 @@
 		var bufsize = 512;
 		var flush = JZlib.Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
-		var output = new BlobBuilder();
-
 		var nomoreinput = false;
 
 		z.inflateInit(!wrap);
-		z.next_in_index = 0;
+		z.next_out = buf;
 
-		that.append = function(data, onprogress, dataType) {
-			var err, len = 0;
-			z.isUint8Array = dataType.isUint8Array;
-			z.isBlob = dataType.isBlob;
+		that.append = function(data) {
+			var err, len = 0, blobBuilder = new BlobBuilder();
+			z.isBlob = true;
 			if (z.isUint8Array)
 				len = data.length;
 			else if (z.isBlob)
 				len = data.size;
 			if (len === 0)
 				return;
+
+			z.next_in_index = 0;
 			z.next_in = data;
 			z.avail_in = len;
-			z.next_out = buf;
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
@@ -2273,38 +2280,33 @@
 					return -1;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
-						output.append(buf.buffer);
+						blobBuilder.append(buf.buffer);
 					else
-						output.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
-				if (onprogress)
-					onprogress(z.next_in_index, len);
+						blobBuilder.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
 			} while (z.avail_in > 0 || z.avail_out === 0);
+			return blobBuilder.getBlob();
 		};
-		that.getBlob = function() {
+		that.flush = function() {
 			z.inflateEnd();
-			return output.getBlob();
 		};
 	}
 
 	obj.InflateBlobBuilder = InflateBlobBuilder;
 
+	var inflateBlobBuilder = new InflateBlobBuilder();
+
 	addEventListener("message", function(event) {
-		var message = event.data, bb;
+		var message = event.data;
 
-		function onprogress(current, total) {
+		if (message.append)
 			postMessage({
-				progress : true,
-				current : current,
-				total : total
+				onappend : true,
+				data : inflateBlobBuilder.append(message.data, message.type)
 			});
-		}
-
-		if (message.inflate) {
-			bb = new InflateBlobBuilder();
-			bb.append(message.data, onprogress, message.type);
+		if (message.flush) {
+			inflateBlobBuilder.flush();
 			postMessage({
-				end : true,
-				data : bb.getBlob()
+				onflush : true
 			});
 		}
 	}, false);
