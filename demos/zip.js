@@ -290,16 +290,19 @@
 						var chunkIndex = 0;
 
 						function stepInflate() {
-							var index = chunkIndex * CHUNK_SIZE, size = data.size;
+							var fileReader = new FileReader(), index = chunkIndex * CHUNK_SIZE, size = data.size;
 
 							if (onprogress)
 								onprogress(index, size);
 							if (index < size) {
-								worker.postMessage({
-									append : true,
-									data : blobSlice(data, index, Math.min(CHUNK_SIZE, size - index))
-								});
-								chunkIndex++;
+								fileReader.onload = function(event) {
+									worker.postMessage({
+										append : true,
+										data : new Uint8Array(event.target.result)
+									});
+									chunkIndex++;
+								};
+								fileReader.readAsArrayBuffer(blobSlice(data, index, Math.min(CHUNK_SIZE, size - index)));
 							} else
 								worker.postMessage({
 									flush : true
@@ -489,10 +492,10 @@
 					if (onprogress)
 						onprogress(index, size);
 					if (index < size) {
-						reader.readBlob(index, Math.min(CHUNK_SIZE, size - index), function(blob) {
+						reader.readUint8Array(index, Math.min(CHUNK_SIZE, size - index), function(data) {
 							worker.postMessage({
 								append : true,
-								data : blob,
+								data : new Uint8Array(data),
 								level : level
 							});
 							chunkIndex++;

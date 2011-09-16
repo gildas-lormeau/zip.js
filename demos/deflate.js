@@ -2058,7 +2058,6 @@
 
 	function ZStream() {
 		var that = this;
-		var fileReader;
 		that.next_in_index = 0;
 		that.next_out_index = 0;
 		// that.next_in; // next input byte
@@ -2072,50 +2071,6 @@
 		// that.data_type; // best guess about the data type: ascii or binary
 		// that.adler;
 
-		// Read a new buffer from the current input stream, update the adler32
-		// and total number of bytes read. All deflate() input goes through
-		// this function so some applications may wish to modify it to avoid
-		// allocating a large strm->next_in buffer and copying from it.
-		// (See also flush_pending()).
-		that.read_buf = function(buf, start, size) {
-			var that = this;
-			var len = that.avail_in;
-			var slice;
-
-			if (len > size)
-				len = size;
-			if (len === 0)
-				return 0;
-
-			that.avail_in -= len;
-
-			if (that.dstate.noheader === 0) {
-				that.adler = adler32(that.adler, that.next_in, that.next_in_index, len);
-			}
-			if (that.isUint8Array)
-				buf.set(that.next_in.subarray(that.next_in_index, that.next_in_index + len), start);
-			else if (that.isBlob) {
-				if (!fileReader)
-					fileReader = new FileReaderSync();
-				if (that.next_in.webkitSlice)
-					slice = that.next_in.webkitSlice(that.next_in_index, that.next_in_index + len);
-				else if (that.next_in.mozSlice)
-					slice = that.next_in.mozSlice(that.next_in_index, that.next_in_index + len);
-				else
-					slice = that.next_in.slice(that.next_in_index, that.next_in_index + len);
-
-				// memory leak with chrome (http://crbug.com/96214)
-				buf.set(new Uint8Array(fileReader.readAsArrayBuffer(slice)), start);
-
-				// leak temporary fix
-				/*
-				 * var i, str = fileReader.readAsBinaryString(slice); for (i = 0; i < str.length; i++) buf[start + i] = str.charCodeAt(i);
-				 */
-			}
-			that.next_in_index += len;
-			that.total_in += len;
-			return len;
-		};
 	}
 
 	ZStream.prototype = {
@@ -2156,6 +2111,28 @@
 			if (!that.dstate)
 				return JZlib.Z_STREAM_ERROR;
 			return that.dstate.deflateSetDictionary(that, dictionary, dictLength);
+		},
+
+		// Read a new buffer from the current input stream, update the adler32
+		// and total number of bytes read. All deflate() input goes through
+		// this function so some applications may wish to modify it to avoid
+		// allocating a large strm->next_in buffer and copying from it.
+		// (See also flush_pending()).
+		read_buf : function(buf, start, size) {
+			var that = this;
+			var len = that.avail_in;
+			if (len > size)
+				len = size;
+			if (len === 0)
+				return 0;
+			that.avail_in -= len;
+			if (that.dstate.noheader === 0) {
+				that.adler = adler32(that.adler, that.next_in, that.next_in_index, len);
+			}
+			buf.set(that.next_in.subarray(that.next_in_index, that.next_in_index + len), start);
+			that.next_in_index += len;
+			that.total_in += len;
+			return len;
 		},
 
 		// Flush as much pending output as possible. All deflate() output goes
@@ -2207,18 +2184,13 @@
 		z.next_out = buf;
 
 		that.append = function(data) {
-			var err, len = 0, blobBuilder = new BlobBuilder();
-			z.isBlob = true;
-			if (z.isUint8Array)
-				len = data.length;
-			else if (z.isBlob)
-				len = data.size;
-			if (len === 0)
+			var err, blobBuilder = new BlobBuilder();
+			if (!data.length)
 				return;
 
 			z.next_in_index = 0;
 			z.next_in = data;
-			z.avail_in = len;
+			z.avail_in = data.length;
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;

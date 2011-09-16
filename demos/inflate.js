@@ -2160,38 +2160,8 @@
 	}
 
 	// ZStream
-	var CHUNK_SIZE = 65536;
 
 	function ZStream() {
-		var that = this, chunk, chunkPos = 0;
-
-		that.read_buf = function(start, size) {
-			var fileReader, slice;
-			if (that.isUint8Array)
-				return that.next_in.subarray(start, start + size);
-			else if (that.isBlob) {
-				if (!chunk || start < chunkPos || start + size > chunkPos + chunk.length) {
-					fileReader = new FileReaderSync();
-					chunkPos = start;
-					if (that.next_in.webkitSlice)
-						slice = that.next_in.webkitSlice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
-					else if (that.next_in.mozSlice)
-						slice = that.next_in.mozSlice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
-					else
-						slice = that.next_in.slice(start, Math.min(start + CHUNK_SIZE, that.next_in.size));
-
-					// memory leak with chrome (http://crbug.com/96214)
-					chunk = new Uint8Array(fileReader.readAsArrayBuffer(slice));
-
-					// leak temporary fix
-					/*
-					 * chunk = new Uint8Array(slice.size); var i, str = fileReader.readAsBinaryString(slice); for (i = 0; i < str.length;
-					 * i++) chunk[i] = str.charCodeAt(i);
-					 */
-				}
-				return chunk.subarray(start - chunkPos, start - chunkPos + size);
-			}
-		};
 	}
 
 	ZStream.prototype = {
@@ -2233,7 +2203,11 @@
 		},
 		read_byte : function(start) {
 			var that = this;
-			return that.read_buf(start, 1)[0];
+			return that.next_in.subarray(start, start + 1)[0];
+		},
+		read_buf : function(start, size) {
+			var that = this;
+			return that.next_in.subarray(start, start + size);
 		}
 	};
 
@@ -2251,18 +2225,13 @@
 		z.next_out = buf;
 
 		that.append = function(data) {
-			var err, len = 0, blobBuilder = new BlobBuilder();
-			z.isBlob = true;
-			if (z.isUint8Array)
-				len = data.length;
-			else if (z.isBlob)
-				len = data.size;
-			if (len === 0)
+			var err, blobBuilder = new BlobBuilder();
+			if (data.length === 0)
 				return;
 
 			z.next_in_index = 0;
 			z.next_in = data;
-			z.avail_in = len;
+			z.avail_in = data.length;
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
@@ -2275,7 +2244,7 @@
 					return -1;
 				if (err != JZlib.Z_OK && err != JZlib.Z_STREAM_END)
 					throw "inflating: " + z.msg;
-				if ((nomoreinput || err == JZlib.Z_STREAM_END) && (z.avail_out == len))
+				if ((nomoreinput || err == JZlib.Z_STREAM_END) && (z.avail_out == data.length))
 					return -1;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
