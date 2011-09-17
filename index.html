@@ -21,30 +21,28 @@
 		</h1>
 
 		<div class="description">
-			A new JavasScript library to zip and unzip files
+			A JavasScript library to zip and unzip files
 			<hr>
 		</div>
-		
 
-		<p>zip.js offers a low-level API for writing and reading (big) zip files</p>
+		<p>zip.js offers a low-level API for writing and reading big zip files (up to 4GB) with a stable RAM use.</p>
 
 		<p>This library is implemented with these HTML5 features:
 		<ul>
 			<li><a href="https://developer.mozilla.org/en/Using_web_workers">Web workers</a></li>
-			<li><a href="http://www.w3.org/TR/FileAPI/#FileReaderSync">FileReaderSync</a> and <a href="http://www.w3.org/TR/file-writer-api/#idl-def-FileWriter">FileWriter</a></li>
+			<li><a href="https://developer.mozilla.org/en/DOM/FileReader">FileReader</a> (and <a href="http://www.w3.org/TR/file-writer-api/#idl-def-FileWriter">FileWriter</a> optionally)</li>
 			<li><a href="https://developer.mozilla.org/en/DOM/Blob">Blob</a> and <a href="https://developer.mozilla.org/en/DOM/BlobBuilder">BlobBuilder</a></li>
 			<li><a href="https://developer.mozilla.org/en/javascript_typed_arrays">Typed arrays</a></li>
 		</ul>
 
 		<h2>Notes</h2>
 		<ul>
-			<li>This library is currently only supported with chrome but will work with firefox when needed API will be implemented.</li>
-			<li>A <a href="http://crbug.com/96214">Chrome issue</a> prevents the library to manage efficiently big files into a zip</li>
+			<li>This library is currently only supported with chrome 14 but should work with firefox when needed API will be implemented.</li>
 		</ul>
 
 		<h2>Install</h2>
 		<ul>
-			<li>include zip.js, crc32.js, deflate.js, and inflate.js file in your project</li>
+			<li>include zip.js, deflate.js, and inflate.js file in your project</li>
 			<li>add zip.js in your HTML page
 				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip.js&quot;&gt;&lt;/script&gt;</code></pre>
 			</li>
@@ -58,20 +56,23 @@
 			<li>
 				<h3>Write a zip into a File object</h3>
 				<ul>
-					<li>get a FileWriter object to write the zip into a File object
-					<pre><code class="prettyprint">// fileWriter is used in add method example
-var fileWriter;
-zip.createFileWriter(outputFile, function(writer) {
-  fileWriter = writer;
+					<li>get a ZipWriter object to create the zip
+					<pre><code class="prettyprint">// use a FileWriter to store the zip into a File object
+var fileWriter = new zip.FileWriter(zipFile);
+var zipWriter; // the ZipWriter object
+zip.createWriter(fileWriter, false, function(writer) {
+
+  zipWriter = writer;
   // ...
 
 }, function(error) {
   // onerror callback
 });</code></pre>
 					</li>
-					<li>add a file as a Blob object into the zip
-					<pre><code class="prettyprint">// Use the add method of the FileWriter object to add the blob
-fileWriter.add(filename, blob, null /* options */, function() {
+					<li>add a file into the zip
+					<pre><code class="prettyprint">// use a BlobReader to read a File object
+var blobReader = new zip.BlobReader(file);
+zipWriter.add("filename", blobReader, null, function() {
 
   // onend callback
 
@@ -95,21 +96,12 @@ fileWriter.add(filename, blob, null /* options */, function() {
 			<li>
 				<h3>Read a zip from a Blob object</h3>
 				<ul>
-					<li>get a BlobReader object to read a zip from a Blob object
-					<pre><code class="prettyprint">// zipReader is used in getEntries method example
-var zipReader;
-zip.createBlobReader(blob, function(reader) {
-  zipReader = reader;
-  // ...
+					<li>get a ZipReader object to read a zip
+					<pre><code class="prettyprint">// use a BlobReader to read the zip from a File object
+var blobReader = new zip.BlobReader(file);
+var zipReader; // the ZipReader object
+zip.createReader(blobReader, function(reader) {
 
-}, function(error) {
-  // onerror callback
-});</code></pre>
-					</li>
-					<li>get a HttpRangeReader object to read a zip file from a given URL
-					<pre><code class="prettyprint">// zipReader is used in getEntries method example
-var zipReader;
-httpResourceReader.init(URL, function(reader) {
   zipReader = reader;
   // ...
 
@@ -118,22 +110,22 @@ httpResourceReader.init(URL, function(reader) {
 });</code></pre>
 					</li>
 					<li>get all entries from the zip
-					<pre><code class="prettyprint">// Use the getEntries method of the BlobReader or HttpRangeReader object
-// entry is used is used in getData method example
-var entry;
+					<pre><code class="prettyprint">var zipEntry; // a ZipEntry object
 zipReader.getEntries(function(entries) {
 
-  // entries parameter is an Array of Entry objects
+  if (entries.length)
+    zipEntry = entries[0];
 
 }, function(error) {
   // onerror callback
 });</code></pre>
 					</li>
-					<li>get entry content as a Blob object
-					<pre><code class="prettyprint">// Use the getData method of an Entry object
-entry.getData(function(blob) {
+					<li>get entry content
+					<pre><code class="prettyprint">// use a FileWriter to store the content into a File object
+var fileWriter = new zip.FileWriter(file);
+zipEntry.getData(blobWriter, function() {
 
-  // data parameter contains the file entry content
+  // onend callback
 
 }, function(current, total) {
   // onprogress callback
