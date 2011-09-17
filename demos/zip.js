@@ -165,30 +165,57 @@
 	}
 
 	function BlobWriter() {
-		var blobBuilder, that = this;
+		var blobBuilder, that = this, index = 0, size = 0;
 
 		function init(callback, onerror) {
 			blobBuilder = new BlobBuilder();
-			callback();
+			setTimeout(callback, 1);
+		}
+
+		function append(data, dataSize) {
+			var blob, startBlob, endBlob, paddingSize;
+			if (index == size) {
+				blobBuilder.append(data);
+				size += dataSize;
+				index += dataSize;
+			} else {
+				if (index + dataSize > size) {
+					paddingSize = index + dataSize - size;
+					blobBuilder.append(new Uint8Array(paddingSize).buffer);
+					size += paddingSize;
+				}
+				blob = blobBuilder.getBlob();
+				if (index)
+					startBlob = blobSlice(blob, 0, index);
+				index += dataSize;
+				if (size - index)
+					endBlob = blobSlice(blob, index, size - index);
+				blobBuilder = new BlobBuilder();
+				if (startBlob)
+					blobBuilder.append(startBlob);
+				blobBuilder.append(data);
+				if (endBlob)
+					blobBuilder.append(endBlob);
+			}
 		}
 
 		function appendArrayBuffer(arrayBuffer, callback, onerror) {
-			blobBuilder.append(arrayBuffer);
-			callback();
+			append(arrayBuffer, arrayBuffer.byteLength);
+			setTimeout(callback, 1);
 		}
 
 		function appendBlob(blob, callback, onerror) {
-			blobBuilder.append(blob);
-			callback();
+			append(blob, blob.size);
+			setTimeout(callback, 1);
 		}
 
 		function getBlob() {
 			return blobBuilder.getBlob();
 		}
 
-		// TODO
 		function seek(offset, callback, onerror) {
-			throw "BlobWriter does not support seek method.";
+			index = offset;
+			setTimeout(callback, 1);
 		}
 
 		that.init = init;
@@ -273,11 +300,7 @@
 							var fileReader = new FileReader(), index = chunkIndex * CHUNK_SIZE, size = data.size;
 
 							if (onprogress)
-								onprogress({
-									inflate : true,
-									index : index,
-									max : size
-								});
+								onprogress(index, size);
 							if (index < size) {
 								fileReader.onerror = onerror;
 								fileReader.onload = function(event) {
