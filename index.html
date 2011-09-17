@@ -72,7 +72,7 @@ zip.createWriter(fileWriter, false, function(writer) {
 					<li>add a file into the zip
 					<pre><code class="prettyprint">// use a BlobReader to read a File object
 var blobReader = new zip.BlobReader(file);
-zipWriter.add("filename", blobReader, null, function() {
+zipWriter.add(file.name, blobReader, null, function() {
 
   // onend callback
 
