@@ -69,7 +69,7 @@
 							zip.createWriter(fileWriter, false, function(writer) {
 								zipWriter = writer;
 								oninit();
-								addFiles(files, oninit, onaddFiles, onaddFile, onprogressFile);
+								nextFile();
 							}, onerror);
 						});
 					});
