@@ -123,7 +123,7 @@ zipReader.getEntries(function(entries) {
 					<li>get entry content
 					<pre><code class="prettyprint">// use a FileWriter to store the content into a File object
 var fileWriter = new zip.FileWriter(file);
-zipEntry.getData(blobWriter, function() {
+zipEntry.getData(fileWriter, function() {
 
   // onend callback
 
