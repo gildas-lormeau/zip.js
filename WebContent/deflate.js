@@ -2058,7 +2058,6 @@
 
 	function ZStream() {
 		var that = this;
-		var fileReader = new FileReaderSync();
 		that.next_in_index = 0;
 		that.next_out_index = 0;
 		// that.next_in; // next input byte
@@ -2072,37 +2071,6 @@
 		// that.data_type; // best guess about the data type: ascii or binary
 		// that.adler;
 
-		// Read a new buffer from the current input stream, update the adler32
-		// and total number of bytes read. All deflate() input goes through
-		// this function so some applications may wish to modify it to avoid
-		// allocating a large strm->next_in buffer and copying from it.
-		// (See also flush_pending()).
-		that.read_buf = function(buf, start, size) {
-			var that = this;
-			var len = that.avail_in;
-			var slice;
-
-			if (len > size)
-				len = size;
-			if (len === 0)
-				return 0;
-
-			that.avail_in -= len;
-
-			if (that.dstate.noheader === 0) {
-				that.adler = adler32(that.adler, that.next_in, that.next_in_index, len);
-			}
-			if (that.next_in.webkitSlice)
-				slice = that.next_in.webkitSlice(that.next_in_index, that.next_in_index + len);
-			else if (that.next_in.mozSlice)
-				slice = that.next_in.mozSlice(that.next_in_index, that.next_in_index + len);
-			else
-				slice = that.next_in.slice(that.next_in_index, that.next_in_index + len);
-			buf.set(new Uint8Array(fileReader.readAsArrayBuffer(slice)), start);
-			that.next_in_index += len;
-			that.total_in += len;
-			return len;
-		};
 	}
 
 	ZStream.prototype = {
@@ -2143,6 +2111,28 @@
 			if (!that.dstate)
 				return JZlib.Z_STREAM_ERROR;
 			return that.dstate.deflateSetDictionary(that, dictionary, dictLength);
+		},
+
+		// Read a new buffer from the current input stream, update the adler32
+		// and total number of bytes read. All deflate() input goes through
+		// this function so some applications may wish to modify it to avoid
+		// allocating a large strm->next_in buffer and copying from it.
+		// (See also flush_pending()).
+		read_buf : function(buf, start, size) {
+			var that = this;
+			var len = that.avail_in;
+			if (len > size)
+				len = size;
+			if (len === 0)
+				return 0;
+			that.avail_in -= len;
+			if (that.dstate.noheader === 0) {
+				that.adler = adler32(that.adler, that.next_in, that.next_in_index, len);
+			}
+			buf.set(that.next_in.subarray(that.next_in_index, that.next_in_index + len), start);
+			that.next_in_index += len;
+			that.total_in += len;
+			return len;
 		},
 
 		// Flush as much pending output as possible. All deflate() output goes
@@ -2187,26 +2177,20 @@
 		var bufsize = 512;
 		var flush = JZlib.Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
-		var output = new BlobBuilder();
 
-		that.NO_COMPRESSION = 0;
-		that.BEST_SPEED = 1;
-		that.BEST_COMPRESSION = 9;
-		that.DEFAULT_COMPRESSION = -1;
 		if (typeof level == "undefined")
 			level = that.DEFAULT_COMPRESSION;
 		z.deflateInit(level, !wrap);
-		z.next_in_index = 0;
+		z.next_out = buf;
 
-		that.append = function(blob, onprogress) {
-			var err;
-			// var len = blob.length; // Uint8Array
-			var len = blob.size;
-			if (len === 0)
+		that.append = function(data) {
+			var err, blobBuilder = new BlobBuilder();
+			if (!data.length)
 				return;
-			z.next_in = blob;
-			z.avail_in = len;
-			z.next_out = buf;
+
+			z.next_in_index = 0;
+			z.next_in = data;
+			z.avail_in = data.length;
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
@@ -2215,54 +2199,52 @@
 					throw "deflating: " + z.msg;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
-						output.append(buf.buffer);
+						blobBuilder.append(buf.buffer);
 					else
-						output.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
-				if (onprogress)
-					onprogress(z.next_in_index, len);
+						blobBuilder.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
 			} while (z.avail_in > 0 || z.avail_out === 0);
+			return blobBuilder.getBlob();
 		};
-		that.getBlob = function() {
-			var err, ab;
-			z.next_out = buf;
+		that.flush = function() {
+			var err, ab, blobBuilder = new BlobBuilder();
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
 				err = z.deflate(JZlib.Z_FINISH);
 				if (err != JZlib.Z_STREAM_END && err != JZlib.Z_OK)
 					throw "deflating: " + z.msg;
-				if (bufsize - z.avail_out > 0) {
-					ab = new ArrayBuffer(z.next_out_index);
-					new Uint8Array(ab).set(buf.subarray(0, z.next_out_index));
-					output.append(ab);
-				}
+				if (bufsize - z.avail_out > 0)
+					blobBuilder.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
 			} while (z.avail_in > 0 || z.avail_out === 0);
 			z.deflateEnd();
-			return output.getBlob();
+			return blobBuilder.getBlob();
 		};
 	}
 
+	DeflateBlobBuilder.prototype = {
+		NO_COMPRESSION : 0,
+		BEST_SPEED : 1,
+		BEST_COMPRESSION : 9,
+		DEFAULT_COMPRESSION : -1
+	};
+
 	obj.DeflateBlobBuilder = DeflateBlobBuilder;
 
+	var deflateBlobBuilder = new DeflateBlobBuilder();
+
 	addEventListener("message", function(event) {
-		var message = event.data, bb;
+		var message = event.data;
 
-		function onprogress(current, total) {
+		if (message.append)
 			postMessage({
-				progress : true,
-				current : current,
-				total : total
+				onappend : true,
+				data : deflateBlobBuilder.append(message.data, message.type)
 			});
-		}
-
-		if (message.deflate) {
-			bb = new DeflateBlobBuilder();
-			bb.append(message.data, onprogress);
+		if (message.flush)
 			postMessage({
-				end : true,
-				data : bb.getBlob()
+				onflush : true,
+				data : deflateBlobBuilder.flush()
 			});
-		}
 	}, false);
 
 })(this);
