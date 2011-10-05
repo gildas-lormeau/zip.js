@@ -4,6 +4,7 @@
  * 
  * decodeUTF8 and encodeUTF8 implementations found on phpjs.org
  */
+
 (function(obj) {
 
 	var WORKER_SCRIPTS_PATH = "";
@@ -19,9 +20,9 @@
 			return blob.slice(index, index + length);
 	}
 
-	function getDataHelper(size, bytes) {
+	function getDataHelper(byteLength, bytes) {
 		var dataBuffer, dataArray, dataView;
-		dataBuffer = new ArrayBuffer(size);
+		dataBuffer = new ArrayBuffer(byteLength);
 		dataArray = new Uint8Array(dataBuffer);
 		dataView = new DataView(dataBuffer);
 		if (bytes)
@@ -123,19 +124,15 @@
 			}, onerror);
 		}
 
-		function appendBlob(blob, callback, onerror) {
+		function writeUint8Array(array, callback, onerror) {
+			var blobBuilder = new BlobBuilder();
+			blobBuilder.append(array.buffer);
 			writer.onwrite = function() {
 				writer.onwrite = null;
 				callback();
 			};
 			writer.onerror = onerror;
-			writer.write(blob);
-		}
-
-		function appendArrayBuffer(arrayBuffer, callback, onerror) {
-			var blobBuilder = new BlobBuilder();
-			blobBuilder.append(arrayBuffer);
-			appendBlob(blobBuilder.getBlob(), callback, onerror);
+			writer.write(blobBuilder.getBlob());
 		}
 
 		function getBlob() {
@@ -158,8 +155,7 @@
 		}
 
 		that.init = init;
-		that.appendBlob = appendBlob;
-		that.appendArrayBuffer = appendArrayBuffer;
+		that.writeUint8Array = writeUint8Array;
 		that.getBlob = getBlob;
 		that.seek = seek;
 	}
@@ -172,40 +168,33 @@
 			setTimeout(callback, 1);
 		}
 
-		function append(data, dataSize) {
-			var blob, startBlob, endBlob, paddingSize;
+		function writeUint8Array(array, callback, onerror) {
+			var blob, startBlob, endBlob, paddingLength, buffer = array.buffer, byteLength = buffer.byteLength;
+
 			if (index == size) {
-				blobBuilder.append(data);
-				size += dataSize;
-				index += dataSize;
+				blobBuilder.append(buffer);
+				size += byteLength;
+				index += byteLength;
 			} else {
-				if (index + dataSize > size) {
-					paddingSize = index + dataSize - size;
-					blobBuilder.append(new Uint8Array(paddingSize).buffer);
-					size += paddingSize;
+				if (index + byteLength > size) {
+					paddingLength = index + byteLength - size;
+					blobBuilder.append(new Uint8Array(paddingLength).buffer);
+					size += paddingLength;
 				}
 				blob = blobBuilder.getBlob();
 				if (index)
 					startBlob = blobSlice(blob, 0, index);
-				index += dataSize;
+				index += byteLength;
 				if (size - index)
 					endBlob = blobSlice(blob, index, size - index);
 				blobBuilder = new BlobBuilder();
 				if (startBlob)
 					blobBuilder.append(startBlob);
-				blobBuilder.append(data);
+				blobBuilder.append(buffer);
 				if (endBlob)
 					blobBuilder.append(endBlob);
 			}
-		}
 
-		function appendArrayBuffer(arrayBuffer, callback, onerror) {
-			append(arrayBuffer, arrayBuffer.byteLength);
-			setTimeout(callback, 1);
-		}
-
-		function appendBlob(blob, callback, onerror) {
-			append(blob, blob.size);
 			setTimeout(callback, 1);
 		}
 
@@ -219,8 +208,7 @@
 		}
 
 		that.init = init;
-		that.appendBlob = appendBlob;
-		that.appendArrayBuffer = appendArrayBuffer;
+		that.writeUint8Array = writeUint8Array;
 		that.getBlob = getBlob;
 		that.seek = seek;
 	}
@@ -286,66 +274,62 @@
 				callback(param);
 		}
 
+		function bufferedInflate(data, writer, onend, onprogress, onerror) {
+			var chunkIndex = 0;
+
+			function stepInflate() {
+				var fileReader = new FileReader(), index = chunkIndex * CHUNK_SIZE, size = data.size;
+
+				if (index < size) {
+					if (onprogress)
+						onprogress(index, size);
+					fileReader.onerror = onerror;
+					fileReader.onload = function(event) {
+						worker.postMessage({
+							append : true,
+							data : new Uint8Array(event.target.result)
+						});
+						chunkIndex++;
+					};
+					fileReader.readAsArrayBuffer(blobSlice(data, index, Math.min(CHUNK_SIZE, size - index)));
+				} else
+					worker.postMessage({
+						flush : true
+					});
+			}
+
+			function onmesssage(event) {
+				var message = event.data;
+				if (message.onappend)
+					writer.writeUint8Array(message.data, function() {
+						stepInflate();
+					});
+				if (message.onflush)
+					terminate(function() {
+						onend(writer.getBlob());
+					});
+				if (message.progress && onprogress)
+					onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), data.size);
+			}
+
+			worker = new Worker(WORKER_SCRIPTS_PATH + "inflate.js");
+			worker.addEventListener("message", onmesssage, false);
+			stepInflate();
+		}
+
 		function Entry() {
 		}
 
 		Entry.prototype.getData = function(writer, onend, onprogress) {
-			var entry = this;
-			reader.readUint8Array(entry.offset, 4, function(bytes) {
+			var that = this;
+			reader.readUint8Array(that.offset, 4, function(bytes) {
 				if (getDataHelper(bytes.length, bytes).view.getUint32(0) == 0x504b0304) {
-					reader.readBlob(entry.offset + 30 + entry.filenameLength + entry.extraLength, entry.compressedSize, function(data) {
-						var chunkIndex = 0;
-
-						function stepInflate() {
-							var fileReader = new FileReader(), index = chunkIndex * CHUNK_SIZE, size = data.size;
-
-							if (onprogress)
-								onprogress(index, size);
-							if (index < size) {
-								fileReader.onerror = onerror;
-								fileReader.onload = function(event) {
-									worker.postMessage({
-										append : true,
-										data : new Uint8Array(event.target.result)
-									});
-									chunkIndex++;
-								};
-								fileReader.readAsArrayBuffer(blobSlice(data, index, Math.min(CHUNK_SIZE, size - index)));
-							} else
-								worker.postMessage({
-									flush : true
-								});
-						}
-
-						function inflate(callback) {
-							function onmesssage(event) {
-								var message = event.data;
-								if (message.onappend) {
-									writer.appendBlob(message.data, function() {
-										stepInflate();
-									});
-								}
-								if (message.onflush) {
-									worker.terminate();
-									worker = null;
-									callback(writer.getBlob());
-								}
-
-								if (message.debug) {
-									console.log("message", message.value);
-								}
-							}
-
-							worker = new Worker(WORKER_SCRIPTS_PATH + "inflate.js");
-							worker.addEventListener("message", onmesssage, false);
-							stepInflate();
-						}
-
+					reader.readBlob(that.offset + 30 + that.filenameLength + that.extraLength, that.compressedSize, function(data) {
 						writer.init(function() {
-							if (entry.compressionMethod === 0)
+							if (that.compressionMethod === 0)
 								onend(data);
 							else
-								inflate(onend);
+								bufferedInflate(data, writer, onend, onprogress, onerror);
 						}, function() {
 							terminate(onerror, "Error while writing uncompressed file.");
 						});
@@ -361,7 +345,6 @@
 
 		return {
 			getEntries : function(callback) {
-
 				if (reader.size < 22) {
 					terminate(onerror, "File format is not recognized.");
 					return;
@@ -509,7 +492,7 @@
 	}
 
 	function createZipWriterCore(writer, dontDeflate, onerror) {
-		var worker, files = [], filenames = [], datalength = 0, CHUNK_SIZE = 512 * 1024;
+		var worker, files = [], filenames = [], datalength = 0, CHUNK_SIZE = 512 * 1024, crc32, compressedLength;
 
 		function terminate(callback, message) {
 			if (worker)
@@ -523,11 +506,81 @@
 			terminate(onerror, "Error while writing zip file.");
 		}
 
+		function writeUint8Array(array, callback) {
+			compressedLength += array.length;
+			writer.writeUint8Array(array, callback, onWriteError);
+		}
+
+		function bufferedDeflate(reader, level, onend, onprogress, onerror) {
+			var chunkIndex = 0;
+
+			function stepDeflate() {
+				var index = chunkIndex * CHUNK_SIZE, size = reader.size;
+				if (index < size) {
+					if (onprogress)
+						onprogress(index, size);
+					reader.readUint8Array(index, Math.min(CHUNK_SIZE, size - index), function(data) {
+						crc32.append(data);
+						worker.postMessage({
+							append : true,
+							data : data,
+							level : level
+						});
+						chunkIndex++;
+					}, onerror);
+				} else
+					worker.postMessage({
+						flush : true
+					});
+			}
+
+			function onmessage(event) {
+				var message = event.data;
+				if (message.onappend)
+					writeUint8Array(message.data, stepDeflate);
+				if (message.onflush)
+					writeUint8Array(message.data, function() {
+						worker.removeEventListener("message", onmessage, false);
+						terminate(onend);
+					});
+				if (message.progress && onprogress)
+					onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), reader.size);
+			}
+
+			worker = new Worker(WORKER_SCRIPTS_PATH + "deflate.js");
+			worker.addEventListener("message", onmessage, false);
+			crc32 = new Crc32();
+			stepDeflate();
+		}
+
+		function bufferedCopy(reader, onend, onprogress, onerror) {
+			var chunkIndex = 0;
+
+			function stepCopy() {
+				var index = chunkIndex * CHUNK_SIZE, size = reader.size;
+				if (onprogress)
+					onprogress(index, size);
+				if (index < size)
+					reader.readUint8Array(index, Math.min(CHUNK_SIZE, size - index), function(array) {
+						writeUint8Array(array, function() {
+							crc32.append(array);
+							chunkIndex++;
+							stepCopy();
+						});
+					}, onerror);
+				else
+					onend();
+			}
+
+			crc32 = new Crc32();
+			stepCopy();
+		}
+
 		return {
 			add : function(name, reader, options, onend, onprogress) {
-				var filename = getBytes(encodeUTF8(name)), compressedDataSize = 0, chunkIndex, crc32 = new Crc32();
+				var filename = getBytes(encodeUTF8(name));
 
-				function writeFileMetadata() {
+				function writeMetadata() {
 					var date = new Date(), header = getDataHelper(26), data = getDataHelper(30 + filename.length);
 					filenames.push(name);
 					files[name] = {
@@ -542,96 +595,22 @@
 					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
 					header.view.setUint32(10, crc32.get(), true);
-					header.view.setUint32(14, compressedDataSize, true);
+					header.view.setUint32(14, compressedLength, true);
 					header.view.setUint32(18, reader.size, true);
 					header.view.setUint16(22, filename.length, true);
 					data.view.setUint32(0, 0x504b0304);
 					data.array.set(header.array, 4);
+					data.array.set([], 30); // FIXME: isolate an report this regression (chrome 14 : OK, chromium 16 : KO)
 					data.array.set(filename, 30);
 					writer.seek(datalength, function() {
-						writer.appendArrayBuffer(data.buffer, function() {
-							datalength += data.buffer.byteLength + compressedDataSize;
+						writer.writeUint8Array(data.array, function() {
+							datalength += data.array.length + compressedLength;
 							onend();
 						}, onWriteError);
 					}, onWriteError);
 				}
 
-				function appendBlob(blob, callback) {
-					compressedDataSize += blob.size;
-					writer.appendBlob(blob, function() {
-						callback();
-					}, onWriteError);
-				}
-
-				function stepDeflate(level) {
-					var index = chunkIndex * CHUNK_SIZE, size = reader.size;
-					if (onprogress)
-						onprogress(index, size);
-					if (index < size) {
-						reader.readUint8Array(index, Math.min(CHUNK_SIZE, size - index), function(data) {
-							crc32.append(data);
-							worker.postMessage({
-								append : true,
-								data : data,
-								level : level
-							});
-							chunkIndex++;
-						}, onerror);
-					} else
-						worker.postMessage({
-							flush : true
-						});
-				}
-
-				function deflate(level, callback) {
-					function onmessage(event) {
-						var blob, message = event.data;
-						if (message.onappend) {
-							appendBlob(message.data, function() {
-								stepDeflate(level);
-							});
-						}
-						if (message.onflush) {
-							appendBlob(message.data, function() {
-								worker.removeEventListener("message", onmessage, false);
-								worker.terminate();
-								worker = null;
-								callback();
-							});
-						}
-					}
-					worker = new Worker(WORKER_SCRIPTS_PATH + "deflate.js");
-					worker.addEventListener("message", onmessage, false);
-					chunkIndex = 0;
-					stepDeflate(level);
-				}
-
-				function stepCopy(callback) {
-					var index = chunkIndex * CHUNK_SIZE, size = reader.size;
-					if (onprogress)
-						onprogress(index, size);
-					if (index < size)
-						reader.readBlob(index, Math.min(CHUNK_SIZE, size - index), function(blob) {
-							appendBlob(blob, function() {
-								var fileReader = new FileReader();
-								fileReader.onerror = onerror;
-								fileReader.onload = function(event) {
-									crc32.append(new Uint8Array(event.target.result));
-									chunkIndex++;
-									stepCopy(callback);
-								};
-								fileReader.readAsArrayBuffer(blob);
-							});
-						}, onerror);
-					else
-						callback();
-				}
-
-				function copy(callback) {
-					chunkIndex = 0;
-					stepCopy(callback);
-				}
-
+				compressedLength = 0;
 				name = name.trim();
 				if (files[name])
 					throw "File " + name + " already exists.";
@@ -639,9 +618,9 @@
 				writer.seek(datalength + 30 + filename.length, function() {
 					reader.init(function() {
 						if (dontDeflate)
-							copy(writeFileMetadata);
+							bufferedCopy(reader, writeMetadata, onprogress, onerror);
 						else
-							deflate(options.level, writeFileMetadata);
+							bufferedDeflate(reader, options.level, writeMetadata, onprogress, onerror);
 					}, onerror);
 				}, onWriteError);
 			},
@@ -668,7 +647,7 @@
 				data.view.setUint32(index + 12, length, true);
 				data.view.setUint32(index + 16, datalength, true);
 				writer.seek(datalength, function() {
-					writer.appendArrayBuffer(data.buffer, function() {
+					writer.writeUint8Array(data.array, function() {
 						terminate(callback);
 					}, onWriteError);
 				}, onWriteError);

@@ -109,7 +109,6 @@
 	// NMAX is the largest n such that 255n(n+1)/2 + (n+1)(BASE-1) <= 2^32-1
 	var NMAX = 5552;
 
-	// TODO : (not used) buf is a Blob ! (Add also a crc32 function in deflate.js)
 	function adler32(adler, buf, index, len) {
 		if (!buf) {
 			return 1;
@@ -123,43 +122,43 @@
 			k = len < NMAX ? len : NMAX;
 			len -= k;
 			while (k >= 16) {
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++] & 0xff;
+				s1 += buf[index++];
 				s2 += s1;
 				k -= 16;
 			}
 			if (k !== 0) {
 				do {
-					s1 += buf[index++] & 0xff;
+					s1 += buf[index++];
 					s2 += s1;
 				} while (--k !== 0);
 			}
@@ -2169,9 +2168,9 @@
 		}
 	};
 
-	// DeflateBlobBuilder
+	// Deflater
 
-	function DeflateBlobBuilder(level, wrap) {
+	function Deflater(level, wrap) {
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
@@ -2183,11 +2182,10 @@
 		z.deflateInit(level, !wrap);
 		z.next_out = buf;
 
-		that.append = function(data) {
-			var err, blobBuilder = new BlobBuilder();
+		that.append = function(data, onprogress) {
+			var err, buffers = [], lastIndex = 0, bufferIndex = 0, bufferSize = 0, array;
 			if (!data.length)
 				return;
-
 			z.next_in_index = 0;
 			z.next_in = data;
 			z.avail_in = data.length;
@@ -2199,14 +2197,24 @@
 					throw "deflating: " + z.msg;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
-						blobBuilder.append(buf.buffer);
+						buffers.push(new Uint8Array(buf));
 					else
-						blobBuilder.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
+						buffers.push(new Uint8Array(buf.subarray(0, z.next_out_index)));
+				bufferSize += z.next_out_index;
+				if (onprogress && z.next_in_index > 0 && z.next_in_index != lastIndex) {
+					onprogress(z.next_in_index);
+					lastIndex = z.next_in_index;
+				}
 			} while (z.avail_in > 0 || z.avail_out === 0);
-			return blobBuilder.getBlob();
+			array = new Uint8Array(bufferSize);
+			buffers.forEach(function(chunk) {
+				array.set(chunk, bufferIndex);
+				bufferIndex += chunk.length;
+			});
+			return array;
 		};
 		that.flush = function() {
-			var err, ab, blobBuilder = new BlobBuilder();
+			var err, ab, buffers = [], bufferIndex = 0, bufferSize = 0, array;
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
@@ -2214,36 +2222,50 @@
 				if (err != JZlib.Z_STREAM_END && err != JZlib.Z_OK)
 					throw "deflating: " + z.msg;
 				if (bufsize - z.avail_out > 0)
-					blobBuilder.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
+					buffers.push(new Uint8Array(buf.subarray(0, z.next_out_index)));
+				bufferSize += z.next_out_index;
 			} while (z.avail_in > 0 || z.avail_out === 0);
 			z.deflateEnd();
-			return blobBuilder.getBlob();
+			array = new Uint8Array(bufferSize);
+			buffers.forEach(function(chunk) {
+				array.set(chunk, bufferIndex);
+				bufferIndex += chunk.length;
+			});
+			return array;
 		};
 	}
 
-	DeflateBlobBuilder.prototype = {
+	Deflater.prototype = {
 		NO_COMPRESSION : 0,
 		BEST_SPEED : 1,
 		BEST_COMPRESSION : 9,
 		DEFAULT_COMPRESSION : -1
 	};
 
-	obj.DeflateBlobBuilder = DeflateBlobBuilder;
+	if (!obj.zip)
+		obj.zip = {};
 
-	var deflateBlobBuilder = new DeflateBlobBuilder();
+	obj.zip.Deflater = Deflater;
 
-	addEventListener("message", function(event) {
+	var deflater = new obj.zip.Deflater();
+
+	obj.addEventListener("message", function(event) {
 		var message = event.data;
 
 		if (message.append)
-			postMessage({
+			obj.postMessage({
 				onappend : true,
-				data : deflateBlobBuilder.append(message.data, message.type)
+				data : deflater.append(message.data, function(current) {
+					obj.postMessage({
+						progress : true,
+						current : current
+					});
+				})
 			});
 		if (message.flush)
-			postMessage({
+			obj.postMessage({
 				onflush : true,
-				data : deflateBlobBuilder.flush()
+				data : deflater.flush()
 			});
 	}, false);
 

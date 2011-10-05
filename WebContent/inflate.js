@@ -2211,9 +2211,9 @@
 		}
 	};
 
-	// InflateBlobBuilder
+	// Inflater
 
-	function InflateBlobBuilder(wrap) {
+	function Inflater(wrap) {
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
@@ -2224,11 +2224,10 @@
 		z.inflateInit(!wrap);
 		z.next_out = buf;
 
-		that.append = function(data) {
-			var err, blobBuilder = new BlobBuilder();
+		that.append = function(data, onprogress) {
+			var err, buffers = [], lastIndex = 0, bufferIndex = 0, bufferSize = 0, array;
 			if (data.length === 0)
 				return;
-
 			z.next_in_index = 0;
 			z.next_in = data;
 			z.avail_in = data.length;
@@ -2248,32 +2247,50 @@
 					return -1;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
-						blobBuilder.append(buf.buffer);
+						buffers.push(new Uint8Array(buf));
 					else
-						blobBuilder.append(new Uint8Array(buf.subarray(0, z.next_out_index)).buffer);
+						buffers.push(new Uint8Array(buf.subarray(0, z.next_out_index)));
+				bufferSize += z.next_out_index;
+				if (onprogress && z.next_in_index > 0 && z.next_in_index != lastIndex) {
+					onprogress(z.next_in_index);
+					lastIndex = z.next_in_index;
+				}
 			} while (z.avail_in > 0 || z.avail_out === 0);
-			return blobBuilder.getBlob();
+			array = new Uint8Array(bufferSize);
+			buffers.forEach(function(chunk) {
+				array.set(chunk, bufferIndex);
+				bufferIndex += chunk.length;
+			});
+			return array;
 		};
 		that.flush = function() {
 			z.inflateEnd();
 		};
 	}
 
-	obj.InflateBlobBuilder = InflateBlobBuilder;
+	if (!obj.zip)
+		obj.zip = {};
 
-	var inflateBlobBuilder = new InflateBlobBuilder();
+	obj.zip.Inflater = Inflater;
 
-	addEventListener("message", function(event) {
+	var inflater = new obj.zip.Inflater();
+
+	obj.addEventListener("message", function(event) {
 		var message = event.data;
 
 		if (message.append)
-			postMessage({
+			obj.postMessage({
 				onappend : true,
-				data : inflateBlobBuilder.append(message.data, message.type)
+				data : inflater.append(message.data, function(current) {
+					obj.postMessage({
+						progress : true,
+						current : current
+					});
+				})
 			});
 		if (message.flush) {
-			inflateBlobBuilder.flush();
-			postMessage({
+			inflater.flush();
+			obj.postMessage({
 				onflush : true
 			});
 		}
