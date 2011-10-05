@@ -3,7 +3,7 @@
 	var model, view, controller;
 
 	function onerror(message) {
-		console.error(message);
+		alert(message);
 	}
 
 	model = (function() {

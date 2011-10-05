@@ -5,7 +5,7 @@
 	var model, view, controller;
 
 	function onerror(message) {
-		console.error(message);
+		alert(message);
 	}
 
 	function createFile(filesystem, filename, callback) {
@@ -64,6 +64,7 @@
 					nextFile();
 				else
 					requestFileSystem(TEMPORARY, 1024 * 1024 * 1024, function(filesystem) {
+						// fileWriter = new zip.BlobWriter(); FIXME buggy :p
 						createFile(filesystem, filename || "Example.zip", function(zipFile) {
 							fileWriter = new zip.FileWriter(zipFile);
 							zip.createWriter(fileWriter, false, function(writer) {
@@ -77,6 +78,8 @@
 			getZipURL : function(callback) {
 				zipWriter.close(function() {
 					callback(fileWriter.getBlob().toURL());
+					// var URL = obj.webkitURL || obj.mozURL || obj.URL;
+					// callback(URL.createObjectURL(fileWriter.getBlob()));
 					zipWriter = null;
 					filename = "";
 				}, onerror);
