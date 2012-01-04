@@ -31,8 +31,11 @@
 		<ol id="demo-container">
 			<li>
 				<label>
-					<span class="form-label">choose file name</span>
-					<input type="text" id="filename-input" value="Example.zip">
+					<span class="form-label">choose interface for generated file</span>
+					<select id="creation-method-input">
+						<option value="Blob">Blob</option>
+						<option value="File">File</option>
+					</select>
 				</label>
 			</li>
 			<li>
@@ -47,12 +50,20 @@
 				</ul>
 			</li>
 			<li>
-				<span class="form-label">download the zip file</span><button id="download-button" disabled>Download</button>
+				<label>
+					<span class="form-label">set zip file name</span>
+					<input type="text" id="filename-input" value="Example.zip">
+				</label>
+			</li>
+			<li>
+				<span class="form-label">download the zip file</span>
+				<a id="download-button" disabled href="#">Download</a>
 			</li>
 		</ol>
 
 	</div>
 	<script type="text/javascript" src="zip.js"></script>
+	<script type="text/javascript" src="dataview.js"></script>
 	<script type="text/javascript" src="demo1.js"></script>
 	<script type="text/javascript">
 

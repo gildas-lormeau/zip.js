@@ -1,165 +1,141 @@
 (function(obj) {
 
-	var requestFileSystem = obj.webkitRequestFileSystem || obj.mozRequestFileSystem || obj.requestFileSystem;
-
-	var model, view, controller;
+	var requestFileSystem = obj.webkitRequestFileSystem || obj.mozRequestFileSystem || obj.requestFileSystem, filename = "file.zip";
 
 	function onerror(message) {
 		alert(message);
 	}
 
-	function createFile(filesystem, filename, callback) {
-		var rootReader = filesystem.root.createReader("/");
-
-		function create() {
-			filesystem.root.getFile(filename, {
-				create : true
-			}, function(zipFile) {
-				callback(zipFile);
-			});
-		}
-
-		rootReader.readEntries(function(entries) {
-			var entryIndex = 0;
-
-			function removeNextEntry() {
-				function next() {
-					entryIndex++;
-					removeNextEntry();
-				}
-
-				if (entryIndex < entries.length)
-					entries[entryIndex].remove(next, next);
-				else
-					create();
+	function createTempFile(callback) {
+		requestFileSystem(TEMPORARY, 4 * 1024 * 1024 * 1024, function(filesystem) {
+			function create() {
+				filesystem.root.getFile(filename, {
+					create : true
+				}, function(zipFile) {
+					callback(zipFile);
+				});
 			}
 
-			removeNextEntry();
-		}, create);
+			filesystem.root.getFile(filename, null, function(entry) {
+				entry.remove(create, create);
+			}, create);
+		});
 	}
 
-	model = (function() {
-		var zipWriter, outputFile, filename, fileWriter;
+	var model = (function() {
+		var zipWriter, writer, creationMethod, URL = obj.webkitURL || obj.mozURL || obj.URL;
 
 		return {
-			setZipFilename : function(name) {
-				filename = name;
+			setCreationMethod : function(method) {
+				creationMethod = method;
 			},
-			addFiles : function addFiles(files, oninit, onaddFiles, onaddFile, onprogressFile) {
+			addFiles : function addFiles(files, callbacks) {
 				var addIndex = 0;
 
 				function nextFile() {
 					var file = files[addIndex], blobReader = new zip.BlobReader(file);
-					onaddFile(file);
+					callbacks.onadd(file);
 					zipWriter.add(file.name, blobReader, null, function() {
 						addIndex++;
 						if (addIndex < files.length)
 							nextFile();
 						else
-							onaddFiles();
-					}, onprogressFile, onerror);
+							callbacks.onend();
+					}, callbacks.onprogress, onerror);
+				}
+
+				function createZipWriter() {
+					zip.createWriter(writer, false, function(writer) {
+						zipWriter = writer;
+						callbacks.oninit();
+						nextFile();
+					}, onerror);
 				}
 
 				if (zipWriter)
 					nextFile();
-				else
-					requestFileSystem(TEMPORARY, 1024 * 1024 * 1024, function(filesystem) {
-						// fileWriter = new zip.BlobWriter(); FIXME buggy :p
-						createFile(filesystem, filename || "Example.zip", function(zipFile) {
-							fileWriter = new zip.FileWriter(zipFile);
-							zip.createWriter(fileWriter, false, function(writer) {
-								zipWriter = writer;
-								oninit();
-								nextFile();
-							}, onerror);
-						});
+				else if (creationMethod == "Blob") {
+					writer = new zip.BlobWriter();
+					createZipWriter();
+				} else {
+					createTempFile(function(file) {
+						writer = new zip.FileWriter(file);
+						createZipWriter();
 					});
+				}
 			},
-			getZipURL : function(callback) {
+			getBlobURL : function(callback) {
 				zipWriter.close(function() {
-					callback(fileWriter.getBlob().toURL());
-					// var URL = obj.webkitURL || obj.mozURL || obj.URL;
-					// callback(URL.createObjectURL(fileWriter.getBlob()));
+					var blob = writer.getBlob();
+					callback(creationMethod == "Blob" ? URL.createObjectURL(blob) : blob.toURL());
 					zipWriter = null;
-					filename = "";
 				}, onerror);
 			}
 		};
 	})();
 
-	controller = {
-		setZipFilename : function(filename) {
-			model.setZipFilename(filename);
-		},
-		addFiles : function(files, oninit, onaddFiles, onaddFile, onprogressFile) {
-			model.addFiles(files, oninit, onaddFiles, onaddFile, onprogressFile);
-		},
-		downloadZip : function(ondownloadZip) {
-			model.getZipURL(function(URL) {
-				location.href = URL;
-				setTimeout(ondownloadZip, 500);
-			});
-		}
-	};
-
-	view = (function() {
+	(function() {
 		var fileInput = document.getElementById("file-input");
 		var zipProgress = document.createElement("progress");
 		var downloadButton = document.getElementById("download-button");
 		var fileList = document.getElementById("file-list");
 		var filenameInput = document.getElementById("filename-input");
+		var creationMethodInput = document.getElementById("creation-method-input");
+		if (requestFileSystem)
+			creationMethodInput.value = "File";
+		else
+			creationMethodInput.options.length = 1;
+		model.setCreationMethod(creationMethodInput.value);
 		fileInput.addEventListener('change', function(event) {
 			fileInput.disabled = true;
 			downloadButton.disabled = true;
-			view.onFileInputChange(fileInput);
+			creationMethodInput.disabled = true;
+			model.addFiles(fileInput.files, {
+				oninit : function() {
+				},
+				onadd : function(file) {
+					var li = document.createElement("li");
+					zipProgress.value = 0;
+					zipProgress.max = 0;
+					li.textContent = file.name;
+					li.appendChild(zipProgress);
+					fileList.appendChild(li);
+				},
+				onprogress : function(current, total) {
+					zipProgress.value = current;
+					zipProgress.max = total;
+				},
+				onend : function() {
+					if (zipProgress.parentNode)
+						zipProgress.parentNode.removeChild(zipProgress);
+					fileInput.value = "";
+					fileInput.disabled = false;
+					downloadButton.disabled = false;
+				}
+			});
 		}, false);
-		filenameInput.addEventListener('change', function(event) {
-			view.onFilenameInputChange(filenameInput);
+		creationMethodInput.addEventListener('change', function(event) {
+			model.setCreationMethod(creationMethodInput.value);
 		}, false);
-		downloadButton.addEventListener('click', function(event) {
-			downloadButton.disabled = true;
-			view.onDownloadZip();
-			return false;
-		}, false);
-		return {
-			initZip : function() {
-				filenameInput.disabled = true;
-			},
-			addFiles : function() {
-				if (zipProgress.parentNode)
-					zipProgress.parentNode.removeChild(zipProgress);
-				fileInput.value = "";
-				fileInput.disabled = false;
-				downloadButton.disabled = false;
-			},
-			addFile : function(file) {
-				var li = document.createElement("li");
-				zipProgress.value = 0;
-				zipProgress.max = 0;
-				li.innerText = file.name;
-				li.appendChild(zipProgress);
-				fileList.appendChild(li);
-			},
-			progressFile : function(current, total) {
-				zipProgress.value = current;
-				zipProgress.max = total;
-			},
-			downloadZip : function() {
-				downloadButton.disabled = false;
-				filenameInput.disabled = false;
-				fileList.innerHTML = "";
+		downloadButton.addEventListener("click", function(event) {
+			var target = event.target, entry;
+			if (!downloadButton.download) {
+				downloadButton.disabled = true;
+				model.getBlobURL(function(blobURL) {
+					var clickEvent = document.createEvent("MouseEvent");
+					clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+					downloadButton.href = blobURL;
+					downloadButton.download = filenameInput.value;
+					downloadButton.dispatchEvent(clickEvent);
+					downloadButton.disabled = false;
+					creationMethodInput.disabled = false;
+					fileList.innerHTML = "";
+				});
+				event.preventDefault();
+				return false;
 			}
-		};
-	})();
+		}, false);
 
-	view.onFilenameInputChange = function(filenameInput) {
-		controller.setZipFilename(filenameInput.value);
-	};
-	view.onFileInputChange = function(fileInput) {
-		controller.addFiles(fileInput.files, view.initZip, view.addFiles, view.addFile, view.progressFile);
-	};
-	view.onDownloadZip = function() {
-		controller.downloadZip(view.downloadZip);
-	};
+	})();
 
 })(this);
