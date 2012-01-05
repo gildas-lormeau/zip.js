@@ -500,7 +500,7 @@
 		return array;
 	}
 
-	function createZipWriterCore(writer, dontDeflate, onerror) {
+	function createZipWriterCore(writer, onerror, dontDeflate) {
 		var worker, files = [], filenames = [], datalength = 0, CHUNK_SIZE = 512 * 1024, crc32, compressedLength;
 
 		function terminate(callback, message) {
@@ -666,9 +666,9 @@
 		};
 	}
 
-	function createZipWriter(writer, dontDeflate, callback, onerror) {
+	function createZipWriter(writer, callback, onerror, dontDeflate) {
 		writer.init(function() {
-			callback(createZipWriterCore(writer, dontDeflate, onerror));
+			callback(createZipWriterCore(writer, onerror, dontDeflate));
 		}, onerror);
 	}
 

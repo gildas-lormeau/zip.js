@@ -45,7 +45,7 @@
 				}
 
 				function createZipWriter() {
-					zip.createWriter(writer, false, function(writer) {
+					zip.createWriter(writer, function(writer) {
 						zipWriter = writer;
 						callbacks.oninit();
 						nextFile();
