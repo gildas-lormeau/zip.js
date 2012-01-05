@@ -88,7 +88,6 @@
 		model.setCreationMethod(creationMethodInput.value);
 		fileInput.addEventListener('change', function(event) {
 			fileInput.disabled = true;
-			downloadButton.disabled = true;
 			creationMethodInput.disabled = true;
 			model.addFiles(fileInput.files, {
 				oninit : function() {
@@ -110,7 +109,6 @@
 						zipProgress.parentNode.removeChild(zipProgress);
 					fileInput.value = "";
 					fileInput.disabled = false;
-					downloadButton.disabled = false;
 				}
 			});
 		}, false);
@@ -120,14 +118,12 @@
 		downloadButton.addEventListener("click", function(event) {
 			var target = event.target, entry;
 			if (!downloadButton.download) {
-				downloadButton.disabled = true;
 				model.getBlobURL(function(blobURL) {
 					var clickEvent = document.createEvent("MouseEvent");
 					clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
 					downloadButton.href = blobURL;
 					downloadButton.download = filenameInput.value;
 					downloadButton.dispatchEvent(clickEvent);
-					downloadButton.disabled = false;
 					creationMethodInput.disabled = false;
 					fileList.innerHTML = "";
 				});
