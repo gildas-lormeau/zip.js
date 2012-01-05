@@ -35,13 +35,8 @@
 				var writer, zipFileEntry;
 
 				function getData() {
-					entry.getData(writer, function() {
-						if (creationMethod == "Blob")
-							writer.getData(function(blob) {
-								callbacks.onend(URL.createObjectURL(blob));
-							});
-						else
-							callbacks.onend(zipFileEntry.toURL());
+					entry.getData(writer, function(blob) {
+						callbacks.onend(creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL());
 					}, callbacks.onprogress);
 				}
 

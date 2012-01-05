@@ -324,14 +324,21 @@
 
 		Entry.prototype.getData = function(writer, onend, onprogress) {
 			var that = this;
+
+			function getWriterData() {
+				writer.getData(function(data) {
+					onend(data);
+				});
+			}
+
 			reader.readUint8Array(that.offset, 4, function(bytes) {
 				if (getDataHelper(bytes.length, bytes).view.getUint32(0) == 0x504b0304) {
 					reader.readBlob(that.offset + 30 + that.filenameLength + that.extraLength, that.compressedSize, function(data) {
 						writer.init(function() {
 							if (that.compressionMethod === 0)
-								onend(data);
+								getWriterData();
 							else
-								bufferedInflate(data, writer, onend, onprogress, onerror);
+								bufferedInflate(data, writer, getWriterData, onprogress, onerror);
 						}, function() {
 							terminate(onerror, "Error while writing uncompressed file.");
 						});
@@ -650,7 +657,9 @@
 				data.view.setUint32(index + 16, datalength, true);
 				writer.seek(datalength, function() {
 					writer.writeUint8Array(data.array, function() {
-						terminate(callback);
+						terminate(function() {
+							writer.getData(callback);
+						});
 					}, onWriteError);
 				}, onWriteError);
 			}

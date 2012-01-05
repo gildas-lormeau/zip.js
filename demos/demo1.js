@@ -66,11 +66,9 @@
 				}
 			},
 			getBlobURL : function(callback) {
-				zipWriter.close(function() {
-					writer.getData(function(blob) {
-						callback(creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL());
-						zipWriter = null;
-					});
+				zipWriter.close(function(blob) {
+					callback(creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL());
+					zipWriter = null;
 				}, onerror);
 			}
 		};
