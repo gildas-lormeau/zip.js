@@ -23,7 +23,7 @@
 	}
 
 	var model = (function() {
-		var zipWriter, writer, creationMethod, URL = obj.webkitURL || obj.mozURL || obj.URL;
+		var zipFileEntry, zipWriter, writer, creationMethod, URL = obj.webkitURL || obj.mozURL || obj.URL;
 
 		return {
 			setCreationMethod : function(method) {
@@ -58,17 +58,19 @@
 					writer = new zip.BlobWriter();
 					createZipWriter();
 				} else {
-					createTempFile(function(file) {
-						writer = new zip.FileWriter(file);
+					createTempFile(function(fileEntry) {
+						zipFileEntry = fileEntry;
+						writer = new zip.FileWriter(zipFileEntry);
 						createZipWriter();
 					});
 				}
 			},
 			getBlobURL : function(callback) {
 				zipWriter.close(function() {
-					var blob = writer.getBlob();
-					callback(creationMethod == "Blob" ? URL.createObjectURL(blob) : blob.toURL());
-					zipWriter = null;
+					writer.getData(function(blob) {
+						callback(creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL());
+						zipWriter = null;
+					});
 				}, onerror);
 			}
 		};

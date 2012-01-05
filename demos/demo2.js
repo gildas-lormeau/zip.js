@@ -32,11 +32,16 @@
 				}, onerror);
 			},
 			getEntryFile : function(entry, creationMethod, callbacks) {
-				var writer;
+				var writer, zipFileEntry;
 
 				function getData() {
-					entry.getData(writer, function(blob) {
-						callbacks.onend(creationMethod == "Blob" ? URL.createObjectURL(blob) : blob.toURL());
+					entry.getData(writer, function() {
+						if (creationMethod == "Blob")
+							writer.getData(function(blob) {
+								callbacks.onend(URL.createObjectURL(blob));
+							});
+						else
+							callbacks.onend(zipFileEntry.toURL());
 					}, callbacks.onprogress);
 				}
 
@@ -44,8 +49,9 @@
 					writer = new zip.BlobWriter();
 					getData();
 				} else {
-					createTempFile(function(file) {
-						writer = new zip.FileWriter(file);
+					createTempFile(function(fileEntry) {
+						zipFileEntry = fileEntry;
+						writer = new zip.FileWriter(zipFileEntry);
 						getData();
 					});
 				}

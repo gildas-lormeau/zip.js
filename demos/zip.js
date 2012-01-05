@@ -114,11 +114,11 @@
 
 	// Writers
 
-	function FileWriter(file) {
+	function FileWriter(fileEntry) {
 		var writer, that = this;
 
 		function init(callback, onerror) {
-			file.createWriter(function(fileWriter) {
+			fileEntry.createWriter(function(fileWriter) {
 				writer = fileWriter;
 				callback();
 			}, onerror);
@@ -135,8 +135,8 @@
 			writer.write(blobBuilder.getBlob());
 		}
 
-		function getBlob() {
-			return file;
+		function getData(callback) {
+			fileEntry.file(callback);
 		}
 
 		function seek(offset, callback, onerror) {
@@ -156,7 +156,7 @@
 
 		that.init = init;
 		that.writeUint8Array = writeUint8Array;
-		that.getBlob = getBlob;
+		that.getData = getData;
 		that.seek = seek;
 	}
 
@@ -198,8 +198,10 @@
 			setTimeout(callback, 1);
 		}
 
-		function getBlob() {
-			return blobBuilder.getBlob();
+		function getData(callback) {
+			setTimeout(function() {
+				callback(blobBuilder.getBlob());
+			}, 1);
 		}
 
 		function seek(offset, callback, onerror) {
@@ -209,7 +211,7 @@
 
 		that.init = init;
 		that.writeUint8Array = writeUint8Array;
-		that.getBlob = getBlob;
+		that.getData = getData;
 		that.seek = seek;
 	}
 
@@ -306,7 +308,7 @@
 					});
 				if (message.onflush)
 					terminate(function() {
-						onend(writer.getBlob());
+						onend();
 					});
 				if (message.progress && onprogress)
 					onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), data.size);
@@ -600,7 +602,7 @@
 					header.view.setUint16(22, filename.length, true);
 					data.view.setUint32(0, 0x504b0304);
 					data.array.set(header.array, 4);
-					data.array.set([], 30); // FIXME: isolate an report this regression (chrome 14 : OK, chromium 16 : KO)
+					data.array.set([], 30); // FIXME: isolate and report this regression (chrome 14 : OK, chromium 16 : KO)
 					data.array.set(filename, 30);
 					writer.seek(datalength, function() {
 						writer.writeUint8Array(data.array, function() {
