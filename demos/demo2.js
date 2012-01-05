@@ -81,6 +81,10 @@
 			});
 		}
 
+		if (requestFileSystem)
+			creationMethodInput.value = "File";
+		else
+			creationMethodInput.options.length = 1;
 		fileInput.addEventListener('change', function(event) {
 			fileInput.disabled = true;
 			model.getEntries(fileInput.files[0], function(entries) {
