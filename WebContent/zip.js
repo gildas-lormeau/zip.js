@@ -114,11 +114,11 @@
 
 	// Writers
 
-	function FileWriter(file) {
+	function FileWriter(fileEntry) {
 		var writer, that = this;
 
 		function init(callback, onerror) {
-			file.createWriter(function(fileWriter) {
+			fileEntry.createWriter(function(fileWriter) {
 				writer = fileWriter;
 				callback();
 			}, onerror);
@@ -135,8 +135,8 @@
 			writer.write(blobBuilder.getBlob());
 		}
 
-		function getBlob() {
-			return file;
+		function getData(callback) {
+			fileEntry.file(callback);
 		}
 
 		function seek(offset, callback, onerror) {
@@ -156,7 +156,7 @@
 
 		that.init = init;
 		that.writeUint8Array = writeUint8Array;
-		that.getBlob = getBlob;
+		that.getData = getData;
 		that.seek = seek;
 	}
 
@@ -198,8 +198,10 @@
 			setTimeout(callback, 1);
 		}
 
-		function getBlob() {
-			return blobBuilder.getBlob();
+		function getData(callback) {
+			setTimeout(function() {
+				callback(blobBuilder.getBlob());
+			}, 1);
 		}
 
 		function seek(offset, callback, onerror) {
@@ -209,7 +211,7 @@
 
 		that.init = init;
 		that.writeUint8Array = writeUint8Array;
-		that.getBlob = getBlob;
+		that.getData = getData;
 		that.seek = seek;
 	}
 
@@ -306,7 +308,7 @@
 					});
 				if (message.onflush)
 					terminate(function() {
-						onend(writer.getBlob());
+						onend();
 					});
 				if (message.progress && onprogress)
 					onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), data.size);
@@ -322,14 +324,21 @@
 
 		Entry.prototype.getData = function(writer, onend, onprogress) {
 			var that = this;
+
+			function getWriterData() {
+				writer.getData(function(data) {
+					onend(data);
+				});
+			}
+
 			reader.readUint8Array(that.offset, 4, function(bytes) {
 				if (getDataHelper(bytes.length, bytes).view.getUint32(0) == 0x504b0304) {
 					reader.readBlob(that.offset + 30 + that.filenameLength + that.extraLength, that.compressedSize, function(data) {
 						writer.init(function() {
 							if (that.compressionMethod === 0)
-								onend(data);
+								getWriterData();
 							else
-								bufferedInflate(data, writer, onend, onprogress, onerror);
+								bufferedInflate(data, writer, getWriterData, onprogress, onerror);
 						}, function() {
 							terminate(onerror, "Error while writing uncompressed file.");
 						});
@@ -491,7 +500,7 @@
 		return array;
 	}
 
-	function createZipWriterCore(writer, dontDeflate, onerror) {
+	function createZipWriterCore(writer, onerror, dontDeflate) {
 		var worker, files = [], filenames = [], datalength = 0, CHUNK_SIZE = 512 * 1024, crc32, compressedLength;
 
 		function terminate(callback, message) {
@@ -577,7 +586,7 @@
 		}
 
 		return {
-			add : function(name, reader, options, onend, onprogress) {
+			add : function(name, reader, onend, onprogress, options) {
 				var filename = getBytes(encodeUTF8(name));
 
 				function writeMetadata() {
@@ -600,7 +609,7 @@
 					header.view.setUint16(22, filename.length, true);
 					data.view.setUint32(0, 0x504b0304);
 					data.array.set(header.array, 4);
-					data.array.set([], 30); // FIXME: isolate an report this regression (chrome 14 : OK, chromium 16 : KO)
+					data.array.set([], 30); // FIXME: isolate and report this regression (chrome 14 : OK, chromium 16 : KO)
 					data.array.set(filename, 30);
 					writer.seek(datalength, function() {
 						writer.writeUint8Array(data.array, function() {
@@ -648,16 +657,18 @@
 				data.view.setUint32(index + 16, datalength, true);
 				writer.seek(datalength, function() {
 					writer.writeUint8Array(data.array, function() {
-						terminate(callback);
+						terminate(function() {
+							writer.getData(callback);
+						});
 					}, onWriteError);
 				}, onWriteError);
 			}
 		};
 	}
 
-	function createZipWriter(writer, dontDeflate, callback, onerror) {
+	function createZipWriter(writer, callback, onerror, dontDeflate) {
 		writer.init(function() {
-			callback(createZipWriterCore(writer, dontDeflate, onerror));
+			callback(createZipWriterCore(writer, onerror, dontDeflate));
 		}, onerror);
 	}
 
