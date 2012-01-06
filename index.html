@@ -51,16 +51,15 @@
 			</li>
 		</ul>
 		
-		<h2>API</h2>
+		<h2>Examples</h2>
 		<ol>
 			<li>
 				<h3>Write a zip into a File object</h3>
 				<ul>
-					<li>get a ZipWriter object to create the zip
-					<pre><code class="prettyprint">// use a FileWriter to store the zip into a File object
-var fileWriter = new zip.FileWriter(zipFile);
-var zipWriter; // the ZipWriter object
-zip.createWriter(fileWriter, false, function(writer) {
+					<li>get a ZipWriter object to write into the zip
+					<pre><code class="prettyprint">var zipWriter; // a reference to the ZipWriter object
+// use a FileWriter to store the zip into a FileEntry object (in file system)
+zip.createWriter(new zip.FileWriter(fileEntry), function(writer) {
 
   zipWriter = writer;
   // ...
@@ -70,9 +69,8 @@ zip.createWriter(fileWriter, false, function(writer) {
 });</code></pre>
 					</li>
 					<li>add a file into the zip
-					<pre><code class="prettyprint">// use a BlobReader to read a File object
-var blobReader = new zip.BlobReader(file);
-zipWriter.add(file.name, blobReader, null, function() {
+					<pre><code class="prettyprint">// use a BlobReader to read the FileEntry object to add
+zipWriter.add(fEntry.name, new zip.BlobReader(fEntry), function() {
 
   // onend callback
 
@@ -82,25 +80,27 @@ zipWriter.add(file.name, blobReader, null, function() {
   // onerror callback
 });</code></pre>
 					</li>
-					<li>close the zip
-					<pre><code class="prettyprint">fileWriter.close(function() {
+					<li>close the zip and get file content
+					<pre><code class="prettyprint">zipWriter.close(function(blob) {
 
-  // onclose callback
+  // blob contains the zip file as a Blob object
+  // or
+  // var blobURL = fEntry.toURL(); 
+  // blobURL contains the zip file as a URL
 
 }, function(error) {
   // onerror callback
 });</code></pre>
-					</li>					
+					</li>
 				</ul>
 			</li>
 			<li>
 				<h3>Read a zip from a Blob object</h3>
 				<ul>
 					<li>get a ZipReader object to read a zip
-					<pre><code class="prettyprint">// use a BlobReader to read the zip from a File object
-var blobReader = new zip.BlobReader(file);
-var zipReader; // the ZipReader object
-zip.createReader(blobReader, function(reader) {
+					<pre><code class="prettyprint">var zipReader; // the ZipReader object
+// use a BlobReader to read the zip from the FileEntry object
+zip.createReader(new zip.BlobReader(fileEntry), function(reader) {
 
   zipReader = reader;
   // ...
@@ -110,7 +110,7 @@ zip.createReader(blobReader, function(reader) {
 });</code></pre>
 					</li>
 					<li>get all entries from the zip
-					<pre><code class="prettyprint">var zipEntry; // a ZipEntry object
+					<pre><code class="prettyprint">var zipEntry; // a Entry object
 zipReader.getEntries(function(entries) {
 
   if (entries.length)
@@ -121,11 +121,10 @@ zipReader.getEntries(function(entries) {
 });</code></pre>
 					</li>
 					<li>get entry content
-					<pre><code class="prettyprint">// use a FileWriter to store the content into a File object
-var fileWriter = new zip.FileWriter(file);
-zipEntry.getData(fileWriter, function() {
+					<pre><code class="prettyprint">// use a BlobWriter to store the content into a Blob object (in RAM)
+zipEntry.getData(new zip.BlobWriter(), function(blob) {
 
-  // onend callback
+  // blob contains the zip file as a Blob object
 
 }, function(current, total) {
   // onprogress callback
