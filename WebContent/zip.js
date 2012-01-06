@@ -7,8 +7,6 @@
 
 (function(obj) {
 
-	var WORKER_SCRIPTS_PATH = "";
-
 	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
 
 	function blobSlice(blob, index, length) {
@@ -314,7 +312,7 @@
 					onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), data.size);
 			}
 
-			worker = new Worker(WORKER_SCRIPTS_PATH + "inflate.js");
+			worker = new Worker(zip.workerScriptsPath + "inflate.js");
 			worker.addEventListener("message", onmesssage, false);
 			stepInflate();
 		}
@@ -556,7 +554,7 @@
 					onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), reader.size);
 			}
 
-			worker = new Worker(WORKER_SCRIPTS_PATH + "deflate.js");
+			worker = new Worker(zip.workerScriptsPath + "deflate.js");
 			worker.addEventListener("message", onmessage, false);
 			crc32 = new Crc32();
 			stepDeflate();
