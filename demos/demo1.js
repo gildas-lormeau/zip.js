@@ -35,7 +35,7 @@
 				function nextFile() {
 					var file = files[addIndex], blobReader = new zip.BlobReader(file);
 					callbacks.onadd(file);
-					zipWriter.add(file.name, blobReader, null, function() {
+					zipWriter.add(file.name, blobReader, function() {
 						addIndex++;
 						if (addIndex < files.length)
 							nextFile();

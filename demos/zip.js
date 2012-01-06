@@ -586,7 +586,7 @@
 		}
 
 		return {
-			add : function(name, reader, options, onend, onprogress) {
+			add : function(name, reader, onend, onprogress, options) {
 				var filename = getBytes(encodeUTF8(name));
 
 				function writeMetadata() {
