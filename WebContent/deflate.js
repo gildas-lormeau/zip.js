@@ -37,8 +37,6 @@
 
 (function(obj) {
 
-	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
-
 	// Global
 
 	var MAX_BITS = 15;
