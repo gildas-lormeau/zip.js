@@ -8,8 +8,7 @@ function onerror(message) {
 }
 
 function zipBlob(blob, callback) {
-	var blobWriter = new zip.BlobWriter();
-	zip.createWriter(blobWriter, function(zipWriter) {
+	zip.createWriter(new zip.BlobWriter(), function(zipWriter) {
 		zipWriter.add(FILENAME, new zip.BlobReader(blob), function() {
 			zipWriter.close(callback);
 		});
