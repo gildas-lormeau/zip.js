@@ -42,12 +42,12 @@
 
 		<h2>Install</h2>
 		<ul>
-			<li>include zip.js, deflate.js, and inflate.js file in your project</li>
+			<li>include zip.js, deflate.js, inflate.js and dataview.js (for Firefox DataView support) in your project</li>
 			<li>add zip.js in your HTML page
 				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip.js&quot;&gt;&lt;/script&gt;</code></pre>
 			</li>
-			<li>set <code>WORKER_SCRIPTS_PATH</code> value in zip.js if needed
-				<pre><code class="prettyprint">var WORKER_SCRIPTS_PATH = "/lib/";</code></pre>
+			<li>set <code>zip.workersScriptPath</code> if needed
+				<pre><code class="prettyprint">zip.workersScriptPath = "/lib/";</code></pre>
 			</li>
 		</ul>
 		
