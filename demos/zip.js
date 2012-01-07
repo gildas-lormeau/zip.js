@@ -675,7 +675,8 @@
 		BlobWriter : BlobWriter,
 		FileWriter : FileWriter,
 		createReader : createZipReader,
-		createWriter : createZipWriter
+		createWriter : createZipWriter,
+		workerScriptsPath : ""
 	};
 
 })(this);
