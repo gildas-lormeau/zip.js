@@ -76,8 +76,6 @@ zipWriter.add(fEntry.name, new zip.BlobReader(fEntry), function() {
 
 }, function(currentIndex, totalIndex) {
   // onprogress callback
-}, function(error) {
-  // onerror callback
 });</code></pre>
 					</li>
 					<li>close the zip and get file content
@@ -88,8 +86,6 @@ zipWriter.add(fEntry.name, new zip.BlobReader(fEntry), function() {
   // var blobURL = fEntry.toURL(); 
   // blobURL contains the zip file as a URL
 
-}, function(error) {
-  // onerror callback
 });</code></pre>
 					</li>
 				</ul>
@@ -116,8 +112,6 @@ zipReader.getEntries(function(entries) {
   if (entries.length)
     zipEntry = entries[0];
 
-}, function(error) {
-  // onerror callback
 });</code></pre>
 					</li>
 					<li>get entry content
@@ -128,8 +122,6 @@ zipEntry.getData(new zip.BlobWriter(), function(blob) {
 
 }, function(current, total) {
   // onprogress callback
-}, function(error) {
-  // onerror callback
 });</code></pre>
 					</li>
 					<li>close the zip
@@ -137,8 +129,6 @@ zipEntry.getData(new zip.BlobWriter(), function(blob) {
 
   // onclose callback
 
-}, function(error) {
-  // onerror callback
 });</code></pre>
 					</li>
 				</ul>
