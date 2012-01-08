@@ -1,22 +1,23 @@
 (function(obj) {
 
-	var requestFileSystem = obj.webkitRequestFileSystem || obj.mozRequestFileSystem || obj.requestFileSystem, filename = "file.zip";
+	var requestFileSystem = obj.webkitRequestFileSystem || obj.mozRequestFileSystem || obj.requestFileSystem;
 
 	function onerror(message) {
 		alert(message);
 	}
 
 	function createTempFile(callback) {
+		var tmpFilename = "tmp.dat";
 		requestFileSystem(TEMPORARY, 4 * 1024 * 1024 * 1024, function(filesystem) {
 			function create() {
-				filesystem.root.getFile(filename, {
+				filesystem.root.getFile(tmpFilename, {
 					create : true
 				}, function(zipFile) {
 					callback(zipFile);
 				});
 			}
 
-			filesystem.root.getFile(filename, null, function(entry) {
+			filesystem.root.getFile(tmpFilename, null, function(entry) {
 				entry.remove(create, create);
 			}, create);
 		});
@@ -31,13 +32,13 @@
 					zipReader.getEntries(onend);
 				}, onerror);
 			},
-			getEntryFile : function(entry, creationMethod, callbacks) {
+			getEntryFile : function(entry, creationMethod, onend, onprogress) {
 				var writer, zipFileEntry;
 
 				function getData() {
 					entry.getData(writer, function(blob) {
-						callbacks.onend(creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL());
-					}, callbacks.onprogress);
+						onend(creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL());
+					}, onprogress);
 				}
 
 				if (creationMethod == "Blob") {
@@ -61,24 +62,20 @@
 		var creationMethodInput = document.getElementById("creation-method-input");
 
 		function download(entry, li, a) {
-			var creationMethod = creationMethodInput.value;
-			model.getEntryFile(entry, creationMethod, {
-				onend : function(blobURL) {
-					var clickEvent = document.createEvent("MouseEvent");
-					if (unzipProgress.parentNode)
-						unzipProgress.parentNode.removeChild(unzipProgress);
-					unzipProgress.value = 0;
-					unzipProgress.max = 0;
-					clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-					a.href = blobURL;
-					a.download = entry.filename;
-					a.dispatchEvent(clickEvent);
-				},
-				onprogress : function(current, total) {
-					unzipProgress.value = current;
-					unzipProgress.max = total;
-					li.appendChild(unzipProgress);
-				}
+			model.getEntryFile(entry, creationMethodInput.value, function(blobURL) {
+				var clickEvent = document.createEvent("MouseEvent");
+				if (unzipProgress.parentNode)
+					unzipProgress.parentNode.removeChild(unzipProgress);
+				unzipProgress.value = 0;
+				unzipProgress.max = 0;
+				clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+				a.href = blobURL;
+				a.download = entry.filename;
+				a.dispatchEvent(clickEvent);
+			}, function(current, total) {
+				unzipProgress.value = current;
+				unzipProgress.max = total;
+				li.appendChild(unzipProgress);
 			});
 		}
 
@@ -86,7 +83,7 @@
 			creationMethodInput.value = "File";
 		else
 			creationMethodInput.options.length = 1;
-		fileInput.addEventListener('change', function(event) {
+		fileInput.addEventListener('change', function() {
 			fileInput.disabled = true;
 			model.getEntries(fileInput.files[0], function(entries) {
 				fileList.innerHTML = "";
