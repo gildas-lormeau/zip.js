@@ -584,7 +584,7 @@
 
 		return {
 			add : function(name, reader, onend, onprogress, options) {
-				var filename = getBytes(encodeUTF8(name));
+				var filename;
 
 				function writeMetadata() {
 					var date = new Date(), header = getDataHelper(26), data = getDataHelper(30 + filename.length);
@@ -600,9 +600,11 @@
 						header.view.setUint16(4, 0x0800);
 					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
-					header.view.setUint32(10, crc32.get(), true);
+					if (crc32)
+						header.view.setUint32(10, crc32.get(), true);
 					header.view.setUint32(14, compressedLength, true);
-					header.view.setUint32(18, reader.size, true);
+					if (reader)
+						header.view.setUint32(18, reader.size, true);
 					header.view.setUint16(22, filename.length, true);
 					data.view.setUint32(0, 0x504b0304);
 					data.array.set(header.array, 4);
@@ -617,18 +619,24 @@
 				}
 
 				compressedLength = 0;
+				options = options || {};
 				name = name.trim();
+				if (options.directory)
+					name += "/";
 				if (files[name])
 					throw "File " + name + " already exists.";
-				options = options || {};
-				writer.seek(datalength + 30 + filename.length, function() {
-					reader.init(function() {
-						if (dontDeflate)
-							bufferedCopy(reader, writeMetadata, onprogress, onerror);
-						else
-							bufferedDeflate(reader, options.level, writeMetadata, onprogress, onerror);
-					}, onerror);
-				}, onWriteError);
+				filename = getBytes(encodeUTF8(name));
+				if (reader)
+					writer.seek(datalength + 30 + filename.length, function() {
+						reader.init(function() {
+							if (dontDeflate)
+								bufferedCopy(reader, writeMetadata, onprogress, onerror);
+							else
+								bufferedDeflate(reader, options.level, writeMetadata, onprogress, onerror);
+						}, onerror);
+					}, onWriteError);
+				else
+					writeMetadata();
 			},
 			close : function(callback) {
 				var data, length = 0, index = 0;
