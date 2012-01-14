@@ -1,0 +1,175 @@
+.directories,.files {
+	position: relative;
+	display: inline-block;
+	height: 450px;
+	background-color: white;
+	font-family: 'Droid Sans Mono', courier;
+	vertical-align: top;
+	overflow: auto;
+	border-radius: 5px;
+	box-shadow: 0px 0px 10px #ccc;
+}
+
+.directories,.buttons {
+	width: 395px;
+}
+
+.buttons {
+	position: relative;
+	top: -40px;
+}
+
+.files {
+	width: 595px;
+}
+
+.tree,.listing {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+}
+
+.tree {
+	left: 5px;
+}
+
+details>details {
+	margin-left: 15px;
+}
+
+.selected>summary>.dir-label,.selected>.file-label {
+	color: white;
+	background-color: black;
+}
+
+summary {
+	border-width: 1px;
+	border-color: transparent;
+	border-style: dashed;
+}
+
+.drag-over>summary {
+	border-color: black;
+}
+
+.listing>.selected,.directories .selected>summary {
+	white-space: normal;
+}
+
+.selected>summary>.dir-label[contenteditable=true],.selected>.file-label[contenteditable=true]
+	{
+	color: inherit;
+	background-color: inherit;
+}
+
+.dir-summary { /*display: inline-block;*/
+	
+}
+
+.listing:empty::after {
+	color: gray;
+	content: "Drag and drop files here";
+	margin-top: 200px;
+	margin-left: 170px;
+	position: absolute;
+}
+
+h2 {
+	position: relative;
+}
+
+.get-zip-panel {
+	position: relative;
+	height: 90px;
+	top: 20px;
+	left: -15px;
+}
+
+.get-zip-container {
+	position: absolute;
+	right: 0px;
+	top: 26px;
+	background-color: white;
+	display: inline-block;
+	border: 2px outset buttonface;
+	border-radius: 5px;
+	height: 30px;
+	width: 160px;
+}
+
+}
+.get-zip-container:active {
+	border-style: inset;
+}
+
+.get-zip-link {
+	text-decoration: none;
+	display: block;
+	text-align: center;
+	width: inherit;
+	height: inherit;
+	z-index: 1;
+	padding-top: 7px;
+	font-size: 12pt;
+	top: -4px;
+	color: black;
+	overflow: hidden;
+	position: absolute;
+}
+
+.get-zip-progress {
+	position: absolute;
+	bottom: 2px;
+	height: 6px;
+	width: 150px;
+	left: 5px;
+}
+
+.listing {
+	padding: 5px;
+	margin: 0px;
+}
+
+.listing>li {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	list-style-type: none;
+}
+
+.directories summary {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#container {
+	width: 1000px;
+}
+
+details {
+	display: block;
+}
+
+button {
+	background-color: white;
+	border-radius: 5px;
+	position: absolute;
+	right: 0px;
+	padding: 5px;
+	width: 130Px;
+}
+
+input[type=text] {
+	position: absolute;
+	right: 0px;
+	width: 158px;
+	text-align: center;
+}
+
+}
+.tree>details {
+	margin-left: 5px;
+}
