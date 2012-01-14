@@ -136,29 +136,13 @@
 			fileEntry.file(callback);
 		}
 
-		function seek(offset, callback, onerror) {
-			if (offset > writer.length) {
-				writer.onwrite = function() {
-					writer.onwrite = null;
-					writer.seek(offset);
-					callback();
-				};
-				writer.onerror = onerror;
-				writer.truncate(offset + 1);
-			} else {
-				writer.seek(offset);
-				callback();
-			}
-		}
-
 		that.init = init;
 		that.writeUint8Array = writeUint8Array;
 		that.getData = getData;
-		that.seek = seek;
 	}
 
 	function BlobWriter() {
-		var blobBuilder, that = this, index = 0, size = 0;
+		var blobBuilder, that = this;
 
 		function init(callback, onerror) {
 			blobBuilder = new BlobBuilder();
@@ -166,32 +150,8 @@
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			var blob, startBlob, endBlob, paddingLength, buffer = array.buffer, byteLength = buffer.byteLength;
-
-			if (index == size) {
-				blobBuilder.append(buffer);
-				size += byteLength;
-				index += byteLength;
-			} else {
-				if (index + byteLength > size) {
-					paddingLength = index + byteLength - size;
-					blobBuilder.append(new Uint8Array(paddingLength).buffer);
-					size += paddingLength;
-				}
-				blob = blobBuilder.getBlob();
-				if (index)
-					startBlob = blobSlice(blob, 0, index);
-				index += byteLength;
-				if (size - index)
-					endBlob = blobSlice(blob, index, size - index);
-				blobBuilder = new BlobBuilder();
-				if (startBlob)
-					blobBuilder.append(startBlob);
-				blobBuilder.append(buffer);
-				if (endBlob)
-					blobBuilder.append(endBlob);
-			}
-
+			var buffer = array.buffer;
+			blobBuilder.append(buffer);
 			setTimeout(callback, 1);
 		}
 
@@ -201,15 +161,9 @@
 			}, 1);
 		}
 
-		function seek(offset, callback, onerror) {
-			index = offset;
-			setTimeout(callback, 1);
-		}
-
 		that.init = init;
 		that.writeUint8Array = writeUint8Array;
 		that.getData = getData;
-		that.seek = seek;
 	}
 
 	// ZipReader
@@ -376,10 +330,6 @@
 								terminate(onerror, "File contains encrypted entry.");
 								return;
 							}
-							if ((entry.bitFlag & 0x0008) === 0x0008) {
-								terminate(onerror, "File is using bit 3 trailing data descriptor.");
-								return;
-							}
 							entry.crc32 = data.view.getUint32(index + 16, true);
 							entry.compressedSize = data.view.getUint32(index + 20, true);
 							entry.uncompressedSize = data.view.getUint32(index + 24, true);
@@ -508,13 +458,13 @@
 				callback(message);
 		}
 
-		function onWriteError() {
+		function onwriteError() {
 			terminate(onerror, "Error while writing zip file.");
 		}
 
 		function writeUint8Array(array, callback) {
 			compressedLength += array.length;
-			writer.writeUint8Array(array, callback, onWriteError);
+			writer.writeUint8Array(array, callback, onwriteError);
 		}
 
 		function bufferedDeflate(reader, level, onend, onprogress, onerror) {
@@ -584,51 +534,77 @@
 
 		return {
 			add : function(name, reader, onend, onprogress, options) {
-				var filename = getBytes(encodeUTF8(name));
+				var header, filename, date = new Date();
 
-				function writeMetadata() {
-					var date = new Date(), header = getDataHelper(26), data = getDataHelper(30 + filename.length);
-					filenames.push(name);
+				function writeHeader(callback) {
+					var data;
+					header = getDataHelper(26);
 					files[name] = {
 						headerArray : header.array,
 						directory : options.directory,
 						filename : filename,
 						offset : datalength
 					};
-					header.view.setUint32(0, 0x0a000008);
+					header.view.setUint32(0, 0x0a0000808);
 					if (!dontDeflate)
 						header.view.setUint16(4, 0x0800);
 					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
-					header.view.setUint32(10, crc32.get(), true);
-					header.view.setUint32(14, compressedLength, true);
-					header.view.setUint32(18, reader.size, true);
+					if (reader)
+						header.view.setUint32(18, reader.size, true);
 					header.view.setUint16(22, filename.length, true);
+					data = getDataHelper(30 + filename.length);
 					data.view.setUint32(0, 0x504b0304);
 					data.array.set(header.array, 4);
 					data.array.set([], 30); // FIXME: isolate and report this regression (chrome 14 : OK, chromium 16 : KO)
 					data.array.set(filename, 30);
-					writer.seek(datalength, function() {
-						writer.writeUint8Array(data.array, function() {
-							datalength += data.array.length + compressedLength;
-							onend();
-						}, onWriteError);
-					}, onWriteError);
+					datalength += data.array.length;
+					writer.writeUint8Array(data.array, function() {
+						callback();
+					}, onwriteError);
 				}
 
-				compressedLength = 0;
-				name = name.trim();
-				if (files[name])
-					throw "File " + name + " already exists.";
-				options = options || {};
-				writer.seek(datalength + 30 + filename.length, function() {
-					reader.init(function() {
-						if (dontDeflate)
-							bufferedCopy(reader, writeMetadata, onprogress, onerror);
+				function writeFooter() {
+					var footer = getDataHelper(12);
+					datalength += compressedLength;
+					footer.view.setUint32(0, 0x504b0708, true);
+					if (crc32) {
+						header.view.setUint32(10, crc32.get(), true);
+						footer.view.setUint32(4, crc32.get(), true);
+					}
+					footer.view.setUint32(8, compressedLength, true);
+					header.view.setUint32(14, compressedLength, true);
+					writer.writeUint8Array(footer.array, function() {
+						datalength += 12;
+						onend();
+					}, onwriteError);
+				}
+
+				function writeFile() {
+					compressedLength = 0;
+					options = options || {};
+					name = name.trim();
+					if (options.directory)
+						name += "/";
+					if (files[name])
+						throw "File " + name + " already exists.";
+					filename = getBytes(encodeUTF8(name));
+					filenames.push(name);
+					writeHeader(function() {
+						if (reader)
+							if (dontDeflate)
+								bufferedCopy(reader, writeFooter, onprogress, onwriteError);
+							else
+								bufferedDeflate(reader, options.level, writeFooter, onprogress, onwriteError);
 						else
-							bufferedDeflate(reader, options.level, writeMetadata, onprogress, onerror);
-					}, onerror);
-				}, onWriteError);
+							writeFooter();
+					}, onwriteError);
+				}
+
+				if (reader)
+					reader.init(writeFile);
+				else
+					writeFile();
 			},
 			close : function(callback) {
 				var data, length = 0, index = 0;
@@ -652,13 +628,11 @@
 				data.view.setUint16(index + 10, filenames.length, true);
 				data.view.setUint32(index + 12, length, true);
 				data.view.setUint32(index + 16, datalength, true);
-				writer.seek(datalength, function() {
-					writer.writeUint8Array(data.array, function() {
-						terminate(function() {
-							writer.getData(callback);
-						});
-					}, onWriteError);
-				}, onWriteError);
+				writer.writeUint8Array(data.array, function() {
+					terminate(function() {
+						writer.getData(callback);
+					});
+				}, onwriteError);
 			}
 		};
 	}
