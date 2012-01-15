@@ -6,6 +6,18 @@
  */
 
 (function(obj) {
+
+	var ERR_BAD_FORMAT = "File format is not recognized.";
+	var ERR_ENCRYPTED = "File contains encrypted entry.";
+	var ERR_ZIP64 = "File is using Zip64 (4gb+ file size).";
+	var ERR_READ = "Error while reading zip file.";
+	var ERR_WRITE_DATA = "Error while writing uncompressed file.";
+	var ERR_READ_DATA = "Error while reading file.";
+	var ERR_WRITE_ZIP = "Error while writing zip file.";
+	var ERR_DUPLICATED_NAME = "File already exists.";
+	var ERR_HTTP_RANGE = "HTTP Range not supported.";
+	var CHUNK_SIZE = 512 * 1024;
+
 	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
 
 	function blobSlice(blob, index, length) {
@@ -69,7 +81,7 @@
 				if (request.getResponseHeader("Accept-Ranges") == "bytes")
 					callback();
 				else
-					onerror("HTTP Range not supported.");
+					onerror(ERR_HTTP_RANGE);
 			}, false);
 			request.addEventListener("error", onerror, false);
 			request.open("HEAD", url);
@@ -216,7 +228,7 @@
 	}
 
 	function createZipReaderCore(reader, onerror) {
-		var worker, CHUNK_SIZE = 512 * 1024;
+		var worker;
 
 		function terminate(callback, param) {
 			if (worker)
@@ -284,39 +296,38 @@
 							else
 								bufferedInflate(data, writer, getWriterData, onprogress);
 						}, function() {
-							terminate(onerror, "Error while writing uncompressed file.");
+							terminate(onerror, ERR_WRITE_DATA);
 						});
 					}, function() {
-						terminate(onerror, "File format is not recognized.");
+						terminate(onerror, ERR_BAD_FORMAT);
 					});
 				} else
-					terminate(onerror, "File format is not recognized.");
+					terminate(onerror, ERR_BAD_FORMAT);
 			}, function() {
-				terminate(onerror, "Error while reading zip file.");
+				terminate(onerror, ERR_READ);
 			});
 		};
 
 		return {
 			getEntries : function(callback) {
 				if (reader.size < 22) {
-					terminate(onerror, "File format is not recognized.");
+					terminate(onerror, ERR_BAD_FORMAT);
 					return;
 				}
 				reader.readUint8Array(reader.size - 22, 22, function(bytes) {
 					var dataView = getDataHelper(bytes.length, bytes).view, datalength, fileslength;
 					if (dataView.getUint32(0) != 0x504b0506) {
-						terminate(onerror, "File format is not recognized.");
+						terminate(onerror, ERR_BAD_FORMAT);
 						return;
 					}
 					datalength = dataView.getUint32(16, true);
 					fileslength = dataView.getUint16(8, true);
 					reader.readUint8Array(datalength, reader.size - datalength, function(bytes) {
-						var i, signature, index = 0, entries = [], entry, filename, data = getDataHelper(bytes.length, bytes);
+						var i, index = 0, entries = [], entry, filename, data = getDataHelper(bytes.length, bytes);
 						for (i = 0; i < fileslength; i++) {
 							entry = new Entry();
-							signature = data.view.getUint32(index);
-							if (signature != 0x504b0102) {
-								terminate(onerror, "File format is not recognized.");
+							if (data.view.getUint32(index) != 0x504b0102) {
+								terminate(onerror, ERR_BAD_FORMAT);
 								return;
 							}
 							entry.versionNeeded = data.view.getUint16(index + 6, true);
@@ -324,15 +335,14 @@
 							entry.compressionMethod = data.view.getUint16(index + 10, true);
 							entry.timeBlob = data.view.getUint32(index + 12, true);
 							if ((entry.bitFlag & 0x01) === 0x01) {
-								terminate(onerror, "File contains encrypted entry.");
+								terminate(onerror, ERR_ENCRYPTED);
 								return;
 							}
 							entry.crc32 = data.view.getUint32(index + 16, true);
 							entry.compressedSize = data.view.getUint32(index + 20, true);
 							entry.uncompressedSize = data.view.getUint32(index + 24, true);
-
 							if (entry.compressedSize === 0xFFFFFFFF || entry.uncompressedSize === 0xFFFFFFFF) {
-								terminate(onerror, "File is using Zip64 (4gb+ file size).");
+								terminate(onerror, ERR_ZIP64);
 								return;
 							}
 							entry.filenameLength = data.view.getUint16(index + 28, true);
@@ -347,10 +357,10 @@
 						}
 						callback(entries);
 					}, function() {
-						terminate(onerror, "Error while reading zip file.");
+						terminate(onerror, ERR_READ);
 					});
 				}, function() {
-					terminate(onerror, "Error while reading zip file.");
+					terminate(onerror, ERR_READ);
 				});
 			},
 			close : terminate
@@ -445,7 +455,7 @@
 	}
 
 	function createZipWriterCore(writer, onerror, dontDeflate) {
-		var worker, files = [], filenames = [], datalength = 0, CHUNK_SIZE = 512 * 1024, crc32, compressedLength;
+		var worker, files = [], filenames = [], datalength = 0, crc32, compressedLength;
 
 		function terminate(callback, message) {
 			if (worker)
@@ -456,7 +466,7 @@
 		}
 
 		function onwriteError() {
-			terminate(onerror, "Error while writing zip file.");
+			terminate(onerror, ERR_WRITE_ZIP);
 		}
 
 		function writeUint8Array(array, callback) {
@@ -582,15 +592,19 @@
 					if (options.directory)
 						name += "/";
 					if (files[name])
-						throw "File " + name + " already exists.";
+						throw ERR_DUPLICATED_NAME;
 					filename = getBytes(encodeUTF8(name));
 					filenames.push(name);
 					writeHeader(function() {
 						if (reader)
 							if (dontDeflate)
-								bufferedCopy(reader, writeFooter, onprogress, onwriteError);
+								bufferedCopy(reader, writeFooter, onprogress, function() {
+									terminate(onerror, ERR_READ_DATA);
+								});
 							else
-								bufferedDeflate(reader, options.level, writeFooter, onprogress, onwriteError);
+								bufferedDeflate(reader, options.level, writeFooter, onprogress, function() {
+									terminate(onerror, ERR_READ_DATA);
+								});
 						else
 							writeFooter();
 					}, onwriteError);
