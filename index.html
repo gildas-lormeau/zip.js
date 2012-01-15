@@ -69,8 +69,8 @@ zip.createWriter(new zip.FileWriter(fileEntry), function(writer) {
 });</code></pre>
 					</li>
 					<li>add a file into the zip
-					<pre><code class="prettyprint">// use a BlobReader to read the FileEntry object to add
-zipWriter.add(fEntry.name, new zip.BlobReader(fEntry), function() {
+					<pre><code class="prettyprint">// use a BlobReader to read the File object to add
+zipWriter.add(file.name, new zip.BlobReader(file), function() {
 
   // onend callback
 
@@ -82,8 +82,10 @@ zipWriter.add(fEntry.name, new zip.BlobReader(fEntry), function() {
 					<pre><code class="prettyprint">zipWriter.close(function(blob) {
 
   // blob contains the zip file as a Blob object
-  // or
-  // var blobURL = fEntry.toURL(); 
+
+  // or, for example:
+
+  // var blobURL = fileEntry.toURL();
   // blobURL contains the zip file as a URL
 
 });</code></pre>
@@ -91,12 +93,12 @@ zipWriter.add(fEntry.name, new zip.BlobReader(fEntry), function() {
 				</ul>
 			</li>
 			<li>
-				<h3>Read a zip from a Blob object</h3>
+				<h3>Read a zip from a File/Blob object</h3>
 				<ul>
 					<li>get a ZipReader object to read a zip
 					<pre><code class="prettyprint">var zipReader; // the ZipReader object
-// use a BlobReader to read the zip from the FileEntry object
-zip.createReader(new zip.BlobReader(fileEntry), function(reader) {
+// use a BlobReader to read the zip from the File object
+zip.createReader(new zip.BlobReader(file), function(reader) {
 
   zipReader = reader;
   // ...
