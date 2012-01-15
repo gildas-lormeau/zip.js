@@ -2266,12 +2266,7 @@
 		};
 	}
 
-	if (!obj.zip)
-		obj.zip = {};
-
-	obj.zip.Inflater = Inflater;
-
-	var inflater = new obj.zip.Inflater();
+	var inflater = new Inflater();
 
 	obj.addEventListener("message", function(event) {
 		var message = event.data;
