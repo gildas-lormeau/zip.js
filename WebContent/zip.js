@@ -315,6 +315,10 @@
 						for (i = 0; i < fileslength; i++) {
 							entry = new Entry();
 							signature = data.view.getUint32(index);
+							if (signature != 0x504b0102) {
+								terminate(onerror, "File format is not recognized.");
+								return;
+							}
 							entry.versionNeeded = data.view.getUint16(index + 6, true);
 							entry.bitFlag = data.view.getUint16(index + 8, true);
 							entry.compressionMethod = data.view.getUint16(index + 10, true);
