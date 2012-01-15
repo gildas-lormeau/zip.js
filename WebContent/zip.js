@@ -18,16 +18,15 @@
 	}
 
 	function getDataHelper(byteLength, bytes) {
-		var dataBuffer, dataArray, dataView;
+		var dataBuffer, dataArray;
 		dataBuffer = new ArrayBuffer(byteLength);
 		dataArray = new Uint8Array(dataBuffer);
-		dataView = new DataView(dataBuffer);
 		if (bytes)
 			dataArray.set(bytes, 0);
 		return {
 			buffer : dataBuffer,
 			array : dataArray,
-			view : dataView
+			view : new DataView(dataBuffer)
 		};
 	}
 
@@ -42,12 +41,12 @@
 		}
 
 		function readUint8Array(index, length, callback, onerror) {
-			var slice = blobSlice(blob, index, length), reader = new FileReader();
+			var reader = new FileReader();
 			reader.onload = function(e) {
 				callback(new Uint8Array(e.target.result));
 			};
 			reader.onerror = onerror;
-			reader.readAsArrayBuffer(slice);
+			reader.readAsArrayBuffer(blobSlice(blob, index, length));
 		}
 
 		function readBlob(index, length, callback, onerror) {
@@ -227,7 +226,7 @@
 				callback(param);
 		}
 
-		function bufferedInflate(data, writer, onend, onprogress, onerror) {
+		function bufferedInflate(data, writer, onend, onprogress) {
 			var chunkIndex = 0;
 
 			function stepInflate() {
@@ -254,13 +253,9 @@
 			function onmesssage(event) {
 				var message = event.data;
 				if (message.onappend)
-					writer.writeUint8Array(message.data, function() {
-						stepInflate();
-					});
+					writer.writeUint8Array(message.data, stepInflate);
 				if (message.onflush)
-					terminate(function() {
-						onend();
-					});
+					terminate(onend);
 				if (message.progress && onprogress)
 					onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), data.size);
 			}
@@ -277,9 +272,7 @@
 			var that = this;
 
 			function getWriterData() {
-				writer.getData(function(data) {
-					onend(data);
-				});
+				writer.getData(onend);
 			}
 
 			reader.readUint8Array(that.offset, 4, function(bytes) {
@@ -289,7 +282,7 @@
 							if (that.compressionMethod === 0)
 								getWriterData();
 							else
-								bufferedInflate(data, writer, getWriterData, onprogress, onerror);
+								bufferedInflate(data, writer, getWriterData, onprogress);
 						}, function() {
 							terminate(onerror, "Error while writing uncompressed file.");
 						});
@@ -559,9 +552,7 @@
 					data.array.set([], 30); // FIXME: isolate and report this regression (chrome 14 : OK, chromium 16 : KO)
 					data.array.set(filename, 30);
 					datalength += data.array.length;
-					writer.writeUint8Array(data.array, function() {
-						callback();
-					}, onwriteError);
+					writer.writeUint8Array(data.array, callback, onwriteError);
 				}
 
 				function writeFooter() {
