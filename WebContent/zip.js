@@ -545,7 +545,7 @@
 						filename : filename,
 						offset : datalength
 					};
-					header.view.setUint32(0, 0x0a0000808);
+					header.view.setUint32(0, 0x0a000808);
 					if (!dontDeflate)
 						header.view.setUint16(4, 0x0800);
 					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
