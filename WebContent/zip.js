@@ -348,7 +348,7 @@
 							entry.filenameLength = data.view.getUint16(index + 28, true);
 							entry.extraLength = data.view.getUint16(index + 30, true);
 							entry.commentLength = data.view.getUint16(index + 32, true);
-							entry.directory = (data.view.getUint8(index + 38) & 0x10 == 0x10);
+							entry.directory = ((data.view.getUint8(index + 38) & 0x10) == 0x10);
 							entry.offset = data.view.getUint32(index + 42, true);
 							filename = getString(data.array.subarray(index + 46, index + 46 + entry.filenameLength));
 							entry.filename = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);
