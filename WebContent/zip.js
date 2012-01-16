@@ -347,13 +347,13 @@
 							}
 							entry.filenameLength = data.view.getUint16(index + 28, true);
 							entry.extraLength = data.view.getUint16(index + 30, true);
-							entry.extra = getString(data.array.subarray(index + 32, index + 32 + entry.extraLength));
-							entry.directory = data.view.getUint8(index + 37 + entry.extraLength) == 1;
-							entry.offset = data.view.getUint32(index + 42 + entry.extraLength, true);
-							filename = getString(data.array.subarray(index + 46 + entry.extraLength, index + 46 + entry.extraLength + entry.filenameLength));
+							entry.commentLength = data.view.getUint16(index + 32, true);
+							entry.directory = (data.view.getUint8(index + 38) & 0x10 == 0x10);
+							entry.offset = data.view.getUint32(index + 42, true);
+							filename = getString(data.array.subarray(index + 46, index + 46 + entry.filenameLength));
 							entry.filename = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);
 							entries.push(entry);
-							index += 46 + entry.extraLength + entry.filenameLength;
+							index += 46 + entry.extraLength + entry.commentLength + entry.filenameLength;
 						}
 						callback(entries);
 					}, function() {
