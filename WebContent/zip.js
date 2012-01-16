@@ -627,7 +627,7 @@
 					data.view.setUint16(index + 4, 0x1400);
 					data.array.set(file.headerArray, index + 6);
 					if (file.directory)
-						data.view.setUint16(index + 38, 0x0100);
+						data.view.setUint8(index + 38, 0x10);
 					data.view.setUint32(index + 42, file.offset, true);
 					data.array.set(file.filename, index + 46);
 					index += 46 + file.filename.length;
