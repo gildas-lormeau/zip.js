@@ -23,11 +23,12 @@
 
 		<div class="description">
 			A JavaScript library to zip and unzip files
+			<div class="import-zip-panel">
+				<input id="import-zip" type="file" title="import zip file"></input>
+				<progress id="progress-import-zip" class="progress-import-zip"></progress>
+			</div>
 			<hr>
 		</div>
-		
-		<h2>Zip manager demo</h2>
-		
 		<div class="buttons">
 			<button id="new-directory">New folder...</button>
 		</div>
@@ -40,17 +41,20 @@
 			<ul id="listing" class="listing"></ul>
 		</div>
 		
-		<div class="get-zip-panel">
-			<input type="text" value="example.zip" id="zip-filename"></input>
-			<div class="get-zip-container">
-				<a href="#" class="get-zip-link" id="get-zip">Get zip file</a>
-				<progress id="progress-zip" class="get-zip-progress"></progress>
+		<div class="bottom-buttons">
+			<div class="export-zip-panel">
+				<input type="text" value="example.zip" id="zip-filename"></input>
+				<div class="export-zip-container">
+					<a href="#" class="export-zip-link" id="export-zip">Get zip file</a>
+					<progress id="progress-export-zip" class="progress-export-zip"></progress>
+				</div>
 			</div>
-			<div style="clear: both"></div>
 		</div>
+
 
 	</div>
 	<script type="text/javascript" src="zip.js"></script>
+	<script type="text/javascript" src="zip-fs.js"></script>
 	<script type="text/javascript" src="dataview.js"></script>
 	<script type="text/javascript" src="demo3.js"></script>
 	<script type="text/javascript">

@@ -2240,12 +2240,7 @@
 		DEFAULT_COMPRESSION : -1
 	};
 
-	if (!obj.zip)
-		obj.zip = {};
-
-	obj.zip.Deflater = Deflater;
-
-	var deflater = new obj.zip.Deflater();
+	var deflater = new Deflater();
 
 	obj.addEventListener("message", function(event) {
 		var message = event.data;
