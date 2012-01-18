@@ -44,6 +44,36 @@
 
 	// Readers
 
+	function Data64URIReader(dataURI) {
+		var that = this, byteString, mimeString;
+
+		function init(callback, onerror) {
+			callback();
+		}
+
+		function readUint8Array(index, length, callback, onerror) {
+			var i, byteSubString = byteString.substring(index, length), data = getDataHelper(byteSubString.length);
+			for (i = 0; i < byteSubString.length; i++)
+				data.array[i] = byteSubString.charCodeAt(i);
+			callback(data.array);
+		}
+
+		function readBlob(index, length, callback, onerror) {
+			readUint8Array(index, length, function(array) {
+				var blobBuilder = new BlobBuilder();
+				blobBuilder.append(array);
+				callback(blobBuilder.getBlob(mimeString));
+			}, onerror);
+		}
+
+		byteString = atob(dataURI.split(',')[1]);
+		mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+		that.size = byteString.length;
+		that.init = init;
+		that.readBlob = readBlob;
+		that.readUint8Array = readUint8Array;
+	}
+
 	function BlobReader(blob) {
 		var that = this;
 
@@ -121,6 +151,29 @@
 	}
 
 	// Writers
+
+	function Data64URIWriter(mimeString) {
+		var that = this, data = "";
+
+		function init(callback, onerror) {
+			callback();
+		}
+
+		function writeUint8Array(array, callback, onerror) {
+			var i;
+			for (i = 0; i < array.length; i++)
+				data += String.fromCharCode(array[i]);
+			callback();
+		}
+
+		function getData(callback) {
+			callback("data:" + (mimeString || "") + ";base64," + btoa(data));
+		}
+
+		that.init = init;
+		that.writeUint8Array = writeUint8Array;
+		that.getData = getData;
+	}
 
 	function FileWriter(fileEntry) {
 		var writer, that = this;
@@ -655,8 +708,10 @@
 	obj.zip = {
 		BlobReader : BlobReader,
 		HttpRangeReader : HttpRangeReader,
+		Data64URIReader : Data64URIReader,
 		BlobWriter : BlobWriter,
 		FileWriter : FileWriter,
+		Data64URIWriter : Data64URIWriter,
 		createReader : createZipReader,
 		createWriter : createZipWriter,
 		workerScriptsPath : ""
