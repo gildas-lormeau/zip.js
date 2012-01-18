@@ -52,7 +52,7 @@
 		}
 
 		function readUint8Array(index, length, callback, onerror) {
-			var i, byteSubString = byteString.substring(index, length), data = getDataHelper(byteSubString.length);
+			var i, byteSubString = byteString.substring(index, index + length), data = getDataHelper(byteSubString.length);
 			for (i = 0; i < byteSubString.length; i++)
 				data.array[i] = byteSubString.charCodeAt(i);
 			callback(data.array);
