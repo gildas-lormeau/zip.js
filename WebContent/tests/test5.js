@@ -24,15 +24,6 @@ function logDataURI(dataURI) {
 	console.log("--------------");
 }
 
-function logBlobText(blob) {
-	var reader = new FileReader();
-	reader.onload = function(e) {
-		console.log(e.target.result);
-		console.log("--------------");
-	};
-	reader.readAsText(blob);
-}
-
 zip.workerScriptsPath = "../";
 logDataURI(dataURI);
 zipDataURI(dataURI, function(zippedDataURI) {
