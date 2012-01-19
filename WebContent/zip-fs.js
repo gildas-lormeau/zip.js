@@ -28,9 +28,16 @@
 		var childIndex = 0, child = entry.children[childIndex];
 
 		function addNode(child, onend, onprogress) {
-			zipWriter.add(child.getFullname(), child.directory ? null : new obj.zip.BlobReader(child.blob), onend, onprogress, {
-				directory : child.directory
-			});
+			function add(data) {
+				zipWriter.add(child.getFullname(), child.directory ? null : new child.file.Reader(data), onend, onprogress, {
+					directory : child.directory
+				});
+			}
+
+			if (child.directory)
+				add();
+			else
+				child.file.getData(add);
 		}
 
 		function onaddNode() {
@@ -62,55 +69,17 @@
 			callback();
 	}
 
-	function importNext(fs, entries, callback, onprogress, totalSize, currentIndex, entryIndex) {
-		var pathIndex, path, entry, parent = fs.root;
-
-		function ongetData(blob) {
-			var path = entry.filename.split("/"), name = path.pop();
-			currentIndex += blob.size;
-			new ZipEntry(fs, name, blob, fs.find(path.join("/")) || fs.root);
-			importNext(fs, entries, callback, onprogress, totalSize, currentIndex, entryIndex + 1);
-		}
-
-		function ongetDataProgress(index) {
-			if (onprogress)
-				onprogress(currentIndex + index, totalSize);
-		}
-
-		if (!currentIndex)
-			currentIndex = 0;
-		if (!entryIndex)
-			entryIndex = 0;
-		entry = entries[entryIndex];
-		if (entryIndex == entries.length) {
-			callback();
-		} else {
-			path = entry.filename.split("/");
-			path.pop();
-			for (pathIndex = 0; pathIndex < path.length; pathIndex++)
-				parent = parent.getChildByName(path[pathIndex]) || new ZipEntry(fs, path[pathIndex], null, parent);
-			if (entry.directory || entry.filename.charAt(entry.filename.length - 1) == "/")
-				importNext(fs, entries, callback, onprogress, totalSize, currentIndex, entryIndex + 1);
-			else
-				entry.getData(new obj.zip.BlobWriter(), ongetData, ongetDataProgress);
-		}
-	}
-
-	function ZipEntry(fs, name, blob, parent) {
+	function ZipEntry(fs, file, parent) {
 		var that = this;
 		that.fs = fs;
-		that.name = name;
+		that.file = file;
+		that.name = file.name;
 		that.children = [];
-		if (fs.root && parent && parent.getChildByName(that.name))
+		if (fs.root && parent && parent.getChildByName(file.name))
 			throw "Entry filename already exists.";
 		that.parent = parent;
-		if (blob) {
-			that.blob = blob;
-			that.size = blob.size;
-		} else {
-			that.directory = true;
-			that.size = 0;
-		}
+		that.directory = file.directory;
+		that.size = file.size;
 		that.id = fs.entries.length;
 		fs.entries.push(that);
 		if (parent)
@@ -120,15 +89,58 @@
 	function FS() {
 		var that = this;
 		that.entries = [];
-		that.root = new ZipEntry(that);
+		that.root = new ZipEntry(that, new Directory());
 	}
 
-	ZipEntry.prototype = {
-		addChild : function(filename, blob) {
+	function setFileProps(file, name, size, directory) {
+		file.name = name;
+		file.size = size;
+		file.directory = directory;
+	}
+
+	function Directory(name) {
+		setFileProps(this, name, 0, true);
+	}
+
+	function File() {
+	}
+
+	File.prototype = {
+		init : function(name, data, size, dataGetter) {
 			var that = this;
-			if (that.directory)
-				return new that.constructor(that.fs, filename, blob, that);
-			else
+			that.name = name;
+			that.size = size;
+			that.directory = false;
+			that.data = data;
+			if (!data && dataGetter)
+				that.getData = dataGetter;
+		},
+		getData : function(callback) {
+			callback(this.data);
+		}
+	};
+
+	function FileBlob(name, blob, size, blobGetter) {
+		this.init(name, blob, size || blob.size, blobGetter);
+	}
+
+	FileBlob.prototype = new File();
+	FileBlob.prototype.Reader = obj.zip.BlobReader;
+
+	function FileData64URI(name, dataURI, size, dataURIGetter) {
+		this.init(name, dataURI, size, dataURIGetter);
+	}
+
+	FileData64URI.prototype = new File();
+	FileData64URI.prototype.Reader = obj.zip.Data64URIReader;
+
+	ZipEntry.prototype = {
+		addChild : function(file) {
+			var that = this, child;
+			if (that.directory) {
+				child = new that.constructor(that.fs, file, that);
+				return child;
+			} else
 				throw "Parent entry is not a directory.";
 		},
 		moveTo : function(target) {
@@ -190,10 +202,20 @@
 		importZip : function(blobReader, onend, onprogress, onerror) {
 			var that = this;
 			that.entries = [];
-			that.root = new ZipEntry(that);
+			that.root = new ZipEntry(that, new Directory());
 			obj.zip.createReader(blobReader, function(zipReader) {
 				zipReader.getEntries(function(entries) {
-					importNext(that, entries, onend, onprogress, blobReader.size);
+					entries.forEach(function(entry) {
+						var parent = that.root, path = entry.filename.split("/"), name = path.pop();
+						path.forEach(function(pathPart) {
+							parent = parent.getChildByName(pathPart) || new ZipEntry(that, new Directory(pathPart), parent);
+						});
+						if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) != "/")
+							parent.addChild(new FileBlob(name, null, entry.uncompressedSize, function(callback) {
+								entry.getData(new zip.BlobWriter(), callback);
+							}));
+					});
+					onend();
 				});
 			}, onerror);
 		},
@@ -207,6 +229,11 @@
 		}
 	};
 
-	obj.zip.FS = FS;
+	obj.zip.fs = {
+		FS : FS,
+		Directory : Directory,
+		FileBlob : FileBlob,
+		FileData64URI : FileData64URI
+	};
 
 })(this);
