@@ -62,17 +62,17 @@
 		}
 
 		function readUint8Array(index, length, callback, onerror) {
-			var i, byteSubString = byteString.substring(index, index + length), data = getDataHelper(byteSubString.length);
-			for (i = 0; i < byteSubString.length; i++)
-				data.array[i] = byteSubString.charCodeAt(i);
+			var i, data = getDataHelper(length);
+			for (i = 0; i < length; i++)
+				data.array[i] = byteString.charCodeAt(i + index);
 			callback(data.array);
 		}
 
 		function readBlob(index, length, callback, onerror) {
 			readUint8Array(index, length, function(array) {
-				var blobBuilder = new BlobBuilder();
-				blobBuilder.append(array);
-				callback(blobBuilder.getBlob(mimeString));
+				var data = getDataHelper(array.length, array), blobBuilder = new BlobBuilder();
+				blobBuilder.append(data.buffer);
+				callback(blobBuilder.getBlob());
 			}, onerror);
 		}
 
