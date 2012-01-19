@@ -44,6 +44,16 @@
 
 	// Readers
 
+	function TextReader(text) {
+		var that = this, blobReader, blobBuilder;
+		blobBuilder = new BlobBuilder();
+		blobBuilder.append(text);
+		blobReader = new BlobReader(blobBuilder.getBlob());
+		that.init = blobReader.init;
+		that.readBlob = blobReader.readBlob;
+		that.readUint8Array = blobReader.readUint8Array;
+	}
+
 	function Data64URIReader(dataURI) {
 		var that = this, byteString, mimeString;
 
@@ -78,7 +88,7 @@
 		var that = this;
 
 		function init(callback, onerror) {
-			that.size = blob.size;
+			this.size = blob.size;
 			callback();
 		}
 
@@ -151,6 +161,29 @@
 	}
 
 	// Writers
+
+	function TextWriter() {
+		var that = this, data = "";
+
+		function init(callback, onerror) {
+			callback();
+		}
+
+		function writeUint8Array(array, callback, onerror) {
+			var i;
+			for (i = 0; i < array.length; i++)
+				data += String.fromCharCode(array[i]);
+			callback();
+		}
+
+		function getData(callback) {
+			callback(data);
+		}
+
+		that.init = init;
+		that.writeUint8Array = writeUint8Array;
+		that.getData = getData;
+	}
 
 	function Data64URIWriter(mimeString) {
 		var that = this, data = "";
@@ -709,9 +742,11 @@
 		BlobReader : BlobReader,
 		HttpRangeReader : HttpRangeReader,
 		Data64URIReader : Data64URIReader,
+		TextReader : TextReader,
 		BlobWriter : BlobWriter,
 		FileWriter : FileWriter,
 		Data64URIWriter : Data64URIWriter,
+		TextWriter : TextWriter,
 		createReader : createZipReader,
 		createWriter : createZipWriter,
 		workerScriptsPath : ""

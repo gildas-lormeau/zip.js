@@ -14,8 +14,8 @@ function zipDataURI(dataURI, callback) {
 
 function unzipBlob(blob, callback) {
 	zipFs.importZip(new zip.BlobReader(blob), function() {
-		var fisrtEntry = zipFs.root.children[0];
-		fisrtEntry.file.getData(callback);
+		var firstEntry = zipFs.root.children[0];
+		firstEntry.file.getData(new zip.Data64URIWriter("text/plain"), callback);
 	}, null, onerror);
 }
 
@@ -36,7 +36,7 @@ function logBlobText(blob) {
 zip.workerScriptsPath = "../";
 logDataURI(dataURI);
 zipDataURI(dataURI, function(zippedBlob) {
-	unzipBlob(zippedBlob, function(unzippedBlob) {
-		logBlobText(unzippedBlob);
+	unzipBlob(zippedBlob, function(unzippedDataURI) {
+		logDataURI(unzippedDataURI);
 	});
 });
