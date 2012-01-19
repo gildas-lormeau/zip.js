@@ -9,11 +9,11 @@ function onerror(message) {
 
 function zipDataURI(dataURI, callback) {
 	zipFs.root.addChild(new zip.fs.FileData64URI(FILENAME, dataURI, TEXT_CONTENT.length));
-	zipFs.exportZip(new zip.BlobWriter(), callback, null, onerror);
+	zipFs.exportZip(new zip.Data64URIWriter("application/zip"), callback, null, onerror);
 }
 
-function unzipBlob(blob, callback) {
-	zipFs.importZip(new zip.BlobReader(blob), function() {
+function unzipDataURI(dataURI, callback) {
+	zipFs.importZip(new zip.Data64URIReader(dataURI), function() {
 		var firstEntry = zipFs.root.children[0];
 		firstEntry.file.getData(new zip.Data64URIWriter("text/plain"), callback);
 	}, null, onerror);
@@ -35,8 +35,8 @@ function logBlobText(blob) {
 
 zip.workerScriptsPath = "../";
 logDataURI(dataURI);
-zipDataURI(dataURI, function(zippedBlob) {
-	unzipBlob(zippedBlob, function(unzippedDataURI) {
+zipDataURI(dataURI, function(zippedDataURI) {
+	unzipDataURI(zippedDataURI, function(unzippedDataURI) {
 		logDataURI(unzippedDataURI);
 	});
 });
