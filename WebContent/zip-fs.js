@@ -36,8 +36,12 @@
 
 			if (child.directory)
 				add();
-			else
-				child.file.getData(add);
+			else {
+				// FIXME temporary fix
+				if (!child.file.Reader)
+					child.file.Reader = zip.BlobReader;
+				child.file.getData(new zip.BlobWriter(), add);
+			}
 		}
 
 		function onaddNode() {
@@ -87,7 +91,7 @@
 			if (!data && dataGetter)
 				that.getData = dataGetter;
 		},
-		getData : function(callback) {
+		getData : function(writer, callback) {
 			callback(this.data);
 		}
 	};
