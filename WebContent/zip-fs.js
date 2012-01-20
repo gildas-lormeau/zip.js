@@ -36,12 +36,8 @@
 
 			if (child.directory)
 				add();
-			else {
-				// FIXME temporary fix
-				if (!child.file.Reader)
-					child.file.Reader = zip.BlobReader;
-				child.file.getData(new zip.BlobWriter(), add);
-			}
+			else
+				child.file.getData(new obj.zip.BlobWriter(), add);
 		}
 
 		function onaddNode() {
@@ -102,6 +98,7 @@
 		});
 	}
 	FileDeflated.prototype = new File();
+	FileDeflated.prototype.Reader = obj.zip.BlobReader;
 
 	function FileBlob(name, blob, size, blobGetter) {
 		this.init(name, blob, size == null && blob ? blob.size : size, blobGetter);
