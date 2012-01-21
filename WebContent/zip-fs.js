@@ -112,12 +112,26 @@
 	FileText.prototype = new File();
 	FileText.prototype.Reader = obj.zip.TextReader;
 
+	function FileHTTP(name, URL, size, contentGetter) {
+		this.init(name, URL, size, contentGetter);
+	}
+	FileHTTP.prototype = new File();
+	FileHTTP.prototype.Reader = obj.zip.HttpReader;
+
+	function FileHTTPRange(name, URL, size, contentGetter) {
+		this.init(name, URL, size, contentGetter);
+	}
+	FileHTTPRange.prototype = new File();
+	FileHTTPRange.prototype.Reader = obj.zip.HttpRangeReader;
+
 	obj.zip.fs = {
 		FS : FS,
 		Directory : Directory,
 		FileBlob : FileBlob,
 		FileData64URI : FileData64URI,
-		FileText : FileText
+		FileText : FileText,
+		FileHTTP : FileHTTP,
+		FileHTTPRange : FileHTTPRange
 	};
 	function ZipEntry(fs, file, parent) {
 		var that = this;
