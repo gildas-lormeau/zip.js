@@ -112,6 +112,41 @@
 		that.readUint8Array = readUint8Array;
 	}
 
+	function HttpReader(url) {
+		var that = this;
+
+		function init(callback) {
+			var request = new XMLHttpRequest();
+			request.addEventListener("load", function() {
+				that.size = Number(request.getResponseHeader("Content-Length"));
+				that.data = new Uint8Array(request.response);
+				callback();
+			}, false);
+			request.addEventListener("error", onerror, false);
+			request.open("GET", url);
+			request.responseType = "arraybuffer";
+			request.send();
+		}
+
+		function readUint8Array(index, length, callback, onerror) {
+			callback(that.data.subarray(index, index + length));
+		}
+
+		function readBlob(index, length, callback, onerror) {
+			readUint8Array(index, length, function(array) {
+				var blobBuilder = new BlobBuilder(), arrayBuffer = new ArrayBuffer(length), dataArray = new Uint8Array(arrayBuffer);
+				dataArray.set(array, 0);
+				blobBuilder.append(arrayBuffer);
+				callback(blobBuilder.getBlob());
+			}, onerror);
+		}
+
+		that.size = 0;
+		that.init = init;
+		that.readBlob = readBlob;
+		that.readUint8Array = readUint8Array;
+	}
+
 	function HttpRangeReader(url) {
 		var that = this;
 
@@ -741,6 +776,7 @@
 
 	obj.zip = {
 		BlobReader : BlobReader,
+		HttpReader : HttpReader,
 		HttpRangeReader : HttpRangeReader,
 		Data64URIReader : Data64URIReader,
 		TextReader : TextReader,
