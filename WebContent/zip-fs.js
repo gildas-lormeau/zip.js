@@ -22,43 +22,45 @@
 		});
 	}
 
-	function exportNext(zipWriter, entry, callback, onprogress, totalSize, currentIndex) {
-		var childIndex = 0;
+	var exportNext = (function() {
+		var currentIndex = 0;
 
-		function addChild(child) {
-			function add(data) {
-				zipWriter.add(child.getFullname(), child.directory ? null : new child.file.Reader(data), function() {
-					currentIndex += child.size;
-					exportNext(zipWriter, child, function() {
-						childIndex++;
-						exportChild();
-					}, onprogress, totalSize, currentIndex);
-				}, function(index) {
-					if (onprogress)
-						onprogress(currentIndex + index, totalSize);
-				}, {
-					directory : child.directory
-				});
+		return function process(zipWriter, entry, callback, onprogress, totalSize) {
+			var childIndex = 0;
+
+			function addChild(child) {
+				function add(data) {
+					zipWriter.add(child.getFullname(), child.directory ? null : new child.file.Reader(data), function() {
+						currentIndex += child.size;
+						process(zipWriter, child, function() {
+							childIndex++;
+							exportChild();
+						}, onprogress, totalSize);
+					}, function(index) {
+						if (onprogress)
+							onprogress(currentIndex + index, totalSize);
+					}, {
+						directory : child.directory
+					});
+				}
+
+				if (child.directory)
+					add();
+				else
+					child.file.getData(child.file.Writer ? new child.file.Writer() : null, add);
 			}
 
-			if (child.directory)
-				add();
-			else
-				child.file.getData(child.file.Writer ? new child.file.Writer() : null, add);
-		}
+			function exportChild() {
+				var child = entry.children[childIndex];
+				if (child)
+					addChild(child);
+				else
+					callback();
+			}
 
-		function exportChild() {
-			var child = entry.children[childIndex];
-			if (child)
-				addChild(child);
-			else
-				callback();
-		}
-
-		if (!currentIndex)
-			currentIndex = 0;
-		exportChild();
-	}
+			exportChild();
+		};
+	})();
 
 	function Directory(name) {
 		this.name = name;
