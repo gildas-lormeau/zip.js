@@ -8,7 +8,7 @@ function onerror(message) {
 }
 
 function zipDataURI(dataURI, callback) {
-	zipFs.root.addChild(new zip.fs.FileData64URI(FILENAME, dataURI, TEXT_CONTENT.length));
+	zipFs.root.addChild(new zip.fs.FileData64URI(FILENAME, dataURI));
 	zipFs.exportZip(new zip.Data64URIWriter("application/zip"), callback, null, onerror);
 }
 
