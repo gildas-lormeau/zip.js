@@ -8,10 +8,8 @@
 	var getTotalSize = (function() {
 		var size = 0;
 		return function(entry) {
-			size += entry.size;
-			entry.children.forEach(function(child) {
-				getTotalSize(child);
-			});
+			size += entry.size || 0;
+			entry.children.forEach(getTotalSize);
 			return size;
 		};
 	})();
@@ -25,11 +23,20 @@
 	}
 
 	function exportNext(zipWriter, entry, callback, onprogress, totalSize, currentIndex) {
-		var childIndex = 0, child = entry.children[childIndex];
+		var childIndex = 0;
 
-		function addNode(child, onend, onprogress) {
+		function addChild(child) {
 			function add(data) {
-				zipWriter.add(child.getFullname(), child.directory ? null : new child.file.Reader(data), onend, onprogress, {
+				zipWriter.add(child.getFullname(), child.directory ? null : new child.file.Reader(data), function() {
+					currentIndex += child.size;
+					exportNext(zipWriter, child, function() {
+						childIndex++;
+						exportChild();
+					}, onprogress, totalSize, currentIndex);
+				}, function(index) {
+					if (onprogress)
+						onprogress(currentIndex + index, totalSize);
+				}, {
 					directory : child.directory
 				});
 			}
@@ -37,36 +44,20 @@
 			if (child.directory)
 				add();
 			else
-				child.file.getData(new obj.zip.BlobWriter(), add);
+				child.file.getData(child.file.Writer ? new child.file.Writer() : null, add);
 		}
 
-		function onaddNode() {
-			currentIndex += child.size;
-			if (entry.children[childIndex])
-				exportNext(zipWriter, entry.children[childIndex], onexportNext, onprogress, totalSize, currentIndex);
-		}
-
-		function onaddNodeProgress(index) {
-			if (onprogress)
-				onprogress(currentIndex + index, totalSize);
-		}
-
-		function onexportNext() {
-			var child;
-			childIndex++;
-			child = entry.children[childIndex];
-			if (childIndex < entry.children.length)
-				addNode(child, onaddNode, onaddNodeProgress);
+		function exportChild() {
+			var child = entry.children[childIndex];
+			if (child)
+				addChild(child);
 			else
 				callback();
 		}
 
 		if (!currentIndex)
 			currentIndex = 0;
-		if (child)
-			addNode(child, onaddNode, onaddNodeProgress);
-		else
-			callback();
+		exportChild();
 	}
 
 	function Directory(name) {
@@ -93,12 +84,13 @@
 	};
 
 	function FileDeflated(name, entry) {
-		this.init(name, null, entry.uncompressedSize, function(writer, callback) {
-			entry.getData(writer, callback);
+		this.init(name, null, entry.uncompressedSize, function(writer, callback, onprogress) {
+			entry.getData(writer, callback, onprogress);
 		});
 	}
 	FileDeflated.prototype = new File();
 	FileDeflated.prototype.Reader = obj.zip.BlobReader;
+	FileDeflated.prototype.Writer = obj.zip.BlobWriter;
 
 	function FileBlob(name, blob, size, blobGetter) {
 		this.init(name, blob, size == null && blob ? blob.size : size, blobGetter);
