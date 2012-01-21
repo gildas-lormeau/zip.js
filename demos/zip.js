@@ -44,11 +44,52 @@
 
 	// Readers
 
+	function TextReader(text) {
+		var that = this, blobReader, blobBuilder;
+		blobBuilder = new BlobBuilder();
+		blobBuilder.append(text);
+		blobReader = new BlobReader(blobBuilder.getBlob());
+		that.init = blobReader.init;
+		that.readBlob = blobReader.readBlob;
+		that.readUint8Array = blobReader.readUint8Array;
+	}
+
+	function Data64URIReader(dataURI) {
+		var that = this, byteString, mimeString, dataArray;
+
+		function init(callback, onerror) {
+			callback();
+		}
+
+		function readUint8Array(index, length, callback, onerror) {
+			var i, data = getDataHelper(length);
+			for (i = 0; i < length; i++)
+				data.array[i] = byteString.charCodeAt(i + index);
+			callback(data.array);
+		}
+
+		function readBlob(index, length, callback, onerror) {
+			readUint8Array(index, length, function(array) {
+				var data = getDataHelper(array.length, array), blobBuilder = new BlobBuilder();
+				blobBuilder.append(data.buffer);
+				callback(blobBuilder.getBlob());
+			}, onerror);
+		}
+
+		dataArray = dataURI.split(',');
+		byteString = atob(dataArray[1]);
+		mimeString = dataArray[0].split(':')[1].split(';')[0];
+		that.size = byteString.length;
+		that.init = init;
+		that.readBlob = readBlob;
+		that.readUint8Array = readUint8Array;
+	}
+
 	function BlobReader(blob) {
 		var that = this;
 
 		function init(callback, onerror) {
-			that.size = blob.size;
+			this.size = blob.size;
 			callback();
 		}
 
@@ -63,6 +104,41 @@
 
 		function readBlob(index, length, callback, onerror) {
 			callback(blobSlice(blob, index, length));
+		}
+
+		that.size = 0;
+		that.init = init;
+		that.readBlob = readBlob;
+		that.readUint8Array = readUint8Array;
+	}
+
+	function HttpReader(url) {
+		var that = this;
+
+		function init(callback) {
+			var request = new XMLHttpRequest();
+			request.addEventListener("load", function() {
+				that.size = Number(request.getResponseHeader("Content-Length"));
+				that.data = new Uint8Array(request.response);
+				callback();
+			}, false);
+			request.addEventListener("error", onerror, false);
+			request.open("GET", url);
+			request.responseType = "arraybuffer";
+			request.send();
+		}
+
+		function readUint8Array(index, length, callback, onerror) {
+			callback(that.data.subarray(index, index + length));
+		}
+
+		function readBlob(index, length, callback, onerror) {
+			readUint8Array(index, length, function(array) {
+				var blobBuilder = new BlobBuilder(), arrayBuffer = new ArrayBuffer(length), dataArray = new Uint8Array(arrayBuffer);
+				dataArray.set(array, 0);
+				blobBuilder.append(arrayBuffer);
+				callback(blobBuilder.getBlob());
+			}, onerror);
 		}
 
 		that.size = 0;
@@ -121,6 +197,52 @@
 	}
 
 	// Writers
+
+	function TextWriter() {
+		var that = this, data = "";
+
+		function init(callback, onerror) {
+			callback();
+		}
+
+		function writeUint8Array(array, callback, onerror) {
+			var i;
+			for (i = 0; i < array.length; i++)
+				data += String.fromCharCode(array[i]);
+			callback();
+		}
+
+		function getData(callback) {
+			callback(data);
+		}
+
+		that.init = init;
+		that.writeUint8Array = writeUint8Array;
+		that.getData = getData;
+	}
+
+	function Data64URIWriter(mimeString) {
+		var that = this, data = "";
+
+		function init(callback, onerror) {
+			callback();
+		}
+
+		function writeUint8Array(array, callback, onerror) {
+			var i;
+			for (i = 0; i < array.length; i++)
+				data += String.fromCharCode(array[i]);
+			callback();
+		}
+
+		function getData(callback) {
+			callback("data:" + (mimeString || "") + ";base64," + btoa(data));
+		}
+
+		that.init = init;
+		that.writeUint8Array = writeUint8Array;
+		that.getData = getData;
+	}
 
 	function FileWriter(fileEntry) {
 		var writer, that = this;
@@ -654,9 +776,14 @@
 
 	obj.zip = {
 		BlobReader : BlobReader,
+		HttpReader : HttpReader,
 		HttpRangeReader : HttpRangeReader,
+		Data64URIReader : Data64URIReader,
+		TextReader : TextReader,
 		BlobWriter : BlobWriter,
 		FileWriter : FileWriter,
+		Data64URIWriter : Data64URIWriter,
+		TextWriter : TextWriter,
 		createReader : createZipReader,
 		createWriter : createZipWriter,
 		workerScriptsPath : ""

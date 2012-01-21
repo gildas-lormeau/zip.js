@@ -1,7 +1,7 @@
 (function(obj) {
 
 	var model = (function() {
-		var fs = new zip.FS(), requestFileSystem = obj.webkitRequestFileSystem || obj.mozRequestFileSystem || obj.requestFileSystem, URL = obj.webkitURL
+		var fs = new zip.fs.FS(), requestFileSystem = obj.webkitRequestFileSystem || obj.mozRequestFileSystem || obj.requestFileSystem, URL = obj.webkitURL
 				|| obj.mozURL || obj.URL;
 
 		function createTempFile(callback) {
@@ -22,8 +22,11 @@
 		}
 
 		return {
+			addDirectory : function(name, parent) {
+				parent.addChild(new zip.fs.Directory(name));
+			},
 			addFile : function(name, blob, parent) {
-				parent.addChild(name, blob);
+				parent.addChild(new zip.fs.FileBlob(name, blob));
 			},
 			getRoot : function() {
 				return fs.root;
@@ -82,7 +85,7 @@
 		function expandTree(node) {
 			if (!node)
 				node = model.getRoot();
-			if (!node.blob) {
+			if (node.directory) {
 				node.expanded = true;
 				node.children.forEach(function(child) {
 					expandTree(child);
@@ -98,7 +101,7 @@
 				element = tree;
 				element.innerHTML = "";
 			}
-			if (!node.blob) {
+			if (node.directory) {
 				details = document.createElement("details");
 				summary = document.createElement("summary");
 				label = document.createElement("span");
@@ -129,7 +132,7 @@
 			node.children.sort(function(a, b) {
 				return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
 			}).forEach(function(child) {
-				if (child.blob) {
+				if (!child.directory) {
 					li = document.createElement("li");
 					li.dataset.fileId = child.id;
 					if (selectedFile && selectedFile.dataset.fileId == child.id) {
@@ -312,7 +315,7 @@
 		newDirectory.addEventListener("click", function(event) {
 			var name = prompt("Directory name");
 			if (name) {
-				model.addFile(name, null, getFileNode(selectedDir));
+				model.addDirectory(name, getFileNode(selectedDir));
 				refreshTree();
 				if (selectedDir)
 					getFileNode(selectedDir).expanded = selectedDir.open = true;
