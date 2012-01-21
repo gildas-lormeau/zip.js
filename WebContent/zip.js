@@ -55,7 +55,7 @@
 	}
 
 	function Data64URIReader(dataURI) {
-		var that = this, byteString, mimeString;
+		var that = this, byteString, mimeString, dataArray;
 
 		function init(callback, onerror) {
 			callback();
@@ -76,8 +76,9 @@
 			}, onerror);
 		}
 
-		byteString = atob(dataURI.split(',')[1]);
-		mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+		dataArray = dataURI.split(',');
+		byteString = atob(dataArray[1]);
+		mimeString = dataArray[0].split(':')[1].split(';')[0];
 		that.size = byteString.length;
 		that.init = init;
 		that.readBlob = readBlob;
