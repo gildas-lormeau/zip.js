@@ -605,12 +605,12 @@
 					if (onprogress)
 						onprogress(index, size);
 					reader.readUint8Array(index, Math.min(CHUNK_SIZE, size - index), function(data) {
-						crc32.append(data);
 						worker.postMessage({
 							append : true,
 							data : data,
 							level : level
 						});
+						crc32.append(data);
 						chunkIndex++;
 					}, onerror);
 				} else
@@ -685,7 +685,7 @@
 					data = getDataHelper(30 + filename.length);
 					data.view.setUint32(0, 0x504b0304);
 					data.array.set(header.array, 4);
-					data.array.set([], 30); // FIXME: isolate and report this regression (chrome 14 : OK, chromium 16 : KO)
+					data.array.set([], 30); // FIXME: remove when chrome 19 will be stable? (chrome 14: OK, chrome 16: KO, chromium 18: OK)
 					data.array.set(filename, 30);
 					datalength += data.array.length;
 					writer.writeUint8Array(data.array, callback, onwriteError);
