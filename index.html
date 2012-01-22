@@ -293,7 +293,7 @@
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>callback (Function)</code></dt>
-					<dd>end callback function</dd>
+					<dd>end callback function with the generated zip data as parameter</dd>
 				</dl>
 			</li>
 		</ul>
@@ -304,9 +304,9 @@
 		<h2>Examples</h2>
 		<ol>
 			<li>
-				<h3>Write a zip into a File object</h3>
-				<pre><code class="prettyprint">// use a FileWriter to store the zip into a FileEntry object (in file system)
-zip.createWriter(new zip.FileWriter(fileEntry), function(writer) {
+				<h3>Write a zip into a Blob object</h3>
+				<pre><code class="prettyprint">// use a BlobWriter to store a Blob object
+zip.createWriter(new zip.BlobWriter(), function(writer) {
 
   // use a TextReader to read the String to add
   writer.add("filename.txt", new zip.TextReader("test!"), function() {
