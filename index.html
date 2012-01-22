@@ -169,7 +169,7 @@
 				<h3>Zip Reader creation</h3>
 				<pre><code class="prettyprint">zip.createReader(reader, callback, onerror)</code></pre>
 				<p>
-					Create a zip reader.
+					Create a <code>ZipReader</code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -245,7 +245,7 @@
 				<h3>Zip Writer creation</h3>
 				<pre><code class="prettyprint">zip.createWriter(writer, callback, onerror)</code></pre>
 				<p>
-					Create a zip writer.
+					Create a <code>ZipWriter</code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -313,7 +313,7 @@ zip.createWriter(new zip.FileWriter(fileEntry), function(writer) {
     // onend callback
 
     // close the zip writer
-    zipWriter.close(function(blob) {
+    writer.close(function(blob) {
       // blob contains the zip file as a Blob object
 
     });
@@ -330,15 +330,15 @@ zip.createWriter(new zip.FileWriter(fileEntry), function(writer) {
 zip.createReader(new zip.BlobReader(blob), function(reader) {
 
   // get all entries from the zip
-  zipReader.getEntries(function(entries) {
+  reader.getEntries(function(entries) {
     if (entries.length) {
 
       // get entry content as text
-      zipEntry.getData(new zip.TextWriter(), function(text) {
+      entries[0].getData(new zip.TextWriter(), function(text) {
         // text contains the entry data as a String
 
         // close the zip reader
-        zipReader.close(function() {
+        reader.close(function() {
           // onclose callback
         });
 
