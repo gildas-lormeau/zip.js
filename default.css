@@ -9,7 +9,7 @@ body {
 	margin: 0 auto;
 	background: whiteSmoke;
 	width: 700px;
-	padding: 10px 40px;
+	padding: 40px;
 	border-radius: 5px;
 	box-shadow: 3px 3px 5px #444;
 }
@@ -89,4 +89,12 @@ ol {
 
 ol ul {
 	padding-left: 15px;
+}
+
+code {
+	font-size:16px;
+}
+
+code.prettyprint {
+	font-size:inherit;
 }
