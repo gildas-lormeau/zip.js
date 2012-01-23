@@ -17,7 +17,7 @@
 		</div>
 
 		<h1>
-			<a href="http://github.com/gildas-lormeau/zip.js">zip.js</a> <span class="small"></span>
+			<a href="index.html">zip.js</a> <span class="small"></span>
 		</h1>
 
 		<div class="description">
@@ -123,7 +123,7 @@
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function returning the <code>UInt8Array</code> object as parameter</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
+					<dd>error callback function - optional</dd>
 				</dl>
 				<pre><code class="prettyprint">readBlob(index, length, callback, onerror)</code></pre>
 				<p>Extract a <code>Blob</code> object beginning at <code>index</code> location through the specified <code>length</code>.</p>
@@ -136,7 +136,7 @@
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function returning the <code>Blob</code> object as parameter</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
+					<dd>error callback function - optional</dd>
 				</dl>
 
 				<h3>Writer constructors</h3>
@@ -188,16 +188,16 @@
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
+					<dd>error callback function - optional</dd>
 				</dl>
 				<pre><code class="prettyprint">getData(callback, onerror)</code></pre>
-				<p>get written data (returned type depends on <code>Reader</code> constructor used)</p>
+				<p>Get written data (returned type depends on <code>Reader</code> constructor used)</p>
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function returning the data as parameter</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
+					<dd>error callback function - optional</dd>
 				</dl>
 			</li>
 			<li>
