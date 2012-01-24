@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>zip.js</title>
+<link rel="stylesheet" href="default.css">
+<link href="google-code-prettify/prettify.css" type="text/css" rel="stylesheet" />
+<link href='http://fonts.googleapis.com/css?family=Maven+Pro|Muli|Istok+Web' rel='stylesheet' type='text/css'>
+</head>
+<body>
+	<a href="http://github.com/gildas-lormeau/zip.js"><img style="position: absolute; top: 0; right: 0; border: 0;"
+		src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+	<div id="container">
+		<h1>
+			<a href="index.html">zip.js</a> <span class="small"></span>
+		</h1>
+
+		<div class="description">
+			Filesystem API
+			<hr>
+		</div>
+
+		<p>
+			zip-fs.js is an optional script that helps to manipulate the zip structure. It uses zip.js and adds a virtual filesystem API implementation for zip files.
+		</p>
+
+		<h2>Contents</h2>
+		<ol>
+			<li><a href="#fs-constructor">Zip Filesystem</a></li>
+			<li><a href="#file-constructors">File constructors</a></li>
+			<li><a href="#zip-entry">Zip entry</a></li>
+		</ol>
+		<hr>
+
+		<ol>
+			<li>
+				<h2 id="fs-constructor">Zip Filesystem</h2>
+				<pre><code class="prettyprint">zip.fs.FS()</code></pre>
+				<p>
+					Virtual filesystem constructor. A <code>zip.fs.FS</code> object stores an entire filesystem.
+					The <code>root</code> property contains a <code>ZipEntry</code> object representing the root directory of the zip. 
+				</p>
+				<p>Attributes:</p>
+				<dl>
+					<dt><code>root (<code>ZipEntry</code>)</code></dt>
+					<dd>the <code>ZipEntry</code> object referencing the root directory of the filesystem</dd>
+				</dl>
+				<p>Methods:</p>
+				<pre><code class="prettyprint">FS.prototype.importZip(reader, onend, onprogress, onerror)</code></pre>
+				<p>
+					Import a zip file into the filesystem.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>reader (Reader)</code></dt>
+					<dd><code>Reader</code> object used to read the zip file</dd>
+					<dt><code>onend (Function)</code></dt>
+					<dd>success callback function</dd>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dt><code>onerror (Function)</code></dt>
+					<dd>error callback function - optional</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">FS.prototype.exporZip(writer, onend, onprogress, onerror)</code></pre>
+				<p>
+					Export a zip file from the filesystem.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>writer (Writer)</code></dt>
+					<dd><code>Writer</code> object used to write the zip file</dd>
+					<dt><code>onend (Function)</code></dt>
+					<dd>success callback function</dd>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dt><code>onerror (Function)</code></dt>
+					<dd>error callback function - optional</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">FS.prototype.getById(entryId)</code></pre>
+				<p>
+					Get a <code>ZipEntry</code> object given a unique entry id.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>entryId (number)</code></dt>
+					<dd>the entry id</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">FS.prototype.find(fullname)</code></pre>
+				<p>
+					Get a <code>ZipEntry</code> object given a unique entry full filename.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>fullname (string)</code></dt>
+					<dd>the entry full filename</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">FS.prototype.remove(zipEntry)</code></pre>
+				<p>
+					Remove a <code>ZipEntry</code> object from the virtual filesystem.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>zipEntry (ZipEntry)</code></dt>
+					<dd>the entry to remove</dd>
+				</dl>
+				<br>
+			</li>
+			<li>
+				<h2 id="file-constructors">File constructors</h2>
+				<p>
+					The filesytem API uses <code>zip.fs.File</code> constructors to abstract from zip entry content type.
+					These are the different types of <code>zip.fs.File</code> constructors.
+				</p>
+				<pre><code class="prettyprint">zip.fs.Directory(name)</code></pre>
+				<p>
+					Directory entry constructor
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>The directory name</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">zip.fs.FileBlob(name, blob, size, blogGetter)</code></pre>
+				<p>
+					File entry constructor for <code>Blob</code> objects
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>The file name</dd>
+					<dt><code>blob (Blob)</code></dt>
+					<dd>The blob object - optional (<code>blogGetter</code> must be defined)</dd>
+					<dt><code>size (number)</code></dt>
+					<dd>The uncompressed data size - optional (<code>blob</code> must be defined)</dd>
+					<dt><code>blogGetter (Function)</code></dt>
+					<dd>A getter function to get the <code>Blob</code> object asynchronously - optional (<code>blob</code> must be defined)</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">zip.fs.FileText(name, text, size, textGetter)</code></pre>
+				<p>
+					File entry constructor for <code>string</code>
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>The file name</dd>
+					<dt><code>text (string)</code></dt>
+					<dd>The <code>string</code> - optional (<code>textGetter</code> must be defined)</dd>
+					<dt><code>size (number)</code></dt>
+					<dd>The uncompressed data size - optional (<code>text</code> must be defined)</dd>
+					<dt><code>textGetter (Function)</code></dt>
+					<dd>A getter function to get the <code>string</code> asynchronously - optional (<code>text</code> must be defined)</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">zip.fs.FileData64URI(name, dataURI, size, dataURIGetter)</code></pre>
+				<p>
+					File entry constructor for <code>data URI</code> strings
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>The file name</dd>
+					<dt><code>dataURI (string)</code></dt>
+					<dd>The data URI - optional (<code>dataURIGetter</code> must be defined)</dd>
+					<dt><code>size (number)</code></dt>
+					<dd>The uncompressed data size - optional (<code>dataURI</code> must be defined)</dd>
+					<dt><code>dataURIGetter (Function)</code></dt>
+					<dd>A getter function to get the data URI string asynchronously - optional (<code>dataURI</code> must be defined)</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">zip.fs.FileHTTP(name, URL)</code></pre>
+				<p>
+					File entry constructor for content read from a URL
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>The file name</dd>
+					<dt><code>URL (string)</code></dt>
+					<dd>The content URL</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">zip.fs.FileHTTPRange(name, URL)</code></pre>
+				<p>
+					File entry constructor for content read from a URL using <code>Range</code> HTTP request header
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>The file name</dd>
+					<dt><code>URL (string)</code></dt>
+					<dd>The content URL</dd>
+				</dl>
+			</li>
+			<li>
+				<h3 id="zip-entry">Zip entry</h3>
+				<pre><code class="prettyprint">ZipEntry</code></pre>
+				<p>
+					Zip entry interface. Each <code>ZipEntry</code> object represents a node in the zip directory tree. A unique <code>zip.fs.File</code> is attached to each <code>ZipEntry</code> object. 
+				</p>
+				<p>Attributes:</p>
+				<dl>
+					<dt><code>file (zip.fs.File)</code></dt>
+					<dd>the attached <code>zip.fs.File</code> object</dd>
+					<dt><code>name (zip.fs.File)</code></dt>
+					<dd>the entry filename</dd>
+					<dt><code>directory (boolean)</code></dt>
+					<dd><code>true</code> if the entry is a directory</dd>
+					<dt><code>children (Array of ZipEntry)</code></dt>
+					<dd>the entry children (if <code>directory</code> is true)</dd>
+					<dt><code>size (number)</code></dt>
+					<dd>the uncompressed data size</dd>
+					<dt><code>id (number)</code></dt>
+					<dd>the entry unique id</dd>
+				</dl>
+				<p>Methods:</p>
+				<pre><code class="prettyprint">ZipEntry.prototype.addChild(file)</code></pre>
+				<p>
+					Add a <code>zip.fs.File</code> into the current directory entry.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>file (zip.fs.File)</code></dt>
+					<dd>the file object to add</dd>
+				</dl>
+				<p>Return</p>
+				<dl>
+					<dt><code>ZipEntry</code></dt>
+					<dd>the new <code>ZipEntry</code> object</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">ZipEntry.prototype.moveTo(directory)</code></pre>
+				<p>
+					Move <code>this</code> entry into the target directory <code>ZipEntry</code> object.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>directory (ZipEntry)</code></dt>
+					<dd>the target directory <code>ZipEntry</code> object</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">ZipEntry.prototype.getChildByName(name)</code></pre>
+				<p>
+					Get a <code>ZipEntry</code> child object given its filename.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (String)</code></dt>
+					<dd>the entry name</dd>
+				</dl>
+				<p>Return</p>
+				<dl>
+					<dt><code>ZipEntry</code></dt>
+					<dd>the <code>ZipEntry</code> object</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">ZipEntry.prototype.getFullname(fullname)</code></pre>
+				<p>
+					Get a <code>ZipEntry</code> descendant object from <code>this</code> entry given its relative filename.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>fullname (String)</code></dt>
+					<dd>the entry relative filename</dd>
+				</dl>
+				<p>Return</p>
+				<dl>
+					<dt><code>ZipEntry</code></dt>
+					<dd>the <code>ZipEntry</code> object</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">ZipEntry.prototype.isDescendantOf(ancestor)</code></pre>
+				<p>
+					Test if <code>this</code> entry is a descendant of <code>ancestor</code> directory entry.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>ancestor (ZipEntry)</code></dt>
+					<dd>the entry relative filename</dd>
+				</dl>
+				<p>Return</p>
+				<dl>
+					<dt><code>boolean</code></dt>
+					<dd><code>true</code> if <code>this</code> entry is a descendant of <code>ancestor</code> directory entry</dd>
+				</dl>
+			</li>
+		</ol>
+	</div>
+	<script type="text/javascript" src="google-code-prettify/prettify.js"></script>
+	<script type="text/javascript">
+		prettyPrint();
+	</script>
+	<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-15560121-15']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+	</script>
+</body>
+</html>
