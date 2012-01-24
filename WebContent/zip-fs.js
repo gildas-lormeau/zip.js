@@ -101,7 +101,7 @@
 	FileBlob.prototype.Reader = obj.zip.BlobReader;
 
 	function FileData64URI(name, dataURI, size, dataURIGetter) {
-		this.init(name, dataURI, size == null ? Math.floor(dataURI.split(',')[1].replace(/=/g, '').length * .75) : size, dataURIGetter);
+		this.init(name, dataURI, size == null && dataURI ? Math.floor(dataURI.split(',')[1].replace(/=/g, '').length * .75) : size, dataURIGetter);
 	}
 	FileData64URI.prototype = new File();
 	FileData64URI.prototype.Reader = obj.zip.Data64URIReader;
