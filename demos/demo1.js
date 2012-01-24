@@ -82,9 +82,7 @@
 		var fileList = document.getElementById("file-list");
 		var filenameInput = document.getElementById("filename-input");
 		var creationMethodInput = document.getElementById("creation-method-input");
-		if (requestFileSystem)
-			creationMethodInput.value = "File";
-		else
+		if (typeof requestFileSystem == "undefined")
 			creationMethodInput.options.length = 1;
 		model.setCreationMethod(creationMethodInput.value);
 		fileInput.addEventListener('change', function() {

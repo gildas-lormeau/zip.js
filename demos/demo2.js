@@ -79,9 +79,7 @@
 			});
 		}
 
-		if (requestFileSystem)
-			creationMethodInput.value = "File";
-		else
+		if (typeof requestFileSystem == "undefined")
 			creationMethodInput.options.length = 1;
 		fileInput.addEventListener('change', function() {
 			fileInput.disabled = true;
