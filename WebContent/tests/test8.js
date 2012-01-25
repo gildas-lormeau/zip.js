@@ -1,4 +1,4 @@
-var FILENAME = "lorem.txt";
+var FILENAME = "lorem.txt", URL = "lorem.txt";
 
 var zipFs = new zip.fs.FS();
 
@@ -7,12 +7,12 @@ function onerror(message) {
 }
 
 function zipText(callback) {
-	zipFs.root.addChild(new zip.fs.FileHTTP(FILENAME, "lorem.txt"));
-	zipFs.exportZip(new zip.BlobWriter(), callback, null, onerror);
+	zipFs.root.addHTTPContent(FILENAME, URL);
+	zipFs.exportBlob(callback, null, onerror);
 }
 
 function unzipBlob(blob, callback) {
-	zipFs.importZip(new zip.BlobReader(blob), function() {
+	zipFs.importBlob(blob, function() {
 		var firstEntry = zipFs.root.children[0];
 		firstEntry.file.getData(new zip.TextWriter(), callback);
 	}, null, onerror);

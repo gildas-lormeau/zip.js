@@ -8,12 +8,12 @@ function onerror(message) {
 }
 
 function zipText(text, callback) {
-	zipFs.root.addChild(new zip.fs.FileText(FILENAME, text));
-	zipFs.exportZip(new zip.BlobWriter(), callback, null, onerror);
+	zipFs.root.addText(FILENAME, text);
+	zipFs.exportBlob(callback, null, onerror);
 }
 
 function unzipBlob(blob, callback) {
-	zipFs.importZip(new zip.BlobReader(blob), function() {
+	zipFs.importBlob(blob, function() {
 		var firstEntry = zipFs.root.children[0];
 		firstEntry.file.getData(new zip.TextWriter(), callback);
 	}, null, onerror);

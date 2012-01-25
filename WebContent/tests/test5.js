@@ -8,12 +8,12 @@ function onerror(message) {
 }
 
 function zipDataURI(dataURI, callback) {
-	zipFs.root.addChild(new zip.fs.FileData64URI(FILENAME, dataURI));
-	zipFs.exportZip(new zip.Data64URIWriter("application/zip"), callback, null, onerror);
+	zipFs.root.addData64URI(FILENAME, dataURI);
+	zipFs.exportData64URI("application/zip", callback, null, onerror);
 }
 
 function unzipDataURI(dataURI, callback) {
-	zipFs.importZip(new zip.Data64URIReader(dataURI), function() {
+	zipFs.importData64URI(dataURI, function() {
 		var firstEntry = zipFs.root.children[0];
 		firstEntry.file.getData(new zip.Data64URIWriter("text/plain"), callback);
 	}, null, onerror);

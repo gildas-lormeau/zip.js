@@ -112,27 +112,25 @@
 	FileText.prototype = new File();
 	FileText.prototype.Reader = obj.zip.TextReader;
 
-	function FileHTTP(name, URL, size, contentGetter) {
-		this.init(name, URL, size, contentGetter);
+	function FileHTTP(name, URL, size) {
+		this.init(name, URL, size);
 	}
 	FileHTTP.prototype = new File();
 	FileHTTP.prototype.Reader = obj.zip.HttpReader;
 
-	function FileHTTPRange(name, URL, size, contentGetter) {
-		this.init(name, URL, size, contentGetter);
+	function FileHTTPRange(name, URL, size) {
+		this.init(name, URL, size);
 	}
 	FileHTTPRange.prototype = new File();
 	FileHTTPRange.prototype.Reader = obj.zip.HttpRangeReader;
 
-	obj.zip.fs = {
-		FS : FS,
-		Directory : Directory,
-		FileBlob : FileBlob,
-		FileData64URI : FileData64URI,
-		FileText : FileText,
-		FileHTTP : FileHTTP,
-		FileHTTPRange : FileHTTPRange
-	};
+	function addChild(entry, file) {
+		if (entry.directory)
+			return new entry.constructor(entry.fs, file, entry);
+		else
+			throw "Parent entry is not a directory.";
+	}
+
 	function ZipEntry(fs, file, parent) {
 		var that = this;
 		that.fs = fs;
@@ -150,13 +148,32 @@
 			that.parent.children.push(that);
 	}
 	ZipEntry.prototype = {
-		addChild : function(file) {
-			var that = this, child;
-			if (that.directory) {
-				child = new that.constructor(that.fs, file, that);
-				return child;
-			} else
-				throw "Parent entry is not a directory.";
+		addDirectory : function(name) {
+			addChild(this, new Directory(name));
+		},
+		addText : function(name, text, size, textGetter) {
+			addChild(this, new FileText(name, text, size, textGetter));
+		},
+		addBlob : function(name, blob, size, blobGetter) {
+			addChild(this, new FileBlob(name, blob, size, blobGetter));
+		},
+		addData64URI : function(name, dataURI, size, dataURIGetter) {
+			addChild(this, new FileData64URI(name, dataURI, size, dataURIGetter));
+		},
+		addHTTPContent : function(name, URL, size, useRangeHeader) {
+			addChild(this, useRangeHeader ? new FileHTTPRange(name, URL, size) : new FileHTTP(name, URL, size));
+		},
+		addData : function(name, data, size, dataReader, dataGetter) {
+			var file;
+
+			function FileData() {
+			}
+
+			FileData.prototype = new File();
+			FileData.prototype.Reader = dataReader;
+			file = new FileData(name, content, size);
+			file.init(name, content, size, dataGetter);
+			addChild(this, file);
 		},
 		moveTo : function(target) {
 			var that = this;
@@ -218,11 +235,35 @@
 		getById : function(id) {
 			return this.entries[id];
 		},
-		importZip : function(blobReader, onend, onprogress, onerror) {
+		importBlob : function(blob, onend, onprogress, onerror) {
+			this.importZip(new zip.BlobReader(blob), onend, onprogress, onerror);
+		},
+		importText : function(text, onend, onprogress, onerror) {
+			this.importZip(new zip.TextReader(text), onend, onprogress, onerror);
+		},
+		importData64URI : function(dataURI, onend, onprogress, onerror) {
+			this.importZip(new zip.Data64URIReader(dataURI), onend, onprogress, onerror);
+		},
+		importHTTPContent : function(URL, useRangeHeader, onend, onprogress, onerror) {
+			this.importZip(useRangeHeader ? new zip.HTTPRangeReader(URL) : new zip.HTTPReader(URL), onend, onprogress, onerror);
+		},
+		exportBlob : function(onend, onprogress, onerror) {
+			this.exportZip(new zip.BlobWriter(), onend, onprogress, onerror);
+		},
+		exportText : function(onend, onprogress, onerror) {
+			this.exportZip(new zip.TextWriter(), onend, onprogress, onerror);
+		},
+		exportFile : function(fileEntry, onend, onprogress, onerror) {
+			this.exportZip(new zip.FileWriter(fileEntry), onend, onprogress, onerror);
+		},
+		exportData64URI : function(mimeType, onend, onprogress, onerror) {
+			this.exportZip(new zip.Data64URIWriter(mimeType), onend, onprogress, onerror);
+		},
+		importZip : function(reader, onend, onprogress, onerror) {
 			var that = this;
 			that.entries = [];
 			that.root = new ZipEntry(that, new Directory());
-			obj.zip.createReader(blobReader, function(zipReader) {
+			obj.zip.createReader(reader, function(zipReader) {
 				zipReader.getEntries(function(entries) {
 					entries.forEach(function(entry) {
 						var parent = that.root, path = entry.filename.split("/"), name = path.pop();
@@ -230,20 +271,24 @@
 							parent = parent.getChildByName(pathPart) || new ZipEntry(that, new Directory(pathPart), parent);
 						});
 						if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) != "/")
-							parent.addChild(new FileDeflated(name, entry));
+							addChild(parent, new FileDeflated(name, entry));
 					});
 					onend();
 				});
 			}, onerror);
 		},
-		exportZip : function(blobWriter, onend, onprogress, onerror) {
-			var root = this.root;
-			obj.zip.createWriter(blobWriter, function(writer) {
-				exportNext(writer, root, function() {
-					writer.close(onend);
-				}, onprogress, getTotalSize(root));
+		exportZip : function(writer, onend, onprogress, onerror) {
+			var that = this, size = getTotalSize(that.root);
+			obj.zip.createWriter(writer, function(zipWriter) {
+				exportNext(zipWriter, that.root, function() {
+					zipWriter.close(onend);
+				}, onprogress, size);
 			}, onerror);
 		}
+	};
+
+	obj.zip.fs = {
+		FS : FS
 	};
 
 })(this);
