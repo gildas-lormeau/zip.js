@@ -149,19 +149,19 @@
 	}
 	ZipEntry.prototype = {
 		addDirectory : function(name) {
-			addChild(this, new Directory(name));
+			return addChild(this, new Directory(name));
 		},
 		addText : function(name, text, size, textGetter) {
-			addChild(this, new FileText(name, text, size, textGetter));
+			return addChild(this, new FileText(name, text, size, textGetter));
 		},
 		addBlob : function(name, blob, size, blobGetter) {
-			addChild(this, new FileBlob(name, blob, size, blobGetter));
+			return addChild(this, new FileBlob(name, blob, size, blobGetter));
 		},
 		addData64URI : function(name, dataURI, size, dataURIGetter) {
-			addChild(this, new FileData64URI(name, dataURI, size, dataURIGetter));
+			return addChild(this, new FileData64URI(name, dataURI, size, dataURIGetter));
 		},
 		addHTTPContent : function(name, URL, size, useRangeHeader) {
-			addChild(this, useRangeHeader ? new FileHTTPRange(name, URL, size) : new FileHTTP(name, URL, size));
+			return addChild(this, useRangeHeader ? new FileHTTPRange(name, URL, size) : new FileHTTP(name, URL, size));
 		},
 		addData : function(name, data, size, dataReader, dataGetter) {
 			var file;
@@ -173,7 +173,7 @@
 			FileData.prototype.Reader = dataReader;
 			file = new FileData(name, content, size);
 			file.init(name, content, size, dataGetter);
-			addChild(this, file);
+			return addChild(this, file);
 		},
 		moveTo : function(target) {
 			var that = this;
