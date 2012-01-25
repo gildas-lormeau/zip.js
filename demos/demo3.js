@@ -23,10 +23,10 @@
 
 		return {
 			addDirectory : function(name, parent) {
-				parent.addChild(new zip.fs.Directory(name));
+				parent.addDirectory(name);
 			},
 			addFile : function(name, blob, parent) {
-				parent.addChild(new zip.fs.FileBlob(name, blob));
+				parent.addBlob(name, blob);
 			},
 			getRoot : function() {
 				return fs.root;
@@ -47,13 +47,13 @@
 				if (requestFileSystem)
 					createTempFile(function(fileEntry) {
 						zipFileEntry = fileEntry;
-						fs.exportZip(new zip.FileWriter(zipFileEntry), onexport, onprogress, onerror);
+						fs.exportFile(zipFileEntry, onexport, onprogress, onerror);
 					});
 				else
-					fs.exportZip(new zip.BlobWriter(), onexport, onprogress, onerror);
+					fs.exportBlob(onexport, onprogress, onerror);
 			},
 			importZip : function(blob, onend, onprogress, onerror) {
-				fs.importZip(new zip.BlobReader(blob), onend, onprogress, onerror);
+				fs.importBlob(blob, onend, onprogress, onerror);
 			}
 		};
 	})();

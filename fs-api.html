@@ -27,7 +27,6 @@
 		<h2>Contents</h2>
 		<ol>
 			<li><a href="#fs-constructor">Zip Filesystem</a></li>
-			<li><a href="#file-constructors">File constructors</a></li>
 			<li><a href="#zip-entry">Zip entry</a></li>
 		</ol>
 		<hr>
@@ -46,14 +45,14 @@
 					<dd>the <code>ZipEntry</code> object referencing the root directory of the filesystem</dd>
 				</dl>
 				<p>Methods:</p>
-				<pre><code class="prettyprint">FS.prototype.importZip(reader, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.importBlob(blob, onend, onprogress, onerror)</code></pre>
 				<p>
-					Import a zip file into the filesystem.
+					Import into the filesystem a zipped content stored in a <code>Blob</code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>reader (Reader)</code></dt>
-					<dd><code>Reader</code> object used to read the zip file</dd>
+					<dt><code>blob (Blob)</code></dt>
+					<dd>the <code>Blob</code> object</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onprogress (Function)</code></dt>
@@ -62,16 +61,80 @@
 					<dd>error callback function - optional</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">FS.prototype.exporZip(writer, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.importData64URI(dataURI, onend, onprogress, onerror)</code></pre>
 				<p>
-					Export a zip file from the filesystem.
+					Import into the filesystem a zipped content stored in a data URI <code>string</code>.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>writer (Writer)</code></dt>
-					<dd><code>Writer</code> object used to write the zip file</dd>
+					<dt><code>dataURI (string)</code></dt>
+					<dd>The data URI</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dt><code>onerror (Function)</code></dt>
+					<dd>error callback function - optional</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">FS.prototype.importHTTPContent(URL, useRangeHeader, onend, onprogress, onerror)</code></pre>
+				<p>
+					Import into the filesystem a zipped content retrieved from a URL.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>URL (string)</code></dt>
+					<dd>the URL</dd>
+					<dt><code>useRangeHeader (boolean)</code></dt>
+					<dd>if true then HTTP &quot;Range&quot; header will be used to get zip data</dd>
+					<dt><code>onend (Function)</code></dt>
+					<dd>success callback function</dd>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dt><code>onerror (Function)</code></dt>
+					<dd>error callback function - optional</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">FS.prototype.exportBlob(onend, onprogress, onerror)</code></pre>
+				<p>
+					Export zipped content from the filesystem in a <code>Blob</code> object.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>onend (Function)</code></dt>
+					<dd>success callback function returning the zipped content as parameter</dd>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dt><code>onerror (Function)</code></dt>
+					<dd>error callback function - optional</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">FS.prototype.exportData64URI(mimeType, onend, onprogress, onerror)</code></pre>
+				<p>
+					Export zipped content from the filesystem in a data URI.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>mimeType (string)</code></dt>
+					<dd>data MIME type - optional</dd>
+					<dt><code>onend (Function)</code></dt>
+					<dd>success callback function returning the zipped content as parameter</dd>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dt><code>onerror (Function)</code></dt>
+					<dd>error callback function - optional</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">FS.prototype.exportFile(fileEntry, onend, onprogress, onerror)</code></pre>
+				<p>
+					Export zipped content from the filesystem in a <code>FileEntry</code> object.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>fileEntry (FileEntry)</code></dt>
+					<dd>the <code>FileEntry</code> object</dd>
+					<dt><code>onend (Function)</code></dt>
+					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
 					<dt><code>onerror (Function)</code></dt>
@@ -110,94 +173,6 @@
 				<br>
 			</li>
 			<li>
-				<h2 id="file-constructors">File constructors</h2>
-				<p>
-					The filesytem API uses <code>zip.fs.File</code> constructors to abstract from zip entry content type.
-					These are the different types of <code>zip.fs.File</code> constructors.
-				</p>
-				<pre><code class="prettyprint">zip.fs.Directory(name)</code></pre>
-				<p>
-					Directory entry constructor
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>The directory name</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">zip.fs.FileBlob(name, blob, size, blogGetter)</code></pre>
-				<p>
-					File entry constructor for <code>Blob</code> objects
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>The file name</dd>
-					<dt><code>blob (Blob)</code></dt>
-					<dd>The blob object - optional (<code>blogGetter</code> must be defined)</dd>
-					<dt><code>size (number)</code></dt>
-					<dd>The uncompressed data size - optional (<code>blob</code> must be defined)</dd>
-					<dt><code>blogGetter (Function)</code></dt>
-					<dd>A getter function to get the <code>Blob</code> object asynchronously - optional (<code>blob</code> must be defined)</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">zip.fs.FileText(name, text, size, textGetter)</code></pre>
-				<p>
-					File entry constructor for <code>string</code>
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>The file name</dd>
-					<dt><code>text (string)</code></dt>
-					<dd>The <code>string</code> - optional (<code>textGetter</code> must be defined)</dd>
-					<dt><code>size (number)</code></dt>
-					<dd>The uncompressed data size - optional (<code>text</code> must be defined)</dd>
-					<dt><code>textGetter (Function)</code></dt>
-					<dd>A getter function to get the <code>string</code> asynchronously - optional (<code>text</code> must be defined)</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">zip.fs.FileData64URI(name, dataURI, size, dataURIGetter)</code></pre>
-				<p>
-					File entry constructor for <code>data URI</code> strings
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>The file name</dd>
-					<dt><code>dataURI (string)</code></dt>
-					<dd>The data URI - optional (<code>dataURIGetter</code> must be defined)</dd>
-					<dt><code>size (number)</code></dt>
-					<dd>The uncompressed data size - optional (<code>dataURI</code> must be defined)</dd>
-					<dt><code>dataURIGetter (Function)</code></dt>
-					<dd>A getter function to get the data URI string asynchronously - optional (<code>dataURI</code> must be defined)</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">zip.fs.FileHTTP(name, URL)</code></pre>
-				<p>
-					File entry constructor for content read from a URL
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>The file name</dd>
-					<dt><code>URL (string)</code></dt>
-					<dd>The content URL</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">zip.fs.FileHTTPRange(name, URL)</code></pre>
-				<p>
-					File entry constructor for content read from a URL using <code>Range</code> HTTP request header
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>The file name</dd>
-					<dt><code>URL (string)</code></dt>
-					<dd>The content URL</dd>
-				</dl>
-			</li>
-			<li>
 				<h3 id="zip-entry">Zip entry</h3>
 				<pre><code class="prettyprint">ZipEntry</code></pre>
 				<p>
@@ -219,14 +194,102 @@
 					<dd>the entry unique id</dd>
 				</dl>
 				<p>Methods:</p>
-				<pre><code class="prettyprint">ZipEntry.prototype.addChild(file)</code></pre>
+				<pre><code class="prettyprint">ZipEntry.prototype.addDirectory(name)</code></pre>
 				<p>
-					Add a <code>zip.fs.File</code> into the current directory entry.
+					Add a directory into the current directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>file (zip.fs.File)</code></dt>
-					<dd>the file object to add</dd>
+					<dt><code>name (string)</code></dt>
+					<dd>the directory name</dd>
+				</dl>
+				<p>Return</p>
+				<dl>
+					<dt><code>ZipEntry</code></dt>
+					<dd>the new <code>ZipEntry</code> object</dd>
+				</dl>
+				<br>
+				<p>Methods:</p>
+				<pre><code class="prettyprint">ZipEntry.prototype.addBlob(name, blob)</code></pre>
+				<p>
+					Add a <code>Blob</code> object file into the current directory entry.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>the file name</dd>
+				</dl>
+				<dl>
+					<dt><code>blob (Blob)</code></dt>
+					<dd>the <code>Blob</code> content</dd>
+				</dl>
+				<p>Return</p>
+				<dl>
+					<dt><code>ZipEntry</code></dt>
+					<dd>the new <code>ZipEntry</code> object</dd>
+				</dl>
+				<br>
+				<p>Methods:</p>
+				<pre><code class="prettyprint">ZipEntry.prototype.addText(name, text)</code></pre>
+				<p>
+					Add a text file into the current directory entry.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>the file name</dd>
+				</dl>
+				<dl>
+					<dt><code>text (string)</code></dt>
+					<dd>the text content</dd>
+				</dl>
+				<p>Return</p>
+				<dl>
+					<dt><code>ZipEntry</code></dt>
+					<dd>the new <code>ZipEntry</code> object</dd>
+				</dl>
+				<br>
+				<p>Methods:</p>
+				<pre><code class="prettyprint">ZipEntry.prototype.addData64URI(name, dataURI)</code></pre>
+				<p>
+					Add a data URI file into the current directory entry.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>the file name</dd>
+				</dl>
+				<dl>
+					<dt><code>text (string)</code></dt>
+					<dd>the data URI content</dd>
+				</dl>
+				<p>Return</p>
+				<dl>
+					<dt><code>ZipEntry</code></dt>
+					<dd>the new <code>ZipEntry</code> object</dd>
+				</dl>
+				<br>
+				<p>Methods:</p>
+				<pre><code class="prettyprint">ZipEntry.prototype.addHTTPContent(name, URL, size, useRangeHeader)</code></pre>
+				<p>
+					Add a content retrieved from a URL into the current directory entry.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>the file name</dd>
+				</dl>
+				<dl>
+					<dt><code>URL (string)</code></dt>
+					<dd>the content URL</dd>
+				</dl>
+				<dl>
+					<dt><code>size (number)</code></dt>
+					<dd>the content size</dd>
+				</dl>
+				<dl>
+					<dt><code>useRangeHeader (boolean)</code></dt>
+					<dd>if true then HTTP &quot;Range&quot; header will be used to get content</dd>
 				</dl>
 				<p>Return</p>
 				<dl>
