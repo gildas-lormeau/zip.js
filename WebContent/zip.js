@@ -360,6 +360,28 @@
 				callback(param);
 		}
 
+		function readCommonHeader(entry, data, index, centralDirectory) {
+			entry.versionNeeded = data.view.getUint16(index, true);
+			entry.bitFlag = data.view.getUint16(index + 2, true);
+			entry.compressionMethod = data.view.getUint16(index + 4, true);
+			entry.timeBlob = data.view.getUint32(index + 6, true);
+			if ((entry.bitFlag & 0x01) === 0x01) {
+				terminate(onerror, ERR_ENCRYPTED);
+				return;
+			}
+			if (centralDirectory || (entry.bitFlag & 0x0008) != 0x0008) {
+				entry.crc32 = data.view.getUint32(index + 10, true);
+				entry.compressedSize = data.view.getUint32(index + 14, true);
+				entry.uncompressedSize = data.view.getUint32(index + 18, true);
+			}
+			if (entry.compressedSize === 0xFFFFFFFF || entry.uncompressedSize === 0xFFFFFFFF) {
+				terminate(onerror, ERR_ZIP64);
+				return;
+			}
+			entry.filenameLength = data.view.getUint16(index + 22, true);
+			entry.extraLength = data.view.getUint16(index + 24, true);
+		}
+
 		function bufferedInflate(data, writer, onend, onprogress) {
 			var chunkIndex = 0;
 
@@ -411,14 +433,20 @@
 
 			reader.readUint8Array(that.offset, 4, function(bytes) {
 				if (getDataHelper(bytes.length, bytes).view.getUint32(0) == 0x504b0304) {
-					reader.readBlob(that.offset + 30 + that.filenameLength + that.extraLength, that.compressedSize, function(data) {
-						writer.init(function() {
-							if (that.compressionMethod === 0)
-								getWriterData();
-							else
-								bufferedInflate(data, writer, getWriterData, onprogress);
+					reader.readUint8Array(that.offset, 30/* + that.filenameLength + that.extraLength */, function(bytes) {
+						data = getDataHelper(bytes.length, bytes);
+						readCommonHeader(that, data, 4);
+						reader.readBlob(that.offset + 30 + that.filenameLength + that.extraLength, that.compressedSize, function(data) {
+							writer.init(function() {
+								if (that.compressionMethod === 0)
+									getWriterData();
+								else
+									bufferedInflate(data, writer, getWriterData, onprogress);
+							}, function() {
+								terminate(onerror, ERR_WRITE_DATA);
+							});
 						}, function() {
-							terminate(onerror, ERR_WRITE_DATA);
+							terminate(onerror, ERR_BAD_FORMAT);
 						});
 					}, function() {
 						terminate(onerror, ERR_BAD_FORMAT);
@@ -452,23 +480,7 @@
 								terminate(onerror, ERR_BAD_FORMAT);
 								return;
 							}
-							entry.versionNeeded = data.view.getUint16(index + 6, true);
-							entry.bitFlag = data.view.getUint16(index + 8, true);
-							entry.compressionMethod = data.view.getUint16(index + 10, true);
-							entry.timeBlob = data.view.getUint32(index + 12, true);
-							if ((entry.bitFlag & 0x01) === 0x01) {
-								terminate(onerror, ERR_ENCRYPTED);
-								return;
-							}
-							entry.crc32 = data.view.getUint32(index + 16, true);
-							entry.compressedSize = data.view.getUint32(index + 20, true);
-							entry.uncompressedSize = data.view.getUint32(index + 24, true);
-							if (entry.compressedSize === 0xFFFFFFFF || entry.uncompressedSize === 0xFFFFFFFF) {
-								terminate(onerror, ERR_ZIP64);
-								return;
-							}
-							entry.filenameLength = data.view.getUint16(index + 28, true);
-							entry.extraLength = data.view.getUint16(index + 30, true);
+							readCommonHeader(entry, data, index + 6, true);
 							entry.commentLength = data.view.getUint16(index + 32, true);
 							entry.directory = ((data.view.getUint8(index + 38) & 0x10) == 0x10);
 							entry.offset = data.view.getUint32(index + 42, true);
