@@ -7,14 +7,14 @@ function onerror(message) {
 }
 
 function zipText(callback) {
-	zipFs.root.addHTTPContent(FILENAME, URL);
+	zipFs.root.addHttpContent(FILENAME, URL);
 	zipFs.exportBlob(callback, null, onerror);
 }
 
 function unzipBlob(blob, callback) {
 	zipFs.importBlob(blob, function() {
 		var firstEntry = zipFs.root.children[0];
-		firstEntry.file.getData(new zip.TextWriter(), callback);
+		firstEntry.getText(callback);
 	}, null, onerror);
 }
 

@@ -10,9 +10,9 @@ function logText(text) {
 }
 
 zip.workerScriptsPath = "../";
-zipFs.importZip(new zip.HttpReader("lorem.zip"), function() {
+zipFs.importHttpContent("lorem.zip", false, function() {
 	var firstEntry = zipFs.root.children[0];
-	firstEntry.file.getData(new zip.TextWriter(), function(data) {
+	firstEntry.getText(function(data) {
 		logText(data);
 	});
 }, null, onerror);

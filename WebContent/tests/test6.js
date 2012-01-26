@@ -15,7 +15,7 @@ function zipText(text, callback) {
 function unzipBlob(blob, callback) {
 	zipFs.importBlob(blob, function() {
 		var firstEntry = zipFs.root.children[0];
-		firstEntry.file.getData(new zip.TextWriter(), callback);
+		firstEntry.getText(callback);
 	}, null, onerror);
 }
 

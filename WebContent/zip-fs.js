@@ -135,17 +135,17 @@
 	FileText.prototype = new File();
 	FileText.prototype.Reader = obj.zip.TextReader;
 
-	function FileHTTP(name, URL, size) {
+	function FileHttp(name, URL, size) {
 		this.init(name, URL, size);
 	}
-	FileHTTP.prototype = new File();
-	FileHTTP.prototype.Reader = obj.zip.HttpReader;
+	FileHttp.prototype = new File();
+	FileHttp.prototype.Reader = obj.zip.HttpReader;
 
-	function FileHTTPRange(name, URL, size) {
+	function FileHttpRange(name, URL, size) {
 		this.init(name, URL, size);
 	}
-	FileHTTPRange.prototype = new File();
-	FileHTTPRange.prototype.Reader = obj.zip.HttpRangeReader;
+	FileHttpRange.prototype = new File();
+	FileHttpRange.prototype.Reader = obj.zip.HttpRangeReader;
 
 	function addChild(entry, file) {
 		if (entry.directory)
@@ -183,8 +183,32 @@
 		addData64URI : function(name, dataURI, size, dataURIGetter) {
 			return addChild(this, new FileData64URI(name, dataURI, size, dataURIGetter));
 		},
-		addHTTPContent : function(name, URL, size, useRangeHeader) {
-			return addChild(this, useRangeHeader ? new FileHTTPRange(name, URL, size) : new FileHTTP(name, URL, size));
+		addHttpContent : function(name, URL, size, useRangeHeader) {
+			return addChild(this, useRangeHeader ? new FileHttpRange(name, URL, size) : new FileHttp(name, URL, size));
+		},
+		addData : function(name, data, size, dataReader, dataGetter) {
+			var file;
+
+			function FileData() {
+			}
+
+			FileData.prototype = new File();
+			FileData.prototype.Reader = dataReader;
+			file = new FileData(name, content, size);
+			file.init(name, content, size, dataGetter);
+			return addChild(this, file);
+		},
+		getText : function(callback) {
+			this.file.getData(new zip.TextWriter(), callback);
+		},
+		getBlob : function(callback) {
+			this.file.getData(new zip.BlobWriter(), callback);
+		},
+		getData64URI : function(mimeType, callback) {
+			this.file.getData(new zip.Data64URIWriter(mimeType), callback);
+		},
+		getFile : function(fileEntry, callback) {
+			this.file.getData(new zip.FileWriter(fileEntry), callback);
 		},
 		addData : function(name, data, size, dataReader, dataGetter) {
 			var file;
@@ -267,8 +291,8 @@
 		importData64URI : function(dataURI, onend, onprogress, onerror) {
 			this.importZip(new zip.Data64URIReader(dataURI), onend, onprogress, onerror);
 		},
-		importHTTPContent : function(URL, useRangeHeader, onend, onprogress, onerror) {
-			this.importZip(useRangeHeader ? new zip.HTTPRangeReader(URL) : new zip.HTTPReader(URL), onend, onprogress, onerror);
+		importHttpContent : function(URL, useRangeHeader, onend, onprogress, onerror) {
+			this.importZip(useRangeHeader ? new zip.HttpRangeReader(URL) : new zip.HttpReader(URL), onend, onprogress, onerror);
 		},
 		exportBlob : function(onend, onprogress, onerror) {
 			this.exportZip(new zip.BlobWriter(), onend, onprogress, onerror);
