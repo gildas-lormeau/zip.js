@@ -198,17 +198,17 @@
 			file.init(name, content, size, dataGetter);
 			return addChild(this, file);
 		},
-		getText : function(callback) {
-			this.file.getData(new zip.TextWriter(), callback);
+		getText : function(callback, onprogress) {
+			this.file.getData(new zip.TextWriter(), callback, onprogress);
 		},
-		getBlob : function(callback) {
-			this.file.getData(new zip.BlobWriter(), callback);
+		getBlob : function(callback, onprogress) {
+			this.file.getData(new zip.BlobWriter(), callback, onprogress);
 		},
-		getData64URI : function(mimeType, callback) {
-			this.file.getData(new zip.Data64URIWriter(mimeType), callback);
+		getData64URI : function(mimeType, callback, onprogress) {
+			this.file.getData(new zip.Data64URIWriter(mimeType), callback, onprogress);
 		},
-		getFile : function(fileEntry, callback) {
-			this.file.getData(new zip.FileWriter(fileEntry), callback);
+		getFile : function(fileEntry, callback, onprogress) {
+			this.file.getData(new zip.FileWriter(fileEntry), callback, onprogress);
 		},
 		addData : function(name, data, size, dataReader, dataGetter) {
 			var file;
