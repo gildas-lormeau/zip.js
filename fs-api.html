@@ -39,12 +39,12 @@
 					Virtual filesystem constructor. A <code>zip.fs.FS</code> object stores an entire filesystem.
 					The <code>root</code> property contains a <code>ZipEntry</code> object representing the root directory of the zip. 
 				</p>
-				<p>Attributes:</p>
+				<h3>Attributes</h3>
 				<dl>
 					<dt><code>root (<code>ZipEntry</code>)</code></dt>
 					<dd>the <code>ZipEntry</code> object referencing the root directory of the filesystem</dd>
 				</dl>
-				<p>Methods:</p>
+				<h3>Methods</h3>
 				<pre><code class="prettyprint">FS.prototype.importBlob(blob, onend, onprogress, onerror)</code></pre>
 				<p>
 					Import into the filesystem a zipped content stored in a <code>Blob</code> object.
@@ -174,11 +174,11 @@
 			</li>
 			<li>
 				<h3 id="zip-entry">Zip entry</h3>
-				<pre><code class="prettyprint">ZipEntry</code></pre>
+				<pre><code class="prettyprint">ZipEntry()</code></pre>
 				<p>
 					Zip entry interface. Each <code>ZipEntry</code> object represents a node in the zip directory tree. A unique <code>zip.fs.File</code> is attached to each <code>ZipEntry</code> object. 
 				</p>
-				<p>Attributes:</p>
+				<h3>Attributes</h3>
 				<dl>
 					<dt><code>file (zip.fs.File)</code></dt>
 					<dd>the attached <code>zip.fs.File</code> object</dd>
@@ -193,7 +193,7 @@
 					<dt><code>id (number)</code></dt>
 					<dd>the entry unique id</dd>
 				</dl>
-				<p>Methods:</p>
+				<h3>Methods</h3>
 				<pre><code class="prettyprint">ZipEntry.prototype.addDirectory(name)</code></pre>
 				<p>
 					Add a directory into the current directory entry.
@@ -209,7 +209,6 @@
 					<dd>the new <code>ZipEntry</code> object</dd>
 				</dl>
 				<br>
-				<p>Methods:</p>
 				<pre><code class="prettyprint">ZipEntry.prototype.addBlob(name, blob)</code></pre>
 				<p>
 					Add a <code>Blob</code> object file into the current directory entry.
@@ -229,7 +228,6 @@
 					<dd>the new <code>ZipEntry</code> object</dd>
 				</dl>
 				<br>
-				<p>Methods:</p>
 				<pre><code class="prettyprint">ZipEntry.prototype.addText(name, text)</code></pre>
 				<p>
 					Add a text file into the current directory entry.
@@ -249,7 +247,6 @@
 					<dd>the new <code>ZipEntry</code> object</dd>
 				</dl>
 				<br>
-				<p>Methods:</p>
 				<pre><code class="prettyprint">ZipEntry.prototype.addData64URI(name, dataURI)</code></pre>
 				<p>
 					Add a data URI file into the current directory entry.
@@ -269,7 +266,6 @@
 					<dd>the new <code>ZipEntry</code> object</dd>
 				</dl>
 				<br>
-				<p>Methods:</p>
 				<pre><code class="prettyprint">ZipEntry.prototype.addHTTPContent(name, URL, size, useRangeHeader)</code></pre>
 				<p>
 					Add a content retrieved from a URL into the current directory entry.
@@ -295,6 +291,50 @@
 				<dl>
 					<dt><code>ZipEntry</code></dt>
 					<dd>the new <code>ZipEntry</code> object</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">ZipEntry.prototype.getText(callback)</code></pre>
+				<p>
+					Get file entry content as a <code>string</code>.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>callback (Function)</code></dt>
+					<dd>success callback function returning the unzipped content as parameter</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">ZipEntry.prototype.getBlob(callback)</code></pre>
+				<p>
+					Get file entry content as a <code>Blob</code> object.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>callback (Function)</code></dt>
+					<dd>success callback function returning the unzipped content as parameter</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">ZipEntry.prototype.getFile(fileEntry, callback)</code></pre>
+				<p>
+					Get file entry content and store it into a <code>FileEntry</code> object.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>fileEntry (FileEntry)</code></dt>
+					<dd>the <code>FileEntry</code> object</dd>
+					<dt><code>callback (Function)</code></dt>
+					<dd>success callback function returning the unzipped content as parameter</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">ZipEntry.prototype.getData64URI(mimeType, callback)</code></pre>
+				<p>
+					Get file entry content as a data URI string.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>mimeType (string)</code></dt>
+					<dd>data MIME type - optional</dd>
+					<dt><code>callback (Function)</code></dt>
+					<dd>success callback function returning the unzipped content as parameter</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.moveTo(directory)</code></pre>
