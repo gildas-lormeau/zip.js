@@ -36,7 +36,9 @@
 				<h2 id="fs-constructor">Zip Filesystem</h2>
 				<pre><code class="prettyprint">zip.fs.FS()</code></pre>
 				<p>
-					Virtual filesystem constructor. A <code>zip.fs.FS</code> object stores an entire filesystem.
+					Virtual filesystem constructor
+					<br>
+					A <code>zip.fs.FS</code> object stores an entire filesystem.
 					The <code>root</code> property contains a <code>ZipEntry</code> object representing the root directory of the zip. 
 				</p>
 				<h3>Attributes</h3>
@@ -176,7 +178,10 @@
 				<h3 id="zip-entry">Zip entry</h3>
 				<pre><code class="prettyprint">ZipEntry()</code></pre>
 				<p>
-					Zip entry interface. Each <code>ZipEntry</code> object represents a node in the zip directory tree. A unique <code>zip.fs.File</code> is attached to each <code>ZipEntry</code> object. 
+					Zip entry constructor (private)
+					<br>
+					Each <code>ZipEntry</code> object represents a node in the zip directory tree.
+					If the <code>ZipEntry</code> object is a file (i.e. <code>directory</code> attribute is false) a unique <code>zip.fs.File</code> is attached to each <code>ZipEntry</code> object. 
 				</p>
 				<h3>Attributes</h3>
 				<dl>
