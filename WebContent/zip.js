@@ -432,27 +432,28 @@
 			}
 
 			reader.readUint8Array(that.offset, 4, function(bytes) {
-				if (getDataHelper(bytes.length, bytes).view.getUint32(0) == 0x504b0304) {
-					reader.readUint8Array(that.offset, 30/* + that.filenameLength + that.extraLength */, function(bytes) {
-						data = getDataHelper(bytes.length, bytes);
-						readCommonHeader(that, data, 4);
-						reader.readBlob(that.offset + 30 + that.filenameLength + that.extraLength, that.compressedSize, function(data) {
-							writer.init(function() {
-								if (that.compressionMethod === 0)
-									getWriterData();
-								else
-									bufferedInflate(data, writer, getWriterData, onprogress);
-							}, function() {
-								terminate(onerror, ERR_WRITE_DATA);
-							});
+				reader.readUint8Array(that.offset, 30, function(bytes) {
+					data = getDataHelper(bytes.length, bytes);
+					if (data.view.getUint32(0) != 0x504b0304) {
+						terminate(onerror, ERR_BAD_FORMAT);
+						return;
+					}
+					readCommonHeader(that, data, 4);
+					reader.readBlob(that.offset + 30 + that.filenameLength + that.extraLength, that.compressedSize, function(data) {
+						writer.init(function() {
+							if (that.compressionMethod === 0)
+								getWriterData();
+							else
+								bufferedInflate(data, writer, getWriterData, onprogress);
 						}, function() {
-							terminate(onerror, ERR_BAD_FORMAT);
+							terminate(onerror, ERR_WRITE_DATA);
 						});
 					}, function() {
 						terminate(onerror, ERR_BAD_FORMAT);
 					});
-				} else
+				}, function() {
 					terminate(onerror, ERR_BAD_FORMAT);
+				});
 			}, function() {
 				terminate(onerror, ERR_READ);
 			});
