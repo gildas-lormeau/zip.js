@@ -199,16 +199,16 @@
 			return addChild(this, file);
 		},
 		getText : function(callback, onprogress) {
-			this.file.getData(new zip.TextWriter(), callback, onprogress);
+			this.file ? this.file.getData(new zip.TextWriter(), callback, onprogress) : callback(null);
 		},
 		getBlob : function(callback, onprogress) {
-			this.file.getData(new zip.BlobWriter(), callback, onprogress);
+			this.file ? this.file.getData(new zip.BlobWriter(), callback, onprogress) : callback(null);
 		},
 		getData64URI : function(mimeType, callback, onprogress) {
-			this.file.getData(new zip.Data64URIWriter(mimeType), callback, onprogress);
+			this.file ? this.file.getData(new zip.Data64URIWriter(mimeType), callback, onprogress) : callback(null);
 		},
 		getFile : function(fileEntry, callback, onprogress) {
-			this.file.getData(new zip.FileWriter(fileEntry), callback, onprogress);
+			this.file ? this.file.getData(new zip.FileWriter(fileEntry), callback, onprogress) : callback(null);
 		},
 		addData : function(name, data, size, dataReader, dataGetter) {
 			var file;
