@@ -1,9 +1,5 @@
 /*
- * This JavaScript program is based on JZlib (ported by Gildas Lormeau).
- */
-
-/*
- Copyright (c) 2000,2001,2002,2003 ymnk, JCraft,Inc. All rights reserved.
+ Copyright (c) 2012 Gildas Lormeau. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -29,8 +25,10 @@
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- * This program is based on zlib-1.1.3, so all credit should go authors
+ * This program is based on JZlib 1.0.2 ymnk, JCraft,Inc.
+ * JZlib is based on zlib-1.1.3, so all credit should go authors
  * Jean-loup Gailly(jloup@gzip.org) and Mark Adler(madler@alumni.caltech.edu)
  * and contributors of zlib.
  */
