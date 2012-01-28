@@ -34,6 +34,12 @@
 			getById : function(id) {
 				return fs.getById(id);
 			},
+			remove : function(entry) {
+				fs.remove(entry);
+			},
+			rename : function(entry, name) {
+				entry.name = name;
+			},
 			exportZip : function(onend, onprogress, onerror) {
 				var zipFileEntry;
 
@@ -183,9 +189,9 @@
 				if (event.keyCode == "13" || cancel) {
 					if (labelElement.textContent) {
 						resetSelectedLabel(cancel);
-						node.name = labelElement.textContent;
+						model.rename(node, labelElement.textContent);
 					} else {
-						node.remove();
+						model.remove(node);
 						callback("deleted");
 					}
 					event.preventDefault();

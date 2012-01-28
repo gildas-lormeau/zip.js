@@ -1,6 +1,29 @@
 /*
- * Copyright 2012 Gildas Lormeau
- * contact: gildas.lormeau <at> gmail.com
+ Copyright (c) 2012 Gildas Lormeau. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
+
+ 2. Redistributions in binary form must reproduce the above copyright 
+ notice, this list of conditions and the following disclaimer in 
+ the documentation and/or other materials provided with the distribution.
+
+ 3. The names of the authors may not be used to endorse or promote products
+ derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+ INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 (function(obj) {
@@ -101,7 +124,7 @@
 	FileBlob.prototype.Reader = obj.zip.BlobReader;
 
 	function FileData64URI(name, dataURI, size, dataURIGetter) {
-		this.init(name, dataURI, size == null && dataURI ? Math.floor(dataURI.split(',')[1].replace(/=/g, '').length * .75) : size, dataURIGetter);
+		this.init(name, dataURI, size == null && dataURI ? Math.floor(dataURI.split(',')[1].replace(/\=/g, '').length * 0.75) : size, dataURIGetter);
 	}
 	FileData64URI.prototype = new File();
 	FileData64URI.prototype.Reader = obj.zip.Data64URIReader;
@@ -112,23 +135,28 @@
 	FileText.prototype = new File();
 	FileText.prototype.Reader = obj.zip.TextReader;
 
-	function FileHTTP(name, URL, size) {
+	function FileHttp(name, URL, size) {
 		this.init(name, URL, size);
 	}
-	FileHTTP.prototype = new File();
-	FileHTTP.prototype.Reader = obj.zip.HttpReader;
+	FileHttp.prototype = new File();
+	FileHttp.prototype.Reader = obj.zip.HttpReader;
 
-	function FileHTTPRange(name, URL, size) {
+	function FileHttpRange(name, URL, size) {
 		this.init(name, URL, size);
 	}
-	FileHTTPRange.prototype = new File();
-	FileHTTPRange.prototype.Reader = obj.zip.HttpRangeReader;
+	FileHttpRange.prototype = new File();
+	FileHttpRange.prototype.Reader = obj.zip.HttpRangeReader;
 
 	function addChild(entry, file) {
 		if (entry.directory)
 			return new entry.constructor(entry.fs, file, entry);
 		else
 			throw "Parent entry is not a directory.";
+	}
+
+	function resetFS(fs) {
+		fs.entries = [];
+		fs.root = new ZipEntry(fs, new Directory());
 	}
 
 	function ZipEntry(fs, file, parent) {
@@ -147,6 +175,7 @@
 		if (parent)
 			that.parent.children.push(that);
 	}
+
 	ZipEntry.prototype = {
 		addDirectory : function(name) {
 			return addChild(this, new Directory(name));
@@ -160,8 +189,8 @@
 		addData64URI : function(name, dataURI, size, dataURIGetter) {
 			return addChild(this, new FileData64URI(name, dataURI, size, dataURIGetter));
 		},
-		addHTTPContent : function(name, URL, size, useRangeHeader) {
-			return addChild(this, useRangeHeader ? new FileHTTPRange(name, URL, size) : new FileHTTP(name, URL, size));
+		addHttpContent : function(name, URL, size, useRangeHeader) {
+			return addChild(this, useRangeHeader ? new FileHttpRange(name, URL, size) : new FileHttp(name, URL, size));
 		},
 		addData : function(name, data, size, dataReader, dataGetter) {
 			var file;
@@ -171,9 +200,81 @@
 
 			FileData.prototype = new File();
 			FileData.prototype.Reader = dataReader;
-			file = new FileData(name, content, size);
-			file.init(name, content, size, dataGetter);
+			file = new FileData(name, data, size);
+			file.init(name, data, size, dataGetter);
 			return addChild(this, file);
+		},
+		getText : function(callback, onprogress) {
+			if (this.file)
+				this.file.getData(new obj.zip.TextWriter(), callback, onprogress);
+			else
+				callback();
+		},
+		getBlob : function(callback, onprogress) {
+			if (this.file)
+				this.file.getData(new obj.zip.BlobWriter(), callback, onprogress);
+			else
+				callback();
+		},
+		getData64URI : function(mimeType, callback, onprogress) {
+			if (this.file)
+				this.file.getData(new obj.zip.Data64URIWriter(mimeType), callback, onprogress);
+			else
+				callback();
+		},
+		getFile : function(fileEntry, callback, onprogress) {
+			if (this.file)
+				this.file.getData(new obj.zip.FileWriter(fileEntry), callback, onprogress);
+			else
+				callback();
+		},
+		importBlob : function(blob, onend, onprogress, onerror) {
+			this.importZip(new obj.zip.BlobReader(blob), onend, onprogress, onerror);
+		},
+		importText : function(text, onend, onprogress, onerror) {
+			this.importZip(new obj.zip.TextReader(text), onend, onprogress, onerror);
+		},
+		importData64URI : function(dataURI, onend, onprogress, onerror) {
+			this.importZip(new obj.zip.Data64URIReader(dataURI), onend, onprogress, onerror);
+		},
+		importHttpContent : function(URL, useRangeHeader, onend, onprogress, onerror) {
+			this.importZip(useRangeHeader ? new obj.zip.HttpRangeReader(URL) : new obj.zip.HttpReader(URL), onend, onprogress, onerror);
+		},
+		exportBlob : function(onend, onprogress, onerror) {
+			this.exportZip(new obj.zip.BlobWriter(), onend, onprogress, onerror);
+		},
+		exportText : function(onend, onprogress, onerror) {
+			this.exportZip(new obj.zip.TextWriter(), onend, onprogress, onerror);
+		},
+		exportFile : function(fileEntry, onend, onprogress, onerror) {
+			this.exportZip(new obj.zip.FileWriter(fileEntry), onend, onprogress, onerror);
+		},
+		exportData64URI : function(mimeType, onend, onprogress, onerror) {
+			this.exportZip(new obj.zip.Data64URIWriter(mimeType), onend, onprogress, onerror);
+		},
+		importZip : function(reader, onend, onprogress, onerror) {
+			var that = this;
+			obj.zip.createReader(reader, function(zipReader) {
+				zipReader.getEntries(function(entries) {
+					entries.forEach(function(entry) {
+						var parent = that, path = entry.filename.split("/"), name = path.pop();
+						path.forEach(function(pathPart) {
+							parent = parent.getChildByName(pathPart) || new ZipEntry(that.fs, new Directory(pathPart), parent);
+						});
+						if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) != "/")
+							addChild(parent, new FileDeflated(name, entry));
+					});
+					onend();
+				});
+			}, onerror);
+		},
+		exportZip : function(writer, onend, onprogress, onerror) {
+			var that = this, size = getTotalSize(that);
+			obj.zip.createWriter(writer, function(zipWriter) {
+				exportNext(zipWriter, that, function() {
+					zipWriter.close(onend);
+				}, onprogress, size);
+			}, onerror);
 		},
 		moveTo : function(target) {
 			var that = this;
@@ -217,9 +318,7 @@
 	ZipEntry.prototype.constructor = ZipEntry;
 
 	function FS() {
-		var that = this;
-		that.entries = [];
-		that.root = new ZipEntry(that, new Directory());
+		resetFS(this);
 	}
 	FS.prototype = {
 		remove : function(entry) {
@@ -236,54 +335,32 @@
 			return this.entries[id];
 		},
 		importBlob : function(blob, onend, onprogress, onerror) {
-			this.importZip(new zip.BlobReader(blob), onend, onprogress, onerror);
+			resetFS(this);
+			this.root.importBlob(blob, onend, onprogress, onerror);
 		},
 		importText : function(text, onend, onprogress, onerror) {
-			this.importZip(new zip.TextReader(text), onend, onprogress, onerror);
+			resetFS(this);
+			this.root.importText(text, onend, onprogress, onerror);
 		},
 		importData64URI : function(dataURI, onend, onprogress, onerror) {
-			this.importZip(new zip.Data64URIReader(dataURI), onend, onprogress, onerror);
+			resetFS(this);
+			this.root.importData64URI(dataURI, onend, onprogress, onerror);
 		},
-		importHTTPContent : function(URL, useRangeHeader, onend, onprogress, onerror) {
-			this.importZip(useRangeHeader ? new zip.HTTPRangeReader(URL) : new zip.HTTPReader(URL), onend, onprogress, onerror);
+		importHttpContent : function(URL, useRangeHeader, onend, onprogress, onerror) {
+			resetFS(this);
+			this.root.importHttpContent(URL, useRangeHeader, onend, onprogress, onerror);
 		},
 		exportBlob : function(onend, onprogress, onerror) {
-			this.exportZip(new zip.BlobWriter(), onend, onprogress, onerror);
+			this.root.exportBlob(onend, onprogress, onerror);
 		},
 		exportText : function(onend, onprogress, onerror) {
-			this.exportZip(new zip.TextWriter(), onend, onprogress, onerror);
+			this.root.exportText(onend, onprogress, onerror);
 		},
 		exportFile : function(fileEntry, onend, onprogress, onerror) {
-			this.exportZip(new zip.FileWriter(fileEntry), onend, onprogress, onerror);
+			this.root.exportFile(fileEntry, onend, onprogress, onerror);
 		},
 		exportData64URI : function(mimeType, onend, onprogress, onerror) {
-			this.exportZip(new zip.Data64URIWriter(mimeType), onend, onprogress, onerror);
-		},
-		importZip : function(reader, onend, onprogress, onerror) {
-			var that = this;
-			that.entries = [];
-			that.root = new ZipEntry(that, new Directory());
-			obj.zip.createReader(reader, function(zipReader) {
-				zipReader.getEntries(function(entries) {
-					entries.forEach(function(entry) {
-						var parent = that.root, path = entry.filename.split("/"), name = path.pop();
-						path.forEach(function(pathPart) {
-							parent = parent.getChildByName(pathPart) || new ZipEntry(that, new Directory(pathPart), parent);
-						});
-						if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) != "/")
-							addChild(parent, new FileDeflated(name, entry));
-					});
-					onend();
-				});
-			}, onerror);
-		},
-		exportZip : function(writer, onend, onprogress, onerror) {
-			var that = this, size = getTotalSize(that.root);
-			obj.zip.createWriter(writer, function(zipWriter) {
-				exportNext(zipWriter, that.root, function() {
-					zipWriter.close(onend);
-				}, onprogress, size);
-			}, onerror);
+			this.root.exportData64URI(mimeType, onend, onprogress, onerror);
 		}
 	};
 
