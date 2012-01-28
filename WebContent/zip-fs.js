@@ -124,7 +124,7 @@
 	FileBlob.prototype.Reader = obj.zip.BlobReader;
 
 	function FileData64URI(name, dataURI, size, dataURIGetter) {
-		this.init(name, dataURI, size == null && dataURI ? Math.floor(dataURI.split(',')[1].replace(/=/g, '').length * .75) : size, dataURIGetter);
+		this.init(name, dataURI, size == null && dataURI ? Math.floor(dataURI.split(',')[1].replace(/\=/g, '').length * 0.75) : size, dataURIGetter);
 	}
 	FileData64URI.prototype = new File();
 	FileData64URI.prototype.Reader = obj.zip.Data64URIReader;
@@ -200,45 +200,57 @@
 
 			FileData.prototype = new File();
 			FileData.prototype.Reader = dataReader;
-			file = new FileData(name, content, size);
-			file.init(name, content, size, dataGetter);
+			file = new FileData(name, data, size);
+			file.init(name, data, size, dataGetter);
 			return addChild(this, file);
 		},
 		getText : function(callback, onprogress) {
-			this.file ? this.file.getData(new zip.TextWriter(), callback, onprogress) : callback(null);
+			if (this.file)
+				this.file.getData(new obj.zipTextWriter(), callback, onprogress);
+			else
+				callback();
 		},
 		getBlob : function(callback, onprogress) {
-			this.file ? this.file.getData(new zip.BlobWriter(), callback, onprogress) : callback(null);
+			if (this.file)
+				this.file.getData(new obj.zipBlobWriter(), callback, onprogress);
+			else
+				callback();
 		},
 		getData64URI : function(mimeType, callback, onprogress) {
-			this.file ? this.file.getData(new zip.Data64URIWriter(mimeType), callback, onprogress) : callback(null);
+			if (this.file)
+				this.file.getData(new obj.zipData64URIWriter(mimeType), callback, onprogress);
+			else
+				callback();
 		},
 		getFile : function(fileEntry, callback, onprogress) {
-			this.file ? this.file.getData(new zip.FileWriter(fileEntry), callback, onprogress) : callback(null);
+			if (this.file)
+				this.file.getData(new obj.zipFileWriter(fileEntry), callback, onprogress);
+			else
+				callback();
 		},
 		importBlob : function(blob, onend, onprogress, onerror) {
-			this.importZip(new zip.BlobReader(blob), onend, onprogress, onerror);
+			this.importZip(new obj.zipBlobReader(blob), onend, onprogress, onerror);
 		},
 		importText : function(text, onend, onprogress, onerror) {
-			this.importZip(new zip.TextReader(text), onend, onprogress, onerror);
+			this.importZip(new obj.zipTextReader(text), onend, onprogress, onerror);
 		},
 		importData64URI : function(dataURI, onend, onprogress, onerror) {
-			this.importZip(new zip.Data64URIReader(dataURI), onend, onprogress, onerror);
+			this.importZip(new obj.zipData64URIReader(dataURI), onend, onprogress, onerror);
 		},
 		importHttpContent : function(URL, useRangeHeader, onend, onprogress, onerror) {
-			this.importZip(useRangeHeader ? new zip.HttpRangeReader(URL) : new zip.HttpReader(URL), onend, onprogress, onerror);
+			this.importZip(useRangeHeader ? new obj.zipHttpRangeReader(URL) : new obj.zipHttpReader(URL), onend, onprogress, onerror);
 		},
 		exportBlob : function(onend, onprogress, onerror) {
-			this.exportZip(new zip.BlobWriter(), onend, onprogress, onerror);
+			this.exportZip(new obj.zipBlobWriter(), onend, onprogress, onerror);
 		},
 		exportText : function(onend, onprogress, onerror) {
-			this.exportZip(new zip.TextWriter(), onend, onprogress, onerror);
+			this.exportZip(new obj.zipTextWriter(), onend, onprogress, onerror);
 		},
 		exportFile : function(fileEntry, onend, onprogress, onerror) {
-			this.exportZip(new zip.FileWriter(fileEntry), onend, onprogress, onerror);
+			this.exportZip(new obj.zipFileWriter(fileEntry), onend, onprogress, onerror);
 		},
 		exportData64URI : function(mimeType, onend, onprogress, onerror) {
-			this.exportZip(new zip.Data64URIWriter(mimeType), onend, onprogress, onerror);
+			this.exportZip(new obj.zipData64URIWriter(mimeType), onend, onprogress, onerror);
 		},
 		importZip : function(reader, onend, onprogress, onerror) {
 			var that = this;

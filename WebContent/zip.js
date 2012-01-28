@@ -454,7 +454,7 @@
 
 			reader.readUint8Array(that.offset, 4, function(bytes) {
 				reader.readUint8Array(that.offset, 30, function(bytes) {
-					data = getDataHelper(bytes.length, bytes);
+					var data = getDataHelper(bytes.length, bytes);
 					if (data.view.getUint32(0) != 0x504b0304) {
 						terminate(onerror, ERR_BAD_FORMAT);
 						return;
