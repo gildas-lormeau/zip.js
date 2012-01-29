@@ -64,6 +64,15 @@
 	}
 
 	// Readers
+	function Reader() {
+	}
+	Reader.prototype.readBlob = function(index, length, callback, onerror) {
+		this.readUint8Array(index, length, function(array) {
+			var data = getDataHelper(array.length, array), blobBuilder = new BlobBuilder();
+			blobBuilder.append(data.buffer);
+			callback(blobBuilder.getBlob());
+		}, onerror);
+	};
 
 	function TextReader(text) {
 		var that = this, blobReader, blobBuilder;
@@ -74,6 +83,7 @@
 		that.readBlob = blobReader.readBlob;
 		that.readUint8Array = blobReader.readUint8Array;
 	}
+	TextReader.prototype = new Reader();
 
 	function Data64URIReader(dataURI) {
 		var that = this, dataStart;
@@ -98,18 +108,10 @@
 			callback(data.array);
 		}
 
-		function readBlob(index, length, callback, onerror) {
-			readUint8Array(index, length, function(array) {
-				var data = getDataHelper(array.length, array), blobBuilder = new BlobBuilder();
-				blobBuilder.append(data.buffer);
-				callback(blobBuilder.getBlob());
-			}, onerror);
-		}
-
 		that.init = init;
-		that.readBlob = readBlob;
 		that.readUint8Array = readUint8Array;
 	}
+	Data64URIReader.prototype = new Reader();
 
 	function BlobReader(blob) {
 		var that = this;
@@ -137,6 +139,7 @@
 		that.readBlob = readBlob;
 		that.readUint8Array = readUint8Array;
 	}
+	BlobReader.prototype = new Reader();
 
 	function HttpReader(url) {
 		var that = this;
@@ -158,20 +161,11 @@
 			callback(that.data.subarray(index, index + length));
 		}
 
-		function readBlob(index, length, callback, onerror) {
-			readUint8Array(index, length, function(array) {
-				var blobBuilder = new BlobBuilder(), arrayBuffer = new ArrayBuffer(length), dataArray = new Uint8Array(arrayBuffer);
-				dataArray.set(array, 0);
-				blobBuilder.append(arrayBuffer);
-				callback(blobBuilder.getBlob());
-			}, onerror);
-		}
-
 		that.size = 0;
 		that.init = init;
-		that.readBlob = readBlob;
 		that.readUint8Array = readUint8Array;
 	}
+	HttpReader.prototype = new Reader();
 
 	function HttpRangeReader(url) {
 		var that = this;
@@ -221,31 +215,38 @@
 		that.readBlob = readBlob;
 		that.readUint8Array = readUint8Array;
 	}
+	HttpRangeReader.prototype = new Reader();
 
 	// Writers
 
+	function Writer() {
+	}
+	Writer.prototype.getData = function(callback) {
+		var that = this;
+		setTimeout(function() {
+			callback(that.data);
+		}, 1);
+	};
+
 	function TextWriter() {
-		var that = this, data = "";
+		var that = this;
 
 		function init(callback, onerror) {
+			that.data = "";
 			callback();
 		}
 
 		function writeUint8Array(array, callback, onerror) {
 			var i;
 			for (i = 0; i < array.length; i++)
-				data += String.fromCharCode(array[i]);
+				that.data += String.fromCharCode(array[i]);
 			callback();
-		}
-
-		function getData(callback) {
-			callback(data);
 		}
 
 		that.init = init;
 		that.writeUint8Array = writeUint8Array;
-		that.getData = getData;
 	}
+	TextWriter.prototype = new Writer();
 
 	function Data64URIWriter(mimeString) {
 		var that = this, data = "", pending = "";
@@ -274,6 +275,7 @@
 		that.writeUint8Array = writeUint8Array;
 		that.getData = getData;
 	}
+	Data64URIWriter.prototype = new Writer();
 
 	function FileWriter(fileEntry) {
 		var writer, that = this;
@@ -304,6 +306,7 @@
 		that.writeUint8Array = writeUint8Array;
 		that.getData = getData;
 	}
+	FileWriter.prototype = new Writer();
 
 	function BlobWriter() {
 		var blobBuilder, that = this;
@@ -329,6 +332,7 @@
 		that.writeUint8Array = writeUint8Array;
 		that.getData = getData;
 	}
+	BlobWriter.prototype = new Writer();
 
 	// ZipReader
 
