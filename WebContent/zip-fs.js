@@ -206,51 +206,51 @@
 		},
 		getText : function(callback, onprogress) {
 			if (this.file)
-				this.file.getData(new obj.zipTextWriter(), callback, onprogress);
+				this.file.getData(new obj.zip.TextWriter(), callback, onprogress);
 			else
 				callback();
 		},
 		getBlob : function(callback, onprogress) {
 			if (this.file)
-				this.file.getData(new obj.zipBlobWriter(), callback, onprogress);
+				this.file.getData(new obj.zip.BlobWriter(), callback, onprogress);
 			else
 				callback();
 		},
 		getData64URI : function(mimeType, callback, onprogress) {
 			if (this.file)
-				this.file.getData(new obj.zipData64URIWriter(mimeType), callback, onprogress);
+				this.file.getData(new obj.zip.Data64URIWriter(mimeType), callback, onprogress);
 			else
 				callback();
 		},
 		getFile : function(fileEntry, callback, onprogress) {
 			if (this.file)
-				this.file.getData(new obj.zipFileWriter(fileEntry), callback, onprogress);
+				this.file.getData(new obj.zip.FileWriter(fileEntry), callback, onprogress);
 			else
 				callback();
 		},
 		importBlob : function(blob, onend, onprogress, onerror) {
-			this.importZip(new obj.zipBlobReader(blob), onend, onprogress, onerror);
+			this.importZip(new obj.zip.BlobReader(blob), onend, onprogress, onerror);
 		},
 		importText : function(text, onend, onprogress, onerror) {
-			this.importZip(new obj.zipTextReader(text), onend, onprogress, onerror);
+			this.importZip(new obj.zip.TextReader(text), onend, onprogress, onerror);
 		},
 		importData64URI : function(dataURI, onend, onprogress, onerror) {
-			this.importZip(new obj.zipData64URIReader(dataURI), onend, onprogress, onerror);
+			this.importZip(new obj.zip.Data64URIReader(dataURI), onend, onprogress, onerror);
 		},
 		importHttpContent : function(URL, useRangeHeader, onend, onprogress, onerror) {
-			this.importZip(useRangeHeader ? new obj.zipHttpRangeReader(URL) : new obj.zipHttpReader(URL), onend, onprogress, onerror);
+			this.importZip(useRangeHeader ? new obj.zip.HttpRangeReader(URL) : new obj.zip.HttpReader(URL), onend, onprogress, onerror);
 		},
 		exportBlob : function(onend, onprogress, onerror) {
-			this.exportZip(new obj.zipBlobWriter(), onend, onprogress, onerror);
+			this.exportZip(new obj.zip.BlobWriter(), onend, onprogress, onerror);
 		},
 		exportText : function(onend, onprogress, onerror) {
-			this.exportZip(new obj.zipTextWriter(), onend, onprogress, onerror);
+			this.exportZip(new obj.zip.TextWriter(), onend, onprogress, onerror);
 		},
 		exportFile : function(fileEntry, onend, onprogress, onerror) {
-			this.exportZip(new obj.zipFileWriter(fileEntry), onend, onprogress, onerror);
+			this.exportZip(new obj.zip.FileWriter(fileEntry), onend, onprogress, onerror);
 		},
 		exportData64URI : function(mimeType, onend, onprogress, onerror) {
-			this.exportZip(new obj.zipData64URIWriter(mimeType), onend, onprogress, onerror);
+			this.exportZip(new obj.zip.Data64URIWriter(mimeType), onend, onprogress, onerror);
 		},
 		importZip : function(reader, onend, onprogress, onerror) {
 			var that = this;
