@@ -76,16 +76,25 @@
 	}
 
 	function Data64URIReader(dataURI) {
-		var that = this, byteString, mimeString, dataArray;
+		var that = this, dataStart;
 
 		function init(callback, onerror) {
+			var dataEnd = dataURI.length;
+			while (dataURI.charAt(dataEnd - 1) == "=")
+				dataEnd--;
+			dataStart = dataURI.indexOf(",") + 1;
+			that.size = Math.floor((dataEnd - dataStart) * 0.75);
 			callback();
 		}
 
 		function readUint8Array(index, length, callback, onerror) {
 			var i, data = getDataHelper(length);
-			for (i = 0; i < length; i++)
-				data.array[i] = byteString.charCodeAt(i + index);
+			var start = Math.floor(index / 3) * 4;
+			var end = Math.ceil((index + length) / 3) * 4;
+			var bytes = obj.atob(dataURI.substring(start + dataStart, end + dataStart));
+			var delta = index - Math.floor(start / 4) * 3;
+			for (i = delta; i < delta + length; i++)
+				data.array[i - delta] = bytes.charCodeAt(i);
 			callback(data.array);
 		}
 
@@ -97,10 +106,6 @@
 			}, onerror);
 		}
 
-		dataArray = dataURI.split(',');
-		byteString = atob(dataArray[1]);
-		mimeString = dataArray[0].split(':')[1].split(';')[0];
-		that.size = byteString.length;
 		that.init = init;
 		that.readBlob = readBlob;
 		that.readUint8Array = readUint8Array;
@@ -243,21 +248,26 @@
 	}
 
 	function Data64URIWriter(mimeString) {
-		var that = this, data = "";
+		var that = this, data = "", pending = "";
 
 		function init(callback, onerror) {
+			data += "data:" + (mimeString || "") + ";base64,";
 			callback();
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			var i;
-			for (i = 0; i < array.length; i++)
-				data += String.fromCharCode(array[i]);
+			var i, delta = pending.length, dataString = pending;
+			pending = "";
+			for (i = 0; i < (Math.floor((delta + array.length) / 3) * 3) - delta; i++)
+				dataString += String.fromCharCode(array[i]);
+			for (; i < array.length; i++)
+				pending += String.fromCharCode(array[i]);
+			data += obj.btoa(dataString);
 			callback();
 		}
 
 		function getData(callback) {
-			callback("data:" + (mimeString || "") + ";base64," + btoa(data));
+			callback(data + obj.btoa(pending));
 		}
 
 		that.init = init;
