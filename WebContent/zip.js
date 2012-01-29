@@ -144,21 +144,39 @@
 	function HttpReader(url) {
 		var that = this;
 
-		function init(callback) {
+		function getData(callback) {
+			var request;
+			if (!that.data) {
+				request = new XMLHttpRequest();
+				request.addEventListener("load", function() {
+					if (!that.size)
+						that.size = Number(request.getResponseHeader("Content-Length"));
+					that.data = new Uint8Array(request.response);
+					callback();
+				}, false);
+				request.addEventListener("error", onerror, false);
+				request.open("GET", url);
+				request.responseType = "arraybuffer";
+				request.send();
+			} else
+				callback();
+		}
+
+		function init(callback, onerror) {
 			var request = new XMLHttpRequest();
 			request.addEventListener("load", function() {
 				that.size = Number(request.getResponseHeader("Content-Length"));
-				that.data = new Uint8Array(request.response);
 				callback();
 			}, false);
 			request.addEventListener("error", onerror, false);
-			request.open("GET", url);
-			request.responseType = "arraybuffer";
+			request.open("HEAD", url);
 			request.send();
 		}
 
 		function readUint8Array(index, length, callback, onerror) {
-			callback(that.data.subarray(index, index + length));
+			getData(function() {
+				callback(that.data.subarray(index, index + length));
+			});
 		}
 
 		that.size = 0;
