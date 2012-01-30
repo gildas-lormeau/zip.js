@@ -112,51 +112,14 @@
 
 		var s1 = adler & 0xffff;
 		var s2 = (adler >> 16) & 0xffff;
-		var k;
+		var k, i;
 
 		while (len > 0) {
 			k = len < NMAX ? len : NMAX;
 			len -= k;
-			while (k >= 16) {
+			for (i = 0; i < k; i++) {
 				s1 += buf[index++];
 				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				k -= 16;
-			}
-			if (k !== 0) {
-				do {
-					s1 += buf[index++];
-					s2 += s1;
-				} while (--k !== 0);
 			}
 			s1 %= BASE;
 			s2 %= BASE;
