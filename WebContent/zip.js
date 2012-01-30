@@ -240,10 +240,7 @@
 	function Writer() {
 	}
 	Writer.prototype.getData = function(callback) {
-		var that = this;
-		setTimeout(function() {
-			callback(that.data);
-		}, 1);
+		callback(this.data);
 	};
 
 	function TextWriter() {
@@ -331,19 +328,17 @@
 
 		function init(callback, onerror) {
 			blobBuilder = new BlobBuilder();
-			setTimeout(callback, 1);
+			callback();
 		}
 
 		function writeUint8Array(array, callback, onerror) {
 			var buffer = array.buffer;
 			blobBuilder.append(buffer);
-			setTimeout(callback, 1);
+			callback();
 		}
 
 		function getData(callback) {
-			setTimeout(function() {
-				callback(blobBuilder.getBlob());
-			}, 1);
+			callback(blobBuilder.getBlob());
 		}
 
 		that.init = init;
