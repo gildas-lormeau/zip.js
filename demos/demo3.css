@@ -66,11 +66,24 @@ summary {
 
 .listing:empty::after {
 	color: gray;
-	content: "Drag and drop files here";
+	content: "Drag and drop uncompressed files here";
 	margin-top: 200px;
-	margin-left: 170px;
+	left: 140px;
 	position: absolute;
 }
+
+.tree > .empty::after {
+	color: gray;
+	content: "Drag and drop zip files into folders";
+	margin-top: 205px;
+	left: 15px;
+	position: absolute;
+}
+
+.tree > details > summary {
+	color: gray;
+}
+
 
 h2 {
 	position: relative;

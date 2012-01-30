@@ -58,8 +58,8 @@
 				else
 					fs.exportBlob(onexport, onprogress, onerror);
 			},
-			importZip : function(blob, onend, onprogress, onerror) {
-				fs.importBlob(blob, onend, onprogress, onerror);
+			importZip : function(blob, targetEntry, onend, onprogress, onerror) {
+				targetEntry.importBlob(blob, onend, onprogress, onerror);
 			}
 		};
 	})();
@@ -67,9 +67,7 @@
 	(function() {
 		var newDirectory = document.getElementById("new-directory");
 		var exportZip = document.getElementById("export-zip");
-		var importZip = document.getElementById("import-zip");
 		var progressExport = document.getElementById("progress-export-zip");
-		var progressImport = document.getElementById("progress-import-zip");
 		var filenameInput = document.getElementById("zip-filename");
 		var tree = document.getElementById("tree");
 		var listing = document.getElementById("listing");
@@ -119,12 +117,17 @@
 					selectedDir = details;
 				}
 				summary.className = "dir-summary";
-				label.textContent = node.name || "";
+				if (node.parent)
+					label.textContent = node.name;
+				else
+					label.textContent = "<root>";
 				label.className = "dir-label";
 				summary.appendChild(label);
 				details.appendChild(summary);
 				element.appendChild(details);
 			}
+			if (!node.parent && node.children.length == 0)
+				details.classList.add("empty");
 			node.children.sort(function(a, b) {
 				return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
 			}).forEach(function(child) {
@@ -157,7 +160,7 @@
 
 		function resetSelectedFile() {
 			if (selectedFile) {
-				selectedFile.className = "";
+				selectedFile.classList.remove("selected");
 				selectedFile.draggable = false;
 				selectedFile = null;
 			}
@@ -165,7 +168,7 @@
 
 		function resetSelectedDir() {
 			if (selectedDir) {
-				selectedDir.className = "";
+				selectedDir.classList.remove("selected");
 				selectedDir.draggable = false;
 				selectedDir = null;
 				resetSelectedFile();
@@ -214,11 +217,11 @@
 			var target = event.target, li;
 			if (target.className == "file-label") {
 				li = target.parentElement;
-				if (li.className != "selected") {
+				if (!li.classList.contains("selected")) {
 					resetSelectedFile();
 					resetSelectedLabel(true);
 					selectedFile = li;
-					li.className = "selected";
+					li.classList.add("selected");
 					li.draggable = true;
 				} else {
 					li.draggable = false;
@@ -239,12 +242,12 @@
 
 			if (target.className == "dir-label") {
 				details = target.parentElement.parentElement;
-				if (details.className != "selected") {
+				if (!details.classList.contains("selected")) {
 					resetSelectedDir();
 					resetSelectedLabel(true);
 					selectedDir = details;
 					refreshListing();
-					details.className = "selected";
+					details.classList.add("selected");
 					details.draggable = true;
 				} else {
 					details.draggable = false;
@@ -273,21 +276,30 @@
 		}, false);
 
 		tree.addEventListener('drop', function(event) {
-			var targetNode, srcNode, target = getFileElement(event.target);
+			var targetNode, srcNode, file, target = getFileElement(event.target);
 			if (target) {
 				targetNode = getFileNode(target);
-				srcNode = getFileNode(selectedDrag);
-				if (targetNode != srcNode && targetNode != srcNode.parent && !targetNode.isDescendantOf(srcNode)) {
-					srcNode.moveTo(targetNode);
-					targetNode.expanded = target.open = true;
-					refreshTree();
-					refreshListing();
-				} else
-					hoveredElement.classList.remove("drag-over");
+				if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
+					file = event.dataTransfer.files[0];
+					if (file)
+						model.importZip(file, targetNode, function() {
+							expandTree();
+							refreshTree();
+							refreshListing();
+						}, null, onerror);
+				} else {
+					srcNode = getFileNode(selectedDrag);
+					if (targetNode != srcNode && targetNode != srcNode.parent && !targetNode.isDescendantOf(srcNode)) {
+						srcNode.moveTo(targetNode);
+						targetNode.expanded = target.open = true;
+						refreshTree();
+						refreshListing();
+					} else
+						hoveredElement.classList.remove("drag-over");
+				}
 			}
 			stopEvent(event);
 		}, false);
-		tree.addEventListener('dragenter', stopEvent, false);
 		tree.addEventListener('dragover', function(event) {
 			if (hoveredElement)
 				hoveredElement.classList.remove("drag-over");
@@ -296,7 +308,6 @@
 				hoveredElement.classList.add("drag-over");
 			stopEvent(event);
 		}, false);
-		tree.addEventListener('dragleave', stopEvent, false);
 		tree.addEventListener('dragstart', function(event) {
 			selectedDrag = selectedDir;
 		}, false);
@@ -310,9 +321,7 @@
 			}
 			stopEvent(event);
 		}, false);
-		listing.addEventListener('dragenter', stopEvent, false);
 		listing.addEventListener('dragover', stopEvent, false);
-		listing.addEventListener('dragleave', stopEvent, false);
 		listing.addEventListener('dragstart', function(event) {
 			if (!event.dataTransfer || !event.dataTransfer.files || !event.dataTransfer.files.length)
 				selectedDrag = selectedFile;
@@ -325,26 +334,6 @@
 				refreshTree();
 				if (selectedDir)
 					getFileNode(selectedDir).expanded = selectedDir.open = true;
-			}
-		}, false);
-
-		progressImport.style.opacity = 0;
-		importZip.addEventListener('change', function(event) {
-			var file = importZip.files[0];
-			if (file) {
-				progressImport.style.opacity = 1;
-				progressImport.offsetHeight;
-				model.importZip(file, function() {
-					progressImport.style.opacity = 0;
-					progressImport.value = 0;
-					progressImport.max = 0;
-					expandTree();
-					refreshTree();
-					refreshListing();
-				}, function(index, end) {
-					progressImport.value = index;
-					progressImport.max = end;
-				}, onerror);
 			}
 		}, false);
 
