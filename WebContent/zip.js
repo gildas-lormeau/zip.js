@@ -32,9 +32,9 @@
 	var ERR_ENCRYPTED = "File contains encrypted entry.";
 	var ERR_ZIP64 = "File is using Zip64 (4gb+ file size).";
 	var ERR_READ = "Error while reading zip file.";
-	var ERR_WRITE_DATA = "Error while writing uncompressed file.";
+	var ERR_WRITE = "Error while writing zip file.";
+	var ERR_WRITE_DATA = "Error while writing file.";
 	var ERR_READ_DATA = "Error while reading file.";
-	var ERR_WRITE_ZIP = "Error while writing zip file.";
 	var ERR_DUPLICATED_NAME = "File already exists.";
 	var ERR_HTTP_RANGE = "HTTP Range not supported.";
 	var CHUNK_SIZE = 512 * 1024;
@@ -649,7 +649,7 @@
 		}
 
 		function onwriteError() {
-			terminate(onerror, ERR_WRITE_ZIP);
+			terminate(onerror, ERR_WRITE);
 		}
 
 		function writeUint8Array(array, callback) {
