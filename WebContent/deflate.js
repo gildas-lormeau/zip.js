@@ -98,35 +98,6 @@
 		Z_VERSION_ERROR : -6
 	};
 
-	// ADLER32
-
-	// largest prime smaller than 65536
-	var BASE = 65521;
-	// NMAX is the largest n such that 255n(n+1)/2 + (n+1)(BASE-1) <= 2^32-1
-	var NMAX = 5552;
-
-	function adler32(adler, buf, index, len) {
-		if (!buf) {
-			return 1;
-		}
-
-		var s1 = adler & 0xffff;
-		var s2 = (adler >> 16) & 0xffff;
-		var k, i;
-
-		while (len > 0) {
-			k = len < NMAX ? len : NMAX;
-			len -= k;
-			for (i = 0; i < k; i++) {
-				s1 += buf[index++];
-				s2 += s1;
-			}
-			s1 %= BASE;
-			s2 %= BASE;
-		}
-		return (s2 << 16) | s1;
-	}
-
 	// Tree
 
 	// see definition of array dist_code below
@@ -1716,7 +1687,6 @@
 				that.noheader = 0; // was set to -1 by deflate(..., Z_FINISH);
 			}
 			status = (that.noheader !== 0) ? BUSY_STATE : INIT_STATE;
-			strm.adler = adler32(0, null, 0, 0);
 
 			last_flush = Z_NO_FLUSH;
 
@@ -1841,8 +1811,6 @@
 			if (!dictionary || status != INIT_STATE)
 				return Z_STREAM_ERROR;
 
-			strm.adler = adler32(strm.adler, dictionary, 0, dictLength);
-
 			if (length < MIN_MATCH)
 				return Z_OK;
 			if (length > w_size - MIN_LOOKAHEAD) {
@@ -1903,13 +1871,6 @@
 
 				status = BUSY_STATE;
 				putShortMSB(header);
-
-				// Save the adler32 of the preset dictionary:
-				if (strstart !== 0) {
-					putShortMSB(strm.adler >>> 16);
-					putShortMSB(strm.adler & 0xffff);
-				}
-				strm.adler = adler32(0, null, 0, 0);
 			}
 
 			// Flush as much pending output as possible
@@ -2000,9 +1961,6 @@
 			if (that.noheader !== 0)
 				return Z_STREAM_END;
 
-			// Write the zlib trailer (adler32)
-			putShortMSB(strm.adler >>> 16);
-			putShortMSB(strm.adler & 0xffff);
 			strm.flush_pending();
 
 			// If avail_out is zero, the application will call deflate again
@@ -2027,7 +1985,6 @@
 		// that.msg;
 		// that.dstate;
 		// that.data_type; // best guess about the data type: ascii or binary
-		// that.adler;
 
 	}
 
@@ -2071,8 +2028,8 @@
 			return that.dstate.deflateSetDictionary(that, dictionary, dictLength);
 		},
 
-		// Read a new buffer from the current input stream, update the adler32
-		// and total number of bytes read. All deflate() input goes through
+		// Read a new buffer from the current input stream, update the
+		// total number of bytes read. All deflate() input goes through
 		// this function so some applications may wish to modify it to avoid
 		// allocating a large strm->next_in buffer and copying from it.
 		// (See also flush_pending()).
@@ -2084,9 +2041,6 @@
 			if (len === 0)
 				return 0;
 			that.avail_in -= len;
-			if (that.dstate.noheader === 0) {
-				that.adler = adler32(that.adler, that.next_in, that.next_in_index, len);
-			}
 			buf.set(that.next_in.subarray(that.next_in_index, that.next_in_index + len), start);
 			that.next_in_index += len;
 			that.total_in += len;

@@ -88,13 +88,6 @@
 		Z_VERSION_ERROR : -6
 	};
 
-	// Adler32
-
-	function adler32() {
-		// TODO
-		return 0;
-	}
-
 	// InfTree
 	var fixed_bl = 9;
 	var fixed_bd = 5;
@@ -1205,9 +1198,6 @@
 			that.bitk = 0;
 			that.bitb = 0;
 			that.read = that.write = 0;
-
-			if (checkfn)
-				z.adler = check = adler32(z, 0, null, 0, 0);
 		};
 
 		that.reset(z, null);
@@ -1233,10 +1223,6 @@
 			z.avail_out -= n;
 			z.total_out += n;
 
-			// update check information
-			if (checkfn)
-				z.adler = check = adler32(z, check, window, q, n);
-
 			// copy as far as end of window
 			z.next_out.set(that.window.subarray(q, q + n), p);
 			p += n;
@@ -1259,10 +1245,6 @@
 				// update counters
 				z.avail_out -= n;
 				z.total_out += n;
-
-				// update check information
-				if (checkfn)
-					z.adler = check = adler32(z, check, that.window, q, n);
 
 				// copy
 				z.next_out.set(that.window.subarray(q, q + n), p);
@@ -1983,7 +1965,6 @@
 					z.avail_in--;
 					z.total_in++;
 					z.istate.need += (z.read_byte(z.next_in_index++) & 0xff);
-					z.adler = z.istate.need;
 					z.istate.mode = DICT0;
 					return Z_NEED_DICT;
 				case DICT0:
@@ -2075,12 +2056,6 @@
 			var length = dictLength;
 			if (!z || !z.istate || z.istate.mode != DICT0)
 				return Z_STREAM_ERROR;
-
-			if (adler32(z, 1, dictionary, 0, dictLength) != z.adler) {
-				return Z_DATA_ERROR;
-			}
-
-			z.adler = adler32(z, 0, null, 0, 0);
 
 			if (length >= (1 << z.istate.wbits)) {
 				length = (1 << z.istate.wbits) - 1;
