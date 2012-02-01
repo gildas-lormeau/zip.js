@@ -249,7 +249,7 @@
 					refreshListing();
 					details.classList.add("selected");
 					details.draggable = true;
-				} else {
+				} else if (getFileNode(selectedDir).parent) {
 					details.draggable = false;
 					editName(target, selectedDir, function(state) {
 						if (state == "deleted") {
