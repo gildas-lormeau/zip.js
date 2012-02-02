@@ -464,7 +464,7 @@
 					onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), data.size);
 			}
 
-			worker = new Worker(obj.zip.workerScriptsPath + "inflate.js");
+			worker = new Worker(obj.zip.workersScriptPath + "inflate.js");
 			worker.addEventListener("message", onmesssage, false);
 			stepInflate();
 		}
