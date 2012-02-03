@@ -16,7 +16,7 @@ function unzipDataURI(dataURI, callback) {
 	zipFs.importData64URI(dataURI, function() {
 		var firstEntry = zipFs.root.children[0];
 		firstEntry.getData64URI("text/plain", callback);
-	}, null, onerror);
+	}, onerror);
 }
 
 function logDataURI(dataURI) {

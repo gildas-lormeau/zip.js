@@ -15,4 +15,4 @@ zipFs.importHttpContent("lorem.zip", false, function() {
 	firstEntry.getText(function(data) {
 		logText(data);
 	});
-}, null, onerror);
+}, onerror);

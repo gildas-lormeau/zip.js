@@ -16,7 +16,7 @@ function unzipBlob(blob, callback) {
 	zipFs.importBlob(blob, function() {
 		var firstEntry = zipFs.root.children[0];
 		firstEntry.getText(callback);
-	}, null, onerror);
+	}, onerror);
 }
 
 function logText(text) {

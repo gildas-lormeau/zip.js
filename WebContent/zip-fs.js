@@ -262,17 +262,17 @@
 			else
 				callback();
 		},
-		importBlob : function(blob, onend, onprogress, onerror) {
-			this.importZip(new obj.zip.BlobReader(blob), onend, onprogress, onerror);
+		importBlob : function(blob, onend, onerror) {
+			this.importZip(new obj.zip.BlobReader(blob), onend, onerror);
 		},
-		importText : function(text, onend, onprogress, onerror) {
-			this.importZip(new obj.zip.TextReader(text), onend, onprogress, onerror);
+		importText : function(text, onend, onerror) {
+			this.importZip(new obj.zip.TextReader(text), onend, onerror);
 		},
-		importData64URI : function(dataURI, onend, onprogress, onerror) {
-			this.importZip(new obj.zip.Data64URIReader(dataURI), onend, onprogress, onerror);
+		importData64URI : function(dataURI, onend, onerror) {
+			this.importZip(new obj.zip.Data64URIReader(dataURI), onend, onerror);
 		},
-		importHttpContent : function(URL, useRangeHeader, onend, onprogress, onerror) {
-			this.importZip(useRangeHeader ? new obj.zip.HttpRangeReader(URL) : new obj.zip.HttpReader(URL), onend, onprogress, onerror);
+		importHttpContent : function(URL, useRangeHeader, onend, onerror) {
+			this.importZip(useRangeHeader ? new obj.zip.HttpRangeReader(URL) : new obj.zip.HttpReader(URL), onend, onerror);
 		},
 		exportBlob : function(onend, onprogress, onerror) {
 			this.exportZip(new obj.zip.BlobWriter(), onend, onprogress, onerror);
@@ -286,7 +286,7 @@
 		exportData64URI : function(mimeType, onend, onprogress, onerror) {
 			this.exportZip(new obj.zip.Data64URIWriter(mimeType), onend, onprogress, onerror);
 		},
-		importZip : function(reader, onend, onprogress, onerror) {
+		importZip : function(reader, onend, onerror) {
 			var that = this;
 			obj.zip.createReader(reader, function(zipReader) {
 				zipReader.getEntries(function(entries) {
@@ -373,21 +373,21 @@
 		getById : function(id) {
 			return this.entries[id];
 		},
-		importBlob : function(blob, onend, onprogress, onerror) {
+		importBlob : function(blob, onend, onerror) {
 			resetFS(this);
-			this.root.importBlob(blob, onend, onprogress, onerror);
+			this.root.importBlob(blob, onend, onerror);
 		},
-		importText : function(text, onend, onprogress, onerror) {
+		importText : function(text, onend, onerror) {
 			resetFS(this);
-			this.root.importText(text, onend, onprogress, onerror);
+			this.root.importText(text, onend, onerror);
 		},
-		importData64URI : function(dataURI, onend, onprogress, onerror) {
+		importData64URI : function(dataURI, onend, onerror) {
 			resetFS(this);
-			this.root.importData64URI(dataURI, onend, onprogress, onerror);
+			this.root.importData64URI(dataURI, onend, onerror);
 		},
-		importHttpContent : function(URL, useRangeHeader, onend, onprogress, onerror) {
+		importHttpContent : function(URL, useRangeHeader, onend, onerror) {
 			resetFS(this);
-			this.root.importHttpContent(URL, useRangeHeader, onend, onprogress, onerror);
+			this.root.importHttpContent(URL, useRangeHeader, onend, onerror);
 		},
 		exportBlob : function(onend, onprogress, onerror) {
 			this.root.exportBlob(onend, onprogress, onerror);
