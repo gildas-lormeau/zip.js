@@ -213,17 +213,32 @@
 			return element;
 		}
 
+		function selectFile(fileElement) {
+			var li = fileElement.parentElement;
+			resetSelectedFile();
+			resetSelectedLabel(true);
+			selectedFile = li;
+			li.classList.add("selected");
+			li.draggable = true;
+		}
+
+		function selectDirectory(directoryElement) {
+			var details = directoryElement;
+			resetSelectedDir();
+			resetSelectedLabel(true);
+			selectedDir = details;
+			refreshListing();
+			details.classList.add("selected");
+			details.draggable = true;
+		}
+
 		listing.addEventListener("click", function(event) {
 			var target = event.target, li;
 			if (target.className == "file-label") {
 				li = target.parentElement;
-				if (!li.classList.contains("selected")) {
-					resetSelectedFile();
-					resetSelectedLabel(true);
-					selectedFile = li;
-					li.classList.add("selected");
-					li.draggable = true;
-				} else {
+				if (!li.classList.contains("selected"))
+					selectFile(target);
+				else {
 					li.draggable = false;
 					editName(target, selectedFile, function(state) {
 						if (state == "deleted")
@@ -242,14 +257,9 @@
 
 			if (target.className == "dir-label") {
 				details = target.parentElement.parentElement;
-				if (!details.classList.contains("selected")) {
-					resetSelectedDir();
-					resetSelectedLabel(true);
-					selectedDir = details;
-					refreshListing();
-					details.classList.add("selected");
-					details.draggable = true;
-				} else if (getFileNode(selectedDir).parent) {
+				if (!details.classList.contains("selected"))
+					selectDirectory(details);
+				else if (getFileNode(selectedDir).parent) {
 					details.draggable = false;
 					editName(target, selectedDir, function(state) {
 						if (state == "deleted") {
@@ -283,7 +293,8 @@
 					file = event.dataTransfer.files[0];
 					if (file)
 						model.importZip(file, targetNode, function() {
-							expandTree();
+							selectDirectory(target);
+							expandTree(targetNode);
 							refreshTree();
 							refreshListing();
 						}, null, onerror);
