@@ -522,7 +522,6 @@
 		var pending_buf_size; // size of pending_buf
 		// pending_out; // next pending byte to output to the stream
 		// pending; // nb of bytes in the pending buffer
-		// noheader; // suppress zlib header and adler32
 		// data_type; // UNKNOWN, BINARY or ASCII
 		var method; // STORED (for zip only) or DEFLATED
 		var last_flush; // value of flush param for previous deflate call
@@ -1683,10 +1682,7 @@
 			that.pending = 0;
 			that.pending_out = 0;
 
-			if (that.noheader < 0) {
-				that.noheader = 0; // was set to -1 by deflate(..., Z_FINISH);
-			}
-			status = (that.noheader !== 0) ? BUSY_STATE : INIT_STATE;
+			status = BUSY_STATE;
 
 			last_flush = Z_NO_FLUSH;
 
@@ -1696,8 +1692,6 @@
 		}
 
 		that.deflateInit = function(strm, _level, bits, _method, memLevel, _strategy) {
-			var _noheader = 0;
-
 			if (!_method)
 				_method = Z_DEFLATED;
 			if (!memLevel)
@@ -1718,11 +1712,6 @@
 			if (_level == Z_DEFAULT_COMPRESSION)
 				_level = 6;
 
-			if (bits < 0) { // undocumented feature: suppress zlib header
-				_noheader = 1;
-				bits = -bits;
-			}
-
 			if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || _method != Z_DEFLATED || bits < 9 || bits > 15 || _level < 0 || _level > 9 || _strategy < 0
 					|| _strategy > Z_HUFFMAN_ONLY) {
 				return Z_STREAM_ERROR;
@@ -1730,7 +1719,6 @@
 
 			strm.dstate = that;
 
-			that.noheader = _noheader;
 			w_bits = bits;
 			w_size = 1 << w_bits;
 			w_mask = w_size - 1;
@@ -1755,8 +1743,6 @@
 			l_buf = (1 + 2) * lit_bufsize;
 
 			level = _level;
-
-			// console.log("level="+level);
 
 			strategy = _strategy;
 			method = _method & 0xff;
@@ -1958,15 +1944,7 @@
 
 			if (flush != Z_FINISH)
 				return Z_OK;
-			if (that.noheader !== 0)
-				return Z_STREAM_END;
-
-			strm.flush_pending();
-
-			// If avail_out is zero, the application will call deflate again
-			// to flush the rest.
-			that.noheader = -1; // write the trailer only once!
-			return that.pending !== 0 ? Z_OK : Z_STREAM_END;
+			return Z_STREAM_END;
 		};
 	}
 
@@ -1989,12 +1967,12 @@
 	}
 
 	ZStream.prototype = {
-		deflateInit : function(level, nowrap, bits) {
+		deflateInit : function(level, bits) {
 			var that = this;
 			that.dstate = new Deflate();
 			if (!bits)
 				bits = MAX_BITS;
-			return that.dstate.deflateInit(that, level, nowrap ? -bits : bits);
+			return that.dstate.deflateInit(that, level, bits);
 		},
 
 		deflate : function(flush) {
@@ -2083,7 +2061,7 @@
 
 	// Deflater
 
-	function Deflater(level, wrap) {
+	function Deflater(level) {
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
@@ -2092,7 +2070,7 @@
 
 		if (typeof level == "undefined")
 			level = that.DEFAULT_COMPRESSION;
-		z.deflateInit(level, !wrap);
+		z.deflateInit(level);
 		z.next_out = buf;
 
 		that.append = function(data, onprogress) {

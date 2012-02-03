@@ -1798,10 +1798,6 @@
 	var DICT1 = 5; // one dictionary check byte to go
 	var DICT0 = 6; // waiting for inflateSetDictionary
 	var BLOCKS = 7; // decompressing blocks
-	var CHECK4 = 8; // four check bytes to go
-	var CHECK3 = 9; // three check bytes to go
-	var CHECK2 = 10; // two check bytes to go
-	var CHECK1 = 11; // one check byte to go
 	var DONE = 12; // finished check, done
 	var BAD = 13; // got an error--stay here
 
@@ -1823,7 +1819,6 @@
 		that.marker = 0;
 
 		// mode independent information
-		that.nowrap = 0; // flag for no wrapper
 		that.wbits = 0; // log2(window size) (8..15, defaults to 15)
 
 		// this.blocks; // current inflate_blocks state
@@ -1834,7 +1829,7 @@
 
 			z.total_in = z.total_out = 0;
 			z.msg = null;
-			z.istate.mode = z.istate.nowrap !== 0 ? BLOCKS : METHOD;
+			z.istate.mode = BLOCKS;
 			z.istate.blocks.reset(z, null);
 			return Z_OK;
 		}
@@ -1851,13 +1846,6 @@
 			z.msg = null;
 			that.blocks = null;
 
-			// handle undocumented nowrap option (no zlib header or check)
-			that.nowrap = 0;
-			if (w < 0) {
-				w = -w;
-				that.nowrap = 1;
-			}
-
 			// set window size
 			if (w < 8 || w > 15) {
 				that.inflateEnd(z);
@@ -1865,7 +1853,7 @@
 			}
 			that.wbits = w;
 
-			z.istate.blocks = new InfBlocks(z, z.istate.nowrap !== 0 ? null : that, 1 << w);
+			z.istate.blocks = new InfBlocks(z, null, 1 << w);
 
 			// reset state
 			inflateReset(z);
@@ -1988,58 +1976,6 @@
 					}
 					r = f;
 					z.istate.blocks.reset(z, z.istate.was);
-					if (z.istate.nowrap !== 0) {
-						z.istate.mode = DONE;
-						break;
-					}
-					z.istate.mode = CHECK4;
-				case CHECK4:
-
-					if (z.avail_in === 0)
-						return r;
-					r = f;
-
-					z.avail_in--;
-					z.total_in++;
-					z.istate.need = ((z.read_byte(z.next_in_index++) & 0xff) << 24) & 0xff000000;
-					z.istate.mode = CHECK3;
-				case CHECK3:
-
-					if (z.avail_in === 0)
-						return r;
-					r = f;
-
-					z.avail_in--;
-					z.total_in++;
-					z.istate.need += ((z.read_byte(z.next_in_index++) & 0xff) << 16) & 0xff0000;
-					z.istate.mode = CHECK2;
-				case CHECK2:
-
-					if (z.avail_in === 0)
-						return r;
-					r = f;
-
-					z.avail_in--;
-					z.total_in++;
-					z.istate.need += ((z.read_byte(z.next_in_index++) & 0xff) << 8) & 0xff00;
-					z.istate.mode = CHECK1;
-				case CHECK1:
-
-					if (z.avail_in === 0)
-						return r;
-					r = f;
-
-					z.avail_in--;
-					z.total_in++;
-					z.istate.need += (z.read_byte(z.next_in_index++) & 0xff);
-
-					if (z.istate.was[0] != z.istate.need) {
-						z.istate.mode = BAD;
-						z.msg = "incorrect data check";
-						z.istate.marker = 5; // can't try inflateSync
-						break;
-					}
-
 					z.istate.mode = DONE;
 				case DONE:
 					return Z_STREAM_END;
@@ -2136,12 +2072,12 @@
 	}
 
 	ZStream.prototype = {
-		inflateInit : function(nowrap, bits) {
+		inflateInit : function(bits) {
 			var that = this;
 			that.istate = new Inflate();
 			if (!bits)
 				bits = MAX_BITS;
-			return that.istate.inflateInit(that, nowrap ? -bits : bits);
+			return that.istate.inflateInit(that, bits);
 		},
 
 		inflate : function(f) {
@@ -2184,7 +2120,7 @@
 
 	// Inflater
 
-	function Inflater(wrap) {
+	function Inflater() {
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
@@ -2192,7 +2128,7 @@
 		var buf = new Uint8Array(bufsize);
 		var nomoreinput = false;
 
-		z.inflateInit(!wrap);
+		z.inflateInit();
 		z.next_out = buf;
 
 		that.append = function(data, onprogress) {
