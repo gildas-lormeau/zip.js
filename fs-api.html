@@ -47,7 +47,7 @@
 					<dd>the <code>ZipEntry</code> object referencing the root directory of the filesystem</dd>
 				</dl>
 				<h3>Methods</h3>
-				<pre><code class="prettyprint">FS.prototype.importBlob(blob, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.importBlob(blob, onend, onerror)</code></pre>
 				<p>
 					Reset the filesystem and import a zipped content stored in a <code>Blob</code> object.
 				</p>
@@ -57,13 +57,11 @@
 					<dd>the <code>Blob</code> object</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
-					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
 					<dt><code>onerror (Function)</code></dt>
 					<dd>error callback function - optional</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">FS.prototype.importData64URI(dataURI, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.importData64URI(dataURI, onend, onerror)</code></pre>
 				<p>
 					Reset the filesystem and import a zipped content stored in a data URI <code>string</code>.
 				</p>
@@ -73,13 +71,11 @@
 					<dd>The data URI</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
-					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
 					<dt><code>onerror (Function)</code></dt>
 					<dd>error callback function - optional</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">FS.prototype.importHTTPContent(URL, useRangeHeader, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.importHTTPContent(URL, useRangeHeader, onend, onerror)</code></pre>
 				<p>
 					Reset the filesystem and import a zipped content retrieved from a URL.
 				</p>
@@ -91,8 +87,6 @@
 					<dd>if true then HTTP &quot;Range&quot; header will be used to get zip data</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
-					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
 					<dt><code>onerror (Function)</code></dt>
 					<dd>error callback function - optional</dd>
 				</dl>
@@ -185,10 +179,10 @@
 				</p>
 				<h3>Attributes</h3>
 				<dl>
+					<dt><code>name (string)</code></dt>
+					<dd>the entry filename</dd>
 					<dt><code>file (zip.fs.File)</code></dt>
 					<dd>the attached <code>zip.fs.File</code> object</dd>
-					<dt><code>name (zip.fs.File)</code></dt>
-					<dd>the entry filename</dd>
 					<dt><code>directory (boolean)</code></dt>
 					<dd><code>true</code> if the entry is a directory</dd>
 					<dt><code>children (Array of ZipEntry)</code></dt>
@@ -342,7 +336,7 @@
 					<dd>success callback function returning the unzipped content as parameter</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipEntry.prototype.importBlob(blob, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipEntry.prototype.importBlob(blob, onend, onerror)</code></pre>
 				<p>
 					Import a zipped content stored in a <code>Blob</code> object into <code>this</code> directory entry
 				</p>
@@ -352,13 +346,11 @@
 					<dd>the <code>Blob</code> object</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
-					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
 					<dt><code>onerror (Function)</code></dt>
 					<dd>error callback function - optional</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipEntry.prototype.importData64URI(dataURI, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipEntry.prototype.importData64URI(dataURI, onend, onerror)</code></pre>
 				<p>
 					Import a zipped content stored in a data URI <code>string</code> into <code>this</code> directory entry.
 				</p>
@@ -368,13 +360,11 @@
 					<dd>The data URI</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
-					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
 					<dt><code>onerror (Function)</code></dt>
 					<dd>error callback function - optional</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipEntry.prototype.importHTTPContent(URL, useRangeHeader, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipEntry.prototype.importHTTPContent(URL, useRangeHeader, onend, onerror)</code></pre>
 				<p>
 					Import a zipped content retrieved from a URL into <code>this</code> directory entry.
 				</p>
@@ -386,8 +376,6 @@
 					<dd>if true then HTTP &quot;Range&quot; header will be used to get zip data</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
-					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
 					<dt><code>onerror (Function)</code></dt>
 					<dd>error callback function - optional</dd>
 				</dl>
@@ -454,7 +442,7 @@
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>name (String)</code></dt>
+					<dt><code>name (string)</code></dt>
 					<dd>the entry name</dd>
 				</dl>
 				<p>Return</p>
@@ -469,7 +457,7 @@
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>fullname (String)</code></dt>
+					<dt><code>fullname (string)</code></dt>
 					<dd>the entry relative filename</dd>
 				</dl>
 				<p>Return</p>
