@@ -1157,7 +1157,7 @@
 	var DONELOCKS = 8; // finished last block, done
 	var BADBLOCKS = 9; // ot a data error--stuck here
 
-	function InfBlocks(z, checkFunction, w) {
+	function InfBlocks(z, w) {
 		var that = this;
 
 		var mode = TYPE; // current inflate_block mode
@@ -1175,7 +1175,6 @@
 		var last = 0; // true if this block is the last block
 
 		var hufts = new Int32Array(MANY * 3); // single malloc for tree space
-		var checkfn = checkFunction; // check function
 		var check = 0; // check on output
 		var inftree = new InfTree();
 
@@ -1853,7 +1852,7 @@
 			}
 			that.wbits = w;
 
-			z.istate.blocks = new InfBlocks(z, null, 1 << w);
+			z.istate.blocks = new InfBlocks(z, 1 << w);
 
 			// reset state
 			inflateReset(z);
