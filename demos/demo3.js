@@ -309,6 +309,8 @@
 			stopEvent(event);
 		}, false);
 		tree.addEventListener('dragstart', function(event) {
+			event.dataTransfer.effectAllowed = 'copy';
+			event.dataTransfer.setData('Text', "");
 			selectedDrag = selectedDir;
 		}, false);
 
@@ -323,6 +325,8 @@
 		}, false);
 		listing.addEventListener('dragover', stopEvent, false);
 		listing.addEventListener('dragstart', function(event) {
+			event.dataTransfer.effectAllowed = 'copy';
+			event.dataTransfer.setData('Text', "");
 			if (!event.dataTransfer || !event.dataTransfer.files || !event.dataTransfer.files.length)
 				selectedDrag = selectedFile;
 		}, false);
