@@ -28,14 +28,18 @@
 
 (function(obj) {
 
-	var getTotalSize = (function() {
+	function getTotalSize(entry) {
 		var size = 0;
-		return function(entry) {
+
+		function process(entry) {
 			size += entry.uncompressedSize || 0;
-			entry.children.forEach(getTotalSize);
-			return size;
-		};
-	})();
+			entry.children.forEach(process);
+		}
+
+		process(entry);
+		return size;
+	}
+	;
 
 	function initReaders(entry, callback, onerror) {
 		var index = 0;
