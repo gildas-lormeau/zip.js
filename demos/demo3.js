@@ -160,8 +160,10 @@
 					label.textContent = "<root>";
 				label.className = "dir-label";
 				newDirectory.className = "newdir-button button";
+				newDirectory.title = "Create a new folder";
 				newDirectory.addEventListener("click", onNewDirectory, false);
 				exportDirectory.className = "save-button button";
+				exportDirectory.title = "Export this folder content into a zip file";
 				exportDirectory.addEventListener("click", onSaveFolder, false);
 				summary.appendChild(label);
 				summary.appendChild(newDirectory);
