@@ -65,10 +65,7 @@
 	})();
 
 	(function() {
-		// var newDirectory = document.getElementById("new-directory");
-		// var exportZip = document.getElementById("export-zip");
 		var progressExport = document.getElementById("progress-export-zip");
-		// var filenameInput = document.getElementById("zip-filename");
 		var tree = document.getElementById("tree");
 		var listing = document.getElementById("listing");
 		var selectedDir, selectedFile, selectedLabel, selectedLabelValue, selectedDrag, hoveredElement;
@@ -388,21 +385,7 @@
 				selectedDrag = selectedFile;
 		}, false);
 
-		/*
-		 * newDirectory.addEventListener("click", function(event) { var name = prompt("Directory name"); if (name) {
-		 * model.addDirectory(name, getFileNode(selectedDir)); refreshTree(); if (selectedDir) getFileNode(selectedDir).expanded =
-		 * selectedDir.open = true; } }, false);
-		 */
-
 		progressExport.style.opacity = 0.2;
-		/*
-		 * exportZip.addEventListener("click", function(event) { if (!exportZip.download) { progressExport.style.opacity = 1;
-		 * progressExport.offsetHeight; model.exportZip(function(blobURL) { var clickEvent = document.createEvent("MouseEvent");
-		 * progressExport.style.opacity = 0.2; progressExport.value = 0; progressExport.max = 0; clickEvent.initMouseEvent("click", true,
-		 * true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null); exportZip.href = blobURL; // exportZip.download =
-		 * filenameInput.value; exportZip.dispatchEvent(clickEvent); }, function(index, end) { progressExport.value = index;
-		 * progressExport.max = end; }, onerror); event.preventDefault(); } }, false);
-		 */
 		expandTree();
 		refreshTree();
 	})();
