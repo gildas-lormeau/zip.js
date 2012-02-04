@@ -98,72 +98,6 @@
 		Z_VERSION_ERROR : -6
 	};
 
-	// ADLER32
-
-	// largest prime smaller than 65536
-	var BASE = 65521;
-	// NMAX is the largest n such that 255n(n+1)/2 + (n+1)(BASE-1) <= 2^32-1
-	var NMAX = 5552;
-
-	function adler32(adler, buf, index, len) {
-		if (!buf) {
-			return 1;
-		}
-
-		var s1 = adler & 0xffff;
-		var s2 = (adler >> 16) & 0xffff;
-		var k;
-
-		while (len > 0) {
-			k = len < NMAX ? len : NMAX;
-			len -= k;
-			while (k >= 16) {
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				k -= 16;
-			}
-			if (k !== 0) {
-				do {
-					s1 += buf[index++];
-					s2 += s1;
-				} while (--k !== 0);
-			}
-			s1 %= BASE;
-			s2 %= BASE;
-		}
-		return (s2 << 16) | s1;
-	}
-
 	// Tree
 
 	// see definition of array dist_code below
@@ -588,7 +522,6 @@
 		var pending_buf_size; // size of pending_buf
 		// pending_out; // next pending byte to output to the stream
 		// pending; // nb of bytes in the pending buffer
-		// noheader; // suppress zlib header and adler32
 		// data_type; // UNKNOWN, BINARY or ASCII
 		var method; // STORED (for zip only) or DEFLATED
 		var last_flush; // value of flush param for previous deflate call
@@ -1749,11 +1682,7 @@
 			that.pending = 0;
 			that.pending_out = 0;
 
-			if (that.noheader < 0) {
-				that.noheader = 0; // was set to -1 by deflate(..., Z_FINISH);
-			}
-			status = (that.noheader !== 0) ? BUSY_STATE : INIT_STATE;
-			strm.adler = adler32(0, null, 0, 0);
+			status = BUSY_STATE;
 
 			last_flush = Z_NO_FLUSH;
 
@@ -1763,8 +1692,6 @@
 		}
 
 		that.deflateInit = function(strm, _level, bits, _method, memLevel, _strategy) {
-			var _noheader = 0;
-
 			if (!_method)
 				_method = Z_DEFLATED;
 			if (!memLevel)
@@ -1785,11 +1712,6 @@
 			if (_level == Z_DEFAULT_COMPRESSION)
 				_level = 6;
 
-			if (bits < 0) { // undocumented feature: suppress zlib header
-				_noheader = 1;
-				bits = -bits;
-			}
-
 			if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || _method != Z_DEFLATED || bits < 9 || bits > 15 || _level < 0 || _level > 9 || _strategy < 0
 					|| _strategy > Z_HUFFMAN_ONLY) {
 				return Z_STREAM_ERROR;
@@ -1797,7 +1719,6 @@
 
 			strm.dstate = that;
 
-			that.noheader = _noheader;
 			w_bits = bits;
 			w_size = 1 << w_bits;
 			w_mask = w_size - 1;
@@ -1822,8 +1743,6 @@
 			l_buf = (1 + 2) * lit_bufsize;
 
 			level = _level;
-
-			// console.log("level="+level);
 
 			strategy = _strategy;
 			method = _method & 0xff;
@@ -1877,8 +1796,6 @@
 
 			if (!dictionary || status != INIT_STATE)
 				return Z_STREAM_ERROR;
-
-			strm.adler = adler32(strm.adler, dictionary, 0, dictLength);
 
 			if (length < MIN_MATCH)
 				return Z_OK;
@@ -1940,13 +1857,6 @@
 
 				status = BUSY_STATE;
 				putShortMSB(header);
-
-				// Save the adler32 of the preset dictionary:
-				if (strstart !== 0) {
-					putShortMSB(strm.adler >>> 16);
-					putShortMSB(strm.adler & 0xffff);
-				}
-				strm.adler = adler32(0, null, 0, 0);
 			}
 
 			// Flush as much pending output as possible
@@ -2034,18 +1944,7 @@
 
 			if (flush != Z_FINISH)
 				return Z_OK;
-			if (that.noheader !== 0)
-				return Z_STREAM_END;
-
-			// Write the zlib trailer (adler32)
-			putShortMSB(strm.adler >>> 16);
-			putShortMSB(strm.adler & 0xffff);
-			strm.flush_pending();
-
-			// If avail_out is zero, the application will call deflate again
-			// to flush the rest.
-			that.noheader = -1; // write the trailer only once!
-			return that.pending !== 0 ? Z_OK : Z_STREAM_END;
+			return Z_STREAM_END;
 		};
 	}
 
@@ -2064,17 +1963,16 @@
 		// that.msg;
 		// that.dstate;
 		// that.data_type; // best guess about the data type: ascii or binary
-		// that.adler;
 
 	}
 
 	ZStream.prototype = {
-		deflateInit : function(level, nowrap, bits) {
+		deflateInit : function(level, bits) {
 			var that = this;
 			that.dstate = new Deflate();
 			if (!bits)
 				bits = MAX_BITS;
-			return that.dstate.deflateInit(that, level, nowrap ? -bits : bits);
+			return that.dstate.deflateInit(that, level, bits);
 		},
 
 		deflate : function(flush) {
@@ -2108,8 +2006,8 @@
 			return that.dstate.deflateSetDictionary(that, dictionary, dictLength);
 		},
 
-		// Read a new buffer from the current input stream, update the adler32
-		// and total number of bytes read. All deflate() input goes through
+		// Read a new buffer from the current input stream, update the
+		// total number of bytes read. All deflate() input goes through
 		// this function so some applications may wish to modify it to avoid
 		// allocating a large strm->next_in buffer and copying from it.
 		// (See also flush_pending()).
@@ -2121,9 +2019,6 @@
 			if (len === 0)
 				return 0;
 			that.avail_in -= len;
-			if (that.dstate.noheader === 0) {
-				that.adler = adler32(that.adler, that.next_in, that.next_in_index, len);
-			}
 			buf.set(that.next_in.subarray(that.next_in_index, that.next_in_index + len), start);
 			that.next_in_index += len;
 			that.total_in += len;
@@ -2166,7 +2061,7 @@
 
 	// Deflater
 
-	function Deflater(level, wrap) {
+	function Deflater(level) {
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
@@ -2175,7 +2070,7 @@
 
 		if (typeof level == "undefined")
 			level = that.DEFAULT_COMPRESSION;
-		z.deflateInit(level, !wrap);
+		z.deflateInit(level);
 		z.next_out = buf;
 
 		that.append = function(data, onprogress) {
