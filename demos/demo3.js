@@ -40,7 +40,7 @@
 			rename : function(entry, name) {
 				entry.name = name;
 			},
-			exportZip : function(node, onend, onprogress, onerror) {
+			exportZip : function(entry, onend, onprogress, onerror) {
 				var zipFileEntry;
 
 				function onexport(blob) {
@@ -53,22 +53,31 @@
 				if (requestFileSystem)
 					createTempFile(function(fileEntry) {
 						zipFileEntry = fileEntry;
-						node.exportFile(zipFileEntry, onexport, onprogress, onerror);
+						entry.exportFile(zipFileEntry, onexport, onprogress, onerror);
 					});
 				else
-					node.exportBlob(onexport, onprogress, onerror);
+					entry.exportBlob(onexport, onprogress, onerror);
 			},
 			importZip : function(blob, targetEntry, onend, onprogress, onerror) {
 				targetEntry.importBlob(blob, onend, onprogress, onerror);
 			},
-			getData : function(node, onend, onprogress, onerror) {
+			getBlobURL : function(entry, onend, onprogress, onerror) {
 				var zipFileEntry;
 
-				function ongetData(blob) {
-					onend(URL.createObjectURL(blob));
+				function onexport(blob) {
+					if (requestFileSystem)
+						onend(zipFileEntry.toURL());
+					else
+						onend(URL.createObjectURL(blob));
 				}
 
-				node.getBlob(ongetData, onprogress, onerror);
+				if (requestFileSystem)
+					createTempFile(function(fileEntry) {
+						zipFileEntry = fileEntry;
+						entry.getFile(zipFileEntry, onexport, onprogress, onerror);
+					});
+				else
+					entry.getBlob(onexport, onprogress, onerror);
 			}
 		};
 	})();
@@ -87,6 +96,12 @@
 			return element ? model.getById(element.dataset.fileId) : model.getRoot();
 		}
 
+		function getFileElement(element) {
+			while (element && !element.dataset.fileId)
+				element = element.parentElement;
+			return element;
+		}
+
 		function stopEvent(event) {
 			event.stopPropagation();
 			event.preventDefault();
@@ -103,7 +118,7 @@
 			}
 		}
 
-		function onSaveFolder(event) {
+		function onexportDirectory(event) {
 			var filename, node, target = event.target;
 			if (!target.download) {
 				node = getFileNode(selectedDir);
@@ -131,7 +146,7 @@
 			}
 		}
 
-		function onNewDirectory(event) {
+		function onnewDirectory(event) {
 			var name = prompt("Directory name");
 			if (name) {
 				model.addDirectory(name, getFileNode(selectedDir));
@@ -141,7 +156,7 @@
 			}
 		}
 
-		function onSaveFile(event) {
+		function onexportFile(event) {
 			var filename, target = event.target, node;
 			if (!target.download) {
 				node = getFileNode(selectedFile);
@@ -149,7 +164,7 @@
 				if (filename) {
 					progressExport.style.opacity = 1;
 					progressExport.offsetHeight;
-					model.getData(node, function(blobURL) {
+					model.getBlobURL(node, function(blobURL) {
 						var clickEvent = document.createEvent("MouseEvent");
 						progressExport.style.opacity = 0.2;
 						progressExport.value = 0;
@@ -169,82 +184,21 @@
 			}
 		}
 
-		function refreshTree(node, element) {
-			var details, summary, label, newDirectory, exportDirectory;
-
-			if (!node) {
-				node = model.getRoot();
-				element = tree;
-				element.innerHTML = "";
-			}
-			if (node.directory) {
-				details = document.createElement("details");
-				summary = document.createElement("summary");
-				label = document.createElement("span");
-				newDirectory = document.createElement("a");
-				exportDirectory = document.createElement("a");
-				details.dataset.fileId = node.id;
-				details.open = node == model.getRoot() || node.expanded;
-				if (selectedDir && selectedDir.dataset.fileId == node.id) {
-					details.className = "selected";
-					details.draggable = true;
-					selectedDir = details;
-				}
-				summary.className = "dir-summary";
-				if (node.parent)
-					label.textContent = node.name;
-				else
-					label.textContent = "<root>";
-				label.className = "dir-label";
-				newDirectory.className = "newdir-button button";
-				newDirectory.title = "Create a new folder";
-				newDirectory.addEventListener("click", onNewDirectory, false);
-				exportDirectory.className = "save-button button";
-				exportDirectory.title = "Export this folder content into a zip file";
-				exportDirectory.addEventListener("click", onSaveFolder, false);
-				summary.appendChild(label);
-				summary.appendChild(newDirectory);
-				summary.appendChild(exportDirectory);
-				details.appendChild(summary);
-				element.appendChild(details);
-			}
-			if (!node.parent && node.children.length == 0)
-				tree.parentElement.classList.add("empty");
-			else
-				tree.parentElement.classList.remove("empty");
-			node.children.sort(function(a, b) {
-				return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
-			}).forEach(function(child) {
-				refreshTree(child, details);
-			});
+		function selectFile(fileElement) {
+			resetSelectedFile();
+			resetSelectedLabel(true);
+			fileElement.className = "selected";
+			fileElement.draggable = true;
+			selectedFile = fileElement;
 		}
 
-		function refreshListing() {
-			var li, label, exportFile, node = getFileNode(selectedDir);
-			listing.innerHTML = "";
-			node.children.sort(function(a, b) {
-				return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
-			}).forEach(function(child) {
-				if (!child.directory) {
-					li = document.createElement("li");
-					label = document.createElement("span");
-					exportFile = document.createElement("a");
-					li.dataset.fileId = child.id;
-					if (selectedFile && selectedFile.dataset.fileId == child.id) {
-						li.className = "selected";
-						li.draggable = true;
-						selectedFile = li;
-					}
-					label.className = "file-label";
-					label.textContent = child.name;
-					exportFile.className = "save-button button";
-					exportFile.title = "Export this file";
-					exportFile.addEventListener("click", onSaveFile, false);
-					li.appendChild(label);
-					li.appendChild(exportFile);
-					listing.appendChild(li);
-				}
-			});
+		function selectDirectory(directoryElement) {
+			resetSelectedDir();
+			resetSelectedLabel(true);
+			directoryElement.className = "selected";
+			directoryElement.draggable = true;
+			selectedDir = directoryElement;
+			refreshListing();
 		}
 
 		function resetSelectedFile() {
@@ -294,29 +248,78 @@
 			selectedLabelValue = labelElement.textContent;
 		}
 
-		function getFileElement(element) {
-			while (element && !element.dataset.fileId)
-				element = element.parentElement;
-			return element;
+		function refreshTree(node, element) {
+			var details, summary, label, newDirectory, exportDirectory;
+
+			if (!node) {
+				node = model.getRoot();
+				element = tree;
+				element.innerHTML = "";
+			}
+			if (node.directory) {
+				details = document.createElement("details");
+				summary = document.createElement("summary");
+				label = document.createElement("span");
+				newDirectory = document.createElement("a");
+				exportDirectory = document.createElement("a");
+				details.dataset.fileId = node.id;
+				details.open = node == model.getRoot() || node.expanded;
+				if (selectedDir && selectedDir.dataset.fileId == node.id)
+					selectDirectory(details);
+				summary.className = "dir-summary";
+				if (node.parent)
+					label.textContent = node.name;
+				else
+					label.textContent = "<root>";
+				label.className = "dir-label";
+				newDirectory.className = "newdir-button button";
+				newDirectory.title = "Create a new folder";
+				newDirectory.addEventListener("click", onnewDirectory, false);
+				exportDirectory.className = "save-button button";
+				exportDirectory.title = "Export folder content into a zip file";
+				exportDirectory.addEventListener("click", onexportDirectory, false);
+				summary.appendChild(label);
+				summary.appendChild(newDirectory);
+				summary.appendChild(exportDirectory);
+				details.appendChild(summary);
+				element.appendChild(details);
+			}
+			if (!node.parent)
+				if (node.children.length == 0) {
+					tree.parentElement.classList.add("empty");
+					selectDirectory(details);
+				} else
+					tree.parentElement.classList.remove("empty");
+			node.children.sort(function(a, b) {
+				return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+			}).forEach(function(child) {
+				refreshTree(child, details);
+			});
 		}
 
-		function selectFile(fileElement) {
-			var li = fileElement.parentElement;
-			resetSelectedFile();
-			resetSelectedLabel(true);
-			selectedFile = li;
-			li.classList.add("selected");
-			li.draggable = true;
-		}
-
-		function selectDirectory(directoryElement) {
-			var details = directoryElement;
-			resetSelectedDir();
-			resetSelectedLabel(true);
-			selectedDir = details;
-			refreshListing();
-			details.classList.add("selected");
-			details.draggable = true;
+		function refreshListing() {
+			var li, label, exportFile, node = getFileNode(selectedDir);
+			listing.innerHTML = "";
+			node.children.sort(function(a, b) {
+				return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+			}).forEach(function(child) {
+				if (!child.directory) {
+					li = document.createElement("li");
+					label = document.createElement("span");
+					exportFile = document.createElement("a");
+					li.dataset.fileId = child.id;
+					if (selectedFile && selectedFile.dataset.fileId == child.id)
+						selectFile(li);
+					label.className = "file-label";
+					label.textContent = child.name;
+					exportFile.className = "save-button button";
+					exportFile.title = "Export this file";
+					exportFile.addEventListener("click", onexportFile, false);
+					li.appendChild(label);
+					li.appendChild(exportFile);
+					listing.appendChild(li);
+				}
+			});
 		}
 
 		listing.addEventListener("click", function(event) {
@@ -324,7 +327,7 @@
 			if (target.className == "file-label") {
 				li = target.parentElement;
 				if (!li.classList.contains("selected"))
-					selectFile(target);
+					selectFile(target.parentElement);
 				else {
 					li.draggable = false;
 					editName(target, selectedFile, function(state) {
@@ -351,6 +354,7 @@
 					editName(target, selectedDir, function(state) {
 						if (state == "deleted") {
 							resetSelectedDir();
+							selectDirectory(details.parentElement);
 							refreshTree();
 							refreshListing();
 						} else if (state == "canceled")
