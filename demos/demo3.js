@@ -65,20 +65,10 @@
 				var zipFileEntry;
 
 				function ongetData(blob) {
-					if (requestFileSystem)
-						onend(zipFileEntry.toURL());
-					else
-
-						onend(URL.createObjectURL(blob));
+					onend(URL.createObjectURL(blob));
 				}
 
-				if (requestFileSystem)
-					createTempFile(function(fileEntry) {
-						zipFileEntry = fileEntry;
-						node.getFile(zipFileEntry, ongetData, onprogress, onerror);
-					});
-				else
-					node.file.getData(new zip.BlobWriter(), ongetData, onprogress, onerror);
+				node.getBlob(ongetData, onprogress, onerror);
 			}
 		};
 	})();
@@ -249,7 +239,7 @@
 					label.textContent = child.name;
 					exportFile.className = "save-button button";
 					exportFile.title = "Export this file";
-					// exportFile.addEventListener("click", onSaveFile, false);
+					exportFile.addEventListener("click", onSaveFile, false);
 					li.appendChild(label);
 					li.appendChild(exportFile);
 					listing.appendChild(li);
