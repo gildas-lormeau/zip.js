@@ -246,11 +246,11 @@ hr {
 	opacity: 0;
 }
 
-.selected>summary:hover>.button {
+.selected>summary:hover>.button, .selected:hover>.button {
 	opacity: .3;
 }
 
-.selected>summary>.button:hover {
+.selected>summary>.button:hover, .selected>.button:hover {
 	opacity: .8;
 }
 
