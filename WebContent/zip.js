@@ -7,8 +7,8 @@
  1. Redistributions of source code must retain the above copyright notice,
  this list of conditions and the following disclaimer.
 
- 2. Redistributions in binary form must reproduce the above copyright 
- notice, this list of conditions and the following disclaimer in 
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
  the documentation and/or other materials provided with the distribution.
 
  3. The names of the authors may not be used to endorse or promote products
@@ -510,9 +510,13 @@
 					readCommonHeader(that, data, 4);
 					reader.readBlob(that.offset + 30 + that.filenameLength + that.extraLength, that.compressedSize, function(data) {
 						writer.init(function() {
-							if (that.compressionMethod === 0)
-								getWriterData();
-							else
+							if (that.compressionMethod === 0) {
+								var fr = new FileReader()
+								fr.onload = function(e) {
+									writer.writeUint8Array(new Uint8Array(e.target.result), getWriterData);
+								}
+								fr.readAsArrayBuffer(data);
+							} else
 								bufferedInflate(data, writer, getWriterData, onprogress);
 						}, function() {
 							onerror(ERR_WRITE_DATA);
@@ -874,3 +878,4 @@
 	};
 
 })(this);
+
