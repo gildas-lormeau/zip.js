@@ -39,7 +39,6 @@
 		process(entry);
 		return size;
 	}
-	;
 
 	function initReaders(entry, callback, onerror) {
 		var index = 0;

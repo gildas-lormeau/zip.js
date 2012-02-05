@@ -75,13 +75,34 @@
 	};
 
 	function TextReader(text) {
-		var that = this, blobReader, blobBuilder;
-		blobBuilder = new BlobBuilder();
-		blobBuilder.append(text);
-		blobReader = new BlobReader(blobBuilder.getBlob());
-		that.init = blobReader.init;
-		that.readBlob = blobReader.readBlob;
-		that.readUint8Array = blobReader.readUint8Array;
+		var that = this;
+
+		function init(callback, onerror) {
+			that.size = text.length;
+			callback();
+		}
+
+		function readUint8Array(index, length, callback, onerror) {
+			readBlob(index, length, function(blob) {
+				var reader = new FileReader();
+				reader.onload = function(e) {
+					callback(new Uint8Array(e.target.result));
+				};
+				reader.onerror = onerror;
+				reader.readAsArrayBuffer(blob);
+			}, onerror);
+		}
+
+		function readBlob(index, length, callback, onerror) {
+			var blobBuilder = new BlobBuilder();
+			blobBuilder.append(text.substring(index, index + length));
+			callback(blobBuilder.getBlob());
+		}
+
+		that.size = 0;
+		that.init = init;
+		that.readBlob = readBlob;
+		that.readUint8Array = readUint8Array;
 	}
 	TextReader.prototype = new Reader();
 
@@ -108,6 +129,7 @@
 			callback(data.array);
 		}
 
+		that.size = 0;
 		that.init = init;
 		that.readUint8Array = readUint8Array;
 	}
