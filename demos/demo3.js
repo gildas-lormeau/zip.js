@@ -5,7 +5,7 @@
 				|| obj.mozURL || obj.URL;
 
 		function createTempFile(callback) {
-			var tmpFilename = "__tmp__.zip";
+			var tmpFilename = "__tmp__";
 			requestFileSystem(TEMPORARY, 4 * 1024 * 1024 * 1024, function(filesystem) {
 				function create() {
 					filesystem.root.getFile(tmpFilename, {
@@ -65,18 +65,19 @@
 				var zipFileEntry;
 
 				function ongetData(blob) {
-					/*if (requestFileSystem)
+					if (requestFileSystem)
 						onend(zipFileEntry.toURL());
-					else*/debugger
+					else
+
 						onend(URL.createObjectURL(blob));
 				}
 
-				/*if (requestFileSystem)
+				if (requestFileSystem)
 					createTempFile(function(fileEntry) {
 						zipFileEntry = fileEntry;
 						node.getFile(zipFileEntry, ongetData, onprogress, onerror);
 					});
-				else*/
+				else
 					node.file.getData(new zip.BlobWriter(), ongetData, onprogress, onerror);
 			}
 		};
@@ -152,7 +153,6 @@
 
 		function onSaveFile(event) {
 			var filename, target = event.target, node;
-			// getFileNode(selectedFile).file.getData(new zip.BlobWriter(), function(blob) {
 			if (!target.download) {
 				node = getFileNode(selectedFile);
 				filename = prompt("Filename", node.name);
@@ -177,7 +177,6 @@
 					event.preventDefault();
 				}
 			}
-			// });
 		}
 
 		function refreshTree(node, element) {
