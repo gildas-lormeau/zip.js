@@ -56,8 +56,8 @@
 			if (child.directory)
 				initReaders(child, next);
 			else {
-				if (child.file.data) {
-					child.dataReader = new child.file.Reader(child.file.data, onerror);
+				if (child.data) {
+					child.dataReader = new child.Reader(child.data, onerror);
 					child.dataReader.init(function() {
 						child.uncompressedSize = child.dataReader.size;
 						next();
@@ -90,7 +90,7 @@
 			function addChild(child) {
 				function add(data) {
 					if (!child.directory && !child.dataReader)
-						child.dataReader = new child.file.Reader(data, onerror);
+						child.dataReader = new child.Reader(data, onerror);
 					zipWriter.add(child.getFullname(), child.directory ? null : child.dataReader, function() {
 						currentIndex += child.uncompressedSize || 0;
 						process(zipWriter, child, function() {
@@ -108,7 +108,7 @@
 				if (child.directory)
 					add();
 				else
-					child.file.getData(child.file.Writer ? new child.file.Writer() : null, add);
+					child.getData(child.Writer ? new child.Writer() : null, add);
 			}
 
 			function exportChild() {
@@ -123,89 +123,39 @@
 		};
 	})();
 
-	function Directory(name) {
-		this.name = name;
-		this.directory = true;
+	function resetFS(fs) {
+		fs.entries = [];
+		fs.root = new ZipEntry(fs, null, {
+			directory : true
+		});
 	}
 
-	function File() {
+	function getEntryData(writer, callback, onprogress) {
+		callback(this.data);
 	}
-	File.prototype = {
-		init : function(name, data, dataGetter) {
-			var that = this;
-			that.name = name;
-			that.directory = false;
-			that.data = data;
-		},
-		getData : function(writer, callback, onprogress) {
-			callback(this.data);
-		}
-	};
 
-	function FileDeflated(name, entry) {
-		this.init(name, null);
-		this.uncompressedSize = entry.uncompressedSize;
-		this.getData = function(writer, callback, onprogress) {
-			entry.getData(writer, callback, onprogress);
-		};
-	}
-	FileDeflated.prototype = new File();
-	FileDeflated.prototype.Reader = obj.zip.BlobReader;
-	FileDeflated.prototype.Writer = obj.zip.BlobWriter;
-
-	function FileBlob(name, blob, blobGetter) {
-		this.init(name, blob, blobGetter);
-	}
-	FileBlob.prototype = new File();
-	FileBlob.prototype.Reader = obj.zip.BlobReader;
-
-	function FileData64URI(name, dataURI, dataURIGetter) {
-		this.init(name, dataURI, dataURIGetter);
-	}
-	FileData64URI.prototype = new File();
-	FileData64URI.prototype.Reader = obj.zip.Data64URIReader;
-
-	function FileText(name, text, textGetter) {
-		this.init(name, text, textGetter);
-	}
-	FileText.prototype = new File();
-	FileText.prototype.Reader = obj.zip.TextReader;
-
-	function FileHttp(name, URL) {
-		this.init(name, URL);
-	}
-	FileHttp.prototype = new File();
-	FileHttp.prototype.Reader = obj.zip.HttpReader;
-
-	function FileHttpRange(name, URL) {
-		this.init(name, URL);
-	}
-	FileHttpRange.prototype = new File();
-	FileHttpRange.prototype.Reader = obj.zip.HttpRangeReader;
-
-	function addChild(entry, file) {
-		if (entry.directory)
-			return new entry.constructor(entry.fs, file, entry);
+	function addChild(parent, name, params) {
+		if (parent.directory)
+			return new ZipEntry(parent.fs, name, params, parent);
 		else
 			throw "Parent entry is not a directory.";
 	}
 
-	function resetFS(fs) {
-		fs.entries = [];
-		fs.root = new ZipEntry(fs, new Directory());
-	}
-
-	function ZipEntry(fs, file, parent) {
+	function ZipEntry(fs, name, params, parent) {
 		var that = this;
-		that.fs = fs;
-		that.file = file;
-		that.name = file.name;
-		that.children = [];
-		if (fs.root && parent && parent.getChildByName(file.name))
+		if (fs.root && parent && parent.getChildByName(name))
 			throw "Entry filename already exists.";
-		that.parent = parent;
-		that.directory = file.directory;
+		that.fs = fs;
+		that.name = name;
+		that.Reader = params.Reader;
+		that.Writer = params.Writer;
+		that.directory = params.directory;
+		that.data = params.data;
+		that.getData = params.getData || getEntryData;
 		that.id = fs.entries.length;
+		that.children = [];
+		that.parent = parent;
+		that.uncompressedSize = 0;
 		fs.entries.push(that);
 		if (parent)
 			that.parent.children.push(that);
@@ -213,57 +163,48 @@
 
 	ZipEntry.prototype = {
 		addDirectory : function(name) {
-			return addChild(this, new Directory(name));
+			return addChild(this, name, {
+				directory : true
+			});
 		},
 		addText : function(name, text) {
-			return addChild(this, new FileText(name, text));
+			return addChild(this, name, {
+				data : text,
+				Reader : obj.zip.TextReader
+			});
 		},
 		addBlob : function(name, blob) {
-			return addChild(this, new FileBlob(name, blob));
+			return addChild(this, name, {
+				data : blob,
+				Reader : obj.zip.BlobReader
+			});
 		},
 		addData64URI : function(name, dataURI) {
-			return addChild(this, new FileData64URI(name, dataURI));
+			return addChild(this, name, {
+				data : dataURI,
+				Reader : obj.zip.Data64URIReader
+			});
 		},
 		addHttpContent : function(name, URL, useRangeHeader) {
-			return addChild(this, useRangeHeader ? new FileHttpRange(name, URL) : new FileHttp(name, URL));
+			return addChild(this, name, {
+				data : URL,
+				Reader : useRangeHeader ? obj.zip.HttpRangeReader : obj.zip.HttpReader
+			});
 		},
-		addData : function(name, data, dataReader, dataGetter) {
-			var file;
-
-			function FileData() {
-			}
-
-			FileData.prototype = new File();
-			FileData.prototype.Reader = dataReader;
-			file = new FileData(name, data);
-			file.init(name, data);
-			if (dataGetter)
-				file.getData = dataGetter;
-			return addChild(this, file);
+		addData : function(name, params) {
+			return addChild(this, name, params);
 		},
 		getText : function(callback, onprogress) {
-			if (this.file)
-				this.file.getData(new obj.zip.TextWriter(), callback, onprogress);
-			else
-				callback();
+			this.getData(new obj.zip.TextWriter(), callback, onprogress);
 		},
 		getBlob : function(callback, onprogress) {
-			if (this.file)
-				this.file.getData(new obj.zip.BlobWriter(), callback, onprogress);
-			else
-				callback();
+			this.getData(new obj.zip.BlobWriter(), callback, onprogress);
 		},
 		getData64URI : function(mimeType, callback, onprogress) {
-			if (this.file)
-				this.file.getData(new obj.zip.Data64URIWriter(mimeType), callback, onprogress);
-			else
-				callback();
+			this.getData(new obj.zip.Data64URIWriter(mimeType), callback, onprogress);
 		},
 		getFile : function(fileEntry, callback, onprogress) {
-			if (this.file)
-				this.file.getData(new obj.zip.FileWriter(fileEntry), callback, onprogress);
-			else
-				callback();
+			this.getData(new obj.zip.FileWriter(fileEntry), callback, onprogress);
 		},
 		importBlob : function(blob, onend, onerror) {
 			this.importZip(new obj.zip.BlobReader(blob), onend, onerror);
@@ -296,10 +237,18 @@
 					entries.forEach(function(entry) {
 						var parent = that, path = entry.filename.split("/"), name = path.pop(), importedEntry;
 						path.forEach(function(pathPart) {
-							parent = parent.getChildByName(pathPart) || new ZipEntry(that.fs, new Directory(pathPart), parent);
+							parent = parent.getChildByName(pathPart) || new ZipEntry(that.fs, pathPart, {
+								directory : true
+							}, parent);
 						});
 						if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) != "/") {
-							importedEntry = addChild(parent, new FileDeflated(name, entry));
+							importedEntry = addChild(parent, name, {
+								Reader : obj.zip.BlobReader,
+								Writer : obj.zip.BlobWriter,
+								getData : function(writer, callback, onprogress) {
+									entry.getData(writer, callback, onprogress);
+								}
+							});
 							importedEntry.uncompressedSize = entry.uncompressedSize;
 						}
 					});
