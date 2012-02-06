@@ -512,7 +512,7 @@
 					if (that.compressionMethod === 0)
 						reader.readUint8Array(dataOffset, that.compressedSize, function(data) {
 							writer.init(function() {
-								writer.writeUint8Array(data, getWriterData);
+								writer.writeUint8Array(new Uint8Array(data), getWriterData);
 							}, function() {
 								onerror(ERR_WRITE_DATA);
 							});
