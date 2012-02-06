@@ -62,22 +62,9 @@
 				targetEntry.importBlob(blob, onend, onprogress, onerror);
 			},
 			getBlobURL : function(entry, onend, onprogress, onerror) {
-				var zipFileEntry;
-
-				function onexport(blob) {
-					if (requestFileSystem)
-						onend(zipFileEntry.toURL());
-					else
-						onend(URL.createObjectURL(blob));
-				}
-
-				if (requestFileSystem)
-					createTempFile(function(fileEntry) {
-						zipFileEntry = fileEntry;
-						entry.getFile(zipFileEntry, onexport, onprogress, onerror);
-					});
-				else
-					entry.getBlob(onexport, onprogress, onerror);
+				entry.getBlob(function(blob) {
+					onend(URL.createObjectURL(blob));
+				}, onprogress, onerror);
 			}
 		};
 	})();
