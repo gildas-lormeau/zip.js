@@ -496,6 +496,27 @@
 				stepInflate();
 			}
 
+			function bufferedCopy(offset, onend, onprogress, onerror) {
+				var chunkIndex = 0;
+
+				function stepCopy() {
+					var index = chunkIndex * CHUNK_SIZE, size = reader.size;
+					if (onprogress)
+						onprogress(index, size);
+					if (index < size)
+						reader.readUint8Array(offset + index, Math.min(CHUNK_SIZE, size - index), function(array) {
+							writer.writeUint8Array(new Uint8Array(array), function() {
+								chunkIndex++;
+								stepCopy();
+							});
+						}, onerror);
+					else
+						onend();
+				}
+
+				stepCopy();
+			}
+
 			function getWriterData() {
 				writer.getData(onend);
 			}
@@ -509,26 +530,20 @@
 					}
 					readCommonHeader(that, data, 4);
 					dataOffset = that.offset + 30 + that.filenameLength + that.extraLength;
-					if (that.compressionMethod === 0)
-						reader.readUint8Array(dataOffset, that.compressedSize, function(data) {
-							writer.init(function() {
-								writer.writeUint8Array(new Uint8Array(data), getWriterData);
-							}, function() {
+					writer.init(function() {
+						if (that.compressionMethod === 0)
+							bufferedCopy(dataOffset, getWriterData, onprogress, function() {
 								onerror(ERR_WRITE_DATA);
 							});
-						}, function() {
-							onerror(ERR_BAD_FORMAT);
-						});
-					else
-						reader.readBlob(dataOffset, that.compressedSize, function(data) {
-							writer.init(function() {
+						else
+							reader.readBlob(dataOffset, that.compressedSize, function(data) {
 								bufferedInflate(data, writer, getWriterData, onprogress);
 							}, function() {
-								onerror(ERR_WRITE_DATA);
+								onerror(ERR_BAD_FORMAT);
 							});
-						}, function() {
-							onerror(ERR_BAD_FORMAT);
-						});
+					}, function() {
+						onerror(ERR_WRITE_DATA);
+					});
 				}, function() {
 					onerror(ERR_BAD_FORMAT);
 				});
