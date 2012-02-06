@@ -1,3 +1,7 @@
+h1 {
+	margin-top: 0px;
+}
+
 .directories,.files {
 	position: relative;
 	display: inline-block;
