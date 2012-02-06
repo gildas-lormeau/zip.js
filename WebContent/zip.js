@@ -502,28 +502,33 @@
 
 			reader.readUint8Array(that.offset, 4, function(bytes) {
 				reader.readUint8Array(that.offset, 30, function(bytes) {
-					var data = getDataHelper(bytes.length, bytes);
+					var data = getDataHelper(bytes.length, bytes), dataOffset;
 					if (data.view.getUint32(0) != 0x504b0304) {
 						onerror(ERR_BAD_FORMAT);
 						return;
 					}
 					readCommonHeader(that, data, 4);
-					reader.readBlob(that.offset + 30 + that.filenameLength + that.extraLength, that.compressedSize, function(data) {
-						writer.init(function() {
-							if (that.compressionMethod === 0) {
-								var fr = new FileReader()
-								fr.onload = function(e) {
-									writer.writeUint8Array(new Uint8Array(e.target.result), getWriterData);
-								}
-								fr.readAsArrayBuffer(data);
-							} else
-								bufferedInflate(data, writer, getWriterData, onprogress);
+					dataOffset = that.offset + 30 + that.filenameLength + that.extraLength;
+					if (that.compressionMethod === 0)
+						reader.readUint8Array(dataOffset, that.compressedSize, function(data) {
+							writer.init(function() {
+								writer.writeUint8Array(data, getWriterData);
+							}, function() {
+								onerror(ERR_WRITE_DATA);
+							});
 						}, function() {
-							onerror(ERR_WRITE_DATA);
+							onerror(ERR_BAD_FORMAT);
 						});
-					}, function() {
-						onerror(ERR_BAD_FORMAT);
-					});
+					else
+						reader.readBlob(dataOffset, that.compressedSize, function(data) {
+							writer.init(function() {
+								bufferedInflate(data, writer, getWriterData, onprogress);
+							}, function() {
+								onerror(ERR_WRITE_DATA);
+							});
+						}, function() {
+							onerror(ERR_BAD_FORMAT);
+						});
 				}, function() {
 					onerror(ERR_BAD_FORMAT);
 				});
@@ -878,4 +883,3 @@
 	};
 
 })(this);
-
