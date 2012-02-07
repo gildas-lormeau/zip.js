@@ -39,6 +39,9 @@
 	var ERR_HTTP_RANGE = "HTTP Range not supported.";
 	var CHUNK_SIZE = 512 * 1024;
 
+	var INFLATE_JS = "inflate.js";
+	var DEFLATE_JS = "deflate.js";
+
 	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
 
 	function blobSlice(blob, index, length) {
@@ -491,7 +494,7 @@
 						onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), data.size);
 				}
 
-				worker = new Worker(obj.zip.workerScriptsPath + "inflate.js");
+				worker = new Worker(obj.zip.workerScriptsPath + INFLATE_JS);
 				worker.addEventListener("message", onmesssage, false);
 				stepInflate();
 			}
@@ -742,7 +745,7 @@
 					onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), reader.size);
 			}
 
-			worker = new Worker(obj.zip.workerScriptsPath + "deflate.js");
+			worker = new Worker(obj.zip.workerScriptsPath + DEFLATE_JS);
 			worker.addEventListener("message", onmessage, false);
 			crc32 = new Crc32();
 			stepDeflate();
