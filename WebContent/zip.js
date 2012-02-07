@@ -501,11 +501,11 @@
 				stepInflate();
 			}
 
-			function bufferedCopy(offset, onend, onerror) {
+			function bufferedCopy(offset, size, onend, onerror) {
 				var chunkIndex = 0;
 
 				function stepCopy() {
-					var index = chunkIndex * CHUNK_SIZE, size = reader.size;
+					var index = chunkIndex * CHUNK_SIZE;
 					if (onprogress)
 						onprogress(index, size);
 					if (index < size)
@@ -537,7 +537,7 @@
 					dataOffset = that.offset + 30 + that.filenameLength + that.extraLength;
 					writer.init(function() {
 						if (that.compressionMethod === 0)
-							bufferedCopy(dataOffset, getWriterData, function() {
+							bufferedCopy(dataOffset, that.compressedSize, getWriterData, function() {
 								onerror(ERR_WRITE_DATA);
 							});
 						else
