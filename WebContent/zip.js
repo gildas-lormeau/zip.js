@@ -42,13 +42,15 @@
 	var INFLATE_JS = "inflate.js";
 	var DEFLATE_JS = "deflate.js";
 
-	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
+	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MsBlobBuilder || obj.BlobBuilder;
 
 	function blobSlice(blob, index, length) {
 		if (blob.webkitSlice)
 			return blob.webkitSlice(index, index + length);
 		else if (blob.mozSlice)
 			return blob.mozSlice(index, index + length);
+		else if (blob.msSlice)
+			return blob.msSlice(index, index + length);
 		else
 			return blob.slice(index, index + length);
 	}
