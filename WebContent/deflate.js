@@ -2137,7 +2137,12 @@
 
 	obj.addEventListener("message", function(event) {
 		var message = event.data;
-
+		if (message.init) {
+			deflater = new Deflater(message.level);
+			obj.postMessage({
+				oninit : true
+			});
+		}
 		if (message.append)
 			obj.postMessage({
 				onappend : true,

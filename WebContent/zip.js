@@ -722,8 +722,7 @@
 					reader.readUint8Array(index, Math.min(CHUNK_SIZE, size - index), function(data) {
 						worker.postMessage({
 							append : true,
-							data : data,
-							level : level
+							data : data
 						});
 						crc32.append(data);
 						chunkIndex++;
@@ -736,6 +735,8 @@
 
 			function onmessage(event) {
 				var message = event.data;
+				if (message.oninit)
+					stepDeflate();
 				if (message.onappend)
 					writeUint8Array(message.data, stepDeflate);
 				if (message.onflush)
@@ -750,7 +751,10 @@
 			worker = new Worker(obj.zip.workerScriptsPath + DEFLATE_JS);
 			worker.addEventListener("message", onmessage, false);
 			crc32 = new Crc32();
-			stepDeflate();
+			worker.postMessage({
+				init : true,
+				level : level
+			});
 		}
 
 		function bufferedCopy(reader, onend, onprogress, onerror) {
