@@ -41,12 +41,10 @@
 	var Z_OK = 0;
 	var Z_STREAM_END = 1;
 	var Z_NEED_DICT = 2;
-	var Z_ERRNO = -1;
 	var Z_STREAM_ERROR = -2;
 	var Z_DATA_ERROR = -3;
 	var Z_MEM_ERROR = -4;
 	var Z_BUF_ERROR = -5;
-	var Z_VERSION_ERROR = -6;
 
 	var inflate_mask = [ 0x00000000, 0x00000001, 0x00000003, 0x00000007, 0x0000000f, 0x0000001f, 0x0000003f, 0x0000007f, 0x000000ff, 0x000001ff, 0x000003ff,
 			0x000007ff, 0x00000fff, 0x00001fff, 0x00003fff, 0x00007fff, 0x0000ffff ];
@@ -56,37 +54,9 @@
 	var MAX_WBITS = 15; // 32K LZ77 window
 	var DEF_WBITS = MAX_WBITS;
 
-	// JZlib
-
-	var JZlib = {
-		version : "1.0.2",
-
-		Z_NO_COMPRESSION : 0,
-		Z_BEST_SPEED : 1,
-		Z_BEST_COMPRESSION : 9,
-		Z_DEFAULT_COMPRESSION : -1,
-
-		// compression strategy
-		Z_FILTERED : 1,
-		Z_HUFFMAN_ONLY : 2,
-		Z_DEFAULT_STRATEGY : 0,
-
-		Z_NO_FLUSH : 0,
-		Z_PARTIAL_FLUSH : 1,
-		Z_SYNC_FLUSH : 2,
-		Z_FULL_FLUSH : 3,
-		Z_FINISH : 4,
-
-		Z_OK : 0,
-		Z_STREAM_END : 1,
-		Z_NEED_DICT : 2,
-		Z_ERRNO : -1,
-		Z_STREAM_ERROR : -2,
-		Z_DATA_ERROR : -3,
-		Z_MEM_ERROR : -4,
-		Z_BUF_ERROR : -5,
-		Z_VERSION_ERROR : -6
-	};
+	// JZlib version : "1.0.2"
+	var Z_NO_FLUSH = 0;
+	var Z_FINISH = 4;
 
 	// InfTree
 	var fixed_bl = 9;
@@ -1781,12 +1751,6 @@
 	// preset dictionary flag in zlib header
 	var PRESET_DICT = 0x20;
 
-	var Z_NO_FLUSH = 0;
-	var Z_PARTIAL_FLUSH = 1;
-	var Z_SYNC_FLUSH = 2;
-	var Z_FULL_FLUSH = 3;
-	var Z_FINISH = 4;
-
 	var Z_DEFLATED = 8;
 
 	var METHOD = 0; // waiting for method byte
@@ -2082,14 +2046,14 @@
 		inflate : function(f) {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.istate.inflate(that, f);
 		},
 
 		inflateEnd : function() {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			var ret = that.istate.inflateEnd(that);
 			that.istate = null;
 			return ret;
@@ -2098,13 +2062,13 @@
 		inflateSync : function() {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.istate.inflateSync(that);
 		},
 		inflateSetDictionary : function(dictionary, dictLength) {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.istate.inflateSetDictionary(that, dictionary, dictLength);
 		},
 		read_byte : function(start) {
@@ -2123,7 +2087,7 @@
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
-		var flush = JZlib.Z_NO_FLUSH;
+		var flush = Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
 		var nomoreinput = false;
 
@@ -2145,11 +2109,11 @@
 					nomoreinput = true;
 				}
 				err = z.inflate(flush);
-				if (nomoreinput && (err == JZlib.Z_BUF_ERROR))
+				if (nomoreinput && (err == Z_BUF_ERROR))
 					return -1;
-				if (err != JZlib.Z_OK && err != JZlib.Z_STREAM_END)
+				if (err != Z_OK && err != Z_STREAM_END)
 					throw "inflating: " + z.msg;
-				if ((nomoreinput || err == JZlib.Z_STREAM_END) && (z.avail_out == data.length))
+				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_out == data.length))
 					return -1;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
