@@ -457,7 +457,7 @@
 					callback(param);
 			}
 
-			function bufferedInflate(data, writer, onend, onprogress) {
+			function bufferedInflate(data, onend, onerror) {
 				var chunkIndex = 0;
 
 				function stepInflate() {
@@ -496,7 +496,7 @@
 				stepInflate();
 			}
 
-			function bufferedCopy(offset, onend, onprogress, onerror) {
+			function bufferedCopy(offset, onend, onerror) {
 				var chunkIndex = 0;
 
 				function stepCopy() {
@@ -532,12 +532,14 @@
 					dataOffset = that.offset + 30 + that.filenameLength + that.extraLength;
 					writer.init(function() {
 						if (that.compressionMethod === 0)
-							bufferedCopy(dataOffset, getWriterData, onprogress, function() {
+							bufferedCopy(dataOffset, getWriterData, function() {
 								onerror(ERR_WRITE_DATA);
 							});
 						else
 							reader.readBlob(dataOffset, that.compressedSize, function(data) {
-								bufferedInflate(data, writer, getWriterData, onprogress);
+								bufferedInflate(data, getWriterData, function() {
+									onerror(ERR_WRITE_DATA);
+								});
 							}, function() {
 								onerror(ERR_BAD_FORMAT);
 							});
