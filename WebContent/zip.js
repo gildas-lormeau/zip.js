@@ -798,8 +798,6 @@
 						header.view.setUint16(4, 0x0800);
 					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
-					if (reader)
-						header.view.setUint32(18, reader.size, true);
 					header.view.setUint16(22, filename.length, true);
 					data = getDataHelper(30 + filename.length);
 					data.view.setUint32(0, 0x504b0304);
@@ -811,17 +809,21 @@
 				}
 
 				function writeFooter() {
-					var footer = getDataHelper(12);
+					var footer = getDataHelper(16);
 					datalength += compressedLength;
 					footer.view.setUint32(0, 0x504b0708, true);
 					if (crc32) {
 						header.view.setUint32(10, crc32.get(), true);
 						footer.view.setUint32(4, crc32.get(), true);
 					}
-					footer.view.setUint32(8, compressedLength, true);
-					header.view.setUint32(14, compressedLength, true);
+					if (reader) {
+						footer.view.setUint32(8, compressedLength, true);
+						header.view.setUint32(14, compressedLength, true);
+						footer.view.setUint32(12, reader.size, true);
+						header.view.setUint32(18, reader.size, true);
+					}
 					writer.writeUint8Array(footer.array, function() {
-						datalength += 12;
+						datalength += 16;
 						onend();
 					}, onwriteError);
 				}
