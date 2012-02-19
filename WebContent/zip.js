@@ -807,7 +807,7 @@
 				function writeFooter() {
 					var footer = getDataHelper(16);
 					datalength += compressedLength;
-					footer.view.setUint32(0, 0x504b0708, true);
+					footer.view.setUint32(0, 0x504b0708);
 					if (crc32) {
 						header.view.setUint32(10, crc32.get(), true);
 						footer.view.setUint32(4, crc32.get(), true);
