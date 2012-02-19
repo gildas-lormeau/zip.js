@@ -66,37 +66,25 @@
 
 	var Buf_size = 8 * 2;
 
-	// JZlib
+	// JZlib version : "1.0.2"
+	var Z_DEFAULT_COMPRESSION = -1;
 
-	var JZlib = {
-		version : "1.0.2",
+	// compression strategy
+	var Z_FILTERED = 1;
+	var Z_HUFFMAN_ONLY = 2;
+	var Z_DEFAULT_STRATEGY = 0;
 
-		Z_NO_COMPRESSION : 0,
-		Z_BEST_SPEED : 1,
-		Z_BEST_COMPRESSION : 9,
-		Z_DEFAULT_COMPRESSION : -1,
+	var Z_NO_FLUSH = 0;
+	var Z_PARTIAL_FLUSH = 1;
+	var Z_FULL_FLUSH = 3;
+	var Z_FINISH = 4;
 
-		// compression strategy
-		Z_FILTERED : 1,
-		Z_HUFFMAN_ONLY : 2,
-		Z_DEFAULT_STRATEGY : 0,
-
-		Z_NO_FLUSH : 0,
-		Z_PARTIAL_FLUSH : 1,
-		Z_SYNC_FLUSH : 2,
-		Z_FULL_FLUSH : 3,
-		Z_FINISH : 4,
-
-		Z_OK : 0,
-		Z_STREAM_END : 1,
-		Z_NEED_DICT : 2,
-		Z_ERRNO : -1,
-		Z_STREAM_ERROR : -2,
-		Z_DATA_ERROR : -3,
-		Z_MEM_ERROR : -4,
-		Z_BUF_ERROR : -5,
-		Z_VERSION_ERROR : -6
-	};
+	var Z_OK = 0;
+	var Z_STREAM_END = 1;
+	var Z_NEED_DICT = 2;
+	var Z_STREAM_ERROR = -2;
+	var Z_DATA_ERROR = -3;
+	var Z_BUF_ERROR = -5;
 
 	// Tree
 
@@ -422,8 +410,6 @@
 	var MAX_MEM_LEVEL = 9;
 	var DEF_MEM_LEVEL = 8;
 
-	var Z_DEFAULT_COMPRESSION = JZlib.Z_DEFAULT_COMPRESSION;
-
 	function Config(good_length, max_lazy, nice_length, max_chain, func) {
 		var that = this;
 		that.good_length = good_length;
@@ -444,12 +430,12 @@
 	// 2
 	"stream end", // Z_STREAM_END 1
 	"", // Z_OK 0
-	"file error", // Z_ERRNO (-1)
+	"", // Z_ERRNO (-1)
 	"stream error", // Z_STREAM_ERROR (-2)
 	"data error", // Z_DATA_ERROR (-3)
-	"insufficient memory", // Z_MEM_ERROR (-4)
+	"", // Z_MEM_ERROR (-4)
 	"buffer error", // Z_BUF_ERROR (-5)
-	"incompatible version",// Z_VERSION_ERROR (-6)
+	"",// Z_VERSION_ERROR (-6)
 	"" ];
 
 	// block not completed, need more input or more output
@@ -466,26 +452,6 @@
 
 	// preset dictionary flag in zlib header
 	var PRESET_DICT = 0x20;
-
-	var Z_FILTERED = JZlib.Z_FILTERED;
-	var Z_HUFFMAN_ONLY = JZlib.Z_HUFFMAN_ONLY;
-	var Z_DEFAULT_STRATEGY = JZlib.Z_DEFAULT_STRATEGY;
-
-	var Z_NO_FLUSH = JZlib.Z_NO_FLUSH;
-	var Z_PARTIAL_FLUSH = JZlib.Z_PARTIAL_FLUSH;
-	var Z_SYNC_FLUSH = JZlib.Z_SYNC_FLUSH;
-	var Z_FULL_FLUSH = JZlib.Z_FULL_FLUSH;
-	var Z_FINISH = JZlib.Z_FINISH;
-
-	var Z_OK = JZlib.Z_OK;
-	var Z_STREAM_END = JZlib.Z_STREAM_END;
-	var Z_NEED_DICT = JZlib.Z_NEED_DICT;
-	var Z_ERRNO = JZlib.Z_ERRNO;
-	var Z_STREAM_ERROR = JZlib.Z_STREAM_ERROR;
-	var Z_DATA_ERROR = JZlib.Z_DATA_ERROR;
-	var Z_MEM_ERROR = JZlib.Z_MEM_ERROR;
-	var Z_BUF_ERROR = JZlib.Z_BUF_ERROR;
-	var Z_VERSION_ERROR = JZlib.Z_VERSION_ERROR;
 
 	var INIT_STATE = 42;
 	var BUSY_STATE = 113;
@@ -1978,7 +1944,7 @@
 		deflate : function(flush) {
 			var that = this;
 			if (!that.dstate) {
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			}
 			return that.dstate.deflate(that, flush);
 		},
@@ -1986,7 +1952,7 @@
 		deflateEnd : function() {
 			var that = this;
 			if (!that.dstate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			var ret = that.dstate.deflateEnd();
 			that.dstate = null;
 			return ret;
@@ -1995,14 +1961,14 @@
 		deflateParams : function(level, strategy) {
 			var that = this;
 			if (!that.dstate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.dstate.deflateParams(that, level, strategy);
 		},
 
 		deflateSetDictionary : function(dictionary, dictLength) {
 			var that = this;
 			if (!that.dstate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.dstate.deflateSetDictionary(that, dictionary, dictLength);
 		},
 
@@ -2065,11 +2031,11 @@
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
-		var flush = JZlib.Z_NO_FLUSH;
+		var flush = Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
 
 		if (typeof level == "undefined")
-			level = that.DEFAULT_COMPRESSION;
+			level = Z_DEFAULT_COMPRESSION;
 		z.deflateInit(level);
 		z.next_out = buf;
 
@@ -2084,7 +2050,7 @@
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
 				err = z.deflate(flush);
-				if (err != JZlib.Z_OK)
+				if (err != Z_OK)
 					throw "deflating: " + z.msg;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
@@ -2109,8 +2075,8 @@
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
-				err = z.deflate(JZlib.Z_FINISH);
-				if (err != JZlib.Z_STREAM_END && err != JZlib.Z_OK)
+				err = z.deflate(Z_FINISH);
+				if (err != Z_STREAM_END && err != Z_OK)
 					throw "deflating: " + z.msg;
 				if (bufsize - z.avail_out > 0)
 					buffers.push(new Uint8Array(buf.subarray(0, z.next_out_index)));
@@ -2126,18 +2092,16 @@
 		};
 	}
 
-	Deflater.prototype = {
-		NO_COMPRESSION : 0,
-		BEST_SPEED : 1,
-		BEST_COMPRESSION : 9,
-		DEFAULT_COMPRESSION : -1
-	};
-
 	var deflater = new Deflater();
 
 	obj.addEventListener("message", function(event) {
 		var message = event.data;
-
+		if (message.init) {
+			deflater = new Deflater(message.level);
+			obj.postMessage({
+				oninit : true
+			});
+		}
 		if (message.append)
 			obj.postMessage({
 				onappend : true,

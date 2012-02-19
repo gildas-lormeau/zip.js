@@ -39,13 +39,18 @@
 	var ERR_HTTP_RANGE = "HTTP Range not supported.";
 	var CHUNK_SIZE = 512 * 1024;
 
-	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
+	var INFLATE_JS = "inflate.js";
+	var DEFLATE_JS = "deflate.js";
+
+	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MsBlobBuilder || obj.BlobBuilder;
 
 	function blobSlice(blob, index, length) {
 		if (blob.webkitSlice)
 			return blob.webkitSlice(index, index + length);
 		else if (blob.mozSlice)
 			return blob.mozSlice(index, index + length);
+		else if (blob.msSlice)
+			return blob.msSlice(index, index + length);
 		else
 			return blob.slice(index, index + length);
 	}
@@ -457,7 +462,7 @@
 					callback(param);
 			}
 
-			function bufferedInflate(data, writer, onend, onprogress) {
+			function bufferedInflate(data, onend, onerror) {
 				var chunkIndex = 0;
 
 				function stepInflate() {
@@ -491,49 +496,62 @@
 						onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), data.size);
 				}
 
-				worker = new Worker(obj.zip.workerScriptsPath + "inflate.js");
+				worker = new Worker(obj.zip.workerScriptsPath + INFLATE_JS);
 				worker.addEventListener("message", onmesssage, false);
 				stepInflate();
+			}
+
+			function bufferedCopy(offset, size, onend, onerror) {
+				var chunkIndex = 0;
+
+				function stepCopy() {
+					var index = chunkIndex * CHUNK_SIZE;
+					if (onprogress)
+						onprogress(index, size);
+					if (index < size)
+						reader.readUint8Array(offset + index, Math.min(CHUNK_SIZE, size - index), function(array) {
+							writer.writeUint8Array(new Uint8Array(array), function() {
+								chunkIndex++;
+								stepCopy();
+							});
+						}, onerror);
+					else
+						onend();
+				}
+
+				stepCopy();
 			}
 
 			function getWriterData() {
 				writer.getData(onend);
 			}
 
-			reader.readUint8Array(that.offset, 4, function(bytes) {
-				reader.readUint8Array(that.offset, 30, function(bytes) {
-					var data = getDataHelper(bytes.length, bytes), dataOffset;
-					if (data.view.getUint32(0) != 0x504b0304) {
-						onerror(ERR_BAD_FORMAT);
-						return;
-					}
-					readCommonHeader(that, data, 4);
-					dataOffset = that.offset + 30 + that.filenameLength + that.extraLength;
+			reader.readUint8Array(that.offset, 30, function(bytes) {
+				var data = getDataHelper(bytes.length, bytes), dataOffset;
+				if (data.view.getUint32(0) != 0x504b0304) {
+					onerror(ERR_BAD_FORMAT);
+					return;
+				}
+				readCommonHeader(that, data, 4);
+				dataOffset = that.offset + 30 + that.filenameLength + that.extraLength;
+				writer.init(function() {
 					if (that.compressionMethod === 0)
-						reader.readUint8Array(dataOffset, that.compressedSize, function(data) {
-							writer.init(function() {
-								writer.writeUint8Array(new Uint8Array(data), getWriterData);
-							}, function() {
-								onerror(ERR_WRITE_DATA);
-							});
-						}, function() {
-							onerror(ERR_BAD_FORMAT);
+						bufferedCopy(dataOffset, that.compressedSize, getWriterData, function() {
+							onerror(ERR_WRITE_DATA);
 						});
 					else
 						reader.readBlob(dataOffset, that.compressedSize, function(data) {
-							writer.init(function() {
-								bufferedInflate(data, writer, getWriterData, onprogress);
-							}, function() {
+							bufferedInflate(data, getWriterData, function() {
 								onerror(ERR_WRITE_DATA);
 							});
 						}, function() {
 							onerror(ERR_BAD_FORMAT);
 						});
 				}, function() {
-					onerror(ERR_BAD_FORMAT);
+					onerror(ERR_WRITE_DATA);
 				});
 			}, function() {
-				onerror(ERR_READ);
+				onerror(ERR_BAD_FORMAT);
 			});
 		};
 
@@ -700,8 +718,7 @@
 					reader.readUint8Array(index, Math.min(CHUNK_SIZE, size - index), function(data) {
 						worker.postMessage({
 							append : true,
-							data : data,
-							level : level
+							data : data
 						});
 						crc32.append(data);
 						chunkIndex++;
@@ -714,6 +731,8 @@
 
 			function onmessage(event) {
 				var message = event.data;
+				if (message.oninit)
+					stepDeflate();
 				if (message.onappend)
 					writeUint8Array(message.data, stepDeflate);
 				if (message.onflush)
@@ -725,10 +744,13 @@
 					onprogress(message.current + ((chunkIndex - 1) * CHUNK_SIZE), reader.size);
 			}
 
-			worker = new Worker(obj.zip.workerScriptsPath + "deflate.js");
+			worker = new Worker(obj.zip.workerScriptsPath + DEFLATE_JS);
 			worker.addEventListener("message", onmessage, false);
 			crc32 = new Crc32();
-			stepDeflate();
+			worker.postMessage({
+				init : true,
+				level : level
+			});
 		}
 
 		function bufferedCopy(reader, onend, onprogress, onerror) {
@@ -768,12 +790,12 @@
 						offset : datalength
 					};
 					header.view.setUint32(0, 0x0a000808);
+					if (options.version)
+						header.view.setUint8(0, options.version);
 					if (!dontDeflate)
 						header.view.setUint16(4, 0x0800);
 					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
-					if (reader)
-						header.view.setUint32(18, reader.size, true);
 					header.view.setUint16(22, filename.length, true);
 					data = getDataHelper(30 + filename.length);
 					data.view.setUint32(0, 0x504b0304);
@@ -785,17 +807,21 @@
 				}
 
 				function writeFooter() {
-					var footer = getDataHelper(12);
+					var footer = getDataHelper(16);
 					datalength += compressedLength;
-					footer.view.setUint32(0, 0x504b0708, true);
+					footer.view.setUint32(0, 0x504b0708);
 					if (crc32) {
 						header.view.setUint32(10, crc32.get(), true);
 						footer.view.setUint32(4, crc32.get(), true);
 					}
-					footer.view.setUint32(8, compressedLength, true);
-					header.view.setUint32(14, compressedLength, true);
+					if (reader) {
+						footer.view.setUint32(8, compressedLength, true);
+						header.view.setUint32(14, compressedLength, true);
+						footer.view.setUint32(12, reader.size, true);
+						header.view.setUint32(18, reader.size, true);
+					}
 					writer.writeUint8Array(footer.array, function() {
-						datalength += 12;
+						datalength += 16;
 						onend();
 					}, onwriteError);
 				}

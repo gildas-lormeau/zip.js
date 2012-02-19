@@ -41,12 +41,10 @@
 	var Z_OK = 0;
 	var Z_STREAM_END = 1;
 	var Z_NEED_DICT = 2;
-	var Z_ERRNO = -1;
 	var Z_STREAM_ERROR = -2;
 	var Z_DATA_ERROR = -3;
 	var Z_MEM_ERROR = -4;
 	var Z_BUF_ERROR = -5;
-	var Z_VERSION_ERROR = -6;
 
 	var inflate_mask = [ 0x00000000, 0x00000001, 0x00000003, 0x00000007, 0x0000000f, 0x0000001f, 0x0000003f, 0x0000007f, 0x000000ff, 0x000001ff, 0x000003ff,
 			0x000007ff, 0x00000fff, 0x00001fff, 0x00003fff, 0x00007fff, 0x0000ffff ];
@@ -56,37 +54,9 @@
 	var MAX_WBITS = 15; // 32K LZ77 window
 	var DEF_WBITS = MAX_WBITS;
 
-	// JZlib
-
-	var JZlib = {
-		version : "1.0.2",
-
-		Z_NO_COMPRESSION : 0,
-		Z_BEST_SPEED : 1,
-		Z_BEST_COMPRESSION : 9,
-		Z_DEFAULT_COMPRESSION : -1,
-
-		// compression strategy
-		Z_FILTERED : 1,
-		Z_HUFFMAN_ONLY : 2,
-		Z_DEFAULT_STRATEGY : 0,
-
-		Z_NO_FLUSH : 0,
-		Z_PARTIAL_FLUSH : 1,
-		Z_SYNC_FLUSH : 2,
-		Z_FULL_FLUSH : 3,
-		Z_FINISH : 4,
-
-		Z_OK : 0,
-		Z_STREAM_END : 1,
-		Z_NEED_DICT : 2,
-		Z_ERRNO : -1,
-		Z_STREAM_ERROR : -2,
-		Z_DATA_ERROR : -3,
-		Z_MEM_ERROR : -4,
-		Z_BUF_ERROR : -5,
-		Z_VERSION_ERROR : -6
-	};
+	// JZlib version : "1.0.2"
+	var Z_NO_FLUSH = 0;
+	var Z_FINISH = 4;
 
 	// InfTree
 	var fixed_bl = 9;
@@ -169,8 +139,8 @@
 		e, // list of extra bits for non-simple codes
 		t, // result: starting table
 		m, // maximum lookup bits, returns actual
-		hp, // space for trees
-		hn, // hufts used in space
+		hp,// space for trees
+		hn,// hufts used in space
 		v // working area: values in order of bit length
 		) {
 			// Given a list of code lengths and a maximum table size, make a set of
@@ -305,20 +275,16 @@
 						if (hn[0] + z > MANY) { // (note: doesn't matter for fixed)
 							return Z_DATA_ERROR; // overflow of MANY
 						}
-						u[h] = q = /* hp+ */
-						hn[0]; // DEBUG
+						u[h] = q = /* hp+ */hn[0]; // DEBUG
 						hn[0] += z;
 
 						// connect to last table, if there is one
 						if (h !== 0) {
 							x[h] = i; // save pattern for backing up
-							r[0] = /* (byte) */
-							j; // bits in this table
-							r[1] = /* (byte) */
-							l; // bits to dump before this table
+							r[0] = /* (byte) */j; // bits in this table
+							r[1] = /* (byte) */l; // bits to dump before this table
 							j = i >>> (w - l);
-							r[2] = /* (int) */
-							(q - u[h - 1] - j); // offset to this table
+							r[2] = /* (int) */(q - u[h - 1] - j); // offset to this table
 							hp.set(r, (u[h - 1] + j) * 3);
 							// to
 							// last
@@ -329,18 +295,15 @@
 					}
 
 					// set up table entry in r
-					r[1] = /* (byte) */
-					(k - w);
+					r[1] = /* (byte) */(k - w);
 					if (p >= n) {
 						r[0] = 128 + 64; // out of values--invalid code
 					} else if (v[p] < s) {
-						r[0] = /* (byte) */
-						(v[p] < 256 ? 0 : 32 + 64); // 256 is
+						r[0] = /* (byte) */(v[p] < 256 ? 0 : 32 + 64); // 256 is
 						// end-of-block
 						r[2] = v[p++]; // simple code is just the value
 					} else {
-						r[0] = /* (byte) */
-						(e[v[p] - s] + 16 + 64); // non-simple--look
+						r[0] = /* (byte) */(e[v[p] - s] + 16 + 64); // non-simple--look
 						// up in lists
 						r[2] = d[v[p++] - s];
 					}
@@ -468,8 +431,8 @@
 
 	InfTree.inflate_trees_fixed = function(bl, // literal desired/actual bit depth
 	bd, // distance desired/actual bit depth
-	tl, // literal/length tree result
-	td, // distance tree result
+	tl,// literal/length tree result
+	td,// distance tree result
 	z // for memory allocation
 	) {
 		bl[0] = fixed_bl;
@@ -488,7 +451,7 @@
 	var LEN = 1; // i: get length/literal/eob next
 	var LENEXT = 2; // i: getting length extra (have base)
 	var DIST = 3; // i: get distance next
-	var DISTEXT = 4; // i: getting distance extra
+	var DISTEXT = 4;// i: getting distance extra
 	var COPY = 5; // o: copying bytes in window, waiting
 	// for space
 	var LIT = 6; // o: got literal, waiting for output
@@ -496,7 +459,7 @@
 	var WASH = 7; // o: got eob, possibly still output
 	// waiting
 	var END = 8; // x: got eob and all data flushed
-	var BADCODE = 9; // x: got error
+	var BADCODE = 9;// x: got error
 
 	function InfCodes() {
 		var that = this;
@@ -576,8 +539,7 @@
 					b >>= (tp[tp_index_t_3 + 1]);
 					k -= (tp[tp_index_t_3 + 1]);
 
-					s.window[q++] = /* (byte) */
-					tp[tp_index_t_3 + 2];
+					s.window[q++] = /* (byte) */tp[tp_index_t_3 + 2];
 					m--;
 					continue;
 				}
@@ -588,7 +550,7 @@
 
 					if ((e & 16) !== 0) {
 						e &= 15;
-						c = tp[tp_index_t_3 + 2] + ( /* (int) */b & inflate_mask[e]);
+						c = tp[tp_index_t_3 + 2] + (/* (int) */b & inflate_mask[e]);
 
 						b >>= e;
 						k -= e;
@@ -715,8 +677,7 @@
 							b >>= (tp[tp_index_t_3 + 1]);
 							k -= (tp[tp_index_t_3 + 1]);
 
-							s.window[q++] = /* (byte) */
-							tp[tp_index_t_3 + 2];
+							s.window[q++] = /* (byte) */tp[tp_index_t_3 + 2];
 							m--;
 							break;
 						}
@@ -776,10 +737,8 @@
 
 		that.init = function(bl, bd, tl, tl_index, td, td_index, z) {
 			mode = START;
-			lbits = /* (byte) */
-			bl;
-			dbits = /* (byte) */
-			bd;
+			lbits = /* (byte) */bl;
+			dbits = /* (byte) */bd;
 			ltree = tl;
 			ltree_index = tl_index;
 			dtree = td;
@@ -812,8 +771,7 @@
 			while (true) {
 				switch (mode) {
 				// waiting for "i:"=input, "o:"=output, "x:"=nothing
-				case START:
-					// x: set up for LEN
+				case START: // x: set up for LEN
 					if (m >= 258 && n >= 10) {
 
 						s.bitb = b;
@@ -841,8 +799,7 @@
 					tree_index = ltree_index;
 
 					mode = LEN;
-				case LEN:
-					// i: get length/literal/eob next
+				case LEN: // i: get length/literal/eob next
 					j = need;
 
 					while (k < (j)) {
@@ -902,8 +859,7 @@
 					s.write = q;
 					return s.inflate_flush(z, r);
 
-				case LENEXT:
-					// i: getting length extra (have base)
+				case LENEXT: // i: getting length extra (have base)
 					j = get;
 
 					while (k < (j)) {
@@ -933,8 +889,7 @@
 					tree = dtree;
 					tree_index = dtree_index;
 					mode = DIST;
-				case DIST:
-					// i: get distance next
+				case DIST: // i: get distance next
 					j = need;
 
 					while (k < (j)) {
@@ -984,8 +939,7 @@
 					s.write = q;
 					return s.inflate_flush(z, r);
 
-				case DISTEXT:
-					// i: getting distance extra
+				case DISTEXT: // i: getting distance extra
 					j = get;
 
 					while (k < (j)) {
@@ -1012,8 +966,7 @@
 					k -= j;
 
 					mode = COPY;
-				case COPY:
-					// o: copying bytes in window, waiting for space
+				case COPY: // o: copying bytes in window, waiting for space
 					f = q - dist;
 					while (f < 0) { // modulo window size-"while" instead
 						f += s.end; // of "if" handles invalid distances
@@ -1057,8 +1010,7 @@
 					}
 					mode = START;
 					break;
-				case LIT:
-					// o: got literal, waiting for output space
+				case LIT: // o: got literal, waiting for output space
 					if (m === 0) {
 						if (q == s.end && s.read !== 0) {
 							q = 0;
@@ -1087,14 +1039,12 @@
 					}
 					r = Z_OK;
 
-					s.window[q++] = /* (byte) */
-					lit;
+					s.window[q++] = /* (byte) */lit;
 					m--;
 
 					mode = START;
 					break;
-				case WASH:
-					// o: got eob, possibly more output
+				case WASH: // o: got eob, possibly more output
 					if (k > 7) { // return unused byte, if any
 						k -= 8;
 						n++;
@@ -1126,8 +1076,7 @@
 					s.write = q;
 					return s.inflate_flush(z, r);
 
-				case BADCODE:
-					// x: got error
+				case BADCODE: // x: got error
 
 					r = Z_DATA_ERROR;
 
@@ -1167,7 +1116,7 @@
 
 	var TYPE = 0; // get type bits (3, including end bit)
 	var LENS = 1; // get lengths for stored
-	var STORED = 2; // processing stored block
+	var STORED = 2;// processing stored block
 	var TABLE = 3; // get table lengths
 	var BTREE = 4; // get bit lengths tree for a dynamic
 	// block
@@ -1233,8 +1182,7 @@
 			q = that.read;
 
 			// compute number of bytes to copy as far as end of window
-			n = /* (int) */
-			((q <= that.write ? that.write : that.end) - q);
+			n = /* (int) */((q <= that.write ? that.write : that.end) - q);
 			if (n > z.avail_out)
 				n = z.avail_out;
 			if (n !== 0 && r == Z_BUF_ERROR)
@@ -1301,8 +1249,7 @@
 			// }
 			// {
 			q = that.write;
-			m = /* (int) */
-			(q < that.read ? that.read - q - 1 : that.end - q);
+			m = /* (int) */(q < that.read ? that.read - q - 1 : that.end - q);
 			// }
 
 			// process input based on current state
@@ -1327,13 +1274,11 @@
 						b |= (z.read_byte(p++) & 0xff) << k;
 						k += 8;
 					}
-					t = /* (int) */
-					(b & 7);
+					t = /* (int) */(b & 7);
 					last = t & 1;
 
 					switch (t >>> 1) {
-					case 0:
-						// stored
+					case 0: // stored
 						// {
 						b >>>= (3);
 						k -= (3);
@@ -1346,8 +1291,7 @@
 						// }
 						mode = LENS; // get length of stored block
 						break;
-					case 1:
-						// fixed
+					case 1: // fixed
 						// {
 						var bl = []; // new Array(1);
 						var bd = []; // new Array(1);
@@ -1365,8 +1309,7 @@
 
 						mode = CODES;
 						break;
-					case 2:
-						// dynamic
+					case 2: // dynamic
 
 						// {
 						b >>>= (3);
@@ -1375,8 +1318,7 @@
 
 						mode = TABLE;
 						break;
-					case 3:
-						// illegal
+					case 3: // illegal
 
 						// {
 						b >>>= (3);
@@ -1445,19 +1387,16 @@
 					if (m === 0) {
 						if (q == that.end && that.read !== 0) {
 							q = 0;
-							m = /* (int) */
-							(q < that.read ? that.read - q - 1 : that.end - q);
+							m = /* (int) */(q < that.read ? that.read - q - 1 : that.end - q);
 						}
 						if (m === 0) {
 							that.write = q;
 							r = that.inflate_flush(z, r);
 							q = that.write;
-							m = /* (int) */
-							(q < that.read ? that.read - q - 1 : that.end - q);
+							m = /* (int) */(q < that.read ? that.read - q - 1 : that.end - q);
 							if (q == that.end && that.read !== 0) {
 								q = 0;
-								m = /* (int) */
-								(q < that.read ? that.read - q - 1 : that.end - q);
+								m = /* (int) */(q < that.read ? that.read - q - 1 : that.end - q);
 							}
 							if (m === 0) {
 								that.bitb = b;
@@ -1730,8 +1669,7 @@
 					b = that.bitb;
 					k = that.bitk;
 					q = that.write;
-					m = /* (int) */
-					(q < that.read ? that.read - q - 1 : that.end - q);
+					m = /* (int) */(q < that.read ? that.read - q - 1 : that.end - q);
 
 					if (last === 0) {
 						mode = TYPE;
@@ -1742,8 +1680,7 @@
 					that.write = q;
 					r = that.inflate_flush(z, r);
 					q = that.write;
-					m = /* (int) */
-					(q < that.read ? that.read - q - 1 : that.end - q);
+					m = /* (int) */(q < that.read ? that.read - q - 1 : that.end - q);
 					if (that.read != that.write) {
 						that.bitb = b;
 						that.bitk = k;
@@ -1813,12 +1750,6 @@
 
 	// preset dictionary flag in zlib header
 	var PRESET_DICT = 0x20;
-
-	var Z_NO_FLUSH = 0;
-	var Z_PARTIAL_FLUSH = 1;
-	var Z_SYNC_FLUSH = 2;
-	var Z_FULL_FLUSH = 3;
-	var Z_FINISH = 4;
 
 	var Z_DEFLATED = 8;
 
@@ -2115,14 +2046,14 @@
 		inflate : function(f) {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.istate.inflate(that, f);
 		},
 
 		inflateEnd : function() {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			var ret = that.istate.inflateEnd(that);
 			that.istate = null;
 			return ret;
@@ -2131,13 +2062,13 @@
 		inflateSync : function() {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.istate.inflateSync(that);
 		},
 		inflateSetDictionary : function(dictionary, dictLength) {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.istate.inflateSetDictionary(that, dictionary, dictLength);
 		},
 		read_byte : function(start) {
@@ -2156,7 +2087,7 @@
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
-		var flush = JZlib.Z_NO_FLUSH;
+		var flush = Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
 		var nomoreinput = false;
 
@@ -2178,11 +2109,11 @@
 					nomoreinput = true;
 				}
 				err = z.inflate(flush);
-				if (nomoreinput && (err == JZlib.Z_BUF_ERROR))
+				if (nomoreinput && (err == Z_BUF_ERROR))
 					return -1;
-				if (err != JZlib.Z_OK && err != JZlib.Z_STREAM_END)
+				if (err != Z_OK && err != Z_STREAM_END)
 					throw "inflating: " + z.msg;
-				if ((nomoreinput || err == JZlib.Z_STREAM_END) && (z.avail_out == data.length))
+				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_out == data.length))
 					return -1;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
