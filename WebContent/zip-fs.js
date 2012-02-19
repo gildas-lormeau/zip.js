@@ -91,18 +91,27 @@
 				function add(data) {
 					if (!child.directory && !child.dataReader)
 						child.dataReader = new child.Reader(data, onerror);
-					zipWriter.add(child.getFullname(), child.directory ? null : child.dataReader, function() {
-						currentIndex += child.uncompressedSize || 0;
+					if (!child.directory) {
+						zipWriter.add(child.getFullname(), child.directory ? null : child.dataReader, function() {
+							currentIndex += child.uncompressedSize || 0;
+							process(zipWriter, child, function() {
+								childIndex++;
+								exportChild();
+							}, onprogress, totalSize);
+						}, function(index) {
+							if (onprogress)
+								onprogress(currentIndex + index, totalSize);
+						}, {
+							directory : child.directory,
+							version :  child.zipVersion
+						});
+					} else {
 						process(zipWriter, child, function() {
 							childIndex++;
 							exportChild();
 						}, onprogress, totalSize);
-					}, function(index) {
-						if (onprogress)
-							onprogress(currentIndex + index, totalSize);
-					}, {
-						directory : child.directory
-					});
+					}
+
 				}
 
 				if (child.directory)
@@ -147,6 +156,7 @@
 			throw "Entry filename already exists.";
 		that.fs = fs;
 		that.name = name;
+		that.zipVersion = params.zipVersion || 0x0a;
 		that.Reader = params.Reader;
 		that.Writer = params.Writer;
 		that.directory = params.directory;
