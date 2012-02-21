@@ -89,21 +89,28 @@
 
 			function addChild(child) {
 				function add(data) {
-					if (!child.directory && !child.dataReader)
-						child.dataReader = new child.Reader(data, onerror);
-					zipWriter.add(child.getFullname(), child.directory ? null : child.dataReader, function() {
-						currentIndex += child.uncompressedSize || 0;
+					if (child.directory)
 						process(zipWriter, child, function() {
 							childIndex++;
 							exportChild();
 						}, onprogress, totalSize);
-					}, function(index) {
-						if (onprogress)
-							onprogress(currentIndex + index, totalSize);
-					}, {
-						directory : child.directory,
-						version : child.zipVersion
-					});
+					else {
+						if (!child.dataReader)
+							child.dataReader = new child.Reader(data, onerror);
+						zipWriter.add(child.getFullname(), child.directory ? null : child.dataReader, function() {
+							currentIndex += child.uncompressedSize || 0;
+							process(zipWriter, child, function() {
+								childIndex++;
+								exportChild();
+							}, onprogress, totalSize);
+						}, function(index) {
+							if (onprogress)
+								onprogress(currentIndex + index, totalSize);
+						}, {
+							directory : child.directory,
+							version : child.zipVersion
+						});
+					}
 				}
 
 				if (child.directory)
