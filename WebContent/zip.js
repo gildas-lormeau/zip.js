@@ -894,6 +894,8 @@
 	}
 
 	obj.zip = {
+		Reader : Reader,
+		Writer : Writer,
 		BlobReader : BlobReader,
 		HttpReader : HttpReader,
 		HttpRangeReader : HttpRangeReader,
