@@ -168,7 +168,13 @@
 			});
 		}
 
-		process(zipEntry, fileEntry, onend);
+		if (fileEntry.isDirectory)
+			process(zipEntry, fileEntry, onend);
+		else
+			fileEntry.file(function(file) {
+				zipEntry.addBlob(fileEntry.name, file);
+				onend();
+			}, onerror);
 	}
 
 	function getFileEntry(fileEntry, entry, callback, onprogress, totalSize) {
