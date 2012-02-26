@@ -221,10 +221,7 @@
 		if (entry.directory)
 			process(fileEntry, entry, callback, onprogress, totalSize);
 		else
-			entry.getData(new obj.zip.FileWriter(fileEntry), callback, function(index, max) {
-				if (onprogress)
-					onprogress(index, totalSize);
-			});
+			entry.getData(new obj.zip.FileWriter(fileEntry), callback, onprogress);
 	}
 
 	function resetFS(fs) {
@@ -330,8 +327,8 @@
 				Reader : useRangeHeader ? obj.zip.HttpRangeReader : obj.zip.HttpReader
 			});
 		},
-		addFileEntry : function(fileEntry, onend, onerror) {
-			addFileEntry(this, fileEntry, onend);
+		addFileEntry : function(fileEntry, callback, onerror) {
+			addFileEntry(this, fileEntry, callback, onerror);
 		},
 		addData : function(name, params) {
 			return addChild(this, name, params);
