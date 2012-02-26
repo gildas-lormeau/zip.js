@@ -110,6 +110,7 @@
 		that.readUint8Array = readUint8Array;
 	}
 	TextReader.prototype = new Reader();
+	TextReader.prototype.constructor = TextReader;
 
 	function Data64URIReader(dataURI) {
 		var that = this, dataStart;
@@ -139,6 +140,7 @@
 		that.readUint8Array = readUint8Array;
 	}
 	Data64URIReader.prototype = new Reader();
+	Data64URIReader.prototype.constructor = Data64URIReader;
 
 	function BlobReader(blob) {
 		var that = this;
@@ -167,6 +169,7 @@
 		that.readUint8Array = readUint8Array;
 	}
 	BlobReader.prototype = new Reader();
+	BlobReader.prototype.constructor = BlobReader;
 
 	function HttpReader(url) {
 		var that = this;
@@ -211,6 +214,7 @@
 		that.readUint8Array = readUint8Array;
 	}
 	HttpReader.prototype = new Reader();
+	HttpReader.prototype.constructor = HttpReader;
 
 	function HttpRangeReader(url) {
 		var that = this;
@@ -261,6 +265,7 @@
 		that.readUint8Array = readUint8Array;
 	}
 	HttpRangeReader.prototype = new Reader();
+	HttpRangeReader.prototype.constructor = HttpRangeReader;
 
 	// Writers
 
@@ -289,6 +294,7 @@
 		that.writeUint8Array = writeUint8Array;
 	}
 	TextWriter.prototype = new Writer();
+	TextWriter.prototype.constructor = TextWriter;
 
 	function Data64URIWriter(mimeString) {
 		var that = this, data = "", pending = "";
@@ -318,6 +324,7 @@
 		that.getData = getData;
 	}
 	Data64URIWriter.prototype = new Writer();
+	Data64URIWriter.prototype.constructor = Data64URIWriter;
 
 	function FileWriter(fileEntry) {
 		var writer, that = this;
@@ -349,6 +356,7 @@
 		that.getData = getData;
 	}
 	FileWriter.prototype = new Writer();
+	FileWriter.prototype.constructor = FileWriter;
 
 	function BlobWriter() {
 		var blobBuilder, that = this;
@@ -373,6 +381,7 @@
 		that.getData = getData;
 	}
 	BlobWriter.prototype = new Writer();
+	BlobWriter.prototype.constructor = BlobWriter;
 
 	// ZipReader
 
@@ -789,7 +798,7 @@
 						filename : filename,
 						offset : datalength
 					};
-					header.view.setUint32(0, 0x0a000808);
+					header.view.setUint32(0, 0x14000808);
 					if (options.version)
 						header.view.setUint8(0, options.version);
 					if (!dontDeflate)
@@ -894,6 +903,8 @@
 	}
 
 	obj.zip = {
+		Reader : Reader,
+		Writer : Writer,
 		BlobReader : BlobReader,
 		HttpReader : HttpReader,
 		HttpRangeReader : HttpRangeReader,
