@@ -195,7 +195,7 @@
 				<h3>Methods</h3>
 				<pre><code class="prettyprint">ZipEntry.prototype.addDirectory(name)</code></pre>
 				<p>
-					Add a directory into the current directory entry.
+					Add a directory into <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -210,7 +210,7 @@
 				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.addBlob(name, blob)</code></pre>
 				<p>
-					Add a <code>Blob</code> object file into the current directory entry.
+					Add a <code>Blob</code> object file into <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -229,7 +229,7 @@
 				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.addText(name, text)</code></pre>
 				<p>
-					Add a text file into the current directory entry.
+					Add a text file into <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -248,7 +248,7 @@
 				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.addData64URI(name, dataURI)</code></pre>
 				<p>
-					Add a data URI file into the current directory entry.
+					Add a data URI file into <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -267,7 +267,7 @@
 				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.addHTTPContent(name, URL, size, useRangeHeader)</code></pre>
 				<p>
-					Add a content retrieved from a URL into the current directory entry.
+					Add a content retrieved from a URL into <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -292,6 +292,26 @@
 					<dd>the new <code>ZipEntry</code> object</dd>
 				</dl>
 				<br>
+				<pre><code class="prettyprint">ZipEntry.prototype.addFileEntry(entry, callback, onerror)</code></pre>
+				<p>
+					Add a <code>FileEntry</code> or a <code>DirectoryEntry</code> into <code>this</code> directory entry.
+					If entry is a <code>FileEntry</code> object then <code>FileEntry.prototype.getData</code> function is called in order to get its content.
+					If entry is a <code>DirectoryEntry</code> object then all its children (file or directory) will be added recursively into <code>this</code> directory entry.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>entry (FileEntry or DirectoryEntry)</code></dt>
+					<dd>the FileEntry or DirectoryEntry object</dd>
+				</dl>
+				<dl>
+					<dt><code>callback (Function)</code></dt>
+					<dd>success callback function</dd>
+				</dl>
+				<dl>
+					<dt><code>onerror (Function)</code></dt>
+					<dd>error callback function - optional</dd>
+				</dl>
+				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.getText(callback)</code></pre>
 				<p>
 					Get file entry content as a <code>string</code>.
@@ -312,18 +332,6 @@
 					<dd>success callback function returning the unzipped content as parameter</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipEntry.prototype.getFile(fileEntry, callback)</code></pre>
-				<p>
-					Get file entry content and store it into a <code>FileEntry</code> object.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>fileEntry (FileEntry)</code></dt>
-					<dd>the <code>FileEntry</code> object</dd>
-					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function returning the unzipped content as parameter</dd>
-				</dl>
-				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.getData64URI(mimeType, callback)</code></pre>
 				<p>
 					Get file entry content as a data URI string.
@@ -334,6 +342,22 @@
 					<dd>data MIME type - optional</dd>
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function returning the unzipped content as parameter</dd>
+				</dl>
+				<br>
+				<pre><code class="prettyprint">ZipEntry.prototype.getFileEntry(fileEntry, onend, onprogress, onerror)</code></pre>
+				<p>
+					Store entry content into a <code>FileEntry</code> object.
+				</p>
+				<p>Parameters:</p>
+				<dl>
+					<dt><code>fileEntry (FileEntry)</code></dt>
+					<dd>the <code>FileEntry</code> object</dd>
+					<dt><code>onend (Function)</code></dt>
+					<dd>success callback function</dd>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>
+					<dt><code>onerror (Function)</code></dt>
+					<dd>error callback function - optional</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.importBlob(blob, onend, onerror)</code></pre>
