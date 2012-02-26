@@ -475,19 +475,14 @@
 					<dd>the <code>ZipEntry</code> object</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipEntry.prototype.getFullname(fullname)</code></pre>
+				<pre><code class="prettyprint">ZipEntry.prototype.getFullname()</code></pre>
 				<p>
-					Get a <code>ZipEntry</code> descendant object from <code>this</code> entry given its relative filename.
+					Get <code>this</code> entry full name.
 				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>fullname (string)</code></dt>
-					<dd>the entry relative filename</dd>
-				</dl>
 				<p>Return</p>
 				<dl>
-					<dt><code>ZipEntry</code></dt>
-					<dd>the <code>ZipEntry</code> object</dd>
+					<dt><code>string</code></dt>
+					<dd>the entry full name</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.isDescendantOf(ancestor)</code></pre>
