@@ -78,6 +78,7 @@ summary {
 
 .dir-summary {
 	display: inline-block;
+	outline: 0px;
 }
 
 .listing:empty::after {
@@ -248,14 +249,21 @@ hr {
 	vertical-align: middle;
 	margin-left: 4px;
 	opacity: 0;
+	visibility: hidden;
+	-webkit-transition: opacity .2s ease-in;
+	-moz-transition: opacity .2s ease-in;
+	-o-transition: opacity .2s ease-in;
+	transition: opacity .2s ease-in;
 }
 
-.selected>summary:hover>.button, .selected:hover>.button {
+.selected>summary:hover>.button,.selected:hover>.button {
 	opacity: .3;
+	visibility: visible;
 }
 
-.selected>summary>.button:hover, .selected>.button:hover {
+.selected>summary>.button:hover,.selected>.button:hover {
 	opacity: .8;
+	visibility: visible;
 }
 
 .save-button {
