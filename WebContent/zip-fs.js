@@ -86,7 +86,7 @@
 	function exportZip(zipWriter, entry, callback, onprogress, onerror, totalSize) {
 		var currentIndex = 0;
 
-		function process(zipWriter, entry, callback, onprogress, onerror, totalSize) {
+		function process(zipWriter, entry, callback, onprogress, totalSize) {
 			var childIndex = 0;
 
 			function addChild(child) {
