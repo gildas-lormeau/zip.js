@@ -83,10 +83,10 @@
 		});
 	}
 
-	var exportZip = (function() {
+	function exportZip(zipWriter, entry, callback, onprogress, onerror, totalSize) {
 		var currentIndex = 0;
 
-		return function process(zipWriter, entry, callback, onprogress, totalSize) {
+		function process(zipWriter, entry, callback, onprogress, onerror, totalSize) {
 			var childIndex = 0;
 
 			function addChild(child) {
@@ -123,8 +123,10 @@
 			}
 
 			exportChild();
-		};
-	})();
+		}
+
+		process(zipWriter, entry, callback, onprogress, totalSize);
+	}
 
 	function addFileEntry(zipEntry, fileEntry, onend, onerror) {
 		function getChildren(fileEntry, callback) {
@@ -169,10 +171,10 @@
 		process(zipEntry, fileEntry, onend);
 	}
 
-	var getFileEntry = (function() {
-		var currentIndex = 0;
+	function getFileEntry(fileEntry, entry, callback, onprogress, totalSize) {
+		var currentIndex = 0, rootEntry;
 
-		return function process(fileEntry, entry, callback, onprogress, totalSize) {
+		function process(fileEntry, entry, callback, onprogress, totalSize) {
 			var childIndex = 0;
 
 			function addChild(child) {
@@ -208,8 +210,16 @@
 			}
 
 			processChild();
-		};
-	})();
+		}
+
+		if (entry.directory)
+			process(fileEntry, entry, callback, onprogress, totalSize);
+		else
+			entry.getData(new obj.zip.FileWriter(fileEntry), callback, function(index, max) {
+				if (onprogress)
+					onprogress(index, totalSize);
+			});
+	}
 
 	function resetFS(fs) {
 		fs.entries = [];
@@ -391,7 +401,7 @@
 				obj.zip.createWriter(writer, function(zipWriter) {
 					exportZip(zipWriter, that, function() {
 						zipWriter.close(onend);
-					}, onprogress, getTotalSize(that));
+					}, onprogress, onerror, getTotalSize(that));
 				}, onerror);
 			}, onerror);
 		},
