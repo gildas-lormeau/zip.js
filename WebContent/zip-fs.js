@@ -69,14 +69,13 @@
 		}
 
 		function process(child) {
-			var reader;
 			if (child.directory)
 				initReaders(child, next, onerror);
 			else {
 				if (child.data) {
-					reader = new child.Reader(child.data, onerror);
-					reader.init(function() {
-						child.uncompressedSize = reader.size;
+					child.reader = new child.Reader(child.data, onerror);
+					child.reader.init(function() {
+						child.uncompressedSize = child.reader.size;
 						next();
 					});
 				} else
@@ -106,10 +105,9 @@
 
 			function addChild(child) {
 				function add(data) {
-					var reader;
-					if (!child.directory) 
-						reader = new child.Reader(data, onerror);
-					zipWriter.add(child.getFullname(), reader, function() {
+					if (!child.directory && !child.reader)
+						child.reader = new child.Reader(data, onerror);
+					zipWriter.add(child.getFullname(), child.reader, function() {
 						currentIndex += child.uncompressedSize || 0;
 						process(zipWriter, child, function() {
 							childIndex++;
@@ -168,7 +166,9 @@
 						nextChild(zipEntry.addDirectory(child.name));
 					if (child.isFile)
 						child.file(function(file) {
-							nextChild(zipEntry.addBlob(child.name, file));
+							var childZipEntry = zipEntry.addBlob(child.name, file);
+							childZipEntry.uncompressedSize = file.size;
+							nextChild(childZipEntry);
 						}, onerror);
 				}
 
@@ -267,14 +267,15 @@
 	}
 
 	function getEntryData(writer, onend, onprogress, onerror) {
-		var reader;
-		if (!writer || (writer.constructor == this.Writer && this.data))
-			onend(this.data);
+		var that = this;
+		if (!writer || (writer.constructor == that.Writer && that.data))
+			onend(that.data);
 		else {
-			reader = new this.Reader(this.data, onerror);
-			reader.init(function() {
+			if (!that.reader)
+				that.reader = new that.Reader(that.data, onerror);
+			that.reader.init(function() {
 				writer.init(function() {
-					bufferedCopy(reader, writer, onend, onprogress, onerror);
+					bufferedCopy(that.reader, writer, onend, onprogress, onerror);
 				}, onerror);
 			});
 		}
@@ -411,10 +412,7 @@
 		});
 	};
 	ZipDirectoryEntryProto.addFileEntry = function(fileEntry, onend, onerror) {
-		var that = this;
-		addFileEntry(that, fileEntry, function() {
-			initReaders(that, onend, onerror);
-		}, onerror);
+		addFileEntry(this, fileEntry, onend, onerror);
 	};
 	ZipDirectoryEntryProto.addData = function(name, params) {
 		return addChild(this, name, params);
