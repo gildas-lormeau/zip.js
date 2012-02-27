@@ -69,14 +69,13 @@
 		}
 
 		function process(child) {
-			var reader;
 			if (child.directory)
 				initReaders(child, next, onerror);
 			else {
 				if (child.data) {
-					reader = new child.Reader(child.data, onerror);
-					reader.init(function() {
-						child.uncompressedSize = reader.size;
+					child.reader = new child.Reader(child.data, onerror);
+					child.reader.init(function() {
+						child.uncompressedSize = child.reader.size;
 						next();
 					});
 				} else
@@ -107,8 +106,8 @@
 			function addChild(child) {
 				function add(data) {
 					var reader;
-					if (!child.directory)
-						reader = new child.Reader(data, onerror);
+					if (!child.directory && !child.reader)
+						child.reader = new child.Reader(data, onerror);
 					zipWriter.add(child.getFullname(), reader, function() {
 						currentIndex += child.uncompressedSize || 0;
 						process(zipWriter, child, function() {
