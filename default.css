@@ -98,3 +98,7 @@ code {
 code.prettyprint {
 	font-size:inherit;
 }
+
+p {
+	text-align: justify;
+}
