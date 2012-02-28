@@ -22,8 +22,8 @@
 		<h2>Contents</h2>
 		<ol>
 			<li><a href="#io">I/O</a></li>
-			<li><a href="#zip-reading">Zip reading</a></li>
-			<li><a href="#zip-reading-example">Zip reading example</a></li>
+			<li><a href="#zip-reader">Zip reading</a></li>
+			<li><a href="#zip-reader-example">Zip reading example</a></li>
 			<li><a href="#zip-writing">Zip writing</a></li>
 			<li><a href="#zip-writing-example">Zip writing example</a></li>
 		</ol>
@@ -33,16 +33,16 @@
 				<h2 id="io">I/O</h2>
 				<h3>Reader and Writer constructors</h3>
 				<p>
-					zip.js can handle multiple types of data thanks to a generic API.
-					This feature is based on 2 abstract constructors: <code>Reader</code> and <code>Writer</code>.
+					<code>zip.js</code> can handle multiple types of data thanks to a generic API.
+					This feature is based on 2 abstract constructors: <code><a href="#zip-reader">zip.Reader</a></code> and <code><a href="#zip-writer">zip.Writer</a></code>.
 				</p>
 				<p>
-					<code>Reader</code> constructors help to read data from a file and <code>Writer</code> constructors help to write data into a file.
-					For example, if you need to read a zip and store it into a variable, you must use a <code>Reader</code> to read the compressed zip data.
-					You must also use a <code>Writer</code> to write uncompressed zip data into the variable.
+					<code><a href="#zip-reader">zip.Reader</a></code> constructors help to read data from a file and <code><a href="#zip-writer">zip.Writer</a></code> constructors help to write data into a file.
+					For example, if you need to read a zip and store its file into a variable, you must use a <code><a href="#zip-reader">zip.Reader</a></code> object to read the compressed zip data.
+					You must also use a <code><a href="#zip-writer">zip.Writer</a></code> object to write uncompressed file data into the variable.
 				</p>
 
-				<h3>Reader constructors</h3>
+				<h3 id="zip-reader">Reader constructors</h3>
 				<pre><code class="prettyprint">zip.TextReader(text)</code></pre>
 				<p>
 					<code>string</code> reader constructor
@@ -55,12 +55,12 @@
 				<br>
 				<pre><code class="prettyprint">zip.BlobReader(blob)</code></pre>
 				<p>
-					<code>Blob</code> object reader constructor
+					<code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object reader constructor
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>blob (Blob)</code></dt>
-					<dd>The <code>Blob</code> object to read</dd>
+					<dt><code>blob (<a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
+					<dd>The <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object to read</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">zip.Data64URIReader(dataURI)</code></pre>
@@ -69,7 +69,7 @@
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>dataURI (String)</code></dt>
+					<dt><code>dataURI (string)</code></dt>
 					<dd>The data URI to read</dd>
 				</dl>
 				<br>
@@ -79,7 +79,7 @@
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>URL (String)</code></dt>
+					<dt><code>URL (string)</code></dt>
 					<dd>The URL of the content to read</dd>
 				</dl>
 				<br>
@@ -89,7 +89,7 @@
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>URL (String)</code></dt>
+					<dt><code>URL (string)</code></dt>
 					<dd>The URL of the content to read</dd>
 				</dl>
 
@@ -101,40 +101,40 @@
 				</dl>
 				<p>Methods:</p>
 				<pre><code class="prettyprint">init(callback)</code></pre>
-				<p>Initialize the <code>Reader</code> object.</p>
+				<p>Initialize the <code><a href="#zip-reader">zip.Reader</a></code> object.</p>
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>callback (Function)</code></dt>
 					<dd>callback function</dd>
 				</dl>
 				<pre><code class="prettyprint">readUint8Array(index, length, callback, onerror)</code></pre>
-				<p>Extract a <code>UInt8Array</code> object beginning at <code>index</code> location through the specified <code>length</code>.</p>
+				<p>Extract an <code><a href="http://www.khronos.org/registry/typedarray/specs/latest/#7">UInt8Array</a></code> object beginning at <code>index</code> location through the specified <code>length</code>.</p>
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>index (number)</code></dt>
 					<dd>The beginning index</dd>
 					<dt><code>length (number)</code></dt>
-					<dd>The <code>UInt8Array</code> object length</dd>
+					<dd>The <code><a href="http://www.khronos.org/registry/typedarray/specs/latest/#7">UInt8Array</a></code> object length</dd>
 					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function returning the <code>UInt8Array</code> object as parameter</dd>
+					<dd>success callback function returning the <code><a href="http://www.khronos.org/registry/typedarray/specs/latest/#7">UInt8Array</a></code> object as parameter</dd>
 					<dt><code>onerror (Function)</code></dt>
 					<dd>error callback function - optional</dd>
 				</dl>
 				<pre><code class="prettyprint">readBlob(index, length, callback, onerror)</code></pre>
-				<p>Extract a <code>Blob</code> object beginning at <code>index</code> location through the specified <code>length</code>.</p>
+				<p>Extract a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object beginning at <code>index</code> location through the specified <code>length</code>.</p>
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>index (number)</code></dt>
 					<dd>The beginning index</dd>
 					<dt><code>length (number)</code></dt>
-					<dd>The <code>Blob</code> object length</dd>
+					<dd>The <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object length</dd>
 					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function returning the <code>Blob</code> object as parameter</dd>
+					<dd>success callback function returning the <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object as parameter</dd>
 					<dt><code>onerror (Function)</code></dt>
 					<dd>error callback function - optional</dd>
 				</dl>
 
-				<h3>Writer constructors</h3>
+				<h3 id="zip-writer">Writer constructors</h3>
 				<pre><code class="prettyprint">zip.TextWriter()</code></pre>
 				<p>
 					<code>string</code> writer constructor
@@ -142,17 +142,17 @@
 				<br>
 				<pre><code class="prettyprint">zip.BlobWriter()</code></pre>
 				<p>
-					<code>Blob</code> object writer constructor
+					<code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object writer constructor
 				</p>
 				<br>
 				<pre><code class="prettyprint">zip.FileWriter(fileEntry)</code></pre>
 				<p>
-					<code>File</code> object writer constructor
+					<code><a href="http://www.w3.org/TR/FileAPI/#dfn-file">File</a></code> object writer constructor
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>fileEntry (FileEntry)</code>
-					<dd>the <code>FileEntry</code> object used to write the <code>File</code> object</dd>
+					<dt><code>fileEntry (<a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a>)</code>
+					<dd>the <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object used to write the <code><a href="http://www.w3.org/TR/FileAPI/#dfn-file">File</a></code> object</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">zip.Data64URIWriter(mimeString)</code></pre>
@@ -161,32 +161,32 @@
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>mimeString (String)</code></dt>
+					<dt><code>mimeString (string)</code></dt>
 					<dd>the data MIME type - optional</dd>
 				</dl>
 
 				<h3>Writer members (used internally)</h3>
 				<p>Methods:</p>
 				<pre><code class="prettyprint">init(callback)</code></pre>
-				<p>Initialize the <code>Writer</code> object.</p>
+				<p>Initialize the <code><a href="#zip-writer">zip.Writer</a></code> object.</p>
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>callback (Function)</code></dt>
 					<dd>callback function</dd>
 				</dl>
 				<pre><code class="prettyprint">writeUint8Array(array, callback, onerror)</code></pre>
-				<p>Write a <code>UInt8Array</code> object at the current index.</p>
+				<p>Write an <code><a href="http://www.khronos.org/registry/typedarray/specs/latest/#7">UInt8Array</a></code> object at the current index.</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>array (UInt8Array)</code></dt>
-					<dd>The <code>UInt8Array</code> to write</dd>
+					<dt><code>array (<a href="http://www.khronos.org/registry/typedarray/specs/latest/#7">UInt8Array</a>)</code></dt>
+					<dd>The <code><a href="http://www.khronos.org/registry/typedarray/specs/latest/#7">UInt8Array</a></code> to write</dd>
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onerror (Function)</code></dt>
 					<dd>error callback function - optional</dd>
 				</dl>
 				<pre><code class="prettyprint">getData(callback, onerror)</code></pre>
-				<p>Get written data (returned type depends on <code>Reader</code> constructor used)</p>
+				<p>Get written data (returned type depends on <code><a href="#zip-reader">zip.Reader</a></code> constructor used)</p>
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>callback (Function)</code></dt>
@@ -200,19 +200,19 @@
 				<h3>initialization</h3>
 				<pre><code class="prettyprint">zip.createReader(reader, callback, onerror)</code></pre>
 				<p>
-					Create a <code>ZipReader</code> object. A <code>ZipReader</code> object helps to read the zipped content.
+					Create a <code><a href="#zip-reader">ZipReader</a></code> object. A <code><a href="#zip-reader">ZipReader</a></code> object helps to read the zipped content.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>reader (Reader)</code></dt>
-					<dd>the <code>Reader</code> object used to read input data</dd>
+					<dt><code>reader (<a href="#zip-reader">zip.Reader</a>)</code></dt>
+					<dd>the <code><a href="#zip-reader">zip.Reader</a></code> object used to read input data</dd>
 					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function returning the new <code>ZipReader</code> object as parameter</dd>
+					<dd>success callback function returning the new <code><a href="#zip-reader">ZipReader</a></code> object as parameter</dd>
 					<dt><code>onerror (Function)</code></dt>
 					<dd>global error callback function - optional</dd>
 				</dl>
 
-				<h3>Zip entries listing</h3>
+				<h3 id="zip-reader">Zip entries listing</h3>
 				<pre><code class="prettyprint">ZipReader.prototype.getEntries(callback)</code></pre>
 				<p>
 					Get all entries from a zip.
@@ -230,7 +230,7 @@
 				</p>
 				<p>Attributes:</p>
 				<dl>
-					<dt><code>filename (String)</code></dt>
+					<dt><code>filename (string)</code></dt>
 					<dd>file name</dd>
 					<dt><code>directory (boolean)</code></dt>
 					<dd><code>true</code> if the entry is a directory</dd>
@@ -250,10 +250,10 @@
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>writer (Writer)</code></dt>
-					<dd><code>Writer</code> object used to write output data</dd>
+					<dt><code>writer (<a href="#zip-writer">zip.Writer</a>)</code></dt>
+					<dd><code><a href="#zip-writer">zip.Writer</a></code> object used to write output data</dd>
 					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function returning the output data (returned type depends on <code>Writer</code> constructor used) as parameter</dd>
+					<dd>success callback function returning the output data (returned type depends on <code><a href="#zip-writer">zip.Writer</a></code> constructor used) as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>progress callback function returning the progress index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>
 				</dl>
@@ -301,29 +301,29 @@ zip.createReader(new zip.BlobReader(blob), function(reader) {
 				<h3>initialization</h3>
 				<pre><code class="prettyprint">zip.createWriter(writer, callback, onerror)</code></pre>
 				<p>
-					Create a <code>ZipWriter</code> object.
+					Create a <code><a href="#zip-writer">ZipWriter</a></code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>writer (Writer)</code></dt>
-					<dd>the <code>Writer</code> object used to write output data</dd>
+					<dt><code>writer (<a href="#zip-writer">zip.Writer</a>)</code></dt>
+					<dd>the <code><a href="#zip-writer">zip.Writer</a></code> object used to write output data</dd>
 					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function returning the new <code>ZipWriter</code> object as parameter</dd>
+					<dd>success callback function returning the new <code><a href="#zip-writer">ZipWriter</a></code> object as parameter</dd>
 					<dt><code>onerror (Function)</code></dt>
 					<dd>global error callback function - optional</dd>
 				</dl>
 
-				<h3>Zip entry writing</h3>
+				<h3 id="zip-writer">Zip entry writing</h3>
 				<pre><code class="prettyprint">ZipWriter.prototype.add(name, reader, onend, onprogress, options)</code></pre>
 				<p>
 					Add a new entry into the zip.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>name (String)</code></dt>
+					<dt><code>name (string)</code></dt>
 					<dd>entry file name</dd>
-					<dt><code>reader (Reader)</code></dt>
-					<dd>the <code>Reader</code> object used to read entry data to add - optional (directory entry)</dd>
+					<dt><code>reader (<a href="#zip-reader">zip.Reader</a>)</code></dt>
+					<dd>the <code><a href="#zip-reader">zip.Reader</a></code> object used to read entry data to add - optional (directory entry)</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onprogress (Function)</code></dt>
@@ -347,7 +347,7 @@ zip.createReader(new zip.BlobReader(blob), function(reader) {
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function returning the generated zip data (returned type depends on <code>Writer</code> constructor used) as parameter</dd>
+					<dd>success callback function returning the generated zip data (returned type depends on <code><a href="#zip-writer">zip.Writer</a></code> constructor used) as parameter</dd>
 				</dl>
 			</li>
 			<li>
