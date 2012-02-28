@@ -174,7 +174,7 @@
 	function HttpReader(url) {
 		var that = this;
 
-		function getData(callback) {
+		function getData(callback, onerror) {
 			var request;
 			if (!that.data) {
 				request = new XMLHttpRequest();
@@ -206,7 +206,7 @@
 		function readUint8Array(index, length, callback, onerror) {
 			getData(function() {
 				callback(that.data.subarray(index, index + length));
-			});
+			}, onerror);
 		}
 
 		that.size = 0;
