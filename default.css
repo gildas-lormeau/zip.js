@@ -8,8 +8,10 @@ body {
 #container {
 	margin: 0 auto;
 	background: whiteSmoke;
-	width: 700px;
+	min-width: 700px;
+	max-width: 1000px;
 	padding: 40px;
+	padding-top: 10px;
 	border-radius: 5px;
 	box-shadow: 3px 3px 5px #444;
 }

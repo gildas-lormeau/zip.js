@@ -21,12 +21,12 @@
 		</div>
 
 		<p>
-			zip-fs.js is an optional script that helps to manipulate a zip file easily. It offers a virtual filesystem API implementation for zip files.
+			<code>zip-fs.js</code> is an optional script that helps to manipulate a zip file easily. It provides a virtual filesystem API implementation for zip files.
 		</p>
 
 		<h2>Contents</h2>
 		<ol>
-			<li><a href="#fs-constructor">Zip Filesystem</a></li>
+			<li><a href="#fs-constructor">Zip filesystem</a></li>
 			<li><a href="#zip-entry">Zip entry</a></li>
 			<li><a href="#zip-file-entry">Zip file entry</a></li>
 			<li><a href="#zip-directory-entry">Zip directory entry</a></li>
@@ -35,28 +35,28 @@
 
 		<ol>
 			<li>
-				<h2 id="fs-constructor">Zip Filesystem</h2>
+				<h2 id="fs-constructor">Zip filesystem</h2>
 				<pre><code class="prettyprint">zip.fs.FS()</code></pre>
 				<p>
 					Zip filesystem constructor
 					<br>
-					A <code>zip.fs.FS</code> object stores an entire filesystem.
-					The <code>root</code> property stores a <code>ZipDirectoryEntry</code> object representing the root directory of the zip.
+					A <code><a href="#fs-constructor">zip.fs.FS</a></code> object stores an entire filesystem.
+					The <code>root</code> property stores a <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object representing the root directory of the zip.
 				</p>
 				<h3>Attributes</h3>
 				<dl>
-					<dt><code>root (<code>ZipDirectoryEntry</code>)</code></dt>
-					<dd>the <code>ZipDirectoryEntry</code> object referencing the root directory of the filesystem</dd>
+					<dt><code>root (<code><a href="#zip-directory-entry"><a href="#zip-directory-entry">ZipDirectoryEntry</a></a></code>)</code></dt>
+					<dd>the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object referencing the root directory of the filesystem</dd>
 				</dl>
 				<h3>Methods</h3>
 				<pre><code class="prettyprint">FS.prototype.importBlob(blob, onend, onerror)</code></pre>
 				<p>
-					Reset the filesystem and import a zipped content stored in a <code>Blob</code> object.
+					Reset the filesystem and import a zipped content stored in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>blob (Blob)</code></dt>
-					<dd>the <code>Blob</code> object</dd>
+					<dt><code>blob (<a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
+					<dd>the <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onerror (Function)</code></dt>
@@ -95,7 +95,7 @@
 				<br>
 				<pre><code class="prettyprint">FS.prototype.exportBlob(onend, onprogress, onerror)</code></pre>
 				<p>
-					Export zipped content from the filesystem in a <code>Blob</code> object.
+					Export zipped content from the filesystem in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -125,12 +125,12 @@
 				<br>
 				<pre><code class="prettyprint">FS.prototype.exportFile(fileEntry, onend, onprogress, onerror)</code></pre>
 				<p>
-					Export zipped content from the filesystem in a <code>FileEntry</code> object.
+					Export zipped content from the filesystem in a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>fileEntry (FileEntry)</code></dt>
-					<dd>the <code>FileEntry</code> object</dd>
+					<dt><code>fileEntry (<a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a>)</code></dt>
+					<dd>the <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
@@ -141,7 +141,7 @@
 				<br>
 				<pre><code class="prettyprint">FS.prototype.getById(entryId)</code></pre>
 				<p>
-					Get a <code>ZipEntry</code> object given a unique entry id.
+					Get a <code><a href="#zip-entry">ZipEntry</a></code> object given a unique entry id.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -151,7 +151,7 @@
 				<br>
 				<pre><code class="prettyprint">FS.prototype.find(fullname)</code></pre>
 				<p>
-					Get a <code>ZipEntry</code> object given a unique entry full filename.
+					Get a <code><a href="#zip-entry">ZipEntry</a></code> object given a unique entry full filename.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -161,11 +161,11 @@
 				<br>
 				<pre><code class="prettyprint">FS.prototype.remove(zipEntry)</code></pre>
 				<p>
-					Remove a <code>ZipEntry</code> object from the virtual filesystem.
+					Remove a <code><a href="#zip-entry">ZipEntry</a></code> object from the virtual filesystem.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>zipEntry (ZipEntry)</code></dt>
+					<dt><code>zipEntry (<a href="#zip-entry">ZipEntry</a>)</code></dt>
 					<dd>the entry to remove</dd>
 				</dl>
 				<br>
@@ -176,30 +176,30 @@
 				<p>
 					ZipEntry constructor
 					<br>
-					Each <code>ZipEntry</code> object represents a node in the zip directory tree.
-					A file in the zip is a <code>ZipFileEntry</code> with a <code>ZipEntry</code> object as prototype.
-					A directory in the zip is a <code>ZipDirectoryEntry</code> with a <code>ZipEntry</code> object as prototype.
+					Each <code><a href="#zip-entry">ZipEntry</a></code> object represents a node in the zip directory tree.
+					A file in the zip is a <code><a href="#zip-file-entry">ZipFileEntry</a></code> with a <code><a href="#zip-entry">ZipEntry</a></code> object as prototype.
+					A directory in the zip is a <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> with a <code><a href="#zip-entry">ZipEntry</a></code> object as prototype.
 				</p>
 				<h3>Attributes</h3>
 				<dl>
 					<dt><code>name (string)</code></dt>
 					<dd>the entry filename</dd>
 					<dt><code>directory (boolean)</code></dt>
-					<dd><code>true</code> if the entry is a <code>ZipDirectoryEntry</code> object</dd>
-					<dt><code>children (Array of ZipEntry)</code></dt>
-					<dd>the entry children, empty if the entry is a <code>ZipFileEntry</code> object</dd>
+					<dd><code>true</code> if the entry is a <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object</dd>
+					<dt><code>children (Array of <a href="#zip-entry">ZipEntry</a>)</code></dt>
+					<dd>the entry children, empty if the entry is a <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 					<dt><code>id (number)</code></dt>
 					<dd>the entry unique id</dd>
 				</dl>
 				<h3>Methods</h3>
 				<pre><code class="prettyprint">ZipEntry.prototype.getFileEntry(fileEntry, onend, onprogress, onerror)</code></pre>
 				<p>
-					Store entry content into a <code>FileEntry</code> object.
+					Store entry content into a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>fileEntry (FileEntry)</code></dt>
-					<dd>the <code>FileEntry</code> object</dd>
+					<dt><code>fileEntry (<a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a>)</code></dt>
+					<dd>the <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onprogress (Function)</code></dt>
@@ -210,12 +210,12 @@
 				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.moveTo(directory)</code></pre>
 				<p>
-					Move <code>this</code> entry into the target <code>ZipDirectoryEntry</code> object.
+					Move <code>this</code> entry into the target <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>directory (ZipDirectoryEntry)</code></dt>
-					<dd>the target <code>ZipDirectoryEntry</code> object</dd>
+					<dt><code>directory (<a href="#zip-directory-entry">ZipDirectoryEntry</a>)</code></dt>
+					<dd>the target <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.getFullname()</code></pre>
@@ -234,7 +234,7 @@
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>ancestor (ZipDirectoryEntry)</code></dt>
+					<dt><code>ancestor (<a href="#zip-directory-entry">ZipDirectoryEntry</a>)</code></dt>
 					<dd>the ancestor</dd>
 				</dl>
 				<p>Return</p>
@@ -262,7 +262,7 @@
 				<br>
 				<pre><code class="prettyprint">ZipFileEntry.prototype.getBlob(callback)</code></pre>
 				<p>
-					Get file entry content as a <code>Blob</code> object.
+					Get file entry content as a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -300,13 +300,13 @@
 				</dl>
 				<p>Return</p>
 				<dl>
-					<dt><code>ZipDirectoryEntry</code></dt>
-					<dd>the new <code>ZipDirectoryEntry</code> object</dd>
+					<dt><code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code></dt>
+					<dd>the new <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addBlob(name, blob)</code></pre>
 				<p>
-					Add a <code>Blob</code> object file into <code>this</code> directory entry.
+					Add a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object file into <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -314,13 +314,13 @@
 					<dd>the file name</dd>
 				</dl>
 				<dl>
-					<dt><code>blob (Blob)</code></dt>
-					<dd>the <code>Blob</code> content</dd>
+					<dt><code>blob (<a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
+					<dd>the <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> content</dd>
 				</dl>
 				<p>Return</p>
 				<dl>
-					<dt><code>ZipFileEntry</code></dt>
-					<dd>the new <code>ZipFileEntry</code> object</dd>
+					<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
+					<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addText(name, text)</code></pre>
@@ -338,8 +338,8 @@
 				</dl>
 				<p>Return</p>
 				<dl>
-					<dt><code>ZipFileEntry</code></dt>
-					<dd>the new <code>ZipFileEntry</code> object</dd>
+					<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
+					<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addData64URI(name, dataURI)</code></pre>
@@ -357,8 +357,8 @@
 				</dl>
 				<p>Return</p>
 				<dl>
-					<dt><code>ZipFileEntry</code></dt>
-					<dd>the new <code>ZipFileEntry</code> object</dd>
+					<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
+					<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addHTTPContent(name, URL, size, useRangeHeader)</code></pre>
@@ -384,20 +384,20 @@
 				</dl>
 				<p>Return</p>
 				<dl>
-					<dt><code>ZipFileEntry</code></dt>
-					<dd>the new <code>ZipFileEntry</code> object</dd>
+					<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
+					<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addFileEntry(entry, callback, onerror)</code></pre>
 				<p>
-					Add a <code>FileEntry</code> or a <code>DirectoryEntry</code> into <code>this</code> directory entry.
-					If entry is a <code>FileEntry</code> object then <code>FileEntry.prototype.getData</code> function is called in order to get its content.
-					If entry is a <code>DirectoryEntry</code> object then all its children (file or directory) will be added recursively into <code>this</code> directory entry.
+					Add a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> or a <code><a href="http://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a></code> into <code>this</code> directory entry.
+					If entry is a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object then <code><a href="http://www.w3.org/TR/file-system-api/#widl-FileEntry-file">FileEntry.prototype.file()</a></code> function is called in order to get its content.
+					If entry is a <code><a href="http://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a></code> object then all its children (file or directory) will be added recursively into <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>entry (FileEntry or DirectoryEntry)</code></dt>
-					<dd>the FileEntry or DirectoryEntry object</dd>
+					<dt><code>entry (<a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a href="http://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a>)</code></dt>
+					<dd>the <a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a href="http://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a> object</dd>
 				</dl>
 				<dl>
 					<dt><code>callback (Function)</code></dt>
@@ -410,12 +410,12 @@
 				<br>
 				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.importBlob(blob, onend, onerror)</code></pre>
 				<p>
-					Import a zipped content stored in a <code>Blob</code> object into <code>this</code> directory entry
+					Import a zipped content stored in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object into <code>this</code> directory entry
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>blob (Blob)</code></dt>
-					<dd>the <code>Blob</code> object</dd>
+					<dt><code>blob (<a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
+					<dd>the <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onerror (Function)</code></dt>
@@ -454,7 +454,7 @@
 				<br>
 				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportBlob(onend, onprogress, onerror)</code></pre>
 				<p>
-					Export zipped content in a <code>Blob</code> object from <code>this</code> directory entry.
+					Export zipped content in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object from <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -484,12 +484,12 @@
 				<br>
 				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportFile(fileEntry, onend, onprogress, onerror)</code></pre>
 				<p>
-					Export zipped content in a <code>FileEntry</code> object from <code>this</code> directory entry.
+					Export zipped content in a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object from <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>fileEntry (FileEntry)</code></dt>
-					<dd>the <code>FileEntry</code> object</dd>
+					<dt><code>fileEntry (<a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a>)</code></dt>
+					<dd>the <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
@@ -498,9 +498,9 @@
 					<dd>error callback function - optional</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.getChildByName(name)</code></pre>
+				<pre><code class="prettyprint"><a href="#zip-directory-entry">ZipDirectoryEntry</a>.prototype.getChildByName(name)</code></pre>
 				<p>
-					Get a <code>ZipEntry</code> child object given its filename.
+					Get a <code><a href="#zip-entry">ZipEntry</a></code> child object given its filename.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -509,8 +509,8 @@
 				</dl>
 				<p>Return</p>
 				<dl>
-					<dt><code>ZipEntry</code></dt>
-					<dd>the <code>ZipEntry</code> object</dd>
+					<dt><code><a href="#zip-entry">ZipEntry</a></code></dt>
+					<dd>the <code><a href="#zip-entry">ZipEntry</a></code> object</dd>
 				</dl>
 			</li>
 		</ol>

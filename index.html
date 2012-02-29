@@ -26,9 +26,9 @@
 		</div>
 
 		<p>
-			<code>zip.js</code> offers a low-level API for writing and reading large zip files (up to 4GB with <a href="http://www.w3.org/TR/file-writer-api/#idl-def-FileWriter">FileWriter</a> API).
+			<code>zip.js</code> provides a low-level API for writing and reading large zip files (up to 4GB with <a href="http://www.w3.org/TR/file-writer-api/#idl-def-FileWriter">FileWriter</a> API).
 			<br>
-			<code>zip-fs.js</code> offers a high-level filesystem API.
+			<code>zip-fs.js</code> provides a high-level filesystem API.
 		</p>
 
 		<p>This library is implemented with these HTML5 features:
@@ -44,11 +44,11 @@
 
 		<h2>Install</h2>
 		<ul>
-			<li>include zip.js, deflate.js, inflate.js and dataview.js (for Firefox <code>DataView</code> support) in your project</li>
-			<li>add zip.js in your HTML page
+			<li>include <code>zip.js</code>, <code>deflate.js</code>, <code>inflate.js</code>, and <code>dataview.js</code> (for Firefox <code>DataView</code> support) in your project</li>
+			<li>add <code>zip.js</code> in your HTML page
 				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip.js&quot;&gt;&lt;/script&gt;</code></pre>
 			</li>
-			<li>add dataview.js if you need to support Firefox
+			<li>add <code>dataview.js</code> if you need to support Firefox
 				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/dataview.js&quot;&gt;&lt;/script&gt;</code></pre>
 			</li>
 			<li>set <code>zip.workerScriptsPath</code> if needed (i.e. deflate.js and inflate.js path)

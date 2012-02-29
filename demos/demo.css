@@ -1,3 +1,7 @@
+#container {
+	width: 700px;
+}
+
 #demo-container li {
 	margin-bottom: 1em;
 	min-height: 40px;
@@ -42,7 +46,7 @@ input[type=text] {
 	height: 21px;
 }
 
-input[type=text], select {
+input[type=text],select {
 	font-size: 12pt;
 	padding: 4px;
 	border: solid 1px #AACFE4;
@@ -61,7 +65,7 @@ input[type=file] {
 	font-size: 12pt;
 }
 
-button, #download-button {
+button,#download-button {
 	margin: 0px;
 	font-size: 12pt;
 	padding: 4px;
@@ -71,7 +75,7 @@ button, #download-button {
 	box-shadow: 0px 0px 10px #ccc;
 }
 
-input[type=file]::-webkit-file-upload-button  {
+input[type=file]::-webkit-file-upload-button {
 	margin: 0px;
 	font-size: 12pt;
 	padding: 4px;
