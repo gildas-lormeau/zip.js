@@ -22,8 +22,8 @@
 		<h2>Contents</h2>
 		<ol>
 			<li><a href="#io">I/O</a></li>
-			<li><a href="#zip-reader">Zip reading</a></li>
-			<li><a href="#zip-reader-example">Zip reading example</a></li>
+			<li><a href="#zip-reading">Zip reading</a></li>
+			<li><a href="#zip-reading-example">Zip reading example</a></li>
 			<li><a href="#zip-writing">Zip writing</a></li>
 			<li><a href="#zip-writing-example">Zip writing example</a></li>
 		</ol>
@@ -34,16 +34,16 @@
 				<h3>Reader and Writer constructors</h3>
 				<p>
 					<code>zip.js</code> can handle multiple types of data thanks to a generic API.
-					This feature is based on 2 abstract constructors: <code><a href="#zip-reader">zip.Reader</a></code> and <code><a href="#zip-writer">zip.Writer</a></code>.
+					This feature is based on 2 abstract constructors: <code><a href="#zip-reading">zip.Reader</a></code> and <code><a href="#zip-writer">zip.Writer</a></code>.
 					<br>
-					<code><a href="#zip-reader">zip.Reader</a></code> constructors help to read data from a file and <code><a href="#zip-writer">zip.Writer</a></code> constructors help to write data into a file.
+					<code><a href="#zip-reading">zip.Reader</a></code> constructors help to read data from a file and <code><a href="#zip-writer">zip.Writer</a></code> constructors help to write data into a file.
 				</p>
 				<p>
-					For example, if you need to read a zip and store its file into a variable, you must use a <code><a href="#zip-reader">zip.Reader</a></code> object to read the compressed zip data.
+					For example, if you need to read a zip and store its file into a variable, you must use a <code><a href="#zip-reading">zip.Reader</a></code> object to read the compressed zip data.
 					You must also use a <code><a href="#zip-writer">zip.Writer</a></code> object to write uncompressed file data into the variable.
 				</p>
 
-				<h3 id="zip-reader">Reader constructors</h3>
+				<h3 id="zip-reading">Reader constructors</h3>
 				<pre><code class="prettyprint">zip.TextReader(text)</code></pre>
 				<p>
 					<code>string</code> reader constructor
@@ -102,7 +102,7 @@
 				</dl>
 				<p>Methods:</p>
 				<pre><code class="prettyprint">zip.Reader.prototype.init(callback)</code></pre>
-				<p>Initialize the <code><a href="#zip-reader">zip.Reader</a></code> object.</p>
+				<p>Initialize the <code><a href="#zip-reading">zip.Reader</a></code> object.</p>
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>callback (Function)</code></dt>
@@ -187,7 +187,7 @@
 					<dd>error callback function</dd>
 				</dl>
 				<pre><code class="prettyprint">zip.Writer.prototype.getData(callback[, onerror])</code></pre>
-				<p>Get written data (returned type depends on <code><a href="#zip-reader">zip.Reader</a></code> constructor used)</p>
+				<p>Get written data (returned type depends on <code><a href="#zip-reading">zip.Reader</a></code> constructor used)</p>
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>callback (Function)</code></dt>
@@ -201,19 +201,19 @@
 				<h3>initialization</h3>
 				<pre><code class="prettyprint">zip.createReader(reader, callback[, onerror])</code></pre>
 				<p>
-					Create a <code><a href="#zip-reader-proto">ZipReader</a></code> object. A <code><a href="#zip-reader-proto">ZipReader</a></code> object helps to read the zipped content.
+					Create a <code><a href="#zip-reading-proto">ZipReader</a></code> object. A <code><a href="#zip-reading-proto">ZipReader</a></code> object helps to read the zipped content.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>reader (<a href="#zip-reader">zip.Reader</a>)</code></dt>
-					<dd>the <code><a href="#zip-reader">zip.Reader</a></code> object used to read input data</dd>
+					<dt><code>reader (<a href="#zip-reading">zip.Reader</a>)</code></dt>
+					<dd>the <code><a href="#zip-reading">zip.Reader</a></code> object used to read input data</dd>
 					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function returning the new <code><a href="#zip-reader-proto">ZipReader</a></code> object as parameter</dd>
+					<dd>success callback function returning the new <code><a href="#zip-reading-proto">ZipReader</a></code> object as parameter</dd>
 					<dt><code>onerror (Function)</code></dt>
 					<dd>global error callback function</dd>
 				</dl>
 
-				<h3 id="zip-reader-proto">Zip entries listing</h3>
+				<h3 id="zip-reading-proto">Zip entries listing</h3>
 				<pre><code class="prettyprint">ZipReader.prototype.getEntries(callback)</code></pre>
 				<p>
 					Get all entries from a zip.
@@ -323,8 +323,8 @@ zip.createReader(new zip.BlobReader(blob), function(reader) {
 				<dl>
 					<dt><code>name (string)</code></dt>
 					<dd>entry file name</dd>
-					<dt><code>reader (<a href="#zip-reader">zip.Reader</a>)</code></dt>
-					<dd>the <code><a href="#zip-reader">zip.Reader</a></code> object used to read entry data to add - null for directory entry</dd>
+					<dt><code>reader (<a href="#zip-reading">zip.Reader</a>)</code></dt>
+					<dd>the <code><a href="#zip-reading">zip.Reader</a></code> object used to read entry data to add - null for directory entry</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onprogress (Function)</code></dt>
