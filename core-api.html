@@ -240,7 +240,9 @@
 					<dt><code>uncompressedSize (number)</code></dt>
 					<dd>uncompressed data size</dd>
 					<dt><code>timeBlob (number)</code></dt>
-					<dd>creation date in raw format</dd>
+					<dd>creation date in raw format (MS-DOS)</dd>
+					<dt><code>comment (string)</code></dt>
+					<dd>file comment</dd>
 					<dt><code>crc32 (number)</code></dt>
 					<dd>uncompressed data checksum</dd>
 				</dl>
@@ -330,12 +332,16 @@ zip.createReader(new zip.BlobReader(blob), function(reader) {
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>progress callback function returning the progress index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
 					<dt><code>options (Object)</code></dt>
-					<dd>entry options
+					<dd>entry options properties:
 						<dl>
 							<dt><code>directory (boolean)</code></dt>
 							<dd><code>true</code> if the entry is a directory</dd>
 							<dt><code>level (number)</code></dt>
 							<dd>compression level from <code>0</code> to <code>9</code></dd>
+							<dt><code>comment (string)</code></dt>
+							<dd>file comment</dd>
+							<dt><code>lastModDate (Date)</code></dt>
+							<dd>last modification date</dd>
 						</dl>
 					</dd>
 				</dl>
