@@ -579,7 +579,7 @@
 					datalength = dataView.getUint32(16, true);
 					fileslength = dataView.getUint16(8, true);
 					reader.readUint8Array(datalength, reader.size - datalength, function(bytes) {
-						var i, index = 0, entries = [], entry, filename, data = getDataHelper(bytes.length, bytes);
+						var i, index = 0, entries = [], entry, filename, comment, data = getDataHelper(bytes.length, bytes);
 						for (i = 0; i < fileslength; i++) {
 							entry = new Entry();
 							if (data.view.getUint32(index) != 0x504b0102) {
@@ -592,8 +592,11 @@
 							entry.offset = data.view.getUint32(index + 42, true);
 							filename = getString(data.array.subarray(index + 46, index + 46 + entry.filenameLength));
 							entry.filename = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);
+							comment = getString(data.array.subarray(index + 46 + entry.filenameLength + entry.extraLength, index + 46 + entry.filenameLength
+									+ entry.extraLength + entry.commentLength));
+							entry.comment = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(comment) : decodeASCII(comment);
 							entries.push(entry);
-							index += 46 + entry.extraLength + entry.commentLength + entry.filenameLength;
+							index += 46 + entry.filenameLength + entry.extraLength + entry.commentLength;
 						}
 						callback(entries);
 					}, function() {
@@ -811,7 +814,8 @@
 					data = getDataHelper(30 + filename.length);
 					data.view.setUint32(0, 0x504b0304);
 					data.array.set(header.array, 4);
-					data.array.set([], 30); // FIXME: remove when chrome 18 will be stable (chrome 14: OK, chrome 16: KO, chromium 18: OK, chrome 17: OK)
+					data.array.set([], 30); // FIXME: remove when chrome 18 will be stable (chrome 14: OK, chrome 16: KO, chromium 18: OK,
+											// chrome 17: OK)
 					data.array.set(filename, 30);
 					datalength += data.array.length;
 					writer.writeUint8Array(data.array, callback, onwriteError);
