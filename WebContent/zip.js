@@ -841,7 +841,7 @@
 					compressedLength = 0;
 					options = options || {};
 					name = name.trim();
-					if (options.directory)
+					if (options.directory && name.charAt(name.length - 1) != "/")
 						name += "/";
 					if (files[name])
 						throw ERR_DUPLICATED_NAME;
