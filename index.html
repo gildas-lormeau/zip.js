@@ -31,17 +31,17 @@
 			<code>zip-fs.js</code> provides a high-level filesystem API.
 		</p>
 
-		<p>This library is implemented with these HTML5 features:
+		<p>This library depends on these APIs:
 		<ul>
 			<li><a href="http://www.w3.org/TR/workers/">Web workers</a></li>
 			<li><a href="http://www.w3.org/TR/FileAPI/">File</a></li>
 			<li><a href="http://www.w3.org/TR/file-writer-api/">File writer</a></li>
-			<li><a href="http://www.khronos.org/registry/typedarray/specs/latest/">Typed arrays</a> (WebGL)</li>
+			<li><a href="http://www.khronos.org/registry/typedarray/specs/latest/">Typed array</a> (WebGL)</li>
 			<li><a href="http://www.w3.org/TR/file-system-api/">File directories and system</a> (optionally)</li>
 		</ul>
 
 		<h2>Note</h2>
-		This library works currently only with Chrome and Firefox (with <a href="https://github.com/davidflanagan/DataView.js">DataView.js from David Flanagan</a>).
+		This library works currently only with Chrome and Firefox (with <a href="https://github.com/davidflanagan/DataView.js"><code>DataView.js</code> from David Flanagan</a>).
 
 		<h2>Install</h2>
 		<ul>
@@ -52,7 +52,7 @@
 			<li>add <code>dataview.js</code> if you need to support Firefox
 				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/dataview.js&quot;&gt;&lt;/script&gt;</code></pre>
 			</li>
-			<li>set <code>zip.workerScriptsPath</code> if needed (i.e. deflate.js and inflate.js path)
+			<li>set <code>zip.workerScriptsPath</code> if needed (i.e. <code>deflate.js</code> and <code>inflate.js</code> path)
 				<pre><code class="prettyprint">zip.workerScriptsPath = "/lib/";</code></pre>
 			</li>
 		</ul>
