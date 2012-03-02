@@ -787,10 +787,11 @@
 
 		return {
 			add : function(name, reader, onend, onprogress, options) {
-				var header, filename, date = new Date();
+				var header, filename, date;
 
 				function writeHeader(callback) {
 					var data;
+					date = options.lastModDate || new Date();
 					header = getDataHelper(26);
 					files[name] = {
 						headerArray : header.array,
