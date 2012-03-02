@@ -796,7 +796,8 @@
 						headerArray : header.array,
 						directory : options.directory,
 						filename : filename,
-						offset : datalength
+						offset : datalength,
+						comment : getBytes(encodeUTF8(options.comment || ""))
 					};
 					header.view.setUint32(0, 0x14000808);
 					if (options.version)
@@ -868,7 +869,8 @@
 			close : function(callback) {
 				var data, length = 0, index = 0;
 				filenames.forEach(function(name) {
-					length += 46 + files[name].filename.length;
+					var file = files[name];
+					length += 46 + file.filename.length + file.comment.length;
 				});
 				data = getDataHelper(length + 22);
 				filenames.forEach(function(name) {
@@ -876,11 +878,13 @@
 					data.view.setUint32(index, 0x504b0102);
 					data.view.setUint16(index + 4, 0x1400);
 					data.array.set(file.headerArray, index + 6);
+					data.view.setUint16(index + 32, file.comment.length, true);
 					if (file.directory)
 						data.view.setUint8(index + 38, 0x10);
 					data.view.setUint32(index + 42, file.offset, true);
 					data.array.set(file.filename, index + 46);
-					index += 46 + file.filename.length;
+					data.array.set(file.comment, index + 46 + file.filename.length);
+					index += 46 + file.filename.length + file.comment.length;
 				});
 				data.view.setUint32(index, 0x504b0506);
 				data.view.setUint16(index + 8, filenames.length, true);
