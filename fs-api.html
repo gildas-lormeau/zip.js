@@ -49,7 +49,7 @@
 					<dd>the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object referencing the root directory of the filesystem</dd>
 				</dl>
 				<h3>Methods</h3>
-				<pre><code class="prettyprint">FS.prototype.importBlob(blob, onend, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.importBlob(blob, onend[, onerror])</code></pre>
 				<p>
 					Reset the filesystem and import a zipped content stored in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
 				</p>
@@ -60,10 +60,10 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">FS.prototype.importData64URI(dataURI, onend, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.importData64URI(dataURI, onend[, onerror])</code></pre>
 				<p>
 					Reset the filesystem and import a zipped content stored in a data URI <code>string</code>.
 				</p>
@@ -74,10 +74,10 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">FS.prototype.importHTTPContent(URL, useRangeHeader, onend, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.importHTTPContent(URL, useRangeHeader, onend[, onerror])</code></pre>
 				<p>
 					Reset the filesystem and import a zipped content retrieved from a URL.
 				</p>
@@ -90,10 +90,10 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">FS.prototype.exportBlob(onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.exportBlob(onend[, onprogress, onerror])</code></pre>
 				<p>
 					Export zipped content from the filesystem in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
 				</p>
@@ -102,28 +102,28 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">FS.prototype.exportData64URI(mimeType, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.exportData64URI(mimeType, onend[, onprogress, onerror])</code></pre>
 				<p>
 					Export zipped content from the filesystem in a data URI.
 				</p>
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>mimeType (string)</code></dt>
-					<dd>data MIME type - optional</dd>
+					<dd>data MIME type</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">FS.prototype.exportFile(fileEntry, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">FS.prototype.exportFile(fileEntry, onend[, onprogress, onerror])</code></pre>
 				<p>
 					Export zipped content from the filesystem in a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object.
 				</p>
@@ -134,9 +134,9 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">FS.prototype.getById(entryId)</code></pre>
@@ -192,7 +192,7 @@
 					<dd>the entry unique id</dd>
 				</dl>
 				<h3>Methods</h3>
-				<pre><code class="prettyprint">ZipEntry.prototype.getFileEntry(fileEntry, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipEntry.prototype.getFileEntry(fileEntry, onend[, onprogress, onerror])</code></pre>
 				<p>
 					Store entry content into a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object.
 				</p>
@@ -203,9 +203,9 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint">ZipEntry.prototype.moveTo(directory)</code></pre>
@@ -277,7 +277,7 @@
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>mimeType (string)</code></dt>
-					<dd>data MIME type - optional</dd>
+					<dd>data MIME type</dd>
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function returning the unzipped content as parameter</dd>
 				</dl>
@@ -388,7 +388,7 @@
 					<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addFileEntry(entry, callback, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addFileEntry(entry, callback[, onerror])</code></pre>
 				<p>
 					Add a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> or a <code><a href="http://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a></code> into <code>this</code> directory entry.
 					If entry is a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object then <code><a href="http://www.w3.org/TR/file-system-api/#widl-FileEntry-file">FileEntry.prototype.file()</a></code> function is called in order to get its content.
@@ -405,10 +405,10 @@
 				</dl>
 				<dl>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.importBlob(blob, onend, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.importBlob(blob, onend[, onerror])</code></pre>
 				<p>
 					Import a zipped content stored in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object into <code>this</code> directory entry
 				</p>
@@ -419,10 +419,10 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.importData64URI(dataURI, onend, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.importData64URI(dataURI, onend[, onerror])</code></pre>
 				<p>
 					Import a zipped content stored in a data URI <code>string</code> into <code>this</code> directory entry.
 				</p>
@@ -433,10 +433,10 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.importHTTPContent(URL, useRangeHeader, onend, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.importHTTPContent(URL, useRangeHeader, onend[, onerror])</code></pre>
 				<p>
 					Import a zipped content retrieved from a URL into <code>this</code> directory entry.
 				</p>
@@ -449,10 +449,10 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportBlob(onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportBlob(onend[, onprogress, onerror])</code></pre>
 				<p>
 					Export zipped content in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object from <code>this</code> directory entry.
 				</p>
@@ -461,28 +461,28 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportData64URI(mimeType, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportData64URI(mimeType, onend[, onprogress, onerror])</code></pre>
 				<p>
 					Export zipped content in a data URI from <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
 					<dt><code>mimeType (string)</code></dt>
-					<dd>data MIME type - optional</dd>
+					<dd>data MIME type</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportFile(fileEntry, onend, onprogress, onerror)</code></pre>
+				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportFile(fileEntry, onend[, onprogress, onerror])</code></pre>
 				<p>
 					Export zipped content in a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object from <code>this</code> directory entry.
 				</p>
@@ -493,9 +493,9 @@
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters - optional</dd>					
+					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
 					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function - optional</dd>
+					<dd>error callback function</dd>
 				</dl>
 				<br>
 				<pre><code class="prettyprint"><a href="#zip-directory-entry">ZipDirectoryEntry</a>.prototype.getChildByName(name)</code></pre>
