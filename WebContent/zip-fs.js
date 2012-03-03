@@ -104,9 +104,7 @@
 			var childIndex = 0;
 
 			function addChild(child) {
-				function add(data) {
-					if (!child.directory && !child.reader)
-						child.reader = new child.Reader(data, onerror);
+				function add() {
 					zipWriter.add(child.getFullname(), child.reader, function() {
 						currentIndex += child.uncompressedSize || 0;
 						process(zipWriter, child, function() {
@@ -122,10 +120,13 @@
 					});
 				}
 
-				if (child.directory)
+				if (child.directory || child.reader)
 					add();
-				else
-					child.getData(child.Writer ? new child.Writer() : null, add);
+				else if (!child.reader)
+					child.getData(child.Writer ? new child.Writer() : null, function(data) {
+						child.reader = new child.Reader(data, onerror);
+						add();
+					});
 			}
 
 			function exportChild() {
