@@ -36,6 +36,7 @@
 	TextWriter = zip.TextWriter, //
 	BlobWriter = zip.BlobWriter, //
 	Data64URIWriter = zip.Data64URIWriter, //
+	Reader = zip.Reader, //
 	TextReader = zip.TextReader, //
 	BlobReader = zip.BlobReader, //
 	Data64URIReader = zip.Data64URIReader, //
@@ -43,6 +44,45 @@
 	HttpReader = zip.HttpReader, //
 	createReader = zip.createReader, //
 	createWriter = zip.createWriter;
+
+	function ZipBlobReader(entry) {
+		var that = this, blobReader;
+
+		function init(callback, onerror) {
+			this.size = entry.uncompressedSize;
+			callback();
+		}
+
+		function getData(callback, onerror) {
+			if (that.data)
+				callback();
+			else
+				entry.getData(new BlobWriter(), function(data) {
+					that.data = data;
+					blobReader = new BlobReader(data);
+					callback();
+				}, null, onerror);
+		}
+
+		function readUint8Array(index, length, callback, onerror) {
+			getData(function() {
+				blobReader.readUint8Array(index, length, callback, onerror);
+			}, onerror);
+		}
+
+		function readBlob(index, length, callback, onerror) {
+			getData(function() {
+				blobReader.readBlob(index, length, callback, onerror);
+			}, onerror);
+		}
+
+		that.size = 0;
+		that.init = init;
+		that.readBlob = readBlob;
+		that.readUint8Array = readUint8Array;
+	}
+	ZipBlobReader.prototype = new Reader();
+	ZipBlobReader.prototype.constructor = ZipBlobReader;
 
 	function getTotalSize(entry) {
 		var size = 0;
@@ -72,14 +112,11 @@
 			if (child.directory)
 				initReaders(child, next, onerror);
 			else {
-				if (child.data) {
-					child.reader = new child.Reader(child.data, onerror);
-					child.reader.init(function() {
-						child.uncompressedSize = child.reader.size;
-						next();
-					});
-				} else
+				child.reader = new child.Reader(child.data, onerror);
+				child.reader.init(function() {
+					child.uncompressedSize = child.reader.size;
 					next();
+				});
 			}
 		}
 
@@ -103,8 +140,9 @@
 		function process(zipWriter, entry, onend, onprogress, totalSize) {
 			var childIndex = 0;
 
-			function addChild(child) {
-				function add() {
+			function exportChild() {
+				var child = entry.children[childIndex];
+				if (child)
 					zipWriter.add(child.getFullname(), child.reader, function() {
 						currentIndex += child.uncompressedSize || 0;
 						process(zipWriter, child, function() {
@@ -118,21 +156,6 @@
 						directory : child.directory,
 						version : child.zipVersion
 					});
-				}
-
-				if (child.directory || child.reader)
-					add();
-				else if (!child.reader)
-					child.getData(child.Writer ? new child.Writer() : null, function(data) {
-						child.reader = new child.Reader(data, onerror);
-						add();
-					});
-			}
-
-			function exportChild() {
-				var child = entry.children[childIndex];
-				if (child)
-					addChild(child);
 				else
 					onend();
 			}
@@ -447,20 +470,15 @@
 		createReader(reader, function(zipReader) {
 			zipReader.getEntries(function(entries) {
 				entries.forEach(function(entry) {
-					var parent = that, path = entry.filename.split("/"), name = path.pop(), importedEntry;
+					var parent = that, path = entry.filename.split("/"), name = path.pop();
 					path.forEach(function(pathPart) {
 						parent = parent.getChildByName(pathPart) || new ZipDirectoryEntry(that.fs, pathPart, null, parent);
 					});
-					if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) != "/") {
-						importedEntry = addChild(parent, name, {
-							Reader : BlobReader,
-							Writer : BlobWriter,
-							getData : function(writer, onend, onprogress, onerror) {
-								entry.getData(writer, onend, onprogress, onerror);
-							}
+					if (!entry.directory)
+						addChild(parent, name, {
+							data : entry,
+							Reader : ZipBlobReader
 						});
-						importedEntry.uncompressedSize = entry.uncompressedSize;
-					}
 				});
 				onend();
 			});
