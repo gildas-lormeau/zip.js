@@ -453,8 +453,7 @@
 					chunkIndex++;
 					if (onprogress)
 						onprogress(index, size);
-					if (onappend)
-						onappend(true, array);
+					onappend(true, array);
 				}, onreaderror);
 			else
 				worker.postMessage({
