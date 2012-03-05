@@ -101,12 +101,14 @@
 					<dd>The uncompressed data byte size</dd>
 				</dl>
 				<p>Methods:</p>
-				<pre><code class="prettyprint">zip.Reader.prototype.init(callback)</code></pre>
+				<pre><code class="prettyprint">zip.Reader.prototype.init(callback, onerror)</code></pre>
 				<p>Initialize the <code><a href="#zip-reading">zip.Reader</a></code> object.</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>callback (Function)</code></dt>
+					<dt><code>success callback (Function)</code></dt>
 					<dd>callback function</dd>
+					<dt><code>onerror (Function)</code></dt>
+					<dd>error callback function</dd>
 				</dl>
 				<pre><code class="prettyprint">zip.Reader.prototype.readUint8Array(index, length, callback[, onerror])</code></pre>
 				<p>Extract an <code><a href="http://www.khronos.org/registry/typedarray/specs/latest/#7">UInt8Array</a></code> object beginning at <code>index</code> location through the specified <code>length</code>.</p>
@@ -239,7 +241,9 @@
 					<dd>compressed data size</dd>
 					<dt><code>uncompressedSize (number)</code></dt>
 					<dd>uncompressed data size</dd>
-					<dt><code>timeBlob (number)</code></dt>
+					<dt><code>lastModDate (Date)</code></dt>
+					<dd>creation date</dd>
+					<dt><code>lastModDateRaw (number)</code></dt>
 					<dd>creation date in raw format (MS-DOS)</dd>
 					<dt><code>comment (string)</code></dt>
 					<dd>file comment</dd>
@@ -247,7 +251,7 @@
 					<dd>uncompressed data checksum</dd>
 				</dl>
 				<p>Methods:</p>
-				<pre><code class="prettyprint">Entry.prototype.getData(writer, onend[, onprogress])</code></pre>
+				<pre><code class="prettyprint">Entry.prototype.getData(writer, onend[, onprogress, checkCrc32])</code></pre>
 				<p>
 					Get the data of a zip entry.
 				</p>
@@ -259,6 +263,8 @@
 					<dd>success callback function returning the output data (returned type depends on <code><a href="#zip-writer">zip.Writer</a></code> constructor used) as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>progress callback function returning the progress index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
+					<dt><code>checkCrc32 (boolean)</code></dt>
+					<dd>pass <code>true</code> to verify data integrity</dd>
 				</dl>
 				<h3>Zip closing</h3>
 				<pre><code class="prettyprint">ZipReader.prototype.close(callback)</code></pre>
@@ -284,6 +290,7 @@ zip.createReader(new zip.BlobReader(blob), function(reader) {
       // get first entry content as text
       entries[0].getData(new zip.TextWriter(), function(text) {
         // text contains the entry data as a String
+        console.log(text);
 
         // close the zip reader
         reader.close(function() {
@@ -342,6 +349,8 @@ zip.createReader(new zip.BlobReader(blob), function(reader) {
 							<dd>file comment</dd>
 							<dt><code>lastModDate (Date)</code></dt>
 							<dd>last modification date</dd>
+							<dt><code>version (number)</code></dt>
+							<dd>zip version</dd>
 						</dl>
 					</dd>
 				</dl>

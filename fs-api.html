@@ -250,7 +250,7 @@
 					ZipFileEntry constructor
 				</p>
 				<h3>Methods</h3>
-				<pre><code class="prettyprint">ZipFileEntry.prototype.getText(callback)</code></pre>
+				<pre><code class="prettyprint">ZipFileEntry.prototype.getText(callback[, checkCrc32])</code></pre>
 				<p>
 					Get file entry content as a <code>string</code>.
 				</p>
@@ -258,9 +258,11 @@
 				<dl>
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function returning the unzipped content as parameter</dd>
+					<dt><code>checkCrc32 (boolean)</code></dt>
+					<dd>pass <code>true</code> to verify data integrity</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipFileEntry.prototype.getBlob(callback)</code></pre>
+				<pre><code class="prettyprint">ZipFileEntry.prototype.getBlob(callback[, checkCrc32])</code></pre>
 				<p>
 					Get file entry content as a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
 				</p>
@@ -268,9 +270,11 @@
 				<dl>
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function returning the unzipped content as parameter</dd>
+					<dt><code>checkCrc32 (boolean)</code></dt>
+					<dd>pass <code>true</code> to verify data integrity</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipFileEntry.prototype.getData64URI(mimeType, callback)</code></pre>
+				<pre><code class="prettyprint">ZipFileEntry.prototype.getData64URI(mimeType, callback[, checkCrc32])</code></pre>
 				<p>
 					Get file entry content as a data URI string.
 				</p>
@@ -280,6 +284,8 @@
 					<dd>data MIME type</dd>
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function returning the unzipped content as parameter</dd>
+					<dt><code>checkCrc32 (boolean)</code></dt>
+					<dd>pass <code>true</code> to verify data integrity</dd>
 				</dl>
 			</li>
 			<li>
