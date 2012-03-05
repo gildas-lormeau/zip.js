@@ -385,14 +385,14 @@
 
 	ZipFileEntry.prototype = ZipFileEntryProto = new ZipEntry();
 	ZipFileEntryProto.constructor = ZipFileEntry;
-	ZipFileEntryProto.getText = function(onend, onprogress) {
-		this.getData(new TextWriter(), onend, onprogress);
+	ZipFileEntryProto.getText = function(onend, onprogress, checkCrc32) {
+		this.getData(new TextWriter(), onend, onprogress, checkCrc32);
 	};
-	ZipFileEntryProto.getBlob = function(onend, onprogress) {
-		this.getData(new BlobWriter(), onend, onprogress);
+	ZipFileEntryProto.getBlob = function(onend, onprogress, checkCrc32) {
+		this.getData(new BlobWriter(), onend, onprogress, checkCrc32);
 	};
-	ZipFileEntryProto.getData64URI = function(mimeType, onend, onprogress) {
-		this.getData(new Data64URIWriter(mimeType), onend, onprogress);
+	ZipFileEntryProto.getData64URI = function(mimeType, onend, onprogress, checkCrc32) {
+		this.getData(new Data64URIWriter(mimeType), onend, onprogress, checkCrc32);
 	};
 
 	var ZipDirectoryEntryProto;
