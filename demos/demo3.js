@@ -59,7 +59,7 @@
 				if (requestFileSystem)
 					createTempFile(function(fileEntry) {
 						zipFileEntry = fileEntry;
-						entry.exportFile(zipFileEntry, onexport, onprogress, onerror);
+						entry.exportFileEntry(zipFileEntry, onexport, onprogress, onerror);
 					});
 				else
 					entry.exportBlob(onexport, onprogress, onerror);
