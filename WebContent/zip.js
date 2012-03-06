@@ -42,7 +42,7 @@
 	var INFLATE_JS = "inflate.js";
 	var DEFLATE_JS = "deflate.js";
 
-	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MsBlobBuilder || obj.BlobBuilder;
+	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MSBlobBuilder || obj.BlobBuilder;
 
 	var crc32Table = (function() {
 		var i, j, t, table = [];
