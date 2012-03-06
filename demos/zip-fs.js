@@ -53,7 +53,7 @@
 			callback();
 		}
 
-		function getData(callback, onerror) {
+		function getData(callback) {
 			if (that.data)
 				callback();
 			else
@@ -61,7 +61,7 @@
 					that.data = data;
 					blobReader = new BlobReader(data);
 					callback();
-				}, null, onerror);
+				}, null, that.checkCrc32);
 		}
 
 		function readUint8Array(index, length, callback, onerror) {
@@ -83,6 +83,7 @@
 	}
 	ZipBlobReader.prototype = new Reader();
 	ZipBlobReader.prototype.constructor = ZipBlobReader;
+	ZipBlobReader.prototype.checkCrc32 = false;
 
 	function getTotalSize(entry) {
 		var size = 0;
@@ -217,7 +218,7 @@
 			}, onerror);
 	}
 
-	function getFileEntry(fileEntry, entry, onend, onprogress, totalSize) {
+	function getFileEntry(fileEntry, entry, onend, onprogress, totalSize, checkCrc32) {
 		var currentIndex = 0, rootEntry;
 
 		function process(fileEntry, entry, onend, onprogress, totalSize) {
@@ -243,7 +244,7 @@
 						child.getData(new FileWriter(file), nextChild, function(index, max) {
 							if (onprogress)
 								onprogress(currentIndex + index, totalSize);
-						});
+						}, checkCrc32);
 					}, onerror);
 			}
 
@@ -261,7 +262,7 @@
 		if (entry.directory)
 			process(fileEntry, entry, onend, onprogress, totalSize);
 		else
-			entry.getData(new FileWriter(fileEntry), onend, onprogress);
+			entry.getData(new FileWriter(fileEntry), onend, onprogress, checkCrc32);
 	}
 
 	function resetFS(fs) {
@@ -333,10 +334,10 @@
 			if (parent)
 				that.parent.children.push(that);
 		},
-		getFileEntry : function(fileEntry, onend, onprogress, onerror) {
+		getFileEntry : function(fileEntry, onend, onprogress, onerror, checkCrc32) {
 			var that = this;
 			initReaders(that, function() {
-				getFileEntry(fileEntry, that, onend, onprogress, getTotalSize(that));
+				getFileEntry(fileEntry, that, onend, onprogress, getTotalSize(that), checkCrc32);
 			}, onerror);
 		},
 		moveTo : function(target) {

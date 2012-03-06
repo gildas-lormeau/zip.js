@@ -42,7 +42,7 @@
 	var INFLATE_JS = "inflate.js";
 	var DEFLATE_JS = "deflate.js";
 
-	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MsBlobBuilder || obj.BlobBuilder;
+	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MSBlobBuilder || obj.BlobBuilder;
 
 	var crc32Table = (function() {
 		var i, j, t, table = [];
@@ -106,28 +106,24 @@
 	};
 
 	function TextReader(text) {
-		var that = this;
+		var that = this, blobReader;
 
 		function init(callback, onerror) {
-			that.size = text.length;
-			callback();
-		}
-
-		function readUint8Array(index, length, callback, onerror) {
-			readBlob(index, length, function(blob) {
-				var reader = new FileReader();
-				reader.onload = function(e) {
-					callback(new Uint8Array(e.target.result));
-				};
-				reader.onerror = onerror;
-				reader.readAsArrayBuffer(blob);
+			var blobBuilder = new BlobBuilder();
+			blobBuilder.append(text);
+			blobReader = new BlobReader(blobBuilder.getBlob());
+			blobReader.init(function() {
+				that.size = blobReader.size;
+				callback();
 			}, onerror);
 		}
 
+		function readUint8Array(index, length, callback, onerror) {
+			blobReader.readUint8Array(index, length, callback, onerror);
+		}
+
 		function readBlob(index, length, callback, onerror) {
-			var blobBuilder = new BlobBuilder();
-			blobBuilder.append(text.substring(index, index + length));
-			callback(blobBuilder.getBlob());
+			blobReader.readBlob(index, length, callback, onerror);
 		}
 
 		that.size = 0;
@@ -302,22 +298,30 @@
 	};
 
 	function TextWriter() {
-		var that = this;
+		var that = this, blobBuilder;
 
 		function init(callback, onerror) {
-			that.data = "";
+			blobBuilder = new BlobBuilder();
 			callback();
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			var i;
-			for (i = 0; i < array.length; i++)
-				that.data += String.fromCharCode(array[i]);
+			blobBuilder.append(array.buffer);
 			callback();
+		}
+
+		function getData(callback) {
+			var reader = new FileReader();
+			reader.onload = function(e) {
+				callback(e.target.result);
+			};
+			reader.onerror = onerror;
+			reader.readAsText(blobBuilder.getBlob());
 		}
 
 		that.init = init;
 		that.writeUint8Array = writeUint8Array;
+		that.getData = getData;
 	}
 	TextWriter.prototype = new Writer();
 	TextWriter.prototype.constructor = TextWriter;
@@ -393,8 +397,7 @@
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			var buffer = array.buffer;
-			blobBuilder.append(buffer);
+			blobBuilder.append(array.buffer);
 			callback();
 		}
 
@@ -453,8 +456,7 @@
 					chunkIndex++;
 					if (onprogress)
 						onprogress(index, size);
-					if (onappend)
-						onappend(true, array);
+					onappend(true, array);
 				}, onreaderror);
 			else
 				worker.postMessage({
@@ -688,10 +690,10 @@
 							entry.offset = data.view.getUint32(index + 42, true);
 							filename = getString(data.array.subarray(index + 46, index + 46 + entry.filenameLength));
 							entry.filename = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);
-							comment = getString(data.array.subarray(index + 46 + entry.filenameLength + entry.extraFieldLength, index + 46
-									+ entry.filenameLength + entry.extraFieldLength + entry.commentLength));
 							if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) == "/")
 								entry.directory = true;
+							comment = getString(data.array.subarray(index + 46 + entry.filenameLength + entry.extraFieldLength, index + 46
+									+ entry.filenameLength + entry.extraFieldLength + entry.commentLength));
 							entry.comment = ((entry.bitFlag & 0x0800) === 0x0800) ? decodeUTF8(comment) : decodeASCII(comment);
 							entries.push(entry);
 							index += 46 + entry.filenameLength + entry.extraFieldLength + entry.commentLength;
