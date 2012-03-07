@@ -414,7 +414,7 @@
 
 	// inflate/deflate core functions
 
-	function launchWorker(worker, reader, writer, offset, size, onappend, onprogress, onend, onreaderror, onwriteerror) {
+	function launchWorkerProcess(worker, reader, writer, offset, size, onappend, onprogress, onend, onreaderror, onwriteerror) {
 		var chunkIndex = 0, index, outputSize;
 
 		function onflush() {
@@ -469,36 +469,90 @@
 		step();
 	}
 
+	function launchProcess(process, reader, writer, offset, size, onappend, onprogress, onend, onreaderror, onwriteerror) {
+		var chunkIndex = 0, index, outputSize = 0;
+
+		function step() {
+			var outputData;
+			index = chunkIndex * CHUNK_SIZE;
+			if (index < size)
+				reader.readUint8Array(offset + index, Math.min(CHUNK_SIZE, size - index), function(inputData) {
+					var outputData = process.append(inputData, function() {
+						if (onprogress)
+							onprogress(index + message.current, size);
+					});
+					outputSize += outputData.length;
+					writer.writeUint8Array(outputData, function() {
+						onappend(false, outputData);
+						chunkIndex++;
+						setTimeout(step, 1);
+					}, onwriteerror);
+					if (onprogress)
+						onprogress(index, size);
+					onappend(true, outputData);
+				}, onreaderror);
+			else {
+				outputData = process.flush();
+				if (outputData) {
+					outputSize += outputData.length;
+					writer.writeUint8Array(outputData, function() {
+						onappend(false, outputData);
+						onend(outputSize);
+					}, onwriteerror);
+				} else
+					onend(outputSize);
+			}
+		}
+
+		step();
+	}
+
 	function inflate(reader, writer, offset, size, computeCrc32, onend, onprogress, onreaderror, onwriteerror) {
-		var worker = new Worker(obj.zip.workerScriptsPath + INFLATE_JS), crc32 = new Crc32();
-		launchWorker(worker, reader, writer, offset, size, function(sending, array) {
+		var worker, crc32 = new Crc32();
+
+		function oninflateappend(sending, array) {
 			if (computeCrc32 && !sending)
 				crc32.append(array);
-		}, onprogress, function(outputSize) {
+		}
+
+		function oninflateend(outputSize) {
 			onend(outputSize, crc32.get());
-		}, onreaderror, onwriteerror);
+		}
+
+		if (obj.zip.useWebWorkers) {
+			worker = new Worker(obj.zip.workerScriptsPath + INFLATE_JS);
+			launchWorkerProcess(worker, reader, writer, offset, size, oninflateappend, onprogress, oninflateend, onreaderror, onwriteerror);
+		} else
+			launchProcess(new obj.zip.Inflater(), reader, writer, offset, size, oninflateappend, onprogress, oninflateend, onreaderror, onwriteerror);
 		return worker;
 	}
 
 	function deflate(reader, writer, level, onend, onprogress, onreaderror, onwriteerror) {
 		var worker, crc32 = new Crc32();
 
-		function onmessage() {
-			worker.removeEventListener("message", onmessage, false);
-			launchWorker(worker, reader, writer, 0, reader.size, function(sending, array) {
-				if (sending)
-					crc32.append(array);
-			}, onprogress, function(outputSize) {
-				onend(outputSize, crc32.get());
-			}, onreaderror, onwriteerror);
+		function ondeflateappend(sending, array) {
+			if (sending)
+				crc32.append(array);
 		}
 
-		worker = new Worker(obj.zip.workerScriptsPath + DEFLATE_JS);
-		worker.addEventListener("message", onmessage, false);
-		worker.postMessage({
-			init : true,
-			level : level
-		});
+		function ondeflateend(outputSize) {
+			onend(outputSize, crc32.get());
+		}
+
+		function onmessage() {
+			worker.removeEventListener("message", onmessage, false);
+			launchWorkerProcess(worker, reader, writer, 0, reader.size, ondeflateappend, onprogress, ondeflateend, onreaderror, onwriteerror);
+		}
+
+		if (obj.zip.useWebWorkers) {
+			worker = new Worker(obj.zip.workerScriptsPath + DEFLATE_JS);
+			worker.addEventListener("message", onmessage, false);
+			worker.postMessage({
+				init : true,
+				level : level
+			});
+		} else
+			launchProcess(new obj.zip.Deflater(), reader, writer, 0, reader.size, ondeflateappend, onprogress, ondeflateend, onreaderror, onwriteerror);
 		return worker;
 	}
 
@@ -897,7 +951,8 @@
 				callback(createZipWriter(writer, onerror, dontDeflate));
 			}, onerror);
 		},
-		workerScriptsPath : ""
+		workerScriptsPath : "",
+		useWebWorkers : true
 	};
 
 })(this);
