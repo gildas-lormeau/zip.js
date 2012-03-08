@@ -482,6 +482,7 @@
 							onprogress(index + message.current, size);
 					});
 					outputSize += outputData.length;
+					onappend(true, inputData);
 					writer.writeUint8Array(outputData, function() {
 						onappend(false, outputData);
 						chunkIndex++;
@@ -489,7 +490,6 @@
 					}, onwriteerror);
 					if (onprogress)
 						onprogress(index, size);
-					onappend(true, outputData);
 				}, onreaderror);
 			else {
 				outputData = process.flush();
