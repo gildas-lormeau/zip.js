@@ -8,14 +8,14 @@ function onerror(message) {
 }
 
 function zipDataURI(dataURI, callback) {
-	zip.createWriter(new zip.Data64URIWriter(), function(zipWriter) {
+	zip.createWriter(new zip.Data64URIWriter("text/plain"), function(zipWriter) {
 		zipWriter.add(FILENAME, new zip.Data64URIReader(dataURI), function() {
 			zipWriter.close(callback);
 		});
 	}, onerror);
 }
 
-function unzipData64(dataURI, callback) {
+function unzipDataURI(dataURI, callback) {
 	zip.createReader(new zip.Data64URIReader(dataURI), function(zipReader) {
 		zipReader.getEntries(function(entries) {
 			entries[0].getData(new zip.Data64URIWriter("text/plain"), function(data) {
@@ -34,7 +34,8 @@ function logDataURI(dataURI) {
 zip.useWebWorkers = false;
 logDataURI(dataURI);
 zipDataURI(dataURI, function(zippedData64) {
-	unzipData64(zippedData64, function(unzippedDataURI) {
+	logDataURI(zippedData64);
+	unzipDataURI(zippedData64, function(unzippedDataURI) {
 		logDataURI(unzippedDataURI);
 	});
 });
