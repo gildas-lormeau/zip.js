@@ -35,7 +35,6 @@ function logBlobText(blob) {
 	reader.readAsText(blob);
 }
 
-zip.workerScriptsPath = "../";
 zip.useWebWorkers = false;
 blobBuilder = new BlobBuilder();
 blobBuilder.append(TEXT_CONTENT);

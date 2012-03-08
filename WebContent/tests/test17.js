@@ -31,7 +31,6 @@ function logDataURI(dataURI) {
 	console.log("--------------");
 }
 
-zip.workerScriptsPath = "../";
 zip.useWebWorkers = false;
 logDataURI(dataURI);
 zipDataURI(dataURI, function(zippedBlob) {
