@@ -15,8 +15,8 @@ function zipDataURI(dataURI, callback) {
 	}, onerror);
 }
 
-function unzipBlob(blob, callback) {
-	zip.createReader(new zip.Data64URIReader(blob), function(zipReader) {
+function unzipData64(dataURI, callback) {
+	zip.createReader(new zip.Data64URIReader(dataURI), function(zipReader) {
 		zipReader.getEntries(function(entries) {
 			entries[0].getData(new zip.Data64URIWriter("text/plain"), function(data) {
 				zipReader.close();
@@ -33,8 +33,8 @@ function logDataURI(dataURI) {
 
 zip.useWebWorkers = false;
 logDataURI(dataURI);
-zipDataURI(dataURI, function(zippedBlob) {
-	unzipBlob(zippedBlob, function(unzippedDataURI) {
+zipDataURI(dataURI, function(zippedData64) {
+	unzipData64(zippedData64, function(unzippedDataURI) {
 		logDataURI(unzippedDataURI);
 	});
 });
