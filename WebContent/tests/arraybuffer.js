@@ -1,3 +1,5 @@
+// Code can be found at: http://www.calormen.com/polyfill/typedarray.js
+
 /*
  $LicenseInfo:firstyear=2010&license=mit$
 
