@@ -44,7 +44,18 @@
 
 	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MSBlobBuilder || obj.BlobBuilder;
 
-	var crc32Table = (function() {
+	function Crc32() {
+		var crc = -1, that = this;
+		that.append = function(data) {
+			var offset, table = that.table;
+			for (offset = 0; offset < data.length; offset++)
+				crc = (crc >>> 8) ^ table[(crc ^ data[offset]) & 0xFF];
+		};
+		that.get = function() {
+			return ~crc;
+		};
+	}
+	Crc32.prototype.table = (function() {
 		var i, j, t, table = [];
 		for (i = 0; i < 256; i++) {
 			t = i;
@@ -57,18 +68,6 @@
 		}
 		return table;
 	})();
-
-	function Crc32() {
-		var crc = -1, that = this;
-		that.append = function(data) {
-			var offset;
-			for (offset = 0; offset < data.length; offset++)
-				crc = (crc >>> 8) ^ crc32Table[(crc ^ data[offset]) & 0xFF];
-		};
-		that.get = function() {
-			return ~crc;
-		};
-	}
 
 	function blobSlice(blob, index, length) {
 		if (blob.webkitSlice)
