@@ -97,13 +97,6 @@
 	// Readers
 	function Reader() {
 	}
-	Reader.prototype.readBlob = function(index, length, callback, onerror) {
-		this.readUint8Array(index, length, function(array) {
-			var data = getDataHelper(array.length, array), blobBuilder = new BlobBuilder();
-			blobBuilder.append(data.buffer);
-			callback(blobBuilder.getBlob());
-		}, onerror);
-	};
 
 	function TextReader(text) {
 		var that = this, blobReader;
@@ -122,13 +115,8 @@
 			blobReader.readUint8Array(index, length, callback, onerror);
 		}
 
-		function readBlob(index, length, callback, onerror) {
-			blobReader.readBlob(index, length, callback, onerror);
-		}
-
 		that.size = 0;
 		that.init = init;
-		that.readBlob = readBlob;
 		that.readUint8Array = readUint8Array;
 	}
 	TextReader.prototype = new Reader();
@@ -181,13 +169,8 @@
 			reader.readAsArrayBuffer(blobSlice(blob, index, length));
 		}
 
-		function readBlob(index, length, callback, onerror) {
-			callback(blobSlice(blob, index, length));
-		}
-
 		that.size = 0;
 		that.init = init;
-		that.readBlob = readBlob;
 		that.readUint8Array = readUint8Array;
 	}
 	BlobReader.prototype = new Reader();
@@ -273,17 +256,8 @@
 			}, onerror);
 		}
 
-		function readBlob(index, length, callback, onerror) {
-			readArrayBuffer(index, length, function(arraybuffer) {
-				var blobBuilder = new BlobBuilder();
-				blobBuilder.append(arraybuffer);
-				callback(blobBuilder.getBlob());
-			}, onerror);
-		}
-
 		that.size = 0;
 		that.init = init;
-		that.readBlob = readBlob;
 		that.readUint8Array = readUint8Array;
 	}
 	HttpRangeReader.prototype = new Reader();
