@@ -40,9 +40,14 @@
 			<li><a href="http://www.w3.org/TR/file-system-api/">File directories and system</a> (optionally)</li>
 		</ul>
 
-		<h2>Note</h2>
-		This library works currently only with Chrome and Firefox (with <a href="https://github.com/davidflanagan/DataView.js"><code>DataView.js</code> from David Flanagan</a>).
-
+		<h2>Compatibility</h2>
+		<p>
+			Currently this library works fully only with Chrome and Internet Explorer 10.
+		</p>
+		<p>
+			With Firefox you must use a DataView polyfill (e.g. <a href="https://github.com/davidflanagan/DataView.js"><code>DataView.js</code> from David Flanagan</a>).
+			With Safari and IE9, you must disable Web Workers and use a <a href="https://bitbucket.org/lindenlab/llsd/raw/7d2646cd3f9b/js/typedarray.js">Typed Array polyfill</a>.
+		</p>
 		<h2>Install</h2>
 		<ul>
 			<li>include <code>zip.js</code>, <code>deflate.js</code>, <code>inflate.js</code>, and <code>dataview.js</code> (for Firefox <code>DataView</code> support) in your project</li>

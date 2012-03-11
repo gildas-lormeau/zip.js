@@ -21,6 +21,7 @@
 		</div>
 		<h2>Contents</h2>
 		<ol>
+			<li><a href="#configuration">Configuration</a></li>
 			<li><a href="#io">I/O</a></li>
 			<li><a href="#zip-reading">Zip reading</a></li>
 			<li><a href="#zip-reading-example">Zip reading example</a></li>
@@ -29,6 +30,17 @@
 		</ol>
 		<hr>
 		<ol>
+			<li>
+				<h2 id="configuration">Configuration</h2>
+				<p>
+					<code>zip.js</code> uses <a href="http://www.w3.org/TR/workers/">Web workers</a> to compress and uncompress data in non-blocking background processes.
+					If you need to disable Web workers, set <code>zip.useWebWorkers</code> to <code>false</code> (you must also import <code>deflate.js</code> and/or <code>inflate.js</code> in the web page).
+				</p>
+				<p>
+					When <code>zip.js</code> uses <a href="http://www.w3.org/TR/workers/">Web workers</a> it needs to know the relative path of <code>deflate.js</code> and <code>inflate.js</code> from the base URL of the web page.
+					If the relative path from the base URL is not empty (and <code>zip.useWebWorkers = true</code>) then you must set <code>zip.workerScriptsPath</code> to the relative path of <code>deflate.js</code> and <code>inflate.js</code> files.
+				</p>
+			</li>
 			<li>
 				<h2 id="io">I/O</h2>
 				<h3>Reader and Writer constructors</h3>
