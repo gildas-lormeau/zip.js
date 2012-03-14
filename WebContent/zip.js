@@ -314,7 +314,10 @@
 				dataString += String.fromCharCode(array[i]);
 			for (; i < array.length; i++)
 				pending += String.fromCharCode(array[i]);
-			data += obj.btoa(dataString);
+			if (dataString.length > 2)
+				data += obj.btoa(dataString);
+			else
+				pending = dataString;
 			callback();
 		}
 
