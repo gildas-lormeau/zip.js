@@ -2092,31 +2092,36 @@
 		};
 	}
 
-	var deflater = new Deflater();
+	var deflater;
 
-	obj.addEventListener("message", function(event) {
-		var message = event.data;
-		if (message.init) {
-			deflater = new Deflater(message.level);
-			obj.postMessage({
-				oninit : true
-			});
-		}
-		if (message.append)
-			obj.postMessage({
-				onappend : true,
-				data : deflater.append(message.data, function(current) {
-					obj.postMessage({
-						progress : true,
-						current : current
-					});
-				})
-			});
-		if (message.flush)
-			obj.postMessage({
-				onflush : true,
-				data : deflater.flush()
-			});
-	}, false);
+	if (obj.zip)
+		obj.zip.Deflater = Deflater;
+	else {
+		deflater = new Deflater();
+		obj.addEventListener("message", function(event) {
+			var message = event.data;
+			if (message.init) {
+				deflater = new Deflater(message.level);
+				obj.postMessage({
+					oninit : true
+				});
+			}
+			if (message.append)
+				obj.postMessage({
+					onappend : true,
+					data : deflater.append(message.data, function(current) {
+						obj.postMessage({
+							progress : true,
+							current : current
+						});
+					})
+				});
+			if (message.flush)
+				obj.postMessage({
+					onflush : true,
+					data : deflater.flush()
+				});
+		}, false);
+	}
 
 })(this);

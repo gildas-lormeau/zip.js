@@ -70,15 +70,8 @@
 			}, onerror);
 		}
 
-		function readBlob(index, length, callback, onerror) {
-			getData(function() {
-				blobReader.readBlob(index, length, callback, onerror);
-			}, onerror);
-		}
-
 		that.size = 0;
 		that.init = init;
-		that.readBlob = readBlob;
 		that.readUint8Array = readUint8Array;
 	}
 	ZipBlobReader.prototype = new Reader();
