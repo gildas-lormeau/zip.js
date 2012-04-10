@@ -103,7 +103,7 @@
 		function init(callback, onerror) {
 			var blobBuilder = new BlobBuilder();
 			blobBuilder.append(text);
-			blobReader = new BlobReader(blobBuilder.getBlob());
+			blobReader = new BlobReader(blobBuilder.getBlob("text/plain"));
 			blobReader.init(function() {
 				that.size = blobReader.size;
 				callback();
@@ -289,7 +289,7 @@
 				callback(e.target.result);
 			};
 			reader.onerror = onerror;
-			reader.readAsText(blobBuilder.getBlob());
+			reader.readAsText(blobBuilder.getBlob("text/plain"));
 		}
 
 		that.init = init;
@@ -299,11 +299,11 @@
 	TextWriter.prototype = new Writer();
 	TextWriter.prototype.constructor = TextWriter;
 
-	function Data64URIWriter(mimeString) {
+	function Data64URIWriter(contentType) {
 		var that = this, data = "", pending = "";
 
 		function init(callback, onerror) {
-			data += "data:" + (mimeString || "") + ";base64,";
+			data += "data:" + (contentType || "") + ";base64,";
 			callback();
 		}
 
@@ -332,7 +332,7 @@
 	Data64URIWriter.prototype = new Writer();
 	Data64URIWriter.prototype.constructor = Data64URIWriter;
 
-	function FileWriter(fileEntry) {
+	function FileWriter(fileEntry, contentType) {
 		var writer, that = this;
 
 		function init(callback, onerror) {
@@ -350,7 +350,7 @@
 				callback();
 			};
 			writer.onerror = onerror;
-			writer.write(blobBuilder.getBlob());
+			writer.write(blobBuilder.getBlob(contentType));
 		}
 
 		function getData(callback) {
@@ -364,7 +364,7 @@
 	FileWriter.prototype = new Writer();
 	FileWriter.prototype.constructor = FileWriter;
 
-	function BlobWriter() {
+	function BlobWriter(contentType) {
 		var blobBuilder, that = this;
 
 		function init(callback, onerror) {
@@ -378,7 +378,7 @@
 		}
 
 		function getData(callback) {
-			callback(blobBuilder.getBlob());
+			callback(blobBuilder.getBlob(contentType));
 		}
 
 		that.init = init;
