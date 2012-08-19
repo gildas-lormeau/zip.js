@@ -909,6 +909,23 @@
 		};
 	}
 
+	if (typeof BlobBuilder == "undefined" && typeof Blob == "function") {
+		BlobBuilder = function() {
+			var that = this, blobParts = [ new Blob() ];
+			that.append = function(data) {
+				blobParts.push(data);
+			};
+			that.getBlob = function(contentType) {
+				if (blobParts.length > 1 || blobParts[0].type != contentType) {
+					blobParts = [ contentType ? new Blob(blobParts, {
+						type : contentType
+					}) : new Blob(blobParts) ];
+				}
+				return blobParts[0];
+			};
+		};
+	}
+
 	obj.zip = {
 		Reader : Reader,
 		Writer : Writer,
