@@ -455,7 +455,7 @@
 				reader.readUint8Array(offset + index, Math.min(CHUNK_SIZE, size - index), function(inputData) {
 					var outputData = process.append(inputData, function() {
 						if (onprogress)
-							onprogress(index + message.current, size);
+							onprogress(offset + index, size);
 					});
 					outputSize += outputData.length;
 					onappend(true, inputData);
