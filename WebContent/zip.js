@@ -909,7 +909,7 @@
 		};
 	}
 
-	if (typeof BlobBuilder == "undefined" && typeof Blob == "function") {
+	if (typeof BlobBuilder == "undefined") {
 		BlobBuilder = function() {
 			var that = this, blobParts = [ new Blob() ];
 			that.append = function(data) {
