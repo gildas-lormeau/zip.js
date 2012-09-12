@@ -43,6 +43,7 @@
 	var DEFLATE_JS = "deflate.js";
 
 	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MSBlobBuilder || obj.BlobBuilder;
+    var appendABViewSupported;
 
 	function Crc32() {
 		var crc = -1, that = this;
@@ -70,14 +71,14 @@
 	})();
 
 	function blobSlice(blob, index, length) {
-		if (blob.webkitSlice)
+		if (blob.slice)
+			return blob.slice(index, index + length);
+		else if (blob.webkitSlice)
 			return blob.webkitSlice(index, index + length);
 		else if (blob.mozSlice)
 			return blob.mozSlice(index, index + length);
 		else if (blob.msSlice)
 			return blob.msSlice(index, index + length);
-		else
-			return blob.slice(index, index + length);
 	}
 
 	function getDataHelper(byteLength, bytes) {
@@ -279,7 +280,7 @@
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			blobBuilder.append(array.buffer);
+			blobBuilder.append(appendABViewSupported ? array : array.buffer);
 			callback();
 		}
 
@@ -344,7 +345,7 @@
 
 		function writeUint8Array(array, callback, onerror) {
 			var blobBuilder = new BlobBuilder();
-			blobBuilder.append(array.buffer);
+			blobBuilder.append(appendABViewSupported ? array : array.buffer);
 			writer.onwrite = function() {
 				writer.onwrite = null;
 				callback();
@@ -373,7 +374,7 @@
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			blobBuilder.append(array.buffer);
+			blobBuilder.append(appendABViewSupported ? array : array.buffer);
 			callback();
 		}
 
@@ -925,6 +926,13 @@
 			};
 		};
 	}
+
+	appendABViewSupported = (function() {
+		var blobBuilder;
+		blobBuilder = new BlobBuilder();
+		blobBuilder.append(getDataHelper(0).view);
+		return blobBuilder.getBlob().size == 0;
+	})();
 
 	obj.zip = {
 		Reader : Reader,
