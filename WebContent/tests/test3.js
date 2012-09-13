@@ -15,7 +15,7 @@ function zipBlob(blob, callback) {
 function unzipBlob(blob, callback) {
 	zipFs.importBlob(blob, function() {
 		var firstEntry = zipFs.root.children[0];
-		firstEntry.getBlob(callback);
+		firstEntry.getBlob("text/plain", callback);
 	}, onerror);
 }
 
