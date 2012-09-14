@@ -9,7 +9,7 @@ function onerror(message) {
 
 function zipBlob(blob, callback) {
 	createTempFile(function(fileEntry) {
-		zip.createWriter(new zip.FileWriter(fileEntry), function(zipWriter) {
+		zip.createWriter(new zip.FileWriter(fileEntry, "application/zip"), function(zipWriter) {
 			zipWriter.add(FILENAME, new zip.BlobReader(blob), function() {
 				zipWriter.close(callback);
 			});
@@ -20,7 +20,7 @@ function zipBlob(blob, callback) {
 function unzipBlob(blob, callback) {
 	zip.createReader(new zip.BlobReader(blob), function(zipReader) {
 		zipReader.getEntries(function(entries) {
-			entries[0].getData(new zip.BlobWriter(), function(data) {
+			entries[0].getData(new zip.BlobWriter("text/plain"), function(data) {
 				zipReader.close();
 				callback(data);
 			});

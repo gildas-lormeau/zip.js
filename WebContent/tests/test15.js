@@ -5,7 +5,7 @@ function onerror(message) {
 }
 
 function zipBlobs(blobs, callback) {
-	zip.createWriter(new zip.BlobWriter(), function(zipWriter) {
+	zip.createWriter(new zip.BlobWriter("application/zip"), function(zipWriter) {
 		var index = 0;
 
 		function next() {

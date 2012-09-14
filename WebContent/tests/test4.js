@@ -8,7 +8,7 @@ function onerror(message) {
 }
 
 function zipDataURI(dataURI, callback) {
-	zip.createWriter(new zip.BlobWriter(), function(zipWriter) {
+	zip.createWriter(new zip.BlobWriter("application/zip"), function(zipWriter) {
 		zipWriter.add(FILENAME, new zip.Data64URIReader(dataURI), function() {
 			zipWriter.close(callback);
 		});
