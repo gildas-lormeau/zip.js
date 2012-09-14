@@ -17,7 +17,7 @@ function zipBlob(blob, callback) {
 function unzipBlob(blob, callback) {
 	zip.createReader(new zip.BlobReader(blob), function(zipReader) {
 		zipReader.getEntries(function(entries) {
-			entries[0].getData(new zip.BlobWriter("text/plain"), function(data) {
+			entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), function(data) {
 				zipReader.close();
 				callback(data);
 			});
@@ -36,7 +36,7 @@ function logBlobText(blob) {
 
 zip.workerScriptsPath = "../";
 blob = new Blob([ TEXT_CONTENT ], {
-	type : "text/plain"
+	type : zip.getMimeType(FILENAME)
 });
 logBlobText(blob);
 zipBlob(blob, function(zippedBlob) {
