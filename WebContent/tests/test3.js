@@ -9,7 +9,7 @@ function onerror(message) {
 
 function zipBlob(blob, callback) {
 	zipFs.root.addBlob(FILENAME, blob);
-	zipFs.exportBlob(callback, null, onerror);
+	zipFs.exportBlob(callback);
 }
 
 function unzipBlob(blob, callback) {

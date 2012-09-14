@@ -9,7 +9,7 @@ function onerror(message) {
 
 function zipDataURI(dataURI, callback) {
 	zipFs.root.addData64URI(FILENAME, dataURI);
-	zipFs.exportData64URI(callback, null, onerror);
+	zipFs.exportData64URI(callback);
 }
 
 function unzipDataURI(dataURI, callback) {

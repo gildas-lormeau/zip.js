@@ -9,7 +9,7 @@ function onerror(message) {
 function zipImportedZip(callback) {
 	var directory = zipFs.root.addDirectory("import");
 	directory.importHttpContent(URL, false, function() {
-		zipFs.exportBlob(callback, null, onerror);
+		zipFs.exportBlob(callback);
 	}, onerror);
 }
 

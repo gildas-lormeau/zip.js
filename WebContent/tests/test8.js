@@ -8,7 +8,7 @@ function onerror(message) {
 
 function zipText(callback) {
 	zipFs.root.addHttpContent(FILENAME, URL);
-	zipFs.exportBlob(callback, null, onerror);
+	zipFs.exportBlob(callback);
 }
 
 function unzipBlob(blob, callback) {
