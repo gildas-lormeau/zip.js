@@ -26,11 +26,9 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function(obj) {
+(function() {
 
 	var CHUNK_SIZE = 512 * 1024;
-
-	var zip = obj.zip;
 
 	var FileWriter = zip.FileWriter, //
 	TextWriter = zip.TextWriter, //
@@ -548,4 +546,4 @@
 		FS : FS
 	};
 
-})(this);
+})();
