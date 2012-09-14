@@ -446,16 +446,16 @@
 		this.importZip(useRangeHeader ? new HttpRangeReader(URL) : new HttpReader(URL), onend, onerror);
 	};
 	ZipDirectoryEntryProto.exportBlob = function(onend, onprogress, onerror) {
-		this.exportZip(new BlobWriter(), onend, onprogress, onerror);
+		this.exportZip(new BlobWriter("application/zip"), onend, onprogress, onerror);
 	};
 	ZipDirectoryEntryProto.exportText = function(onend, onprogress, onerror) {
 		this.exportZip(new TextWriter(), onend, onprogress, onerror);
 	};
 	ZipDirectoryEntryProto.exportFileEntry = function(fileEntry, onend, onprogress, onerror) {
-		this.exportZip(new FileWriter(fileEntry), onend, onprogress, onerror);
+		this.exportZip(new FileWriter(fileEntry, "application/zip"), onend, onprogress, onerror);
 	};
-	ZipDirectoryEntryProto.exportData64URI = function(mimeType, onend, onprogress, onerror) {
-		this.exportZip(new Data64URIWriter(mimeType), onend, onprogress, onerror);
+	ZipDirectoryEntryProto.exportData64URI = function(onend, onprogress, onerror) {
+		this.exportZip(new Data64URIWriter("application/zip"), onend, onprogress, onerror);
 	};
 	ZipDirectoryEntryProto.importZip = function(reader, onend, onerror) {
 		var that = this;
@@ -537,8 +537,8 @@
 		exportFileEntry : function(fileEntry, onend, onprogress, onerror) {
 			this.root.exportFileEntry(fileEntry, onend, onprogress, onerror);
 		},
-		exportData64URI : function(mimeType, onend, onprogress, onerror) {
-			this.root.exportData64URI(mimeType, onend, onprogress, onerror);
+		exportData64URI : function(onend, onprogress, onerror) {
+			this.root.exportData64URI(onend, onprogress, onerror);
 		}
 	};
 

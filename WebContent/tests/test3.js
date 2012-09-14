@@ -15,7 +15,7 @@ function zipBlob(blob, callback) {
 function unzipBlob(blob, callback) {
 	zipFs.importBlob(blob, function() {
 		var firstEntry = zipFs.root.children[0];
-		firstEntry.getBlob("text/plain", callback);
+		firstEntry.getBlob(zip.getMimeType(firstEntry.name), callback);
 	}, onerror);
 }
 
@@ -31,7 +31,7 @@ function logBlobText(blob) {
 zip.workerScriptsPath = "../";
 blobBuilder = new BlobBuilder();
 blobBuilder.append(TEXT_CONTENT);
-blob = blobBuilder.getBlob();
+blob = blobBuilder.getBlob(zip.getMimeType(FILENAME));
 logBlobText(blob);
 zipBlob(blob, function(zippedBlob) {
 	unzipBlob(zippedBlob, function(unzippedBlob) {
