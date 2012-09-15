@@ -68,7 +68,7 @@
 				targetEntry.importBlob(blob, onend, onprogress, onerror);
 			},
 			getBlobURL : function(entry, onend, onprogress, onerror) {
-				entry.getBlob(function(blob) {
+				entry.getBlob(zip.getMimeType(entry.filename), function(blob) {
 					var blobURL = URL.createObjectURL(blob);
 					onend(blobURL, function() {
 						URL.revokeObjectURL(blobURL);

@@ -26,11 +26,9 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function(obj) {
+(function() {
 
 	var CHUNK_SIZE = 512 * 1024;
-
-	var zip = obj.zip;
 
 	var FileWriter = zip.FileWriter, //
 	TextWriter = zip.TextWriter, //
@@ -128,7 +126,7 @@
 		});
 	}
 
-	function exportZip(zipWriter, entry, onend, onprogress, onerror, totalSize) {
+	function exportZip(zipWriter, entry, onend, onprogress, totalSize) {
 		var currentIndex = 0;
 
 		function process(zipWriter, entry, onend, onprogress, totalSize) {
@@ -382,8 +380,8 @@
 	ZipFileEntryProto.getText = function(onend, onprogress, checkCrc32) {
 		this.getData(new TextWriter(), onend, onprogress, checkCrc32);
 	};
-	ZipFileEntryProto.getBlob = function(onend, onprogress, checkCrc32) {
-		this.getData(new BlobWriter(), onend, onprogress, checkCrc32);
+	ZipFileEntryProto.getBlob = function(mimeType, onend, onprogress, checkCrc32) {
+		this.getData(new BlobWriter(mimeType), onend, onprogress, checkCrc32);
 	};
 	ZipFileEntryProto.getData64URI = function(mimeType, onend, onprogress, checkCrc32) {
 		this.getData(new Data64URIWriter(mimeType), onend, onprogress, checkCrc32);
@@ -448,16 +446,16 @@
 		this.importZip(useRangeHeader ? new HttpRangeReader(URL) : new HttpReader(URL), onend, onerror);
 	};
 	ZipDirectoryEntryProto.exportBlob = function(onend, onprogress, onerror) {
-		this.exportZip(new BlobWriter(), onend, onprogress, onerror);
+		this.exportZip(new BlobWriter("application/zip"), onend, onprogress, onerror);
 	};
 	ZipDirectoryEntryProto.exportText = function(onend, onprogress, onerror) {
 		this.exportZip(new TextWriter(), onend, onprogress, onerror);
 	};
 	ZipDirectoryEntryProto.exportFileEntry = function(fileEntry, onend, onprogress, onerror) {
-		this.exportZip(new FileWriter(fileEntry), onend, onprogress, onerror);
+		this.exportZip(new FileWriter(fileEntry, "application/zip"), onend, onprogress, onerror);
 	};
-	ZipDirectoryEntryProto.exportData64URI = function(mimeType, onend, onprogress, onerror) {
-		this.exportZip(new Data64URIWriter(mimeType), onend, onprogress, onerror);
+	ZipDirectoryEntryProto.exportData64URI = function(onend, onprogress, onerror) {
+		this.exportZip(new Data64URIWriter("application/zip"), onend, onprogress, onerror);
 	};
 	ZipDirectoryEntryProto.importZip = function(reader, onend, onerror) {
 		var that = this;
@@ -484,7 +482,7 @@
 			createWriter(writer, function(zipWriter) {
 				exportZip(zipWriter, that, function() {
 					zipWriter.close(onend);
-				}, onprogress, onerror, getTotalSize(that));
+				}, onprogress, getTotalSize(that));
 			}, onerror);
 		}, onerror);
 	};
@@ -539,8 +537,8 @@
 		exportFileEntry : function(fileEntry, onend, onprogress, onerror) {
 			this.root.exportFileEntry(fileEntry, onend, onprogress, onerror);
 		},
-		exportData64URI : function(mimeType, onend, onprogress, onerror) {
-			this.root.exportData64URI(mimeType, onend, onprogress, onerror);
+		exportData64URI : function(onend, onprogress, onerror) {
+			this.root.exportData64URI(onend, onprogress, onerror);
 		}
 	};
 
@@ -548,4 +546,4 @@
 		FS : FS
 	};
 
-})(this);
+})();
