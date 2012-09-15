@@ -107,14 +107,12 @@
 					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">FS.prototype.exportData64URI(mimeType, onend[, onprogress, onerror])</code></pre>
+				<pre><code class="prettyprint">FS.prototype.exportData64URI(onend[, onprogress, onerror])</code></pre>
 				<p>
 					Export zipped content from the filesystem in a data URI.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>mimeType (string)</code></dt>
-					<dd>data MIME type</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
@@ -262,12 +260,14 @@
 					<dd>pass <code>true</code> to verify data integrity</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipFileEntry.prototype.getBlob(callback[, checkCrc32])</code></pre>
+				<pre><code class="prettyprint">ZipFileEntry.prototype.getBlob(mimeType, callback[, checkCrc32])</code></pre>
 				<p>
 					Get file entry content as a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
 				</p>
 				<p>Parameters:</p>
 				<dl>
+					<dt><code>mimeType (string)</code></dt>
+					<dd>data MIME type</dd>
 					<dt><code>callback (Function)</code></dt>
 					<dd>success callback function returning the unzipped content as parameter</dd>
 					<dt><code>checkCrc32 (boolean)</code></dt>
@@ -472,14 +472,12 @@
 					<dd>error callback function</dd>
 				</dl>
 				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportData64URI(mimeType, onend[, onprogress, onerror])</code></pre>
+				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportData64URI(onend[, onprogress, onerror])</code></pre>
 				<p>
 					Export zipped content in a data URI from <code>this</code> directory entry.
 				</p>
 				<p>Parameters:</p>
 				<dl>
-					<dt><code>mimeType (string)</code></dt>
-					<dd>data MIME type</dd>
 					<dt><code>onend (Function)</code></dt>
 					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
