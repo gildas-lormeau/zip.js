@@ -43,7 +43,7 @@
 	var DEFLATE_JS = "deflate.js";
 
 	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MSBlobBuilder || obj.BlobBuilder;
-    var appendABViewSupported;
+	var appendABViewSupported;
 
 	function Crc32() {
 		var crc = -1, that = this;
