@@ -41,15 +41,15 @@
 
 		<h2>Compatibility</h2>
 		<p>
-			Currently this library works fully with Chrome, Firefox, Safari 6 and Internet Explorer 10.
+			This library works fully with Chrome, Firefox, Safari 6 and Internet Explorer 10.
 		</p>
 		<p>
 			With Safari 5 and IE9, you must <a target="#" href="core-api.html#configuration">disable Web Workers</a> and use a <a href="https://bitbucket.org/lindenlab/llsd/raw/7d2646cd3f9b/js/typedarray.js">Typed Array polyfill</a>.
 		</p>
 		<h2>Install</h2>
 		<ul>
-			<li>include <code>zip.js</code>, <code>deflate.js</code>, <code>inflate.js</code>, and <code>dataview.js</code> (for Firefox <code>DataView</code> support) in your project</li>
-			<li>add <code>zip.js</code> in your HTML page
+			<li>add <code>zip.js</code>, <code>deflate.js</code>, and <code>inflate.js</code> in your project</li>
+			<li>include <code>zip.js</code> script in your HTML page
 				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip.js&quot;&gt;&lt;/script&gt;</code></pre>
 			</li>
 			<li>set <code>zip.workerScriptsPath</code> if needed (i.e. the path to <code>deflate.js</code> and <code>inflate.js</code>)
