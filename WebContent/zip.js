@@ -43,7 +43,18 @@
 	var DEFLATE_JS = "deflate.js";
 
 	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MSBlobBuilder || obj.BlobBuilder;
+
 	var appendABViewSupported;
+
+	function isAppendABViewSupported() {
+		if (typeof appendABViewSupported == "undefined") {
+			var blobBuilder;
+			blobBuilder = new BlobBuilder();
+			blobBuilder.append(getDataHelper(0).view);
+			appendABViewSupported = blobBuilder.getBlob().size == 0;
+		}
+		return appendABViewSupported;
+	}
 
 	function Crc32() {
 		var crc = -1, that = this;
@@ -280,7 +291,7 @@
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			blobBuilder.append(appendABViewSupported ? array : array.buffer);
+			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
 			callback();
 		}
 
@@ -345,7 +356,7 @@
 
 		function writeUint8Array(array, callback, onerror) {
 			var blobBuilder = new BlobBuilder();
-			blobBuilder.append(appendABViewSupported ? array : array.buffer);
+			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
 			writer.onwrite = function() {
 				writer.onwrite = null;
 				callback();
@@ -374,7 +385,7 @@
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			blobBuilder.append(appendABViewSupported ? array : array.buffer);
+			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
 			callback();
 		}
 
@@ -912,11 +923,20 @@
 
 	if (typeof BlobBuilder == "undefined") {
 		BlobBuilder = function() {
-			var that = this, blobParts = [ new Blob() ];
+			var that = this, blobParts;
+
+			function initBlobParts() {
+				if (!blobParts) {
+					blobParts = [ new Blob() ]
+				}
+			}
+
 			that.append = function(data) {
+				initBlobParts();
 				blobParts.push(data);
 			};
 			that.getBlob = function(contentType) {
+				initBlobParts();
 				if (blobParts.length > 1 || blobParts[0].type != contentType) {
 					blobParts = [ contentType ? new Blob(blobParts, {
 						type : contentType
@@ -925,14 +945,6 @@
 				return blobParts[0];
 			};
 		};
-	}
-	if (typeof BlobBuilder != "undefined") {
-		appendABViewSupported = (function() {
-			var blobBuilder;
-			blobBuilder = new BlobBuilder();
-			blobBuilder.append(getDataHelper(0).view);
-			return blobBuilder.getBlob().size == 0;
-		})();
 	}
 
 	obj.zip = {
