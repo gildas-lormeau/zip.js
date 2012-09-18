@@ -926,13 +926,14 @@
 			};
 		};
 	}
-
-	appendABViewSupported = (function() {
-		var blobBuilder;
-		blobBuilder = new BlobBuilder();
-		blobBuilder.append(getDataHelper(0).view);
-		return blobBuilder.getBlob().size == 0;
-	})();
+	if (typeof BlobBuilder != "undefined") {
+		appendABViewSupported = (function() {
+			var blobBuilder;
+			blobBuilder = new BlobBuilder();
+			blobBuilder.append(getDataHelper(0).view);
+			return blobBuilder.getBlob().size == 0;
+		})();
+	}
 
 	obj.zip = {
 		Reader : Reader,
