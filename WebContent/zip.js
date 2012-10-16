@@ -708,18 +708,27 @@
 			}, onreaderror);
 		};
 
+		function seekEOCDR(offset, entriesCallback) {
+			reader.readUint8Array(reader.size - offset, offset, function(bytes) {
+				var dataView = getDataHelper(bytes.length, bytes).view, datalength, fileslength;
+				if (dataView.getUint32(0) != 0x504b0506) {
+					seekEOCDR(offset+1, entriesCallback);
+				} else {
+					entriesCallback(dataView);
+				}
+			}, function() {
+				onerror(ERR_READ);
+			});
+		}
+		
 		return {
 			getEntries : function(callback) {
 				if (reader.size < 22) {
 					onerror(ERR_BAD_FORMAT);
 					return;
 				}
-				reader.readUint8Array(reader.size - 22, 22, function(bytes) {
-					var dataView = getDataHelper(bytes.length, bytes).view, datalength, fileslength;
-					if (dataView.getUint32(0) != 0x504b0506) {
-						onerror(ERR_BAD_FORMAT);
-						return;
-					}
+				// look for End of central directory record
+				seekEOCDR(22, function(dataView) {
 					datalength = dataView.getUint32(16, true);
 					fileslength = dataView.getUint16(8, true);
 					reader.readUint8Array(datalength, reader.size - datalength, function(bytes) {
@@ -748,8 +757,6 @@
 					}, function() {
 						onerror(ERR_READ);
 					});
-				}, function() {
-					onerror(ERR_READ);
 				});
 			},
 			close : function(callback) {
