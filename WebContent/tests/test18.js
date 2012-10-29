@@ -6,12 +6,12 @@ function ArrayBufferReader(arrayBuffer) {
 	var that = this;
 
 	function init(callback, onerror) {
-		this.size = arrayBuffer.length;
+		that.size = arrayBuffer.byteLength;
 		callback();
 	}
 
 	function readUint8Array(index, length, callback, onerror) {
-		return arrayBuffer.slice(index, index + length);
+		callback(new Uint8Array(arrayBuffer.slice(index, index + length)));
 	}
 
 	that.size = 0;
@@ -30,12 +30,15 @@ function ArrayBufferWriter() {
 	}
 
 	function writeUint8Array(arr, callback, onerror) {
-		array.set(array.length, arr);
+		var tmpArray = new Uint8Array(array.length + arr.length);
+		tmpArray.set(array);
+		tmpArray.set(arr, array.length);
+		array = tmpArray;
 		callback();
 	}
 
 	function getData(callback) {
-		callback(array.arrayBuffer);
+		callback(array.buffer);
 	}
 
 	that.init = init;
@@ -49,7 +52,7 @@ function onerror(message) {
 	console.error(message);
 }
 
-function zipArrayBuffer(arrayBuffer) {
+function zipArrayBuffer(arrayBuffer, callback) {
 	zip.createWriter(new ArrayBufferWriter(), function(zipWriter) {
 		zipWriter.add(FILENAME, new ArrayBufferReader(arrayBuffer), function() {
 			zipWriter.close(callback);
@@ -60,7 +63,7 @@ function zipArrayBuffer(arrayBuffer) {
 function unzipArrayBuffer(arrayBuffer, callback) {
 	zip.createReader(new ArrayBufferReader(arrayBuffer), function(zipReader) {
 		zipReader.getEntries(function(entries) {
-			entries[0].getData(new ArrayBufferReader(zip.getMimeType(entries[0].filename)), function(data) {
+			entries[0].getData(new ArrayBufferWriter(), function(data) {
 				zipReader.close();
 				callback(data);
 			});
@@ -68,17 +71,19 @@ function unzipArrayBuffer(arrayBuffer, callback) {
 	}, onerror);
 }
 
-function logBlobText(blob) {
-	var reader = new FileReader();
-	reader.onload = function(e) {
-		console.log(e.target.result);
-		console.log("--------------");
-	};
-	reader.readAsText(blob);
+function logArrayBufferText(arrayBuffer) {
+	var array = new Uint8Array(arrayBuffer);
+	var str = "";
+	Array.prototype.forEach.call(array, function(code) {
+		str += String.fromCharCode(code);
+	});
+	console.log(str);
 }
 
 zip.workerScriptsPath = "../";
-arrayBuffer = [];
+arrayBuffer = new Uint8Array(Array.prototype.map.call(TEXT_CONTENT, function(c) {
+	return c.charCodeAt(0);
+})).buffer;
 logArrayBufferText(arrayBuffer);
 zipArrayBuffer(arrayBuffer, function(zippedArrayBuffer) {
 	unzipArrayBuffer(zippedArrayBuffer, function(unzippedArrayBuffer) {
