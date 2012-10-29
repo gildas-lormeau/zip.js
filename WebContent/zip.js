@@ -630,7 +630,7 @@
 		}
 	}
 
-	function readCommonHeader(entry, data, index, centralDirectory) {
+	function readCommonHeader(entry, data, index, centralDirectory, onerror) {
 		entry.version = data.view.getUint16(index, true);
 		entry.bitFlag = data.view.getUint16(index + 2, true);
 		entry.compressionMethod = data.view.getUint16(index + 4, true);
@@ -697,7 +697,10 @@
 					onerror(ERR_BAD_FORMAT);
 					return;
 				}
-				readCommonHeader(that, data, 4);
+				readCommonHeader(that, data, 4, false, function(error) {
+					onerror(error);
+					return;
+				});
 				dataOffset = that.offset + 30 + that.filenameLength + that.extraFieldLength;
 				writer.init(function() {
 					if (that.compressionMethod === 0)
@@ -739,7 +742,10 @@
 								onerror(ERR_BAD_FORMAT);
 								return;
 							}
-							readCommonHeader(entry, data, index + 6, true);
+							readCommonHeader(entry, data, index + 6, true, function(error) {
+								onerror(error);
+								return;
+							});
 							entry.commentLength = data.view.getUint16(index + 32, true);
 							entry.directory = ((data.view.getUint8(index + 38) & 0x10) == 0x10);
 							entry.offset = data.view.getUint32(index + 42, true);
