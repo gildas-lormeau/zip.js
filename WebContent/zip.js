@@ -136,7 +136,7 @@
 	function Data64URIReader(dataURI) {
 		var that = this, dataStart;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			var dataEnd = dataURI.length;
 			while (dataURI.charAt(dataEnd - 1) == "=")
 				dataEnd--;
@@ -145,7 +145,7 @@
 			callback();
 		}
 
-		function readUint8Array(index, length, callback, onerror) {
+		function readUint8Array(index, length, callback) {
 			var i, data = getDataHelper(length);
 			var start = Math.floor(index / 3) * 4;
 			var end = Math.ceil((index + length) / 3) * 4;
@@ -166,7 +166,7 @@
 	function BlobReader(blob) {
 		var that = this;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			this.size = blob.size;
 			callback();
 		}
@@ -285,17 +285,17 @@
 	function TextWriter() {
 		var that = this, blobBuilder;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			blobBuilder = new BlobBuilder();
 			callback();
 		}
 
-		function writeUint8Array(array, callback, onerror) {
+		function writeUint8Array(array, callback) {
 			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
 			callback();
 		}
 
-		function getData(callback) {
+		function getData(callback, onerror) {
 			var reader = new FileReader();
 			reader.onload = function(e) {
 				callback(e.target.result);
@@ -314,12 +314,12 @@
 	function Data64URIWriter(contentType) {
 		var that = this, data = "", pending = "";
 
-		function init(callback, onerror) {
+		function init(callback) {
 			data += "data:" + (contentType || "") + ";base64,";
 			callback();
 		}
 
-		function writeUint8Array(array, callback, onerror) {
+		function writeUint8Array(array, callback) {
 			var i, delta = pending.length, dataString = pending;
 			pending = "";
 			for (i = 0; i < (Math.floor((delta + array.length) / 3) * 3) - delta; i++)
@@ -379,12 +379,12 @@
 	function BlobWriter(contentType) {
 		var blobBuilder, that = this;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			blobBuilder = new BlobBuilder();
 			callback();
 		}
 
-		function writeUint8Array(array, callback, onerror) {
+		function writeUint8Array(array, callback) {
 			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
 			callback();
 		}
@@ -713,7 +713,7 @@
 
 		function seekEOCDR(offset, entriesCallback) {
 			reader.readUint8Array(reader.size - offset, offset, function(bytes) {
-				var dataView = getDataHelper(bytes.length, bytes).view, datalength, fileslength;
+				var dataView = getDataHelper(bytes.length, bytes).view;
 				if (dataView.getUint32(0) != 0x504b0506) {
 					seekEOCDR(offset+1, entriesCallback);
 				} else {
