@@ -1528,7 +1528,6 @@
 							break;
 						}
 
-						var h;
 						var j, c;
 
 						t = bb[0];
