@@ -966,7 +966,8 @@
 	})();
 
 	zip.getMimeType = function(filename) {
-		return mimeTypes[filename.split(".").pop()] || "application/octet-stream";
+		var defaultValue = "application/octet-stream";
+		return filename ? mimeTypes[filename.split(".").pop()] || defaultValue : defaultValue;
 	};
 
 })();
