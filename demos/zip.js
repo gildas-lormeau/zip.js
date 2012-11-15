@@ -43,7 +43,18 @@
 	var DEFLATE_JS = "deflate.js";
 
 	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MSBlobBuilder || obj.BlobBuilder;
-    var appendABViewSupported;
+
+	var appendABViewSupported;
+
+	function isAppendABViewSupported() {
+		if (typeof appendABViewSupported == "undefined") {
+			var blobBuilder;
+			blobBuilder = new BlobBuilder();
+			blobBuilder.append(getDataHelper(0).view);
+			appendABViewSupported = blobBuilder.getBlob().size == 0;
+		}
+		return appendABViewSupported;
+	}
 
 	function Crc32() {
 		var crc = -1, that = this;
@@ -125,7 +136,7 @@
 	function Data64URIReader(dataURI) {
 		var that = this, dataStart;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			var dataEnd = dataURI.length;
 			while (dataURI.charAt(dataEnd - 1) == "=")
 				dataEnd--;
@@ -134,7 +145,7 @@
 			callback();
 		}
 
-		function readUint8Array(index, length, callback, onerror) {
+		function readUint8Array(index, length, callback) {
 			var i, data = getDataHelper(length);
 			var start = Math.floor(index / 3) * 4;
 			var end = Math.ceil((index + length) / 3) * 4;
@@ -155,7 +166,7 @@
 	function BlobReader(blob) {
 		var that = this;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			this.size = blob.size;
 			callback();
 		}
@@ -274,17 +285,17 @@
 	function TextWriter() {
 		var that = this, blobBuilder;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			blobBuilder = new BlobBuilder();
 			callback();
 		}
 
-		function writeUint8Array(array, callback, onerror) {
-			blobBuilder.append(appendABViewSupported ? array : array.buffer);
+		function writeUint8Array(array, callback) {
+			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
 			callback();
 		}
 
-		function getData(callback) {
+		function getData(callback, onerror) {
 			var reader = new FileReader();
 			reader.onload = function(e) {
 				callback(e.target.result);
@@ -303,12 +314,12 @@
 	function Data64URIWriter(contentType) {
 		var that = this, data = "", pending = "";
 
-		function init(callback, onerror) {
+		function init(callback) {
 			data += "data:" + (contentType || "") + ";base64,";
 			callback();
 		}
 
-		function writeUint8Array(array, callback, onerror) {
+		function writeUint8Array(array, callback) {
 			var i, delta = pending.length, dataString = pending;
 			pending = "";
 			for (i = 0; i < (Math.floor((delta + array.length) / 3) * 3) - delta; i++)
@@ -345,7 +356,7 @@
 
 		function writeUint8Array(array, callback, onerror) {
 			var blobBuilder = new BlobBuilder();
-			blobBuilder.append(appendABViewSupported ? array : array.buffer);
+			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
 			writer.onwrite = function() {
 				writer.onwrite = null;
 				callback();
@@ -368,13 +379,13 @@
 	function BlobWriter(contentType) {
 		var blobBuilder, that = this;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			blobBuilder = new BlobBuilder();
 			callback();
 		}
 
-		function writeUint8Array(array, callback, onerror) {
-			blobBuilder.append(appendABViewSupported ? array : array.buffer);
+		function writeUint8Array(array, callback) {
+			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
 			callback();
 		}
 
@@ -619,7 +630,7 @@
 		}
 	}
 
-	function readCommonHeader(entry, data, index, centralDirectory) {
+	function readCommonHeader(entry, data, index, centralDirectory, onerror) {
 		entry.version = data.view.getUint16(index, true);
 		entry.bitFlag = data.view.getUint16(index + 2, true);
 		entry.compressionMethod = data.view.getUint16(index + 4, true);
@@ -686,7 +697,10 @@
 					onerror(ERR_BAD_FORMAT);
 					return;
 				}
-				readCommonHeader(that, data, 4);
+				readCommonHeader(that, data, 4, false, function(error) {
+					onerror(error);
+					return;
+				});
 				dataOffset = that.offset + 30 + that.filenameLength + that.extraFieldLength;
 				writer.init(function() {
 					if (that.compressionMethod === 0)
@@ -697,18 +711,27 @@
 			}, onreaderror);
 		};
 
+		function seekEOCDR(offset, entriesCallback) {
+			reader.readUint8Array(reader.size - offset, offset, function(bytes) {
+				var dataView = getDataHelper(bytes.length, bytes).view;
+				if (dataView.getUint32(0) != 0x504b0506) {
+					seekEOCDR(offset+1, entriesCallback);
+				} else {
+					entriesCallback(dataView);
+				}
+			}, function() {
+				onerror(ERR_READ);
+			});
+		}
+		
 		return {
 			getEntries : function(callback) {
 				if (reader.size < 22) {
 					onerror(ERR_BAD_FORMAT);
 					return;
 				}
-				reader.readUint8Array(reader.size - 22, 22, function(bytes) {
-					var dataView = getDataHelper(bytes.length, bytes).view, datalength, fileslength;
-					if (dataView.getUint32(0) != 0x504b0506) {
-						onerror(ERR_BAD_FORMAT);
-						return;
-					}
+				// look for End of central directory record
+				seekEOCDR(22, function(dataView) {
 					datalength = dataView.getUint32(16, true);
 					fileslength = dataView.getUint16(8, true);
 					reader.readUint8Array(datalength, reader.size - datalength, function(bytes) {
@@ -719,7 +742,10 @@
 								onerror(ERR_BAD_FORMAT);
 								return;
 							}
-							readCommonHeader(entry, data, index + 6, true);
+							readCommonHeader(entry, data, index + 6, true, function(error) {
+								onerror(error);
+								return;
+							});
 							entry.commentLength = data.view.getUint16(index + 32, true);
 							entry.directory = ((data.view.getUint8(index + 38) & 0x10) == 0x10);
 							entry.offset = data.view.getUint32(index + 42, true);
@@ -737,8 +763,6 @@
 					}, function() {
 						onerror(ERR_READ);
 					});
-				}, function() {
-					onerror(ERR_READ);
 				});
 			},
 			close : function(callback) {
@@ -912,11 +936,20 @@
 
 	if (typeof BlobBuilder == "undefined") {
 		BlobBuilder = function() {
-			var that = this, blobParts = [ new Blob() ];
+			var that = this, blobParts;
+
+			function initBlobParts() {
+				if (!blobParts) {
+					blobParts = [ new Blob() ]
+				}
+			}
+
 			that.append = function(data) {
+				initBlobParts();
 				blobParts.push(data);
 			};
 			that.getBlob = function(contentType) {
+				initBlobParts();
 				if (blobParts.length > 1 || blobParts[0].type != contentType) {
 					blobParts = [ contentType ? new Blob(blobParts, {
 						type : contentType
@@ -926,13 +959,6 @@
 			};
 		};
 	}
-
-	appendABViewSupported = (function() {
-		var blobBuilder;
-		blobBuilder = new BlobBuilder();
-		blobBuilder.append(getDataHelper(0).view);
-		return blobBuilder.getBlob().size == 0;
-	})();
 
 	obj.zip = {
 		Reader : Reader,

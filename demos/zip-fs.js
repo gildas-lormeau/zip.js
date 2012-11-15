@@ -46,7 +46,7 @@
 	function ZipBlobReader(entry) {
 		var that = this, blobReader;
 
-		function init(callback, onerror) {
+		function init(callback) {
 			this.size = entry.uncompressedSize;
 			callback();
 		}
@@ -92,7 +92,6 @@
 		var index = 0;
 
 		function next() {
-			var child = entry.children[index];
 			index++;
 			if (index < entry.children.length)
 				process(entry.children[index]);
@@ -210,7 +209,7 @@
 	}
 
 	function getFileEntry(fileEntry, entry, onend, onprogress, totalSize, checkCrc32) {
-		var currentIndex = 0, rootEntry;
+		var currentIndex = 0;
 
 		function process(fileEntry, entry, onend, onprogress, totalSize) {
 			var childIndex = 0;
@@ -232,7 +231,7 @@
 					fileEntry.getFile(child.name, {
 						create : true
 					}, function(file) {
-						child.getData(new FileWriter(file), nextChild, function(index, max) {
+						child.getData(new FileWriter(file, zip.getMimeType(child.name)), nextChild, function(index) {
 							if (onprogress)
 								onprogress(currentIndex + index, totalSize);
 						}, checkCrc32);
@@ -249,11 +248,11 @@
 
 			processChild();
 		}
-
+		
 		if (entry.directory)
 			process(fileEntry, entry, onend, onprogress, totalSize);
 		else
-			entry.getData(new FileWriter(fileEntry), onend, onprogress, checkCrc32);
+			entry.getData(new FileWriter(fileEntry, zip.getMimeType(entry.name)), onend, onprogress, checkCrc32);
 	}
 
 	function resetFS(fs) {
@@ -544,6 +543,10 @@
 
 	zip.fs = {
 		FS : FS
+	};
+	
+	zip.getMimeType = function() {
+		return "application/octet-stream";
 	};
 
 })();

@@ -89,8 +89,6 @@
 	// Tree
 
 	// see definition of array dist_code below
-	var DIST_CODE_LEN = 512;
-
 	var _dist_code = [ 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
 			10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
 			12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
@@ -1075,7 +1073,6 @@
 		len, // its length
 		header // true if block header must be written
 		) {
-			var index = 0;
 			bi_windup(); // align on byte boundary
 			last_eob_len = 8; // enough lookahead for inflate
 
@@ -2071,7 +2068,7 @@
 			return array;
 		};
 		that.flush = function() {
-			var err, ab, buffers = [], bufferIndex = 0, bufferSize = 0, array;
+			var err, buffers = [], bufferIndex = 0, bufferSize = 0, array;
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
