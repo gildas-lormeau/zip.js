@@ -2107,7 +2107,7 @@
 					return -1;
 				if (err != Z_OK && err != Z_STREAM_END)
 					throw "inflating: " + z.msg;
-				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_out == data.length))
+				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_in == data.length))
 					return -1;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
