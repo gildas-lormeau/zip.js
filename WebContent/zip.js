@@ -42,16 +42,14 @@
 	var INFLATE_JS = "inflate.js";
 	var DEFLATE_JS = "deflate.js";
 
-	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.MSBlobBuilder || obj.BlobBuilder;
+	var Blob = obj.Blob;
 
 	var appendABViewSupported;
 
 	function isAppendABViewSupported() {
 		if (typeof appendABViewSupported == "undefined") {
-			var blobBuilder;
-			blobBuilder = new BlobBuilder();
-			blobBuilder.append(getDataHelper(0).view);
-			appendABViewSupported = blobBuilder.getBlob().size == 0;
+			var blob = new Blob([getDataHelper(0).view]);
+			appendABViewSupported = blob.size == 0;
 		}
 		return appendABViewSupported;
 	}
@@ -113,9 +111,8 @@
 		var that = this, blobReader;
 
 		function init(callback, onerror) {
-			var blobBuilder = new BlobBuilder();
-			blobBuilder.append(text);
-			blobReader = new BlobReader(blobBuilder.getBlob("text/plain"));
+			var blob = new Blob([text], {type: "text/plain"});
+			blobReader = new BlobReader(blob);
 			blobReader.init(function() {
 				that.size = blobReader.size;
 				callback();
@@ -283,15 +280,15 @@
 	};
 
 	function TextWriter() {
-		var that = this, blobBuilder;
+		var that = this, blob;
 
 		function init(callback) {
-			blobBuilder = new BlobBuilder();
+			blob = new Blob([], {type: "text/plain"});
 			callback();
 		}
 
 		function writeUint8Array(array, callback) {
-			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
+			blob = new Blob([blob, isAppendABViewSupported() ? array : array.buffer], {type: "text/plain"});
 			callback();
 		}
 
@@ -301,7 +298,7 @@
 				callback(e.target.result);
 			};
 			reader.onerror = onerror;
-			reader.readAsText(blobBuilder.getBlob("text/plain"));
+			reader.readAsText(blob);
 		}
 
 		that.init = init;
@@ -355,14 +352,13 @@
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			var blobBuilder = new BlobBuilder();
-			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
+			var blob = new Blob([isAppendABViewSupported() ? array : array.buffer], {type: contentType});
 			writer.onwrite = function() {
 				writer.onwrite = null;
 				callback();
 			};
 			writer.onerror = onerror;
-			writer.write(blobBuilder.getBlob(contentType));
+			writer.write(blob);
 		}
 
 		function getData(callback) {
@@ -377,20 +373,20 @@
 	FileWriter.prototype.constructor = FileWriter;
 
 	function BlobWriter(contentType) {
-		var blobBuilder, that = this;
+		var blob, that = this;
 
 		function init(callback) {
-			blobBuilder = new BlobBuilder();
+			blob = new Blob([], {type: contentType});
 			callback();
 		}
 
 		function writeUint8Array(array, callback) {
-			blobBuilder.append(isAppendABViewSupported() ? array : array.buffer);
+			blob = new Blob([blob, isAppendABViewSupported() ? array : array.buffer], {type: contentType});
 			callback();
 		}
 
 		function getData(callback) {
-			callback(blobBuilder.getBlob(contentType));
+			callback(blob);
 		}
 
 		that.init = init;
@@ -931,32 +927,6 @@
 					});
 				}, onwriteerror);
 			}
-		};
-	}
-
-	if (typeof BlobBuilder == "undefined") {
-		BlobBuilder = function() {
-			var that = this, blobParts;
-
-			function initBlobParts() {
-				if (!blobParts) {
-					blobParts = [ new Blob() ]
-				}
-			}
-
-			that.append = function(data) {
-				initBlobParts();
-				blobParts.push(data);
-			};
-			that.getBlob = function(contentType) {
-				initBlobParts();
-				if (blobParts.length > 1 || blobParts[0].type != contentType) {
-					blobParts = [ contentType ? new Blob(blobParts, {
-						type : contentType
-					}) : new Blob(blobParts) ];
-				}
-				return blobParts[0];
-			};
 		};
 	}
 
