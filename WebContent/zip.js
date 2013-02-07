@@ -42,14 +42,11 @@
 	var INFLATE_JS = "inflate.js";
 	var DEFLATE_JS = "deflate.js";
 
-	var Blob = obj.Blob;
-
 	var appendABViewSupported;
 
 	function isAppendABViewSupported() {
 		if (typeof appendABViewSupported == "undefined") {
-			var blob = new Blob([getDataHelper(0).view]);
-			appendABViewSupported = blob.size == 0;
+			appendABViewSupported = new Blob([ getDataHelper(0).view ]).size == 0;
 		}
 		return appendABViewSupported;
 	}
@@ -111,7 +108,9 @@
 		var that = this, blobReader;
 
 		function init(callback, onerror) {
-			var blob = new Blob([text], {type: "text/plain"});
+			var blob = new Blob([ text ], {
+				type : "text/plain"
+			});
 			blobReader = new BlobReader(blob);
 			blobReader.init(function() {
 				that.size = blobReader.size;
@@ -283,12 +282,16 @@
 		var that = this, blob;
 
 		function init(callback) {
-			blob = new Blob([], {type: "text/plain"});
+			blob = new Blob([], {
+				type : "text/plain"
+			});
 			callback();
 		}
 
 		function writeUint8Array(array, callback) {
-			blob = new Blob([blob, isAppendABViewSupported() ? array : array.buffer], {type: "text/plain"});
+			blob = new Blob([ blob, isAppendABViewSupported() ? array : array.buffer ], {
+				type : "text/plain"
+			});
 			callback();
 		}
 
@@ -352,7 +355,9 @@
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			var blob = new Blob([isAppendABViewSupported() ? array : array.buffer], {type: contentType});
+			var blob = new Blob([ isAppendABViewSupported() ? array : array.buffer ], {
+				type : contentType
+			});
 			writer.onwrite = function() {
 				writer.onwrite = null;
 				callback();
@@ -376,12 +381,16 @@
 		var blob, that = this;
 
 		function init(callback) {
-			blob = new Blob([], {type: contentType});
+			blob = new Blob([], {
+				type : contentType
+			});
 			callback();
 		}
 
 		function writeUint8Array(array, callback) {
-			blob = new Blob([blob, isAppendABViewSupported() ? array : array.buffer], {type: contentType});
+			blob = new Blob([ blob, isAppendABViewSupported() ? array : array.buffer ], {
+				type : contentType
+			});
 			callback();
 		}
 
