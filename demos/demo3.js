@@ -50,9 +50,7 @@
 						});
 					else {
 						blobURL = URL.createObjectURL(blob);
-						onend(blobURL, function() {
-							URL.revokeObjectURL(blobURL);
-						});
+						onend(blobURL);
 					}
 				}
 
@@ -116,7 +114,7 @@
 
 		function onexport(isFile) {
 			function downloadBlobURL(target, filename) {
-				return function(blobURL, revokeBlobURL) {
+				return function(blobURL) {
 					var clickEvent = document.createEvent("MouseEvent");
 					progressExport.style.opacity = 0.2;
 					progressExport.value = 0;
@@ -127,7 +125,6 @@
 					target.dispatchEvent(clickEvent);
 					target.href = "";
 					target.download = "";
-					setTimeout(revokeBlobURL, 1);
 				};
 			}
 

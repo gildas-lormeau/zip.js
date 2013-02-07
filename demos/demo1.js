@@ -69,10 +69,7 @@
 			getBlobURL : function(callback) {
 				zipWriter.close(function(blob) {
 					var blobURL = creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL();
-					callback(blobURL, function() {
-						if (creationMethod == "Blob")
-							URL.revokeObjectURL(blobURL);
-					});
+					callback(blobURL);
 					zipWriter = null;
 				});
 			}
@@ -116,7 +113,7 @@
 		downloadButton.addEventListener("click", function(event) {
 			var target = event.target, entry;
 			if (!downloadButton.download) {
-				model.getBlobURL(function(blobURL, revokeBlobURL) {
+				model.getBlobURL(function(blobURL) {
 					var clickEvent = document.createEvent("MouseEvent");
 					clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
 					downloadButton.href = blobURL;
@@ -124,7 +121,6 @@
 					downloadButton.dispatchEvent(clickEvent);
 					creationMethodInput.disabled = false;
 					fileList.innerHTML = "";
-					setTimeout(revokeBlobURL, 1);
 				});
 				event.preventDefault();
 				return false;

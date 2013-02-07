@@ -38,10 +38,7 @@
 				function getData() {
 					entry.getData(writer, function(blob) {
 						var blobURL = creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL();
-						onend(blobURL, function() {
-							if (creationMethod == "Blob")
-								URL.revokeObjectURL(blobURL);
-						});
+						onend(blobURL);
 					}, onprogress);
 				}
 
@@ -66,7 +63,7 @@
 		var creationMethodInput = document.getElementById("creation-method-input");
 
 		function download(entry, li, a) {
-			model.getEntryFile(entry, creationMethodInput.value, function(blobURL, revokeBlobURL) {
+			model.getEntryFile(entry, creationMethodInput.value, function(blobURL) {
 				var clickEvent = document.createEvent("MouseEvent");
 				if (unzipProgress.parentNode)
 					unzipProgress.parentNode.removeChild(unzipProgress);
@@ -76,7 +73,6 @@
 				a.href = blobURL;
 				a.download = entry.filename;
 				a.dispatchEvent(clickEvent);
-				setTimeout(revokeBlobURL, 1);
 			}, function(current, total) {
 				unzipProgress.value = current;
 				unzipProgress.max = total;
