@@ -72,6 +72,10 @@
 					callback(blobURL);
 					zipWriter = null;
 				});
+				zipWriter.close();
+			},
+			getBlob : function(callback) {
+				zipWriter.close(callback);
 			}
 		};
 	})();
@@ -113,17 +117,24 @@
 		downloadButton.addEventListener("click", function(event) {
 			var target = event.target, entry;
 			if (!downloadButton.download) {
-				model.getBlobURL(function(blobURL) {
-					var clickEvent = document.createEvent("MouseEvent");
-					clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-					downloadButton.href = blobURL;
-					downloadButton.download = filenameInput.value;
-					downloadButton.dispatchEvent(clickEvent);
-					creationMethodInput.disabled = false;
-					fileList.innerHTML = "";
-				});
-				event.preventDefault();
-				return false;
+				if (typeof navigator.msSaveBlob == "function") {
+					model.getBlob(function(blob) {
+						navigator.msSaveBlob(blob, filenameInput.value);
+					});
+				} else {
+					model.getBlobURL(function(blobURL) {
+						var clickEvent;
+						clickEvent = document.createEvent("MouseEvent");
+						clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+						downloadButton.href = blobURL;
+						downloadButton.download = filenameInput.value;
+						downloadButton.dispatchEvent(clickEvent);
+						creationMethodInput.disabled = false;
+						fileList.innerHTML = "";
+					});
+					event.preventDefault();
+					return false;
+				}
 			}
 		}, false);
 

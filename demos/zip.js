@@ -46,7 +46,10 @@
 
 	function isAppendABViewSupported() {
 		if (typeof appendABViewSupported == "undefined") {
-			appendABViewSupported = new Blob([ getDataHelper(0).view ]).size == 0;
+			try {
+				appendABViewSupported = new Blob([ getDataHelper(0).view ]).size == 0;
+			} catch (e) {
+			}
 		}
 		return appendABViewSupported;
 	}
