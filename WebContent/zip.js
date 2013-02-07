@@ -715,7 +715,7 @@
 			reader.readUint8Array(reader.size - offset, offset, function(bytes) {
 				var dataView = getDataHelper(bytes.length, bytes).view;
 				if (dataView.getUint32(0) != 0x504b0506) {
-					seekEOCDR(offset+1, entriesCallback);
+					seekEOCDR(offset + 1, entriesCallback);
 				} else {
 					entriesCallback(dataView);
 				}
@@ -723,7 +723,7 @@
 				onerror(ERR_READ);
 			});
 		}
-		
+
 		return {
 			getEntries : function(callback) {
 				if (reader.size < 22) {
@@ -732,6 +732,7 @@
 				}
 				// look for End of central directory record
 				seekEOCDR(22, function(dataView) {
+					var datalength, fileslength;
 					datalength = dataView.getUint32(16, true);
 					fileslength = dataView.getUint16(8, true);
 					reader.readUint8Array(datalength, reader.size - datalength, function(bytes) {
