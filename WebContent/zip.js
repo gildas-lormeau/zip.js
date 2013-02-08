@@ -43,16 +43,10 @@
 	var DEFLATE_JS = "deflate.js";
 
 	var appendABViewSupported;
-
-	function isAppendABViewSupported() {
-		if (typeof appendABViewSupported == "undefined") {
-			try {
-				appendABViewSupported = new Blob([ getDataHelper(0).view ]).size == 0;
-			} catch (e) {
-			}
-		}
-		return appendABViewSupported;
-	}
+	try {
+		appendABViewSupported = new Blob([ getDataHelper(0).view ]).size == 0;
+	} catch (e) {
+	}	
 
 	function Crc32() {
 		var crc = -1, that = this;
@@ -292,7 +286,7 @@
 		}
 
 		function writeUint8Array(array, callback) {
-			blob = new Blob([ blob, isAppendABViewSupported() ? array : array.buffer ], {
+			blob = new Blob([ blob, appendABViewSupported ? array : array.buffer ], {
 				type : "text/plain"
 			});
 			callback();
@@ -358,7 +352,7 @@
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			var blob = new Blob([ isAppendABViewSupported() ? array : array.buffer ], {
+			var blob = new Blob([ appendABViewSupported ? array : array.buffer ], {
 				type : contentType
 			});
 			writer.onwrite = function() {
@@ -391,7 +385,7 @@
 		}
 
 		function writeUint8Array(array, callback) {
-			blob = new Blob([ blob, isAppendABViewSupported() ? array : array.buffer ], {
+			blob = new Blob([ blob, appendABViewSupported ? array : array.buffer ], {
 				type : contentType
 			});
 			callback();
