@@ -72,7 +72,6 @@
 					callback(blobURL);
 					zipWriter = null;
 				});
-				zipWriter.close();
 			},
 			getBlob : function(callback) {
 				zipWriter.close(callback);
