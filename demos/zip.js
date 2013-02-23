@@ -43,16 +43,10 @@
 	var DEFLATE_JS = "deflate.js";
 
 	var appendABViewSupported;
-
-	function isAppendABViewSupported() {
-		if (typeof appendABViewSupported == "undefined") {
-			try {
-				appendABViewSupported = new Blob([ getDataHelper(0).view ]).size == 0;
-			} catch (e) {
-			}
-		}
-		return appendABViewSupported;
-	}
+	try {
+		appendABViewSupported = new Blob([ getDataHelper(0).view ]).size == 0;
+	} catch (e) {
+	}	
 
 	function Crc32() {
 		var crc = -1, that = this;
@@ -292,7 +286,7 @@
 		}
 
 		function writeUint8Array(array, callback) {
-			blob = new Blob([ blob, isAppendABViewSupported() ? array : array.buffer ], {
+			blob = new Blob([ blob, appendABViewSupported ? array : array.buffer ], {
 				type : "text/plain"
 			});
 			callback();
@@ -358,7 +352,7 @@
 		}
 
 		function writeUint8Array(array, callback, onerror) {
-			var blob = new Blob([ isAppendABViewSupported() ? array : array.buffer ], {
+			var blob = new Blob([ appendABViewSupported ? array : array.buffer ], {
 				type : contentType
 			});
 			writer.onwrite = function() {
@@ -391,7 +385,7 @@
 		}
 
 		function writeUint8Array(array, callback) {
-			blob = new Blob([ blob, isAppendABViewSupported() ? array : array.buffer ], {
+			blob = new Blob([ blob, appendABViewSupported ? array : array.buffer ], {
 				type : contentType
 			});
 			callback();
@@ -850,7 +844,7 @@
 					header.view.setUint32(0, 0x14000808);
 					if (options.version)
 						header.view.setUint8(0, options.version);
-					if (!dontDeflate && options.level != 0)
+					if (!dontDeflate && options.level != 0 && !options.directory)
 						header.view.setUint16(4, 0x0800);
 					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
@@ -858,7 +852,6 @@
 					data = getDataHelper(30 + filename.length);
 					data.view.setUint32(0, 0x504b0304);
 					data.array.set(header.array, 4);
-					data.array.set([], 30); // FIXME: remove when chrome 18 will be stable (14: OK, 16: KO, 17: OK)
 					data.array.set(filename, 30);
 					datalength += data.array.length;
 					writer.writeUint8Array(data.array, callback, onwriteerror);
