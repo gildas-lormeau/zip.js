@@ -208,10 +208,10 @@
 			}, onerror);
 	}
 
-	function getFileEntry(fileEntry, entry, onend, onprogress, totalSize, checkCrc32) {
+	function getFileEntry(fileEntry, entry, onend, onprogress, onerror, totalSize, checkCrc32) {
 		var currentIndex = 0;
 
-		function process(fileEntry, entry, onend, onprogress, totalSize) {
+		function process(fileEntry, entry, onend, onprogress, onerror, totalSize) {
 			var childIndex = 0;
 
 			function addChild(child) {
@@ -220,7 +220,7 @@
 					process(childFileEntry, child, function() {
 						childIndex++;
 						processChild();
-					}, onprogress, totalSize);
+					}, onprogress, onerror, totalSize);
 				}
 
 				if (child.directory)
@@ -248,9 +248,9 @@
 
 			processChild();
 		}
-		
+
 		if (entry.directory)
-			process(fileEntry, entry, onend, onprogress, totalSize);
+			process(fileEntry, entry, onend, onprogress, onerror, totalSize);
 		else
 			entry.getData(new FileWriter(fileEntry, zip.getMimeType(entry.name)), onend, onprogress, checkCrc32);
 	}
@@ -327,7 +327,7 @@
 		getFileEntry : function(fileEntry, onend, onprogress, onerror, checkCrc32) {
 			var that = this;
 			initReaders(that, function() {
-				getFileEntry(fileEntry, that, onend, onprogress, getTotalSize(that), checkCrc32);
+				getFileEntry(fileEntry, that, onend, onprogress, onerror, getTotalSize(that), checkCrc32);
 			}, onerror);
 		},
 		moveTo : function(target) {
@@ -544,7 +544,7 @@
 	zip.fs = {
 		FS : FS
 	};
-	
+
 	zip.getMimeType = function() {
 		return "application/octet-stream";
 	};
