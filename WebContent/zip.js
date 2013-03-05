@@ -275,7 +275,7 @@
 		callback(this.data);
 	};
 
-	function TextWriter() {
+	function TextWriter(encoding) {
 		var that = this, blob;
 
 		function init(callback) {
@@ -298,7 +298,7 @@
 				callback(e.target.result);
 			};
 			reader.onerror = onerror;
-			reader.readAsText(blob);
+			reader.readAsText(blob, encoding);
 		}
 
 		that.init = init;

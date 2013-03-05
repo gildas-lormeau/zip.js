@@ -376,8 +376,8 @@
 
 	ZipFileEntry.prototype = ZipFileEntryProto = new ZipEntry();
 	ZipFileEntryProto.constructor = ZipFileEntry;
-	ZipFileEntryProto.getText = function(onend, onprogress, checkCrc32) {
-		this.getData(new TextWriter(), onend, onprogress, checkCrc32);
+	ZipFileEntryProto.getText = function(onend, onprogress, checkCrc32, encoding) {
+		this.getData(new TextWriter(encoding), onend, onprogress, checkCrc32);
 	};
 	ZipFileEntryProto.getBlob = function(mimeType, onend, onprogress, checkCrc32) {
 		this.getData(new BlobWriter(mimeType), onend, onprogress, checkCrc32);
