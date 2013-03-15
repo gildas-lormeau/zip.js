@@ -44,7 +44,7 @@
 
 	var appendABViewSupported;
 	try {
-		appendABViewSupported = new Blob([ getDataHelper(0).view ]).size == 0;
+		appendABViewSupported = new Blob([ getDataHelper(0).view ]).size === 0;
 	} catch (e) {
 	}
 
@@ -798,7 +798,7 @@
 					header.view.setUint32(0, 0x14000808);
 					if (options.version)
 						header.view.setUint8(0, options.version);
-					if (!dontDeflate && options.level != 0 && !options.directory)
+					if (!dontDeflate && options.level !== 0 && !options.directory)
 						header.view.setUint16(4, 0x0800);
 					header.view.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 					header.view.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
@@ -842,7 +842,7 @@
 					filenames.push(name);
 					writeHeader(function() {
 						if (reader)
-							if (dontDeflate || options.level == 0)
+							if (dontDeflate || options.level === 0)
 								copy(reader, writer, 0, reader.size, true, writeFooter, onprogress, onreaderror, onwriteerror);
 							else
 								worker = deflate(reader, writer, options.level, writeFooter, onprogress, onreaderror, onwriteerror);
