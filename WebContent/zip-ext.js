@@ -28,6 +28,8 @@
 
 (function() {
 
+	var ERR_HTTP_RANGE = "HTTP Range not supported.";
+	
 	var Reader = zip.Reader;
 
 	function HttpReader(url) {
