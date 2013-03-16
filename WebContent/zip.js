@@ -180,93 +180,6 @@
 	BlobReader.prototype = new Reader();
 	BlobReader.prototype.constructor = BlobReader;
 
-	function HttpReader(url) {
-		var that = this;
-
-		function getData(callback, onerror) {
-			var request;
-			if (!that.data) {
-				request = new XMLHttpRequest();
-				request.addEventListener("load", function() {
-					if (!that.size)
-						that.size = Number(request.getResponseHeader("Content-Length"));
-					that.data = new Uint8Array(request.response);
-					callback();
-				}, false);
-				request.addEventListener("error", onerror, false);
-				request.open("GET", url);
-				request.responseType = "arraybuffer";
-				request.send();
-			} else
-				callback();
-		}
-
-		function init(callback, onerror) {
-			var request = new XMLHttpRequest();
-			request.addEventListener("load", function() {
-				that.size = Number(request.getResponseHeader("Content-Length"));
-				callback();
-			}, false);
-			request.addEventListener("error", onerror, false);
-			request.open("HEAD", url);
-			request.send();
-		}
-
-		function readUint8Array(index, length, callback, onerror) {
-			getData(function() {
-				callback(new Uint8Array(that.data.subarray(index, index + length)));
-			}, onerror);
-		}
-
-		that.size = 0;
-		that.init = init;
-		that.readUint8Array = readUint8Array;
-	}
-	HttpReader.prototype = new Reader();
-	HttpReader.prototype.constructor = HttpReader;
-
-	function HttpRangeReader(url) {
-		var that = this;
-
-		function init(callback, onerror) {
-			var request = new XMLHttpRequest();
-			request.addEventListener("load", function() {
-				that.size = Number(request.getResponseHeader("Content-Length"));
-				if (request.getResponseHeader("Accept-Ranges") == "bytes")
-					callback();
-				else
-					onerror(ERR_HTTP_RANGE);
-			}, false);
-			request.addEventListener("error", onerror, false);
-			request.open("HEAD", url);
-			request.send();
-		}
-
-		function readArrayBuffer(index, length, callback, onerror) {
-			var request = new XMLHttpRequest();
-			request.open("GET", url);
-			request.responseType = "arraybuffer";
-			request.setRequestHeader("Range", "bytes=" + index + "-" + (index + length - 1));
-			request.addEventListener("load", function() {
-				callback(request.response);
-			}, false);
-			request.addEventListener("error", onerror, false);
-			request.send();
-		}
-
-		function readUint8Array(index, length, callback, onerror) {
-			readArrayBuffer(index, length, function(arraybuffer) {
-				callback(new Uint8Array(arraybuffer));
-			}, onerror);
-		}
-
-		that.size = 0;
-		that.init = init;
-		that.readUint8Array = readUint8Array;
-	}
-	HttpRangeReader.prototype = new Reader();
-	HttpRangeReader.prototype.constructor = HttpRangeReader;
-
 	// Writers
 
 	function Writer() {
@@ -894,8 +807,6 @@
 		Reader : Reader,
 		Writer : Writer,
 		BlobReader : BlobReader,
-		HttpReader : HttpReader,
-		HttpRangeReader : HttpRangeReader,
 		Data64URIReader : Data64URIReader,
 		TextReader : TextReader,
 		BlobWriter : BlobWriter,
