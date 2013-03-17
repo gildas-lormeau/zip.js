@@ -716,7 +716,7 @@
 					if (options.directory && name.charAt(name.length - 1) != "/")
 						name += "/";
 					if (files[name]) {
-						terminate(onerror, ERR_DUPLICATED_NAME);
+						onerror(ERR_DUPLICATED_NAME);
 						return;
 					}
 					filename = getBytes(encodeUTF8(name));
