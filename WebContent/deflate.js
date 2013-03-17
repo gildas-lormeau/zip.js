@@ -462,11 +462,6 @@
 	var STATIC_TREES = 1;
 	var DYN_TREES = 2;
 
-	// The three kinds of block type
-	var Z_BINARY = 0;
-	var Z_ASCII = 1;
-	var Z_UNKNOWN = 2;
-
 	var MIN_MATCH = 3;
 	var MAX_MATCH = 258;
 	var MIN_LOOKAHEAD = (MAX_MATCH + MIN_MATCH + 1);
@@ -486,7 +481,6 @@
 		var pending_buf_size; // size of pending_buf
 		// pending_out; // next pending byte to output to the stream
 		// pending; // nb of bytes in the pending buffer
-		// data_type; // UNKNOWN, BINARY or ASCII
 		var method; // STORED (for zip only) or DEFLATED
 		var last_flush; // value of flush param for previous deflate call
 
@@ -1033,29 +1027,6 @@
 			last_eob_len = ltree[END_BLOCK * 2 + 1];
 		}
 
-		// Set the data type to ASCII or BINARY, using a crude approximation:
-		// binary if more than 20% of the bytes are <= 6 or >= 128, ascii otherwise.
-		// IN assertion: the fields freq of dyn_ltree are set and the total of all
-		// frequencies does not exceed 64K (to fit in an int on 16 bit machines).
-		function set_data_type() {
-			var n = 0;
-			var ascii_freq = 0;
-			var bin_freq = 0;
-			while (n < 7) {
-				bin_freq += dyn_ltree[n * 2];
-				n++;
-			}
-			while (n < 128) {
-				ascii_freq += dyn_ltree[n * 2];
-				n++;
-			}
-			while (n < LITERALS) {
-				bin_freq += dyn_ltree[n * 2];
-				n++;
-			}
-			that.data_type = (bin_freq > (ascii_freq >>> 2) ? Z_BINARY : Z_ASCII) & 0xff;
-		}
-
 		// Flush the bit buffer and align the output on a byte boundary
 		function bi_windup() {
 			if (bi_valid > 8) {
@@ -1105,10 +1076,6 @@
 
 			// Build the Huffman trees unless a stored block is forced
 			if (level > 0) {
-				// Check if the file is ascii or binary
-				if (that.data_type == Z_UNKNOWN)
-					set_data_type();
-
 				// Construct the literal and distance trees
 				l_desc.build_tree(that);
 
@@ -1640,8 +1607,7 @@
 		function deflateReset(strm) {
 			strm.total_in = strm.total_out = 0;
 			strm.msg = null; //
-			strm.data_type = Z_UNKNOWN;
-
+			
 			that.pending = 0;
 			that.pending_out = 0;
 
@@ -1925,8 +1891,6 @@
 		that.total_out = 0; // total nb of bytes output so far
 		// that.msg;
 		// that.dstate;
-		// that.data_type; // best guess about the data type: ascii or binary
-
 	}
 
 	ZStream.prototype = {

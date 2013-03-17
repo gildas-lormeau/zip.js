@@ -38,8 +38,6 @@
 	TextReader = zip.TextReader, //
 	BlobReader = zip.BlobReader, //
 	Data64URIReader = zip.Data64URIReader, //
-	HttpRangeReader = zip.HttpRangeReader, //
-	HttpReader = zip.HttpReader, //
 	createReader = zip.createReader, //
 	createWriter = zip.createWriter;
 
@@ -420,12 +418,6 @@
 			Writer : Data64URIWriter
 		});
 	};
-	ZipDirectoryEntryProto.addHttpContent = function(name, URL, useRangeHeader) {
-		return addChild(this, name, {
-			data : URL,
-			Reader : useRangeHeader ? HttpRangeReader : HttpReader
-		});
-	};
 	ZipDirectoryEntryProto.addFileEntry = function(fileEntry, onend, onerror) {
 		addFileEntry(this, fileEntry, onend, onerror);
 	};
@@ -440,9 +432,6 @@
 	};
 	ZipDirectoryEntryProto.importData64URI = function(dataURI, onend, onerror) {
 		this.importZip(new Data64URIReader(dataURI), onend, onerror);
-	};
-	ZipDirectoryEntryProto.importHttpContent = function(URL, useRangeHeader, onend, onerror) {
-		this.importZip(useRangeHeader ? new HttpRangeReader(URL) : new HttpReader(URL), onend, onerror);
 	};
 	ZipDirectoryEntryProto.exportBlob = function(onend, onprogress, onerror) {
 		this.exportZip(new BlobWriter("application/zip"), onend, onprogress, onerror);
@@ -523,10 +512,6 @@
 			resetFS(this);
 			this.root.importData64URI(dataURI, onend, onerror);
 		},
-		importHttpContent : function(URL, useRangeHeader, onend, onerror) {
-			resetFS(this);
-			this.root.importHttpContent(URL, useRangeHeader, onend, onerror);
-		},
 		exportBlob : function(onend, onprogress, onerror) {
 			this.root.exportBlob(onend, onprogress, onerror);
 		},
@@ -542,7 +527,9 @@
 	};
 
 	zip.fs = {
-		FS : FS
+		FS : FS,
+		ZipDirectoryEntry : ZipDirectoryEntry,
+		ZipFileEntry : ZipFileEntry
 	};
 
 	zip.getMimeType = function() {

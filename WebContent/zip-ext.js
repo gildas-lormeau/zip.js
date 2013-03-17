@@ -29,7 +29,7 @@
 (function() {
 
 	var ERR_HTTP_RANGE = "HTTP Range not supported.";
-	
+
 	var Reader = zip.Reader;
 
 	function HttpReader(url) {
@@ -118,7 +118,7 @@
 	}
 	HttpRangeReader.prototype = new Reader();
 	HttpRangeReader.prototype.constructor = HttpRangeReader;
-	
+
 	function ArrayBufferReader(arrayBuffer) {
 		var that = this;
 
@@ -170,4 +170,29 @@
 	zip.ArrayBufferReader = ArrayBufferReader;
 	zip.ArrayBufferWriter = ArrayBufferWriter;
 
+	if (zip.fs) {
+		zip.fs.ZipDirectoryEntry.prototype.addHttpContent = function(name, URL, useRangeHeader) {
+			function addChild(parent, name, params, directory) {
+				if (parent.directory)
+					return directory ? new zip.fs.ZipDirectoryEntry(parent.fs, name, params, parent) : new zip.fs.ZipFileEntry(parent.fs, name, params, parent);
+				else
+					throw "Parent entry is not a directory.";
+			}
+			
+			return addChild(this, name, {
+				data : URL,
+				Reader : useRangeHeader ? HttpRangeReader : HttpReader
+			});
+		};
+		zip.fs.ZipDirectoryEntry.prototype.importHttpContent = function(URL, useRangeHeader, onend, onerror) {
+			this.importZip(useRangeHeader ? new HttpRangeReader(URL) : new HttpReader(URL), onend, onerror);
+		};
+		zip.fs.FS.prototype.importHttpContent = function(URL, useRangeHeader, onend, onerror) {
+			this.entries = [];
+			this.root = new zip.fs.ZipDirectoryEntry(this);
+			this.root.importHttpContent(URL, useRangeHeader, onend, onerror);
+		};
+	}
+
+	
 })();
