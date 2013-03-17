@@ -738,14 +738,14 @@
 					writeFile();
 			},
 			close : function(callback) {
-				var data, length = 0, index = 0;
-				filenames.forEach(function(name) {
-					var file = files[name];
+				var data, length = 0, index = 0, indexFilename, file;
+				for (indexFilename = 0; indexFilename < filenames.length; indexFilename++) {
+					file = files[filenames[indexFilename]];
 					length += 46 + file.filename.length + file.comment.length;
-				});
+				}
 				data = getDataHelper(length + 22);
-				filenames.forEach(function(name) {
-					var file = files[name];
+				for (indexFilename = 0; indexFilename < filenames.length; indexFilename++) {
+					file = files[filenames[indexFilename]];
 					data.view.setUint32(index, 0x504b0102);
 					data.view.setUint16(index + 4, 0x1400);
 					data.array.set(file.headerArray, index + 6);
@@ -756,7 +756,7 @@
 					data.array.set(file.filename, index + 46);
 					data.array.set(file.comment, index + 46 + file.filename.length);
 					index += 46 + file.filename.length + file.comment.length;
-				});
+				}
 				data.view.setUint32(index, 0x504b0506);
 				data.view.setUint16(index + 8, filenames.length, true);
 				data.view.setUint16(index + 10, filenames.length, true);
