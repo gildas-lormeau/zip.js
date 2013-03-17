@@ -32,6 +32,12 @@
 
 	var Reader = zip.Reader;
 
+	var appendABViewSupported;
+	try {
+		appendABViewSupported = new Blob([ new DataView(new ArrayBuffer(0)) ]).size === 0;
+	} catch (e) {
+	}
+
 	function HttpReader(url) {
 		var that = this;
 
@@ -165,6 +171,40 @@
 	ArrayBufferWriter.prototype = new zip.Writer();
 	ArrayBufferWriter.prototype.constructor = ArrayBufferWriter;
 
+	function FileWriter(fileEntry, contentType) {
+		var writer, that = this;
+
+		function init(callback, onerror) {
+			fileEntry.createWriter(function(fileWriter) {
+				writer = fileWriter;
+				callback();
+			}, onerror);
+		}
+
+		function writeUint8Array(array, callback, onerror) {
+			var blob = new Blob([ appendABViewSupported ? array : array.buffer ], {
+				type : contentType
+			});
+			writer.onwrite = function() {
+				writer.onwrite = null;
+				callback();
+			};
+			writer.onerror = onerror;
+			writer.write(blob);
+		}
+
+		function getData(callback) {
+			fileEntry.file(callback);
+		}
+
+		that.init = init;
+		that.writeUint8Array = writeUint8Array;
+		that.getData = getData;
+	}
+	FileWriter.prototype = new zip.Writer();
+	FileWriter.prototype.constructor = FileWriter;
+
+	zip.FileWriter = FileWriter;
 	zip.HttpReader = HttpReader;
 	zip.HttpRangeReader = HttpRangeReader;
 	zip.ArrayBufferReader = ArrayBufferReader;
@@ -178,7 +218,7 @@
 				else
 					throw "Parent entry is not a directory.";
 			}
-			
+
 			return addChild(this, name, {
 				data : URL,
 				Reader : useRangeHeader ? HttpRangeReader : HttpReader
@@ -194,5 +234,4 @@
 		};
 	}
 
-	
 })();
