@@ -31,6 +31,7 @@
 	var ERR_HTTP_RANGE = "HTTP Range not supported.";
 
 	var Reader = zip.Reader;
+	var Writer = zip.Writer;
 
 	var appendABViewSupported;
 	try {
@@ -141,7 +142,7 @@
 		that.init = init;
 		that.readUint8Array = readUint8Array;
 	}
-	ArrayBufferReader.prototype = new zip.Reader();
+	ArrayBufferReader.prototype = new Reader();
 	ArrayBufferReader.prototype.constructor = ArrayBufferReader;
 
 	function ArrayBufferWriter() {
@@ -168,7 +169,7 @@
 		that.writeUint8Array = writeUint8Array;
 		that.getData = getData;
 	}
-	ArrayBufferWriter.prototype = new zip.Writer();
+	ArrayBufferWriter.prototype = new Writer();
 	ArrayBufferWriter.prototype.constructor = ArrayBufferWriter;
 
 	function FileWriter(fileEntry, contentType) {
@@ -201,7 +202,7 @@
 		that.writeUint8Array = writeUint8Array;
 		that.getData = getData;
 	}
-	FileWriter.prototype = new zip.Writer();
+	FileWriter.prototype = new Writer();
 	FileWriter.prototype.constructor = FileWriter;
 
 	zip.FileWriter = FileWriter;
