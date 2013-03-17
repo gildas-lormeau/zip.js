@@ -715,8 +715,10 @@
 					name = name.trim();
 					if (options.directory && name.charAt(name.length - 1) != "/")
 						name += "/";
-					if (files[name])
-						throw ERR_DUPLICATED_NAME;
+					if (files[name]) {
+						terminate(onerror, ERR_DUPLICATED_NAME);
+						return;
+					}
 					filename = getBytes(encodeUTF8(name));
 					filenames.push(name);
 					writeHeader(function() {
