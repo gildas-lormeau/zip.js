@@ -641,7 +641,7 @@
 	}
 
 	function createZipWriter(writer, onerror, dontDeflate) {
-		var worker, files = [], filenames = [], datalength = 0;
+		var worker, files = {}, filenames = [], datalength = 0;
 
 		function terminate(callback, message) {
 			if (worker)
@@ -715,7 +715,7 @@
 					name = name.trim();
 					if (options.directory && name.charAt(name.length - 1) != "/")
 						name += "/";
-					if (files[name]) {
+					if (files.hasOwnProperty(name)) {
 						onerror(ERR_DUPLICATED_NAME);
 						return;
 					}
