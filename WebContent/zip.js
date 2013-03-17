@@ -40,6 +40,10 @@
 
 	var INFLATE_JS = "inflate.js";
 	var DEFLATE_JS = "deflate.js";
+	
+	var TEXT_PLAIN = "text/plain";
+	
+	var MESSAGE_EVENT = "message";
 
 	var appendABViewSupported;
 	try {
@@ -105,7 +109,7 @@
 
 		function init(callback, onerror) {
 			var blob = new Blob([ text ], {
-				type : "text/plain"
+				type : TEXT_PLAIN
 			});
 			blobReader = new BlobReader(blob);
 			blobReader.init(function() {
@@ -192,14 +196,14 @@
 
 		function init(callback) {
 			blob = new Blob([], {
-				type : "text/plain"
+				type : TEXT_PLAIN
 			});
 			callback();
 		}
 
 		function writeUint8Array(array, callback) {
 			blob = new Blob([ blob, appendABViewSupported ? array : array.buffer ], {
-				type : "text/plain"
+				type : TEXT_PLAIN
 			});
 			callback();
 		}
@@ -287,7 +291,7 @@
 		var chunkIndex = 0, index, outputSize;
 
 		function onflush() {
-			worker.removeEventListener("message", onmessage, false);
+			worker.removeEventListener(MESSAGE_EVENT, onmessage, false);
 			onend(outputSize);
 		}
 
@@ -334,7 +338,7 @@
 		}
 
 		outputSize = 0;
-		worker.addEventListener("message", onmessage, false);
+		worker.addEventListener(MESSAGE_EVENT, onmessage, false);
 		step();
 	}
 
@@ -409,13 +413,13 @@
 		}
 
 		function onmessage() {
-			worker.removeEventListener("message", onmessage, false);
+			worker.removeEventListener(MESSAGE_EVENT, onmessage, false);
 			launchWorkerProcess(worker, reader, writer, 0, reader.size, ondeflateappend, onprogress, ondeflateend, onreaderror, onwriteerror);
 		}
 
 		if (obj.zip.useWebWorkers) {
 			worker = new Worker(obj.zip.workerScriptsPath + DEFLATE_JS);
-			worker.addEventListener("message", onmessage, false);
+			worker.addEventListener(MESSAGE_EVENT, onmessage, false);
 			worker.postMessage({
 				init : true,
 				level : level
