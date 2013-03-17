@@ -118,8 +118,56 @@
 	}
 	HttpRangeReader.prototype = new Reader();
 	HttpRangeReader.prototype.constructor = HttpRangeReader;
+	
+	function ArrayBufferReader(arrayBuffer) {
+		var that = this;
+
+		function init(callback, onerror) {
+			that.size = arrayBuffer.byteLength;
+			callback();
+		}
+
+		function readUint8Array(index, length, callback, onerror) {
+			callback(new Uint8Array(arrayBuffer.slice(index, index + length)));
+		}
+
+		that.size = 0;
+		that.init = init;
+		that.readUint8Array = readUint8Array;
+	}
+	ArrayBufferReader.prototype = new zip.Reader();
+	ArrayBufferReader.prototype.constructor = ArrayBufferReader;
+
+	function ArrayBufferWriter() {
+		var array, that = this;
+
+		function init(callback, onerror) {
+			array = new Uint8Array();
+			callback();
+		}
+
+		function writeUint8Array(arr, callback, onerror) {
+			var tmpArray = new Uint8Array(array.length + arr.length);
+			tmpArray.set(array);
+			tmpArray.set(arr, array.length);
+			array = tmpArray;
+			callback();
+		}
+
+		function getData(callback) {
+			callback(array.buffer);
+		}
+
+		that.init = init;
+		that.writeUint8Array = writeUint8Array;
+		that.getData = getData;
+	}
+	ArrayBufferWriter.prototype = new zip.Writer();
+	ArrayBufferWriter.prototype.constructor = ArrayBufferWriter;
 
 	zip.HttpReader = HttpReader;
 	zip.HttpRangeReader = HttpRangeReader;
+	zip.ArrayBufferReader = ArrayBufferReader;
+	zip.ArrayBufferWriter = ArrayBufferWriter;
 
 })();
