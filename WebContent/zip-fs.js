@@ -30,8 +30,7 @@
 
 	var CHUNK_SIZE = 512 * 1024;
 
-	var FileWriter = zip.FileWriter, //
-	TextWriter = zip.TextWriter, //
+	var TextWriter = zip.TextWriter, //
 	BlobWriter = zip.BlobWriter, //
 	Data64URIWriter = zip.Data64URIWriter, //
 	Reader = zip.Reader, //
@@ -229,7 +228,7 @@
 					fileEntry.getFile(child.name, {
 						create : true
 					}, function(file) {
-						child.getData(new FileWriter(file, zip.getMimeType(child.name)), nextChild, function(index) {
+						child.getData(new zip.FileWriter(file, zip.getMimeType(child.name)), nextChild, function(index) {
 							if (onprogress)
 								onprogress(currentIndex + index, totalSize);
 						}, checkCrc32);
@@ -250,7 +249,7 @@
 		if (entry.directory)
 			process(fileEntry, entry, onend, onprogress, onerror, totalSize);
 		else
-			entry.getData(new FileWriter(fileEntry, zip.getMimeType(entry.name)), onend, onprogress, checkCrc32);
+			entry.getData(new zip.FileWriter(fileEntry, zip.getMimeType(entry.name)), onend, onprogress, checkCrc32);
 	}
 
 	function resetFS(fs) {
@@ -440,7 +439,7 @@
 		this.exportZip(new TextWriter(), onend, onprogress, onerror);
 	};
 	ZipDirectoryEntryProto.exportFileEntry = function(fileEntry, onend, onprogress, onerror) {
-		this.exportZip(new FileWriter(fileEntry, "application/zip"), onend, onprogress, onerror);
+		this.exportZip(new zip.FileWriter(fileEntry, "application/zip"), onend, onprogress, onerror);
 	};
 	ZipDirectoryEntryProto.exportData64URI = function(onend, onprogress, onerror) {
 		this.exportZip(new Data64URIWriter("application/zip"), onend, onprogress, onerror);

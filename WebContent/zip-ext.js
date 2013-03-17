@@ -32,6 +32,8 @@
 
 	var Reader = zip.Reader;
 	var Writer = zip.Writer;
+	
+	var ZipDirectoryEntry;
 
 	var appendABViewSupported;
 	try {
@@ -212,10 +214,11 @@
 	zip.ArrayBufferWriter = ArrayBufferWriter;
 
 	if (zip.fs) {
-		zip.fs.ZipDirectoryEntry.prototype.addHttpContent = function(name, URL, useRangeHeader) {
+		ZipDirectoryEntry = zip.fs.ZipDirectoryEntry;
+		ZipDirectoryEntry.prototype.addHttpContent = function(name, URL, useRangeHeader) {
 			function addChild(parent, name, params, directory) {
 				if (parent.directory)
-					return directory ? new zip.fs.ZipDirectoryEntry(parent.fs, name, params, parent) : new zip.fs.ZipFileEntry(parent.fs, name, params, parent);
+					return directory ? new ZipDirectoryEntry(parent.fs, name, params, parent) : new zip.fs.ZipFileEntry(parent.fs, name, params, parent);
 				else
 					throw "Parent entry is not a directory.";
 			}
@@ -225,12 +228,12 @@
 				Reader : useRangeHeader ? HttpRangeReader : HttpReader
 			});
 		};
-		zip.fs.ZipDirectoryEntry.prototype.importHttpContent = function(URL, useRangeHeader, onend, onerror) {
+		ZipDirectoryEntry.prototype.importHttpContent = function(URL, useRangeHeader, onend, onerror) {
 			this.importZip(useRangeHeader ? new HttpRangeReader(URL) : new HttpReader(URL), onend, onerror);
 		};
 		zip.fs.FS.prototype.importHttpContent = function(URL, useRangeHeader, onend, onerror) {
 			this.entries = [];
-			this.root = new zip.fs.ZipDirectoryEntry(this);
+			this.root = new ZipDirectoryEntry(this);
 			this.root.importHttpContent(URL, useRangeHeader, onend, onerror);
 		};
 	}
