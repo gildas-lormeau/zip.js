@@ -775,27 +775,28 @@
 		};
 	}
 
-	obj.zip = {
-		Reader : Reader,
-		Writer : Writer,
-		BlobReader : BlobReader,
-		Data64URIReader : Data64URIReader,
-		TextReader : TextReader,
-		BlobWriter : BlobWriter,
-		Data64URIWriter : Data64URIWriter,
-		TextWriter : TextWriter,
-		createReader : function(reader, callback, onerror) {
-			reader.init(function() {
-				callback(createZipReader(reader, onerror));
-			}, onerror);
-		},
-		createWriter : function(writer, callback, onerror, dontDeflate) {
-			writer.init(function() {
-				callback(createZipWriter(writer, onerror, dontDeflate));
-			}, onerror);
-		},
-		workerScriptsPath : "",
-		useWebWorkers : true
+	if (!obj.zip)
+		obj.zip = {};
+
+	obj.zip.Reader = Reader;
+	obj.zip.Writer = Writer;
+	obj.zip.BlobReader = BlobReader;
+	obj.zip.Data64URIReader = Data64URIReader;
+	obj.zip.TextReader = TextReader;
+	obj.zip.BlobWriter = BlobWriter;
+	obj.zip.Data64URIWriter = Data64URIWriter;
+	obj.zip.TextWriter = TextWriter;
+	obj.zip.createReader = function(reader, callback, onerror) {
+		reader.init(function() {
+			callback(createZipReader(reader, onerror));
+		}, onerror);
 	};
+	obj.zip.createWriter = function(writer, callback, onerror, dontDeflate) {
+		writer.init(function() {
+			callback(createZipWriter(writer, onerror, dontDeflate));
+		}, onerror);
+	};
+	obj.zip.workerScriptsPath = "";
+	obj.zip.useWebWorkers = true;
 
 })(this);
