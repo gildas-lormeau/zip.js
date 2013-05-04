@@ -55,6 +55,9 @@
 					callback();
 				}, false);
 				request.addEventListener("error", onerror, false);
+				that.progressListeners.forEach(function (listener) {
+					request.addEventListener("progress", listener, false);
+				});
 				request.open("GET", url);
 				request.responseType = "arraybuffer";
 				request.send();
@@ -82,9 +85,13 @@
 		that.size = 0;
 		that.init = init;
 		that.readUint8Array = readUint8Array;
+		that.progressListeners = [];
 	}
 	HttpReader.prototype = new Reader();
 	HttpReader.prototype.constructor = HttpReader;
+	HttpReader.prototype.addProgressListener = function(listener) {
+		this.progressListeners.push(listener);
+	};
 
 	function HttpRangeReader(url) {
 		var that = this;

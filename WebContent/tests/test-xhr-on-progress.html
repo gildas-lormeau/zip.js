@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Demo XHR progress</title>
+
+<style>
+body {
+    font-family: Tahoma;
+    font-szie: 9pt;
+}
+div.tabs > span {
+    padding:0;
+    padding-right:0.5em;
+    margin:0;
+}
+textarea.content {
+    width: 100%;
+    height: 100%;
+    font-size: 9pt;
+}
+</style>
+
+</head>
+<body>
+
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="../zip.js"></script>
+<script src="../zip-ext.js"></script>
+<script>
+zip.workerScriptsPath = "../";
+</script>
+<script src="test-xhr-on-progress.js"></script>
+<script>
+$(function () {
+    testXhrOnProgress.setupUi($("#testDiv"), "/dojo/dojo-release-1.8.3-src.zip");
+});
+</script>
+
+<div id="testDiv">
+
+<p><button>Download</button> <input id="downloadUrl" size="64"> <span id="downloadProgress"></span></p>
+
+<div id="tabs" class="tabs"></div>
+<div id="entryName"></div>
+<div style="height: 600px;">
+<textarea id="content" class="content"></textarea>
+</div>
+
+</div>
+
+</body>
