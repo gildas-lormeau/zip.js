@@ -27,6 +27,7 @@
  */
 
 (function(obj) {
+	"use strict";
 
 	var ERR_BAD_FORMAT = "File format is not recognized.";
 	var ERR_ENCRYPTED = "File contains encrypted entry.";
@@ -163,7 +164,7 @@
 		var that = this;
 
 		function init(callback) {
-			this.size = blob.size;
+			that.size = blob.size;
 			callback();
 		}
 

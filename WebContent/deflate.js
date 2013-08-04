@@ -34,6 +34,7 @@
  */
 
 (function(obj) {
+	"use strict";
 
 	// Global
 
