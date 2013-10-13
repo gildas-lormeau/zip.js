@@ -586,6 +586,32 @@
 		}
 
 		return {
+		    gunzip : function(writer, callback) {
+			reader.readUint8Array(0, 10, function(data){
+    			    if (data[0] != 31 && data[1]!=139) {
+    				console.log("Unsupported file");
+    				return;
+    			    }
+    			    if (data[2] != 8) {
+    				console.log("Unsupported compression");
+    				return;
+    			    }
+    			    if (data[3] != 0) {
+    				console.log("Unsupported flags");
+    				return;
+    			    }
+    			    writer.init(function() {
+    				worker = inflate(reader, writer, 10, reader.size-10-8, true, function(aaa){
+				    writer.getData(function(data) {
+					callback(data);
+				    });
+				}, function (aaa) {
+    				}, function (aaa) {
+    				}, function (aaa) {
+    				});
+    			    });
+			});
+		    },
 			getEntries : function(callback) {
 				if (reader.size < 22) {
 					onerror(ERR_BAD_FORMAT);
