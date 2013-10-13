@@ -586,32 +586,6 @@
 		}
 
 		return {
-		    gunzip : function(writer, callback) {
-			reader.readUint8Array(0, 10, function(data){
-    			    if (data[0] != 31 && data[1]!=139) {
-    				console.log("Unsupported file");
-    				return;
-    			    }
-    			    if (data[2] != 8) {
-    				console.log("Unsupported compression");
-    				return;
-    			    }
-    			    if (data[3] != 0) {
-    				console.log("Unsupported flags");
-    				return;
-    			    }
-    			    writer.init(function() {
-    				worker = inflate(reader, writer, 10, reader.size-10-8, true, function(aaa){
-				    writer.getData(function(data) {
-					callback(data);
-				    });
-				}, function (aaa) {
-    				}, function (aaa) {
-    				}, function (aaa) {
-    				});
-    			    });
-			});
-		    },
 			getEntries : function(callback) {
 				if (reader.size < 22) {
 					onerror(ERR_BAD_FORMAT);
@@ -801,6 +775,34 @@
 		};
 	}
 
+    function createGZipReader(reader, enerror) {
+	return {
+	    gunzip : function(writer, callback, onprogress, onreaderror, onwriteerror) {
+		reader.readUint8Array(0, 10, function(data){
+    		    if (data[0] != 31 && data[1]!=139) {
+			onerror(ERR_BAD_FORMAT);
+    			return;
+    		    }
+    		    if (data[2] != 8) {
+			onerror(ERR_BAD_FORMAT);
+    			return;
+    		    }
+    		    if (data[3] != 0) {
+			onerror(ERR_BAD_FORMAT);
+    			return;
+    		    }
+    		    writer.init(function() {
+    			worker = inflate(reader, writer, 10, reader.size-10-8, true, function(res){
+			    writer.getData(function(res) {
+				callback(res);
+			    });
+			}, onprogress, onreaderror, onwriteerror);
+    		    });
+		});
+	    }
+	};
+    }
+
 	obj.zip = {
 		Reader : Reader,
 		Writer : Writer,
@@ -818,6 +820,11 @@
 		createWriter : function(writer, callback, onerror, dontDeflate) {
 			writer.init(function() {
 				callback(createZipWriter(writer, onerror, dontDeflate));
+			}, onerror);
+		},
+		createGZipReader : function(reader, callback, onerror) {
+			reader.init(function() {
+				callback(createGZipReader(reader, onerror));
 			}, onerror);
 		},
 		workerScriptsPath : "",
