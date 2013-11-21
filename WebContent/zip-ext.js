@@ -44,39 +44,22 @@
 	function HttpReader(url) {
 		var that = this;
 
-		function getData(callback, onerror) {
-			var request;
-			if (!that.data) {
-				request = new XMLHttpRequest();
-				request.addEventListener("load", function() {
-					if (!that.size)
-						that.size = Number(request.getResponseHeader("Content-Length"));
-					that.data = new Uint8Array(request.response);
-					callback();
-				}, false);
-				request.addEventListener("error", onerror, false);
-				request.open("GET", url);
-				request.responseType = "arraybuffer";
-				request.send();
-			} else
-				callback();
-		}
-
 		function init(callback, onerror) {
 			var request = new XMLHttpRequest();
 			request.addEventListener("load", function() {
-				that.size = Number(request.getResponseHeader("Content-Length"));
+				if (!that.size)
+					that.size = Number(request.getResponseHeader("Content-Length")) || Number(request.response.byteLength);
+				that.data = new Uint8Array(request.response);
 				callback();
 			}, false);
 			request.addEventListener("error", onerror, false);
-			request.open("HEAD", url);
+			request.open("GET", url);
+			request.responseType = "arraybuffer";
 			request.send();
 		}
 
 		function readUint8Array(index, length, callback, onerror) {
-			getData(function() {
-				callback(new Uint8Array(that.data.subarray(index, index + length)));
-			}, onerror);
+			callback(new Uint8Array(that.data.subarray(index, index + length)));
 		}
 
 		that.size = 0;
@@ -92,7 +75,7 @@
 		function init(callback, onerror) {
 			var request = new XMLHttpRequest();
 			request.addEventListener("load", function() {
-				that.size = Number(request.getResponseHeader("Content-Length"));
+				that.size = Number(request.getResponseHeader("Content-Length")) || Number(request.response.byteLength);
 				if (request.getResponseHeader("Accept-Ranges") == "bytes")
 					callback();
 				else
