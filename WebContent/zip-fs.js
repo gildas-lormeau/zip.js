@@ -262,17 +262,19 @@
 
 		function stepCopy() {
 			var index = chunkIndex * CHUNK_SIZE;
-			if (onprogress)
-				onprogress(index, reader.size);
-			if (index < reader.size)
-				reader.readUint8Array(index, Math.min(CHUNK_SIZE, reader.size - index), function(array) {
-					writer.writeUint8Array(new Uint8Array(array), function() {
-						chunkIndex++;
-						stepCopy();
-					});
-				}, onerror);
-			else
-				writer.getData(onend);
+			if (onprogress){
+					onprogress(Math.min(index+CHUNK_SIZE,reader.size), reader.size);
+			}
+			reader.readUint8Array(index, Math.min(CHUNK_SIZE, reader.size - index), function(array) {
+				writer.writeUint8Array(new Uint8Array(array), function() {
+					chunkIndex++;
+					if (CHUNK_SIZE + index > reader.size) {
+						writer.getData(onend);
+						return ;
+					}
+					stepCopy();
+				});
+			}, onerror);
 		}
 
 		stepCopy();
