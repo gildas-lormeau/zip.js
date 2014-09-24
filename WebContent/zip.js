@@ -257,31 +257,28 @@
 	Data64URIWriter.prototype = new Writer();
 	Data64URIWriter.prototype.constructor = Data64URIWriter;
 
-	function BlobWriter(contentType) {
-		var blob, that = this;
+    function BlobWriter(contentType) {
+        var that = this;
+        var data = [];
 
-		function init(callback) {
-			blob = new Blob([], {
-				type : contentType
-			});
-			callback();
-		}
+        function init(callback) {
+            callback();
+        }
 
-		function writeUint8Array(array, callback) {
-			blob = new Blob([ blob, appendABViewSupported ? array : array.buffer ], {
-				type : contentType
-			});
-			callback();
-		}
+        function writeUint8Array(array, callback) {
+          data.push((new Uint8Array(array)).buffer); //chrome ok
+            callback();
+        }
 
-		function getData(callback) {
-			callback(blob);
-		}
+        function getData(callback) {
+          var blob = new Blob(data, {type: contentType});
+            callback(blob);
+        }
 
-		that.init = init;
-		that.writeUint8Array = writeUint8Array;
-		that.getData = getData;
-	}
+        that.init = init;
+        that.writeUint8Array = writeUint8Array;
+        that.getData = getData;
+    }
 	BlobWriter.prototype = new Writer();
 	BlobWriter.prototype.constructor = BlobWriter;
 
