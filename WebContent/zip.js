@@ -291,10 +291,12 @@
 	/** 
 	 * inflate/deflate core functions
 	 * @param worker {Worker} web worker for the task.
-	 * @param sn {int} serial number for distinguishing multiple tasks sent to the worker.
+	 * @param initialMessage {Object} initial message to be sent to the worker. should contains
+	 *   sn(serial number for distinguishing multiple tasks sent to the worker), and codecClass.
+	 *   This function may add more properties before sending.
 	 */
-	function launchWorkerProcess(worker, sn, reader, writer, offset, size, onappend, onprogress, onend, onreaderror, onwriteerror) {
-		var chunkIndex = 0, index, outputSize;
+	function launchWorkerProcess(worker, initialMessage, reader, writer, offset, size, onappend, onprogress, onend, onreaderror, onwriteerror) {
+		var chunkIndex = 0, index, outputSize, sn = initialMessage.sn;
 
 		function onflush() {
 			worker.removeEventListener(MESSAGE_EVENT, onmessage, false);
@@ -302,52 +304,69 @@
 		}
 
 		function onmessage(event) {
-			var message = event.data, data = message.data;
+			var message = event.data, data = message.data, time = message.time;
+			if (message.error) {
+				console.error('zip.js:launchWorkerProcess: error message: ', message);
+				return;
+			}
 			if (message.sn !== sn)
 				return;
-			if (message.onappend) {
-				if (!data) {
-					step();
-					return;
-				}
-				outputSize += data.length;
-				writer.writeUint8Array(data, function() {
-					onappend(false, data);
-					step();
-				}, onwriteerror);
-			}
-			if (message.onflush)
-				if (data) {
-					outputSize += data.length;
-					writer.writeUint8Array(data, function() {
-						onappend(false, data);
+			if (typeof time === 'number')
+				worker.processTime += time; // should be before onflush()/onappend()
+			// console.log('processTime:' + worker.processTime); //profile
+
+			switch (message.type) {
+				case 'append':
+					if (data) {
+						outputSize += data.length;
+						writer.writeUint8Array(data, function() {
+							onappend(false, data);
+							step();
+						}, onwriteerror);
+					} else
+						step();
+					break;
+				case 'flush':
+					if (data) {
+						outputSize += data.length;
+						writer.writeUint8Array(data, function() {
+							onappend(false, data);
+							onflush();
+						}, onwriteerror);
+					} else
 						onflush();
-					}, onwriteerror);
-				} else
-					onflush();
-			if (message.progress && onprogress)
-				onprogress(index + message.current, size);
+					break;
+				case 'progress':
+					onprogress && onprogress(index + message.loaded, size);
+					break;
+				case 'importScripts': //no need to handle here
+				case 'newTask':
+				case 'echo':
+					break;
+				default:
+					console.warn('zip.js:launchWorkerProcess: unknown message: ', message);
+			}
 		}
 
 		function step() {
 			index = chunkIndex * CHUNK_SIZE;
-			if (index < size)
+			if (index < size) {
 				reader.readUint8Array(offset + index, Math.min(CHUNK_SIZE, size - index), function(array) {
-					worker.postMessage({
-						sn: sn,
-						append : true,
-						data : array
-					});
-					chunkIndex++;
+					onappend(true, array);
 					if (onprogress)
 						onprogress(index, size);
-					onappend(true, array);
+					var msg = index === 0 ? initialMessage : {sn : sn};
+					msg.type = 'append';
+					msg.data = array;
+					worker.postMessage(msg, [array.buffer]);
+					chunkIndex++;
 				}, onreaderror);
-			else
+			} else {
 				worker.postMessage({
 					sn: sn,
-					flush : true
+					type: 'flush'
 				});
+			}
 		}
 
 		outputSize = 0;
@@ -405,8 +424,13 @@
 			onend(outputSize, crc32.get());
 		}
 
+		var initialMessage = {
+			sn: sn,
+			codecClass: 'Inflater'
+		};
+
 		if (obj.zip.useWebWorkers) {
-			launchWorkerProcess(worker, sn, reader, writer, offset, size, oninflateappend, onprogress, oninflateend, onreaderror, onwriteerror);
+			launchWorkerProcess(worker, initialMessage, reader, writer, offset, size, oninflateappend, onprogress, oninflateend, onreaderror, onwriteerror);
 		} else
 			launchProcess(new obj.zip.Inflater(), reader, writer, offset, size, oninflateappend, onprogress, oninflateend, onreaderror, onwriteerror);
 	}
@@ -423,18 +447,14 @@
 			onend(outputSize, crc32.get());
 		}
 
-		function onmessage() {
-			worker.removeEventListener(MESSAGE_EVENT, onmessage, false);
-			launchWorkerProcess(worker, sn, reader, writer, 0, reader.size, ondeflateappend, onprogress, ondeflateend, onreaderror, onwriteerror);
-		}
+		var initialMessage = {
+			sn: sn,
+			options: {level: level},
+			codecClass: 'Deflater'
+		};
 
 		if (obj.zip.useWebWorkers) {
-			worker.addEventListener(MESSAGE_EVENT, onmessage, false);
-			worker.postMessage({
-				sn: sn,
-				init : true,
-				level : level
-			});
+			launchWorkerProcess(worker, initialMessage, reader, writer, 0, reader.size, ondeflateappend, onprogress, ondeflateend, onreaderror, onwriteerror);
 		} else
 			launchProcess(new obj.zip.Deflater(), reader, writer, 0, reader.size, ondeflateappend, onprogress, ondeflateend, onreaderror, onwriteerror);
 	}
@@ -527,7 +547,7 @@
 		entry.extraFieldLength = data.view.getUint16(index + 24, true);
 	}
 
-	function createZipReader(reader, onerror) {
+	function createZipReader(reader, callback, onerror) {
 		var inflateSN = 0;
 
 		function Entry() {
@@ -611,7 +631,7 @@
 			}
 		}
 
-		return {
+		var zipReader = {
 			getEntries : function(callback) {
 				var worker = this._worker;
 				// look for End of central directory record
@@ -660,8 +680,22 @@
 				if (callback)
 					callback();
 			},
-			_worker: (obj.zip.useWebWorkers? new Worker(obj.zip.workerScriptsPath + INFLATE_JS) : null),
+			_worker: null
 		};
+
+		if (!obj.zip.useWebWorkers)
+			callback(zipReader);
+		else {
+			createWorker(obj.zip.workerScripts.inflater,
+				function(worker) {
+					zipReader._worker = worker;
+					callback(zipReader);
+				},
+				function(err) {
+					onerror(err);
+				}
+			);
+		}
 	}
 
 	// ZipWriter
@@ -677,7 +711,7 @@
 		return array;
 	}
 
-	function createZipWriter(writer, onerror, dontDeflate) {
+	function createZipWriter(writer, callback, onerror, dontDeflate) {
 		var files = {}, filenames = [], datalength = 0;
 		var deflateSN = 0;
 
@@ -689,7 +723,7 @@
 			onerror(ERR_READ_DATA);
 		}
 
-		return {
+		var zipWriter = {
 			add : function(name, reader, onend, onprogress, options) {
 				var header, filename, date;
 				var worker = this._worker;
@@ -802,8 +836,47 @@
 					writer.getData(callback);
 				}, onwriteerror);
 			},
-			_worker: (obj.zip.useWebWorkers? new Worker(obj.zip.workerScriptsPath + DEFLATE_JS) : null),
+			_worker: null
 		};
+
+		if (!obj.zip.useWebWorkers)
+			callback(zipWriter);
+		else {
+			createWorker(obj.zip.workerScripts.deflater,
+				function(worker) {
+					zipWriter._worker = worker;
+					callback(zipWriter);
+				},
+				function(err) {
+					onerror(err);
+				}
+			);
+		}
+	}
+
+	function createWorker(scripts, callback, onerror) {
+		var worker = new Worker(scripts[0]);
+		// record total comsumed time by inflater/deflater in this worker
+		worker.processTime = 0;
+		worker.postMessage({ type: 'importScripts', scripts: scripts.slice(1) });
+		worker.addEventListener(MESSAGE_EVENT, onmessage);
+		function onmessage(ev) {
+			var msg = ev.data;
+			if (msg.error) {
+				console.error('zip.js:createWorker:error message: ', msg);
+				onerror(msg.error);
+				worker.terminate();
+				return;
+			}
+			if (msg.type === 'importScripts') {
+				worker.removeEventListener(MESSAGE_EVENT, onmessage);
+				callback(worker);
+			}
+		}
+		// for debug
+		// worker.addEventListener(MESSAGE_EVENT, function(ev) {
+		// 	console.log('msg from worker:', ev.data);
+		// });
 	}
 
 	function onerror_default(error) {
@@ -822,7 +895,7 @@
 			onerror = onerror || onerror_default;
 
 			reader.init(function() {
-				callback(createZipReader(reader, onerror));
+				createZipReader(reader, callback, onerror);
 			}, onerror);
 		},
 		createWriter : function(writer, callback, onerror, dontDeflate) {
@@ -830,10 +903,11 @@
 			dontDeflate = !!dontDeflate;
 
 			writer.init(function() {
-				callback(createZipWriter(writer, onerror, dontDeflate));
+				createZipWriter(writer, callback, onerror, dontDeflate);
 			}, onerror);
 		},
-		workerScriptsPath : "",
+		// In deflater/inflater property, first script is used to start the worker, and other scripts are loaded by importScripts in that worker.
+		workerScripts : { deflater: ['z-worker.js', 'deflate.js'], inflater: ['z-worker.js', 'inflate.js']},
 		useWebWorkers : true
 	};
 

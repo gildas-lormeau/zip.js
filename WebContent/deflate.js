@@ -1989,13 +1989,13 @@
 
 	// Deflater
 
-	function Deflater(level) {
+	function Deflater(options) {
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
 		var flush = Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
-
+		var level = options? options.level : Z_DEFAULT_COMPRESSION;
 		if (typeof level == "undefined")
 			level = Z_DEFAULT_COMPRESSION;
 		z.deflateInit(level);
@@ -2054,43 +2054,9 @@
 		};
 	}
 
-	if (obj.zip)
+	if (obj.zip) // in main doc
 		obj.zip.Deflater = Deflater;
-	else {
-		var deflaters = {};
-		obj.addEventListener("message", function(event) {
-			var message = event.data;
-			var sn = message.sn;
-			sn.toString();
-			var	deflater = deflaters[sn];
-			if (message.init) {
-				deflater = deflaters[sn] = new Deflater(message.level);
-				obj.postMessage({
-					sn: sn,
-					oninit : true
-				});
-			}
-			if (message.append)
-				obj.postMessage({
-					sn: sn,
-					onappend : true,
-					data : deflater.append(message.data, function(current) {
-						obj.postMessage({
-							sn: sn,
-							progress : true,
-							current : current
-						});
-					})
-				});
-			if (message.flush) {
-				delete deflaters[sn];
-				obj.postMessage({
-					sn: sn,
-					onflush : true,
-					data : deflater.flush()
-				});
-			}
-		}, false);
-	}
+	else // in z-worker
+		obj.Deflater = Deflater;
 
 })(this);
