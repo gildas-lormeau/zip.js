@@ -2133,37 +2133,9 @@
 	}
 
 
-
-	if (obj.zip)
+	if (obj.zip) // in main doc
 		obj.zip.Inflater = Inflater;
-	else {
-		var inflaters = {};
-		obj.addEventListener("message", function(event) {
-			var message = event.data;
-			var sn = message.sn;
-			sn.toString();
-			var	inflater = inflaters[sn] || (inflaters[sn] = new Inflater());
-			if (message.append)
-				obj.postMessage({
-					sn: sn,
-					onappend : true,
-					data : inflater.append(message.data, function(current) {
-						obj.postMessage({
-							sn: sn,
-							progress : true,
-							current : current
-						});
-					})
-				});
-			if (message.flush) {
-				delete inflaters[sn];
-				obj.postMessage({
-					sn: sn,
-					onflush : true,
-					data: inflater.flush()
-				});
-			}
-		}, false);
-	}
+	else // in z-worker
+		obj.Inflater = Inflater;
 
 })(this);
