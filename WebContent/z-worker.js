@@ -1,4 +1,4 @@
-(function main() {
+(function main(global) {
 	addEventListener("message", function(event) {
 		var message = event.data, type = message.type, sn = message.sn;
 		var handler = handlers[type];
@@ -16,12 +16,12 @@
 	var handlers = {
 		importScripts: doImportScripts,
 		newTask: newTask,
-		append: append,
-		flush: flush,
+		append: processData,
+		flush: processData,
 	};
 
-	// deflater/inflater objs indexed by serial numbers of tasks
-	var codecs = {};
+	// deflater/inflater tasks indexed by serial numbers
+	var tasks = {};
 
 	function doImportScripts(msg) {
 		if (msg.scripts && msg.scripts.length > 0)
@@ -32,45 +32,55 @@
 	function newTask(msg) {
 		var CodecClass = self[msg.codecClass];
 		var sn = msg.sn;
-		if (codecs[sn])
+		if (tasks[sn])
 			throw Error('duplicated sn');
-		codecs[sn] = new CodecClass(msg.options);
+		tasks[sn] =  {
+			codec: new CodecClass(msg.options),
+			crcInput: msg.crcType === 'input',
+			crcOutput: msg.crcType === 'output',
+			crc: new Crc32(),
+		};
 		postMessage({type: 'newTask', sn: sn});
-	}
-
-	function append(msg) {
-		var sn = msg.sn;
-		var codec = codecs[sn];
-		// allow creating codec on first append
-		if (!codec && msg.codecClass) {
-			newTask(msg);
-			codec = codecs[sn];
-		}
-		process(msg.type, sn, function () {
-			return codec.append(msg.data, function onprogress(loaded) {
-				postMessage({type: 'progress', sn: sn, loaded: loaded});
-			});
-		});
-	}
-
-	function flush(msg) {
-		var sn = msg.sn;
-		var codec = codecs[sn];
-		delete codecs[sn];
-		process(msg.type, sn, codec.flush.bind(codec));
 	}
 
 	var timer = self.performance || Date; //performance may be not supported
 
-	function process(type, sn, action) {
-		var start = timer.now();
-		var data = action();
-		var msg = {type: type, sn: sn, time: timer.now() - start};
-		var args = [msg];
-		if (data) {
-			msg.data = data;
-			args[1] = [data.buffer];
+	function processData(msg) {
+		var sn = msg.sn, type = msg.type, input = msg.data;
+		var task = tasks[sn];
+		// allow creating codec on first append
+		if (!task && msg.codecClass) {
+			newTask(msg);
+			task = tasks[sn];
 		}
+		var isAppend = type === 'append';
+		var start = timer.now();
+		var output;
+		if (isAppend) {
+			output = task.codec.append(input, function onprogress(loaded) {
+				postMessage({type: 'progress', sn: sn, loaded: loaded});
+			});
+		} else {
+			delete tasks[sn];
+			output = task.codec.flush();
+		}
+		var codecTime = timer.now() - start;
+
+		start = timer.now();
+		if (input && task.crcInput)
+			task.crc.append(input);
+		if (output && task.crcOutput)
+			task.crc.append(output);
+		var crcTime = timer.now() - start;
+
+		var rmsg = {type: type, sn: sn, codecTime: codecTime, crcTime: crcTime};
+		var args = [rmsg];
+		if (output) {
+			rmsg.data = output;
+			args[1] = [output.buffer];
+		}
+		if (!isAppend && (task.crcInput || task.crcOutput))
+			rmsg.crc = task.crc.get();
 		postMessage.apply(undefined, args);
 	}
 
@@ -86,4 +96,39 @@
 	function formatError(e) {
 		return { message: e.message, stack: e.stack };
 	}
-})();
+
+	// Crc32 code copied from file zip.js
+	function Crc32() {
+		this.crc = -1;
+	}
+	Crc32.prototype.append = function append(data) {
+		var crc = this.crc | 0, table = this.table;
+		for (var offset = 0, len = data.length | 0; offset < len; offset++)
+			crc = (crc >>> 8) ^ table[(crc ^ data[offset]) & 0xFF];
+		this.crc = crc;
+	};
+	Crc32.prototype.get = function get() {
+		return ~this.crc;
+	};
+	Crc32.prototype.table = (function() {
+		var i, j, t, table = []; // Uint32Array is actually slower than []
+		for (i = 0; i < 256; i++) {
+			t = i;
+			for (j = 0; j < 8; j++)
+				if (t & 1)
+					t = (t >>> 1) ^ 0xEDB88320;
+				else
+					t = t >>> 1;
+			table[i] = t;
+		}
+		return table;
+	})();
+
+	// "no-op" codec
+	function NOOP() {}
+	global.NOOP = NOOP;
+	NOOP.prototype.append = function append(bytes, onprogress) {
+		return bytes;
+	};
+	NOOP.prototype.flush = function flush() {};
+})(this);
