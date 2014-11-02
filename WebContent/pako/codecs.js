@@ -23,7 +23,7 @@
 		var chunks = this._chunks;
 		var data;
 		if (chunks.length === 1)
-			return chunks[0];
+			data = chunks[0];
 		else if (chunks.length > 1) {
 			data = new Uint8Array(this._dataLength);
 			for (var i = 0, n = chunks.length, off = 0; i < n; i++) {
