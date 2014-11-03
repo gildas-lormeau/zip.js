@@ -78,6 +78,8 @@
 	})();
 
 	function blobSlice(blob, index, length) {
+		if (index < 0 || length < 0 || index + length > blob.size)
+			throw new RangeError('offset:' + index + ', length:' + length + ', size:' + blob.size);
 		if (blob.slice)
 			return blob.slice(index, index + length);
 		else if (blob.webkitSlice)
@@ -573,30 +575,54 @@
 			}, onreaderror);
 		};
 
-		function seekEOCDR(offset, entriesCallback) {
-			reader.readUint8Array(reader.size - offset, offset, function(bytes) {
-				var dataView = getDataHelper(bytes.length, bytes).view;
-				if (dataView.getUint32(0) != 0x504b0506) {
-					seekEOCDR(offset + 1, entriesCallback);
-				} else {
-					entriesCallback(dataView);
-				}
-			}, function() {
-				onerror(ERR_READ);
-			});
+		function seekEOCDR(eocdrCallback) {
+			// "End of central directory record" is the last part of a zip archive, and is at least 22 bytes long.
+			// Zip file comment is the last part of EOCDR and has max length of 64KB,
+			// so we only have to search the last 64K + 22 bytes of a archive for EOCDR signature (0x06054b50).
+			var EOCDR_MIN = 22;
+			if (reader.size < EOCDR_MIN) {
+				onerror(ERR_BAD_FORMAT);
+				return;
+			}
+			var ZIP_COMMENT_MAX = 256 * 256, EOCDR_MAX = EOCDR_MIN + ZIP_COMMENT_MAX;
+			var bufSize = EOCDR_MIN, offset = reader.size - EOCDR_MIN, searchLength = 1;
+
+			step();
+			function step() {
+				reader.readUint8Array(offset, bufSize, function(bytes) {
+					for (var i = searchLength - 1; i >= 0; i--) {
+						if (bytes[i] === 0x50 && bytes[i + 1] === 0x4b && bytes[i + 2] === 0x05 && bytes[i + 3] === 0x06) {
+							eocdrCallback(new DataView(bytes.buffer, i, EOCDR_MIN));
+							return;
+						}
+					}
+					var dist = reader.size - offset;
+					if (offset === 0 || dist >= EOCDR_MAX) {
+						onerror(ERR_BAD_FORMAT); // EOCDR not found
+						return;
+					}
+					var newOffset = Math.max(offset - dist, 0);
+					searchLength = offset - newOffset;
+					offset = newOffset;
+					bufSize = searchLength + EOCDR_MIN - 1;
+					step();
+				}, function() {
+					onerror(ERR_READ);
+				});
+			}
 		}
 
 		return {
 			getEntries : function(callback) {
-				if (reader.size < 22) {
-					onerror(ERR_BAD_FORMAT);
-					return;
-				}
 				// look for End of central directory record
-				seekEOCDR(22, function(dataView) {
+				seekEOCDR(function(dataView) {
 					var datalength, fileslength;
 					datalength = dataView.getUint32(16, true);
 					fileslength = dataView.getUint16(8, true);
+					if (datalength < 0 || datalength >= reader.size) {
+						onerror(ERR_BAD_FORMAT);
+						return;
+					}
 					reader.readUint8Array(datalength, reader.size - datalength, function(bytes) {
 						var i, index = 0, entries = [], entry, filename, comment, data = getDataHelper(bytes.length, bytes);
 						for (i = 0; i < fileslength; i++) {
