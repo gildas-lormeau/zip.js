@@ -257,33 +257,28 @@
 	Data64URIWriter.prototype = new Writer();
 	Data64URIWriter.prototype.constructor = Data64URIWriter;
 
-	function BlobWriter(contentType) {
-		var blob, that = this;
-
-		function init(callback) {
-			blob = new Blob([], {
-				type : contentType
-			});
-			callback();
-		}
-
-		function writeUint8Array(array, callback) {
-			blob = new Blob([ blob, appendABViewSupported ? array : array.buffer ], {
-				type : contentType
-			});
-			callback();
-		}
-
-		function getData(callback) {
-			callback(blob);
-		}
-
-		that.init = init;
-		that.writeUint8Array = writeUint8Array;
-		that.getData = getData;
+	// ByteArrayWriter simply retain or copy the Uint8Array written to it, and its getData() returns an array of Uint8Array.
+	function ByteArrayWriter() {
+		this.data = [];
 	}
-	BlobWriter.prototype = new Writer();
-	BlobWriter.prototype.constructor = BlobWriter;
+	ByteArrayWriter.prototype = Object.create(Writer.prototype);
+	ByteArrayWriter.prototype.constructor = ByteArrayWriter;
+	ByteArrayWriter.prototype.init = function init(callback) { callback(); };
+	// copyInput: whether this writer should copy the array, or can retain it.
+	ByteArrayWriter.prototype.writeUint8Array = function writeUint8Array(array, callback, onerror, copyInput) {
+		this.data.push(copyInput? new Uint8Array(array) : array);
+		callback();
+	};
+
+	// BlobWriter extends ByteArrayWriter, and construct and return a blob in its getData().
+	function BlobWriter(contentType) {
+		this.contentType = contentType;
+		ByteArrayWriter.call(this);
+	}
+	BlobWriter.prototype = Object.create(ByteArrayWriter.prototype);
+	BlobWriter.prototype.getData = function BW_getData(callback) {
+		callback(new Blob(this.data, {type: this.contentType}));
+	};
 
 	// inflate/deflate core functions
 
@@ -781,6 +776,7 @@
 		BlobReader : BlobReader,
 		Data64URIReader : Data64URIReader,
 		TextReader : TextReader,
+		ByteArrayWriter : ByteArrayWriter,
 		BlobWriter : BlobWriter,
 		Data64URIWriter : Data64URIWriter,
 		TextWriter : TextWriter,
