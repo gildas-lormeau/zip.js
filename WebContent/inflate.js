@@ -2119,9 +2119,10 @@
 					nomoreinput = true;
 				}
 				err = z.inflate(flush);
-				if (nomoreinput && (err == Z_BUF_ERROR))
-					return -1;
-				if (err != Z_OK && err != Z_STREAM_END)
+				if (nomoreinput && (err == Z_BUF_ERROR)) {
+					if (z.avail_in != 0)
+						return -1;
+				} else if (err != Z_OK && err != Z_STREAM_END)
 					throw "inflating: " + z.msg;
 				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_in == data.length))
 					return -1;
