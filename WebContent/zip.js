@@ -27,6 +27,7 @@
  */
 
 (function(obj) {
+	"use strict";
 
 	var ERR_BAD_FORMAT = "File format is not recognized.";
 	var ERR_ENCRYPTED = "File contains encrypted entry.";
@@ -163,7 +164,7 @@
 		var that = this;
 
 		function init(callback) {
-			this.size = blob.size;
+			that.size = blob.size;
 			callback();
 		}
 
@@ -775,6 +776,9 @@
 		};
 	}
 
+	function onerror_default(error) {
+		console.error(error);
+	}
 	obj.zip = {
 		Reader : Reader,
 		Writer : Writer,
@@ -785,11 +789,16 @@
 		Data64URIWriter : Data64URIWriter,
 		TextWriter : TextWriter,
 		createReader : function(reader, callback, onerror) {
+			onerror = onerror || onerror_default;
+
 			reader.init(function() {
 				callback(createZipReader(reader, onerror));
 			}, onerror);
 		},
 		createWriter : function(writer, callback, onerror, dontDeflate) {
+			onerror = onerror || onerror_default;
+			dontDeflate = !!dontDeflate;
+
 			writer.init(function() {
 				callback(createZipWriter(writer, onerror, dontDeflate));
 			}, onerror);

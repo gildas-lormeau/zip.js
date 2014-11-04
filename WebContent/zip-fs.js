@@ -27,6 +27,7 @@
  */
 
 (function() {
+	"use strict";
 
 	var CHUNK_SIZE = 512 * 1024;
 
@@ -44,7 +45,7 @@
 		var that = this, blobReader;
 
 		function init(callback) {
-			this.size = entry.uncompressedSize;
+			that.size = entry.uncompressedSize;
 			callback();
 		}
 
@@ -278,21 +279,6 @@
 		stepCopy();
 	}
 
-	function getEntryData(writer, onend, onprogress, onerror) {
-		var that = this;
-		if (!writer || (writer.constructor == that.Writer && that.data))
-			onend(that.data);
-		else {
-			if (!that.reader)
-				that.reader = new that.Reader(that.data, onerror);
-			that.reader.init(function() {
-				writer.init(function() {
-					bufferedCopy(that.reader, writer, onend, onprogress, onerror);
-				}, onerror);
-			});
-		}
-	}
-
 	function addChild(parent, name, params, directory) {
 		if (parent.directory)
 			return directory ? new ZipDirectoryEntry(parent.fs, name, params, parent) : new ZipFileEntry(parent.fs, name, params, parent);
@@ -368,11 +354,28 @@
 		that.Reader = params.Reader;
 		that.Writer = params.Writer;
 		that.data = params.data;
-		that.getData = params.getData || getEntryData;
+		if (params.getData) {
+			that.getData = params.getData;
+		}
 	}
 
 	ZipFileEntry.prototype = ZipFileEntryProto = new ZipEntry();
 	ZipFileEntryProto.constructor = ZipFileEntry;
+	ZipFileEntryProto.getData = function(writer, onend, onprogress, onerror) {
+		var that = this;
+		if (!writer || (writer.constructor == that.Writer && that.data))
+			onend(that.data);
+		else {
+			if (!that.reader)
+				that.reader = new that.Reader(that.data, onerror);
+			that.reader.init(function() {
+				writer.init(function() {
+					bufferedCopy(that.reader, writer, onend, onprogress, onerror);
+				}, onerror);
+			});
+		}
+	};
+
 	ZipFileEntryProto.getText = function(onend, onprogress, checkCrc32, encoding) {
 		this.getData(new TextWriter(encoding), onend, onprogress, checkCrc32);
 	};

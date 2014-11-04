@@ -27,6 +27,7 @@
  */
 
 (function() {
+	"use strict";
 
 	var ERR_HTTP_RANGE = "HTTP Range not supported.";
 

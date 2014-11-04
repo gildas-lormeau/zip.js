@@ -27,6 +27,7 @@
  */
 
 (function() {
+	"use strict";
 	var table = {
 		"application" : {
 			"andrew-inset" : "ez",
