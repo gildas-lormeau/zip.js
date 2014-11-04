@@ -1995,7 +1995,7 @@
 		var bufsize = 512;
 		var flush = Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
-		var level = options? options.level : Z_DEFAULT_COMPRESSION;
+		var level = options ? options.level : Z_DEFAULT_COMPRESSION;
 		if (typeof level == "undefined")
 			level = Z_DEFAULT_COMPRESSION;
 		z.deflateInit(level);

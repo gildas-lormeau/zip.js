@@ -1,6 +1,8 @@
 /// wrapper for zlib-asm (https://github.com/ukyo/zlib-asm)
 
 (function(obj) {
+	"use strict";
+
 	function Codec(isDeflater, options) {
 		this._isDeflater = isDeflater;
 		if (options && typeof options.level === 'number')

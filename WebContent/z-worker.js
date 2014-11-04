@@ -1,4 +1,6 @@
 (function main(global) {
+	"use strict";
+
 	addEventListener("message", function(event) {
 		var message = event.data, type = message.type, sn = message.sn;
 		var handler = handlers[type];
@@ -30,7 +32,7 @@
 	}
 
 	function newTask(msg) {
-		var CodecClass = self[msg.codecClass];
+		var CodecClass = global[msg.codecClass];
 		var sn = msg.sn;
 		if (tasks[sn])
 			throw Error('duplicated sn');
@@ -43,7 +45,8 @@
 		postMessage({type: 'newTask', sn: sn});
 	}
 
-	var timer = self.performance || Date; //performance may be not supported
+	// performance may not be supported
+	var now = global.performance ? global.performance.now.bind(global.performance) : Date.now;
 
 	function processData(msg) {
 		var sn = msg.sn, type = msg.type, input = msg.data;
@@ -54,7 +57,7 @@
 			task = tasks[sn];
 		}
 		var isAppend = type === 'append';
-		var start = timer.now();
+		var start = now();
 		var output;
 		if (isAppend) {
 			output = task.codec.append(input, function onprogress(loaded) {
@@ -64,24 +67,24 @@
 			delete tasks[sn];
 			output = task.codec.flush();
 		}
-		var codecTime = timer.now() - start;
+		var codecTime = now() - start;
 
-		start = timer.now();
+		start = now();
 		if (input && task.crcInput)
 			task.crc.append(input);
 		if (output && task.crcOutput)
 			task.crc.append(output);
-		var crcTime = timer.now() - start;
+		var crcTime = now() - start;
 
 		var rmsg = {type: type, sn: sn, codecTime: codecTime, crcTime: crcTime};
-		var args = [rmsg];
+		var transferables = [];
 		if (output) {
 			rmsg.data = output;
-			args[1] = [output.buffer];
+			transferables.push(output.buffer);
 		}
 		if (!isAppend && (task.crcInput || task.crcOutput))
 			rmsg.crc = task.crc.get();
-		postMessage.apply(undefined, args);
+		postMessage(rmsg, transferables);
 	}
 
 	function onError(type, sn, e) {

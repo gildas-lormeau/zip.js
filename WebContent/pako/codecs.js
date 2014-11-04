@@ -1,6 +1,8 @@
 /// wrapper for pako (https://github.com/nodeca/pako)
 
 (function(obj) {
+	"use strict";
+
 	function Codec(isDeflater, options) {
 		var newOptions = { raw: true, chunkSize: 1024 * 1024 };
 		if (options && typeof options.level === 'number')

@@ -38,13 +38,8 @@
 	var ERR_READ_DATA = "Error while reading file data.";
 	var ERR_DUPLICATED_NAME = "File already exists.";
 	var CHUNK_SIZE = 512 * 1024;
-
-	var INFLATE_JS = "inflate.js";
-	var DEFLATE_JS = "deflate.js";
 	
 	var TEXT_PLAIN = "text/plain";
-	
-	var MESSAGE_EVENT = "message";
 
 	var appendABViewSupported;
 	try {
@@ -299,7 +294,7 @@
 	/** 
 	 * inflate/deflate core functions
 	 * @param worker {Worker} web worker for the task.
-	 * @param initialMessage {Object} initial message to be sent to the worker. should contains
+	 * @param initialMessage {Object} initial message to be sent to the worker. should contain
 	 *   sn(serial number for distinguishing multiple tasks sent to the worker), and codecClass.
 	 *   This function may add more properties before sending.
 	 */
@@ -307,7 +302,7 @@
 		var chunkIndex = 0, index, outputSize, sn = initialMessage.sn, crc;
 
 		function onflush() {
-			worker.removeEventListener(MESSAGE_EVENT, onmessage, false);
+			worker.removeEventListener('message', onmessage, false);
 			onend(outputSize, crc);
 		}
 
@@ -326,7 +321,6 @@
 
 			switch (message.type) {
 				case 'append':
-					//console.log('codecTime:' + worker.codecTime + ', crcTime: ' + worker.crcTime); //profile
 					if (data) {
 						outputSize += data.length;
 						writer.writeUint8Array(data, function() {
@@ -336,7 +330,6 @@
 						step();
 					break;
 				case 'flush':
-					//console.log('codecTime:' + worker.codecTime + ', crcTime: ' + worker.crcTime); //profile
 					crc = message.crc;
 					if (data) {
 						outputSize += data.length;
@@ -379,7 +372,7 @@
 		}
 
 		outputSize = 0;
-		worker.addEventListener(MESSAGE_EVENT, onmessage, false);
+		worker.addEventListener('message', onmessage, false);
 		step();
 	}
 
@@ -430,13 +423,12 @@
 
 	function inflate(worker, sn, reader, writer, offset, size, computeCrc32, onend, onprogress, onreaderror, onwriteerror) {
 		var crcType = computeCrc32 ? 'output' : 'none';
-		var initialMessage = {
-			sn: sn,
-			codecClass: 'Inflater',
-			crcType: crcType,
-		};
-
 		if (obj.zip.useWebWorkers) {
+			var initialMessage = {
+				sn: sn,
+				codecClass: 'Inflater',
+				crcType: crcType,
+			};
 			launchWorkerProcess(worker, initialMessage, reader, writer, offset, size, onprogress, onend, onreaderror, onwriteerror);
 		} else
 			launchProcess(new obj.zip.Inflater(), reader, writer, offset, size, crcType, onprogress, onend, onreaderror, onwriteerror);
@@ -444,14 +436,13 @@
 
 	function deflate(worker, sn, reader, writer, level, onend, onprogress, onreaderror, onwriteerror) {
 		var crcType = 'input';
-		var initialMessage = {
-			sn: sn,
-			options: {level: level},
-			codecClass: 'Deflater',
-			crcType: crcType,
-		};
-
 		if (obj.zip.useWebWorkers) {
+			var initialMessage = {
+				sn: sn,
+				options: {level: level},
+				codecClass: 'Deflater',
+				crcType: crcType,
+			};
 			launchWorkerProcess(worker, initialMessage, reader, writer, 0, reader.size, onprogress, onend, onreaderror, onwriteerror);
 		} else
 			launchProcess(new obj.zip.Deflater(), reader, writer, 0, reader.size, crcType, onprogress, onend, onreaderror, onwriteerror);
@@ -844,27 +835,22 @@
 
 	function createWorker(scripts, callback, onerror) {
 		var worker = new Worker(scripts[0]);
-		// record total comsumed time by inflater/deflater/crc32 in this worker
+		// record total consumed time by inflater/deflater/crc32 in this worker
 		worker.codecTime = worker.crcTime = 0;
 		worker.postMessage({ type: 'importScripts', scripts: scripts.slice(1) });
-		worker.addEventListener(MESSAGE_EVENT, onmessage);
+		worker.addEventListener('message', onmessage);
 		function onmessage(ev) {
 			var msg = ev.data;
 			if (msg.error) {
-				console.error('zip.js:createWorker:error message: ', msg);
+				worker.terminate(); // should before onerror(), because onerror() may throw.
 				onerror(msg.error);
-				worker.terminate();
 				return;
 			}
 			if (msg.type === 'importScripts') {
-				worker.removeEventListener(MESSAGE_EVENT, onmessage);
+				worker.removeEventListener('message', onmessage);
 				callback(worker);
 			}
 		}
-		// for debug
-		// worker.addEventListener(MESSAGE_EVENT, function(ev) {
-		// 	console.log('msg from worker:', ev.data);
-		// });
 	}
 
 	function onerror_default(error) {
