@@ -309,7 +309,7 @@ zip.createReader(new zip.BlobReader(blob), function(reader) {
 			<li>
 				<h2 id="zip-writing">Zip writing</h2>
 				<h3>initialization</h3>
-				<pre><code class="prettyprint">zip.createWriter(writer, callback[, onerror])</code></pre>
+				<pre><code class="prettyprint">zip.createWriter(writer, callback[, onerror[, dontDeflate]])</code></pre>
 				<p>
 					Create a <code><a href="#zip-writer-proto">ZipWriter</a></code> object.
 				</p>
@@ -321,6 +321,8 @@ zip.createReader(new zip.BlobReader(blob), function(reader) {
 					<dd>success callback function returning the new <code><a href="#zip-writer-proto">ZipWriter</a></code> object as parameter</dd>
 					<dt><code>onerror (Function)</code></dt>
 					<dd>global error callback function</dd>
+					<dt><code>dontDeflate (Boolean)</code></dt>
+                                        <dd>whether or not to use deflate</dd>
 				</dl>
 
 				<h3 id="zip-writer-proto">Zip entry writing</h3>
