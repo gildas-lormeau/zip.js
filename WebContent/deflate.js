@@ -2013,7 +2013,7 @@
 				z.avail_out = bufsize;
 				err = z.deflate(flush);
 				if (err != Z_OK)
-					throw "deflating: " + z.msg;
+					throw new Error("deflating: " + z.msg);
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
 						buffers.push(new Uint8Array(buf));
@@ -2039,7 +2039,7 @@
 				z.avail_out = bufsize;
 				err = z.deflate(Z_FINISH);
 				if (err != Z_STREAM_END && err != Z_OK)
-					throw "deflating: " + z.msg;
+					throw new Error("deflating: " + z.msg);
 				if (bufsize - z.avail_out > 0)
 					buffers.push(new Uint8Array(buf.subarray(0, z.next_out_index)));
 				bufferSize += z.next_out_index;
