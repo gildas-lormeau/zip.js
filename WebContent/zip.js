@@ -585,27 +585,25 @@
 				return;
 			}
 			var ZIP_COMMENT_MAX = 256 * 256, EOCDR_MAX = EOCDR_MIN + ZIP_COMMENT_MAX;
-			var bufSize = EOCDR_MIN, offset = reader.size - EOCDR_MIN, searchLength = 1;
 
-			step();
-			function step() {
-				reader.readUint8Array(offset, bufSize, function(bytes) {
-					for (var i = searchLength - 1; i >= 0; i--) {
+			// In most cases, the EOCDR is EOCDR_MIN bytes long
+			doSeek(EOCDR_MIN, function() {
+				// If not found, try within EOCDR_MAX bytes
+				doSeek(Math.min(EOCDR_MAX, reader.size), function() {
+					onerror(ERR_BAD_FORMAT);
+				});
+			});
+
+			// seek last length bytes of file for EOCDR
+			function doSeek(length, eocdrNotFoundCallback) {
+				reader.readUint8Array(reader.size - length, length, function(bytes) {
+					for (var i = bytes.length - EOCDR_MIN; i >= 0; i--) {
 						if (bytes[i] === 0x50 && bytes[i + 1] === 0x4b && bytes[i + 2] === 0x05 && bytes[i + 3] === 0x06) {
 							eocdrCallback(new DataView(bytes.buffer, i, EOCDR_MIN));
 							return;
 						}
 					}
-					var dist = reader.size - offset;
-					if (offset === 0 || dist >= EOCDR_MAX) {
-						onerror(ERR_BAD_FORMAT); // EOCDR not found
-						return;
-					}
-					var newOffset = Math.max(offset - dist, 0);
-					searchLength = offset - newOffset;
-					offset = newOffset;
-					bufSize = searchLength + EOCDR_MIN - 1;
-					step();
+					eocdrNotFoundCallback();
 				}, function() {
 					onerror(ERR_READ);
 				});
