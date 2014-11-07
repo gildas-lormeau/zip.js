@@ -2119,12 +2119,13 @@
 					nomoreinput = true;
 				}
 				err = z.inflate(flush);
-				if (nomoreinput && (err == Z_BUF_ERROR))
-					return -1;
-				if (err != Z_OK && err != Z_STREAM_END)
-					throw "inflating: " + z.msg;
+				if (nomoreinput && (err == Z_BUF_ERROR)) {
+					if (z.avail_in != 0)
+						throw new Error("inflating: bad input");
+				} else if (err != Z_OK && err != Z_STREAM_END)
+					throw new Error("inflating: " + z.msg);
 				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_in == data.length))
-					return -1;
+					throw new Error("inflating: bad input");
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
 						buffers.push(new Uint8Array(buf));
