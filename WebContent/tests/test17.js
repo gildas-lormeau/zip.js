@@ -31,7 +31,6 @@ function logDataURI(dataURI) {
 	console.log("--------------");
 }
 
-zip.useWebWorkers = false;
 logDataURI(dataURI);
 zipDataURI(dataURI, function(zippedData64) {
 	logDataURI(zippedData64);

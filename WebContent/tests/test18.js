@@ -34,7 +34,6 @@ function logArrayBufferText(arrayBuffer) {
 	console.log(str);
 }
 
-zip.workerScriptsPath = "../";
 arrayBuffer = new Uint8Array(Array.prototype.map.call(TEXT_CONTENT, function(c) {
 	return c.charCodeAt(0);
 })).buffer;

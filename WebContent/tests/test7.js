@@ -9,7 +9,6 @@ function logText(text) {
 	console.log("--------------");
 }
 
-zip.workerScriptsPath = "../";
 zipFs.importHttpContent("lorem.zip", false, function() {
 	var firstEntry = zipFs.root.children[0];
 	firstEntry.getText(function(data) {
