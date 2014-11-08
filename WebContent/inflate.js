@@ -33,7 +33,7 @@
  * and contributors of zlib.
  */
 
-(function(obj) {
+(function(global) {
 	"use strict";
 
 	// Global
@@ -2149,10 +2149,7 @@
 		};
 	}
 
-
-	if (obj.zip) // in main doc
-		obj.zip.Inflater = Inflater;
-	else // in z-worker
-		obj.Inflater = Inflater;
-
+	// 'zip' may not be defined in z-worker and some tests
+	var env = global.zip || global;
+	env.Inflater = env._jzlib_Inflater = Inflater;
 })(this);

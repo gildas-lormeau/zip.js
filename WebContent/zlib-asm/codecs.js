@@ -1,6 +1,6 @@
 /// wrapper for zlib-asm (https://github.com/ukyo/zlib-asm)
 
-(function(obj) {
+(function(global) {
 	"use strict";
 
 	function Codec(isDeflater, options) {
@@ -41,11 +41,8 @@
 	}
 	Inflater.prototype = Object.create(Codec.prototype);
 
-	if (obj.zip) {// in main doc
-		obj.zip.Deflater = Deflater;
-		obj.zip.Inflater = Inflater;
-	} else {// in z-worker
-		obj.Deflater = Deflater;
-		obj.Inflater = Inflater;
-	}
+	// 'zip' may not be defined in z-worker and some tests
+	var env = global.zip || global;
+	env.Deflater = env._zlib_asm_Deflater = Deflater;
+	env.Inflater = env._zlib_asm_Inflater = Inflater;
 })(this);

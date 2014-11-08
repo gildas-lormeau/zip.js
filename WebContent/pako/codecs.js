@@ -1,6 +1,6 @@
 /// wrapper for pako (https://github.com/nodeca/pako)
 
-(function(obj) {
+(function(global) {
 	"use strict";
 
 	function Codec(isDeflater, options) {
@@ -56,11 +56,8 @@
 	}
 	Inflater.prototype = Object.create(Codec.prototype);
 
-	if (obj.zip) {// in main doc
-		obj.zip.Deflater = Deflater;
-		obj.zip.Inflater = Inflater;
-	} else {// in z-worker
-		obj.Deflater = Deflater;
-		obj.Inflater = Inflater;
-	}
+	// 'zip' may not be defined in z-worker and some tests
+	var env = global.zip || global;
+	env.Deflater = env._pako_Deflater = Deflater;
+	env.Inflater = env._pako_Inflater = Inflater;
 })(this);
