@@ -30,6 +30,7 @@
 	"use strict";
 
 	var ERR_BAD_FORMAT = "File format is not recognized.";
+	var ERR_CRC = "CRC failed.";
 	var ERR_ENCRYPTED = "File contains encrypted entry.";
 	var ERR_ZIP64 = "File is using Zip64 (4gb+ file size).";
 	var ERR_READ = "Error while reading zip file.";
@@ -179,7 +180,11 @@
 				callback(new Uint8Array(e.target.result));
 			};
 			reader.onerror = onerror;
-			reader.readAsArrayBuffer(blobSlice(blob, index, length));
+			try {
+				reader.readAsArrayBuffer(blobSlice(blob, index, length));
+			} catch (e) {
+				onerror(e);
+			}
 		}
 
 		that.size = 0;
@@ -307,9 +312,10 @@
 		}
 
 		function onmessage(event) {
-			var message = event.data, data = message.data;
-			if (message.error) {
-				console.error('zip.js:launchWorkerProcess: error message: ', message);
+			var message = event.data, data = message.data, err = message.error;
+			if (err) {
+				err.toString = function () { return 'Error: ' + this.message; };
+				onreaderror(err);
 				return;
 			}
 			if (message.sn !== sn)
@@ -386,10 +392,16 @@
 			index = chunkIndex * CHUNK_SIZE;
 			if (index < size)
 				reader.readUint8Array(offset + index, Math.min(CHUNK_SIZE, size - index), function(inputData) {
-					var outputData = process.append(inputData, function(loaded) {
-						if (onprogress)
-							onprogress(index + loaded, size);
-					});
+					var outputData;
+					try {
+						outputData = process.append(inputData, function(loaded) {
+							if (onprogress)
+								onprogress(index + loaded, size);
+						});
+					} catch (e) {
+						onreaderror(e);
+						return;
+					}
 					if (outputData) {
 						outputSize += outputData.length;
 						writer.writeUint8Array(outputData, function() {
@@ -406,7 +418,12 @@
 						onprogress(index, size);
 				}, onreaderror);
 			else {
-				outputData = process.flush();
+				try {
+					outputData = process.flush();
+				} catch (e) {
+					onreaderror(e);
+					return;
+				}
 				if (outputData) {
 					crcOutput && crc.append(outputData);
 					outputSize += outputData.length;
@@ -543,19 +560,19 @@
 
 			function getWriterData(uncompressedSize, crc32) {
 				if (checkCrc32 && !testCrc32(crc32))
-					onreaderror();
+					onerror(ERR_CRC);
 				else
 					writer.getData(function(data) {
 						onend(data);
 					});
 			}
 
-			function onreaderror() {
-				onerror(ERR_READ_DATA);
+			function onreaderror(err) {
+				onerror(err || ERR_READ_DATA);
 			}
 
-			function onwriteerror() {
-				onerror(ERR_READ_DATA);
+			function onwriteerror(err) {
+				onerror(err || ERR_WRITE_DATA);
 			}
 
 			reader.readUint8Array(that.offset, 30, function(bytes) {
@@ -694,12 +711,12 @@
 		var files = {}, filenames = [], datalength = 0;
 		var deflateSN = 0;
 
-		function onwriteerror() {
-			onerror(ERR_WRITE);
+		function onwriteerror(err) {
+			onerror(err || ERR_WRITE);
 		}
 
-		function onreaderror() {
-			onerror(ERR_READ_DATA);
+		function onreaderror(err) {
+			onerror(err || ERR_READ_DATA);
 		}
 
 		var zipWriter = {

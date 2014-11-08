@@ -60,9 +60,14 @@
 		var start = now();
 		var output;
 		if (isAppend) {
-			output = task.codec.append(input, function onprogress(loaded) {
-				postMessage({type: 'progress', sn: sn, loaded: loaded});
-			});
+			try {
+				output = task.codec.append(input, function onprogress(loaded) {
+					postMessage({type: 'progress', sn: sn, loaded: loaded});
+				});
+			} catch (e) {
+				delete tasks[sn];
+				throw e;
+			}
 		} else {
 			delete tasks[sn];
 			output = task.codec.flush();
