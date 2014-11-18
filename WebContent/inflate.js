@@ -1531,7 +1531,7 @@
 				case DTREE:
 					while (true) {
 						t = table;
-						if (!(index < 258 + (t & 0x1f) + ((t >> 5) & 0x1f))) {
+						if (index >= 258 + (t & 0x1f) + ((t >> 5) & 0x1f)) {
 							break;
 						}
 
@@ -2119,15 +2119,15 @@
 					nomoreinput = true;
 				}
 				err = z.inflate(flush);
-				if (nomoreinput && (err == Z_BUF_ERROR)) {
-					if (z.avail_in != 0)
+				if (nomoreinput && (err === Z_BUF_ERROR)) {
+					if (z.avail_in !== 0)
 						throw new Error("inflating: bad input");
-				} else if (err != Z_OK && err != Z_STREAM_END)
+				} else if (err !== Z_OK && err !== Z_STREAM_END)
 					throw new Error("inflating: " + z.msg);
-				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_in == data.length))
+				if ((nomoreinput || err === Z_STREAM_END) && (z.avail_in === data.length))
 					throw new Error("inflating: bad input");
 				if (z.next_out_index)
-					if (z.next_out_index == bufsize)
+					if (z.next_out_index === bufsize)
 						buffers.push(new Uint8Array(buf));
 					else
 						buffers.push(new Uint8Array(buf.subarray(0, z.next_out_index)));

@@ -1,5 +1,6 @@
 /// wrapper for zlib-asm (https://github.com/ukyo/zlib-asm)
 
+/* globals zlib */
 (function(global) {
 	"use strict";
 

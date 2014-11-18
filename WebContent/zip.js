@@ -346,7 +346,8 @@
 						onflush();
 					break;
 				case 'progress':
-					onprogress && onprogress(index + message.loaded, size);
+					if (onprogress)
+						onprogress(index + message.loaded, size);
 					break;
 				case 'importScripts': //no need to handle here
 				case 'newTask':
@@ -408,12 +409,14 @@
 							chunkIndex++;
 							setTimeout(step, 1);
 						}, onwriteerror);
-						crcOutput && crc.append(outputData);
+						if (crcOutput)
+							crc.append(outputData);
 					} else {
 						chunkIndex++;
 						setTimeout(step, 1);
 					}
-					crcInput && crc.append(inputData);
+					if (crcInput)
+						crc.append(inputData);
 					if (onprogress)
 						onprogress(index, size);
 				}, onreaderror);
@@ -425,7 +428,8 @@
 					return;
 				}
 				if (outputData) {
-					crcOutput && crc.append(outputData);
+					if (crcOutput)
+						crc.append(outputData);
 					outputSize += outputData.length;
 					writer.writeUint8Array(outputData, function() {
 						onend(outputSize, crc.get());

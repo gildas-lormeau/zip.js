@@ -1,5 +1,6 @@
 /// wrapper for pako (https://github.com/nodeca/pako)
 
+/* globals pako */
 (function(global) {
 	"use strict";
 
