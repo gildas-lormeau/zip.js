@@ -24,7 +24,6 @@ function logText(text) {
 	console.log("--------------");
 }
 
-zip.workerScriptsPath = "../";
 logText(TEXT_CONTENT);
 zipText(TEXT_CONTENT, function(zippedBlob) {
 	unzipBlob(zippedBlob, function(unzippedText) {

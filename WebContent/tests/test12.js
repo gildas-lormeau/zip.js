@@ -59,7 +59,6 @@ function test() {
 	}, onerror);
 }
 
-zip.workerScriptsPath = "../";
 requestFileSystem(TEMPORARY, 4 * 1024 * 1024 * 1024, function(fs) {
 	filesystem = fs;
 	removeRecursively(filesystem.root, test, test);

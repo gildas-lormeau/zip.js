@@ -24,7 +24,6 @@ function logDataURI(dataURI) {
 	console.log("--------------");
 }
 
-zip.workerScriptsPath = "../";
 logDataURI(dataURI);
 zipDataURI(dataURI, function(zippedDataURI) {
 	unzipDataURI(zippedDataURI, function(unzippedDataURI) {

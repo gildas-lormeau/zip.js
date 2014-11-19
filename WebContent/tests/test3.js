@@ -28,7 +28,6 @@ function logBlobText(blob) {
 	reader.readAsText(blob);
 }
 
-zip.workerScriptsPath = "../";
 blob = new Blob([TEXT_CONTENT], {
 	type : zip.getMimeType(FILENAME)
 });

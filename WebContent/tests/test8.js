@@ -23,7 +23,6 @@ function logText(text) {
 	console.log("--------------");
 }
 
-zip.workerScriptsPath = "../";
 zipText(function(zippedBlob) {
 	unzipBlob(zippedBlob, function(unzippedText) {
 		logText(unzippedText);
