@@ -855,7 +855,7 @@
 	}
 
 	function createWorker(scripts, callback, onerror) {
-		var worker = new Worker(scripts[0]);
+		var worker = new Worker(obj.zip.workerScriptsPath + 'z-worker.js');
 		// record total consumed time by inflater/deflater/crc32 in this worker
 		worker.codecTime = worker.crcTime = 0;
 		worker.postMessage({ type: 'importScripts', scripts: scripts.slice(1) });
@@ -901,8 +901,13 @@
 				createZipWriter(writer, callback, onerror, dontDeflate);
 			}, onerror);
 		},
-		// In deflater/inflater property, first script is used to start the worker, and other scripts are loaded by importScripts in that worker.
-		workerScripts : { deflater: ['z-worker.js', 'deflate.js'], inflater: ['z-worker.js', 'inflate.js']},
+		// Path to the directory containing z-worker.js (defaults to location of this script).
+		workerScriptsPath: '',
+		// Scripts to be loaded in the Web Worker using importScripts(). These are resolved relative to z-worker.js
+		workerScripts : {
+			deflater: ['deflate.js'],
+			inflater: ['inflate.js']
+		},
 		useWebWorkers : true
 	};
 
