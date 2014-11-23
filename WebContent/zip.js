@@ -686,7 +686,7 @@
 		if (!obj.zip.useWebWorkers)
 			callback(zipReader);
 		else {
-			createWorker(obj.zip.workerScripts.inflater,
+			createWorker(true,
 				function(worker) {
 					zipReader._worker = worker;
 					callback(zipReader);
@@ -842,7 +842,7 @@
 		if (!obj.zip.useWebWorkers)
 			callback(zipWriter);
 		else {
-			createWorker(obj.zip.workerScripts.deflater,
+			createWorker(false,
 				function(worker) {
 					zipWriter._worker = worker;
 					callback(zipWriter);
@@ -854,8 +854,13 @@
 		}
 	}
 
-	function createWorker(scripts, callback, onerror) {
-		var worker = new Worker(obj.zip.workerScriptsPath + 'z-worker.js');
+	function createWorker(isInflater, callback, onerror) {
+		var scripts = isInflater? obj.zip.workerScripts.inflater : obj.zip.workerScripts.deflater;
+		if (typeof obj.zip.workerScriptsPath === 'string') {
+			scripts = scripts.slice(0);
+			scripts[0] = obj.zip.workerScriptsPath + scripts[0];
+		}
+		var worker = new Worker(scripts[0]);
 		// record total consumed time by inflater/deflater/crc32 in this worker
 		worker.codecTime = worker.crcTime = 0;
 		worker.postMessage({ type: 'importScripts', scripts: scripts.slice(1) });
@@ -901,12 +906,19 @@
 				createZipWriter(writer, callback, onerror, dontDeflate);
 			}, onerror);
 		},
-		// Path to the directory containing z-worker.js (defaults to location of this script).
-		workerScriptsPath: '',
-		// Scripts to be loaded in the Web Worker using importScripts(). These are resolved relative to z-worker.js
+		/** 
+		 * Url to the directory containing worker scripts (z-worker.js, deflate.js, and inflate.js).
+		 * @deprecated This option is kept for backward compatibility, use zip.workerScripts instead for more flexibility.
+		 * If zip.workerScriptsPath is set, zip.workerScripts has no effect, and should not be touched.
+		 */
+		workerScriptsPath: null,
+		/**
+		 * Urls to worker scripts. In deflater/inflater property, the first script (normally z-worker.js) is used to start the worker, 
+		 * and following scripts are loaded by importScripts in that worker (their urls are resolved relative to the first one).
+		 */
 		workerScripts : {
-			deflater: ['deflate.js'],
-			inflater: ['inflate.js']
+			deflater: ['z-worker.js', 'deflate.js'],
+			inflater: ['z-worker.js', 'inflate.js']
 		},
 		useWebWorkers : true
 	};
