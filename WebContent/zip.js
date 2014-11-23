@@ -855,7 +855,7 @@
 	}
 
 	function createWorker(scripts, callback, onerror) {
-		var worker = new Worker(scripts[0]);
+		var worker = new Worker(obj.zip.workerScriptsPath + scripts[0]);
 		// record total consumed time by inflater/deflater/crc32 in this worker
 		worker.codecTime = worker.crcTime = 0;
 		worker.postMessage({ type: 'importScripts', scripts: scripts.slice(1) });
