@@ -855,10 +855,13 @@
 	}
 
 	function createWorker(scripts, callback, onerror) {
-		var worker = new Worker(obj.zip.workerScriptsPath + 'z-worker.js');
+		scripts = scripts.map(function(filename) {
+			return resolveURL(obj.zip.workerScriptsPath, filename);
+		});
+		var worker = new Worker(scripts.shift());
 		// record total consumed time by inflater/deflater/crc32 in this worker
 		worker.codecTime = worker.crcTime = 0;
-		worker.postMessage({ type: 'importScripts', scripts: scripts.slice(1) });
+		worker.postMessage({ type: 'importScripts', scripts: scripts });
 		worker.addEventListener('message', onmessage);
 		function onmessage(ev) {
 			var msg = ev.data;
@@ -871,6 +874,43 @@
 				worker.removeEventListener('message', onmessage);
 				callback(worker);
 			}
+		}
+	}
+
+	function isAbsoluteURL(url) {
+		return /^[a-z][a-z0-9+\-.]*:/i.test(url);
+	}
+	// Resolve url to relative to baseURL (which is resolved relative to the page's URL)
+	// This is used for loading worker scripts, so reference fragments are stripped.
+	function resolveURL(baseUrl, url) {
+		if (!baseUrl)
+			baseUrl = location.href;
+		else if (!isAbsoluteURL(baseUrl))
+			baseUrl = resolveURL(location.href, baseUrl);
+
+		baseUrl = baseUrl.split(/[#?]/)[0];
+		if (!url)
+			return baseUrl;
+
+		url = url.split('#')[0];
+		if (isAbsoluteURL(url))
+			return url;
+
+		if (baseUrl.slice(-2) == '..')
+			baseUrl += '/';
+
+		// Resolve URL.
+		if (url.charAt(0) === '/') {
+			var i = baseUrl.indexOf('://');
+			if (url.charAt(1) === '/') // Protocol-relative URL
+				++i;
+			else // Absolute path URL
+				i = baseUrl.indexOf('/', i + 3);
+			return baseUrl.substring(0, i) + url;
+		} else if (url.charAt(0) == '?') { // Query-string relative URL
+			return baseUrl + url;
+		} else { // Path-relative URL
+			return baseUrl.slice(0, baseUrl.lastIndexOf('/') + 1) + url;
 		}
 	}
 
@@ -905,8 +945,8 @@
 		workerScriptsPath: '',
 		// Scripts to be loaded in the Web Worker using importScripts(). These are resolved relative to z-worker.js
 		workerScripts : {
-			deflater: ['deflate.js'],
-			inflater: ['inflate.js']
+			deflater: ['z-worker.js', 'deflate.js'],
+			inflater: ['z-worker.js', 'inflate.js']
 		},
 		useWebWorkers : true
 	};
