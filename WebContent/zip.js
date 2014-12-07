@@ -686,7 +686,7 @@
 		if (!obj.zip.useWebWorkers)
 			callback(zipReader);
 		else {
-			createWorker(true,
+			createWorker('inflater',
 				function(worker) {
 					zipReader._worker = worker;
 					callback(zipReader);
@@ -842,7 +842,7 @@
 		if (!obj.zip.useWebWorkers)
 			callback(zipWriter);
 		else {
-			createWorker(false,
+			createWorker('deflater',
 				function(worker) {
 					zipWriter._worker = worker;
 					callback(zipWriter);
@@ -854,11 +854,34 @@
 		}
 	}
 
-	function createWorker(isInflater, callback, onerror) {
-		var scripts = isInflater? obj.zip.workerScripts.inflater : obj.zip.workerScripts.deflater;
-		if (typeof obj.zip.workerScriptsPath === 'string') {
-			scripts = scripts.slice(0);
-			scripts[0] = obj.zip.workerScriptsPath + scripts[0];
+	function resolveURLs(urls) {
+		var a = document.createElement('a');
+		return urls.map(function(url) {
+			a.href = url;
+			return a.href;
+		});
+	}
+
+	var DEFAULT_WORKER_SCRIPTS = {
+		deflater: ['z-worker.js', 'deflate.js'],
+		inflater: ['z-worker.js', 'inflate.js']
+	};
+	function createWorker(type, callback, onerror) {
+		if (obj.zip.workerScripts !== null && obj.zip.workerScriptsPath !== null) {
+			onerror(new Error('Either zip.workerScripts or zip.workerScriptsPath may be set, not both.'));
+			return;
+		}
+		var scripts;
+		if (obj.zip.workerScripts) {
+			scripts = obj.zip.workerScripts[type];
+			if (!Array.isArray(scripts)) {
+				onerror(new Error('zip.workerScripts.' + type + ' is not an array!'));
+				return;
+			}
+			scripts = resolveURLs(scripts);
+		} else {
+			scripts = DEFAULT_WORKER_SCRIPTS[type].slice(0);
+			scripts[0] = (obj.zip.workerScriptsPath || '') + scripts[0];
 		}
 		var worker = new Worker(scripts[0]);
 		// record total consumed time by inflater/deflater/crc32 in this worker
@@ -874,8 +897,15 @@
 			}
 			if (msg.type === 'importScripts') {
 				worker.removeEventListener('message', onmessage);
+				worker.removeEventListener('error', errorHandler);
 				callback(worker);
 			}
+		}
+		// catch entry script loading error and other unhandled errors
+		worker.addEventListener('error', errorHandler);
+		function errorHandler(err) {
+			worker.terminate();
+			onerror(err);
 		}
 	}
 
@@ -906,21 +936,24 @@
 				createZipWriter(writer, callback, onerror, dontDeflate);
 			}, onerror);
 		},
-		/** 
-		 * Url to the directory containing worker scripts (z-worker.js, deflate.js, and inflate.js).
-		 * @deprecated This option is kept for backward compatibility, use zip.workerScripts instead for more flexibility.
-		 * If zip.workerScriptsPath is set, zip.workerScripts has no effect, and should not be touched.
-		 */
-		workerScriptsPath: null,
+		useWebWorkers : true,
 		/**
-		 * Urls to worker scripts. In deflater/inflater property, the first script (normally z-worker.js) is used to start the worker, 
-		 * and following scripts are loaded by importScripts in that worker (their urls are resolved relative to the first one).
+		 * Directory containing the default worker scripts (z-worker.js, deflate.js, and inflate.js), relative to current base url.
+		 * E.g.: zip.workerScripts = './';
 		 */
-		workerScripts : {
-			deflater: ['z-worker.js', 'deflate.js'],
-			inflater: ['z-worker.js', 'inflate.js']
-		},
-		useWebWorkers : true
+		workerScriptsPath : null,
+		/**
+		 * Advanced option to control which scripts are loaded in the Web worker. If this option is specified, then workerScriptsPath must not be set.
+		 * workerScripts.deflater/workerScripts.inflater should be arrays of urls to scripts for deflater/inflater, respectively.
+		 * Scripts in the array are executed in order, and the first one should be z-worker.js, which is used to start the worker.
+		 * All urls are relative to current base url.
+		 * E.g.:
+		 * zip.workerScripts = {
+		 *   deflater: ['z-worker.js', 'deflate.js'],
+		 *   inflater: ['z-worker.js', 'inflate.js']
+		 * };
+		 */
+		workerScripts : null,
 	};
 
 })(this);
