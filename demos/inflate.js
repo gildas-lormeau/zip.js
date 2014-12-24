@@ -33,7 +33,7 @@
  * and contributors of zlib.
  */
 
-(function(obj) {
+(function(global) {
 	"use strict";
 
 	// Global
@@ -1531,7 +1531,7 @@
 				case DTREE:
 					while (true) {
 						t = table;
-						if (!(index < 258 + (t & 0x1f) + ((t >> 5) & 0x1f))) {
+						if (index >= 258 + (t & 0x1f) + ((t >> 5) & 0x1f)) {
 							break;
 						}
 
@@ -2119,14 +2119,15 @@
 					nomoreinput = true;
 				}
 				err = z.inflate(flush);
-				if (nomoreinput && (err == Z_BUF_ERROR))
-					return -1;
-				if (err != Z_OK && err != Z_STREAM_END)
-					throw "inflating: " + z.msg;
-				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_in == data.length))
-					return -1;
+				if (nomoreinput && (err === Z_BUF_ERROR)) {
+					if (z.avail_in !== 0)
+						throw new Error("inflating: bad input");
+				} else if (err !== Z_OK && err !== Z_STREAM_END)
+					throw new Error("inflating: " + z.msg);
+				if ((nomoreinput || err === Z_STREAM_END) && (z.avail_in === data.length))
+					throw new Error("inflating: bad input");
 				if (z.next_out_index)
-					if (z.next_out_index == bufsize)
+					if (z.next_out_index === bufsize)
 						buffers.push(new Uint8Array(buf));
 					else
 						buffers.push(new Uint8Array(buf.subarray(0, z.next_out_index)));
@@ -2148,32 +2149,7 @@
 		};
 	}
 
-	var inflater;
-
-	if (obj.zip)
-		obj.zip.Inflater = Inflater;
-	else {
-		inflater = new Inflater();
-		obj.addEventListener("message", function(event) {
-			var message = event.data;
-
-			if (message.append)
-				obj.postMessage({
-					onappend : true,
-					data : inflater.append(message.data, function(current) {
-						obj.postMessage({
-							progress : true,
-							current : current
-						});
-					})
-				});
-			if (message.flush) {
-				inflater.flush();
-				obj.postMessage({
-					onflush : true
-				});
-			}
-		}, false);
-	}
-
+	// 'zip' may not be defined in z-worker and some tests
+	var env = global.zip || global;
+	env.Inflater = env._jzlib_Inflater = Inflater;
 })(this);
