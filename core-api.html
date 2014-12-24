@@ -28,19 +28,41 @@
 			<li><a href="#zip-writing">Zip writing</a></li>
 			<li><a href="#zip-writing-example">Zip writing example</a></li>
 			<li><a href="#full-example">Full example</a></li>
+			<li><a href="#alternative-codecs">Alternative DEFLATE implementations</a></li>
+			<li><a href="#concat-scripts">Concatenating worker scripts</a></li>
 		</ol>
 		<hr>
 		<ol>
 			<li>
 				<h2 id="configuration">Configuration</h2>
-				<p>
-					<code>zip.js</code> uses <a href="http://www.w3.org/TR/workers/">Web workers</a> to compress and uncompress data in non-blocking background processes.
+					<p>Configuration options can only be set <em>after</em> loading <code>zip.js</code>.</p>
+					<p><code>zip.js</code> uses <a href="http://www.w3.org/TR/workers/">Web workers</a> to compress and uncompress data in non-blocking background processes.
 					If you need to disable Web workers, set <code>zip.useWebWorkers</code> to <code>false</code> (you must also import <code>deflate.js</code> and/or <code>inflate.js</code> in the web page).
-				</p>
+					</p>
 				<p>
-					When <code>zip.js</code> uses <a href="http://www.w3.org/TR/workers/">Web workers</a> it needs to know the relative path of <code>deflate.js</code> and <code>inflate.js</code> from the base URL of the web page.
-					If the relative path from the base URL is not empty (and <code>zip.useWebWorkers = true</code>) then you must set <code>zip.workerScriptsPath</code> to the relative path of <code>deflate.js</code> and <code>inflate.js</code> files.
+					When <code>zip.js</code> uses <a href="http://www.w3.org/TR/workers/">Web workers</a> it needs to know the locations of worker scripts.
+					By default, the worker scripts are loaded from the directory of the page's base URL, but this can be overridden by the <code>workerScriptsPath</code>
+					or <code>workerScripts</code> options. Only of of them can be set, not both.
 				</p>
+				<ul>
+					<li>
+						<p><b><code>zip.workerScriptsPath</code></b>: the URL to the directory containing the default worker scripts (z-worker.js, deflate.js, and inflate.js). If a relative URL is
+						 specified, it is resolved against the page's base URL (usually the URL of the web page importing zip.js). Example:</p>
+						<pre><code class="prettyprint">zip.workerScriptsPath = '&lt;zip_js_dir>/';</code></pre>
+					</li>
+					<li>
+						<p><b><code>zip.workerScripts</code></b>: an advanced option to explicitly control which scripts are loaded in the web worker. 
+						<code>workerScripts.deflater</code> and <code>workerScripts.inflater</code> should be arrays of URLs to scripts for deflater/inflater, respectively.
+						All URLs are resolved relative to the page's base URL.
+						Scripts in the array are executed in order, and the first one should be z-worker.js, which is used to start the worker. Example: </p>
+						<pre><code class="prettyprint">zip.workerScripts = {
+  deflater: ['&lt;zip_js_dir>/z-worker.js', '&lt;zip_js_dir>/deflate.js'],
+  inflater: ['&lt;zip_js_dir>/z-worker.js', '&lt;zip_js_dir>/inflate.js']
+};</code></pre>
+					</li>
+				</ul>
+				<p>If only deflation or inflation is use in your application, the unused <code>workerScripts.deflater/inflater</code> properties can be omitted, and the unused deflate.js/inflate.js file can be removed.</p>
+				<p>Normally the option <code>zip.workerScriptsPath</code> is enough. However if you want to use alternative deflate implementations, or want to concatenate worker scripts, <code>zip.workerScripts</code> can be useful, see below.</p>
 			</li>
 			<li>
 				<h2 id="io">I/O</h2>
@@ -269,7 +291,8 @@
 				<h3>Zip closing</h3>
 				<pre><code class="prettyprint">ZipReader.prototype.close(callback)</code></pre>
 				<p>
-					Close the opened zip.
+					Close the opened zip file and immediately terminate the associated web worker(s).
+					When <clode>close()</code> is not called, the worker(s) may still be terminated when the reader is garbage-collected.
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -360,7 +383,7 @@ zip.createReader(new zip.BlobReader(blob), function(reader) {
 				<h3>Zip closing</h3>
 				<pre><code class="prettyprint">ZipWriter.prototype.close(callback)</code></pre>
 				<p>
-					Close the opened zip.
+					Close the opened zip and terminate the associated web worker(s).
 				</p>
 				<p>Parameters:</p>
 				<dl>
@@ -435,6 +458,67 @@ function unzipBlob(blob, callback) {
 function onerror(message) {
   console.error(message);
 }</code></pre>	
+			</li>
+			<li>
+				<h2 id="alternative-codecs">Alternative DEFLATE implementations</h2>
+				<p>Alternative DEFLATE implementations can be used with zip.js in favor of better performance and/or better compliance.
+					Currently zlib-asm and pako are supported. In order to use them, you need to set the <code>zip.workerScripts</code> option 
+					instead of  the <code>zip.workerScriptsPath</code> option, see below.</p>
+				<ul>
+					<li>
+						<h3>zlib-asm</h3>
+						<p><a href="https://github.com/ukyo/zlib-asm">zlib-asm</a> is produced by compiling C code of
+							<a href="http://zlib.net/">zlib</a> to  <a href="http://asmjs.org/">asm.js</a> with <a href="http://kripken.github.io/emscripten-site/">Emscripten</a>.
+							Because zlib is regarded as one of the reference implementation of DEFLATE algorithm, the compatibility
+							of zlib-asm should be very good. If the browser supports asm.js (e.g. Firefox), zlib-asm can deliver amazing performance, especially when inflating files.
+							To use zlib-asm with zip.js, put file <a href="https://github.com/ukyo/zlib-asm/blob/master/zlib.js">zlib.js</a> from zlib-asm in &lt;zlib-asm_dir>, and configure zip.js as follows:
+						</p>
+<pre><code class="prettyprint">zip.workerScripts = {
+  deflater: ['&lt;zip_js_dir>/z-worker.js', '&lt;zlib-asm_dir>/zlib.js', '&lt;zip_js_dir>/zlib-asm/codecs.js'],
+  inflater: ['&lt;zip_js_dir>/z-worker.js', '&lt;zlib-asm_dir>/zlib.js', '&lt;zip_js_dir>/zlib-asm/codecs.js']
+};</code></pre>
+						<p>'&lt;zip_js_dir>/z-worker.js' is the entry script of the worker, and '&lt;zip_js_dir>/zlib-asm/codecs.js' is the wrapper of zlib-asm.
+						These two files can be found in zip.js project. File 'zlib.js' is a part of zlib-asm project , and is not provided by zip.js. You can find it
+						<a href="https://github.com/ukyo/zlib-asm/blob/master/zlib.js">here</a>. The latest version of zlib-asm tested with zip.js is v0.2.2.</p>
+					</li>
+					<li>
+						<h3>Pako</h3>
+						<p><a href="https://github.com/nodeca/pako">Pako</a> is a hand-writing javascript port of zlib. Its compatibility and performance is believed to be good.
+							The major advantage of pako over zlib-asm may be that its code size is much smaller (45KB vs 193KB). To use pako in worker, configure zip.js as follow:
+						</p>
+<pre><code class="prettyprint">zip.workerScripts = {
+  deflater: ['&lt;zip_js_dir>/z-worker.js', '&lt;pako_dir>/pako.min.js', '&lt;zip_js_dir>/pako/codecs.js'],
+  inflater: ['&lt;zip_js_dir>/z-worker.js', '&lt;pako_dir>/pako.min.js', '&lt;zip_js_dir>/pako/codecs.js']
+};</code></pre>
+						<p>Pako also has separate js files for deflating/inflating, you can also use them instead of 'pako.min.js':</p>
+<pre><code class="prettyprint">zip.workerScripts = {
+  deflater: ['&lt;zip_js_dir>/z-worker.js', '&lt;pako_dir>/pako_deflate.min.js', '&lt;zip_js_dir>/pako/codecs.js'],
+  inflater: ['&lt;zip_js_dir>/z-worker.js', '&lt;pako_dir>/pako_inflate.min.js', '&lt;zip_js_dir>/pako/codecs.js']
+};</code></pre>
+						<p>'&lt;zip_js_dir>/z-worker.js' is the entry script of the worker, and '&lt;zip_js_dir>/pako/codecs.js' is the wrapper of pako. These two files can be found in zip.js project.
+						Note that 'pako.min.js' etc. are parts of pako project, and are not provided by zip.js. You can find them <a href="https://github.com/nodeca/pako/tree/master/dist">here</a>.
+						The latest version of pako tested with zip.js is 0.2.5.</p>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<h2 id="concat-scripts">Concatenating worker scripts</h2>
+				<p>Worker scripts can also be concatenated to reduce the number of HTTP requests. You are free to choose files to concatenate, just make sure the resulting files containing
+				z-worker.js are loaded first in workers, and necessary deflater/inflater/wrapper files are included. Examples: </p>
+<pre><code class="prettyprint">zip.workerScripts = {
+  deflater: ['&lt;some_dir>/worker_deflate.js'], // z-worker.js + deflate.js
+  inflater: ['&lt;some_dir>/worker_inflate.js'], // z-worker.js + inflate.js
+};
+
+zip.workerScripts = {
+  deflater: ['&lt;some_dir>/worker_asm.js', '&lt;zlib-asm_dir>/zlib.js'], // worker_asm.js = z-worker.js + zlib-asm/codecs.js
+  inflater: ['&lt;some_dir>/worker_asm.js', '&lt;zlib-asm_dir>/zlib.js'],
+};
+
+zip.workerScripts = {
+  deflater: ['&lt;some_dir>/worker_pako.js'], // z-worker.js + pako/codecs.js + pako.min.js
+  inflater: ['&lt;some_dir>/worker_pako.js'],
+};</code></pre>
 			</li>
 		</ol>
 	</div>
