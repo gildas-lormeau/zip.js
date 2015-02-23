@@ -269,24 +269,19 @@
 	Data64URIWriter.prototype.constructor = Data64URIWriter;
 
 	function BlobWriter(contentType) {
-		var blob, that = this;
+		var data = [], that = this;
 
 		function init(callback) {
-			blob = new Blob([], {
-				type : contentType
-			});
 			callback();
 		}
 
 		function writeUint8Array(array, callback) {
-			blob = new Blob([ blob, appendABViewSupported ? array : array.buffer ], {
-				type : contentType
-			});
+			data.push(appendABViewSupported ? array : array.buffer);
 			callback();
 		}
 
 		function getData(callback) {
-			callback(blob);
+			callback(new Blob(data, {type: contentType}));
 		}
 
 		that.init = init;
