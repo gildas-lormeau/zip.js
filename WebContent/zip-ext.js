@@ -208,11 +208,99 @@
 	FileWriter.prototype = new Writer();
 	FileWriter.prototype.constructor = FileWriter;
 
+	var DB_NAME = "zipjs", STORE_NAME = "fileStore";
+	// Clear the cache if it's left over from last time
+	indexedDB.deleteDatabase(DB_NAME);
+	// Clear the cache on close
+	window.addEventListener('unload', function () {
+			indexedDB.deleteDatabase(DB_NAME);
+			});
+	function DBWriter(contentType) {
+		var db, that = this, blobs;
+
+		function init(callback, onerror) {
+			var request = indexedDB.open(DB_NAME);
+			request.onerror = onerror;
+			request.onsuccess = function (event) {
+				db = event.target.result;
+				callback();
+			};
+			request.onupgradeneeded = function (event) {
+				db = event.target.result;
+				db.onerror = onerror;
+				db.createObjectStore(STORE_NAME, { autoIncrement: true });
+			};
+			blobs = [];
+		}
+
+
+		function makeDBBackedBlob(blob, callback, onerror) {
+			var storedBlob;
+
+			function putEntry(blob) {
+				var t = db.transaction([STORE_NAME], "readwrite"),
+					objectStore, request;
+				t.onerror = onerror;
+				objectStore = t.objectStore(STORE_NAME);
+				request = objectStore.put(blob);
+				request.onsuccess = function (event) {
+					getEntry(request.result);
+				};
+			}
+
+			function getEntry(key) {
+				var t = db.transaction([STORE_NAME], "readwrite"),
+					objectStore, request;
+				t.onerror = onerror;
+				objectStore = t.objectStore(STORE_NAME);
+				request = objectStore.get(key);
+				request.onsuccess = function (event) {
+					storedBlob = request.result;
+					deleteEntry(key);
+				};
+			}
+
+			function deleteEntry(key) {
+				var t = db.transaction([STORE_NAME], "readwrite"),
+					objectStore, request;
+				t.onerror = onerror;
+				objectStore = t.objectStore(STORE_NAME);
+				request = objectStore.delete(key);
+				request.onsuccess = function (event) {
+					callback(storedBlob);
+				};
+			}
+
+			putEntry(blob);
+		}
+
+
+		function writeUint8Array(array, callback, onerror) {
+			var blob = new Blob([ appendABViewSupported ? array : array.buffer ]);
+
+			makeDBBackedBlob(blob, function (storedBlob) {
+					blobs.push(storedBlob);
+					callback();
+					}, onerror);
+		}
+
+		function getData(callback) {
+			var concatBlob = new Blob(blobs, {type: contentType});
+			callback(concatBlob);
+		}
+
+		that.init = init;
+		that.writeUint8Array = writeUint8Array;
+		that.getData = getData;
+	} DBWriter.prototype = new Writer();
+	DBWriter.prototype.constructor = FileWriter;
+
 	zip.FileWriter = FileWriter;
 	zip.HttpReader = HttpReader;
 	zip.HttpRangeReader = HttpRangeReader;
 	zip.ArrayBufferReader = ArrayBufferReader;
 	zip.ArrayBufferWriter = ArrayBufferWriter;
+	zip.DBWriter = DBWriter;
 
 	if (zip.fs) {
 		ZipDirectoryEntry = zip.fs.ZipDirectoryEntry;
