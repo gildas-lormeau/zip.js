@@ -208,66 +208,128 @@
 	FileWriter.prototype = new Writer();
 	FileWriter.prototype.constructor = FileWriter;
 
-	var DB_NAME = "zipjs", STORE_NAME = "fileStore";
-	// Clear the cache if it's left over from last time
-	indexedDB.deleteDatabase(DB_NAME);
-	// Clear the cache on close
-	window.addEventListener('unload', function () {
-			indexedDB.deleteDatabase(DB_NAME);
-			});
 	function DBWriter(contentType) {
-		var db, that = this, blobs;
+		var db, tempDB, that = this, blobs, dbName = "zipjs", instance;
 
 		function init(callback, onerror) {
-			var request = indexedDB.open(DB_NAME);
+			var request = indexedDB.open(dbName, 5);
 			request.onerror = onerror;
-			request.onsuccess = function (event) {
-				db = event.target.result;
-				callback();
-			};
 			request.onupgradeneeded = function (event) {
 				db = event.target.result;
-				db.onerror = onerror;
-				db.createObjectStore(STORE_NAME, { autoIncrement: true });
+				db.createObjectStore("instances", { autoIncrement: true });
+			};
+			request.onsuccess = function (event) {
+				db = event.target.result;
+				addInstance(callback, onerror);
 			};
 			blobs = [];
 		}
 
+		function addInstance(callback, onerror) {
+			var t = db.transaction(["instances"], "readwrite"),
+				request = t.objectStore("instances").put(Date.now());
+			request.onerror = onerror;
+			request.onsuccess = function (event) {
+				instance = request.result;
+				console.log("Current instance " + instance);
+				cleanUpOldInstances();
+				window.addEventListener("storage", pongDB);
+				window.addEventListener("unload", close);
+				addInstanceDB(callback, onerror);
+			};
+		}
+
+		function addInstanceDB(callback, onerror) {
+			var request = indexedDB.open(dbName + "_" + instance);
+			request.onerror = onerror;
+			request.onupgradeneeded = function (event) {
+				tempDB = event.target.result;
+				tempDB.createObjectStore("files", { autoIncrement: true });
+			};
+			request.onsuccess = function (event) {
+				callback();
+			};
+		}
+
+		function close() {
+			blobs = [];
+			indexedDB.deleteDatabase(dbName + "_" + instance);
+		}
+
+		function broadcastPingDB() {
+			localStorage.zipjs = Date.now();
+		}
+
+		function pongDB(event) {
+			if ((event !== undefined && event.key === "zipjs") && instance) {
+				console.log("Pong from instance " + instance);
+				db.transaction(["instances"], "readwrite")
+								.objectStore("instances")
+								.put(Date.now(), instance);
+			}
+		}
+
+		function cleanUpOldInstances() {
+			broadcastPingDB();
+			pongDB();
+			setTimeout(function () {
+				findOldInstances(10000);
+			}, 5000);
+		}
+
+		function findOldInstances(maxAge) {
+			var t = db.transaction(["instances"], "readwrite"),
+				instances = t.objectStore("instances"),
+				expiration = Date.now() - maxAge,
+				oldInstances = [];
+
+			instances.openCursor().onsuccess = function (event) {
+				var cursor = event.target.result;
+				if (cursor) {
+					if (cursor.value < expiration) {
+						oldInstances.push(cursor.key);
+						cursor.delete();
+					}
+					cursor.continue();
+				} else {
+					deleteOldInstances(oldInstances);
+				}
+			};
+
+			t.onerror = onerror;
+		}
+
+		function deleteOldInstances(oldInstances) {
+			var index = 0;
+
+			for (var i = 0; i < oldInstances.length; i++) {
+				indexedDB.deleteDatabase(dbName + "_" + oldInstances[i]);
+			}
+		}
 
 		function makeDBBackedBlob(blob, callback, onerror) {
-			var storedBlob;
-
 			function putEntry(blob) {
-				var t = db.transaction([STORE_NAME], "readwrite"),
+				var t = tempDB.transaction(["files"], "readwrite"),
 					objectStore, request;
+				t.oncomplete = function () {
+					console.log("Make backed");
+				};
 				t.onerror = onerror;
-				objectStore = t.objectStore(STORE_NAME);
-				request = objectStore.put(blob);
+				objectStore = t.objectStore("files");
+				request = objectStore.put({instance: instance, data: blob});
 				request.onsuccess = function (event) {
 					getEntry(request.result);
 				};
 			}
 
 			function getEntry(key) {
-				var t = db.transaction([STORE_NAME], "readwrite"),
+				var t = tempDB.transaction(["files"], "readonly"),
 					objectStore, request;
 				t.onerror = onerror;
-				objectStore = t.objectStore(STORE_NAME);
+				objectStore = t.objectStore("files");
 				request = objectStore.get(key);
 				request.onsuccess = function (event) {
-					storedBlob = request.result;
-					deleteEntry(key);
-				};
-			}
-
-			function deleteEntry(key) {
-				var t = db.transaction([STORE_NAME], "readwrite"),
-					objectStore, request;
-				t.onerror = onerror;
-				objectStore = t.objectStore(STORE_NAME);
-				request = objectStore.delete(key);
-				request.onsuccess = function (event) {
-					callback(storedBlob);
+					callback(request.result.data);
 				};
 			}
 
@@ -281,7 +343,7 @@
 			makeDBBackedBlob(blob, function (storedBlob) {
 					blobs.push(storedBlob);
 					callback();
-					}, onerror);
+				}, onerror);
 		}
 
 		function getData(callback) {
@@ -292,7 +354,8 @@
 		that.init = init;
 		that.writeUint8Array = writeUint8Array;
 		that.getData = getData;
-	} DBWriter.prototype = new Writer();
+	}
+	DBWriter.prototype = new Writer();
 	DBWriter.prototype.constructor = FileWriter;
 
 	zip.FileWriter = FileWriter;
