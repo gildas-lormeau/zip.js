@@ -239,7 +239,12 @@
 		}
 
 		function addInstanceDB(callback, onerror) {
-			var request = indexedDB.open(dbName + "_" + instance);
+			var request;
+			try {
+				request = indexedDB.open(dbName + "_" + instance, {temporary: true});
+			} catch (e) {
+				request = indexedDB.open(dbName + "_" + instance);
+			}
 			request.onerror = onerror;
 			request.onupgradeneeded = function (event) {
 				tempDB = event.target.result;
