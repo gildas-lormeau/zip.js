@@ -258,7 +258,7 @@
 		}
 
 		function broadcastPingDB() {
-			localStorage.zipjs = Date.now();
+			sessionStorage.zipjs = Date.now();
 		}
 
 		function pongDB(event) {
