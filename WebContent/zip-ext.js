@@ -231,7 +231,6 @@
 			request.onerror = onerror;
 			request.onsuccess = function (event) {
 				instance = request.result;
-				console.log("Current instance " + instance);
 				cleanUpOldInstances();
 				window.addEventListener("storage", pongDB);
 				window.addEventListener("unload", close);
@@ -254,6 +253,8 @@
 		function close() {
 			blobs = [];
 			indexedDB.deleteDatabase(dbName + "_" + instance);
+			window.removeEventListener("storage", pongDB);
+			window.removeEventListener("unload", pongDB);
 		}
 
 		function broadcastPingDB() {
@@ -262,7 +263,6 @@
 
 		function pongDB(event) {
 			if ((event !== undefined && event.key === "zipjs") && instance) {
-				console.log("Pong from instance " + instance);
 				db.transaction(["instances"], "readwrite")
 								.objectStore("instances")
 								.put(Date.now(), instance);
@@ -311,9 +311,6 @@
 			function putEntry(blob) {
 				var t = tempDB.transaction(["files"], "readwrite"),
 					objectStore, request;
-				t.oncomplete = function () {
-					console.log("Make backed");
-				};
 				t.onerror = onerror;
 				objectStore = t.objectStore("files");
 				request = objectStore.put({instance: instance, data: blob});
@@ -354,6 +351,7 @@
 		that.init = init;
 		that.writeUint8Array = writeUint8Array;
 		that.getData = getData;
+		that.close = close;
 	}
 	DBWriter.prototype = new Writer();
 	DBWriter.prototype.constructor = FileWriter;
