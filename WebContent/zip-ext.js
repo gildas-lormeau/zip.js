@@ -259,7 +259,7 @@
 		function close() {
 			blobs = null;
 			window.removeEventListener("storage", respondToPing);
-			window.removeEventListener("unload", respondToPing);
+			window.removeEventListener("unload", close);
 			indexedDB.deleteDatabase(dbName + "_" + instance);
 		}
 
