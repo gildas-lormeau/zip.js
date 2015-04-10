@@ -263,16 +263,16 @@
 			indexedDB.deleteDatabase(dbName + "_" + instance);
 		}
 
-		function pingOtherInstances() {
+		function pingAllInstances() {
 			sessionStorage.zipjs = Date.now();
+			// That only triggers other tabs, not instances in this
+			// tab, so we need to trigger those manually.
+			var event = new StorageEvent("storage", {key: "zipjs"});
+			window.dispatchEvent(event);
 		}
 
 		function respondToPing(event) {
-			// If this is not called as an event handler, or if the event
-			// was trigger by another instance of this object and this
-			// object is active, then update this instance's updated time
-			// in the instance database.
-			if ((event !== undefined || event.key === "zipjs") && instance) {
+			if (event.key === "zipjs" && instance) {
 				instancesDB.transaction(["instances"], "readwrite")
 					.objectStore("instances")
 					.put(Date.now(), instance);
@@ -280,8 +280,7 @@
 		}
 
 		function cleanUpOldInstances() {
-			pingOtherInstances();
-			respondToPing();
+			pingAllInstances();
 			// This gives all other tabs 2 seconds to respond to a ping, which
 			// should be enough time, as the event loop for inactive tabs
 			// could run as infrequently as once per second. The second second
