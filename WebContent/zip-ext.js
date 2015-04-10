@@ -333,6 +333,7 @@
 				request.onsuccess = function (event) {
 					getEntry(request.result);
 				};
+				request.onerror = onerror;
 			}
 
 			function getEntry(key) {
@@ -344,6 +345,7 @@
 				request.onsuccess = function (event) {
 					callback(request.result.data);
 				};
+				request.onerror = onerror;
 			}
 
 			putEntry(blob);
