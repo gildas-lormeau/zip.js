@@ -278,9 +278,16 @@
 		function cleanUpOldInstances() {
 			broadcastPingDB();
 			pongDB();
+			// This gives all other tabs 2 seconds to respond to a ping, which
+			// should be enough time, as the event loop for inactive tabs
+			// could run as infrequently as once per second. The second second
+			// is to allow for a bit of wiggle room if the CPU is loaded.
+			// Then, we're going to delete the blobs for instances that responded
+			// less then 3 seconds ago, with the extra second for wiggle room
+			// again.
 			setTimeout(function () {
-				findOldInstances(10000);
-			}, 5000);
+				findOldInstances(3000);
+			}, 2000);
 		}
 
 		function findOldInstances(maxAge) {
