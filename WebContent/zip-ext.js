@@ -209,36 +209,36 @@
 	FileWriter.prototype.constructor = FileWriter;
 
 	function DBWriter(contentType) {
-		var db, tempDB, that = this, blobs, dbName = "zipjs", instance;
+		var instancesDB, instanceFilesDB, that = this, blobs, dbName = "zipjs", instance;
 
 		function init(callback, onerror) {
 			var request = indexedDB.open(dbName);
 			request.onerror = onerror;
 			request.onupgradeneeded = function (event) {
-				db = event.target.result;
-				db.createObjectStore("instances", { autoIncrement: true });
+				instancesDB = event.target.result;
+				instancesDB.createObjectStore("instances", { autoIncrement: true });
 			};
 			request.onsuccess = function (event) {
-				db = event.target.result;
-				addInstance(callback, onerror);
+				instancesDB = event.target.result;
+				addInstanceToInstancesDB(callback, onerror);
 			};
 			blobs = [];
 		}
 
-		function addInstance(callback, onerror) {
-			var t = db.transaction(["instances"], "readwrite"),
+		function addInstanceToInstancesDB(callback, onerror) {
+			var t = instancesDB.transaction(["instances"], "readwrite"),
 				request = t.objectStore("instances").put(Date.now());
 			request.onerror = onerror;
 			request.onsuccess = function (event) {
 				instance = request.result;
 				cleanUpOldInstances();
-				window.addEventListener("storage", pongDB);
+				window.addEventListener("storage", respondToPing);
 				window.addEventListener("unload", close);
-				addInstanceDB(callback, onerror);
+				createInstanceFilesDB(callback, onerror);
 			};
 		}
 
-		function addInstanceDB(callback, onerror) {
+		function createInstanceFilesDB(callback, onerror) {
 			var request;
 			try {
 				// The temporary option is only supported in Firefox 26+.
@@ -248,8 +248,8 @@
 			}
 			request.onerror = onerror;
 			request.onupgradeneeded = function (event) {
-				tempDB = event.target.result;
-				tempDB.createObjectStore("files", { autoIncrement: true });
+				instanceFilesDB = event.target.result;
+				instanceFilesDB.createObjectStore("files", { autoIncrement: true });
 			};
 			request.onsuccess = function (event) {
 				callback();
@@ -258,30 +258,30 @@
 
 		function close() {
 			blobs = null;
-			window.removeEventListener("storage", pongDB);
-			window.removeEventListener("unload", pongDB);
+			window.removeEventListener("storage", respondToPing);
+			window.removeEventListener("unload", respondToPing);
 			indexedDB.deleteDatabase(dbName + "_" + instance);
 		}
 
-		function broadcastPingDB() {
+		function pingOtherInstances() {
 			sessionStorage.zipjs = Date.now();
 		}
 
-		function pongDB(event) {
+		function respondToPing(event) {
 			// If this is not called as an event handler, or if the event
 			// was trigger by another instance of this object and this
 			// object is active, then update this instance's updated time
 			// in the instance database.
 			if ((event !== undefined || event.key === "zipjs") && instance) {
-				db.transaction(["instances"], "readwrite")
+				instancesDB.transaction(["instances"], "readwrite")
 					.objectStore("instances")
 					.put(Date.now(), instance);
 			}
 		}
 
 		function cleanUpOldInstances() {
-			broadcastPingDB();
-			pongDB();
+			pingOtherInstances();
+			respondToPing();
 			// This gives all other tabs 2 seconds to respond to a ping, which
 			// should be enough time, as the event loop for inactive tabs
 			// could run as infrequently as once per second. The second second
@@ -295,7 +295,7 @@
 		}
 
 		function findOldInstances(maxAge) {
-			var t = db.transaction(["instances"], "readwrite"),
+			var t = instancesDB.transaction(["instances"], "readwrite"),
 				instances = t.objectStore("instances"),
 				expiration = Date.now() - maxAge,
 				oldInstances = [];
@@ -326,7 +326,7 @@
 
 		function makeDBBackedBlob(blob, callback, onerror) {
 			function putEntry(blob) {
-				var t = tempDB.transaction(["files"], "readwrite"),
+				var t = instanceFilesDB.transaction(["files"], "readwrite"),
 					objectStore, request;
 				t.onerror = onerror;
 				objectStore = t.objectStore("files");
@@ -337,7 +337,7 @@
 			}
 
 			function getEntry(key) {
-				var t = tempDB.transaction(["files"], "readonly"),
+				var t = instanceFilesDB.transaction(["files"], "readonly"),
 					objectStore, request;
 				t.onerror = onerror;
 				objectStore = t.objectStore("files");
