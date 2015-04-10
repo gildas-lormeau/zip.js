@@ -212,7 +212,7 @@
 		var db, tempDB, that = this, blobs, dbName = "zipjs", instance;
 
 		function init(callback, onerror) {
-			var request = indexedDB.open(dbName, 5);
+			var request = indexedDB.open(dbName);
 			request.onerror = onerror;
 			request.onupgradeneeded = function (event) {
 				db = event.target.result;
