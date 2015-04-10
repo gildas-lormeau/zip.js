@@ -270,8 +270,8 @@
 		function pongDB(event) {
 			if ((event !== undefined && event.key === "zipjs") && instance) {
 				db.transaction(["instances"], "readwrite")
-								.objectStore("instances")
-								.put(Date.now(), instance);
+					.objectStore("instances")
+					.put(Date.now(), instance);
 			}
 		}
 
