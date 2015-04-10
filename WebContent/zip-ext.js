@@ -241,6 +241,7 @@
 		function addInstanceDB(callback, onerror) {
 			var request;
 			try {
+				// The temporary option is only supported in Firefox 26+.
 				request = indexedDB.open(dbName + "_" + instance, {temporary: true});
 			} catch (e) {
 				request = indexedDB.open(dbName + "_" + instance);
