@@ -371,8 +371,8 @@
 		that.getData = getData;
 		that.close = close;
 	}
-	DBWriter.prototype = new Writer();
-	DBWriter.prototype.constructor = FileWriter;
+	DBBackedBlobWriter.prototype = new Writer();
+	DBBackedBlobWriter.prototype.constructor = FileWriter;
 
 	zip.FileWriter = FileWriter;
 	zip.HttpReader = HttpReader;
