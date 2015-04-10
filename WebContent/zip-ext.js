@@ -208,7 +208,7 @@
 	FileWriter.prototype = new Writer();
 	FileWriter.prototype.constructor = FileWriter;
 
-	function DBWriter(contentType) {
+	function DBBackedBlobWriter(contentType) {
 		var instancesDB, instanceFilesDB, that = this, blobs, dbName = "zipjs", instance;
 
 		function init(callback, onerror) {
@@ -379,7 +379,7 @@
 	zip.HttpRangeReader = HttpRangeReader;
 	zip.ArrayBufferReader = ArrayBufferReader;
 	zip.ArrayBufferWriter = ArrayBufferWriter;
-	zip.DBWriter = DBWriter;
+	zip.DBBackedBlobWriter = DBBackedBlobWriter;
 
 	if (zip.fs) {
 		ZipDirectoryEntry = zip.fs.ZipDirectoryEntry;
