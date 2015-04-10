@@ -256,7 +256,7 @@
 		}
 
 		function close() {
-			blobs = [];
+			blobs = null;
 			window.removeEventListener("storage", pongDB);
 			window.removeEventListener("unload", pongDB);
 			indexedDB.deleteDatabase(dbName + "_" + instance);
