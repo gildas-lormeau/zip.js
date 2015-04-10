@@ -268,7 +268,11 @@
 		}
 
 		function pongDB(event) {
-			if ((event !== undefined && event.key === "zipjs") && instance) {
+			// If this is not called as an event handler, or if the event
+			// was trigger by another instance of this object and this
+			// object is active, then update this instance's updated time
+			// in the instance database.
+			if ((event !== undefined || event.key === "zipjs") && instance) {
 				db.transaction(["instances"], "readwrite")
 					.objectStore("instances")
 					.put(Date.now(), instance);
