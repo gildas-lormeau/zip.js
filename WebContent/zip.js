@@ -202,6 +202,30 @@
 		callback(this.data);
 	};
 
+	function ArrayBufferWriter() {
+		var that = this;
+	    var ar;
+
+		function init(callback) {
+			callback();
+		}
+
+		function writeUint8Array(array, callback) {
+			ar = array;
+			callback();
+		}
+
+		function getData(callback, onerror) {
+			callback(ar);
+		}
+
+		that.init = init;
+		that.writeUint8Array = writeUint8Array;
+		that.getData = getData;
+	}
+	ArrayBufferWriter.prototype = new ArrayBufferWriter();
+	ArrayBufferWriter.prototype.constructor = ArrayBufferWriter;
+
 	function TextWriter(encoding) {
 		var that = this, blob;
 
@@ -927,6 +951,7 @@
 		BlobWriter : BlobWriter,
 		Data64URIWriter : Data64URIWriter,
 		TextWriter : TextWriter,
+		ArrayBufferWriter: ArrayBufferWriter,
 		createReader : function(reader, callback, onerror) {
 			onerror = onerror || onerror_default;
 
