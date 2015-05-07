@@ -367,7 +367,13 @@
 					var msg = index === 0 ? initialMessage : {sn : sn};
 					msg.type = 'append';
 					msg.data = array;
-					worker.postMessage(msg, [array.buffer]);
+					
+					// posting a message with transferables will fail on IE10
+					try {
+						worker.postMessage(msg, [array.buffer]);
+					} catch(ex) {
+						worker.postMessage(msg); // retry without transferables
+					}
 					chunkIndex++;
 				}, onreaderror);
 			} else {
