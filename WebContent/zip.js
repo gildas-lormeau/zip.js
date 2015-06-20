@@ -360,7 +360,8 @@
 
 		function step() {
 			index = chunkIndex * CHUNK_SIZE;
-			if (index < size) {
+			// use `<=` instead of `<`, because `size` may be 0.
+			if (index <= size) {
 				reader.readUint8Array(offset + index, Math.min(CHUNK_SIZE, size - index), function(array) {
 					if (onprogress)
 						onprogress(index, size);
