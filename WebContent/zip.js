@@ -204,19 +204,29 @@
 
 	function ArrayBufferWriter() {
 		var that = this;
-	    var ar;
+		var listOfArrays = [];
 
 		function init(callback) {
+		        listOfArrays = [];
 			callback();
 		}
 
 		function writeUint8Array(array, callback) {
-			ar = array;
+			listOfArrays.push(array);
 			callback();
 		}
 
 		function getData(callback, onerror) {
-			callback(ar);
+			var newLen = listOfArrays.reduce(function(prev, cur, index, arr) {
+				return prev + cur.byteLength;
+			},0);
+			var tmp = new Uint8Array(newLen);
+			var idx = 0;
+			listOfArray.map(function(cur,index,arr) {
+				tmp.set(new Uint8Array(cur),idx);
+				idx = idx + cur.byteLength;
+			});
+                        callback(tmp);
 		}
 
 		that.init = init;
