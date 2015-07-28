@@ -141,10 +141,7 @@
 					}, function(index) {
 						if (onprogress)
 							onprogress(currentIndex + index, totalSize);
-					}, {
-						directory : child.directory,
-						version : child.zipVersion
-					});
+					}, child.options);
 				else
 					onend();
 			}
@@ -301,7 +298,9 @@
 			that.id = fs.entries.length;
 			that.parent = parent;
 			that.children = [];
-			that.zipVersion = params.zipVersion || 0x14;
+			that.options = params.options || {};
+			that.options.version = params.zipVersion || 0x14;
+			that.options.directory = that.directory;
 			that.uncompressedSize = 0;
 			fs.entries.push(that);
 			if (parent)
@@ -390,8 +389,8 @@
 
 	function ZipDirectoryEntry(fs, name, params, parent) {
 		var that = this;
-		ZipEntry.prototype.init.call(that, fs, name, params, parent);
 		that.directory = true;
+		ZipEntry.prototype.init.call(that, fs, name, params, parent);
 	}
 
 	ZipDirectoryEntry.prototype = ZipDirectoryEntryProto = new ZipEntry();
@@ -399,23 +398,26 @@
 	ZipDirectoryEntryProto.addDirectory = function(name) {
 		return addChild(this, name, null, true);
 	};
-	ZipDirectoryEntryProto.addText = function(name, text) {
+	ZipDirectoryEntryProto.addText = function(name, text, options) {
 		return addChild(this, name, {
 			data : text,
+			options : options,
 			Reader : TextReader,
 			Writer : TextWriter
 		});
 	};
-	ZipDirectoryEntryProto.addBlob = function(name, blob) {
+	ZipDirectoryEntryProto.addBlob = function(name, blob, options) {
 		return addChild(this, name, {
 			data : blob,
+			options : options,
 			Reader : BlobReader,
 			Writer : BlobWriter
 		});
 	};
-	ZipDirectoryEntryProto.addData64URI = function(name, dataURI) {
+	ZipDirectoryEntryProto.addData64URI = function(name, dataURI, options) {
 		return addChild(this, name, {
 			data : dataURI,
+			options : options,
 			Reader : Data64URIReader,
 			Writer : Data64URIWriter
 		});
