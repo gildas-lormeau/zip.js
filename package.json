@@ -1,0 +1,20 @@
+{
+  "name": "zip.js",
+  "author": {
+    "name": "Gildas Lormeau"
+  },
+  "homepage": "http://gildas-lormeau.github.io/zip.js/",
+  "version": "0.0.0",
+  "description": "",
+  "keywords": [],
+  "devDependencies": {
+  },
+  "maintainers": [
+    {
+      "name": "louis",
+      "email": "louis.grignon@gmail.com"
+    }
+  ],
+  "directories": {},
+  "dependencies": {}
+}
