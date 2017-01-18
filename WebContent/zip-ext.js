@@ -51,7 +51,7 @@
 				request = new XMLHttpRequest();
 				request.addEventListener("load", function() {
 					if (!that.size)
-						that.size = Number(request.getResponseHeader("Content-Length"));
+						that.size = Number(request.getResponseHeader("Content-Length")) || Number(request.response.byteLength);
 					that.data = new Uint8Array(request.response);
 					callback();
 				}, false);
@@ -67,7 +67,12 @@
 			var request = new XMLHttpRequest();
 			request.addEventListener("load", function() {
 				that.size = Number(request.getResponseHeader("Content-Length"));
-				callback();
+				// If response header doesn't return size then prefetch the content.
+				if (!that.size) {
+					getData(callback, onerror);
+				} else {
+					callback();
+				}
 			}, false);
 			request.addEventListener("error", onerror, false);
 			request.open("HEAD", url);
