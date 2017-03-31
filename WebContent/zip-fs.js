@@ -160,7 +160,7 @@
 			var entries = [];
 			if (fileEntry.isDirectory) {
 				var directoryReader = fileEntry.createReader();
-				function readEntries() {
+				(function readEntries() {
 					directoryReader.readEntries(function(temporaryEntries) {
 						if (!temporaryEntries.length)
 							callback(entries);
@@ -169,8 +169,7 @@
 							readEntries();
 						}
 					}, onerror);
-				}
-				readEntries();
+				})();
 			}
 			if (fileEntry.isFile)
 				callback(entries);
