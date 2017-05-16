@@ -42,6 +42,15 @@
 	} catch (e) {
 	}
 
+	function getLengthFromHeader(request) {
+		try {
+			return Number(request.getResponseHeader("Content-Length"));
+		} catch (e) {
+			window.console && console.warn(e + "");
+		}
+		return 0;
+	}
+
 	function HttpReader(url) {
 		var that = this;
 
@@ -51,7 +60,7 @@
 				request = new XMLHttpRequest();
 				request.addEventListener("load", function() {
 					if (!that.size)
-						that.size = Number(request.getResponseHeader("Content-Length")) || Number(request.response.byteLength);
+						that.size = getLengthFromHeader(request) || Number(request.response.byteLength);
 					that.data = new Uint8Array(request.response);
 					callback();
 				}, false);
@@ -66,7 +75,7 @@
 		function init(callback, onerror) {
 			var request = new XMLHttpRequest();
 			request.addEventListener("load", function() {
-				that.size = Number(request.getResponseHeader("Content-Length"));
+				that.size = getLengthFromHeader(request);
 				// If response header doesn't return size then prefetch the content.
 				if (!that.size) {
 					getData(callback, onerror);
