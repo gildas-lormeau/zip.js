@@ -33,7 +33,9 @@ function removeRecursively(entry, onend, onerror) {
 
 function importZipToFilesystem(callback) {
 	zipFs.importHttpContent(URL, false, function() {
-		zipFs.root.getFileEntry(filesystem.root, callback, null, onerror);
+		zipFs.root.getFileEntry(filesystem.root, callback, function(processed,total){
+			console.log("processing",processed,total);
+		}, onerror);
 	}, onerror);
 }
 
