@@ -42,6 +42,12 @@
 	} catch (e) {
 	}
 
+	function isHttpFamily(url) {
+		var a = document.createElement("a");
+		a.href = url;
+		return a.protocol === "http:" || a.protocol === "https:";
+	}
+
 	function HttpReader(url) {
 		var that = this;
 
@@ -64,6 +70,12 @@
 		}
 
 		function init(callback, onerror) {
+			if (!isHttpFamily(url)) {
+				// For schemas other than http(s), HTTP HEAD may be unavailable,
+				// so use HTTP GET instead.
+				getData(callback, onerror);
+				return;
+			}
 			var request = new XMLHttpRequest();
 			request.addEventListener("load", function() {
 				that.size = Number(request.getResponseHeader("Content-Length"));
