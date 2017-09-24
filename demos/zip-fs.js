@@ -157,10 +157,22 @@
 
 	function addFileEntry(zipEntry, fileEntry, onend, onerror) {
 		function getChildren(fileEntry, callback) {
-			if (fileEntry.isDirectory)
-				fileEntry.createReader().readEntries(callback);
+			var entries = [];
+			if (fileEntry.isDirectory) {
+				var directoryReader = fileEntry.createReader();
+				(function readEntries() {
+					directoryReader.readEntries(function(temporaryEntries) {
+						if (!temporaryEntries.length)
+							callback(entries);
+						else {
+							entries = entries.concat(temporaryEntries);
+							readEntries();
+						}
+					}, onerror);
+				})();
+			}
 			if (fileEntry.isFile)
-				callback([]);
+				callback(entries);
 		}
 
 		function process(zipEntry, fileEntry, onend) {

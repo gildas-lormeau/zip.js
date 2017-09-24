@@ -42,6 +42,12 @@
 	} catch (e) {
 	}
 
+	function isHttpFamily(url) {
+		var a = document.createElement("a");
+		a.href = url;
+		return a.protocol === "http:" || a.protocol === "https:";
+	}
+
 	function HttpReader(url) {
 		var that = this;
 
@@ -51,7 +57,7 @@
 				request = new XMLHttpRequest();
 				request.addEventListener("load", function() {
 					if (!that.size)
-						that.size = Number(request.getResponseHeader("Content-Length"));
+						that.size = Number(request.getResponseHeader("Content-Length")) || Number(request.response.byteLength);
 					that.data = new Uint8Array(request.response);
 					callback();
 				}, false);
@@ -64,10 +70,21 @@
 		}
 
 		function init(callback, onerror) {
+			if (!isHttpFamily(url)) {
+				// For schemas other than http(s), HTTP HEAD may be unavailable,
+				// so use HTTP GET instead.
+				getData(callback, onerror);
+				return;
+			}
 			var request = new XMLHttpRequest();
 			request.addEventListener("load", function() {
 				that.size = Number(request.getResponseHeader("Content-Length"));
-				callback();
+				// If response header doesn't return size then prefetch the content.
+				if (!that.size) {
+					getData(callback, onerror);
+				} else {
+					callback();
+				}
 			}, false);
 			request.addEventListener("error", onerror, false);
 			request.open("HEAD", url);
