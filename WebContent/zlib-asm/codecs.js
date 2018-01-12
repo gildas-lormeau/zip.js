@@ -46,4 +46,7 @@
 	var env = global.zip || global;
 	env.Deflater = env._zlib_asm_Deflater = Deflater;
 	env.Inflater = env._zlib_asm_Inflater = Inflater;
-})(this);
+})(typeof self !== "undefined" && self || typeof window !== "undefined" && window || typeof global !== "undefined" && global || Function('return this.content')() || Function('return this')());
+// `self` is undefined in Firefox for Android content script context
+// while `this` is nsIContentFrameMessageManager
+// with an attribute `content` that corresponds to the window
