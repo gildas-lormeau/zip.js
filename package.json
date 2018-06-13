@@ -1,18 +1,20 @@
 {
-  "name": "zip.js",
+  "name": "@lgrignon/zip.js",
   "author": {
-    "name": "Gildas Lormeau"
+    "name": "Gildas Lormeau",
+    "url": "https://github.com/gildas-lormeau"
   },
   "homepage": "http://gildas-lormeau.github.io/zip.js/",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "",
   "keywords": [],
   "devDependencies": {
   },
   "maintainers": [
     {
-      "name": "louis",
-      "email": "louis.grignon@gmail.com"
+      "name": "Louis Grignon",
+      "email": "louis.grignon@gmail.com",
+      "url": "https://github.com/lgrignon"
     }
   ],
   "directories": {},
