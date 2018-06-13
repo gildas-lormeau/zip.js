@@ -1,14 +1,15 @@
 {
   "name": "@lgrignon/zip.js",
-  "author": {
-    "name": "Gildas Lormeau",
-    "url": "https://github.com/gildas-lormeau"
-  },
   "homepage": "http://gildas-lormeau.github.io/zip.js/",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
-  "devDependencies": {
+  "devDependencies": {},
+  "directories": {},
+  "dependencies": {},
+  "author": {
+    "name": "Gildas Lormeau",
+    "url": "https://github.com/gildas-lormeau"
   },
   "maintainers": [
     {
@@ -17,6 +18,8 @@
       "url": "https://github.com/lgrignon"
     }
   ],
-  "directories": {},
-  "dependencies": {}
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lgrignon/zip.js"
+  }
 }
