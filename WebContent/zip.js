@@ -359,10 +359,10 @@
 		}
 
 		function step() {
-			index = chunkIndex * CHUNK_SIZE;
+			index = chunkIndex * obj.zip.CHUNK_SIZE;
 			// use `<=` instead of `<`, because `size` may be 0.
 			if (index <= size) {
-				reader.readUint8Array(offset + index, Math.min(CHUNK_SIZE, size - index), function(array) {
+				reader.readUint8Array(offset + index, Math.min(obj.zip.CHUNK_SIZE, size - index), function(array) {
 					if (onprogress)
 						onprogress(index, size);
 					var msg = index === 0 ? initialMessage : {sn : sn};
@@ -397,9 +397,9 @@
 			crc = new Crc32();
 		function step() {
 			var outputData;
-			index = chunkIndex * CHUNK_SIZE;
+			index = chunkIndex * obj.zip.CHUNK_SIZE;
 			if (index < size)
-				reader.readUint8Array(offset + index, Math.min(CHUNK_SIZE, size - index), function(inputData) {
+				reader.readUint8Array(offset + index, Math.min(obj.zip.CHUNK_SIZE, size - index), function(inputData) {
 					var outputData;
 					try {
 						outputData = process.append(inputData, function(loaded) {
@@ -920,6 +920,7 @@
 		console.error(error);
 	}
 	obj.zip = {
+		CHUNK_SIZE: 512 * 1024,
 		Reader : Reader,
 		Writer : Writer,
 		BlobReader : BlobReader,
