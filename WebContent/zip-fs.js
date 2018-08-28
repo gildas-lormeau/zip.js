@@ -29,8 +29,6 @@
 (function() {
 	"use strict";
 
-	var CHUNK_SIZE = 512 * 1024;
-
 	var TextWriter = zip.TextWriter, //
 	BlobWriter = zip.BlobWriter, //
 	Data64URIWriter = zip.Data64URIWriter, //
@@ -274,11 +272,11 @@
 		var chunkIndex = 0;
 
 		function stepCopy() {
-			var index = chunkIndex * CHUNK_SIZE;
+			var index = chunkIndex * zip.CHUNK_SIZE;
 			if (onprogress)
 				onprogress(index, reader.size);
 			if (index < reader.size)
-				reader.readUint8Array(index, Math.min(CHUNK_SIZE, reader.size - index), function(array) {
+				reader.readUint8Array(index, Math.min(zip.CHUNK_SIZE, reader.size - index), function(array) {
 					writer.writeUint8Array(new Uint8Array(array), function() {
 						chunkIndex++;
 						stepCopy();
