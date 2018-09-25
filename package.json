@@ -1,0 +1,26 @@
+{
+  "name": "zip.js",
+  "version": "1.0.0",
+  "description": "JavaScript library to zip and unzip files",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/gildas-lormeau/zip.js.git"
+  },
+  "keywords": [
+    "zip",
+    "unzip",
+    "browser",
+    "fs"
+  ],
+  "author": "Gildas Lormeau",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/gildas-lormeau/zip.js/issues"
+  },
+  "homepage": "https://github.com/gildas-lormeau/zip.js#readme"
+}
