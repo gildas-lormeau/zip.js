@@ -329,9 +329,7 @@
 			initReaders(that)
 				.then(function() {
 					getFileEntry(fileEntry, that, onend, onprogress, onerror, getTotalSize(that), checkCrc32);
-				}).catch(function(err) {
-				onerror(err);
-			});
+				}).catch(onerror);
 		},
 		moveTo : function(target) {
 			var that = this;
