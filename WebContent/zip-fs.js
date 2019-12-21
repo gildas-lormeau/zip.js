@@ -7,8 +7,8 @@
  1. Redistributions of source code must retain the above copyright notice,
  this list of conditions and the following disclaimer.
 
- 2. Redistributions in binary form must reproduce the above copyright 
- notice, this list of conditions and the following disclaimer in 
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
  the documentation and/or other materials provided with the distribution.
 
  3. The names of the authors may not be used to endorse or promote products
@@ -86,33 +86,38 @@
 		return size;
 	}
 
-	function initReaders(entry, onend, onerror) {
-		var index = 0;
+	function mapSeries(list, functionToPerform) {
+		let results = [];
+		return list.reduce(function(seriesPromise, item, index) {
+				return seriesPromise.then(function() {
+					return functionToPerform(item, index);
+				}).then(function(result) {
+					results.push(result);
+				});
+			}, Promise.resolve())
+			.then(function() {
+				return results;
+			});
+	}
 
-		function next() {
-			index++;
-			if (index < entry.children.length)
-				process(entry.children[index]);
-			else
-				onend();
+	function initReaders(entry) {
+		if (!entry.children.length) {
+			return Promise.resolve();
 		}
 
-		function process(child) {
-			if (child.directory)
-				initReaders(child, next, onerror);
-			else {
-				child.reader = new child.Reader(child.data, onerror);
-				child.reader.init(function() {
-					child.uncompressedSize = child.reader.size;
-					next();
+		return mapSeries(entry.children, function (child) {
+			if (child.directory) {
+				return initReaders(child);
+			} else {
+				return new Promise(function (resolve, reject) {
+					child.reader = new child.Reader(child.data, reject);
+					child.reader.init(function() {
+						child.uncompressedSize = child.reader.size;
+						resolve();
+					});
 				});
 			}
-		}
-
-		if (entry.children.length)
-			process(entry.children[index]);
-		else
-			onend();
+		});
 	}
 
 	function detach(entry) {
@@ -321,9 +326,12 @@
 		},
 		getFileEntry : function(fileEntry, onend, onprogress, onerror, checkCrc32) {
 			var that = this;
-			initReaders(that, function() {
-				getFileEntry(fileEntry, that, onend, onprogress, onerror, getTotalSize(that), checkCrc32);
-			}, onerror);
+			initReaders(that)
+				.then(function() {
+					getFileEntry(fileEntry, that, onend, onprogress, onerror, getTotalSize(that), checkCrc32);
+				}).catch(function(err) {
+				onerror(err);
+			});
 		},
 		moveTo : function(target) {
 			var that = this;
@@ -480,13 +488,14 @@
 	};
 	ZipDirectoryEntryProto.exportZip = function(writer, onend, onprogress, onerror) {
 		var that = this;
-		initReaders(that, function() {
+		initReaders(that)
+		.then(function () {
 			createWriter(writer, function(zipWriter) {
 				exportZip(zipWriter, that, function() {
 					zipWriter.close(onend);
 				}, onprogress, getTotalSize(that));
 			}, onerror);
-		}, onerror);
+		}).catch(onerror);
 	};
 	ZipDirectoryEntryProto.getChildByName = function(name) {
 		var childIndex, child, that = this;
