@@ -11,11 +11,13 @@ function exportFile() {
   try {
     zipFS.exportBlob( function () {
       document.getElementById('result').textContent = 'Succeeded';
-    }, null, function () {
-      document.getElementById('result').textContent = 'Errored';
+    }, null, function (err) {
+      document.getElementById('result').textContent = err;
+      throw err;
     });
   } catch (err) {
     document.getElementById('result').textContent = err;
+    throw err;
   }
 }
 
