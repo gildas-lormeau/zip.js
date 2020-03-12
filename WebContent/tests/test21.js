@@ -1,17 +1,31 @@
 let zipFS = new zip.fs.FS();
 
+function findMaxDepth() {
+  var depth = 0;
+  try {
+    (function next() { ++depth; next(); })();
+  } catch (e) {}
+  return depth;
+}
+
 function addFiles() {
-  let rootDir = zipFS.root.addDirectory('root');
-  for (let i = 0; i < 3000; i++) {
+  var rootDir = zipFS.root.addDirectory('root');
+  var maxDepth = findMaxDepth();
+  console.log('Testing depth: ', maxDepth);
+  for (var i = 0; i < maxDepth; i++) {
     rootDir.addBlob(`file${i}`, new Blob(['']));
   }
+  console.log('Added blobs');
 }
 
 function exportFile() {
   try {
+    console.log('Exporting zip');
     zipFS.exportBlob( function () {
       document.getElementById('result').textContent = 'Succeeded';
-    }, null, function (err) {
+    }, function(current, total) {
+      console.log(current, total);
+    }, function (err) {
       document.getElementById('result').textContent = err;
       throw err;
     });

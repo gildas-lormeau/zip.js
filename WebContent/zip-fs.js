@@ -32,14 +32,14 @@
 	var CHUNK_SIZE = 512 * 1024;
 
 	var TextWriter = zip.TextWriter, //
-	BlobWriter = zip.BlobWriter, //
-	Data64URIWriter = zip.Data64URIWriter, //
-	Reader = zip.Reader, //
-	TextReader = zip.TextReader, //
-	BlobReader = zip.BlobReader, //
-	Data64URIReader = zip.Data64URIReader, //
-	createReader = zip.createReader, //
-	createWriter = zip.createWriter;
+		BlobWriter = zip.BlobWriter, //
+		Data64URIWriter = zip.Data64URIWriter, //
+		Reader = zip.Reader, //
+		TextReader = zip.TextReader, //
+		BlobReader = zip.BlobReader, //
+		Data64URIReader = zip.Data64URIReader, //
+		createReader = zip.createReader, //
+		createWriter = zip.createWriter;
 
 	function ZipBlobReader(entry) {
 		var that = this, blobReader;
@@ -86,38 +86,33 @@
 		return size;
 	}
 
-	function mapSeries(list, functionToPerform) {
-		let results = [];
-		return list.reduce(function(seriesPromise, item, index) {
-				return seriesPromise.then(function() {
-					return functionToPerform(item, index);
-				}).then(function(result) {
-					results.push(result);
-				});
-			}, Promise.resolve())
-			.then(function() {
-				return results;
-			});
-	}
+	function initReaders(entry, onend, onerror) {
+		var index = 0;
 
-	function initReaders(entry) {
-		if (!entry.children.length) {
-			return Promise.resolve();
+		function next() {
+			index++;
+			if (index < entry.children.length)
+				process(entry.children[index]);
+			else
+				onend();
 		}
 
-		return mapSeries(entry.children, function (child) {
-			if (child.directory) {
-				return initReaders(child);
-			} else {
-				return new Promise(function (resolve, reject) {
-					child.reader = new child.Reader(child.data, reject);
-					child.reader.init(function() {
-						child.uncompressedSize = child.reader.size;
-						resolve();
-					});
+		function process(child) {
+			if (child.directory)
+				initReaders(child, next, onerror);
+			else {
+				child.reader = new child.Reader(child.data, onerror);
+				child.reader.init(function() {
+					child.uncompressedSize = child.reader.size;
+					setTimeout(next, 1);
 				});
 			}
-		});
+		}
+
+		if (entry.children.length)
+			process(entry.children[index]);
+		else
+			onend();
 	}
 
 	function detach(entry) {
@@ -326,10 +321,9 @@
 		},
 		getFileEntry : function(fileEntry, onend, onprogress, onerror, checkCrc32) {
 			var that = this;
-			initReaders(that)
-				.then(function() {
-					getFileEntry(fileEntry, that, onend, onprogress, onerror, getTotalSize(that), checkCrc32);
-				}).catch(onerror);
+			initReaders(that, function() {
+				getFileEntry(fileEntry, that, onend, onprogress, onerror, getTotalSize(that), checkCrc32);
+			}, onerror);
 		},
 		moveTo : function(target) {
 			var that = this;
@@ -486,14 +480,13 @@
 	};
 	ZipDirectoryEntryProto.exportZip = function(writer, onend, onprogress, onerror) {
 		var that = this;
-		initReaders(that)
-		.then(function () {
+		initReaders(that, function() {
 			createWriter(writer, function(zipWriter) {
 				exportZip(zipWriter, that, function() {
 					zipWriter.close(onend);
 				}, onprogress, getTotalSize(that));
 			}, onerror);
-		}).catch(onerror);
+		}, onerror);
 	};
 	ZipDirectoryEntryProto.getChildByName = function(name) {
 		var childIndex, child, that = this;
