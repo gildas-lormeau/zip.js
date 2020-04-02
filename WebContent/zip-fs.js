@@ -32,10 +32,10 @@
 	var CHUNK_SIZE = 512 * 1024;
 
 	var TextWriter = zip.TextWriter, //
-		BlobWriter = zip.BlobWriter, //
-		Data64URIWriter = zip.Data64URIWriter, //
-		Reader = zip.Reader, //
-		TextReader = zip.TextReader, //
+	BlobWriter = zip.BlobWriter, //
+	Data64URIWriter = zip.Data64URIWriter, //
+	Reader = zip.Reader, //
+	TextReader = zip.TextReader, //
 	BlobReader = zip.BlobReader, //
 	Data64URIReader = zip.Data64URIReader, //
 	createReader = zip.createReader, //
