@@ -36,10 +36,31 @@
 		Data64URIWriter = zip.Data64URIWriter, //
 		Reader = zip.Reader, //
 		TextReader = zip.TextReader, //
-		BlobReader = zip.BlobReader, //
-		Data64URIReader = zip.Data64URIReader, //
-		createReader = zip.createReader, //
-		createWriter = zip.createWriter;
+	BlobReader = zip.BlobReader, //
+	Data64URIReader = zip.Data64URIReader, //
+	createReader = zip.createReader, //
+	createWriter = zip.createWriter;
+
+	var nextTick;
+	// use nextTick where you might otherwise have a very deep nested callback stack
+	//  as you might when using recursion to process a large array of data
+	if (typeof Promise !== 'undefined' && Promise.resolve) {
+		/**
+		 * If available use Promises, because Promises use microTasks vs macroTasks
+		 * @param {Function} fn		a callback
+		 */
+		nextTick = function(fn) {
+			Promise.resolve().then(fn);
+		};
+	} else {
+		/**
+		 * When Promises are unavailable, fallback on setTimeout
+		 * @param {Function} fn		a callback
+		 */
+		nextTick = function(fn) {
+			setTimeout(fn, 0);
+		};
+	}
 
 	function ZipBlobReader(entry) {
 		var that = this, blobReader;
@@ -104,7 +125,7 @@
 				child.reader = new child.Reader(child.data, onerror);
 				child.reader.init(function() {
 					child.uncompressedSize = child.reader.size;
-					setTimeout(next, 1);
+					nextTick(next);
 				});
 			}
 		}
