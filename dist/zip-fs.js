@@ -437,7 +437,7 @@
 		}
 	}
 
-	/* global ZipInflater, ZipDeflater, ZipEncryption, ZipDecryption */
+	/* global ZipInflater, ZipDeflater, ZipEncrypt, ZipDecrypt */
 
 	const ERR_INVALID_SIGNATURE = "Invalid signature";
 
@@ -450,7 +450,7 @@
 			this.compressed = options.inputCompressed;
 			this.inflater = this.compressed && new ZipInflater();
 			this.crc32 = this.signed && this.signed && new Crc32();
-			this.decryption = this.encrypted && new ZipDecryption(options.inputPassword);
+			this.decryption = this.encrypted && new ZipDecrypt(options.inputPassword);
 		}
 
 		async append(data) {
@@ -500,7 +500,7 @@
 			this.compressed = options.outputCompressed;
 			this.deflater = this.compressed && new ZipDeflater({ level: options.level });
 			this.crc32 = this.signed && new Crc32();
-			this.encryption = this.encrypted && new ZipEncryption(options.outputPassword);
+			this.encrypt = this.encrypted && new ZipEncrypt(options.outputPassword);
 		}
 
 		async append(inputData) {
@@ -509,7 +509,7 @@
 				data = this.deflater.append(inputData);
 			}
 			if (this.encrypted) {
-				data = await this.encryption.append(data);
+				data = await this.encrypt.append(data);
 			} else if (this.signed) {
 				this.crc32.append(inputData);
 			}
@@ -522,8 +522,8 @@
 				data = this.deflater.flush();
 			}
 			if (this.encrypted) {
-				data = await this.encryption.append(data);
-				const result = await this.encryption.flush();
+				data = await this.encrypt.append(data);
+				const result = await this.encrypt.flush();
 				signature = result.signature;
 				const newData = new Uint8Array(data.length + result.data.length);
 				newData.set(data, 0);
@@ -604,9 +604,8 @@
 		}
 
 		async getEntries() {
-			if (!this.readerInitialized) {
-				await this.reader.init();
-				this.readerInitialized = true;
+			if (!this.reader.initialized) {
+				await this.reader.init();			
 			}
 			const endOfCentralDirectoryRecord = await seekEndOfCentralDirectoryRecord(this.reader);
 			if (endOfCentralDirectoryRecord) {
@@ -703,9 +702,6 @@
 			entry.signature = dataView.getUint32(offset + 10, true);
 			entry.compressedSize = dataView.getUint32(offset + 14, true);
 			entry.uncompressedSize = dataView.getUint32(offset + 18, true);
-		} else {
-			entry.compressedSize = 0;
-			entry.uncompressedSize = 0;
 		}
 		if (entry.compressedSize == 0xFFFFFFFF || entry.uncompressedSize == 0xFFFFFFFF) {
 			throw ERR_ZIP64;
