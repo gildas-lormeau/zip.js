@@ -9,6 +9,7 @@ test().catch(error => console.error(error));
 
 async function test() {
 	document.body.innerHTML = location.pathname + ": ...";
+	zip.configure({ chunkSize: 128 });
 	const zipReader = new zip.ZipReader(new zip.HttpReader("data/lorem-invalid-crc.zip"));
 	const entries = await zipReader.getEntries();
 	let data;

@@ -11,6 +11,7 @@ test().catch(error => console.error(error));
 
 async function test() {
 	document.body.innerHTML = location.pathname + ": ...";
+	zip.configure({ chunkSize: 128 });
 	await logBlobText(BLOB);
 	let zipFs = new zip.fs.FS();
 	zipFs.root.addBlob(FILENAME, BLOB);

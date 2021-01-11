@@ -11,6 +11,7 @@ test().catch(error => console.error(error));
 
 async function test() {
 	document.body.innerHTML = location.pathname + ": ...";
+	zip.configure({ chunkSize: 128 });
 	logArrayText(ARRAY);
 	const arrayWriter = new zip.Uint8ArrayWriter();
 	const zipWriter = new zip.ZipWriter(arrayWriter);

@@ -3,16 +3,17 @@
 
 "use strict";
 
-const MB = 1024 * 1024;
+const KB = 1024;
 const ENTRIES_DATA = [
-	{ name: "entry #1", blob: getBlob(8.5 * MB) }, { name: "entry #2", blob: getBlob(5.2 * MB) }, { name: "entry #3", blob: getBlob(4.7 * MB) },
-	{ name: "entry #4", blob: getBlob(2.8 * MB) }, { name: "entry #5", blob: getBlob(1.9 * MB) }, { name: "entry #6", blob: getBlob(2.2 * MB) },
-	{ name: "entry #7", blob: getBlob(5.1 * MB) }, { name: "entry #8", blob: getBlob(2.6 * MB) }, { name: "entry #9", blob: getBlob(3.1 * MB) }];
+	{ name: "entry #1", blob: getBlob(8.5 * KB) }, { name: "entry #2", blob: getBlob(5.2 * KB) }, { name: "entry #3", blob: getBlob(4.7 * KB) },
+	{ name: "entry #4", blob: getBlob(2.8 * KB) }, { name: "entry #5", blob: getBlob(1.9 * KB) }, { name: "entry #6", blob: getBlob(2.2 * KB) },
+	{ name: "entry #7", blob: getBlob(5.1 * KB) }, { name: "entry #8", blob: getBlob(2.6 * KB) }, { name: "entry #9", blob: getBlob(3.1 * KB) }];
 
 test().catch(error => console.error(error));
 
 async function test() {
 	document.body.innerHTML = location.pathname + ": ...";
+	zip.configure({ chunkSize: 128 });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	for (const entryData of ENTRIES_DATA) {

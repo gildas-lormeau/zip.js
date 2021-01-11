@@ -11,6 +11,7 @@ test().catch(error => console.error(error));
 
 async function test() {
 	document.body.innerHTML = location.pathname + ": ...";
+	zip.configure({ chunkSize: 128 });
 	await logBlobText(BLOB);
 	const blobWriter = new zip.BlobWriter();
 	const zipWriter = new zip.ZipWriter(blobWriter);

@@ -11,6 +11,7 @@ test().catch(error => console.error(error));
 
 async function test() {
 	document.body.innerHTML = location.pathname + ": ...";
+	zip.configure({ chunkSize: 128 });
 	let zipFs = new zip.fs.FS();
 	zipFs.root.addHttpContent(FILENAME, URL);
 	const blob = await zipFs.exportBlob();
