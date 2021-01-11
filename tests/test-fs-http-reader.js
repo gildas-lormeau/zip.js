@@ -10,7 +10,7 @@ const URL = "data/lorem.txt";
 test().catch(error => console.error(error));
 
 async function test() {
-	document.body.innerHTML = location.pathname + ": ...";
+	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
 	let zipFs = new zip.fs.FS();
 	zipFs.root.addHttpContent(FILENAME, URL);
@@ -21,7 +21,7 @@ async function test() {
 	const text = await firstEntry.getText("text/plain");
 	logText(text);
 	if (text == TEXT_CONTENT) {
-		document.body.innerHTML = location.pathname + ": ok";
+		document.body.innerHTML = "ok";
 	}
 }
 

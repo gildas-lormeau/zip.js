@@ -10,7 +10,7 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 test().catch(error => console.error(error));
 
 async function test() {
-	document.body.innerHTML = location.pathname + ": ...";
+	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
 	await logBlobText(BLOB);
 	let zipFs = new zip.fs.FS();
@@ -22,7 +22,7 @@ async function test() {
 	const unzippedBlob = await firstEntry.getBlob(zip.getMimeType(firstEntry.name));
 	await logBlobText(unzippedBlob);
 	if (TEXT_CONTENT == (await getBlobText(unzippedBlob))) {
-		document.body.innerHTML = location.pathname + ": ok";
+		document.body.innerHTML = "ok";
 	}
 }
 

@@ -10,7 +10,7 @@ const DATA_URI = "data:text/plain;base64," + btoa(TEXT_CONTENT);
 test().catch(error => console.error(error));
 
 async function test() {
-	document.body.innerHTML = location.pathname + ": ...";
+	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
 	logDataURI(DATA_URI);
 	let zipFs = new zip.fs.FS();
@@ -22,7 +22,7 @@ async function test() {
 	const dataURI = await firstEntry.getData64URI("text/plain");
 	logDataURI(dataURI);
 	if (dataURI == DATA_URI) {
-		document.body.innerHTML = location.pathname + ": ok";
+		document.body.innerHTML = "ok";
 	}
 }
 

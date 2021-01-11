@@ -2,29 +2,52 @@
 
 <head>
     <title>Tests</title>
+    <script>
+        const TEST_FILENAMES = [
+            "test-array.html",
+            "test-base64.html",
+            "test-blob.html",
+            "test-crypto.html",
+            "test-fs-base64.html",
+            "test-fs-http-import.html",
+            "test-fs-http-reader.html",
+            "test-fs-text.html",
+            "test-fs-unzip-store.html",
+            "test-fs.html",
+            "test-invalid-crc.html",
+            "test-no-worker.html",
+            "test-parallel-reads.html",
+            "test-parallel-writes.html"
+        ];
+    </script>
     <style>
         iframe {
             display: block;
-            height: 2em;
+            height: 1.2em;
             border-width: 0;
-            overflow: hidden;
+            margin-left: 8px;
         }
     </style>
 </head>
 
 <body>
-    <iframe src="test-array.html"></iframe>
-    <iframe src="test-base64.html"></iframe>
-    <iframe src="test-blob.html"></iframe>
-    <iframe src="test-crypto.html"></iframe>
-    <iframe src="test-fs-base64.html"></iframe>
-    <iframe src="test-fs-http-import.html"></iframe>
-    <iframe src="test-fs-http-reader.html"></iframe>
-    <iframe src="test-fs-text.html"></iframe>
-    <iframe src="test-fs-unzip-store.html"></iframe>
-    <iframe src="test-fs.html"></iframe>
-    <iframe src="test-invalid-crc.html"></iframe>
-    <iframe src="test-no-worker.html"></iframe>
-    <iframe src="test-parallel-reads.html"></iframe>
-    <iframe src="test-parallel-writes.html"></iframe>    
+    <script>
+        const table = document.createElement("table");
+        TEST_FILENAMES.forEach(filename => {
+            const row = document.createElement("tr");
+            const cellTest = document.createElement("td");
+            const cellLink = document.createElement("td");
+            const iframe = document.createElement("iframe");
+            const link = document.createElement("a");
+            iframe.src = filename;
+            link.textContent = link.href = filename;
+            link.target = filename;
+            cellTest.appendChild(iframe);
+            cellLink.appendChild(link);
+            row.appendChild(cellLink);
+            row.appendChild(cellTest);
+            table.appendChild(row);
+        });
+        document.body.appendChild(table);
+    </script>
 </body>

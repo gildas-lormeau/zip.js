@@ -8,7 +8,7 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 test().catch(error => console.error(error));
 
 async function test() {
-	document.body.innerHTML = location.pathname + ": ...";
+	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
 	const zipReader = new zip.ZipReader(new zip.HttpReader("data/lorem-invalid-crc.zip"));
 	const entries = await zipReader.getEntries();
@@ -22,7 +22,7 @@ async function test() {
 		await logBlobText(data);
 	}
 	if (TEXT_CONTENT == (await getBlobText(data))) {
-		document.body.innerHTML = location.pathname + ": ok";
+		document.body.innerHTML = "ok";
 	}
 }
 
