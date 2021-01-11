@@ -1,108 +1,82 @@
-(function(obj) {
+/* globals zip, document, URL, MouseEvent, alert */
 
-	var requestFileSystem = obj.webkitRequestFileSystem || obj.mozRequestFileSystem || obj.requestFileSystem;
+(() => {
 
-	function onerror(message) {
-		alert(message);
-	}
+	zip.configure({
+		workerScriptsPath: "lib/"
+	});
 
-	function createTempFile(callback) {
-		var tmpFilename = "tmp.dat";
-		requestFileSystem(TEMPORARY, 4 * 1024 * 1024 * 1024, function(filesystem) {
-			function create() {
-				filesystem.root.getFile(tmpFilename, {
-					create : true
-				}, function(zipFile) {
-					callback(zipFile);
-				});
-			}
-
-			filesystem.root.getFile(tmpFilename, null, function(entry) {
-				entry.remove(create, create);
-			}, create);
-		});
-	}
-
-	var model = (function() {
-		var URL = obj.webkitURL || obj.mozURL || obj.URL;
-
+	const model = (() => {
+		let blobReader;
 		return {
-			getEntries : function(file, onend) {
-				zip.createReader(new zip.BlobReader(file), function(zipReader) {
-					zipReader.getEntries(onend);
-				}, onerror);
+			getEntries(file) {
+				blobReader = new zip.BlobReader(file);
+				const zipReader = new zip.ZipReader(blobReader);
+				return zipReader.getEntries();
 			},
-			getEntryFile : function(entry, creationMethod, onend, onprogress) {
-				var writer, zipFileEntry;
-
-				function getData() {
-					entry.getData(writer, function(blob) {
-						var blobURL = creationMethod == "Blob" ? URL.createObjectURL(blob) : zipFileEntry.toURL();
-						onend(blobURL);
-					}, onprogress);
-				}
-
-				if (creationMethod == "Blob") {
-					writer = new zip.BlobWriter();
-					getData();
-				} else {
-					createTempFile(function(fileEntry) {
-						zipFileEntry = fileEntry;
-						writer = new zip.FileWriter(zipFileEntry);
-						getData();
-					});
-				}
+			async getEntryFile(entry, options) {
+				let writer;
+				writer = new zip.BlobWriter();
+				const blob = await entry.getData(writer, options);
+				return URL.createObjectURL(blob);
 			}
 		};
 	})();
 
-	(function() {
-		var fileInput = document.getElementById("file-input");
-		var unzipProgress = document.createElement("progress");
-		var fileList = document.getElementById("file-list");
-		var creationMethodInput = document.getElementById("creation-method-input");
+	(() => {
+		const fileInput = document.getElementById("file-input");
+		const unzipProgress = document.createElement("progress");
+		const fileList = document.getElementById("file-list");
+		fileInput.addEventListener("change", onFileInputChange, false);
 
-		function download(entry, li, a) {
-			model.getEntryFile(entry, creationMethodInput.value, function(blobURL) {
-				var clickEvent = document.createEvent("MouseEvent");
-				if (unzipProgress.parentNode)
-					unzipProgress.parentNode.removeChild(unzipProgress);
-				unzipProgress.value = 0;
-				unzipProgress.max = 0;
-				clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-				a.href = blobURL;
-				a.download = entry.filename;
-				a.dispatchEvent(clickEvent);
-			}, function(current, total) {
-				unzipProgress.value = current;
-				unzipProgress.max = total;
-				li.appendChild(unzipProgress);
-			});
-		}
-
-		if (typeof requestFileSystem == "undefined")
-			creationMethodInput.options.length = 1;
-		fileInput.addEventListener('change', function() {
+		async function onFileInputChange() {
+			let entries;
 			fileInput.disabled = true;
-			model.getEntries(fileInput.files[0], function(entries) {
+			try {
+				entries = await model.getEntries(fileInput.files[0]);
+			} catch (error) {
+				alert(error);
+			}
+			if (entries) {
 				fileList.innerHTML = "";
-				entries.forEach(function(entry) {
-					var li = document.createElement("li");
-					var a = document.createElement("a");
-					a.textContent = entry.filename;
-					a.href = "#";
-					a.addEventListener("click", function(event) {
-						if (!a.download) {
-							download(entry, li, a);
+				entries.forEach(entry => {
+					const li = document.createElement("li");
+					const anchor = document.createElement("a");
+					anchor.textContent = entry.filename;
+					anchor.href = "#";
+					anchor.addEventListener("click", async event => {
+						if (!anchor.download) {
+							try {
+								await download(entry, li, anchor);
+							} catch (error) {
+								alert(error);
+							}
 							event.preventDefault();
-							return false;
 						}
 					}, false);
-					li.appendChild(a);
+					li.appendChild(anchor);
 					fileList.appendChild(li);
 				});
+			}
+		}
+
+		async function download(entry, li, a) {
+			const blobURL = await model.getEntryFile(entry, {
+				onprogress: (index, max) => {
+					unzipProgress.value = index;
+					unzipProgress.max = max;
+					li.appendChild(unzipProgress);
+				}
 			});
-		}, false);
+			const clickEvent = new MouseEvent("click");
+			unzipProgress.remove();
+			unzipProgress.value = 0;
+			unzipProgress.max = 0;
+			a.href = blobURL;
+			a.download = entry.filename;
+			a.dispatchEvent(clickEvent);
+		}
+
 	})();
 
-})(this);
+})();

@@ -1,0 +1,106 @@
+body {
+	margin-top: 1.0em;
+	background-color: #A69373;
+	font-family: 'Istok Web', Helvetica, Arial, FreeSans, sans-serif;
+	color: #000000;
+}
+
+#container {
+	margin: 0 auto;
+	background: whiteSmoke;
+	min-width: 700px;
+	max-width: 1000px;
+	padding: 40px;
+	padding-top: 10px;
+	border-radius: 5px;
+	box-shadow: 3px 3px 5px #444;
+}
+
+h1 {
+	font-size: 4em;
+	color: #3e5763;
+	margin-bottom: 3px;
+	margin-top: 20px;
+	font-family: 'Maven Pro', Helvetica;
+	font-weight: normal;
+}
+
+h1 .small {
+	font-size: 0.4em;
+}
+
+h1 a {
+	text-decoration: none
+}
+
+h2 {
+	font-size: 1.5em;
+	color: #3e5763;
+}
+
+h3 {
+	color: #3e5763;
+}
+
+a {
+	color: #3e5763;
+}
+
+.description {
+	font-size: 1.2em;
+	margin-bottom: 30px;
+	margin-top: 30px;
+	font-family: 'Muli', Helvetica;
+}
+
+.download {
+	padding-top: 20px;
+	float: right;
+}
+
+pre {
+	background: white;
+	color: black;
+	padding: 15px;
+	border-radius: 3px;
+	box-shadow: 0px 0px 10px #ccc;
+}
+
+hr {
+	border: 0;
+	border-bottom: 1px solid #aaa;
+}
+
+.footer {
+	text-align: center;
+	padding-top: 30px;
+	font-style: italic;
+}
+
+li {
+	margin-bottom: 0.5em;
+}
+
+ul {
+	padding-left: 40px;
+}
+
+ol {
+	padding-left: 25px;
+}
+
+ol ul {
+	padding-left: 15px;
+}
+
+code {
+	font-size:16px;
+}
+
+code.prettyprint {
+	font-size:inherit;
+}
+
+p {
+	text-align: justify;
+}

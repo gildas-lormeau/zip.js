@@ -2,7 +2,7 @@ h1 {
 	margin-top: 0px;
 }
 
-.directories, .files {
+.directories,.files {
 	position: relative;
 	display: inline-block;
 	height: 450px;
@@ -14,7 +14,7 @@ h1 {
 	box-shadow: 0px 0px 10px #ccc;
 }
 
-.directories, .buttons {
+.directories,.buttons {
 	width: 395px;
 }
 
@@ -27,7 +27,7 @@ h1 {
 	width: 595px;
 }
 
-.tree, .listing {
+.tree,.listing {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -39,13 +39,13 @@ details>details {
 	margin-left: 15px;
 }
 
-.dir-label, .file-label {
+.dir-label,.file-label {
 	display: inline-block;
 	padding: 0px 3px;
 	border-radius: 3px;
 }
 
-.selected>summary>.dir-label, .selected>.file-label {
+.selected>summary>.dir-label,.selected>.file-label {
 	color: white;
 	background-color: #777;
 	display: inline;
@@ -62,15 +62,16 @@ summary {
 	border-color: black;
 }
 
-.listing>.selected, .directories .selected>summary {
+.listing>.selected,.directories .selected>summary {
 	white-space: normal;
 }
 
-.dir-label[contenteditable=true], .file-label[contenteditable=true] {
+.dir-label[contenteditable=true],.file-label[contenteditable=true] {
 	background-color: #ddd;
 }
 
-.selected>summary>.dir-label[contenteditable=true], .selected>.file-label[contenteditable=true] {
+.selected>summary>.dir-label[contenteditable=true],.selected>.file-label[contenteditable=true]
+	{
 	color: inherit;
 	background-color: #ddd;
 }
@@ -142,7 +143,6 @@ h2 {
 }
 
 }
-
 .export-zip-container:active {
 	border-style: inset;
 }
@@ -256,19 +256,19 @@ hr {
 	transition: opacity .2s ease-in;
 }
 
-.selected>summary:hover>.button, .selected:hover>.button {
+.selected>summary:hover>.button,.selected:hover>.button {
 	opacity: .3;
 	visibility: visible;
 }
 
-.selected>summary>.button:hover, .selected>.button:hover {
+.selected>summary>.button:hover,.selected>.button:hover {
 	opacity: .8;
 	visibility: visible;
 }
 
 .save-button {
 	background-repeat: no-repeat;
-	background-image: url(resources/save.png);
+	background-image: url(save.png);
 	width: 14px;
 	display: inline-block;
 	height: 16px;
@@ -277,7 +277,7 @@ hr {
 .newdir-button {
 	margin-left: 7px;
 	background-repeat: no-repeat;
-	background-image: url(resources/new-directory.png);
+	background-image: url(newDirectory.png);
 	width: 16px;
 	display: inline-block;
 	height: 16px;

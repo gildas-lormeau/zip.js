@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset='utf-8'>
-<title>zip.js</title>
-<link rel="stylesheet" href="default.css">
-<link href="google-code-prettify/prettify.css" type="text/css" rel="stylesheet" />
-<link href='https://fonts.googleapis.com/css?family=Maven+Pro|Muli|Istok+Web' rel='stylesheet' type='text/css'>
+	<meta charset="utf-8">
+	<title>zip.js</title>
+	<link rel="stylesheet" href="default.css">
+	<link href="google-code-prettify/prettify.css" type="text/css" rel="stylesheet" />
+	<link href="https://fonts.googleapis.com/css?family=Maven+Pro|Muli|Istok+Web" rel="stylesheet" type="text/css">
 </head>
+
 <body>
 	<a href="https://github.com/gildas-lormeau/zip.js"><img style="position: absolute; top: 0; right: 0; border: 0;"
-		src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+			src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+			alt="Fork me on GitHub" /></a>
 	<div id="container">
 		<h1>
 			<a href="index.html">zip.js</a> <span class="small"></span>
@@ -19,13 +22,13 @@
 			Filesystem API
 			<hr>
 		</div>
-
 		<p>
-			<code>zip-fs.js</code> is an optional script that helps to manipulate a zip file easily. It provides a virtual filesystem API implementation for zip files.
+			The script <code>zip-fs.js</code> helps to manipulate zip files easily. It provides a virtual filesystem API
+			implementation residing in RAM for zip files.
 		</p>
-
 		<h2>Contents</h2>
 		<ol>
+			<li><a href="#fs-install">install</a></li>
 			<li><a href="#fs-constructor">Zip filesystem</a></li>
 			<li><a href="#zip-entry">Zip entry</a></li>
 			<li><a href="#zip-file-entry">Zip file entry</a></li>
@@ -33,508 +36,621 @@
 		</ol>
 		<hr>
 
-		<ol>
-			<li>
-				<h2 id="fs-constructor">Zip filesystem</h2>
-				<pre><code class="prettyprint">zip.fs.FS()</code></pre>
-				<p>
-					Zip filesystem constructor
-					<br>
-					A <code><a href="#fs-constructor">zip.fs.FS</a></code> object stores an entire filesystem.
-					The <code>root</code> property stores a <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object representing the root directory of the zip.
-				</p>
-				<h3>Attributes</h3>
-				<dl>
-					<dt><code>root (<code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code>)</code></dt>
-					<dd>the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object referencing the root directory of the filesystem</dd>
-				</dl>
-				<h3>Methods</h3>
-				<pre><code class="prettyprint">FS.prototype.importBlob(blob, onend[, onerror])</code></pre>
-				<p>
-					Reset the filesystem and import a zipped content stored in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>blob (<a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
-					<dd>the <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object</dd>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">FS.prototype.importData64URI(dataURI, onend[, onerror])</code></pre>
-				<p>
-					Reset the filesystem and import a zipped content stored in a data URI <code>string</code>.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>dataURI (string)</code></dt>
-					<dd>The data URI</dd>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">FS.prototype.importHttpContent(URL, useRangeHeader, onend[, onerror])</code></pre>
-				<p>
-					Reset the filesystem and import a zipped content retrieved from a URL.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>URL (string)</code></dt>
-					<dd>the URL</dd>
-					<dt><code>useRangeHeader (boolean)</code></dt>
-					<dd>if true then HTTP &quot;Range&quot; header will be used to get zip data</dd>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">FS.prototype.exportBlob(onend[, onprogress, onerror])</code></pre>
-				<p>
-					Export zipped content from the filesystem in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function returning the zipped content as parameter</dd>
-					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">FS.prototype.exportData64URI(onend[, onprogress, onerror])</code></pre>
-				<p>
-					Export zipped content from the filesystem in a data URI.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function returning the zipped content as parameter</dd>
-					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">FS.prototype.exportFileEntry(fileEntry, onend[, onprogress, onerror])</code></pre>
-				<p>
-					Export zipped content from the filesystem in a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>fileEntry (<a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a>)</code></dt>
-					<dd>the <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object</dd>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function returning the zipped content as parameter</dd>
-					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">FS.prototype.getById(entryId)</code></pre>
-				<p>
-					Get a <code><a href="#zip-entry">ZipEntry</a></code> object given a unique entry id.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>entryId (number)</code></dt>
-					<dd>the entry id</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">FS.prototype.find(fullname)</code></pre>
-				<p>
-					Get a <code><a href="#zip-entry">ZipEntry</a></code> object given a unique entry full filename.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>fullname (string)</code></dt>
-					<dd>the entry full filename</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">FS.prototype.remove(zipEntry)</code></pre>
-				<p>
-					Remove a <code><a href="#zip-entry">ZipEntry</a></code> object from the virtual filesystem.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>zipEntry (<a href="#zip-entry">ZipEntry</a>)</code></dt>
-					<dd>the entry to remove</dd>
-				</dl>
-				<br>
+		<h2>Install</h2>
+		<ul>
+			<li>add <code>zip-fs.min.js</code>, <code>z-worker.js</code>, <code>deflate.js</code>,
+				<code>inflate.js</code>, and <code>crypto.js</code> from the <code>dist</code> folder in your project
 			</li>
-			<li>
-				<h3 id="zip-entry">Zip entry</h3>
-				<pre><code class="prettyprint">ZipEntry()</code></pre>
-				<p>
-					ZipEntry constructor
-					<br>
-					Each <code><a href="#zip-entry">ZipEntry</a></code> object represents a node in the zip directory tree.
-					A file in the zip is a <code><a href="#zip-file-entry">ZipFileEntry</a></code> with a <code><a href="#zip-entry">ZipEntry</a></code> object as prototype.
-					A directory in the zip is a <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> with a <code><a href="#zip-entry">ZipEntry</a></code> object as prototype.
-				</p>
-				<h3>Attributes</h3>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>the entry filename</dd>
-					<dt><code>directory (boolean)</code></dt>
-					<dd><code>true</code> if the entry is a <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object</dd>
-					<dt><code>children (Array of <a href="#zip-entry">ZipEntry</a>)</code></dt>
-					<dd>the entry children, empty if the entry is a <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
-					<dt><code>id (number)</code></dt>
-					<dd>the entry unique id</dd>
-				</dl>
-				<h3>Methods</h3>
-				<pre><code class="prettyprint">ZipEntry.prototype.getFileEntry(fileEntry, onend[, onprogress, onerror])</code></pre>
-				<p>
-					Store entry content into a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>fileEntry (<a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a>)</code></dt>
-					<dd>the <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object</dd>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function</dd>
-					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipEntry.prototype.moveTo(directory)</code></pre>
-				<p>
-					Move <code>this</code> entry into the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> target object.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>directory (<a href="#zip-directory-entry">ZipDirectoryEntry</a>)</code></dt>
-					<dd>the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> target object</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipEntry.prototype.getFullname()</code></pre>
-				<p>
-					Get <code>this</code> entry full name.
-				</p>
-				<p>Return</p>
-				<dl>
-					<dt><code>string</code></dt>
-					<dd>the entry full name</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipEntry.prototype.isDescendantOf(ancestor)</code></pre>
-				<p>
-					Test if <code>this</code> entry is a descendant of <code>ancestor</code> directory entry.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>ancestor (<a href="#zip-directory-entry">ZipDirectoryEntry</a>)</code></dt>
-					<dd>the ancestor</dd>
-				</dl>
-				<p>Return</p>
-				<dl>
-					<dt><code>boolean</code></dt>
-					<dd><code>true</code> if <code>this</code> entry is a descendant of <code>ancestor</code> directory entry</dd>
-				</dl>
+			<li>include <code>zip-fs.min.js</code> script in your HTML page
+				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip-fs.min.js&quot;&gt;&lt;/script&gt;</code></pre>
 			</li>
-			<li>
-				<h3 id="zip-file-entry">Zip file entry</h3>
-				<pre><code class="prettyprint">ZipFileEntry()</code></pre>
-				<p>
-					ZipFileEntry constructor
-				</p>
-				<h3>Methods</h3>
-				<pre><code class="prettyprint">ZipFileEntry.prototype.getText(callback[, checkCrc32])</code></pre>
-				<p>
-					Get file entry content as a <code>string</code>.
-				</p>
-				<p>Parameters:</p>
+		</ul>
+
+		<h2 id="fs-constructor">Zip filesystem</h2>
+		<p>
+			Zip filesystem constructor
+		</p>
+		<pre><code class="prettyprint">zip.fs.FS()</code></pre>
+		<p>
+			A <code><a href="#fs-constructor">zip.fs.FS</a></code> object stores an entire filesystem. The
+			<code>root</code> property stores a <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object
+			representing the root directory of the zip.
+		</p>
+		<h3>Attributes</h3>
+		<dl>
+			<dt><code>root (<code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code>)</code></dt>
+			<dd>the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object referencing the root
+				directory of the filesystem</dd>
+		</dl>
+		<h3>Methods</h3>
+		<pre><code class="prettyprint">FS#importBlob(blob [, options])</code></pre>
+		<p>
+			Reset the filesystem and import a zipped content stored in a
+			<code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>blob (<a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
+			<dd>the <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object to import</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
 				<dl>
-					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function returning the unzipped content as parameter</dd>
-					<dt><code>checkCrc32 (boolean)</code></dt>
-					<dd>pass <code>true</code> to verify data integrity</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipFileEntry.prototype.getBlob(mimeType, callback[, checkCrc32])</code></pre>
-				<p>
-					Get file entry content as a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>mimeType (string)</code></dt>
-					<dd>data MIME type</dd>
-					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function returning the unzipped content as parameter</dd>
-					<dt><code>checkCrc32 (boolean)</code></dt>
-					<dd>pass <code>true</code> to verify data integrity</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipFileEntry.prototype.getData64URI(mimeType, callback[, checkCrc32])</code></pre>
-				<p>
-					Get file entry content as a data URI string.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>mimeType (string)</code></dt>
-					<dd>data MIME type</dd>
-					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function returning the unzipped content as parameter</dd>
-					<dt><code>checkCrc32 (boolean)</code></dt>
-					<dd>pass <code>true</code> to verify data integrity</dd>
-				</dl>
-			</li>
-			<li>
-				<h3 id="zip-directory-entry">Zip directory entry</h3>
-				<pre><code class="prettyprint">ZipDirectoryEntry()</code></pre>
-				<p>
-					ZipDirectoryEntry constructor
-				</p>
-				<h3>Methods</h3>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addDirectory(name)</code></pre>
-				<p>
-					Add a directory into <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>the directory name</dd>
-				</dl>
-				<p>Return</p>
-				<dl>
-					<dt><code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code></dt>
-					<dd>the new <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addBlob(name, blob)</code></pre>
-				<p>
-					Add a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object file into <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>the file name</dd>
-				</dl>
-				<dl>
-					<dt><code>blob (<a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
-					<dd>the <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> content</dd>
-				</dl>
-				<p>Return</p>
-				<dl>
-					<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
-					<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addText(name, text)</code></pre>
-				<p>
-					Add a text file into <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>the file name</dd>
-				</dl>
-				<dl>
-					<dt><code>text (string)</code></dt>
-					<dd>the text content</dd>
-				</dl>
-				<p>Return</p>
-				<dl>
-					<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
-					<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addData64URI(name, dataURI)</code></pre>
-				<p>
-					Add a data URI file into <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>the file name</dd>
-				</dl>
-				<dl>
-					<dt><code>text (string)</code></dt>
-					<dd>the data URI content</dd>
-				</dl>
-				<p>Return</p>
-				<dl>
-					<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
-					<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addHttpContent(name, URL, size, useRangeHeader)</code></pre>
-				<p>
-					Add a content retrieved from a URL into <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>the file name</dd>
-				</dl>
-				<dl>
-					<dt><code>URL (string)</code></dt>
-					<dd>the content URL</dd>
-				</dl>
-				<dl>
-					<dt><code>size (number)</code></dt>
-					<dd>the content size</dd>
-				</dl>
-				<dl>
-					<dt><code>useRangeHeader (boolean)</code></dt>
-					<dd>if true then HTTP &quot;Range&quot; header will be used to get content</dd>
-				</dl>
-				<p>Return</p>
-				<dl>
-					<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
-					<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.addFileEntry(entry, callback[, onerror])</code></pre>
-				<p>
-					Add a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> or a <code><a href="http://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a></code> into <code>this</code> directory entry.
-					If entry is a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object then <code><a href="http://www.w3.org/TR/file-system-api/#widl-FileEntry-file">FileEntry.prototype.file()</a></code> function is called in order to get its content.
-					If entry is a <code><a href="http://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a></code> object then all its children (file or directory) will be added recursively into <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>entry (<a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a href="http://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a>)</code></dt>
-					<dd>the <a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a href="http://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a> object</dd>
-				</dl>
-				<dl>
-					<dt><code>callback (Function)</code></dt>
-					<dd>success callback function</dd>
-				</dl>
-				<dl>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.importBlob(blob, onend[, onerror])</code></pre>
-				<p>
-					Import a zipped content stored in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object into <code>this</code> directory entry
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>blob (<a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
-					<dd>the <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object</dd>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.importData64URI(dataURI, onend[, onerror])</code></pre>
-				<p>
-					Import a zipped content stored in a data URI <code>string</code> into <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>dataURI (string)</code></dt>
-					<dd>The data URI</dd>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.importHttpContent(URL, useRangeHeader, onend[, onerror])</code></pre>
-				<p>
-					Import a zipped content retrieved from a URL into <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>URL (string)</code></dt>
-					<dd>the URL</dd>
-					<dt><code>useRangeHeader (boolean)</code></dt>
-					<dd>if true then HTTP &quot;Range&quot; header will be used to get zip data</dd>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
-				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportBlob(onend[, onprogress, onerror])</code></pre>
-				<p>
-					Export zipped content in a <code><a href="http://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object from <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
-				<dl>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
+						default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
 				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportData64URI(onend[, onprogress, onerror])</code></pre>
-				<p>
-					Export zipped content in a data URI from <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with <code>undefined</code> as resolved value</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">FS#importData64URI(dataURI [, options])</code></pre>
+		<p>
+			Reset the filesystem and import a zipped content stored in a data URI <code>string</code>.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>dataURI (string)</code></dt>
+			<dd>The data URI to import</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
 				<dl>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
+						default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
 				</dl>
-				<br>
-				<pre><code class="prettyprint">ZipDirectoryEntry.prototype.exportFileEntry(fileEntry, onend[, onprogress, onerror])</code></pre>
-				<p>
-					Export zipped content in a <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object from <code>this</code> directory entry.
-				</p>
-				<p>Parameters:</p>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with <code>undefined</code> as resolved value</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">FS#importHttpContent(URL [, options])</code></pre>
+		<p>
+			Reset the filesystem and import a zipped content retrieved from a URL.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>URL (string)</code></dt>
+			<dd>the URL</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
 				<dl>
-					<dt><code>fileEntry (<a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a>)</code></dt>
-					<dd>the <code><a href="http://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object</dd>
-					<dt><code>onend (Function)</code></dt>
-					<dd>success callback function returning the zipped content as parameter</dd>
 					<dt><code>onprogress (Function)</code></dt>
-					<dd>progress callback function returning an index <code>(number)</code> and a max value <code>(number)</code> as parameters</dd>
-					<dt><code>onerror (Function)</code></dt>
-					<dd>error callback function</dd>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>useRangeHeader</code></dt>
+					<dd>set to <code>true</code> to use the HTTP &quot;Range&quot; header to get zip data
+						(<code>false</code> by default</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
+						default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
 				</dl>
-				<br>
-				<pre><code class="prettyprint"><a href="#zip-directory-entry">ZipDirectoryEntry</a>.prototype.getChildByName(name)</code></pre>
-				<p>
-					Get a <code><a href="#zip-entry">ZipEntry</a></code> child object given its filename.
-				</p>
-				<p>Parameters:</p>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with <code>undefined</code> as resolved value</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">FS#exportBlob([options])</code></pre>
+		<p>
+			Export zipped content from the filesystem in a
+			<code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
 				<dl>
-					<dt><code>name (string)</code></dt>
-					<dd>the entry name</dd>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>level (number)</code></dt>
+					<dd>compression level from <code>0</code> to <code>9</code></dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to encrypt the file with AES-256 (empty by default)</dd>					
 				</dl>
-				<p>Return</p>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with the zipped content in a <a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code>
+				object as resolved value</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">FS#exportData64URI([options])</code></pre>
+		<p>
+			Export zipped content from the filesystem in a data URI string.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
 				<dl>
-					<dt><code><a href="#zip-entry">ZipEntry</a></code></dt>
-					<dd>the <code><a href="#zip-entry">ZipEntry</a></code> object</dd>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>level (number)</code></dt>
+					<dd>compression level from <code>0</code> to <code>9</code></dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to encrypt the file with AES-256 (empty by default)</dd>
 				</dl>
-			</li>
-		</ol>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with the zipped content in a data URI string as resolved value</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">FS#getById(entryId)</code></pre>
+		<p>
+			Get a <code><a href="#zip-entry">ZipEntry</a></code> object given a unique entry id.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>entryId (number)</code></dt>
+			<dd>the entry id</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>ZipEntry</code></dt>
+			<dd>the ZipEntry object</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">FS#find(fullname)</code></pre>
+		<p>
+			Get a <code><a href="#zip-entry">ZipEntry</a></code> object given a unique entry full filename.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>fullname (string)</code></dt>
+			<dd>the entry full filename</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>ZipEntry</code></dt>
+			<dd>the ZipEntry object</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">FS#remove(zipEntry)</code></pre>
+		<p>
+			Remove a <code><a href="#zip-entry">ZipEntry</a></code> object from the virtual filesystem.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>zipEntry (<a href="#zip-entry">ZipEntry</a>)</code></dt>
+			<dd>the entry to remove</dd>
+		</dl>
+		<br>
+
+		<h3 id="zip-entry">Zip entry</h3>
+		<p>
+			ZipEntry constructor
+		</p>
+		<pre><code class="prettyprint">ZipEntry()</code></pre>
+		<p>
+			Each <code><a href="#zip-entry">ZipEntry</a></code> object represents a node in the zip directory tree. A
+			file in the zip is a <code><a href="#zip-file-entry">ZipFileEntry</a></code> with a
+			<code><a href="#zip-entry">ZipEntry</a></code> object as prototype. A directory in the zip is a
+			<code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> with a
+			<code><a href="#zip-entry">ZipEntry</a></code> object as prototype.
+		</p>
+		<h3>Attributes</h3>
+		<dl>
+			<dt><code>name (string)</code></dt>
+			<dd>the entry filename</dd>
+			<dt><code>directory (boolean)</code></dt>
+			<dd><code>true</code> if the entry is a <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code>
+				object</dd>
+			<dt><code>children (Array of <a href="#zip-entry">ZipEntry</a>)</code></dt>
+			<dd>the entry children, empty if the entry is a <code><a href="#zip-file-entry">ZipFileEntry</a></code>
+				object</dd>
+			<dt><code>id (number)</code></dt>
+			<dd>the entry unique id</dd>
+		</dl>
+		<h3>Methods</h3>
+		<pre><code class="prettyprint">ZipEntry#moveTo(directory)</code></pre>
+		<p>
+			Move the entry into the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> target object.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>directory (<a href="#zip-directory-entry">ZipDirectoryEntry</a>)</code></dt>
+			<dd>the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> target object</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipEntry#getFullname()</code></pre>
+		<p>
+			Get the full name of the entry .
+		</p>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>string</code></dt>
+			<dd>the full name</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipEntry#isDescendantOf(ancestor)</code></pre>
+		<p>
+			Test if the entry is a descendant of <code>ancestor</code> directory entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>ancestor (<a href="#zip-directory-entry">ZipDirectoryEntry</a>)</code></dt>
+			<dd>the ancestor</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>boolean</code></dt>
+			<dd><code>true</code> if the entry is a descendant of <code>ancestor</code> directory entry
+			</dd>
+		</dl>
+
+		<h3 id="zip-file-entry">Zip file entry</h3>
+		<p>
+			ZipFileEntry constructor
+		</p>
+		<pre><code class="prettyprint">ZipFileEntry()</code></pre>
+		<h3>Methods</h3>
+		<pre><code class="prettyprint">ZipFileEntry#getText([options])</code></pre>
+		<p>
+			Get file entry content as a <code>string</code>.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
+						default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
+				</dl>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with the unzipped content as resolved value</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipFileEntry#getBlob(mimeType [, options])</code></pre>
+		<p>
+			Get file entry content as a <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>mimeType (string)</code></dt>
+			<dd>data MIME type</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
+						default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
+				</dl>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with the unzipped content as resolved value</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipFileEntry#getData64URI(mimeType [, options])</code></pre>
+		<p>
+			Get file entry content as a data URI string.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>mimeType (string)</code></dt>
+			<dd>data MIME type</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
+						default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
+				</dl>
+			</dd>
+		</dl>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with the unzipped content as resolved value
+			</dd>
+		</dl>
+
+		<h3 id="zip-directory-entry">Zip directory entry</h3>
+		<p>
+			ZipDirectoryEntry constructor
+		</p>
+		<pre><code class="prettyprint">ZipDirectoryEntry()</code></pre>
+		<h3>Methods</h3>
+		<pre><code class="prettyprint">ZipDirectoryEntry#addDirectory(name)</code></pre>
+		<p>
+			Add a directory into the directory entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>name (string)</code></dt>
+			<dd>the directory name</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code></dt>
+			<dd>the new <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#addBlob(name, blob)</code></pre>
+		<p>
+			Add a <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object file into the directory
+			entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>name (string)</code></dt>
+			<dd>the file name</dd>
+		</dl>
+		<dl>
+			<dt><code>blob (<a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
+			<dd>the <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> content</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
+			<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#addText(name, text)</code></pre>
+		<p>
+			Add a text file into the directory entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>name (string)</code></dt>
+			<dd>the file name</dd>
+		</dl>
+		<dl>
+			<dt><code>text (string)</code></dt>
+			<dd>the text content</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
+			<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#addData64URI(name, dataURI)</code></pre>
+		<p>
+			Add a data URI file into the directory entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>name (string)</code></dt>
+			<dd>the file name</dd>
+		</dl>
+		<dl>
+			<dt><code>text (string)</code></dt>
+			<dd>the data URI content</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
+			<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#addHttpContent(name, URL, size, useRangeHeader)</code></pre>
+		<p>
+			Add a content retrieved from a URL into the directory entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>name (string)</code></dt>
+			<dd>the file name</dd>
+		</dl>
+		<dl>
+			<dt><code>URL (string)</code></dt>
+			<dd>the content URL</dd>
+		</dl>
+		<dl>
+			<dt><code>size (number)</code></dt>
+			<dd>the content size</dd>
+		</dl>
+		<dl>
+			<dt><code>useRangeHeader (boolean)</code></dt>
+			<dd>if true then HTTP &quot;Range&quot; header will be used to get content</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
+			<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#addFileEntry(entry)</code></pre>
+		<p>
+			Add a <code><a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> or
+			a
+			<code><a href="https://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a></code>
+			into the directory entry. If entry is a
+			<code><a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object
+			then the
+			<code><a href="https://www.w3.org/TR/file-system-api/#widl-FileEntry-file">FileEntry#file()</a></code>
+			function is called in order to get its content. If entry is a
+			<code><a href="https://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a></code>
+			object then all its children (file or directory) will be added recursively into the directory
+			entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>entry (<a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a href="https://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a>)</code>
+			</dt>
+			<dd>the <a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a
+					href="https://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a> object
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with <code>undefined</code> as resolved value
+			</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#importBlob(blob [, options])</code></pre>
+		<p>
+			Import a zipped content stored in a <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code>
+			object into the directory entry
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>blob (<a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
+			<dd>the <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with <code>undefined</code> as resolved value
+			</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#importData64URI(dataURI)</code></pre>
+		<p>
+			Import a zipped content stored in a data URI <code>string</code> into the directory entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>dataURI (string)</code></dt>
+			<dd>The data URI</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with <code>undefined</code> as resolved value
+			</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#importHttpContent(URL [, options])</code></pre>
+		<p>
+			Import a zipped content retrieved from a URL into the directory entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>URL (string)</code></dt>
+			<dd>the URL</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>useRangeHeader</code></dt>
+					<dd>set to <code>true</code> to use the HTTP &quot;Range&quot; header to get zip data
+						(<code>false</code> by default</dd>
+				</dl>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with <code>undefined</code> as resolved value
+			</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#exportBlob([options])</code></pre>
+		<p>
+			Export zipped content in a <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object
+			from the directory entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+				</dl>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with the zipped content as resolved value</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#exportData64URI([options])</code></pre>
+		<p>
+			Export zipped content in a data URI from the directory entry.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+				</dl>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with the zipped content as resolved value</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint"><a href="#zip-directory-entry">ZipDirectoryEntry</a>#getChildByName(name)</code></pre>
+		<p>
+			Get a <code><a href="#zip-entry">ZipEntry</a></code> child object given its filename.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>name (string)</code></dt>
+			<dd>the entry name</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code><a href="#zip-entry">ZipEntry</a></code></dt>
+			<dd>the <code><a href="#zip-entry">ZipEntry</a></code> object</dd>
+		</dl>
 	</div>
 	<script type="text/javascript" src="google-code-prettify/prettify.js"></script>
 	<script type="text/javascript">
 		prettyPrint();
 	</script>
-	<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-15560121-15']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-	</script>
 </body>
+
 </html>

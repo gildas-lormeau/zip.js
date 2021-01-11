@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Read a zip file demo</title>
+<link rel="stylesheet" href="../default.css">
+<link rel="stylesheet" href="demo.css">
+<link href='https://fonts.googleapis.com/css?family=Maven+Pro|Muli|Droid+Sans+Mono|Istok+Web' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+	<a href="https://github.com/gildas-lormeau/zip.js"><img style="position: absolute; top: 0; right: 0; border: 0;"
+		src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+	<div id="container">
+		<h1>
+			<a href="../">zip.js</a> <span class="small"></span>
+		</h1>
+
+		<div class="description">
+			A JavaScript library to zip and unzip files
+			<hr>
+		</div>
+		
+		<h2>Read a zip file demo</h2>
+		
+		<ol id="demo-container">
+			<li>
+				<label>
+					<span class="form-label">choose a zip file</span>
+					<input type="file" accept="application/zip" id="file-input">
+				</label>
+			</li>
+			<li>
+				<label>
+					<span class="form-label">choose temporary storage</span>
+					<select id="creation-method-input">
+						<option value="Blob">RAM</option>
+						<option value="File">HDD</option>
+					</select>
+				</label>
+			</li>
+			<li>
+				<span class="form-label">download zip content</span>
+				<ul id="file-list">
+				</ul>
+			</li>
+		</ol>
+
+	</div>
+	<script type="text/javascript" src="zip.js"></script>
+	<script type="text/javascript" src="zip-ext.js"></script>
+	<script type="text/javascript" src="demo2.js"></script>
+	<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-15560121-15']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+	</script>
+</body>
+</html>

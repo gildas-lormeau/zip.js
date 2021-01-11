@@ -46,7 +46,7 @@ input[type=text] {
 	height: 21px;
 }
 
-input[type=text], select {
+input[type=text],select {
 	font-size: 12pt;
 	padding: 4px;
 	border: solid 1px #AACFE4;
@@ -65,7 +65,7 @@ input[type=file] {
 	font-size: 12pt;
 }
 
-button, #download-button {
+button,#download-button {
 	margin: 0px;
 	font-size: 12pt;
 	padding: 4px;
