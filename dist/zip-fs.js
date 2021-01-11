@@ -605,7 +605,7 @@
 
 		async getEntries() {
 			if (!this.reader.initialized) {
-				await this.reader.init();			
+				await this.reader.init();
 			}
 			const endOfCentralDirectoryRecord = await seekEndOfCentralDirectoryRecord(this.reader);
 			if (endOfCentralDirectoryRecord) {
@@ -624,6 +624,8 @@
 					if (dataView.getUint32(offset) != 0x504b0102) {
 						throw new Error(ERR_BAD_FORMAT);
 					}
+					entry.compressedSize = 0;
+					entry.uncompressedSize = 0;
 					readCommonHeader(entry, dataView, offset + 6, true);
 					entry.commentLength = dataView.getUint16(offset + 32, true);
 					entry.directory = ((dataView.getUint8(offset + 38) & 0x10) == 0x10);
