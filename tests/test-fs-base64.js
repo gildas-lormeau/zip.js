@@ -12,7 +12,6 @@ test().catch(error => console.error(error));
 async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
-	logDataURI(DATA_URI);
 	let zipFs = new zip.fs.FS();
 	zipFs.root.addData64URI(FILENAME, DATA_URI);
 	const data = await zipFs.exportData64URI();
@@ -20,12 +19,12 @@ async function test() {
 	await zipFs.importData64URI(data);
 	const firstEntry = zipFs.root.children[0];
 	const dataURI = await firstEntry.getData64URI("text/plain");
-	logDataURI(dataURI);
-	if (dataURI == DATA_URI) {
+	if (dataURI == DATA_URI && firstEntry.name == FILENAME && firstEntry.uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function logDataURI(dataURI) {
 	console.log(dataURI);
 	console.log("--------------");

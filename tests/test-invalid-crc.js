@@ -16,16 +16,15 @@ async function test() {
 	try {
 		data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { checkSignature: true });
 	} catch (error) {
-		console.log(error);
 		data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { checkSignature: false });
 		await zipReader.close();
-		await logBlobText(data);
 	}
-	if (TEXT_CONTENT == (await getBlobText(data))) {
+	if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 async function logBlobText(blob) {
 	console.log(await getBlobText(blob));
 	console.log("--------------");

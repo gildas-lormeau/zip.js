@@ -51,8 +51,7 @@ function compareResult(result, index) {
 					fail();
 					return false;
 				}
-			}
-			console.log("resut OK " + ENTRIES_DATA[index].name);
+			}			
 			return true;
 		}
 	};

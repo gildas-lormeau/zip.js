@@ -19,12 +19,12 @@ async function test() {
 	await zipFs.importBlob(blob);
 	const firstEntry = zipFs.root.children[0];
 	const text = await firstEntry.getText("text/plain");
-	logText(text);
-	if (text == TEXT_CONTENT) {
+	if (text == TEXT_CONTENT && firstEntry.name == FILENAME && firstEntry.uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function logText(text) {
 	console.log(text);
 	console.log("--------------");

@@ -13,7 +13,6 @@ async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
 	zip.configure({ useWebWorkers: false });
-	await logBlobText(BLOB);
 	const blobWriter = new zip.BlobWriter();
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
@@ -22,12 +21,12 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 	await zipReader.close();
-	await logBlobText(data);
-	if (TEXT_CONTENT == (await getBlobText(data))) {
+	if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 async function logBlobText(blob) {
 	console.log(await getBlobText(blob));
 	console.log("--------------");

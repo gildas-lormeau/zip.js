@@ -12,7 +12,6 @@ test().catch(error => console.error(error));
 async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
-	logDataURI(DATA_URI);
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await zipWriter.add(FILENAME, new zip.Data64URIReader(DATA_URI));
@@ -21,12 +20,12 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new zip.Data64URIWriter("text/plain"));
 	await zipReader.close();
-	logDataURI(data);
-	if (data == DATA_URI) {
+	if (data == DATA_URI && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function logDataURI(dataURI) {
 	console.log(dataURI);
 	console.log("--------------");

@@ -11,7 +11,6 @@ test().catch(error => console.error(error));
 async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
-	logText(TEXT_CONTENT);
 	let zipFs = new zip.fs.FS();
 	zipFs.root.addText(FILENAME, TEXT_CONTENT);
 	const data = await zipFs.exportBlob();
@@ -19,12 +18,12 @@ async function test() {
 	await zipFs.importBlob(data);
 	const firstEntry = zipFs.root.children[0];
 	const text = await firstEntry.getText();
-	logText(text);
-	if (text == TEXT_CONTENT) {
+	if (text == TEXT_CONTENT && firstEntry.name == FILENAME && firstEntry.uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function logText(text) {
 	console.log(text);
 	console.log("--------------");

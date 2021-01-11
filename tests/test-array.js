@@ -12,7 +12,6 @@ test().catch(error => console.error(error));
 async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
-	logArrayText(ARRAY);
 	const arrayWriter = new zip.Uint8ArrayWriter();
 	const zipWriter = new zip.ZipWriter(arrayWriter);
 	await zipWriter.add(FILENAME, new zip.Uint8ArrayReader(ARRAY));
@@ -21,12 +20,12 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new zip.Uint8ArrayWriter());
 	await zipReader.close();
-	logArrayText(data);
-	if (getArrayText(data) == TEXT_CONTENT) {
+	if (getArrayText(data) == TEXT_CONTENT && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function logArrayText(array) {
 	console.log(getArrayText(array));
 	console.log("--------------");

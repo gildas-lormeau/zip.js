@@ -20,12 +20,12 @@ async function test() {
 	directory = zipFs.root.getChildByName("import");
 	const firstEntry = directory.children[0];
 	const text = await firstEntry.getText();
-	logText(text);
-	if (text == TEXT_CONTENT) {
+	if (text == TEXT_CONTENT && firstEntry.uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function logText(text) {
 	console.log(text);
 	console.log("--------------");
