@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global zip, document, location*/
+/* global zip, document*/
 
 "use strict";
 
