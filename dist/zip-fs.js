@@ -2089,6 +2089,7 @@
 				}
 				await this.reader.init();
 				await writer.init();
+				this.uncompressedSize = this.reader.size;
 				return bufferedCopy(this.reader, writer, options);
 			}
 		}
