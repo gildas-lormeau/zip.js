@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global zip, document, Blob, FileReader */
+/* global zip, document, location, Blob, FileReader */
 
 "use strict";
 
@@ -10,6 +10,7 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 test().catch(error => console.error(error));
 
 async function test() {
+	document.body.innerHTML = location.pathname + ": ...";
 	zip.configure({ useWebWorkers: false });
 	await logBlobText(BLOB);
 	const blobWriter = new zip.BlobWriter();
@@ -22,7 +23,7 @@ async function test() {
 	await zipReader.close();
 	await logBlobText(data);
 	if (TEXT_CONTENT == (await getBlobText(data))) {
-		document.body.innerHTML = "OK";
+		document.body.innerHTML = location.pathname + ": ok";
 	}
 }
 

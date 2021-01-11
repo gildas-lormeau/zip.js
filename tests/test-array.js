@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global zip, document */
+/* global zip, document, location */
 
 "use strict";
 
@@ -10,6 +10,7 @@ const ARRAY = new Uint8Array(Array.prototype.map.call(TEXT_CONTENT, character =>
 test().catch(error => console.error(error));
 
 async function test() {
+	document.body.innerHTML = location.pathname + ": ...";
 	logArrayText(ARRAY);
 	const arrayWriter = new zip.Uint8ArrayWriter();
 	const zipWriter = new zip.ZipWriter(arrayWriter);
@@ -21,7 +22,7 @@ async function test() {
 	await zipReader.close();
 	logArrayText(data);
 	if (getArrayText(data) == TEXT_CONTENT) {
-		document.body.innerHTML = "OK";
+		document.body.innerHTML = location.pathname + ": ok";
 	}
 }
 

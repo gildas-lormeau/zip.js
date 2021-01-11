@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global zip, document */
+/* global zip, document, location */
 
 "use strict";
 
@@ -9,6 +9,7 @@ const URL = "data/lorem.zip";
 test().catch(error => console.error(error));
 
 async function test() {
+	document.body.innerHTML = location.pathname + ": ...";
 	let zipFs = new zip.fs.FS();
 	let directory = zipFs.root.addDirectory("import");
 	await directory.importHttpContent(URL);
@@ -20,7 +21,7 @@ async function test() {
 	const text = await firstEntry.getText();
 	logText(text);
 	if (text == TEXT_CONTENT) {
-		document.body.innerHTML = "OK";
+		document.body.innerHTML = location.pathname + ": ok";
 	}
 }
 

@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global zip, document, Blob, FileReader */
+/* global zip, document, location, Blob, FileReader */
 
 "use strict";
 
@@ -10,6 +10,7 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 test().catch(error => console.error(error));
 
 async function test() {
+	document.body.innerHTML = location.pathname + ": ...";
 	await logBlobText(BLOB);
 	let zipFs = new zip.fs.FS();
 	zipFs.root.addBlob(FILENAME, BLOB);
@@ -20,7 +21,7 @@ async function test() {
 	const unzippedBlob = await firstEntry.getBlob(zip.getMimeType(firstEntry.name));
 	await logBlobText(unzippedBlob);
 	if (TEXT_CONTENT == (await getBlobText(unzippedBlob))) {
-		document.body.innerHTML = "OK";
+		document.body.innerHTML = location.pathname + ": ok";
 	}
 }
 

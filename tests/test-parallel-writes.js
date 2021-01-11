@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global zip, document, Blob, FileReader */
+/* global zip, document, location, Blob, FileReader */
 
 "use strict";
 
@@ -12,7 +12,7 @@ const ENTRIES_DATA = [
 test().catch(error => console.error(error));
 
 async function test() {
-	document.body.innerHTML = "Please wait...";
+	document.body.innerHTML = location.pathname + ": ...";
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await Promise.all(ENTRIES_DATA.map(async entryData => {
@@ -26,7 +26,7 @@ async function test() {
 		return compareResult(blob, indexEntry);
 	}));
 	if (!results.includes(false)) {
-		document.body.innerHTML = "OK";
+		document.body.innerHTML = location.pathname + ": ok";
 	}
 }
 

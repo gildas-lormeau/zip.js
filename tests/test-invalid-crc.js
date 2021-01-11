@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global zip, document, FileReader */
+/* global zip, document, location, FileReader */
 
 "use strict";
 
@@ -8,6 +8,7 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 test().catch(error => console.error(error));
 
 async function test() {
+	document.body.innerHTML = location.pathname + ": ...";
 	const zipReader = new zip.ZipReader(new zip.HttpReader("data/lorem-invalid-crc.zip"));
 	const entries = await zipReader.getEntries();
 	let data;
@@ -20,7 +21,7 @@ async function test() {
 		await logBlobText(data);
 	}
 	if (TEXT_CONTENT == (await getBlobText(data))) {
-		document.body.innerHTML = "OK";
+		document.body.innerHTML = location.pathname + ": ok";
 	}
 }
 

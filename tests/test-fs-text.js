@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global zip, document */
+/* global zip, document, location */
 
 "use strict";
 
@@ -9,6 +9,7 @@ const FILENAME = "lorem.txt";
 test().catch(error => console.error(error));
 
 async function test() {
+	document.body.innerHTML = location.pathname + ": ...";
 	logText(TEXT_CONTENT);
 	let zipFs = new zip.fs.FS();
 	zipFs.root.addText(FILENAME, TEXT_CONTENT);
@@ -19,7 +20,7 @@ async function test() {
 	const text = await firstEntry.getText();
 	logText(text);
 	if (text == TEXT_CONTENT) {
-		document.body.innerHTML = "OK";
+		document.body.innerHTML = location.pathname + ": ok";
 	}
 }
 
