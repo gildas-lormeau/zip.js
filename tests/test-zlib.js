@@ -14,7 +14,7 @@ async function test() {
 	zip.configure({
 		workerScriptsPath: null,
 		workerScripts: {
-			deflate: ["../dist/z-worker-zlib.js", "vendor/zlib.js",],
+			deflate: ["../dist/z-worker-zlib.js", "vendor/zlib.js"],
 			inflate: ["../dist/z-worker-zlib.js", "vendor/zlib.js"]
 		}
 	});
