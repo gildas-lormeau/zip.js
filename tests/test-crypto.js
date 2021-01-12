@@ -22,6 +22,7 @@ async function test() {
 	let data;
 	try {
 		data = await entries[0].getData(dataBlobWriter);
+		data = null;
 	} catch (error) {
 		data = await entries[0].getData(dataBlobWriter, { password: "password" });
 	}
