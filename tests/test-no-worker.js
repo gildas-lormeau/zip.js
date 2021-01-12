@@ -12,7 +12,7 @@ test().catch(error => console.error(error));
 async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
-	zip.configure({ useWebWorkers: false });
+	zip.configure({ useWebWorkers: false, chunkSize: 128 });
 	const blobWriter = new zip.BlobWriter();
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
