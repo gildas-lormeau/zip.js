@@ -32,29 +32,31 @@ async function test() {
 }
 
 function compareResult(result, index) {
-	const fileReaderInput = new FileReader();
-	const fileReaderOutput = new FileReader();
-	let loadCount = 0;
-	fileReaderInput.readAsArrayBuffer(ENTRIES_DATA[index].blob);
-	fileReaderOutput.readAsArrayBuffer(result);
-	fileReaderInput.onload = fileReaderOutput.onload = () => {
-		loadCount++;
-		if (loadCount == 2) {
-			const valueInput = new Float64Array(fileReaderInput.result);
-			const valueOutput = new Float64Array(fileReaderOutput.result);
-			if (valueInput.length != valueOutput.length) {
-				fail();
-				return false;
-			}
-			for (let indexValue = 0, n = valueInput.length; indexValue < n; indexValue++) {
-				if (valueInput[indexValue] != valueOutput[indexValue]) {
+	return new Promise(resolve => {
+		const fileReaderInput = new FileReader();
+		const fileReaderOutput = new FileReader();
+		let loadCount = 0;
+		fileReaderInput.readAsArrayBuffer(ENTRIES_DATA[index].blob);
+		fileReaderOutput.readAsArrayBuffer(result);
+		fileReaderInput.onload = fileReaderOutput.onload = () => {
+			loadCount++;
+			if (loadCount == 2) {
+				const valueInput = new Float64Array(fileReaderInput.result);
+				const valueOutput = new Float64Array(fileReaderOutput.result);
+				if (valueInput.length != valueOutput.length) {
 					fail();
-					return false;
+					resolve(false);
 				}
-			}			
-			return true;
-		}
-	};
+				for (let indexValue = 0, n = valueInput.length; indexValue < n; indexValue++) {
+					if (valueInput[indexValue] != valueOutput[indexValue]) {
+						fail();
+						resolve(false);
+					}
+				}
+				resolve(true);
+			}
+		};
+	});
 
 	function fail() {
 		console.error("Error: test failed " + ENTRIES_DATA[index].name);
