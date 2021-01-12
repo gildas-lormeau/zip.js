@@ -15,6 +15,7 @@ async function test() {
 	let data;
 	try {
 		data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { checkSignature: true });
+		data = null;
 	} catch (error) {
 		data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { checkSignature: false });
 		await zipReader.close();
