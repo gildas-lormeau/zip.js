@@ -14,8 +14,8 @@ async function test() {
 	zip.configure({
 		workerScriptsPath: null,
 		workerScripts: {
-			deflate: ["../dist/z-worker.js", "vendor/pako.min.js", "../dist/z-worker-pako.js"],
-			inflate: ["../dist/z-worker.js", "vendor/pako.min.js", "../dist/z-worker-pako.js"]
+			deflate: ["../dist/z-worker-pako.js", "vendor/pako.min.js"],
+			inflate: ["../dist/z-worker-pako.js", "vendor/pako.min.js"]
 		}
 	});
 	const blobWriter = new zip.BlobWriter();

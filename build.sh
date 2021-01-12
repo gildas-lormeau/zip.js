@@ -10,5 +10,9 @@ terser lib/deflate.js > dist/deflate.js --compress --mangle
 terser lib/inflate.js > dist/inflate.js --compress --mangle
 terser lib/crypto.js > dist/crypto.js --compress --mangle
 
-rollup lib/z-worker-pako.js --file dist/z-worker-pako.js --format umd --plugin terser
-rollup lib/z-worker-zlib.js --file dist/z-worker-zlib.js --format umd --plugin terser
+rollup lib/z-worker-pako.js --file dist/z-worker-pako-stub.js --format umd --name "createShimCodecs" --plugin terser
+rollup lib/z-worker-zlib.js --file dist/z-worker-zlib-stub.js --format umd --name "createShimCodecs" --plugin terser
+cat dist/z-worker.js dist/z-worker-pako-stub.js > dist/z-worker-pako.js
+cat dist/z-worker.js dist/z-worker-zlib-stub.js > dist/z-worker-zlib.js
+rm dist/z-worker-pako-stub.js
+rm dist/z-worker-zlib-stub.js
