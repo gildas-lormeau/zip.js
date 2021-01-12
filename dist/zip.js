@@ -579,7 +579,7 @@
 				data = await this.decryption.append(data);
 			}
 			if (this.compressed && data.length) {
-				data = this.inflater.append(data);
+				data = await this.inflater.append(data);
 			}
 			if (!this.encrypted && this.signed) {
 				this.crc32.append(data);
@@ -604,9 +604,7 @@
 				}
 			}
 			if (this.compressed) {
-				if (data.length) {
-					data = this.inflater.append(data);
-				}
+				data = (await this.inflater.append(data)) || new Uint8Array(0);
 				await this.inflater.flush();
 			}
 			return { data, signature };
@@ -627,7 +625,7 @@
 		async append(inputData) {
 			let data = inputData;
 			if (this.compressed && inputData.length) {
-				data = this.deflater.append(inputData);
+				data = await this.deflater.append(inputData);
 			}
 			if (this.encrypted) {
 				data = await this.encrypt.append(data);
@@ -640,7 +638,7 @@
 		async flush() {
 			let data = new Uint8Array(0), signature;
 			if (this.compressed) {
-				data = this.deflater.flush();
+				data = (await this.deflater.flush()) || new Uint8Array(0);
 			}
 			if (this.encrypted) {
 				data = await this.encrypt.append(data);
@@ -1144,6 +1142,64 @@
 		return bytes;
 	}
 
+	var asyncCodecShim = library => {
+		return {
+			ZipDeflater: createCodecClass(library.Deflate),
+			ZipInflater: createCodecClass(library.Inflate)
+		};
+	};
+
+	function createCodecClass(constructor) {
+		return class {
+			constructor(options) {
+				const onData = data => {
+					if (this.callbacks) {
+						if (this.pendingData) {
+							const inputData = data;
+							data = new new Uint8Array(this.pendingData.length + data.length);
+							data.set(this.pendingData, 0);
+							data.set(inputData, this.pendingData.length);
+							this.callbacks.resolve(data);
+						} else {
+							this.callbacks.resolve(new Uint8Array(data));
+						}
+					} else {
+						this.pendingData = new Uint8Array(data);
+					}
+				};
+
+				this.deflater = new constructor();
+				if (typeof this.deflater.onData == "function") {
+					this.deflater.onData = onData;
+				} else if (typeof this.deflater.on == "function") {
+					this.deflater.on("data", onData);
+				} else if (options.registerCallbackFunction) {
+					options.registerCallbackFunction(this.deflater, onData);
+				} else {
+					throw new Error("Cannot register the callback function.");
+				}
+			}
+			async append(data) {
+				this.deflater.push(data);
+				return getResponse(this);
+			}
+			async flush() {
+				this.deflater.push(new Uint8Array([]), true);
+				return getResponse(this);
+			}
+		};
+
+		function getResponse(codec) {
+			if (codec.pendingData) {
+				const ouput = codec.pendingData;
+				codec.pendingData = null;
+				return ouput;
+			} else {
+				return new Uint8Array(0);
+			}
+		}
+	}
+
 	/*
 	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
 
@@ -1219,6 +1275,7 @@
 	exports.ZipWriter = ZipWriter$1;
 	exports.configure = configure;
 	exports.getMimeType = getMimeType;
+	exports.initShimAsyncCodec = asyncCodecShim;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
