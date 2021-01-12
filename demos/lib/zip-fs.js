@@ -566,7 +566,7 @@
 				data = await this.decryption.append(data);
 			}
 			if (this.compressed && data.length) {
-				data = this.inflater.append(data);
+				data = await this.inflater.append(data);
 			}
 			if (!this.encrypted && this.signed) {
 				this.crc32.append(data);
@@ -591,9 +591,7 @@
 				}
 			}
 			if (this.compressed) {
-				if (data.length) {
-					data = this.inflater.append(data);
-				}
+				data = (await this.inflater.append(data)) || new Uint8Array(0);
 				await this.inflater.flush();
 			}
 			return { data, signature };
@@ -614,7 +612,7 @@
 		async append(inputData) {
 			let data = inputData;
 			if (this.compressed && inputData.length) {
-				data = this.deflater.append(inputData);
+				data = await this.deflater.append(inputData);
 			}
 			if (this.encrypted) {
 				data = await this.encrypt.append(data);
@@ -627,7 +625,7 @@
 		async flush() {
 			let data = new Uint8Array(0), signature;
 			if (this.compressed) {
-				data = this.deflater.flush();
+				data = (await this.deflater.flush()) || new Uint8Array(0);
 			}
 			if (this.encrypted) {
 				data = await this.encrypt.append(data);
@@ -1058,7 +1056,7 @@
 			directory: options.directory,
 			filename: filename,
 			comment: getBytes(encodeUTF8(options.comment || "")),
-			extraField: options.extraField || new Uint8Array([])
+			extraField: options.extraField || new Uint8Array(0)
 		};
 		if (outputPassword) {
 			headerView.setUint32(0, 0x33000900);

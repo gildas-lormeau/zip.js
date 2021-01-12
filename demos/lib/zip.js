@@ -579,7 +579,7 @@
 				data = await this.decryption.append(data);
 			}
 			if (this.compressed && data.length) {
-				data = this.inflater.append(data);
+				data = await this.inflater.append(data);
 			}
 			if (!this.encrypted && this.signed) {
 				this.crc32.append(data);
@@ -604,9 +604,7 @@
 				}
 			}
 			if (this.compressed) {
-				if (data.length) {
-					data = this.inflater.append(data);
-				}
+				data = (await this.inflater.append(data)) || new Uint8Array(0);
 				await this.inflater.flush();
 			}
 			return { data, signature };
@@ -627,7 +625,7 @@
 		async append(inputData) {
 			let data = inputData;
 			if (this.compressed && inputData.length) {
-				data = this.deflater.append(inputData);
+				data = await this.deflater.append(inputData);
 			}
 			if (this.encrypted) {
 				data = await this.encrypt.append(data);
@@ -640,7 +638,7 @@
 		async flush() {
 			let data = new Uint8Array(0), signature;
 			if (this.compressed) {
-				data = this.deflater.flush();
+				data = (await this.deflater.flush()) || new Uint8Array(0);
 			}
 			if (this.encrypted) {
 				data = await this.encrypt.append(data);
@@ -1071,7 +1069,7 @@
 			directory: options.directory,
 			filename: filename,
 			comment: getBytes(encodeUTF8(options.comment || "")),
-			extraField: options.extraField || new Uint8Array([])
+			extraField: options.extraField || new Uint8Array(0)
 		};
 		if (outputPassword) {
 			headerView.setUint32(0, 0x33000900);
@@ -1142,6 +1140,49 @@
 			bytes.push(string.charCodeAt(indexString));
 		}
 		return bytes;
+	}
+
+	var asyncCodecShim = library => {
+		return {
+			ZipDeflater: createCodecClass(library.Deflate),
+			ZipInflater: createCodecClass(library.Inflate)
+		};
+	};
+
+	function createCodecClass(constructor) {
+		return class {
+			constructor(options) {
+				const onData = data => this.pendingData = new Uint8Array(data);
+				this.codec = new constructor();
+				if (typeof this.codec.onData == "function") {
+					this.codec.onData = onData;
+				} else if (typeof this.codec.on == "function") {
+					this.codec.on("data", onData);
+				} else if (options.registerCallbackFunction) {
+					options.registerCallbackFunction(this.codec, onData);
+				} else {
+					throw new Error("Cannot register the callback function.");
+				}
+			}
+			async append(data) {
+				this.codec.push(data);
+				return getResponse(this);
+			}
+			async flush() {
+				this.codec.push(new Uint8Array(0), true);
+				return getResponse(this);
+			}
+		};
+
+		function getResponse(codec) {
+			if (codec.pendingData) {
+				const output = codec.pendingData;
+				codec.pendingData = null;
+				return output;
+			} else {
+				return new Uint8Array(0);
+			}
+		}
 	}
 
 	/*
@@ -1219,6 +1260,7 @@
 	exports.ZipWriter = ZipWriter$1;
 	exports.configure = configure;
 	exports.getMimeType = getMimeType;
+	exports.initShimAsyncCodec = asyncCodecShim;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
