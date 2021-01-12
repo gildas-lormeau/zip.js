@@ -1056,7 +1056,7 @@
 			directory: options.directory,
 			filename: filename,
 			comment: getBytes(encodeUTF8(options.comment || "")),
-			extraField: options.extraField || new Uint8Array([])
+			extraField: options.extraField || new Uint8Array(0)
 		};
 		if (outputPassword) {
 			headerView.setUint32(0, 0x33000900);
