@@ -46,11 +46,13 @@ function compareResult(result, index) {
 				if (valueInput.length != valueOutput.length) {
 					fail();
 					resolve(false);
+					return;
 				}
 				for (let indexValue = 0, n = valueInput.length; indexValue < n; indexValue++) {
 					if (valueInput[indexValue] != valueOutput[indexValue]) {
 						fail();
 						resolve(false);
+						return;
 					}
 				}
 				resolve(true);
