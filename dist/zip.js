@@ -978,6 +978,7 @@
 	 */
 
 	const ERR_DUPLICATED_NAME = "File already exists.";
+	const ERR_ZIP_FILE_COMMENT = "Zip file comment exceeds 64KB.";
 
 	class ZipWriter {
 
@@ -1006,82 +1007,14 @@
 			if (this.files.has(name)) {
 				throw new Error(ERR_DUPLICATED_NAME);
 			}
-			const filename = getBytes(encodeUTF8(name));
-			const date = options.lastModDate || new Date();
-			const headerArray = new Uint8Array(26);
-			const headerView = new DataView(headerArray.buffer);
-			const outputPassword = options.password && options.password.length && options.password;
-			const compressed = options.level !== 0 && !options.directory;
-			const outputSigned = options.password === undefined || !options.password.length;
-			const fileData = {
-				headerArray: headerArray,
-				directory: options.directory,
-				filename: filename,
-				offset: this.offset,
-				comment: getBytes(encodeUTF8(options.comment || "")),
-				extraField: options.extraField || new Uint8Array([])
-			};
-			this.files.set(name, fileData);
-			if (outputPassword) {
-				headerView.setUint32(0, 0x33000900);
-				headerView.setUint8(4, 0x63);
-				fileData.extraField = new Uint8Array([0x01, 0x99, 0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
-				if (compressed) {
-					fileData.extraField[9] = 0x08;
-				}
-			} else {
-				headerView.setUint32(0, 0x14000808);
-				if (options.version) {
-					headerView.setUint8(0, options.version);
-				}
-				if (compressed) {
-					headerView.setUint16(4, 0x0800);
-				}
-			}
-			headerView.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
-			headerView.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
-			headerView.setUint16(22, filename.length, true);
-			const extraFieldLength = fileData.extraField.length;
-			headerView.setUint16(24, extraFieldLength, true);
-			const fileDataArray = new Uint8Array(30 + filename.length + extraFieldLength);
-			const fileDataView = new DataView(fileDataArray.buffer);
-			fileDataView.setUint32(0, 0x504b0304);
-			fileDataArray.set(headerArray, 4);
-			fileDataArray.set(filename, 30);
-			fileDataArray.set(fileData.extraField, 30 + filename.length);
-			await writer.writeUint8Array(fileDataArray);
-			let result;
-			if (reader) {
-				await reader.init();
-				const codec = await createCodec(this.config, {
-					codecType: "deflate",
-					level: options.level,
-					outputPassword: options.password,
-					outputSigned,
-					outputCompressed: compressed,
-					outputEncrypted: Boolean(options.password)
-				});
-				result = await processData(codec, reader, writer, 0, reader.size, this.config, { onprogress: options.onprogress });
-			}
-			const footerArray = new Uint8Array(16);
-			const footerView = new DataView(footerArray.buffer);
-			footerView.setUint32(0, 0x504b0708);
-			if (reader) {
-				if (!outputPassword && result.signature !== undefined) {
-					headerView.setUint32(10, result.signature, true);
-					footerView.setUint32(4, result.signature, true);
-				}
-				headerView.setUint32(14, result.length, true);
-				footerView.setUint32(8, result.length, true);
-				headerView.setUint32(18, reader.size, true);
-				footerView.setUint32(12, reader.size, true);
-			}
-			await writer.writeUint8Array(footerArray);
+			this.files.set(name, null);
+			const fileEntry = await createFileEntry(name, reader, writer, this.config, options);
+			this.files.set(name, fileEntry);
 			if (options.bufferedWrite) {
 				await this.writer.writeUint8Array(writer.getData());
-				fileData.offset = this.offset;
 			}
-			this.offset += fileDataArray.length + (result ? result.length : 0) + 16;
+			fileEntry.offset = this.offset;
+			this.offset += fileEntry.length;
 		}
 
 		async close(comment) {
@@ -1111,7 +1044,11 @@
 			directoryDataView.setUint32(offset + 12, directoryDataLength, true);
 			directoryDataView.setUint32(offset + 16, this.offset, true);
 			if (comment && comment.length) {
-				directoryDataView.setUint16(offset + 20, comment.length, true);
+				if (comment.length <= 65536) {
+					directoryDataView.setUint16(offset + 20, comment.length, true);
+				} else {
+					throw new Error(ERR_ZIP_FILE_COMMENT);
+				}
 			}
 			await this.writer.writeUint8Array(directoryDataArray);
 			if (comment && comment.length) {
@@ -1119,6 +1056,80 @@
 			}
 			return this.writer.getData();
 		}
+	}
+
+	async function createFileEntry(name, reader, writer, config, options) {
+		const filename = getBytes(encodeUTF8(name));
+		const date = options.lastModDate || new Date();
+		const headerArray = new Uint8Array(26);
+		const headerView = new DataView(headerArray.buffer);
+		const outputPassword = options.password && options.password.length && options.password;
+		const compressed = options.level !== 0 && !options.directory;
+		const outputSigned = options.password === undefined || !options.password.length;
+		const fileEntry = {
+			headerArray: headerArray,
+			directory: options.directory,
+			filename: filename,
+			comment: getBytes(encodeUTF8(options.comment || "")),
+			extraField: options.extraField || new Uint8Array([])
+		};
+		if (outputPassword) {
+			headerView.setUint32(0, 0x33000900);
+			headerView.setUint8(4, 0x63);
+			fileEntry.extraField = new Uint8Array([0x01, 0x99, 0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
+			if (compressed) {
+				fileEntry.extraField[9] = 0x08;
+			}
+		} else {
+			headerView.setUint32(0, 0x14000808);
+			if (options.version) {
+				headerView.setUint8(0, options.version);
+			}
+			if (compressed) {
+				headerView.setUint16(4, 0x0800);
+			}
+		}
+		headerView.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
+		headerView.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
+		headerView.setUint16(22, filename.length, true);
+		const extraFieldLength = fileEntry.extraField.length;
+		headerView.setUint16(24, extraFieldLength, true);
+		const fileDataArray = new Uint8Array(30 + filename.length + extraFieldLength);
+		const fileDataView = new DataView(fileDataArray.buffer);
+		fileDataView.setUint32(0, 0x504b0304);
+		fileDataArray.set(headerArray, 4);
+		fileDataArray.set(filename, 30);
+		fileDataArray.set(fileEntry.extraField, 30 + filename.length);
+		await writer.writeUint8Array(fileDataArray);
+		let result;
+		if (reader) {
+			await reader.init();
+			const codec = await createCodec(config, {
+				codecType: "deflate",
+				level: options.level,
+				outputPassword: options.password,
+				outputSigned,
+				outputCompressed: compressed,
+				outputEncrypted: Boolean(options.password)
+			});
+			result = await processData(codec, reader, writer, 0, reader.size, config, { onprogress: options.onprogress });
+		}
+		const footerArray = new Uint8Array(16);
+		const footerView = new DataView(footerArray.buffer);
+		footerView.setUint32(0, 0x504b0708);
+		if (reader) {
+			if (!outputPassword && result.signature !== undefined) {
+				headerView.setUint32(10, result.signature, true);
+				footerView.setUint32(4, result.signature, true);
+			}
+			headerView.setUint32(14, result.length, true);
+			footerView.setUint32(8, result.length, true);
+			headerView.setUint32(18, reader.size, true);
+			footerView.setUint32(12, reader.size, true);
+		}
+		await writer.writeUint8Array(footerArray);
+		fileEntry.length = fileDataArray.length + (result ? result.length : 0) + footerArray.length;
+		return fileEntry;
 	}
 
 	function encodeUTF8(string) {
