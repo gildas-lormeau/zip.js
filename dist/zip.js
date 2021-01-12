@@ -1152,48 +1152,33 @@
 	function createCodecClass(constructor) {
 		return class {
 			constructor(options) {
-				const onData = data => {
-					if (this.callbacks) {
-						if (this.pendingData) {
-							const inputData = data;
-							data = new new Uint8Array(this.pendingData.length + data.length);
-							data.set(this.pendingData, 0);
-							data.set(inputData, this.pendingData.length);
-							this.callbacks.resolve(data);
-						} else {
-							this.callbacks.resolve(new Uint8Array(data));
-						}
-					} else {
-						this.pendingData = new Uint8Array(data);
-					}
-				};
-
-				this.deflater = new constructor();
-				if (typeof this.deflater.onData == "function") {
-					this.deflater.onData = onData;
-				} else if (typeof this.deflater.on == "function") {
-					this.deflater.on("data", onData);
+				const onData = data => this.pendingData = new Uint8Array(data);
+				this.codec = new constructor();
+				if (typeof this.codec.onData == "function") {
+					this.codec.onData = onData;
+				} else if (typeof this.codec.on == "function") {
+					this.codec.on("data", onData);
 				} else if (options.registerCallbackFunction) {
-					options.registerCallbackFunction(this.deflater, onData);
+					options.registerCallbackFunction(this.codec, onData);
 				} else {
 					throw new Error("Cannot register the callback function.");
 				}
 			}
 			async append(data) {
-				this.deflater.push(data);
+				this.codec.push(data);
 				return getResponse(this);
 			}
 			async flush() {
-				this.deflater.push(new Uint8Array(0), true);
+				this.codec.push(new Uint8Array(0), true);
 				return getResponse(this);
 			}
 		};
 
 		function getResponse(codec) {
 			if (codec.pendingData) {
-				const ouput = codec.pendingData;
+				const output = codec.pendingData;
 				codec.pendingData = null;
-				return ouput;
+				return output;
 			} else {
 				return new Uint8Array(0);
 			}
