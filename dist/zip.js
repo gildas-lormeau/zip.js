@@ -1142,18 +1142,27 @@
 		return bytes;
 	}
 
-	var asyncCodecShim = library => {
+	var asyncCodecShim = (library, options = {}) => {
 		return {
-			ZipDeflater: createCodecClass(library.Deflate),
-			ZipInflater: createCodecClass(library.Inflate)
+			ZipDeflater: createCodecClass(library.Deflate, options.deflate),
+			ZipInflater: createCodecClass(library.Inflate, options.inflate)
 		};
 	};
 
-	function createCodecClass(constructor) {
+	function createCodecClass(constructor, constructorOptions) {
 		return class {
 			constructor(options) {
-				const onData = data => this.pendingData = new Uint8Array(data);
-				this.codec = new constructor();
+				const onData = data => {
+					if (this.pendingData) {
+						const pendingData = this.pendingData;
+						this.pendingData = new Uint8Array(pendingData.length + data.length);
+						this.pendingData.set(pendingData, 0);
+						this.pendingData.set(data, pendingData.length);
+					} else {
+						this.pendingData = new Uint8Array(data);
+					}
+				};
+				this.codec = new constructor(constructorOptions);
 				if (typeof this.codec.onData == "function") {
 					this.codec.onData = onData;
 				} else if (typeof this.codec.on == "function") {
