@@ -76,10 +76,10 @@
 				<pre>
 					<code class="prettyprint">zip.configure({
   workerScripts: {
-	deflate: [
-      "&lt;library path&gt;/z-worker.js", ""&lt;library path&gt;/deflate.js", '&lt;library path&gt;/crypto.js'],
-	inflate: [
-      "&lt;library path&gt;/z-worker.js", ""&lt;library path&gt;/pako.min.js", '&lt;library path&gt;/crypto.js']
+    deflate: [
+      "&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/deflate.js", "&lt;library path&gt;/crypto.js"],
+    inflate: [
+      "&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/inflate.js", "&lt;library path&gt;/crypto.js"]
   }
 });</code></pre>
 			</dd>
@@ -449,36 +449,48 @@ await writer.close();
 // get the zip file as a Blob
 const blob = await blobWriter.getData();</code></pre>
 		<h2 id="full-example">Full example</h2>
-		<pre><code class="prettyprint">// create the blob object storing the data to compress
+		<pre><code class="prettyprint">// create the inputBlob object storing the data to compress
 const inputBlob = new Blob(["Lorem ipsum dolor sit amet, consectetuer adipiscing elit..."], { type: "text/plain" });
+
 // use a BlobWriter object to write the zipped data into a Blob object
-const blobWriter = new zip.BlobWriter();
+const blobWriter = new zip.BlobWriter("application/zip");
+
 // use a ZipWriter object to write zipped data
 const zipWriter = new zip.ZipWriter(blobWriter);
-// use a BlobReader object to read the data stored into the blob variable
+
+// use a BlobReader object to read the data stored into inputBlob
 const inputBlobReader = new zip.BlobReader(inputBlob)
+
 // add the Blob object into the zip named as test.txt
 await zipWriter.add("test.txt", inputBlobReader);
+
 // close the ZipWriter object
 await zipWriter.close();
-// store zipped data into the blob variable
+
+// store zipped data into outputBlob
 const outputBlob = await blobWriter.getData();
+
 // use a zip.BlobReader object to read zipped data stored into the outputBlob variable
 const ouputBlobReader = new zip.BlobReader(outputBlob);
+
 // use a ZipWriter object to read the zipped data
 const zipReader = new zip.ZipReader(ouputBlobReader);
+
 // get entries from the zip file
 const entries = await zipReader.getEntries();
+
 // get the first entry
 const firstEntry = entries[0];
-// get the mime type of the file
-const mimeType = zip.getMimeType(firstEntry.filename)
+
 // use a BlobWriter object to write the unzipped data into a Blob object
-const outputBlobWriter = new zip.BlobWriter(mimeType);
+const outputBlobWriter = new zip.BlobWriter("text/plain");
+
 // get data from the first file
 const data = await entries[0].getData(outputBlobWriter);
+
 // log the data
 console.log(data);
+
 // close the ZipReader object
 await zipReader.close();</code></pre>
 
@@ -496,8 +508,8 @@ await zipReader.close();</code></pre>
 				</p>
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
-    deflate: ["&lt;library path&gt;/z-worker-pako.js", ""&lt;library path&gt;/pako.min.js"],
-    inflate: ["&lt;library path&gt;/z-worker-pako.js", ""&lt;library path&gt;/pako.min.js"]
+    deflate: ["&lt;library path&gt;/z-worker-pako.js", "&lt;library path&gt;/pako.min.js"],
+    inflate: ["&lt;library path&gt;/z-worker-pako.js", "&lt;library path&gt;/pako.min.js"]
   }
 });</code></pre>
 				<p>Pako also has separate js files for deflating/inflating, you can also use them instead of
@@ -505,8 +517,8 @@ await zipReader.close();</code></pre>
 				</p>
 				<pre><code class="prettyprint">zip.configure({
 workerScripts: {
-  deflate: ["../"&lt;library path&gt;/z-worker-pako.js", ""&lt;library path&gt;/pako_deflate.min.js"],
-  inflate: ["../"&lt;library path&gt;/z-worker-pako.js", ""&lt;library path&gt;/pako_inflate.min.js"]
+  deflate: ["../"&lt;library path&gt;/z-worker-pako.js", "&lt;library path&gt;/pako_deflate.min.js"],
+  inflate: ["../"&lt;library path&gt;/z-worker-pako.js", "&lt;library path&gt;/pako_inflate.min.js"]
 }
 });</code></pre>
 				<p><code>&lt;library path&gt;/z-worker.js</code> is the entry script of the worker, and
