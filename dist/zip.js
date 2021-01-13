@@ -1225,7 +1225,7 @@
 	const DEFAULT_CONFIGURATION = {
 		chunkSize: 512 * 1024,
 		maxWorkers: (typeof navigator != "undefined" && navigator.hardwareConcurrency) || 2,
-		workerScriptsPath: "",
+		workerScriptsPath: undefined,
 		useWebWorkers: true
 	};
 
