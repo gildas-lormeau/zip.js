@@ -32,7 +32,6 @@
 			<li><a href="#zip-writing-example">Zip writing example</a></li>
 			<li><a href="#full-example">Full example</a></li>
 			<li><a href="#alternative-codecs">Alternative DEFLATE implementations</a></li>
-			<li><a href="#concat-scripts">Concatenating worker scripts</a></li>
 		</ol>
 		<hr>
 
@@ -67,23 +66,22 @@
 			<dt><code>workerScripts (Object)</code></dt>
 			<dd>Advanced option used as an alternative to <code>workerScriptsPath</code> to explicitly control which
 				scripts are loaded in the web worker. It allows using alternative deflate implementations, or
-				concatenating worker scripts. The properties <code>deflater</code> and <code>inflater</code> must
+				concatenating worker scripts. The properties <code>deflate</code> and <code>inflate</code> must
 				specify arrays of URLs to import the deflater/inflater scripts, respectively. All the URLs are resolved
 				relative to the page's base URL. Scripts in the array are executed in order, and the first one should be
 				<code>z-worker.js</code>, which is used to start the worker. If only deflation or inflation is used in
-				your application, the unused <code>workerScripts.deflater/inflater</code> properties can be omitted, or
-				the unused <code>deflate.js</code>/<code>inflate.js</code> file can be removed. The
-				</code>crypto.js</code> file can also be ommitted if you don't use encryption. Example:
-				<pre><code class="prettyprint">zip.configure({
+				your application, the unused <code>workerScripts.deflater/inflater</code> property can be omitted, or
+				the unused <code>deflate.js</code>/<code>inflate.js</code> file can be removed from the array. The
+				</code>crypto.js</code> file can also be ommitted if you do not use encryption. Example:
+				<pre>
+					<code class="prettyprint">zip.configure({
   workerScripts: {
-    deflater: [ 
-      '&lt;zip_js_dir>/z-worker.js', '&lt;zip_js_dir>/deflate.js', '&lt;zip_js_dir>/crypto.js' 
-    ],
-    inflater: [ 
-      '&lt;zip_js_dir>/z-worker.js', '&lt;zip_js_dir>/inflate.js', '&lt;zip_js_dir>/crypto.js' 
-    ]
+	deflate: [
+      "&lt;library path&gt;/z-worker.js", ""&lt;library path&gt;/deflate.js", '&lt;library path&gt;/crypto.js'],
+	inflate: [
+      "&lt;library path&gt;/z-worker.js", ""&lt;library path&gt;/pako.min.js", '&lt;library path&gt;/crypto.js']
   }
-};</code></pre>
+});</code></pre>
 			</dd>
 		</dl>
 
@@ -400,8 +398,9 @@ await reader.close();</code></pre>
 					<dd><code>true</code> if the entry is a directory</dd>
 					<dt><code>level (number)</code></dt>
 					<dt><code>bufferedWrite (boolean)</code></dt>
-					<dd><code>true</code> to allow parallel calls to `ZipWriter#add` (<code>false</code> by default)</dd>
-					<dd>compression level from <code>0</code> to <code>9</code></dd>					
+					<dd><code>true</code> to allow parallel calls to `ZipWriter#add` (<code>false</code> by default)
+					</dd>
+					<dd>compression level from <code>0</code> to <code>9</code></dd>
 					<dt><code>comment (string)</code></dt>
 					<dd>file comment</dd>
 					<dt><code>lastModDate (Date)</code></dt>
@@ -409,7 +408,7 @@ await reader.close();</code></pre>
 					<dt><code>version (number)</code></dt>
 					<dd>zip version</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to encrypt the file with AES-256 (empty by default)</dd>					
+					<dd>password used to encrypt the file with AES-256 (empty by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -485,67 +484,39 @@ await zipReader.close();</code></pre>
 
 		<h2 id="alternative-codecs">Alternative DEFLATE implementations</h2>
 		<p>Alternative DEFLATE implementations can be used with zip.js in favor of better performance and/or better
-			compliance. Currently zlib-asm and pako are supported. In order to use them, you need to se the
+			compliance. Currently only pako is supported. In order to use them, you need to specify the
 			<code>workerScripts</code> configuration property instead of <code>workerScriptsPath</code>, see below.
 		</p>
 		<ul>
 			<li>
-				<h3>Pako</h3>
-				<p><a href="https://github.com/nodeca/pako">Pako</a> is a hand-writing javascript port of zlib. Its
-					compatibility and performance is believed to be good. To use pako in worker, configure zip.js as
-					follows:
+				<h3>pako</h3>
+				<p><a href="https://github.com/nodeca/pako">Pako</a> is a handwritten JavaScript port of zlib. Its
+					compatibility and performance is believed to be good. To use pako with web workers, configure zip.js
+					as follows:
 				</p>
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
-    deflater: [
-      '&lt;zip_js_dir>/z-worker.js', '&lt;pako_dir>/pako.min.js', 
-      '&lt;zip_js_dir>/pako/codecs.js', '&lt;zip_js_dir>/crypto.js'
-    ],
-    inflater: [
-      '&lt;zip_js_dir>/z-worker.js', '&lt;pako_dir>/pako.min.js',
-      '&lt;zip_js_dir>/pako/codecs.js', '&lt;zip_js_dir>/crypto.js'
-    ]
+    deflate: ["&lt;library path&gt;/z-worker-pako.js", ""&lt;library path&gt;/pako.min.js"],
+    inflate: ["&lt;library path&gt;/z-worker-pako.js", ""&lt;library path&gt;/pako.min.js"]
   }
-};</code></pre>
+});</code></pre>
 				<p>Pako also has separate js files for deflating/inflating, you can also use them instead of
 					<code>pako.min.js</code>:
 				</p>
 				<pre><code class="prettyprint">zip.configure({
-  workerScripts: {
-    deflater: [
-      '&lt;zip_js_dir>/z-worker.js', '&lt;pako_dir>/pako_deflate.min.js', 
-      '&lt;zip_js_dir>/pako/codecs.js', '&lt;zip_js_dir>/crypto.js' 
-    ],
-    inflater: [
-      '&lt;zip_js_dir>/z-worker.js', '&lt;pako_dir>/pako_inflate.min.js', 
-      '&lt;zip_js_dir>/pako/codecs.js', '&lt;zip_js_dir>/crypto.js'
-    ]
-  }
-};</code></pre>
-				<p><code>&lt;zip_js_dir>/z-worker.js</code> is the entry script of the worker, and
-					<code>&lt;zip_js_dir>/pako/codecs.js</code> is the wrapper of pako. These two files can be
-					found in zip.js project. Note that <code>pako.min.js</code> etc. are parts of pako project, and are
-					not provided by zip.js. You can find them <a
-						href="https://github.com/nodeca/pako/tree/master/dist">here</a>. The latest version of
-					pako tested with zip.js is 0.2.5.
+workerScripts: {
+  deflate: ["../"&lt;library path&gt;/z-worker-pako.js", ""&lt;library path&gt;/pako_deflate.min.js"],
+  inflate: ["../"&lt;library path&gt;/z-worker-pako.js", ""&lt;library path&gt;/pako_inflate.min.js"]
+}
+});</code></pre>
+				<p><code>&lt;library path&gt;/z-worker.js</code> is the entry script of the worker, and
+					<code>&lt;library path&gt;/z-worker-pako.js</code> is the entry script for pako. These two files can
+					be found in the <code>/dist/</code> folder. Note that <code>pako.min.js</code> etc. are parts of
+					pako project, and are not provided by zip.js. You can find them <a
+						href="https://github.com/nodeca/pako/tree/master/dist">here</a>.
 				</p>
 			</li>
 		</ul>
-
-		<h2 id="concat-scripts">Concatenating worker scripts</h2>
-		<p>Worker scripts can also be concatenated to reduce the number of HTTP requests. You are free to choose
-			files to concatenate, just make sure the resulting files containing z-worker.js are loaded first in
-			workers, and necessary deflater/inflater/wrapper files are included. Example with pako.js: </p>
-		<pre><code class="prettyprint">zip.configure({
-  workerScripts: {
-    deflater: [
-      '&lt;some_dir>/worker_pako.js', '&lt;zip_js_dir>/crypto.js'
-    ], // z-worker.js + pako/codecs.js + pako.min.js
-    inflater: [
-      '&lt;some_dir>/worker_pako.js', '&lt;zip_js_dir>/crypto.js'
-    ]
-  }
-};</code></pre>
 
 	</div>
 	<script type="text/javascript" src="google-code-prettify/prettify.js"></script>
