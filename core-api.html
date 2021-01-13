@@ -365,7 +365,7 @@ await reader.close();</code></pre>
 
 		<h2 id="zip-writing">Zip writing</h2>
 		<h3>Constructor</h3>
-		<pre><code class="prettyprint">zip.ZipWriter(writer)</code></pre>
+		<pre><code class="prettyprint">zip.ZipWriter(writer [, options])</code></pre>
 		<p>
 			Create a <code><a href="#zip-writer-proto">ZipWriter</a></code> object.
 		</p>
@@ -373,10 +373,17 @@ await reader.close();</code></pre>
 		<dl>
 			<dt><code>writer (<a href="#zip-writer">zip.Writer</a>)</code></dt>
 			<dd>the <code><a href="#zip-writer">zip.Writer</a></code> object used to write output data</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
+				<dl>
+					<dt><code>zip64 (boolean)</code></dt>
+					<dd>force the file to be written in zip64</dd>
+				</dl>
+			</dd>
 		</dl>
 
 		<h3 id="zip-writer-proto">Zip entry writing</h3>
-		<pre><code class="prettyprint">ZipWriter#add(name [, reader [, options]])</code></pre>
+		<pre><code class="prettyprint">ZipWriter#add(name , reader [, options])</code></pre>
 		<p>
 			Add a new entry into the zip.
 		</p>
@@ -395,7 +402,7 @@ await reader.close();</code></pre>
 						value and a <code>max (number)</code> value</dd>
 					<dt><code>directory (boolean)</code></dt>
 					<dd><code>true</code> if the entry is a directory</dd>
-					<dt><code>level (number)</code></dt>					
+					<dt><code>level (number)</code></dt>
 					<dd>compression level from <code>0</code> to <code>9</code></dd>
 					<dt><code>bufferedWrite (boolean)</code></dt>
 					<dd><code>true</code> to allow parallel calls to `ZipWriter#add` (<code>false</code> by default)
@@ -408,6 +415,8 @@ await reader.close();</code></pre>
 					<dd>zip version</dd>
 					<dt><code>password (string)</code></dt>
 					<dd>password used to encrypt the file with AES-256 (empty by default)</dd>
+					<dt><code>zip64 (boolean)</code></dt>
+					<dd>force the file entry to be written in zip64 (<code>false</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
