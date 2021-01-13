@@ -3,7 +3,9 @@
 (() => {
 
 	zip.configure({
-		workerScriptsPath: "lib/"
+		workerScripts: {
+			deflate: ["lib/z-worker-pako.js", "lib/pako_deflate.min.js"]
+		}
 	});
 
 	const model = (() => {
