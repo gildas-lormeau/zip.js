@@ -73,8 +73,7 @@
 				your application, the unused <code>workerScripts.deflater/inflater</code> property can be omitted, or
 				the unused <code>deflate.js</code>/<code>inflate.js</code> file can be removed from the array. The
 				</code>crypto.js</code> file can also be ommitted if you do not use encryption. Example:
-				<pre>
-					<code class="prettyprint">zip.configure({
+				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
     deflate: [
       "&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/deflate.js", "&lt;library path&gt;/crypto.js"],
