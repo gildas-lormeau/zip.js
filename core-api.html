@@ -516,13 +516,12 @@ await zipReader.close();</code></pre>
 					<code>pako.min.js</code>:
 				</p>
 				<pre><code class="prettyprint">zip.configure({
-workerScripts: {
-  deflate: ["../"&lt;library path&gt;/z-worker-pako.js", "&lt;library path&gt;/pako_deflate.min.js"],
-  inflate: ["../"&lt;library path&gt;/z-worker-pako.js", "&lt;library path&gt;/pako_inflate.min.js"]
-}
+  workerScripts: {
+    deflate: ["&lt;library path&gt;/z-worker-pako.js", "&lt;library path&gt;/pako_deflate.min.js"],
+    inflate: ["&lt;library path&gt;/z-worker-pako.js", "&lt;library path&gt;/pako_inflate.min.js"]
+  }
 });</code></pre>
-				<p><code>&lt;library path&gt;/z-worker.js</code> is the entry script of the worker, and
-					<code>&lt;library path&gt;/z-worker-pako.js</code> is the entry script for pako. These two files can
+				<p><code>&lt;library path&gt;/z-worker-pako.js</code> is the entry script for pako. This file can
 					be found in the <code>/dist/</code> folder. Note that <code>pako.min.js</code> etc. are parts of
 					pako project, and are not provided by zip.js. You can find them <a
 						href="https://github.com/nodeca/pako/tree/master/dist">here</a>.
