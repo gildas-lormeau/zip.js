@@ -822,14 +822,16 @@
 					entry.commentLength = directoryDataView.getUint16(offset + 32, true);
 					entry.directory = ((directoryDataView.getUint8(offset + 38) & 0x10) == 0x10);
 					entry.offset = directoryDataView.getUint32(offset + 42, true);
-					const filename = getString(dataArray.subarray(offset + 46, offset + 46 + entry.filenameLength));
+					entry.rawFilename = dataArray.subarray(offset + 46, offset + 46 + entry.filenameLength);
+					const filename = getString(entry.rawFilename);
 					entry.filename = ((entry.bitFlag & 0x0800) == 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);
 					if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) == "/") {
 						entry.directory = true;
 					}
 					entry.extraField = dataArray.subarray(offset + 46 + entry.filenameLength, offset + 46 + entry.filenameLength + entry.extraFieldLength);
-					const comment = getString(dataArray.subarray(offset + 46 + entry.filenameLength + entry.extraFieldLength, offset + 46
-						+ entry.filenameLength + entry.extraFieldLength + entry.commentLength));
+					entry.rawComment = dataArray.subarray(offset + 46 + entry.filenameLength + entry.extraFieldLength, offset + 46
+						+ entry.filenameLength + entry.extraFieldLength + entry.commentLength);
+					const comment = getString(entry.rawComment);
 					entry.comment = ((entry.bitFlag & 0x0800) == 0x0800) ? decodeUTF8(comment) : decodeASCII(comment);
 					entries.push(entry);
 					offset += 46 + entry.filenameLength + entry.extraFieldLength + entry.commentLength;
@@ -899,7 +901,7 @@
 		}
 		entry.filenameLength = dataView.getUint16(offset + 22, true);
 		entry.extraFieldLength = dataView.getUint16(offset + 24, true);
-		if (entry.compressedSize == 0xFFFFFFFF && entry.uncompressedSize == 0xFFFFFFFF) {		
+		if (entry.compressedSize == 0xFFFFFFFF && entry.uncompressedSize == 0xFFFFFFFF) {
 			if (entry.extraField) {
 				entry.zip64 = true;
 				const extraFieldView = new DataView(entry.extraField.buffer);
