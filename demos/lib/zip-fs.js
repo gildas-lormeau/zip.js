@@ -797,7 +797,7 @@
 				let zip64, directoryDataView = new DataView(directoryInfo.buffer);
 				let dataLength = directoryDataView.getUint32(16, true);
 				let filesLength = directoryDataView.getUint16(8, true);
-				if (dataLength == 0xffffffff && filesLength == 0xffff) {
+				if (dataLength == 0xffffffff || filesLength == 0xffff) {
 					zip64 = true;
 					const directoryLocatorArray = await this.reader.readUint8Array(directoryInfo.offset - 20, 20);
 					const directoryLocatorView = new DataView(directoryLocatorArray.buffer);
@@ -930,9 +930,15 @@
 			const encryptionExtraField = entry.extraField.get(0x9901);
 			if (zip64ExtraField) {
 				const zip64ExtraFieldView = new DataView(zip64ExtraField.data.buffer);
-				entry.uncompressedSize = Number(zip64ExtraFieldView.getBigUint64(0, true));
-				entry.compressedSize = Number(zip64ExtraFieldView.getBigUint64(8, true));
-				entry.offset = Number(zip64ExtraFieldView.getBigUint64(offset + 16, true));
+				if (zip64ExtraField.data.length >= 8) {
+					entry.uncompressedSize = Number(zip64ExtraFieldView.getBigUint64(0, true));
+					if (zip64ExtraField.data.length >= 16) {
+						entry.compressedSize = Number(zip64ExtraFieldView.getBigUint64(8, true));
+						if (zip64ExtraField.data.length >= 24) {
+							entry.offset = Number(zip64ExtraFieldView.getBigUint64(offset + 16, true));
+						}
+					}
+				}
 			}
 			if (encryptionExtraField) {
 				const encryptionExtraFieldView = new DataView(encryptionExtraField.data.buffer);
