@@ -769,6 +769,8 @@
 	const ERR_BAD_FORMAT = "File format is not recognized.";
 	const ERR_EOCDR_NOT_FOUND = "End of central directory not found.";
 	const ERR_ENCRYPTED = "File contains encrypted entry.";
+	const ERR_UNSUPPORTED_ENCRYPTION = "Encryption not supported.";
+	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported.";
 	const EXTENDED_US_ASCII = ["\u00C7", "\u00FC", "\u00E9", "\u00E2", "\u00E4", "\u00E0", "\u00E5", "\u00E7", "\u00EA", "\u00EB",
 		"\u00E8", "\u00EF", "\u00EE", "\u00EC", "\u00C4", "\u00C5", "\u00C9", "\u00E6", "\u00C6", "\u00F4", "\u00F6", "\u00F2", "\u00FB", "\u00F9",
 		"\u00FF", "\u00D6", "\u00DC", "\u00F8", "\u00A3", "\u00D8", "\u00D7", "\u0192", "\u00E1", "\u00ED", "\u00F3", "\u00FA", "\u00F1", "\u00D1",
@@ -827,7 +829,7 @@
 					}
 					entry.compressedSize = 0;
 					entry.uncompressedSize = 0;
-					readCommonHeader(entry, directoryDataView, offset + 6, true);
+					readCommonHeader(entry, directoryDataView, offset + 6);
 					entry.commentLength = directoryDataView.getUint16(offset + 32, true);
 					entry.directory = ((directoryDataView.getUint8(offset + 38) & 0x10) == 0x10);
 					entry.offset = directoryDataView.getUint32(offset + 42, true);
@@ -838,7 +840,7 @@
 						entry.directory = true;
 					}
 					entry.rawExtraField = dataArray.subarray(offset + 46 + entry.filenameLength, offset + 46 + entry.filenameLength + entry.extraFieldLength);
-					readExtraField(entry, offset);
+					readExtraField(entry, directoryDataView, offset + 6, true);
 					entry.rawComment = dataArray.subarray(offset + 46 + entry.filenameLength + entry.extraFieldLength, offset + 46
 						+ entry.filenameLength + entry.extraFieldLength + entry.commentLength);
 					const comment = getString(entry.rawComment);
@@ -873,7 +875,8 @@
 			if (dataView.getUint32(0, false) != 0x504b0304) {
 				throw ERR_BAD_FORMAT;
 			}
-			readCommonHeader(this, dataView, 4, false);
+			readCommonHeader(this, dataView, 4);
+			readExtraField(this, dataView, 4);
 			let dataOffset = this.offset + 30 + this.filenameLength + this.extraFieldLength;
 			await writer.init();
 			if (this.passwordProtected && !inputPassword) {
@@ -892,25 +895,21 @@
 		}
 	}
 
-	function readCommonHeader(entry, dataView, offset, centralDirectory) {
+	function readCommonHeader(entry, dataView, offset) {
 		entry.version = dataView.getUint16(offset, true);
 		entry.bitFlag = dataView.getUint16(offset + 2, true);
-		entry.compressionMethod = dataView.getUint16(offset + 4, true);
-		entry.lastModDateRaw = dataView.getUint32(offset + 6, true);
-		entry.lastModDate = getDate(entry.lastModDateRaw);
 		if ((entry.bitFlag & 0x01) == 0x01) {
 			entry.passwordProtected = true;
-		}
-		if (centralDirectory || (entry.bitFlag & 0x08) != 0x08) {
-			entry.signature = dataView.getUint32(offset + 10, true);
-			entry.compressedSize = dataView.getUint32(offset + 14, true);
-			entry.uncompressedSize = dataView.getUint32(offset + 18, true);
+			const compressionMethod = dataView.getUint16(offset + 4, true);
+			if (compressionMethod != 0x63) {
+				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
+			}
 		}
 		entry.filenameLength = dataView.getUint16(offset + 22, true);
 		entry.extraFieldLength = dataView.getUint16(offset + 24, true);
 	}
 
-	function readExtraField(entry, offset) {
+	function readExtraField(entry, dataView, offset, isCentralHeader) {
 		if (entry.rawExtraField) {
 			entry.zip64 = true;
 			const rawExtraFieldView = new DataView(new Uint8Array(entry.rawExtraField).buffer);
@@ -921,28 +920,80 @@
 				const size = rawExtraFieldView.getUint16(offsetExtraField + 2, true);
 				entry.extraField.set(type, {
 					type,
-					size,
 					data: entry.rawExtraField.slice(offsetExtraField + 4, offsetExtraField + 4 + size)
 				});
 				offsetExtraField += 4 + size;
 			}
-			const zip64ExtraField = entry.extraField.get(0x01);
-			const encryptionExtraField = entry.extraField.get(0x9901);
-			if (zip64ExtraField) {
-				const zip64ExtraFieldView = new DataView(zip64ExtraField.data.buffer);
-				if (zip64ExtraField.data.length >= 8) {
-					entry.uncompressedSize = Number(zip64ExtraFieldView.getBigUint64(0, true));
-					if (zip64ExtraField.data.length >= 16) {
-						entry.compressedSize = Number(zip64ExtraFieldView.getBigUint64(8, true));
-						if (zip64ExtraField.data.length >= 24) {
-							entry.offset = Number(zip64ExtraFieldView.getBigUint64(offset + 16, true));
-						}
+			entry.extraFieldZip64 = entry.extraField.get(0x01);
+			entry.extraFieldAES = entry.extraField.get(0x9901);
+			if (entry.extraFieldZip64) {
+				const extraFieldView = new DataView(entry.extraFieldZip64.data.buffer);
+				entry.extraFieldZip64.values = [];
+				if (entry.extraFieldZip64.data.length >= 8) {
+					entry.extraFieldZip64.values[0] = Number(extraFieldView.getBigUint64(0, true));
+				}
+				if (entry.extraFieldZip64.data.length >= 16) {
+					entry.extraFieldZip64.values[1] = Number(extraFieldView.getBigUint64(8, true));
+				}
+				if (entry.extraFieldZip64.data.length >= 24) {
+					entry.extraFieldZip64.values[2] = Number(extraFieldView.getBigUint64(16, true));
+				}
+			}
+			if (entry.extraFieldAES) {
+				if (entry.passwordProtected) {
+					const extraFieldView = new DataView(entry.extraFieldAES.data.buffer);
+					const strength = entry.compressionMethod = extraFieldView.getUint8(4);
+					entry.extraFieldAES.compressionMethod = extraFieldView.getUint16(5, true);
+					if (strength != 3) {
+						throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
 					}
 				}
 			}
-			if (encryptionExtraField) {
-				const encryptionExtraFieldView = new DataView(encryptionExtraField.data.buffer);
-				entry.compressionMethod = encryptionExtraFieldView.getUint16(5, true);
+		}
+		if (entry.extraFieldAES && entry.extraFieldAES.compressionMethod !== undefined) {
+			entry.compressionMethod = entry.extraFieldAES.compressionMethod;
+		} else {
+			entry.compressionMethod = dataView.getUint16(offset + 4, true);
+		}
+		entry.lastModDateRaw = dataView.getUint32(offset + 6, true);
+		entry.lastModDate = getDate(entry.lastModDateRaw);
+		if (isCentralHeader || (entry.bitFlag & 0x08) != 0x08) {
+			entry.signature = dataView.getUint32(offset + 10, true);
+			entry.uncompressedSize = dataView.getUint32(offset + 18, true);
+			entry.compressedSize = dataView.getUint32(offset + 14, true);
+			const missingProperties = [];
+			if (entry.uncompressedSize == 0xffffffff) {
+				missingProperties.push("uncompressedSize");
+			}
+			if (entry.compressedSize == 0xffffffff) {
+				missingProperties.push("compressedSize");
+			}
+			if (entry.offset == 0xffffffff) {
+				missingProperties.push("offset");
+			}
+			for (let indexMissingProperty = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
+				entry.extraFieldZip64[missingProperties[indexMissingProperty]] = entry.extraFieldZip64.values[indexMissingProperty];
+			}
+			if (entry.uncompressedSize == 0xffffffff) {
+				if (entry.extraFieldZip64 && entry.extraFieldZip64.uncompressedSize !== undefined) {
+					entry.uncompressedSize = entry.extraFieldZip64 && entry.extraFieldZip64.uncompressedSize;
+				} else {
+					throw new Error(ERR_BAD_FORMAT);
+				}
+			}
+			if (entry.compressedSize == 0xffffffff) {
+				if (entry.extraFieldZip64 && entry.extraFieldZip64.compressedSize !== undefined) {
+					entry.compressedSize = entry.extraFieldZip64 && entry.extraFieldZip64.compressedSize;
+				} else {
+					throw new Error(ERR_BAD_FORMAT);
+				}
+			}
+			if (entry.offset == 0xffffffff) {
+				if (entry.extraFieldZip64 && entry.extraFieldZip64.offset != undefined) {
+					entry.offset = entry.extraFieldZip64.offset;
+				} else {
+					throw new Error(ERR_BAD_FORMAT);
+				}
 			}
 		}
 	}
