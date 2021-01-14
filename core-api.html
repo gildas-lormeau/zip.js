@@ -303,6 +303,10 @@
 			<dd>file comment in binary</dd>
 			<dt><code>crc32 (number)</code></dt>
 			<dd>uncompressed data checksum</dd>
+			<dt><code>extraField (Map)</code></dt>
+			<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and the value is a <code>(UInt8Array)</code></dd>
+			<dt><code>rawExtraField (UInt8Array)</code></dt>
+			<dd>extra field in binary</dd>
 		</dl>
 		<p>Methods:</p>
 		<pre><code class="prettyprint">Entry#getData(writer [, options])</code></pre>
@@ -421,6 +425,8 @@ await reader.close();</code></pre>
 					<dd>password used to encrypt the file with AES-256 (empty by default)</dd>
 					<dt><code>zip64 (boolean)</code></dt>
 					<dd>force the file entry to be written in zip64 (<code>false</code> by default)</dd>
+					<dt><code>extraField (Map)</code></dt>
+					<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and the value is a <code>(UInt8Array)</code>.</dd>
 				</dl>
 			</dd>
 		</dl>
