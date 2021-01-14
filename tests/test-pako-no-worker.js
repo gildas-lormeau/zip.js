@@ -16,7 +16,7 @@ async function test() {
 	zip.configure({
 		useWebWorkers: false
 	});
-	const blobWriter = new zip.BlobWriter();
+	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	await zipWriter.close();

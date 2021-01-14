@@ -23,7 +23,7 @@ async function test() {
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	const results = await Promise.all(entries.map(async (entry, indexEntry) => {
-		const blob = await entry.getData(new zip.BlobWriter());
+		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
 		return compareResult(blob, indexEntry);
 	}));
 	if (!results.includes(false)) {

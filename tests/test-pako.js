@@ -17,7 +17,7 @@ async function test() {
 			inflate: ["../dist/z-worker-pako.js", "vendor/pako_inflate.min.js"]
 		}
 	});
-	const blobWriter = new zip.BlobWriter();
+	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	await zipWriter.close();
