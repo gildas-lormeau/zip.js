@@ -32,6 +32,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const ERR_HTTP_STATUS = "HTTP error ";
 	const ERR_HTTP_RANGE = "HTTP Range not supported.";
 	const TEXT_PLAIN = "text/plain";
 
@@ -194,11 +195,15 @@
 				return new Promise((resolve, reject) => {
 					const request = new XMLHttpRequest();
 					request.addEventListener("load", () => {
-						this.size = Number(request.getResponseHeader("Content-Length"));
-						if (!this.size) {
-							getData().then(() => resolve()).catch(reject);
+						if (request.status < 400) {
+							this.size = Number(request.getResponseHeader("Content-Length"));
+							if (!this.size) {
+								getData().then(() => resolve()).catch(reject);
+							} else {
+								resolve();
+							}
 						} else {
-							resolve();
+							reject(ERR_HTTP_STATUS + (request.statusText || request.status) + ".");
 						}
 					}, false);
 					request.addEventListener("error", reject, false);
@@ -231,11 +236,15 @@
 			return new Promise((resolve, reject) => {
 				const request = new XMLHttpRequest();
 				request.addEventListener("load", () => {
-					this.size = Number(request.getResponseHeader("Content-Length"));
-					if (request.getResponseHeader("Accept-Ranges") == "bytes") {
-						resolve();
+					if (request.status < 400) {
+						this.size = Number(request.getResponseHeader("Content-Length"));
+						if (request.getResponseHeader("Accept-Ranges") == "bytes") {
+							resolve();
+						} else {
+							reject(new Error(ERR_HTTP_RANGE));
+						}
 					} else {
-						reject(new Error(ERR_HTTP_RANGE));
+						reject(ERR_HTTP_STATUS + (request.statusText || request.status) + ".");
 					}
 				}, false);
 				request.addEventListener("error", reject, false);
@@ -250,7 +259,13 @@
 				request.open("GET", this.url);
 				request.responseType = "arraybuffer";
 				request.setRequestHeader("Range", "bytes=" + index + "-" + (index + length - 1));
-				request.addEventListener("load", () => resolve(new Uint8Array(request.response)), false);
+				request.addEventListener("load", () => {
+					if (request.status < 400) {
+						resolve(new Uint8Array(request.response));
+					} else {
+						reject(ERR_HTTP_STATUS + (request.statusText || request.status) + ".");
+					}
+				}, false);
 				request.addEventListener("error", reject, false);
 				request.send();
 			});
@@ -303,11 +318,15 @@
 		return new Promise((resolve, reject) => {
 			const request = new XMLHttpRequest();
 			request.addEventListener("load", () => {
-				if (!httpReader.size) {
-					httpReader.size = Number(request.getResponseHeader("Content-Length")) || Number(request.response.byteLength);
+				if (request.status < 400) {
+					if (!httpReader.size) {
+						httpReader.size = Number(request.getResponseHeader("Content-Length")) || Number(request.response.byteLength);
+					}
+					httpReader.data = new Uint8Array(request.response);
+					resolve();
+				} else {
+					reject(ERR_HTTP_STATUS + (request.statusText || request.status) + ".");
 				}
-				httpReader.data = new Uint8Array(request.response);
-				resolve();
 			}, false);
 			request.addEventListener("error", reject, false);
 			request.open("GET", url);
