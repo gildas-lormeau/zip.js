@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global zip, document, Blob, FileReader */
+/* global zip, document, Blob, FileReader, URL */
 
 "use strict";
 
@@ -23,6 +23,11 @@ async function test() {
 	if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
+}
+
+// eslint-disable-next-line no-unused-vars
+function getLinkBlobLink(blob) {
+	return "download".link(URL.createObjectURL(blob));
 }
 
 // eslint-disable-next-line no-unused-vars
