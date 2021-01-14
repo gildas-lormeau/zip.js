@@ -463,6 +463,9 @@
 				return sendMessage({ type: "append", data });
 			},
 			async flush() {
+				if (!task) {
+					await sendMessage(Object.assign({ type: "init", options: workerData.options, scripts: workerData.scripts.slice(1) }));
+				}
 				return sendMessage({ type: "flush" });
 			}
 		};
@@ -508,7 +511,7 @@
 
 	function terminateWorker(workerData) {
 		workerData.busy = false;
-		if (workers.pendingRequests.length) {		
+		if (workers.pendingRequests.length) {
 			const [{ resolve, options, scripts }] = workers.pendingRequests.splice(0, 1);
 			workerData.busy = true;
 			workerData.options = options;
