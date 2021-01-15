@@ -437,6 +437,7 @@
 	};
 
 	function createWorkerCodec(config, options) {
+		const pool = workers.pool;
 		const codecType = options.codecType;
 		if (config.workerScripts != null && config.workerScriptsPath != null) {
 			throw new Error("Either zip.workerScripts or zip.workerScriptsPath may be set, not both.");
@@ -452,13 +453,13 @@
 			scripts = DEFAULT_WORKER_SCRIPTS[codecType].slice(0);
 			scripts[0] = (config.workerScriptsPath || "") + scripts[0];
 		}
-		if (workers.pool.length < config.maxWorkers) {
+		if (pool.length < config.maxWorkers) {
 			const workerData = { worker: new Worker(scripts[0]), busy: true, options, scripts };
-			workers.pool.push(workerData);
+			pool.push(workerData);
 			createWorkerInterface(workerData);
 			return workerData.interface;
 		} else {
-			const availableWorkerData = workers.pool.find(workerData => !workerData.busy);
+			const availableWorkerData = pool.find(workerData => !workerData.busy);
 			if (availableWorkerData) {
 				availableWorkerData.busy = true;
 				availableWorkerData.options = options;
@@ -472,18 +473,19 @@
 
 	function createWorkerInterface(workerData) {
 		const worker = workerData.worker;
+		const scripts = workerData.scripts.slice(1);
 		let task;
 		worker.addEventListener("message", onMessage, false);
 		workerData.interface = {
 			async append(data) {
 				if (!task) {
-					await sendMessage(Object.assign({ type: "init", options: workerData.options, scripts: workerData.scripts.slice(1) }));
+					await sendMessage(Object.assign({ type: "init", options: workerData.options, scripts }));
 				}
 				return sendMessage({ type: "append", data });
 			},
 			async flush() {
 				if (!task) {
-					await sendMessage(Object.assign({ type: "init", options: workerData.options, scripts: workerData.scripts.slice(1) }));
+					await sendMessage(Object.assign({ type: "init", options: workerData.options, scripts }));
 				}
 				return sendMessage({ type: "flush" });
 			}
@@ -510,9 +512,10 @@
 		function onMessage(event) {
 			const message = event.data;
 			if (task) {
-				if (message.error) {
-					const error = new Error(message.error.message);
-					error.stack = message.error.stack;
+				const reponseError = message.error;
+				if (reponseError) {
+					const error = new Error(reponseError.message);
+					error.stack = reponseError.stack;
 					task.reject(error);
 					worker.removeEventListener("message", onMessage, false);
 				} else if (message.type == "init" || message.type == "flush" || message.type == "append") {
@@ -942,14 +945,8 @@
 			if (entry.extraFieldZip64) {
 				const extraFieldView = new DataView(entry.extraFieldZip64.data.buffer);
 				entry.extraFieldZip64.values = [];
-				if (entry.extraFieldZip64.data.length >= 8) {
-					entry.extraFieldZip64.values[0] = Number(extraFieldView.getBigUint64(0, true));
-				}
-				if (entry.extraFieldZip64.data.length >= 16) {
-					entry.extraFieldZip64.values[1] = Number(extraFieldView.getBigUint64(8, true));
-				}
-				if (entry.extraFieldZip64.data.length >= 24) {
-					entry.extraFieldZip64.values[2] = Number(extraFieldView.getBigUint64(16, true));
+				for (let indexValue = 0; indexValue < Math.floor(entry.extraFieldZip64.data.length / 8); indexValue++) {
+					entry.extraFieldZip64.values.push(Number(extraFieldView.getBigUint64(0 + indexValue * 8, true)));
 				}
 			}
 			if (entry.extraFieldAES) {
@@ -974,40 +971,20 @@
 			entry.signature = dataView.getUint32(offset + 10, true);
 			entry.uncompressedSize = dataView.getUint32(offset + 18, true);
 			entry.compressedSize = dataView.getUint32(offset + 14, true);
-			const missingProperties = [];
-			if (entry.uncompressedSize == 0xffffffff) {
-				missingProperties.push("uncompressedSize");
-			}
-			if (entry.compressedSize == 0xffffffff) {
-				missingProperties.push("compressedSize");
-			}
-			if (entry.offset == 0xffffffff) {
-				missingProperties.push("offset");
-			}
+			const properties = ["uncompressedSize", "compressedSize", "offset"];
+			const missingProperties = properties.filter(propertyName => entry[propertyName] == 0xffffffff);
 			for (let indexMissingProperty = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
 				entry.extraFieldZip64[missingProperties[indexMissingProperty]] = entry.extraFieldZip64.values[indexMissingProperty];
 			}
-			if (entry.uncompressedSize == 0xffffffff) {
-				if (entry.extraFieldZip64 && entry.extraFieldZip64.uncompressedSize !== undefined) {
-					entry.uncompressedSize = entry.extraFieldZip64 && entry.extraFieldZip64.uncompressedSize;
-				} else {
-					throw new Error(ERR_BAD_FORMAT);
+			properties.forEach(propertyName => {
+				if (entry[propertyName] == 0xffffffff) {
+					if (entry.extraFieldZip64 && entry.extraFieldZip64[propertyName] !== undefined) {
+						entry[propertyName] = entry.extraFieldZip64 && entry.extraFieldZip64[propertyName];
+					} else {
+						throw new Error(ERR_BAD_FORMAT);
+					}
 				}
-			}
-			if (entry.compressedSize == 0xffffffff) {
-				if (entry.extraFieldZip64 && entry.extraFieldZip64.compressedSize !== undefined) {
-					entry.compressedSize = entry.extraFieldZip64 && entry.extraFieldZip64.compressedSize;
-				} else {
-					throw new Error(ERR_BAD_FORMAT);
-				}
-			}
-			if (entry.offset == 0xffffffff) {
-				if (entry.extraFieldZip64 && entry.extraFieldZip64.offset != undefined) {
-					entry.offset = entry.extraFieldZip64.offset;
-				} else {
-					throw new Error(ERR_BAD_FORMAT);
-				}
-			}
+			});
 		}
 	}
 
