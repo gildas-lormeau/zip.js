@@ -13,8 +13,8 @@ async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({		
 		workerScripts: {
-			deflate: ["../dist/z-worker-pako.js", "vendor/pako_deflate.min.js"],
-			inflate: ["../dist/z-worker.js", "../dist/inflate.js"]
+			deflate: ["../../dist/z-worker-pako.js", "../vendor/pako_deflate.min.js"],
+			inflate: ["../../dist/z-worker.js", "../../dist/inflate.js"]
 		}
 	});
 	const blobWriter = new zip.BlobWriter("application/zip");

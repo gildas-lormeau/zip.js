@@ -25,7 +25,7 @@
             "test-parallel-writes.html",
             "test-codecs-interoperability.html",
             "test-zip64.html",
-            "test-zip64-crypto.html"            
+            "test-zip64-crypto.html"
         ];
     </script>
     <style>
@@ -48,9 +48,8 @@
             const cellLink = document.createElement("td");
             const iframe = document.createElement("iframe");
             const link = document.createElement("a");
-            iframe.src = filename;
-            link.textContent = link.href = filename;
-            link.target = filename;
+            const path = "pages/" + filename;
+            iframe.src = link.textContent = link.target = path;
             cellTest.appendChild(iframe);
             cellLink.appendChild(link);
             row.appendChild(cellLink);

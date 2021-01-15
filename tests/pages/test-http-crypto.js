@@ -11,7 +11,7 @@ test().catch(error => console.error(error));
 async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
-	const zipReader = new zip.ZipReader(new zip.HttpReader("data/lorem-zip64.zip"));
+	const zipReader = new zip.ZipReader(new zip.HttpReader("../data/lorem-encrypted.zip"));
 	const entries = await zipReader.getEntries();
 	const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
 	let data;

@@ -4,7 +4,7 @@
 
 zip.configure({
 	useWebWorkers: true,
-	workerScriptsPath: "../dist/"
+	workerScriptsPath: "../../dist/"
 });
 
 // to test third party deflate implementations, comment out "zip.workerScriptsPath =..." and uncomment "zip.workerScripts = ..."
