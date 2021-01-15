@@ -22,7 +22,6 @@ async function test() {
 		data = await entries[0].getData(dataBlobWriter, { password: "password" });
 	}
 	await zipReader.close();
-	console.log(await getBlobText(data));
 	if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
