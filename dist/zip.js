@@ -36,24 +36,23 @@
 	const ERR_HTTP_RANGE = "HTTP Range not supported.";
 	const TEXT_PLAIN = "text/plain";
 
-	class Reader {
+	class Stream {
+
 		constructor() {
 			this.size = 0;
 		}
+
 		init() {
 			this.initialized = true;
 		}
 	}
+	class Reader extends Stream {
+	}
 
-	class Writer {
-		constructor() {
-			this.size = 0;
-		}
+	class Writer extends Stream {
+
 		writeUint8Array(array) {
 			this.size += array.length;
-		}
-		init() {
-			this.initialized = true;
 		}
 	}
 
@@ -652,7 +651,7 @@
 			this.encrypted = options.outputEncrypted;
 			this.signed = options.outputSigned;
 			this.compressed = options.outputCompressed;
-			this.deflater = this.compressed && new ZipDeflater({ level: options.level });
+			this.deflater = this.compressed && new ZipDeflater({ level: options.level || 5 });
 			this.crc32 = this.signed && new Crc32();
 			this.encrypt = this.encrypted && new ZipEncrypt(options.outputPassword);
 		}
@@ -1113,16 +1112,6 @@
 
 		async add(name, reader, options = {}) {
 			const files = this.files;
-			let writer;
-			if (options.bufferedWrite) {
-				writer = new Uint8ArrayWriter();
-				writer.init();
-			} else {
-				if (!this.writer.initialized) {
-					await this.writer.init();
-				}
-				writer = this.writer;
-			}
 			name = name.trim();
 			if (options.directory && name.charAt(name.length - 1) != "/") {
 				name += "/";
@@ -1132,9 +1121,23 @@
 				throw new Error(ERR_DUPLICATED_NAME);
 			}
 			files.set(name, null);
+			let writer, resolveOffset;
+			if (options.bufferedWrite || this.blockingWrite) {
+				writer = new Uint8ArrayWriter();
+				writer.init();
+			} else {
+				this.blockingWrite = new Promise(resolve => resolveOffset = resolve);
+				if (!this.writer.initialized) {
+					await this.writer.init();
+				}
+				writer = this.writer;
+			}
 			const fileEntry = await createFileEntry(name, reader, writer, this.config, options);
 			files.set(name, fileEntry);
-			if (options.bufferedWrite) {
+			if (writer != this.writer) {
+				if (this.blockingWrite) {
+					await this.blockingWrite;
+				}
 				await this.writer.writeUint8Array(writer.getData());
 			}
 			fileEntry.offset = this.offset;
@@ -1146,6 +1149,10 @@
 				extraFieldViewZip64.setBigUint64(20, BigInt(fileEntry.offset), true);
 			}
 			this.offset += fileEntry.length;
+			if (resolveOffset) {
+				this.blockingWrite = null;
+				resolveOffset();
+			}
 		}
 
 		async close(comment) {
@@ -1349,7 +1356,7 @@
 		return bytes;
 	}
 
-	var asyncCodecShim = (library, options = {}) => {
+	var streamCodecShim = (library, options = {}) => {
 		return {
 			ZipDeflater: createCodecClass(library.Deflate, options.deflate),
 			ZipInflater: createCodecClass(library.Inflate, options.inflate)
@@ -1369,13 +1376,11 @@
 						this.pendingData = new Uint8Array(data);
 					}
 				};
-				this.codec = new constructor(constructorOptions);
+				this.codec = new constructor(Object.assign({}, constructorOptions, options));
 				if (typeof this.codec.onData == "function") {
 					this.codec.onData = onData;
 				} else if (typeof this.codec.on == "function") {
 					this.codec.on("data", onData);
-				} else if (options.registerCallbackFunction) {
-					options.registerCallbackFunction(this.codec, onData);
 				} else {
 					throw new Error("Cannot register the callback function.");
 				}
@@ -1476,7 +1481,7 @@
 	exports.ZipWriter = ZipWriter$1;
 	exports.configure = configure;
 	exports.getMimeType = getMimeType;
-	exports.initShimAsyncCodec = asyncCodecShim;
+	exports.initShimAsyncCodec = streamCodecShim;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
