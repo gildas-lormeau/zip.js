@@ -49,7 +49,7 @@
             const iframe = document.createElement("iframe");
             const link = document.createElement("a");
             const path = "pages/" + filename;
-            iframe.src = link.textContent = link.target = path;
+            iframe.src = link.textContent = link.target = link.href = path;
             cellTest.appendChild(iframe);
             cellLink.appendChild(link);
             row.appendChild(cellLink);
