@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global zip, document, Blob, FileReader */
+/* global zip, document, Blob, FileReader, setTimeout */
 
 "use strict";
 
@@ -34,10 +34,17 @@ async function test() {
 		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
 		return compareResult(blob, ENTRIES_DATA[indexEntry].blob);
 	}));
-	const results2 = await Promise.all(entries.slice(ENTRIES_DATA.length).map(async (entry, indexEntry) => {
-		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
-		return compareResult(blob, ENTRIES_DATA_PASS2[indexEntry].blob);
-	}));
+	const results2 = await Promise.all(entries.slice(ENTRIES_DATA.length).map(async (entry, indexEntry) =>
+		new Promise((resolve, reject) => {
+			setTimeout(async () => {
+				try {
+					const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
+					resolve(compareResult(blob, ENTRIES_DATA_PASS2[indexEntry].blob));
+				} catch (error) {
+					reject(error);
+				}
+			}, Math.random() * 250 + (indexEntry * 100));
+		})));
 	if (!results.includes(false) && !results2.includes(false)) {
 		document.body.innerHTML = "ok";
 	}
