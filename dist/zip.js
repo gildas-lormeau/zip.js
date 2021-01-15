@@ -37,12 +37,21 @@
 	const TEXT_PLAIN = "text/plain";
 
 	class Reader {
+		constructor() {
+			this.size = 0;
+		}
 		init() {
 			this.initialized = true;
 		}
 	}
 
 	class Writer {
+		constructor() {
+			this.size = 0;
+		}
+		writeUint8Array(array) {
+			this.size += array.length;
+		}
 		init() {
 			this.initialized = true;
 		}
@@ -52,7 +61,6 @@
 
 		constructor(text) {
 			super();
-			this.size = 0;
 			this.blobReader = new BlobReader(new Blob([text], { type: TEXT_PLAIN }));
 		}
 
@@ -76,6 +84,7 @@
 		}
 
 		writeUint8Array(array) {
+			super.writeUint8Array(array);
 			this.blob = new Blob([this.blob, array.buffer], { type: TEXT_PLAIN });
 		}
 
@@ -123,6 +132,7 @@
 		}
 
 		writeUint8Array(array) {
+			super.writeUint8Array(array);
 			let indexArray = 0, dataString = this.pending;
 			const delta = this.pending.length;
 			this.pending = "";
@@ -172,6 +182,7 @@
 		}
 
 		writeUint8Array(array) {
+			super.writeUint8Array(array);
 			this.blob = new Blob([this.blob, array.buffer], { type: this.contentType });
 			this.offset = this.blob.size;
 		}
@@ -186,7 +197,6 @@
 		constructor(url) {
 			super();
 			this.url = url;
-			this.size = 0;
 		}
 
 		async init() {
@@ -228,7 +238,6 @@
 		constructor(url) {
 			super();
 			this.url = url;
-			this.size = 0;
 		}
 
 		init() {
@@ -293,6 +302,7 @@
 		}
 
 		writeUint8Array(array) {
+			super.writeUint8Array(array);
 			const previousArray = this.array;
 			this.array = new Uint8Array(previousArray.length + array.length);
 			this.array.set(previousArray);
@@ -1097,7 +1107,7 @@
 			this.options = options;
 			this.config = config;
 			this.files = new Map();
-			this.offset = 0;
+			this.offset = writer.size;
 			this.zip64 = options.zip64;
 		}
 
