@@ -583,14 +583,14 @@
 
 	const ERR_INVALID_SIGNATURE = "Invalid signature";
 
-	class Inflater {
+	class Inflate {
 
 		constructor(options) {
 			this.signature = options.inputSignature;
 			this.encrypted = Boolean(options.inputPassword);
 			this.signed = options.inputSigned;
 			this.compressed = options.inputCompressed;
-			this.inflater = this.compressed && new ZipInflater();
+			this.inflate = this.compressed && new ZipInflate();
 			this.crc32 = this.signed && this.signed && new Crc32();
 			this.decryption = this.encrypted && new ZipDecrypt(options.inputPassword);
 		}
@@ -600,7 +600,7 @@
 				data = await this.decryption.append(data);
 			}
 			if (this.compressed && data.length) {
-				data = await this.inflater.append(data);
+				data = await this.inflate.append(data);
 			}
 			if (!this.encrypted && this.signed) {
 				this.crc32.append(data);
@@ -625,20 +625,20 @@
 				}
 			}
 			if (this.compressed) {
-				data = (await this.inflater.append(data)) || new Uint8Array(0);
-				await this.inflater.flush();
+				data = (await this.inflate.append(data)) || new Uint8Array(0);
+				await this.inflate.flush();
 			}
 			return { data, signature };
 		}
 	}
 
-	class Deflater {
+	class Deflate {
 
 		constructor(options) {
 			this.encrypted = options.outputEncrypted;
 			this.signed = options.outputSigned;
 			this.compressed = options.outputCompressed;
-			this.deflater = this.compressed && new ZipDeflater({ level: options.level || 5 });
+			this.deflate = this.compressed && new ZipDeflate({ level: options.level || 5 });
 			this.crc32 = this.signed && new Crc32();
 			this.encrypt = this.encrypted && new ZipEncrypt(options.outputPassword);
 		}
@@ -646,7 +646,7 @@
 		async append(inputData) {
 			let data = inputData;
 			if (this.compressed && inputData.length) {
-				data = await this.deflater.append(inputData);
+				data = await this.deflate.append(inputData);
 			}
 			if (this.encrypted) {
 				data = await this.encrypt.append(data);
@@ -659,7 +659,7 @@
 		async flush() {
 			let data = new Uint8Array(0), signature;
 			if (this.compressed) {
-				data = (await this.deflater.flush()) || new Uint8Array(0);
+				data = (await this.deflate.flush()) || new Uint8Array(0);
 			}
 			if (this.encrypted) {
 				data = await this.encrypt.append(data);
@@ -677,16 +677,16 @@
 	}
 
 	async function createCodec(config, options) {
-		const webWorkersEnabled =
-			options.inputCompressed || options.inputSigned || options.inputEncrypted ||
-			options.outputCompressed || options.outputSigned || options.outputEncrypted;
-		if (config.useWebWorkers && webWorkersEnabled) {
+		const streamCopy =
+			!options.inputCompressed && !options.inputSigned && !options.inputEncrypted &&
+			!options.outputCompressed && !options.outputSigned && !options.outputEncrypted;
+		if (config.useWebWorkers && !streamCopy) {
 			return createWorkerCodec(config, options);
 		} else {
-			if (options.codecType == "deflate") {
-				return new Deflater(options);
-			} else if (options.codecType == "inflate") {
-				return new Inflater(options);
+			if (options.codecType.startsWith("deflate")) {
+				return new Deflate(options);
+			} else if (options.codecType.startsWith("inflate")) {
+				return new Inflate(options);
 			}
 		}
 	}
@@ -1108,37 +1108,48 @@
 				throw new Error(ERR_DUPLICATED_NAME);
 			}
 			files.set(name, null);
-			let writer, resolveOffset;
-			if (options.bufferedWrite || this.blockingWrite) {
-				writer = new Uint8ArrayWriter();
-				writer.init();
-			} else {
-				this.blockingWrite = new Promise(resolve => resolveOffset = resolve);
-				if (!this.writer.initialized) {
-					await this.writer.init();
+			let resolveOffset;
+			try {
+				let writer, fileEntry;
+				try {
+					if (options.bufferedWrite || this.blockingWrite) {
+						writer = new Uint8ArrayWriter();
+						writer.init();
+					} else {
+						this.blockingWrite = new Promise(resolve => {
+							resolveOffset = resolve;
+						});
+						if (!this.writer.initialized) {
+							await this.writer.init();
+						}
+						writer = this.writer;
+					}
+					fileEntry = await createFileEntry(name, reader, writer, this.config, options);
+				} catch (error) {
+					files.delete(name);
+					throw error;
 				}
-				writer = this.writer;
-			}
-			const fileEntry = await createFileEntry(name, reader, writer, this.config, options);
-			files.set(name, fileEntry);
-			if (writer != this.writer) {
-				if (this.blockingWrite) {
-					await this.blockingWrite;
+				files.set(name, fileEntry);
+				if (writer != this.writer) {
+					if (this.blockingWrite) {
+						await this.blockingWrite;
+					}
+					await this.writer.writeUint8Array(writer.getData());
 				}
-				await this.writer.writeUint8Array(writer.getData());
-			}
-			fileEntry.offset = this.offset;
-			if (fileEntry.offset >= 0xffffffff) {
-				fileEntry.zip64 = true;
-			}
-			if (fileEntry.zip64) {
-				const extraFieldViewZip64 = new DataView(fileEntry.extraFieldZip64.buffer);
-				extraFieldViewZip64.setBigUint64(20, BigInt(fileEntry.offset), true);
-			}
-			this.offset += fileEntry.length;
-			if (resolveOffset) {
-				this.blockingWrite = null;
-				resolveOffset();
+				fileEntry.offset = this.offset;
+				if (fileEntry.offset >= 0xffffffff) {
+					fileEntry.zip64 = true;
+				}
+				if (fileEntry.zip64) {
+					const extraFieldViewZip64 = new DataView(fileEntry.extraFieldZip64.buffer);
+					extraFieldViewZip64.setBigUint64(20, BigInt(fileEntry.offset), true);
+				}
+				this.offset += fileEntry.length;
+			} finally {
+				if (resolveOffset) {
+					this.blockingWrite = null;
+					resolveOffset();
+				}
 			}
 		}
 
@@ -1286,7 +1297,6 @@
 		fileDataArray.set(extraFieldZip64, 30 + filename.length);
 		fileDataArray.set(extraFieldAES, 30 + filename.length + extraFieldZip64.length);
 		fileDataArray.set(fileEntry.rawExtraField, 30 + filename.length + extraFieldZip64.length + extraFieldAES.length);
-		await writer.writeUint8Array(fileDataArray);
 		let result;
 		if (reader) {
 			await reader.init();
@@ -1298,8 +1308,11 @@
 				outputCompressed: compressed,
 				outputEncrypted: Boolean(options.password)
 			});
+			await writer.writeUint8Array(fileDataArray);
 			result = await processData(codec, reader, writer, 0, reader.size, config, { onprogress: options.onprogress });
 			fileEntry.compressedSize = result.length;
+		} else {
+			await writer.writeUint8Array(fileDataArray);
 		}
 		const footerArray = new Uint8Array(zip64 ? 24 : 16);
 		const footerView = new DataView(footerArray.buffer);
