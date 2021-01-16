@@ -677,15 +677,15 @@
 	}
 
 	async function createCodec(config, options) {
-		const webWorkersEnabled =
-			options.inputCompressed || options.inputSigned || options.inputEncrypted ||
-			options.outputCompressed || options.outputSigned || options.outputEncrypted;
-		if (config.useWebWorkers && webWorkersEnabled) {
+		const streamCopy =
+			!options.inputCompressed && !options.inputSigned && !options.inputEncrypted &&
+			!options.outputCompressed && !options.outputSigned && !options.outputEncrypted;
+		if (config.useWebWorkers && !streamCopy) {
 			return createWorkerCodec(config, options);
 		} else {
-			if (options.codecType == "deflate") {
+			if (options.codecType.startsWith("deflate")) {
 				return new Deflate(options);
-			} else if (options.codecType == "inflate") {
+			} else if (options.codecType.startsWith("inflate")) {
 				return new Inflate(options);
 			}
 		}
@@ -1108,37 +1108,48 @@
 				throw new Error(ERR_DUPLICATED_NAME);
 			}
 			files.set(name, null);
-			let writer, resolveOffset;
-			if (options.bufferedWrite || this.blockingWrite) {
-				writer = new Uint8ArrayWriter();
-				writer.init();
-			} else {
-				this.blockingWrite = new Promise(resolve => resolveOffset = resolve);
-				if (!this.writer.initialized) {
-					await this.writer.init();
+			let resolveOffset;
+			try {
+				let writer, fileEntry;
+				try {
+					if (options.bufferedWrite || this.blockingWrite) {
+						writer = new Uint8ArrayWriter();
+						writer.init();
+					} else {
+						this.blockingWrite = new Promise(resolve => {
+							resolveOffset = resolve;
+						});
+						if (!this.writer.initialized) {
+							await this.writer.init();
+						}
+						writer = this.writer;
+					}
+					fileEntry = await createFileEntry(name, reader, writer, this.config, options);
+				} catch (error) {
+					files.delete(name);
+					throw error;
 				}
-				writer = this.writer;
-			}
-			const fileEntry = await createFileEntry(name, reader, writer, this.config, options);
-			files.set(name, fileEntry);
-			if (writer != this.writer) {
-				if (this.blockingWrite) {
-					await this.blockingWrite;
+				files.set(name, fileEntry);
+				if (writer != this.writer) {
+					if (this.blockingWrite) {
+						await this.blockingWrite;
+					}
+					await this.writer.writeUint8Array(writer.getData());
 				}
-				await this.writer.writeUint8Array(writer.getData());
-			}
-			fileEntry.offset = this.offset;
-			if (fileEntry.offset >= 0xffffffff) {
-				fileEntry.zip64 = true;
-			}
-			if (fileEntry.zip64) {
-				const extraFieldViewZip64 = new DataView(fileEntry.extraFieldZip64.buffer);
-				extraFieldViewZip64.setBigUint64(20, BigInt(fileEntry.offset), true);
-			}
-			this.offset += fileEntry.length;
-			if (resolveOffset) {
-				this.blockingWrite = null;
-				resolveOffset();
+				fileEntry.offset = this.offset;
+				if (fileEntry.offset >= 0xffffffff) {
+					fileEntry.zip64 = true;
+				}
+				if (fileEntry.zip64) {
+					const extraFieldViewZip64 = new DataView(fileEntry.extraFieldZip64.buffer);
+					extraFieldViewZip64.setBigUint64(20, BigInt(fileEntry.offset), true);
+				}
+				this.offset += fileEntry.length;
+			} finally {
+				if (resolveOffset) {
+					this.blockingWrite = null;
+					resolveOffset();
+				}
 			}
 		}
 
@@ -1286,7 +1297,6 @@
 		fileDataArray.set(extraFieldZip64, 30 + filename.length);
 		fileDataArray.set(extraFieldAES, 30 + filename.length + extraFieldZip64.length);
 		fileDataArray.set(fileEntry.rawExtraField, 30 + filename.length + extraFieldZip64.length + extraFieldAES.length);
-		await writer.writeUint8Array(fileDataArray);
 		let result;
 		if (reader) {
 			await reader.init();
@@ -1298,8 +1308,11 @@
 				outputCompressed: compressed,
 				outputEncrypted: Boolean(options.password)
 			});
+			await writer.writeUint8Array(fileDataArray);
 			result = await processData(codec, reader, writer, 0, reader.size, config, { onprogress: options.onprogress });
 			fileEntry.compressedSize = result.length;
+		} else {
+			await writer.writeUint8Array(fileDataArray);
 		}
 		const footerArray = new Uint8Array(zip64 ? 24 : 16);
 		const footerView = new DataView(footerArray.buffer);
