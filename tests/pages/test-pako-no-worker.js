@@ -8,7 +8,7 @@ const FILENAME = "lorem.txt";
 const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 
 // eslint-disable-next-line no-unused-vars
-const { ZipDeflater, ZipInflater } = zip.initShimAsyncCodec(pako, { deflate: { raw: true }, inflate: { raw: true } });
+const { ZipDeflate, ZipInflate } = zip.initShimAsyncCodec(pako, { deflate: { raw: true }, inflate: { raw: true } });
 test().catch(error => console.error(error));
 
 async function test() {

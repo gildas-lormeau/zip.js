@@ -11,11 +11,11 @@ zip.configure({
 /*
 workerScripts = {
 	// default zip.js implementation
-	deflater: ["../dist/z-worker.js", "../dist/deflate.js", "../dist/crypto.js"],
-	inflater: ["../dist/z-worker.js", "../dist/inflate.js", "../dist/crypto.js"],
+	deflate: ["../dist/z-worker.js", "../dist/deflate.js", "../dist/crypto.js"],
+	inflate: ["../dist/z-worker.js", "../dist/inflate.js", "../dist/crypto.js"],
 
 	// pako
-	// deflater: ["../dist/z-worker.js", "../worker-wrappers/pako/pako.min.js", "../pako/codecs.js", "../dist/crypto.js"],
-	// inflater: ["../dist/z-worker.js", "../worker-wrappers/pako/pako.min.js", "../pako/codecs.js", "../dist/crypto.js"],
+	// deflate: ["../dist/z-worker.js", "../worker-wrappers/pako/pako.min.js", "../pako/codecs.js", "../dist/crypto.js"],
+	// inflate: ["../dist/z-worker.js", "../worker-wrappers/pako/pako.min.js", "../pako/codecs.js", "../dist/crypto.js"],
 };
 */
