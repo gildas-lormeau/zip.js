@@ -921,7 +921,6 @@
 		let extraFieldZip64, extraFieldAES;
 		const rawExtraField = entry.rawExtraField;
 		if (rawExtraField) {
-			entry.zip64 = true;
 			const extraField = entry.extraField = new Map();
 			const rawExtraFieldView = new DataView(new Uint8Array(rawExtraField).buffer);
 			let offsetExtraField = 0;
@@ -937,6 +936,7 @@
 			extraFieldZip64 = entry.extraFieldZip64 = extraField.get(0x01);
 			extraFieldAES = entry.extraFieldAES = extraField.get(0x9901);
 			if (extraFieldZip64) {
+				entry.zip64 = true;
 				const extraFieldView = new DataView(extraFieldZip64.data.buffer);
 				extraFieldZip64.values = [];
 				for (let indexValue = 0; indexValue < Math.floor(extraFieldZip64.data.length / 8); indexValue++) {
@@ -1098,101 +1098,57 @@
 		}
 
 		async add(name, reader, options = {}) {
-			const files = this.files;
 			name = name.trim();
 			if (options.directory && name.charAt(name.length - 1) != "/") {
 				name += "/";
 			}
-			options.zip64 = options.zip64 || this.zip64;
-			if (files.has(name)) {
+			if (this.files.has(name)) {
 				throw new Error(ERR_DUPLICATED_NAME);
 			}
-			files.set(name, null);
-			let resolveOffset;
-			try {
-				let writer, fileEntry;
-				try {
-					if (options.bufferedWrite || this.blockingWrite) {
-						writer = new Uint8ArrayWriter();
-						writer.init();
-					} else {
-						this.blockingWrite = new Promise(resolve => {
-							resolveOffset = resolve;
-						});
-						if (!this.writer.initialized) {
-							await this.writer.init();
-						}
-						writer = this.writer;
-					}
-					fileEntry = await createFileEntry(name, reader, writer, this.config, options);
-				} catch (error) {
-					files.delete(name);
-					throw error;
-				}
-				files.set(name, fileEntry);
-				if (writer != this.writer) {
-					if (this.blockingWrite) {
-						await this.blockingWrite;
-					}
-					await this.writer.writeUint8Array(writer.getData());
-				}
-				fileEntry.offset = this.offset;
-				if (fileEntry.offset >= 0xffffffff) {
-					fileEntry.zip64 = true;
-				}
-				if (fileEntry.zip64) {
-					const extraFieldViewZip64 = new DataView(fileEntry.extraFieldZip64.buffer);
-					extraFieldViewZip64.setBigUint64(20, BigInt(fileEntry.offset), true);
-				}
-				this.offset += fileEntry.length;
-			} finally {
-				if (resolveOffset) {
-					this.blockingWrite = null;
-					resolveOffset();
-				}
-			}
+			options.zip64 = options.zip64 || this.zip64;
+			await addFile(this, name, reader, options);
 		}
 
 		async close(comment) {
 			const writer = this.writer;
 			const files = this.files;
 			let offset = 0, directoryDataLength = 0, directoryOffset = this.offset, filesLength = files.size;
-			for (const [, file] of files) {
-				directoryDataLength += 46 + file.filename.length + file.comment.length + file.extraFieldZip64.length + file.extraFieldAES.length + file.rawExtraField.length;
+			for (const [, fileEntry] of files) {
+				directoryDataLength += 46 + fileEntry.filename.length + fileEntry.comment.length + fileEntry.extraFieldZip64.length + fileEntry.extraFieldAES.length + fileEntry.rawExtraField.length;
 			}
 			if (this.zip64 || directoryOffset + directoryDataLength >= 0xffffffff || filesLength >= 0xffff) {
 				this.zip64 = true;
 			}
 			const directoryDataArray = new Uint8Array(directoryDataLength + (this.zip64 ? 98 : 22));
 			const directoryDataView = new DataView(directoryDataArray.buffer);
-			for (const [, file] of files) {
-				const filename = file.filename;
-				const extraFieldZip64 = file.extraFieldZip64;
-				const extraFieldAES = file.extraFieldAES;
-				const extraFieldLength = extraFieldZip64.length + extraFieldAES.length + file.rawExtraField.length;
+			for (const [, fileEntry] of files) {
+				const filename = fileEntry.filename;
+				const extraFieldZip64 = fileEntry.extraFieldZip64;
+				const extraFieldAES = fileEntry.extraFieldAES;
+				const extraFieldLength = extraFieldZip64.length + extraFieldAES.length + fileEntry.rawExtraField.length;
 				directoryDataView.setUint32(offset, 0x504b0102);
-				if (file.zip64) {
+				if (fileEntry.zip64) {
 					directoryDataView.setUint16(offset + 4, 0x2d00);
 				} else {
 					directoryDataView.setUint16(offset + 4, 0x1400);
 				}
-				directoryDataArray.set(file.headerArray, offset + 6);
+				directoryDataArray.set(fileEntry.headerArray, offset + 6);
 				directoryDataView.setUint16(offset + 30, extraFieldLength, true);
-				directoryDataView.setUint16(offset + 32, file.comment.length, true);
-				if (file.directory) {
+				directoryDataView.setUint16(offset + 32, fileEntry.comment.length, true);
+				if (fileEntry.directory) {
 					directoryDataView.setUint8(offset + 38, 0x10);
 				}
-				if (file.zip64) {
+				if (fileEntry.zip64) {
 					directoryDataView.setUint32(offset + 42, 0xffffffff, true);
 				} else {
-					directoryDataView.setUint32(offset + 42, file.offset, true);
+					directoryDataView.setUint32(offset + 42, fileEntry.offset, true);
 				}
 				directoryDataArray.set(filename, offset + 46);
 				directoryDataArray.set(extraFieldZip64, offset + 46 + filename.length);
 				directoryDataArray.set(extraFieldAES, offset + 46 + filename.length + extraFieldZip64.length);
-				directoryDataArray.set(file.rawExtraField, 46 + filename.length + extraFieldZip64.length + extraFieldAES.length);
-				directoryDataArray.set(file.comment, offset + 46 + filename.length + extraFieldLength);
-				offset += 46 + filename.length + extraFieldLength + file.comment.length;
+				directoryDataArray.set(fileEntry.rawExtraField, 46 + filename.length + extraFieldZip64.length + extraFieldAES.length);
+				directoryDataArray.set(fileEntry.comment, offset + 46 + filename.length + extraFieldLength);
+				offset += 46 + filename.length + extraFieldLength + fileEntry.comment.length;
 			}
 			if (this.zip64) {
 				directoryDataView.setUint32(offset, 0x504b0606);
@@ -1230,6 +1186,52 @@
 		}
 	}
 
+	async function addFile(zipWriter, name, reader, options) {
+		const files = zipWriter.files, writer = zipWriter.writer;
+		files.set(name, null);
+		let resolveLockWrite;
+		try {
+			let fileWriter, fileEntry;
+			try {
+				if (options.bufferedWrite || zipWriter.lockWrite) {
+					fileWriter = new Uint8ArrayWriter();
+					fileWriter.init();
+				} else {
+					zipWriter.lockWrite = new Promise(resolve => resolveLockWrite = resolve);
+					if (!writer.initialized) {
+						await writer.init();
+					}
+					fileWriter = writer;
+				}
+				if (zipWriter.offset >= 0xffffffff || (reader && (reader.size >= 0xffffffff || zipWriter.offset + reader.size >= 0xffffffff))) {
+					options.zip64 = true;
+				}
+				fileEntry = await createFileEntry(name, reader, fileWriter, zipWriter.config, options);
+			} catch (error) {
+				files.delete(name);
+				throw error;
+			}
+			files.set(name, fileEntry);
+			if (fileWriter != writer) {
+				if (zipWriter.lockWrite) {
+					await zipWriter.lockWrite;
+				}
+				await writer.writeUint8Array(fileWriter.getData());
+			}
+			fileEntry.offset = zipWriter.offset;
+			if (fileEntry.zip64) {
+				const extraFieldZip64View = new DataView(fileEntry.extraFieldZip64.buffer);
+				extraFieldZip64View.setBigUint64(20, BigInt(fileEntry.offset), true);
+			}
+			zipWriter.offset += fileEntry.length;
+		} finally {
+			if (resolveLockWrite) {
+				zipWriter.lockWrite = null;
+				resolveLockWrite();
+			}
+		}
+	}
+
 	async function createFileEntry(name, reader, writer, config, options) {
 		const filename = getBytes(encodeUTF8(name));
 		const date = options.lastModDate || new Date();
@@ -1238,7 +1240,7 @@
 		const outputPassword = options.password && options.password.length && options.password;
 		const compressed = options.level !== 0 && !options.directory;
 		const outputSigned = options.password === undefined || !options.password.length;
-		const zip64 = (options.zip64 || Boolean(reader && reader.size >= 0xffffffff));
+		const zip64 = options.zip64;
 		const fileEntry = {
 			zip64,
 			headerArray: headerArray,
@@ -1261,9 +1263,8 @@
 				offset += 4 + data.length;
 			});
 		}
-		options.generalPurposeBitFlag = 0x08;
+		options.bitFlag = 0x08;
 		options.version = options.version || 0x14;
-		options.generalPurposeBitFlag = 0x08;
 		options.compressionMethod = 0;
 		if (compressed) {
 			options.compressionMethod = 0x08;
@@ -1273,30 +1274,24 @@
 		}
 		if (outputPassword) {
 			options.version = options.version > 0x33 ? options.version : 0x33;
-			options.generalPurposeBitFlag = 0x09;
+			options.bitFlag = 0x09;
 			options.compressionMethod = 0x63;
 			if (compressed) {
 				fileEntry.extraFieldAES[9] = 0x08;
 			}
 		}
-		const extraFieldZip64 = fileEntry.extraFieldZip64;
-		const extraFieldAES = fileEntry.extraFieldAES;
 		headerView.setUint16(0, options.version, true);
-		headerView.setUint16(2, options.generalPurposeBitFlag, true);
+		headerView.setUint16(2, options.bitFlag, true);
 		headerView.setUint16(4, options.compressionMethod, true);
 		headerView.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 		headerView.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
 		headerView.setUint16(22, filename.length, true);
-		const extraFieldLength = extraFieldZip64.length + extraFieldAES.length + fileEntry.rawExtraField.length;
-		headerView.setUint16(24, extraFieldLength, true);
-		const fileDataArray = new Uint8Array(30 + filename.length + extraFieldLength);
+		headerView.setUint16(24, 0, true);
+		const fileDataArray = new Uint8Array(30 + filename.length);
 		const fileDataView = new DataView(fileDataArray.buffer);
 		fileDataView.setUint32(0, 0x504b0304);
 		fileDataArray.set(headerArray, 4);
 		fileDataArray.set(filename, 30);
-		fileDataArray.set(extraFieldZip64, 30 + filename.length);
-		fileDataArray.set(extraFieldAES, 30 + filename.length + extraFieldZip64.length);
-		fileDataArray.set(fileEntry.rawExtraField, 30 + filename.length + extraFieldZip64.length + extraFieldAES.length);
 		let result;
 		if (reader) {
 			await reader.init();
