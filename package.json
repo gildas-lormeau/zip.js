@@ -10,6 +10,7 @@
         "filessystem",
         "aes-256",
         "encryption",
+        "zip64",
         "stream"
     ],
     "scripts": {
