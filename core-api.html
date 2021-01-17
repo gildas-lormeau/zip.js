@@ -64,7 +64,7 @@
 				<ul>
 					<li>with web workers:
 						<br>
-						Set <code>workerScriptsPath</code> to the URL to the directory containing
+						Set <code>workerScriptsPath</code> to the URL of the directory containing
 						<code>z-worker.js</code>, <code>deflate.js</code>, and <code>inflate.js</code>.
 						<pre><code class="prettyprint">zip.configure({
   workerScriptsPath: "/lib/"
@@ -73,11 +73,11 @@
 					</li>
 					<li>without web workers:
 						<br>
-						Include <code>deflate.js</code> and/or <code>inflate.js</code> in the page.
+						Include <code>deflate.js</code> and/or <code>inflate.js</code> in the page
 						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/deflate.js&quot;&gt;&lt;/script&gt;
 &lt;script type=&quot;text/javascript&quot; src=&quot;/lib/inflate.js&quot;&gt;&lt;/script&gt;
 </code></pre>
-						Set <code>useWebWorkers</code> to <code>false</code>).
+						And set <code>useWebWorkers</code> to <code>false</code>
 						<pre><code class="prettyprint">zip.configure({
   useWebWorkers: false
 });</code></pre>
