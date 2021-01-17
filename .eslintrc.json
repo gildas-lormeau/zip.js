@@ -1,4 +1,4 @@
-module.exports = {
+{
     "env": {
         "es6": true,
         "node": false,
@@ -12,10 +12,14 @@ module.exports = {
         "ecmaVersion": 2017,
         "sourceType": "module"
     },
+    "ignorePatterns": [
+        "dist/"
+    ],
     "rules": {
         "indent": [
             "error",
-            "tab", {
+            "tab",
+            {
                 "SwitchCase": 1
             }
         ],
@@ -35,4 +39,4 @@ module.exports = {
             "warn"
         ]
     }
-};
+}
