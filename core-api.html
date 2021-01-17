@@ -42,8 +42,8 @@
 			<dt><code>useWebWorkers (booolean)</code></dt>
 			<dd>Enables the use of <a href="https://www.w3.org/TR/workers/">Web workers</a> to compress and uncompress
 				data in non-blocking background processes. The default value is <code>true</code>. You must also include
-				<code>deflate.js</code> and/or <code>inflate.js</code> and/or <code>crypto.js</code> in the web page if
-				you set it to <code>false</code>
+				<code>deflate.js</code> and/or <code>inflate.js</code> in the web page if you set it to
+				<code>false</code>
 			</dd>
 		</dl>
 		<dl>
@@ -71,14 +71,13 @@
 				relative to the page's base URL. Scripts in the array are executed in order, and the first one should be
 				<code>z-worker.js</code>, which is used to start the worker. If only deflation or inflation is used in
 				your application, the unused <code>workerScripts.deflate/inflate</code> property can be omitted, or
-				the unused <code>deflate.js</code>/<code>inflate.js</code> file can be removed from the array. The
-				</code>crypto.js</code> file can also be ommitted if you do not use encryption. Example:
+				the unused <code>deflate.js</code>/<code>inflate.js</code> file can be removed from the array. Example:
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
     deflate: [
-      "&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/deflate.js", "&lt;library path&gt;/crypto.js"],
+      "&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/deflate.js"],
     inflate: [
-      "&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/inflate.js", "&lt;library path&gt;/crypto.js"]
+      "&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/inflate.js"]
   }
 });</code></pre>
 			</dd>
@@ -304,7 +303,8 @@
 			<dt><code>crc32 (number)</code></dt>
 			<dd>uncompressed data checksum</dd>
 			<dt><code>extraField (Map)</code></dt>
-			<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and the value is a <code>UInt8Array</code></dd>
+			<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and the value
+				is a <code>UInt8Array</code></dd>
 			<dt><code>rawExtraField (UInt8Array)</code></dt>
 			<dd>extra field in binary</dd>
 		</dl>
@@ -413,7 +413,8 @@ await reader.close();</code></pre>
 					<dt><code>level (number)</code></dt>
 					<dd>compression level from <code>0</code> to <code>9</code></dd>
 					<dt><code>bufferedWrite (boolean)</code></dt>
-					<dd><code>true</code> to explicitely allow calling <code>ZipWriter#add</code> multiple times in parallel (<code>false</code> by default)
+					<dd><code>true</code> to explicitely allow calling <code>ZipWriter#add</code> multiple times in
+						parallel (<code>false</code> by default)
 					</dd>
 					<dt><code>comment (string)</code></dt>
 					<dd>file comment</dd>
@@ -426,7 +427,8 @@ await reader.close();</code></pre>
 					<dt><code>zip64 (boolean)</code></dt>
 					<dd>force the file entry to be written in zip64 (<code>false</code> by default)</dd>
 					<dt><code>extraField (Map)</code></dt>
-					<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and the value is a <code>UInt8Array</code>.</dd>
+					<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and
+						the value is a <code>UInt8Array</code>.</dd>
 				</dl>
 			</dd>
 		</dl>
