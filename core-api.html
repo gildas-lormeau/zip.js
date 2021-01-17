@@ -39,7 +39,7 @@
 		<h2 id="installation">Installation</h2>
 		<ul>
 			<li>
-				add <code>zip.min.js</code> in your project and the following files depending on your needs:
+				Add <code>zip.min.js</code> in your project and the following files depending on your needs:
 				<ul>
 					<li><code>z-worker.js</code> to zip/unzip files with web workers (recommended)</li>
 					<li><code>deflate.js</code> to zip files</li>
@@ -47,20 +47,23 @@
 				</ul>
 			</li>
 
-			<li>include <code>zip.min.js</code> script in your HTML page
-				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip.min.js&quot;&gt;&lt;/script&gt;</code></pre>
+			<li>Include <code>zip.min.js</code> script in your HTML page
+				<ul>
+					<li>as a regular script
+						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip.min.js&quot;&gt;&lt;/script&gt;</code></pre>
+					</li>
+					<li>or as a module
+						<pre><code class="prettyprint">require(["/lib/zip.min.js"], zip => {
+    // ...
+});</code></pre>
+
+					</li>
+				</ul>
+				If you do not want to use web workers, you must also include <code>deflate.js</code> and/or
+				<code>inflate.js</code> in the page. These two scripts are not AMD/UMD modules.
 			</li>
 
-			<li>if you do not want to use web workers, you must also include <code>deflate.js</code> and/or
-				<code>inflate.js</code>
-			</li>
-
-			<li><code>zip.min.js</code> is bundled as an <a href="https://github.com/umdjs/umd">UMD module</a>. That
-				means the API can be accessed via the <code>zip</code> object in the <code>window</code> object.
-				However, the library can also be loaded as a module.
-			</li>
-
-			<li>configure <code>workerScriptsPath</code> (i.e. the URL to the directory containing
+			<li>Configure <code>workerScriptsPath</code> (i.e. the URL to the directory containing
 				<code>z-worker.js</code>, <code>deflate.js</code>, and <code>inflate.js</code>).
 				<pre><code class="prettyprint">zip.configure({
   workerScriptsPath: "/lib/"
@@ -286,8 +289,8 @@
 		<h3>Constructor</h3>
 		<pre><code class="prettyprint">zip.ZipReader(reader)</code></pre>
 		<p>
-			Create a <code><a href="#zip-reading-proto">ZipReader</a></code> object. A
-			<code><a href="#zip-reading-proto">ZipReader</a></code> object helps to read the zipped content.
+			Create a <code><a href="#zip-reading">ZipReader</a></code> object. A
+			<code><a href="#zip-reading">ZipReader</a></code> object helps to read the zipped content.
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -296,7 +299,7 @@
 		</dl>
 
 		<p>Methods:</p>
-		<pre><code class="prettyprint">ZipReader#getEntries()</code></pre>
+		<pre><code class="prettyprint">zip.ZipReader#getEntries()</code></pre>
 		<p>
 			Get all entries from a zip.
 		</p>
@@ -305,7 +308,7 @@
 			<dt><code>Promise</code></dt>
 			<dd>A promise with the Array of <code><a href="#zip-entry">Entry</a></code> objects as resolved value</dd>
 		</dl>
-		<pre><code class="prettyprint">ZipReader#close()</code></pre>
+		<pre><code class="prettyprint">zip.ZipReader#close()</code></pre>
 		<p>
 			Close the opened zip file.
 		</p>
@@ -406,7 +409,7 @@ await reader.close();</code></pre>
 		<h3>Constructor</h3>
 		<pre><code class="prettyprint">zip.ZipWriter(writer [, options])</code></pre>
 		<p>
-			Create a <code><a href="#zip-writer-proto">ZipWriter</a></code> object.
+			Create a <code><a href="#zip-writing">ZipWriter</a></code> object.
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -421,8 +424,8 @@ await reader.close();</code></pre>
 			</dd>
 		</dl>
 
-		<h3 id="zip-writer-proto">Zip entry writing</h3>
-		<pre><code class="prettyprint">ZipWriter#add(name , reader [, options])</code></pre>
+		<p>Methods</p>
+		<pre><code class="prettyprint">zip.ZipWriter#add(name , reader [, options])</code></pre>
 		<p>
 			Add a new entry into the zip.
 		</p>
@@ -468,9 +471,7 @@ await reader.close();</code></pre>
 			<dt><code>Promise</code></dt>
 			<dd>A promise with <code>undefined</code> as resolved value</dd>
 		</dl>
-
-		<h3>Zip closing</h3>
-		<pre><code class="prettyprint">ZipWriter#close([comment])</code></pre>
+		<pre><code class="prettyprint">zip.ZipWriter#close([comment])</code></pre>
 		<p>
 			Close the opened zip.
 		</p>
