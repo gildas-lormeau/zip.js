@@ -40,7 +40,7 @@ export default [
 			}
 		]
 	}, {
-		input: "lib/zip-fs-full.js",
+		input: "index.js",
 		output: [
 			{
 				file: "dist/zip-fs-full.min.js",
