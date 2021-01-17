@@ -40,6 +40,25 @@ export default [
 			}
 		]
 	}, {
+		input: "lib/zip-fs-full.js",
+		output: [
+			{
+				file: "dist/zip-fs-full.min.js",
+				format: "umd",
+				name: "zip",
+				plugins: [
+					terser()
+				]
+			},
+			{
+				file: "dist/zip-fs.js",
+				format: "umd",
+				name: "zip",
+				plugins: [
+				]
+			}
+		]
+	}, {
 		input: "lib/z-worker.js",
 		output: [
 			{
