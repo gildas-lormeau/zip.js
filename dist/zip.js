@@ -790,11 +790,7 @@
 
 	function resolveURLs(urls) {
 		if (typeof document != "undefined") {
-			const anchorElement = document.createElement("a");
-			return urls.map(url => {
-				anchorElement.href = url;
-				return anchorElement.href;
-			});
+			return urls.map(url => new URL(url, document.baseURI).href);
 		} else {
 			return urls;
 		}
