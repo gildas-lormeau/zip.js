@@ -204,8 +204,9 @@
 		<p>Attributes:</p>
 		<dl>
 			<dt><code>size (number)</code></dt>
-			<dd>The uncompressed data byte size</dd>
+			<dd>The size of data to read in bytes</dd>
 		</dl>
+		<br>
 		<p>Methods:</p>
 		<pre><code class="prettyprint">zip.Reader#init()</code></pre>
 		<p>Initialize the <code><a href="#zip-reading">zip.Reader</a></code> object.</p>
@@ -214,6 +215,7 @@
 			<dt><code>Promise</code></dt>
 			<dd>A promise with <code>undefined</code> as resolved value</dd>
 		</dl>
+		<br>
 		<pre><code class="prettyprint">zip.Reader#readUint8Array(index, length])</code></pre>
 		<p>Extract an
 			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
@@ -262,6 +264,12 @@
 		</dl>
 
 		<h3>Writer members (used internally)</h3>
+		<p>Attributes:</p>
+		<dl>
+			<dt><code>size (number)</code></dt>
+			<dd>The size of written data in bytes</dd>
+		</dl>
+		<br>
 		<p>Methods:</p>
 		<pre><code class="prettyprint">zip.Writer#init()</code></pre>
 		<p>Initialize the <code><a href="#zip-writer">zip.Writer</a></code> object.</p>
@@ -270,6 +278,7 @@
 			<dt><code>Promise</code></dt>
 			<dd>A promise with <code>undefined</code> as resolved value</dd>
 		</dl>
+		<br>
 		<pre><code class="prettyprint">zip.Writer#writeUint8Array(array)</code></pre>
 		<p>Write an
 			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
@@ -291,6 +300,7 @@
 			<dt><code>Promise</code></dt>
 			<dd>A promise with <code>undefined</code> as resolved value</dd>
 		</dl>
+		<br>
 		<pre><code class="prettyprint">zip.Writer#getData()</code></pre>
 		<p>Get written data (returned type depends on <code><a href="#zip-reading">zip.Reader</a></code> constructor
 			used)</p>
@@ -299,7 +309,6 @@
 			<dt><code>Promise</code></dt>
 			<dd>A promise with the data as resolved value</dd>
 		</dl>
-
 		<h2 id="zip-reading">ZipReader class</h2>
 		<h3>Constructor</h3>
 		<pre><code class="prettyprint">zip.ZipReader(reader)</code></pre>
@@ -312,7 +321,7 @@
 			<dt><code>reader (<a href="#zip-reading">zip.Reader</a>)</code></dt>
 			<dd>the <code><a href="#zip-reading">zip.Reader</a></code> object used to read input data</dd>
 		</dl>
-
+		<br>
 		<p>Methods:</p>
 		<pre><code class="prettyprint">zip.ZipReader#getEntries()</code></pre>
 		<p>
@@ -323,6 +332,7 @@
 			<dt><code>Promise</code></dt>
 			<dd>A promise with the Array of <code><a href="#zip-entry">Entry</a></code> objects as resolved value</dd>
 		</dl>
+		<br>
 		<pre><code class="prettyprint">zip.ZipReader#close()</code></pre>
 		<p>
 			Close the opened zip file.
@@ -366,6 +376,7 @@
 			<dt><code>rawExtraField (UInt8Array)</code></dt>
 			<dd>extra field in binary</dd>
 		</dl>
+		<br>
 		<p>Methods:</p>
 		<pre><code class="prettyprint">Entry#getData(writer [, options])</code></pre>
 		<p>
@@ -438,7 +449,7 @@ await reader.close();</code></pre>
 				</dl>
 			</dd>
 		</dl>
-
+		<br>
 		<p>Methods:</p>
 		<pre><code class="prettyprint">zip.ZipWriter#add(name , reader [, options])</code></pre>
 		<p>
@@ -486,9 +497,10 @@ await reader.close();</code></pre>
 			<dt><code>Promise</code></dt>
 			<dd>A promise with <code>undefined</code> as resolved value</dd>
 		</dl>
+		<br>
 		<pre><code class="prettyprint">zip.ZipWriter#close([comment])</code></pre>
 		<p>
-			Close the opened zip.
+			Close the zip file.
 		</p>
 		<p>Parameters:</p>
 		<dl>
