@@ -420,9 +420,16 @@ const entries = await reader.getEntries();
 if (entries.length) {
 
   // get first entry content as text by using a TextWriter
-  const text = await entries[0].getData(new zip.TextWriter(), { onprogress: (index, max) => {
-	// onprogress callback
-  }});
+  const text = await entries[0].getData(
+    // writer
+    new zip.TextWriter(),
+    // options
+    { 
+      onprogress: (index, max) => {
+         // onprogress callback
+      }
+    }
+  );
   // text contains the entry data as a String
   console.log(text);
 
@@ -529,7 +536,9 @@ await writer.close();
 const blob = await blobWriter.getData();</code></pre>
 		<h2 id="full-example">Full example</h2>
 		<pre><code class="prettyprint">// create the inputBlob object storing the data to compress
-const inputBlob = new Blob(["Lorem ipsum dolor sit amet, consectetuer adipiscing elit..."], { type: "text/plain" });
+const inputBlob = new Blob(
+  ["Lorem ipsum dolor sit amet, consectetuer adipiscing elit..."], 
+  { type: "text/plain" });
 
 // use a BlobWriter object to write the zipped data into a Blob object
 const blobWriter = new zip.BlobWriter("application/zip");
