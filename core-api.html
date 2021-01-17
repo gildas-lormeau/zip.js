@@ -54,20 +54,35 @@
 					</li>
 					<li>or as a module
 						<pre><code class="prettyprint">require(["/lib/zip.min.js"], zip => {
-    // ...
+  // ...
 });</code></pre>
 
 					</li>
 				</ul>
-				If you do not want to use web workers, you must also include <code>deflate.js</code> and/or
-				<code>inflate.js</code> in the page. These two scripts are not AMD/UMD modules.
 			</li>
-
-			<li>Configure <code>workerScriptsPath</code> (i.e. the URL to the directory containing
-				<code>z-worker.js</code>, <code>deflate.js</code>, and <code>inflate.js</code>).
-				<pre><code class="prettyprint">zip.configure({
+			<li>The last step depends on whether you use the web workers or not
+				<ul>
+					<li>with web workers:
+						<br>
+						Set <code>workerScriptsPath</code> to the URL to the directory containing
+						<code>z-worker.js</code>, <code>deflate.js</code>, and <code>inflate.js</code>.
+						<pre><code class="prettyprint">zip.configure({
   workerScriptsPath: "/lib/"
 });</code></pre>
+
+					</li>
+					<li>without web workers:
+						<br>
+						Include <code>deflate.js</code> and/or <code>inflate.js</code> in the page.
+						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/deflate.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/inflate.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+						Set <code>useWebWorkers</code> to <code>false</code>).
+						<pre><code class="prettyprint">zip.configure({
+  useWebWorkers: false
+});</code></pre>
+					</li>
+				</ul>
 			</li>
 		</ul>
 
@@ -129,7 +144,7 @@
 		<p>
 			For example, if you need to read a zip and store its file into a variable, you must use a
 			<code><a href="#zip-reading">zip.Reader</a></code> object to read the compressed zip data. You must also use
-			a <code><a href="#zip-writer">zip.Writer</a></code> object to write uncompressed file data into the
+			a <code><a href="#zip-writer">zip.Writer</a></code> object to write the uncompressed file data into the
 			variable.
 		</p>
 
