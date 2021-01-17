@@ -24,16 +24,49 @@
 		</div>
 		<h2>Contents</h2>
 		<ol>
+			<li><a href="#installation">Installation</a></li>
 			<li><a href="#configuration">Configuration</a></li>
-			<li><a href="#io">I/O</a></li>
-			<li><a href="#zip-reading">Zip reading</a></li>
-			<li><a href="#zip-reading-example">Zip reading example</a></li>
-			<li><a href="#zip-writing">Zip writing</a></li>
-			<li><a href="#zip-writing-example">Zip writing example</a></li>
+			<li><a href="#io">Input/output classes</a></li>
+			<li><a href="#zip-reading">ZipReader class</a></li>
+			<li><a href="#zip-reading-example">ZipReader example</a></li>
+			<li><a href="#zip-writing">ZipWriter class</a></li>
+			<li><a href="#zip-writing-example">ZipWriter example</a></li>
 			<li><a href="#full-example">Full example</a></li>
 			<li><a href="#alternative-codecs">Alternative DEFLATE implementations</a></li>
 		</ol>
 		<hr>
+
+		<h2 id="installation">Installation</h2>
+		<ul>
+			<li>
+				add <code>zip.min.js</code> in your project and the following files depending on your needs:
+				<ul>
+					<li><code>z-worker.js</code> to zip/unzip files with web workers (recommended)</li>
+					<li><code>deflate.js</code> to zip files</li>
+					<li><code>inflate.js</code> to unzip files</li>
+				</ul>
+			</li>
+
+			<li>include <code>zip.min.js</code> script in your HTML page
+				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip.min.js&quot;&gt;&lt;/script&gt;</code></pre>
+			</li>
+
+			<li>if you do not want to use web workers, you must also include <code>deflate.js</code> and/or
+				<code>inflate.js</code>
+			</li>
+
+			<li><code>zip.min.js</code> is bundled as an <a href="https://github.com/umdjs/umd">UMD module</a>. That
+				means the API can be accessed via the <code>zip</code> object in the <code>window</code> object.
+				However, the library can also be loaded as a module.
+			</li>
+
+			<li>configure <code>workerScriptsPath</code> (i.e. the URL to the directory containing
+				<code>z-worker.js</code>, <code>deflate.js</code>, and <code>inflate.js</code>).
+				<pre><code class="prettyprint">zip.configure({
+  workerScriptsPath: "/lib/"
+});</code></pre>
+			</li>
+		</ul>
 
 		<h2 id="configuration">Configuration</h2>
 		<p>You can call the function <code>zip.configure</code> in order to configure zip.js. It accepts a configuration
@@ -41,7 +74,7 @@
 		<dl>
 			<dt><code>useWebWorkers (booolean)</code></dt>
 			<dd>Enables the use of <a href="https://www.w3.org/TR/workers/">Web workers</a> to compress and uncompress
-				data in non-blocking background processes. The default value is <code>true</code>. You must also include
+				data in non-blocking background processes. The default value is <code>true</code>. You must include
 				<code>deflate.js</code> and/or <code>inflate.js</code> in the web page if you set it to
 				<code>false</code>
 			</dd>
@@ -74,16 +107,14 @@
 				the unused <code>deflate.js</code>/<code>inflate.js</code> file can be removed from the array. Example:
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
-    deflate: [
-      "&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/deflate.js"],
-    inflate: [
-      "&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/inflate.js"]
+    deflate: ["&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/deflate.js"],
+    inflate: ["&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/inflate.js"]
   }
 });</code></pre>
 			</dd>
 		</dl>
 
-		<h2 id="io">I/O</h2>
+		<h2 id="io">Input/output classes</h2>
 		<h3>Reader and Writer constructors</h3>
 		<p>
 			<code>zip.js</code> can handle multiple types of data thanks to a generic API. This feature is based on 2
@@ -99,7 +130,7 @@
 			variable.
 		</p>
 
-		<h3 id="zip-reading">Reader constructors</h3>
+		<h3>Reader constructors</h3>
 
 		<p>
 			<code>string</code> reader constructor
@@ -191,7 +222,7 @@
 				as resolved value
 			</dd>
 		</dl>
-		<h3 id="zip-writer">Writer constructors</h3>
+		<h3>Writer constructors</h3>
 		<p>
 			<code>string</code> writer constructor
 		</p>
@@ -251,7 +282,7 @@
 			<dd>A promise with the data as resolved value</dd>
 		</dl>
 
-		<h2 id="zip-reading">Zip reading</h2>
+		<h2 id="zip-reading">ZipReader class</h2>
 		<h3>Constructor</h3>
 		<pre><code class="prettyprint">zip.ZipReader(reader)</code></pre>
 		<p>
@@ -264,7 +295,7 @@
 			<dd>the <code><a href="#zip-reading">zip.Reader</a></code> object used to read input data</dd>
 		</dl>
 
-		<h3 id="zip-reading-proto">Zip entries listing</h3>
+		<p>Methods:</p>
 		<pre><code class="prettyprint">ZipReader#getEntries()</code></pre>
 		<p>
 			Get all entries from a zip.
@@ -272,10 +303,19 @@
 		<p>Returns:</p>
 		<dl>
 			<dt><code>Promise</code></dt>
-			<dd>A promise with the Array of <code><a href="#zip-entry">Entry</a></code> object as resolved value</dd>
+			<dd>A promise with the Array of <code><a href="#zip-entry">Entry</a></code> objects as resolved value</dd>
+		</dl>
+		<pre><code class="prettyprint">ZipReader#close()</code></pre>
+		<p>
+			Close the opened zip file.
+		</p>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with <code>undefined</code> as resolved value</dd>
 		</dl>
 
-		<h3>Zip entry data reading</h3>
+		<h3>Entry class</h3>
 		<pre id="zip-entry"><code class="prettyprint">Entry()</code></pre>
 		<p>
 			Constructor representing a zip file entry.
@@ -301,7 +341,7 @@
 			<dt><code>rawComment (UInt8Array)</code></dt>
 			<dd>file comment in binary</dd>
 			<dt><code>crc32 (number)</code></dt>
-			<dd>uncompressed data checksum</dd>
+			<dd>checksum of the uncompressed data</dd>
 			<dt><code>extraField (Map)</code></dt>
 			<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and the value
 				is a <code>UInt8Array</code></dd>
@@ -339,18 +379,9 @@
 			</dd>
 		</dl>
 
-		<h3>Zip closing</h3>
-		<pre><code class="prettyprint">ZipReader#close()</code></pre>
-		<p>
-			Close the opened zip file.
-		</p>
-		<p>Returns:</p>
-		<dl>
-			<dt><code>Promise</code></dt>
-			<dd>A promise with <code>undefined</code> as resolved value</dd>
-		</dl>
 
-		<h2 id="zip-reading-example">Zip reading example</h2>
+
+		<h2 id="zip-reading-example">ZipReader example</h2>
 		<h3>Read a zip from a Blob/File object</h3>
 		<pre><code class="prettyprint">// create a BlobReader to read with a ZipReader the zip from a Blob object
 const reader = new zip.ZipReader(new zip.BlobReader(blob));
@@ -371,7 +402,7 @@ if (entries.length) {
 // close the ZipReader
 await reader.close();</code></pre>
 
-		<h2 id="zip-writing">Zip writing</h2>
+		<h2 id="zip-writing">ZipWriter class</h2>
 		<h3>Constructor</h3>
 		<pre><code class="prettyprint">zip.ZipWriter(writer [, options])</code></pre>
 		<p>
@@ -454,7 +485,7 @@ await reader.close();</code></pre>
 			<dd>A promise with the value of <code>writer.getData()</code> as resolved value</dd>
 		</dl>
 
-		<h2 id="zip-writing-example">Zip writing example</h2>
+		<h2 id="zip-writing-example">ZipWriter example</h2>
 		<h3>Write a zip into a Blob object</h3>
 		<pre><code class="prettyprint">// use a BlobWriter to store with a ZipWriter the zip into a Blob object
 const blobWriter = new zip.BlobWriter();
