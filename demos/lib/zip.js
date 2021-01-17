@@ -33,7 +33,7 @@
 	 */
 
 	const ERR_HTTP_STATUS = "HTTP error ";
-	const ERR_HTTP_RANGE = "HTTP Range not supported.";
+	const ERR_HTTP_RANGE = "HTTP Range not supported";
 	const TEXT_PLAIN = "text/plain";
 
 	class Stream {
@@ -683,13 +683,13 @@
 		const pool = workers.pool;
 		const codecType = options.codecType;
 		if (config.workerScripts != null && config.workerScriptsPath != null) {
-			throw new Error("Either zip.workerScripts or zip.workerScriptsPath may be set, not both.");
+			throw new Error("Either zip.workerScripts or zip.workerScriptsPath may be set, not both");
 		}
 		let scripts;
 		if (config.workerScripts) {
 			scripts = config.workerScripts[codecType];
 			if (!Array.isArray(scripts)) {
-				throw new Error("zip.workerScripts." + codecType + " must be an array.");
+				throw new Error("zip.workerScripts." + codecType + " must be an array");
 			}
 			scripts = resolveURLs(scripts);
 		} else {
@@ -1029,16 +1029,16 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const ERR_BAD_FORMAT = "File format is not recognized.";
-	const ERR_EOCDR_NOT_FOUND = "End of central directory not found.";
-	const ERR_EOCDR_ZIP64_NOT_FOUND = "End of Zip64 central directory not found.";
-	const ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = "End of Zip64 central directory locator not found.";
-	const ERR_CENTRAL_DIRECTORY_NOT_FOUND = "Central directory header not found.";
-	const ERR_LOCAL_FILE_HEADER_NOT_FOUND = "Local file header not found.";
-	const ERR_EXTRA_FIELD_ZIP64_NOT_FOUND = "Zip64 extra field not found.";
-	const ERR_ENCRYPTED = "File contains encrypted entry.";
-	const ERR_UNSUPPORTED_ENCRYPTION = "Encryption not supported.";
-	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported.";
+	const ERR_BAD_FORMAT = "File format is not recognized";
+	const ERR_EOCDR_NOT_FOUND = "End of central directory not found";
+	const ERR_EOCDR_ZIP64_NOT_FOUND = "End of Zip64 central directory not found";
+	const ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = "End of Zip64 central directory locator not found";
+	const ERR_CENTRAL_DIRECTORY_NOT_FOUND = "Central directory header not found";
+	const ERR_LOCAL_FILE_HEADER_NOT_FOUND = "Local file header not found";
+	const ERR_EXTRA_FIELD_ZIP64_NOT_FOUND = "Zip64 extra field not found";
+	const ERR_ENCRYPTED = "File contains encrypted entry";
+	const ERR_UNSUPPORTED_ENCRYPTION = "Encryption not supported";
+	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 	const EXTENDED_US_ASCII = ["\u00C7", "\u00FC", "\u00E9", "\u00E2", "\u00E4", "\u00E0", "\u00E5", "\u00E7", "\u00EA", "\u00EB",
 		"\u00E8", "\u00EF", "\u00EE", "\u00EC", "\u00C4", "\u00C5", "\u00C9", "\u00E6", "\u00C6", "\u00F4", "\u00F6", "\u00F2", "\u00FB", "\u00F9",
 		"\u00FF", "\u00D6", "\u00DC", "\u00F8", "\u00A3", "\u00D8", "\u00D7", "\u0192", "\u00E1", "\u00ED", "\u00F3", "\u00FA", "\u00F1", "\u00D1",
@@ -1341,8 +1341,10 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const ERR_DUPLICATED_NAME = "File already exists.";
-	const ERR_ZIP_FILE_COMMENT = "Zip file comment exceeds 64KB.";
+	const MAX_COMMENT_LENGTH = 65536;
+	const ERR_DUPLICATED_NAME = "File already exists";
+	const ERR_ZIP_FILE_COMMENT = "Zip file comment exceeds 64KB";
+	const ERR_FILE_ENTRY_COMMENT = "File entry comment exceeds 64KB";
 
 	class ZipWriter {
 
@@ -1362,6 +1364,10 @@
 			}
 			if (this.files.has(name)) {
 				throw new Error(ERR_DUPLICATED_NAME);
+			}
+			options.comment = getBytes(encodeUTF8(options.comment || ""));
+			if (options.comment > MAX_COMMENT_LENGTH) {
+				throw new Error(ERR_FILE_ENTRY_COMMENT);
 			}
 			options.zip64 = options.zip64 || this.zip64;
 			await addFile(this, name, reader, options);
@@ -1430,7 +1436,7 @@
 			directoryDataView.setUint32(offset + 12, directoryDataLength, true);
 			directoryDataView.setUint32(offset + 16, directoryOffset, true);
 			if (comment && comment.length) {
-				if (comment.length <= 65536) {
+				if (comment.length <= MAX_COMMENT_LENGTH) {
 					directoryDataView.setUint16(offset + 20, comment.length, true);
 				} else {
 					throw new Error(ERR_ZIP_FILE_COMMENT);
@@ -1504,7 +1510,7 @@
 			headerArray: headerArray,
 			directory: options.directory,
 			filename: filename,
-			comment: getBytes(encodeUTF8(options.comment || "")),
+			comment: options.comment,
 			extraFieldZip64: zip64 ? new Uint8Array(28) : new Uint8Array(0),
 			extraFieldAES: outputPassword ? new Uint8Array([0x01, 0x99, 0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]) : new Uint8Array(0),
 			rawExtraField: new Uint8Array(0)
@@ -1635,7 +1641,7 @@
 				} else if (typeof this.codec.on == "function") {
 					this.codec.on("data", onData);
 				} else {
-					throw new Error("Cannot register the callback function.");
+					throw new Error("Cannot register the callback function");
 				}
 			}
 			async append(data) {
