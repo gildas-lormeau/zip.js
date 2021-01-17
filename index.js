@@ -1,0 +1,41 @@
+import {
+	fs,
+	configure,
+	initShimAsyncCodec,
+	getMimeType,
+	ZipReader,
+	ZipWriter,
+	Reader,
+	Writer,
+	TextReader,
+	TextWriter,
+	Data64URIReader,
+	Data64URIWriter,
+	BlobReader,
+	BlobWriter,
+	HttpReader,
+	HttpRangeReader,
+	Uint8ArrayWriter,
+	Uint8ArrayReader
+} from "lib/zip-fs-full.js";
+
+export {
+	fs,
+	configure,
+	initShimAsyncCodec,
+	getMimeType,
+	ZipReader,
+	ZipWriter,
+	Reader,
+	Writer,
+	TextReader,
+	TextWriter,
+	Data64URIReader,
+	Data64URIWriter,
+	BlobReader,
+	BlobWriter,
+	HttpReader,
+	HttpRangeReader,
+	Uint8ArrayWriter,
+	Uint8ArrayReader
+};

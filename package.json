@@ -6,7 +6,7 @@
     "scripts": {
         "build": "./build.sh"
     },
-    "main": "lib/zip-fs-full.js",
+    "main": "index.js",
     "devDependencies": {
         "rollup-plugin-terser": "^7.0.2"
     },
