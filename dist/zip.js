@@ -865,7 +865,7 @@
 				entry.offset = directoryDataView.getUint32(offset + 42, true);
 				entry.rawFilename = dataArray.subarray(offset + 46, offset + 46 + entry.filenameLength);
 				const filename = getString(entry.rawFilename);
-				entry.filename = ((entry.bitFlag & 0x0800) == 0x0800) ? decodeUTF8(filename) : decodeASCII(filename);
+				entry.filename = entry.bitFlag.languageEncodingFlag ? decodeUTF8(filename) : decodeASCII(filename);
 				if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) == "/") {
 					entry.directory = true;
 				}
@@ -874,7 +874,7 @@
 				entry.rawComment = dataArray.subarray(offset + 46 + entry.filenameLength + entry.extraFieldLength, offset + 46
 					+ entry.filenameLength + entry.extraFieldLength + entry.commentLength);
 				const comment = getString(entry.rawComment);
-				entry.comment = ((entry.bitFlag & 0x0800) == 0x0800) ? decodeUTF8(comment) : decodeASCII(comment);
+				entry.comment = entry.bitFlag.languageEncodingFlag ? decodeUTF8(comment) : decodeASCII(comment);
 				entries.push(entry);
 				offset += 46 + entry.filenameLength + entry.extraFieldLength + entry.commentLength;
 			}
@@ -925,7 +925,13 @@
 
 	function readCommonHeader(entry, dataView, offset) {
 		entry.version = dataView.getUint16(offset, true);
-		entry.bitFlag = dataView.getUint16(offset + 2, true);
+		const rawBitFlag = entry.rawBitFlag = dataView.getUint16(offset + 2, true);
+		entry.bitFlag = {
+			encrypted: (rawBitFlag & 0x01) == 0x01,
+			level: (rawBitFlag & 0x06) >> 1,
+			dataDescriptor: (rawBitFlag & 0x08) == 0x08,
+			languageEncodingFlag: (rawBitFlag & 0x0800) == 0x0800
+		};
 		entry.filenameLength = dataView.getUint16(offset + 22, true);
 		entry.extraFieldLength = dataView.getUint16(offset + 24, true);
 	}
@@ -956,21 +962,19 @@
 					extraFieldZip64.values.push(Number(extraFieldView.getBigUint64(0 + indexValue * 8, true)));
 				}
 			}
-			if (extraFieldAES) {
-				if ((entry.bitFlag & 0x01) == 0x01) {
-					entry.passwordProtected = true;
-					const compressionMethod = dataView.getUint16(offset + 4, true);
-					if (compressionMethod != 0x63) {
-						throw new Error(ERR_UNSUPPORTED_COMPRESSION);
-					}
-					const extraFieldView = new DataView(extraFieldAES.data.buffer);
-					extraFieldAES.vendorVersion = extraFieldView.getUint8(0);
-					extraFieldAES.vendorId = extraFieldView.getUint8(2);
-					const strength = extraFieldView.getUint8(4);
-					extraFieldAES.compressionMethod = extraFieldView.getUint16(5, true);
-					if (strength != 3) {
-						throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
-					}
+			if (extraFieldAES && entry.bitFlag.encrypted) {
+				entry.passwordProtected = true;
+				const compressionMethod = dataView.getUint16(offset + 4, true);
+				if (compressionMethod != 0x63) {
+					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
+				}
+				const extraFieldView = new DataView(extraFieldAES.data.buffer);
+				extraFieldAES.vendorVersion = extraFieldView.getUint8(0);
+				extraFieldAES.vendorId = extraFieldView.getUint8(2);
+				const strength = extraFieldView.getUint8(4);
+				extraFieldAES.compressionMethod = extraFieldView.getUint16(5, true);
+				if (strength != 3) {
+					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
 				}
 			}
 		}
@@ -982,9 +986,12 @@
 		if (entry.compressionMethod != 0x0 && entry.compressionMethod != 0x08) {
 			throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 		}
+		if (entry.compressionMethod == 0x08) {
+			entry.bitFlag.enhancedDeflating = (entry.rawBitFlag & 0x10) != 0x10;
+		}
 		entry.lastModDateRaw = dataView.getUint32(offset + 6, true);
 		entry.lastModDate = getDate(entry.lastModDateRaw);
-		if (isCentralHeader || (entry.bitFlag & 0x08) != 0x08) {
+		if (isCentralHeader || !entry.bitFlag.dataDescriptor) {
 			entry.signature = dataView.getUint32(offset + 10, true);
 			entry.uncompressedSize = dataView.getUint32(offset + 18, true);
 			entry.compressedSize = dataView.getUint32(offset + 14, true);
