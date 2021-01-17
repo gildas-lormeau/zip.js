@@ -3,6 +3,7 @@
 
 "use strict";
 
+require.config({ waitSeconds: Infinity });
 require(["../../dist/zip.min.js"], zip => {
 
 	zip.configure({ workerScriptsPath: "../../dist/" });
