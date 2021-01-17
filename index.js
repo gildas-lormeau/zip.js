@@ -47,7 +47,7 @@ import {
 	Uint8ArrayWriter,
 	Uint8ArrayReader
 } from "./lib/zip-fs.js";
-import getMimeType from "./lib/mime-type.js";
+import getMimeType from "./lib/util/mime-type.js";
 
 export {
 	fs,
