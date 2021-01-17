@@ -540,47 +540,29 @@ const inputBlob = new Blob(
   ["Lorem ipsum dolor sit amet, consectetuer adipiscing elit..."], 
   { type: "text/plain" });
 
-// use a BlobWriter object to write the zipped data into a Blob object
-const blobWriter = new zip.BlobWriter("application/zip");
+// - create a BlobWriter object to write the zipped data into a Blob object
+// - create a ZipWriter object with the BlobWriter object as parameter
+const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
 
-// use a ZipWriter object to write zipped data
-const zipWriter = new zip.ZipWriter(blobWriter);
+// - create a BlobReader object to read the content of inputBlob
+// - add a new file named "text.txt" in the zip and associate it to the BlobReader object
+await zipWriter.add("test.txt", new zip.BlobReader(inputBlob));
 
-// use a BlobReader object to read the data stored into inputBlob
-const inputBlobReader = new zip.BlobReader(inputBlob)
-
-// add the Blob object into the zip named as test.txt
-await zipWriter.add("test.txt", inputBlobReader);
-
-// close the ZipWriter object
-await zipWriter.close();
-
-// store zipped data into outputBlob
-const outputBlob = await blobWriter.getData();
-
-// use a zip.BlobReader object to read zipped data stored into the outputBlob variable
-const ouputBlobReader = new zip.BlobReader(outputBlob);
-
-// use a ZipWriter object to read the zipped data
-const zipReader = new zip.ZipReader(ouputBlobReader);
+// - close the ZipWriter object
+// - create a BlobReader object with the zipped content 
+// - create a ZipWriter object to read the zipped data
+const zipReader = new zip.ZipReader(new zip.BlobReader(await zipWriter.close()));
 
 // get entries from the zip file
 const entries = await zipReader.getEntries();
 
-// get the first entry
-const firstEntry = entries[0];
-
-// use a BlobWriter object to write the unzipped data into a Blob object
-const outputBlobWriter = new zip.BlobWriter("text/plain");
-
-// get data from the first file
-const data = await entries[0].getData(outputBlobWriter);
+// use a BlobWriter object to write the unzipped data of the first entry into a Blob object
+const data = await entries[0].getData(new zip.BlobWriter("text/plain"));
+// close the ZipReader object
+await zipReader.close();
 
 // log the data
-console.log(data);
-
-// close the ZipReader object
-await zipReader.close();</code></pre>
+console.log(data);</code></pre>
 
 		<h2 id="alternative-codecs">Alternative DEFLATE implementations</h2>
 		<p>Alternative DEFLATE implementations can be used with zip.js in favor of better performance and/or better
