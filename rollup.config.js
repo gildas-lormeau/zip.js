@@ -49,13 +49,6 @@ export default [
 				plugins: [
 					terser()
 				]
-			},
-			{
-				file: "dist/zip-fs.js",
-				format: "umd",
-				name: "zip",
-				plugins: [
-				]
 			}
 		]
 	}, {
