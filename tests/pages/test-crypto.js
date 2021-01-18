@@ -24,7 +24,16 @@ async function test() {
 		data = await entries[0].getData(dataBlobWriter);
 		data = null;
 	} catch (error) {
-		data = await entries[0].getData(dataBlobWriter, { password: "password" });
+		if (error.message == zip.ERR_ENCRYPTED) {
+			try {
+				data = await entries[0].getData(dataBlobWriter, { password: "notagoodpassword" });
+				data = null;
+			} catch (error) {
+				if (error.message == zip.ERR_INVALID_PASSORD) {
+					data = await entries[0].getData(dataBlobWriter, { password: "password" });
+				}
+			}
+		}
 	}
 	await zipReader.close();
 	if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {

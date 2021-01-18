@@ -19,7 +19,9 @@ async function test() {
 		data = await entries[0].getData(dataBlobWriter);
 		data = null;
 	} catch (error) {
-		data = await entries[0].getData(dataBlobWriter, { password: "password" });
+		s
+			data = await entries[0].getData(dataBlobWriter, { password: "password" });
+		}
 	}
 	await zipReader.close();
 	if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
