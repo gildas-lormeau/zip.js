@@ -19,7 +19,7 @@ async function test() {
 		data = await entries[0].getData(dataBlobWriter);
 		data = null;
 	} catch (error) {
-		s
+		if (error.message == zip.ERR_ENCRYPTED) {
 			data = await entries[0].getData(dataBlobWriter, { password: "password" });
 		}
 	}
