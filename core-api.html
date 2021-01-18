@@ -39,7 +39,7 @@
 		<h2 id="installation">Installation</h2>
 		<ul>
 			<li>
-				Add <code>zip.min.js</code> from the <code>/dist</code> folder in your project and the 
+				Add <code>zip.min.js</code> from the <code>/dist</code> folder in your project and the
 				following files depending on your needs:
 				<ul>
 					<li><code>z-worker.js</code> to zip/unzip files with web workers (recommended)</li>
@@ -100,7 +100,7 @@
 		</dl>
 		<dl>
 			<dt><code>maxWorkers (number)</code></dt>
-			<dd>Number of Web workers used simultaneously to process data. The default value is the number of logical
+			<dd>Number of workers used simultaneously to process data. The default value is the number of logical
 				cores returned by the attribute
 				<code><a href="https://html.spec.whatwg.org/multipage/workers.html#navigator.hardwareconcurrency">navigator.hardwareConcurrency</a></code>
 				or <code>2</code> if <code>navigator</code> is <code>undefined</code>.
@@ -312,7 +312,7 @@
 		</dl>
 		<h2 id="zip-reading">ZipReader class</h2>
 		<h3>Constructor</h3>
-		<pre><code class="prettyprint">zip.ZipReader(reader)</code></pre>
+		<pre><code class="prettyprint">zip.ZipReader(reader [, options])</code></pre>
 		<p>
 			Create a <code><a href="#zip-reading">ZipReader</a></code> object. A
 			<code><a href="#zip-reading">ZipReader</a></code> object helps to read the zipped content.
@@ -321,6 +321,20 @@
 		<dl>
 			<dt><code>reader (<a href="#zip-reading">zip.Reader</a>)</code></dt>
 			<dd>the <code><a href="#zip-reading">zip.Reader</a></code> object used to read input data</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>optional properties:
+				<dl>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of all the files should be verified
+						(<code>false</code> by default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt all the files (empty by default)</dd>
+					<dt><code>filenameEncoding (string)</code></dt>
+					<dd>encoding of filenames stored in ASCII (<code>windows-1252</code> by default)</dd>
+					<dt><code>commentEncoding (string)</code></dt>
+					<dd>encoding of comments stored in ASCII (<code>windows-1252</code> by default)</dd>
+				</dl>
+			</dd>
 		</dl>
 		<br>
 		<h3>Methods</h3>
@@ -369,13 +383,13 @@
 			<dd>file comment</dd>
 			<dt><code>rawComment (UInt8Array)</code></dt>
 			<dd>file comment in binary</dd>
-			<dt><code>crc32 (number)</code></dt>
-			<dd>checksum of the uncompressed data</dd>
 			<dt><code>extraField (Map)</code></dt>
 			<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and the value
 				is a <code>UInt8Array</code></dd>
 			<dt><code>rawExtraField (UInt8Array)</code></dt>
 			<dd>extra field in binary</dd>
+			<dt><code>signature (Number or UInt8Array)</code></dt>
+			<dd>signature (crc checksum or AES authentication code) of the file</dd>
 		</dl>
 		<br>
 		<h3>Methods</h3>
@@ -453,7 +467,17 @@ await reader.close();</code></pre>
 			<dd>optional properties:
 				<dl>
 					<dt><code>zip64 (boolean)</code></dt>
-					<dd>force the file to be written in zip64</dd>
+					<dd>force all the files to be written in Zip64</dd>
+					<dt><code>level (number)</code></dt>
+					<dd>compression level applied on all files</dd>
+					<dt><code>bufferedWrite (boolean)</code></dt>
+					<dd><code>true</code> to explicitely allow calling <code>ZipWriter#add</code> multiple times in
+						parallel (<code>false</code> by default)
+					</dd>
+					<dt><code>version (number)</code></dt>
+					<dd>zip version of all files (empty by default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to encrypt all the files (empty by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -489,11 +513,11 @@ await reader.close();</code></pre>
 					<dt><code>lastModDate (Date)</code></dt>
 					<dd>last modification date</dd>
 					<dt><code>version (number)</code></dt>
-					<dd>zip version</dd>
+					<dd>zip version (empty by default)</dd>
 					<dt><code>password (string)</code></dt>
 					<dd>password used to encrypt the file with AES-256 (empty by default)</dd>
 					<dt><code>zip64 (boolean)</code></dt>
-					<dd>force the file entry to be written in zip64 (<code>false</code> by default)</dd>
+					<dd>force the file entry to be written in Zip64 (<code>false</code> by default)</dd>
 					<dt><code>extraField (Map)</code></dt>
 					<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and
 						the value is a <code>UInt8Array</code>.</dd>
