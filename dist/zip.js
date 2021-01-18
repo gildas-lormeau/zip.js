@@ -670,167 +670,6 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const MESSAGE_INIT = "init";
-	const MESSAGE_APPEND = "append";
-	const MESSAGE_FLUSH = "flush";
-	const MESSAGE_EVENT_TYPE = "message";
-
-	const Z_WORKER_SCRIPT_PATH = "z-worker.js";
-	const DEFAULT_WORKER_SCRIPTS = {
-		deflate: [Z_WORKER_SCRIPT_PATH, "deflate.js"],
-		inflate: [Z_WORKER_SCRIPT_PATH, "inflate.js"]
-	};
-	const workers = {
-		pool: [],
-		pendingRequests: []
-	};
-
-	function createWorkerCodec(config, options) {
-		const pool = workers.pool;
-		const codecType = options.codecType;
-		if (config.workerScripts != null && config.workerScriptsPath != null) {
-			throw new Error("Either workerScripts or workerScriptsPath may be set, not both");
-		}
-		let scripts;
-		if (config.workerScripts) {
-			scripts = config.workerScripts[codecType];
-			if (!Array.isArray(scripts)) {
-				throw new Error("workerScripts." + codecType + " must be an array");
-			}
-			scripts = resolveURLs(scripts);
-		} else {
-			scripts = DEFAULT_WORKER_SCRIPTS[codecType].slice(0);
-			scripts[0] = (config.workerScriptsPath || "") + scripts[0];
-		}
-		if (pool.length < config.maxWorkers) {
-			const workerData = { worker: new Worker(scripts[0]), busy: true, options, scripts };
-			pool.push(workerData);
-			createWorkerInterface(workerData);
-			return workerData.interface;
-		} else {
-			const availableWorkerData = pool.find(workerData => !workerData.busy);
-			if (availableWorkerData) {
-				availableWorkerData.busy = true;
-				availableWorkerData.options = options;
-				availableWorkerData.scripts = scripts;
-				return availableWorkerData.interface;
-			} else {
-				return new Promise(resolve => workers.pendingRequests.push({ resolve, options, scripts }));
-			}
-		}
-	}
-
-	function createWorkerInterface(workerData) {
-		const worker = workerData.worker;
-		const scripts = workerData.scripts.slice(1);
-		let task;
-		worker.addEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
-		workerData.interface = {
-			async append(data) {
-				return initAndSendMessage({ type: MESSAGE_APPEND, data });
-			},
-			async flush() {
-				return initAndSendMessage({ type: MESSAGE_FLUSH });
-			}
-		};
-
-		async function initAndSendMessage(message) {
-			if (!task) {
-				await sendMessage(Object.assign({ type: MESSAGE_INIT, options: workerData.options, scripts }));
-			}
-			return sendMessage(message);
-		}
-
-		function sendMessage(message) {
-			try {
-				if (message.data) {
-					try {
-						worker.postMessage(message, [message.data.buffer]);
-					} catch (error) {
-						worker.postMessage(message);
-					}
-				} else {
-					worker.postMessage(message);
-				}
-			} catch (error) {
-				task.reject(error);
-				worker.removeEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
-			}
-			return new Promise((resolve, reject) => task = { resolve, reject });
-		}
-
-		function onMessage(event) {
-			const message = event.data;
-			if (task) {
-				const reponseError = message.error;
-				if (reponseError) {
-					const error = new Error(reponseError.message);
-					error.stack = reponseError.stack;
-					task.reject(error);
-					worker.removeEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
-				} else if (message.type == MESSAGE_INIT || message.type == MESSAGE_FLUSH || message.type == MESSAGE_APPEND) {
-					if (message.type == MESSAGE_FLUSH) {
-						task.resolve({ data: new Uint8Array(message.data), signature: message.signature });
-						task = null;
-						terminateWorker(workerData);
-					} else {
-						task.resolve(message.data && new Uint8Array(message.data));
-					}
-				}
-			}
-		}
-	}
-
-	function terminateWorker(workerData) {
-		workerData.busy = false;
-		if (workers.pendingRequests.length) {
-			const [{ resolve, options, scripts }] = workers.pendingRequests.splice(0, 1);
-			workerData.busy = true;
-			workerData.options = options;
-			workerData.scripts = scripts;
-			resolve(workerData.interface);
-		} else {
-			workerData.worker.terminate();
-			workers.pool = workers.pool.filter(data => data != workerData);
-		}
-	}
-
-	function resolveURLs(urls) {
-		if (typeof document != "undefined") {
-			return urls.map(url => new URL(url, document.baseURI).href);
-		} else {
-			return urls;
-		}
-	}
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
 	const CODEC_DEFLATE = "deflate";
 	const CODEC_INFLATE = "inflate";
 	const ERR_INVALID_SIGNATURE = "Invalid signature";
@@ -928,7 +767,7 @@
 		}
 	}
 
-	async function createBaseCodec(options) {
+	function createCodec(options) {
 		if (options.codecType.startsWith(CODEC_DEFLATE)) {
 			return new Deflate(options);
 		} else if (options.codecType.startsWith(CODEC_INFLATE)) {
@@ -936,14 +775,188 @@
 		}
 	}
 
-	async function createCodec(config, options) {
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	const MESSAGE_INIT = "init";
+	const MESSAGE_APPEND = "append";
+	const MESSAGE_FLUSH = "flush";
+	const MESSAGE_EVENT_TYPE = "message";
+
+	const Z_WORKER_SCRIPT_PATH = "z-worker.js";
+	const DEFAULT_WORKER_SCRIPTS = {
+		deflate: [Z_WORKER_SCRIPT_PATH, "deflate.js"],
+		inflate: [Z_WORKER_SCRIPT_PATH, "inflate.js"]
+	};
+	const workers = {
+		pool: [],
+		pendingRequests: []
+	};
+
+	function createWorkerCodec(config, options) {
+		const pool = workers.pool;
 		const streamCopy =
 			!options.inputCompressed && !options.inputSigned && !options.inputEncrypted &&
 			!options.outputCompressed && !options.outputSigned && !options.outputEncrypted;
+		let scripts;
 		if (config.useWebWorkers && !streamCopy) {
-			return createWorkerCodec(config, options);
+			const codecType = options.codecType;
+			if (config.workerScripts != null && config.workerScriptsPath != null) {
+				throw new Error("Either workerScripts or workerScriptsPath may be set, not both");
+			}
+			if (config.workerScripts) {
+				scripts = config.workerScripts[codecType];
+				if (!Array.isArray(scripts)) {
+					throw new Error("workerScripts." + codecType + " must be an array");
+				}
+				scripts = resolveURLs(scripts);
+			} else {
+				scripts = DEFAULT_WORKER_SCRIPTS[codecType].slice(0);
+				scripts[0] = (config.workerScriptsPath || "") + scripts[0];
+			}
+		}
+		if (pool.length < config.maxWorkers) {
+			const workerData = { worker: scripts && new Worker(scripts[0]), busy: true, options, scripts };
+			pool.push(workerData);
+			return scripts ? createWebWorkerInterface(workerData) : createWorkerInterface(workerData);
 		} else {
-			return createBaseCodec(options);
+			const availableWorkerData = pool.find(workerData => !workerData.busy);
+			if (availableWorkerData) {
+				availableWorkerData.busy = true;
+				availableWorkerData.options = options;
+				availableWorkerData.scripts = scripts;
+				return scripts ? availableWorkerData.interface : createWorkerInterface(availableWorkerData);
+			} else {
+				return new Promise(resolve => workers.pendingRequests.push({ resolve, options, scripts }));
+			}
+		}
+	}
+
+	async function createWorkerInterface(workerData) {
+		const interfaceCodec = createCodec(workerData.options);
+		const flush = interfaceCodec.flush.bind(interfaceCodec);
+		interfaceCodec.flush = async () => {
+			const result = await flush();
+			workerData.busy = false;
+			if (workers.pendingRequests.length) {
+				const [{ resolve, options }] = workers.pendingRequests.splice(0, 1);
+				workerData.busy = true;
+				workerData.options = options;
+				resolve(await createWorkerInterface(workerData));
+			} else {
+				workers.pool = workers.pool.filter(data => data != workerData);
+			}
+			return result;
+		};
+		return interfaceCodec;
+	}
+
+	function createWebWorkerInterface(workerData) {
+		const worker = workerData.worker;
+		const scripts = workerData.scripts.slice(1);
+		let task;
+		worker.addEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
+		workerData.interface = {
+			async append(data) {
+				return initAndSendMessage({ type: MESSAGE_APPEND, data });
+			},
+			async flush() {
+				return initAndSendMessage({ type: MESSAGE_FLUSH });
+			}
+		};
+		return workerData.interface;
+
+		async function initAndSendMessage(message) {
+			if (!task) {
+				await sendMessage(Object.assign({ type: MESSAGE_INIT, options: workerData.options, scripts }));
+			}
+			return sendMessage(message);
+		}
+
+		function sendMessage(message) {
+			try {
+				if (message.data) {
+					try {
+						worker.postMessage(message, [message.data.buffer]);
+					} catch (error) {
+						worker.postMessage(message);
+					}
+				} else {
+					worker.postMessage(message);
+				}
+			} catch (error) {
+				task.reject(error);
+				worker.removeEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
+			}
+			return new Promise((resolve, reject) => task = { resolve, reject });
+		}
+
+		function onMessage(event) {
+			const message = event.data;
+			if (task) {
+				const reponseError = message.error;
+				if (reponseError) {
+					const error = new Error(reponseError.message);
+					error.stack = reponseError.stack;
+					task.reject(error);
+					worker.removeEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
+				} else if (message.type == MESSAGE_INIT || message.type == MESSAGE_FLUSH || message.type == MESSAGE_APPEND) {
+					if (message.type == MESSAGE_FLUSH) {
+						task.resolve({ data: new Uint8Array(message.data), signature: message.signature });
+						task = null;
+						terminateWebWorker(workerData);
+					} else {
+						task.resolve(message.data && new Uint8Array(message.data));
+					}
+				}
+			}
+		}
+	}
+
+	function terminateWebWorker(workerData) {
+		workerData.busy = false;
+		if (workers.pendingRequests.length) {
+			const [{ resolve, options, scripts }] = workers.pendingRequests.splice(0, 1);
+			workerData.busy = true;
+			workerData.options = options;
+			workerData.scripts = scripts;
+			resolve(workerData.interface);
+		} else {
+			workerData.worker.terminate();
+			workers.pool = workers.pool.filter(data => data != workerData);
+		}
+	}
+
+	function resolveURLs(urls) {
+		if (typeof document != "undefined") {
+			return urls.map(url => new URL(url, document.baseURI).href);
+		} else {
+			return urls;
 		}
 	}
 
@@ -1044,16 +1057,9 @@
 	const ERR_ENCRYPTED = "File contains encrypted entry";
 	const ERR_UNSUPPORTED_ENCRYPTION = "Encryption not supported";
 	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
-	const EXTENDED_US_ASCII = ["\u00C7", "\u00FC", "\u00E9", "\u00E2", "\u00E4", "\u00E0", "\u00E5", "\u00E7", "\u00EA", "\u00EB",
-		"\u00E8", "\u00EF", "\u00EE", "\u00EC", "\u00C4", "\u00C5", "\u00C9", "\u00E6", "\u00C6", "\u00F4", "\u00F6", "\u00F2", "\u00FB", "\u00F9",
-		"\u00FF", "\u00D6", "\u00DC", "\u00F8", "\u00A3", "\u00D8", "\u00D7", "\u0192", "\u00E1", "\u00ED", "\u00F3", "\u00FA", "\u00F1", "\u00D1",
-		"\u00AA", "\u00BA", "\u00BF", "\u00AE", "\u00AC", "\u00BD", "\u00BC", "\u00A1", "\u00AB", "\u00BB", "_", "_", "_", "\u00A6", "\u00A6",
-		"\u00C1", "\u00C2", "\u00C0", "\u00A9", "\u00A6", "\u00A6", "+", "+", "\u00A2", "\u00A5", "+", "+", "-", "-", "+", "-", "+", "\u00E3",
-		"\u00C3", "+", "+", "-", "-", "\u00A6", "-", "+", "\u00A4", "\u00F0", "\u00D0", "\u00CA", "\u00CB", "\u00C8", "i", "\u00CD", "\u00CE",
-		"\u00CF", "+", "+", "_", "_", "\u00A6", "\u00CC", "_", "\u00D3", "\u00DF", "\u00D4", "\u00D2", "\u00F5", "\u00D5", "\u00B5", "\u00FE",
-		"\u00DE", "\u00DA", "\u00DB", "\u00D9", "\u00FD", "\u00DD", "\u00AF", "\u00B4", "\u00AD", "\u00B1", "_", "\u00BE", "\u00B6", "\u00A7",
-		"\u00F7", "\u00B8", "\u00B0", "\u00A8", "\u00B7", "\u00B9", "\u00B3", "\u00B2", "_", " "];
 	const MAX_ZIP_COMMENT_SIZE = 65536;
+	const CHARSET_UTF8 = "utf-8";
+	const CHARSET_WIN_1252 = "windows-1252";
 
 	class ZipReader {
 
@@ -1107,20 +1113,18 @@
 				entry.directory = ((directoryDataView.getUint8(offset + 38) & 0x10) == 0x10);
 				entry.offset = directoryDataView.getUint32(offset + 42, true);
 				entry.rawFilename = dataArray.subarray(offset + 46, offset + 46 + entry.filenameLength);
-				const filename = getString(entry.rawFilename);
-				entry.filename = entry.bitFlag.languageEncodingFlag ? decodeUTF8(filename) : decodeASCII(filename, entry.rawFilename, this.options.filenameEncoding);
+				entry.filename = decodeString(entry.rawFilename, entry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.filenameEncoding || CHARSET_WIN_1252);
 				if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) == "/") {
 					entry.directory = true;
 				}
 				entry.rawExtraField = dataArray.subarray(offset + 46 + entry.filenameLength, offset + 46 + entry.filenameLength + entry.extraFieldLength);
-				readExtraField(entry, directoryDataView, offset + 6);
+				readCommonFooter(entry, entry, directoryDataView, offset + 6);
 				if (entry.compressionMethod != 0x0 && entry.compressionMethod != 0x08) {
 					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 				}
 				entry.rawComment = dataArray.subarray(offset + 46 + entry.filenameLength + entry.extraFieldLength, offset + 46
 					+ entry.filenameLength + entry.extraFieldLength + entry.commentLength);
-				const comment = getString(entry.rawComment);
-				entry.comment = entry.bitFlag.languageEncodingFlag ? decodeUTF8(comment) : decodeASCII(comment, entry.rawFilename, this.options.commentEncoding);
+				entry.comment = decodeString(entry.rawComment, entry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.commentEncoding || CHARSET_WIN_1252);
 				entries.push(entry);
 				offset += 46 + entry.filenameLength + entry.extraFieldLength + entry.commentLength;
 			}
@@ -1154,13 +1158,13 @@
 			const localDirectory = this.localDirectory = {};
 			readCommonHeader(localDirectory, dataView, 4);
 			localDirectory.rawExtraField = dataArray.subarray(this.offset + 30 + localDirectory.filenameLength, this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength);
-			readExtraField(localDirectory, dataView, 4);
+			readCommonFooter(this, localDirectory, dataView, 4);
 			let dataOffset = this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
 			const inputEncrypted = this.bitFlag.encrypted && localDirectory.bitFlag.encrypted;
 			if (inputEncrypted && !inputPassword) {
 				throw new Error(ERR_ENCRYPTED);
 			}
-			const codec = await createCodec(this.config, {
+			const codec = await createWorkerCodec(this.config, {
 				codecType: CODEC_INFLATE,
 				inputPassword,
 				inputSigned: options.checkSignature === undefined ? this.options.checkSignature : options.checkSignature,
@@ -1176,92 +1180,116 @@
 		}
 	}
 
-	function readCommonHeader(entry, dataView, offset) {
-		entry.version = dataView.getUint16(offset, true);
-		const rawBitFlag = entry.rawBitFlag = dataView.getUint16(offset + 2, true);
-		entry.bitFlag = {
+	function readCommonHeader(directory, dataView, offset) {
+		directory.version = dataView.getUint16(offset, true);
+		const rawBitFlag = directory.rawBitFlag = dataView.getUint16(offset + 2, true);
+		directory.bitFlag = {
 			encrypted: (rawBitFlag & 0x01) == 0x01,
 			level: (rawBitFlag & 0x06) >> 1,
 			dataDescriptor: (rawBitFlag & 0x08) == 0x08,
 			languageEncodingFlag: (rawBitFlag & 0x0800) == 0x0800
 		};
-		entry.rawLastModDate = dataView.getUint32(offset + 6, true);
-		entry.lastModDate = getDate(entry.rawLastModDate);
-		entry.filenameLength = dataView.getUint16(offset + 22, true);
-		entry.extraFieldLength = dataView.getUint16(offset + 24, true);
+		directory.rawLastModDate = dataView.getUint32(offset + 6, true);
+		directory.lastModDate = getDate(directory.rawLastModDate);
+		directory.filenameLength = dataView.getUint16(offset + 22, true);
+		directory.extraFieldLength = dataView.getUint16(offset + 24, true);
 	}
 
-	function readExtraField(entry, dataView, offset) {
-		let extraFieldZip64, extraFieldAES;
-		const rawExtraField = entry.rawExtraField;
-		if (rawExtraField && rawExtraField.length) {
-			const extraField = entry.extraField = new Map();
-			const rawExtraFieldView = new DataView(new Uint8Array(rawExtraField).buffer);
-			let offsetExtraField = 0;
-			try {
-				while (offsetExtraField < rawExtraField.length) {
-					const type = rawExtraFieldView.getUint16(offsetExtraField, true);
-					const size = rawExtraFieldView.getUint16(offsetExtraField + 2, true);
-					extraField.set(type, {
-						type,
-						data: rawExtraField.slice(offsetExtraField + 4, offsetExtraField + 4 + size)
-					});
-					offsetExtraField += 4 + size;
-				}
-			} catch (error) {
-				// ignored
+	function readCommonFooter(entry, directory, dataView, offset) {
+		let extraFieldZip64, extraFieldAES, extraFieldUnicodePath;
+		const rawExtraField = directory.rawExtraField;
+		const extraField = directory.extraField = new Map();
+		const rawExtraFieldView = new DataView(new Uint8Array(rawExtraField).buffer);
+		let offsetExtraField = 0;
+		try {
+			while (offsetExtraField < rawExtraField.length) {
+				const type = rawExtraFieldView.getUint16(offsetExtraField, true);
+				const size = rawExtraFieldView.getUint16(offsetExtraField + 2, true);
+				extraField.set(type, {
+					type,
+					data: rawExtraField.slice(offsetExtraField + 4, offsetExtraField + 4 + size)
+				});
+				offsetExtraField += 4 + size;
 			}
-			extraFieldZip64 = entry.extraFieldZip64 = extraField.get(0x01);
-			extraFieldAES = entry.extraFieldAES = extraField.get(0x9901);
-			if (extraFieldZip64) {
-				entry.zip64 = true;
-				const extraFieldView = new DataView(extraFieldZip64.data.buffer);
-				extraFieldZip64.values = [];
-				for (let indexValue = 0; indexValue < Math.floor(extraFieldZip64.data.length / 8); indexValue++) {
-					extraFieldZip64.values.push(Number(extraFieldView.getBigUint64(0 + indexValue * 8, true)));
-				}
-			}
-			if (extraFieldAES && entry.bitFlag.encrypted) {
-				const compressionMethod = dataView.getUint16(offset + 4, true);
-				if (compressionMethod != 0x63) {
-					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
-				}
-				const extraFieldView = new DataView(extraFieldAES.data.buffer);
-				extraFieldAES.vendorVersion = extraFieldView.getUint8(0);
-				extraFieldAES.vendorId = extraFieldView.getUint8(2);
-				const strength = extraFieldView.getUint8(4);
-				extraFieldAES.compressionMethod = extraFieldView.getUint16(5, true);
-				if (strength != 3) {
-					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
-				}
-			}
+		} catch (error) {
+			// ignored
 		}
-		if (extraFieldAES && extraFieldAES.compressionMethod !== undefined) {
-			entry.compressionMethod = extraFieldAES.compressionMethod;
-		} else {
-			entry.compressionMethod = dataView.getUint16(offset + 4, true);
-		}
-		if (entry.compressionMethod == 0x08) {
-			entry.bitFlag.enhancedDeflating = (entry.rawBitFlag & 0x10) != 0x10;
-		}
-		entry.signature = dataView.getUint32(offset + 10, true);
-		entry.uncompressedSize = dataView.getUint32(offset + 18, true);
-		entry.compressedSize = dataView.getUint32(offset + 14, true);
+		const compressionMethod = dataView.getUint16(offset + 4, true);
+		directory.signature = dataView.getUint32(offset + 10, true);
+		directory.uncompressedSize = dataView.getUint32(offset + 18, true);
+		directory.compressedSize = dataView.getUint32(offset + 14, true);
+		extraFieldZip64 = directory.extraFieldZip64 = extraField.get(0x01);
 		if (extraFieldZip64) {
-			const properties = ["uncompressedSize", "compressedSize", "offset"];
-			const missingProperties = properties.filter(propertyName => entry[propertyName] == 0xffffffff);
-			for (let indexMissingProperty = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
-				extraFieldZip64[missingProperties[indexMissingProperty]] = extraFieldZip64.values[indexMissingProperty];
-			}
-			properties.forEach(propertyName => {
-				if (entry[propertyName] == 0xffffffff) {
-					if (extraFieldZip64 && extraFieldZip64[propertyName] !== undefined) {
-						entry[propertyName] = extraFieldZip64 && extraFieldZip64[propertyName];
-					} else {
-						throw new Error(ERR_EXTRA_FIELD_ZIP64_NOT_FOUND);
-					}
+			readExtraFieldZip64(extraFieldZip64, directory);
+		}
+		extraFieldUnicodePath = directory.extraFieldUnicodePath = extraField.get(0x7075);
+		if (extraFieldUnicodePath) {
+			readExtraFieldUnicodePath(extraFieldUnicodePath, directory, entry);
+		}
+		extraFieldAES = directory.extraFieldAES = extraField.get(0x9901);
+		if (extraFieldAES) {
+			readExtraFieldAES(extraFieldAES, directory, compressionMethod);
+		} else {
+			directory.compressionMethod = compressionMethod;
+		}
+		if (directory.compressionMethod == 0x08) {
+			directory.bitFlag.enhancedDeflating = (directory.rawBitFlag & 0x10) != 0x10;
+		}
+	}
+
+	function readExtraFieldZip64(extraFieldZip64, directory) {
+		directory.zip64 = true;
+		const extraFieldView = new DataView(extraFieldZip64.data.buffer);
+		extraFieldZip64.values = [];
+		for (let indexValue = 0; indexValue < Math.floor(extraFieldZip64.data.length / 8); indexValue++) {
+			extraFieldZip64.values.push(Number(extraFieldView.getBigUint64(0 + indexValue * 8, true)));
+		}
+		const properties = ["uncompressedSize", "compressedSize", "offset"];
+		const missingProperties = properties.filter(propertyName => directory[propertyName] == 0xffffffff);
+		for (let indexMissingProperty = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
+			extraFieldZip64[missingProperties[indexMissingProperty]] = extraFieldZip64.values[indexMissingProperty];
+		}
+		properties.forEach(propertyName => {
+			if (directory[propertyName] == 0xffffffff) {
+				if (extraFieldZip64 && extraFieldZip64[propertyName] !== undefined) {
+					directory[propertyName] = extraFieldZip64 && extraFieldZip64[propertyName];
+				} else {
+					throw new Error(ERR_EXTRA_FIELD_ZIP64_NOT_FOUND);
 				}
-			});
+			}
+		});
+	}
+
+	function readExtraFieldUnicodePath(extraFieldUnicodePath, directory, entry) {
+		const extraFieldView = new DataView(extraFieldUnicodePath.data.buffer);
+		extraFieldUnicodePath.version = extraFieldView.getUint8(0);
+		extraFieldUnicodePath.signature = extraFieldView.getUint32(1, true);
+		const crc32 = new Crc32();
+		crc32.append(entry.rawFilename);
+		const dataViewSignature = new DataView(new Uint8Array(4).buffer);
+		dataViewSignature.setUint32(0, crc32.get());
+		extraFieldUnicodePath.filename = (new TextDecoder()).decode(extraFieldUnicodePath.data.subarray(5));
+		if (extraFieldUnicodePath.signature == dataViewSignature.getUint32(0, false)) {
+			directory.filename = extraFieldUnicodePath.filename;
+		}
+	}
+
+	function readExtraFieldAES(extraFieldAES, directory, compressionMethod) {
+		if (extraFieldAES) {
+			if (compressionMethod != 0x63) {
+				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
+			}
+			const extraFieldView = new DataView(extraFieldAES.data.buffer);
+			extraFieldAES.vendorVersion = extraFieldView.getUint8(0);
+			extraFieldAES.vendorId = extraFieldView.getUint8(2);
+			const strength = extraFieldView.getUint8(4);
+			extraFieldAES.compressionMethod = extraFieldView.getUint16(5, true);
+			if (strength != 3) {
+				throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
+			}
+			directory.compressionMethod = extraFieldAES.compressionMethod;
+		} else {
+			directory.compressionMethod = compressionMethod;
 		}
 	}
 
@@ -1294,33 +1322,8 @@
 		}
 	}
 
-	function decodeASCII(string, rawString, encoding) {
-		if (encoding) {
-			return (new TextDecoder(encoding)).decode(rawString);
-		} else {
-			let result = "";
-			for (let indexTable = 0; indexTable < string.length; indexTable++) {
-				const charCode = string.charCodeAt(indexTable) & 0xFF;
-				if (charCode > 127) {
-					result += EXTENDED_US_ASCII[charCode - 128];
-				} else {
-					result += String.fromCharCode(charCode);
-				}
-			}
-			return result;
-		}
-	}
-
-	function decodeUTF8(string) {
-		return decodeURIComponent(escape(string));
-	}
-
-	function getString(bytes) {
-		let result = "";
-		for (let indexByte = 0; indexByte < bytes.length; indexByte++) {
-			result += String.fromCharCode(bytes[indexByte]);
-		}
-		return result;
+	function decodeString(value, encoding) {
+		return (new TextDecoder(encoding)).decode(value);
 	}
 
 	function getDate(timeRaw) {
@@ -1583,7 +1586,7 @@
 			if (!reader.initialized) {
 				await reader.init();
 			}
-			const codec = await createCodec(config, {
+			const codec = await createWorkerCodec(config, {
 				codecType: CODEC_DEFLATE,
 				level,
 				outputPassword: password,
