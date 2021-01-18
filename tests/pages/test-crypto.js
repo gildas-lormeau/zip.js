@@ -13,8 +13,8 @@ async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
 	const blobWriter = new zip.BlobWriter("application/zip");
-	const zipWriter = new zip.ZipWriter(blobWriter);
-	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { password: "password" });
+	const zipWriter = new zip.ZipWriter(blobWriter, { password: "password" });
+	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
 	const entries = await zipReader.getEntries();
