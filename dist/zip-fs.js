@@ -1149,7 +1149,9 @@
 			readCommonHeader(this, dataView, 4);
 			readExtraField(this, dataView, 4);
 			let dataOffset = this.offset + 30 + this.filenameLength + this.extraFieldLength;
-			await writer.init();
+			if (!writer.initialized) {
+				await writer.init();
+			}
 			if (this.passwordProtected && !inputPassword) {
 				throw new Error(ERR_ENCRYPTED);
 			}
@@ -1563,7 +1565,9 @@
 		fileDataArray.set(filename, 30);
 		let result;
 		if (reader) {
-			await reader.init();
+			if (!reader.initialized) {
+				await reader.init();
+			}
 			const codec = await createCodec(config, {
 				codecType: CODEC_DEFLATE,
 				level: options.level,
