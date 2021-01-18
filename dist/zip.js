@@ -1096,7 +1096,7 @@
 			const entries = [];
 			let offset = 0;
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
-				const entry = new Entry(this);
+				const entry = new Entry(this.reader, this.config, this.options);
 				if (directoryDataView.getUint32(offset, false) != 0x504b0102) {
 					throw new Error(ERR_CENTRAL_DIRECTORY_NOT_FOUND);
 				}
@@ -1133,9 +1133,10 @@
 
 	class Entry {
 
-		constructor(zipReader) {
-			this.reader = zipReader.reader;
-			this.config = zipReader.config;
+		constructor(reader, config, options) {
+			this.reader = reader;
+			this.config = config;
+			this.options = options;
 		}
 
 		async getData(writer, options = {}) {
@@ -1145,7 +1146,8 @@
 			}
 			const dataArray = await reader.readUint8Array(this.offset, 30);
 			const dataView = new DataView(dataArray.buffer);
-			let inputPassword = options.password && options.password.length && options.password;
+			const password = options.password === undefined ? this.options.password : options.password;
+			let inputPassword = password && password.length && password;
 			if (dataView.getUint32(0, false) != 0x504b0304) {
 				throw ERR_LOCAL_FILE_HEADER_NOT_FOUND;
 			}
@@ -1161,7 +1163,7 @@
 			const codec = await createCodec(this.config, {
 				codecType: CODEC_INFLATE,
 				inputPassword,
-				inputSigned: options.checkSignature,
+				inputSigned: options.checkSignature === undefined ? this.options.checkSignature : options.checkSignature,
 				inputSignature: this.signature,
 				inputCompressed: this.compressionMethod != 0,
 				inputEncrypted
@@ -1358,10 +1360,11 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const COMPRESSION_METHOD_DEFLATE = 0x08;
 	const MAX_COMMENT_LENGTH = 65536;
 	const ERR_DUPLICATED_NAME = "File already exists";
-	const ERR_ZIP_FILE_COMMENT = "Zip file comment exceeds 64KB";
-	const ERR_FILE_ENTRY_COMMENT = "File entry comment exceeds 64KB";
+	const ERR_INVALID_COMMENT = "Zip file comment exceeds 64KB";
+	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
 
 	class ZipWriter {
 
@@ -1384,7 +1387,7 @@
 			}
 			options.comment = getBytes(encodeUTF8(options.comment || ""));
 			if (options.comment > MAX_COMMENT_LENGTH) {
-				throw new Error(ERR_FILE_ENTRY_COMMENT);
+				throw new Error(ERR_INVALID_ENTRY_COMMENT);
 			}
 			options.zip64 = options.zip64 || this.zip64;
 			await addFile(this, name, reader, options);
@@ -1397,7 +1400,7 @@
 			for (const [, fileEntry] of files) {
 				directoryDataLength += 46 + fileEntry.filename.length + fileEntry.comment.length + fileEntry.extraFieldZip64.length + fileEntry.extraFieldAES.length + fileEntry.rawExtraField.length;
 			}
-			if (this.zip64 || directoryOffset + directoryDataLength >= 0xffffffff || filesLength >= 0xffff) {
+			if (directoryOffset + directoryDataLength >= 0xffffffff || filesLength >= 0xffff) {
 				this.zip64 = true;
 			}
 			const directoryDataArray = new Uint8Array(directoryDataLength + (this.zip64 ? 98 : 22));
@@ -1456,7 +1459,7 @@
 				if (comment.length <= MAX_COMMENT_LENGTH) {
 					directoryDataView.setUint16(offset + 20, comment.length, true);
 				} else {
-					throw new Error(ERR_ZIP_FILE_COMMENT);
+					throw new Error(ERR_INVALID_COMMENT);
 				}
 			}
 			await writer.writeUint8Array(directoryDataArray);
@@ -1474,7 +1477,7 @@
 		try {
 			let fileWriter, fileEntry;
 			try {
-				if (options.bufferedWrite || zipWriter.lockWrite) {
+				if ((options.bufferedWrite || zipWriter.options.bufferedWrite) || zipWriter.lockWrite) {
 					fileWriter = new Uint8ArrayWriter();
 					fileWriter.init();
 				} else {
@@ -1487,7 +1490,7 @@
 				if (zipWriter.offset >= 0xffffffff || (reader && (reader.size >= 0xffffffff || zipWriter.offset + reader.size >= 0xffffffff))) {
 					options.zip64 = true;
 				}
-				fileEntry = await createFileEntry(name, reader, fileWriter, zipWriter.config, options);
+				fileEntry = await createFileEntry(name, reader, fileWriter, zipWriter.config, zipWriter.options, options);
 			} catch (error) {
 				files.delete(name);
 				throw error;
@@ -1513,14 +1516,16 @@
 		}
 	}
 
-	async function createFileEntry(name, reader, writer, config, options) {
+	async function createFileEntry(name, reader, writer, config, zipWriterOptions, options) {
 		const filename = getBytes(encodeUTF8(name));
 		const date = options.lastModDate || new Date();
 		const headerArray = new Uint8Array(26);
 		const headerView = new DataView(headerArray.buffer);
-		const outputPassword = options.password && options.password.length && options.password;
-		const compressed = options.level !== 0 && !options.directory;
-		const outputSigned = options.password === undefined || !options.password.length;
+		const password = options.password === undefined ? zipWriterOptions.password : options.password;
+		const outputPassword = password && password.length && password;
+		const level = options.level === undefined ? zipWriterOptions.level : options.level;
+		const compressed = level !== 0 && !options.directory;
+		const outputSigned = password === undefined || !password.length;
 		const zip64 = options.zip64;
 		const fileEntry = {
 			zip64,
@@ -1545,10 +1550,10 @@
 			});
 		}
 		options.bitFlag = 0x08;
-		options.version = options.version || 0x14;
+		options.version = (options.version === undefined ? zipWriterOptions.version : options.version) || 0x14;
 		options.compressionMethod = 0;
 		if (compressed) {
-			options.compressionMethod = 0x08;
+			options.compressionMethod = COMPRESSION_METHOD_DEFLATE;
 		}
 		if (zip64) {
 			options.version = options.version > 0x2D ? options.version : 0x2D;
@@ -1558,7 +1563,7 @@
 			options.bitFlag = 0x09;
 			options.compressionMethod = 0x63;
 			if (compressed) {
-				fileEntry.extraFieldAES[9] = 0x08;
+				fileEntry.extraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
 			}
 		}
 		headerView.setUint16(0, options.version, true);
@@ -1580,11 +1585,11 @@
 			}
 			const codec = await createCodec(config, {
 				codecType: CODEC_DEFLATE,
-				level: options.level,
-				outputPassword: options.password,
+				level,
+				outputPassword: password,
 				outputSigned,
 				outputCompressed: compressed,
-				outputEncrypted: Boolean(options.password)
+				outputEncrypted: Boolean(password)
 			});
 			await writer.writeUint8Array(fileDataArray);
 			result = await processData(codec, reader, writer, 0, reader.size, config, { onprogress: options.onprogress });
@@ -1749,6 +1754,21 @@
 	exports.BlobWriter = BlobWriter;
 	exports.Data64URIReader = Data64URIReader;
 	exports.Data64URIWriter = Data64URIWriter;
+	exports.ERR_BAD_FORMAT = ERR_BAD_FORMAT;
+	exports.ERR_CENTRAL_DIRECTORY_NOT_FOUND = ERR_CENTRAL_DIRECTORY_NOT_FOUND;
+	exports.ERR_DUPLICATED_NAME = ERR_DUPLICATED_NAME;
+	exports.ERR_ENCRYPTED = ERR_ENCRYPTED;
+	exports.ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND;
+	exports.ERR_EOCDR_NOT_FOUND = ERR_EOCDR_NOT_FOUND;
+	exports.ERR_EOCDR_ZIP64_NOT_FOUND = ERR_EOCDR_ZIP64_NOT_FOUND;
+	exports.ERR_EXTRA_FIELD_ZIP64_NOT_FOUND = ERR_EXTRA_FIELD_ZIP64_NOT_FOUND;
+	exports.ERR_INVALID_COMMENT = ERR_INVALID_COMMENT;
+	exports.ERR_INVALID_ENTRY_COMMENT = ERR_INVALID_ENTRY_COMMENT;
+	exports.ERR_INVALID_PASSORD = ERR_INVALID_PASSORD;
+	exports.ERR_INVALID_SIGNATURE = ERR_INVALID_SIGNATURE;
+	exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
+	exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION;
+	exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
 	exports.HttpRangeReader = HttpRangeReader;
 	exports.HttpReader = HttpReader;
 	exports.Reader = Reader;
