@@ -1108,16 +1108,19 @@
 				entry.offset = directoryDataView.getUint32(offset + 42, true);
 				entry.rawFilename = dataArray.subarray(offset + 46, offset + 46 + entry.filenameLength);
 				const filename = getString(entry.rawFilename);
-				entry.filename = entry.bitFlag.languageEncodingFlag ? decodeUTF8(filename) : decodeASCII(filename);
+				entry.filename = entry.bitFlag.languageEncodingFlag ? decodeUTF8(filename) : decodeASCII(filename, entry.rawFilename, this.options.filenameEncoding);
 				if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) == "/") {
 					entry.directory = true;
 				}
 				entry.rawExtraField = dataArray.subarray(offset + 46 + entry.filenameLength, offset + 46 + entry.filenameLength + entry.extraFieldLength);
-				readExtraField(entry, directoryDataView, offset + 6, true);
+				readExtraField(entry, directoryDataView, offset + 6);
+				if (entry.compressionMethod != 0x0 && entry.compressionMethod != 0x08) {
+					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
+				}
 				entry.rawComment = dataArray.subarray(offset + 46 + entry.filenameLength + entry.extraFieldLength, offset + 46
 					+ entry.filenameLength + entry.extraFieldLength + entry.commentLength);
 				const comment = getString(entry.rawComment);
-				entry.comment = entry.bitFlag.languageEncodingFlag ? decodeUTF8(comment) : decodeASCII(comment);
+				entry.comment = entry.bitFlag.languageEncodingFlag ? decodeUTF8(comment) : decodeASCII(comment, entry.rawFilename, this.options.commentEncoding);
 				entries.push(entry);
 				offset += 46 + entry.filenameLength + entry.extraFieldLength + entry.commentLength;
 			}
@@ -1146,13 +1149,13 @@
 			if (dataView.getUint32(0, false) != 0x504b0304) {
 				throw ERR_LOCAL_FILE_HEADER_NOT_FOUND;
 			}
-			readCommonHeader(this, dataView, 4);
-			readExtraField(this, dataView, 4);
-			let dataOffset = this.offset + 30 + this.filenameLength + this.extraFieldLength;
-			if (!writer.initialized) {
-				await writer.init();
-			}
-			if (this.passwordProtected && !inputPassword) {
+			const localDirectory = this.localDirectory = {};
+			readCommonHeader(localDirectory, dataView, 4);
+			localDirectory.rawExtraField = dataArray.subarray(this.offset + 30 + localDirectory.filenameLength, this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength);
+			readExtraField(localDirectory, dataView, 4);
+			let dataOffset = this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
+			const inputEncrypted = this.bitFlag.encrypted && localDirectory.bitFlag.encrypted;
+			if (inputEncrypted && !inputPassword) {
 				throw new Error(ERR_ENCRYPTED);
 			}
 			const codec = await createCodec(this.config, {
@@ -1161,8 +1164,11 @@
 				inputSigned: options.checkSignature,
 				inputSignature: this.signature,
 				inputCompressed: this.compressionMethod != 0,
-				inputEncrypted: this.passwordProtected
+				inputEncrypted
 			});
+			if (!writer.initialized) {
+				await writer.init();
+			}
 			await processData(codec, reader, writer, dataOffset, this.compressedSize, this.config, { onprogress: options.onprogress });
 			return writer.getData();
 		}
@@ -1183,21 +1189,25 @@
 		entry.extraFieldLength = dataView.getUint16(offset + 24, true);
 	}
 
-	function readExtraField(entry, dataView, offset, isCentralHeader) {
+	function readExtraField(entry, dataView, offset) {
 		let extraFieldZip64, extraFieldAES;
 		const rawExtraField = entry.rawExtraField;
-		if (rawExtraField) {
+		if (rawExtraField && rawExtraField.length) {
 			const extraField = entry.extraField = new Map();
 			const rawExtraFieldView = new DataView(new Uint8Array(rawExtraField).buffer);
 			let offsetExtraField = 0;
-			while (offsetExtraField < rawExtraField.length) {
-				const type = rawExtraFieldView.getUint16(offsetExtraField, true);
-				const size = rawExtraFieldView.getUint16(offsetExtraField + 2, true);
-				extraField.set(type, {
-					type,
-					data: rawExtraField.slice(offsetExtraField + 4, offsetExtraField + 4 + size)
-				});
-				offsetExtraField += 4 + size;
+			try {
+				while (offsetExtraField < rawExtraField.length) {
+					const type = rawExtraFieldView.getUint16(offsetExtraField, true);
+					const size = rawExtraFieldView.getUint16(offsetExtraField + 2, true);
+					extraField.set(type, {
+						type,
+						data: rawExtraField.slice(offsetExtraField + 4, offsetExtraField + 4 + size)
+					});
+					offsetExtraField += 4 + size;
+				}
+			} catch (error) {
+				// ignored
 			}
 			extraFieldZip64 = entry.extraFieldZip64 = extraField.get(0x01);
 			extraFieldAES = entry.extraFieldAES = extraField.get(0x9901);
@@ -1210,7 +1220,6 @@
 				}
 			}
 			if (extraFieldAES && entry.bitFlag.encrypted) {
-				entry.passwordProtected = true;
 				const compressionMethod = dataView.getUint16(offset + 4, true);
 				if (compressionMethod != 0x63) {
 					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
@@ -1230,16 +1239,13 @@
 		} else {
 			entry.compressionMethod = dataView.getUint16(offset + 4, true);
 		}
-		if (entry.compressionMethod != 0x0 && entry.compressionMethod != 0x08) {
-			throw new Error(ERR_UNSUPPORTED_COMPRESSION);
-		}
 		if (entry.compressionMethod == 0x08) {
 			entry.bitFlag.enhancedDeflating = (entry.rawBitFlag & 0x10) != 0x10;
 		}
-		if (isCentralHeader || !entry.bitFlag.dataDescriptor) {
-			entry.signature = dataView.getUint32(offset + 10, true);
-			entry.uncompressedSize = dataView.getUint32(offset + 18, true);
-			entry.compressedSize = dataView.getUint32(offset + 14, true);
+		entry.signature = dataView.getUint32(offset + 10, true);
+		entry.uncompressedSize = dataView.getUint32(offset + 18, true);
+		entry.compressedSize = dataView.getUint32(offset + 14, true);
+		if (extraFieldZip64) {
 			const properties = ["uncompressedSize", "compressedSize", "offset"];
 			const missingProperties = properties.filter(propertyName => entry[propertyName] == 0xffffffff);
 			for (let indexMissingProperty = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
@@ -1286,17 +1292,21 @@
 		}
 	}
 
-	function decodeASCII(str) {
-		let result = "";
-		for (let indexTable = 0; indexTable < str.length; indexTable++) {
-			const charCode = str.charCodeAt(indexTable) & 0xFF;
-			if (charCode > 127) {
-				result += EXTENDED_US_ASCII[charCode - 128];
-			} else {
-				result += String.fromCharCode(charCode);
+	function decodeASCII(string, rawString, encoding) {
+		if (encoding) {
+			return (new TextDecoder(encoding)).decode(rawString);
+		} else {
+			let result = "";
+			for (let indexTable = 0; indexTable < string.length; indexTable++) {
+				const charCode = string.charCodeAt(indexTable) & 0xFF;
+				if (charCode > 127) {
+					result += EXTENDED_US_ASCII[charCode - 128];
+				} else {
+					result += String.fromCharCode(charCode);
+				}
 			}
+			return result;
 		}
-		return result;
 	}
 
 	function decodeUTF8(string) {
