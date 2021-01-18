@@ -437,6 +437,7 @@
 
 	const ERR_INVALID_PASSORD = "Invalid pasword";
 	const BLOCK_LENGTH = 16;
+	const RAW_FORMAT = "raw";
 	const PBKDF2_ALGORITHM = { name: "PBKDF2" };
 	const SIGNATURE_ALGORITHM = { name: "HMAC" };
 	const HASH_FUNCTION = "SHA-1";
@@ -466,7 +467,7 @@
 			const decrypt = async (offset = 0) => {
 				if (offset + BLOCK_LENGTH <= buferredInput.length - SIGNATURE_LENGTH) {
 					const chunkToDecrypt = buferredInput.subarray(offset, offset + BLOCK_LENGTH);
-					const outputChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.decryption, chunkToDecrypt);
+					const outputChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.decrypt, chunkToDecrypt);
 					incrementCounter(this.counter);
 					output.set(new Uint8Array(outputChunk), offset);
 					return decrypt(offset + BLOCK_LENGTH);
@@ -501,7 +502,7 @@
 			const originalSignatureArray = pendingInput.subarray(pendingInput.length - SIGNATURE_LENGTH);
 			let decryptedChunkArray = new Uint8Array(0);
 			if (chunkToDecrypt.length) {
-				const decryptedChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), keys.decryption, chunkToDecrypt);
+				const decryptedChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), keys.decrypt, chunkToDecrypt);
 				decryptedChunkArray = new Uint8Array(decryptedChunk);
 			}
 			let valid = true;
@@ -535,7 +536,7 @@
 			const encrypt = async (offset = 0) => {
 				if (offset + BLOCK_LENGTH <= input.length) {
 					const chunkToEncrypt = input.subarray(offset, offset + BLOCK_LENGTH);
-					const outputChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.encryption, chunkToEncrypt);
+					const outputChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.encrypt, chunkToEncrypt);
 					incrementCounter(this.counter);
 					output.set(new Uint8Array(outputChunk), offset + preambule.length);
 					return encrypt(offset + BLOCK_LENGTH);
@@ -563,7 +564,7 @@
 		async flush() {
 			let encryptedChunkArray = new Uint8Array(0);
 			if (this.pendingInput.length) {
-				const encryptedChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.encryption, this.pendingInput);
+				const encryptedChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.encrypt, this.pendingInput);
 				encryptedChunkArray = new Uint8Array(encryptedChunk);
 				this.output = concat(this.output, encryptedChunkArray);
 			}
@@ -577,18 +578,18 @@
 		}
 	}
 
-	async function createDecryptionKeys(decryption, preambuleArray, password) {
-		decryption.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
+	async function createDecryptionKeys(decrypt, preambuleArray, password) {
+		decrypt.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
 		const salt = preambuleArray.subarray(0, 16);
 		const passwordVerification = preambuleArray.subarray(16);
 		const encodedPassword = (new TextEncoder()).encode(password);
-		const basekey = await subtle.importKey("raw", encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
+		const basekey = await subtle.importKey(RAW_FORMAT, encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
 		const derivedBits = await subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), basekey, DERIVED_BITS_LENGTH);
 		const compositeKey = new Uint8Array(derivedBits);
 		const passwordVerificationKey = compositeKey.subarray(64);
-		decryption.keys = {
-			decryption: await subtle.importKey("raw", compositeKey.subarray(0, 32), CRYPTO_KEY_ALGORITHM, true, ["decrypt"]),
-			authentication: await subtle.importKey("raw", compositeKey.subarray(32, 64), AUTHENTICATION_ALGORITHM, false, SIGN_USAGE),
+		decrypt.keys = {
+			decrypt: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(0, 32), CRYPTO_KEY_ALGORITHM, true, ["decrypt"]),
+			authentication: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(32, 64), AUTHENTICATION_ALGORITHM, false, SIGN_USAGE),
 			passwordVerification: passwordVerificationKey
 		};
 		if (passwordVerificationKey[0] != passwordVerification[0] || passwordVerificationKey[1] != passwordVerification[1]) {
@@ -596,19 +597,19 @@
 		}
 	}
 
-	async function createEncryptionKeys(encryption, password) {
-		encryption.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
+	async function createEncryptionKeys(encrypt, password) {
+		encrypt.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
 		const salt = crypto.getRandomValues(new Uint8Array(16));
 		const encodedPassword = (new TextEncoder()).encode(password);
-		const basekey = await subtle.importKey("raw", encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
+		const basekey = await subtle.importKey(RAW_FORMAT, encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
 		const derivedBits = await subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), basekey, DERIVED_BITS_LENGTH);
 		const compositeKey = new Uint8Array(derivedBits);
-		encryption.keys = {
-			encryption: await subtle.importKey("raw", compositeKey.subarray(0, 32), CRYPTO_KEY_ALGORITHM, true, ["encrypt"]),
-			authentication: await subtle.importKey("raw", compositeKey.subarray(32, 64), AUTHENTICATION_ALGORITHM, false, SIGN_USAGE),
+		encrypt.keys = {
+			encrypt: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(0, 32), CRYPTO_KEY_ALGORITHM, true, ["encrypt"]),
+			authentication: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(32, 64), AUTHENTICATION_ALGORITHM, false, SIGN_USAGE),
 			passwordVerification: compositeKey.subarray(64)
 		};
-		return concat(salt, encryption.keys.passwordVerification);
+		return concat(salt, encrypt.keys.passwordVerification);
 	}
 
 	function incrementCounter(counter) {
@@ -669,6 +670,11 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const MESSAGE_INIT = "init";
+	const MESSAGE_APPEND = "append";
+	const MESSAGE_FLUSH = "flush";
+	const MESSAGE_EVENT_TYPE = "message";
+
 	const Z_WORKER_SCRIPT_PATH = "z-worker.js";
 	const DEFAULT_WORKER_SCRIPTS = {
 		deflate: [Z_WORKER_SCRIPT_PATH, "deflate.js"],
@@ -683,13 +689,13 @@
 		const pool = workers.pool;
 		const codecType = options.codecType;
 		if (config.workerScripts != null && config.workerScriptsPath != null) {
-			throw new Error("Either zip.workerScripts or zip.workerScriptsPath may be set, not both");
+			throw new Error("Either workerScripts or workerScriptsPath may be set, not both");
 		}
 		let scripts;
 		if (config.workerScripts) {
 			scripts = config.workerScripts[codecType];
 			if (!Array.isArray(scripts)) {
-				throw new Error("zip.workerScripts." + codecType + " must be an array");
+				throw new Error("workerScripts." + codecType + " must be an array");
 			}
 			scripts = resolveURLs(scripts);
 		} else {
@@ -718,21 +724,22 @@
 		const worker = workerData.worker;
 		const scripts = workerData.scripts.slice(1);
 		let task;
-		worker.addEventListener("message", onMessage, false);
+		worker.addEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
 		workerData.interface = {
 			async append(data) {
-				if (!task) {
-					await sendMessage(Object.assign({ type: "init", options: workerData.options, scripts }));
-				}
-				return sendMessage({ type: "append", data });
+				return initAndSendMessage({ type: MESSAGE_APPEND, data });
 			},
 			async flush() {
-				if (!task) {
-					await sendMessage(Object.assign({ type: "init", options: workerData.options, scripts }));
-				}
-				return sendMessage({ type: "flush" });
+				return initAndSendMessage({ type: MESSAGE_FLUSH });
 			}
 		};
+
+		async function initAndSendMessage(message) {
+			if (!task) {
+				await sendMessage(Object.assign({ type: MESSAGE_INIT, options: workerData.options, scripts }));
+			}
+			return sendMessage(message);
+		}
 
 		function sendMessage(message) {
 			try {
@@ -747,7 +754,7 @@
 				}
 			} catch (error) {
 				task.reject(error);
-				worker.removeEventListener("message", onMessage, false);
+				worker.removeEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
 			}
 			return new Promise((resolve, reject) => task = { resolve, reject });
 		}
@@ -760,9 +767,9 @@
 					const error = new Error(reponseError.message);
 					error.stack = reponseError.stack;
 					task.reject(error);
-					worker.removeEventListener("message", onMessage, false);
-				} else if (message.type == "init" || message.type == "flush" || message.type == "append") {
-					if (message.type == "flush") {
+					worker.removeEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
+				} else if (message.type == MESSAGE_INIT || message.type == MESSAGE_FLUSH || message.type == MESSAGE_APPEND) {
+					if (message.type == MESSAGE_FLUSH) {
 						task.resolve({ data: new Uint8Array(message.data), signature: message.signature });
 						task = null;
 						terminateWorker(workerData);
@@ -824,6 +831,8 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const CODEC_DEFLATE = "deflate";
+	const CODEC_INFLATE = "inflate";
 	const ERR_INVALID_SIGNATURE = "Invalid signature";
 
 	class Inflate {
@@ -835,12 +844,12 @@
 			this.compressed = options.inputCompressed;
 			this.inflate = this.compressed && new ZipInflate();
 			this.crc32 = this.signed && this.signed && new Crc32();
-			this.decryption = this.encrypted && new ZipDecrypt(options.inputPassword);
+			this.decrypt = this.encrypted && new ZipDecrypt(options.inputPassword);
 		}
 
 		async append(data) {
 			if (this.encrypted) {
-				data = await this.decryption.append(data);
+				data = await this.decrypt.append(data);
 			}
 			if (this.compressed && data.length) {
 				data = await this.inflate.append(data);
@@ -854,7 +863,7 @@
 		async flush() {
 			let signature, data = new Uint8Array(0);
 			if (this.encrypted) {
-				const result = await this.decryption.flush();
+				const result = await this.decrypt.flush();
 				if (!result.valid) {
 					throw new Error(ERR_INVALID_SIGNATURE);
 				}
@@ -920,9 +929,9 @@
 	}
 
 	async function createBaseCodec(options) {
-		if (options.codecType.startsWith("deflate")) {
+		if (options.codecType.startsWith(CODEC_DEFLATE)) {
 			return new Deflate(options);
-		} else if (options.codecType.startsWith("inflate")) {
+		} else if (options.codecType.startsWith(CODEC_INFLATE)) {
 			return new Inflate(options);
 		}
 	}
@@ -1145,7 +1154,7 @@
 				throw new Error(ERR_ENCRYPTED);
 			}
 			const codec = await createCodec(this.config, {
-				codecType: "inflate",
+				codecType: CODEC_INFLATE,
 				inputPassword,
 				inputSigned: options.checkSignature,
 				inputSignature: this.signature,
@@ -1556,7 +1565,7 @@
 		if (reader) {
 			await reader.init();
 			const codec = await createCodec(config, {
-				codecType: "deflate",
+				codecType: CODEC_DEFLATE,
 				level: options.level,
 				outputPassword: options.password,
 				outputSigned,
@@ -1611,6 +1620,8 @@
 		return bytes;
 	}
 
+	const FUNCTION_TYPE = "function";
+
 	var streamCodecShim = (library, options = {}) => {
 		return {
 			ZipDeflate: createCodecClass(library.Deflate, options.deflate),
@@ -1632,9 +1643,9 @@
 					}
 				};
 				this.codec = new constructor(Object.assign({}, constructorOptions, options));
-				if (typeof this.codec.onData == "function") {
+				if (typeof this.codec.onData == FUNCTION_TYPE) {
 					this.codec.onData = onData;
-				} else if (typeof this.codec.on == "function") {
+				} else if (typeof this.codec.on == FUNCTION_TYPE) {
 					this.codec.on("data", onData);
 				} else {
 					throw new Error("Cannot register the callback function");
