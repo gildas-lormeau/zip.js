@@ -437,6 +437,7 @@
 
 	const ERR_INVALID_PASSORD = "Invalid pasword";
 	const BLOCK_LENGTH = 16;
+	const RAW_FORMAT = "raw";
 	const PBKDF2_ALGORITHM = { name: "PBKDF2" };
 	const SIGNATURE_ALGORITHM = { name: "HMAC" };
 	const HASH_FUNCTION = "SHA-1";
@@ -466,7 +467,7 @@
 			const decrypt = async (offset = 0) => {
 				if (offset + BLOCK_LENGTH <= buferredInput.length - SIGNATURE_LENGTH) {
 					const chunkToDecrypt = buferredInput.subarray(offset, offset + BLOCK_LENGTH);
-					const outputChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.decryption, chunkToDecrypt);
+					const outputChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.decrypt, chunkToDecrypt);
 					incrementCounter(this.counter);
 					output.set(new Uint8Array(outputChunk), offset);
 					return decrypt(offset + BLOCK_LENGTH);
@@ -501,7 +502,7 @@
 			const originalSignatureArray = pendingInput.subarray(pendingInput.length - SIGNATURE_LENGTH);
 			let decryptedChunkArray = new Uint8Array(0);
 			if (chunkToDecrypt.length) {
-				const decryptedChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), keys.decryption, chunkToDecrypt);
+				const decryptedChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), keys.decrypt, chunkToDecrypt);
 				decryptedChunkArray = new Uint8Array(decryptedChunk);
 			}
 			let valid = true;
@@ -535,7 +536,7 @@
 			const encrypt = async (offset = 0) => {
 				if (offset + BLOCK_LENGTH <= input.length) {
 					const chunkToEncrypt = input.subarray(offset, offset + BLOCK_LENGTH);
-					const outputChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.encryption, chunkToEncrypt);
+					const outputChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.encrypt, chunkToEncrypt);
 					incrementCounter(this.counter);
 					output.set(new Uint8Array(outputChunk), offset + preambule.length);
 					return encrypt(offset + BLOCK_LENGTH);
@@ -563,7 +564,7 @@
 		async flush() {
 			let encryptedChunkArray = new Uint8Array(0);
 			if (this.pendingInput.length) {
-				const encryptedChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.encryption, this.pendingInput);
+				const encryptedChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.encrypt, this.pendingInput);
 				encryptedChunkArray = new Uint8Array(encryptedChunk);
 				this.output = concat(this.output, encryptedChunkArray);
 			}
@@ -577,18 +578,18 @@
 		}
 	}
 
-	async function createDecryptionKeys(decryption, preambuleArray, password) {
-		decryption.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
+	async function createDecryptionKeys(decrypt, preambuleArray, password) {
+		decrypt.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
 		const salt = preambuleArray.subarray(0, 16);
 		const passwordVerification = preambuleArray.subarray(16);
 		const encodedPassword = (new TextEncoder()).encode(password);
-		const basekey = await subtle.importKey("raw", encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
+		const basekey = await subtle.importKey(RAW_FORMAT, encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
 		const derivedBits = await subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), basekey, DERIVED_BITS_LENGTH);
 		const compositeKey = new Uint8Array(derivedBits);
 		const passwordVerificationKey = compositeKey.subarray(64);
-		decryption.keys = {
-			decryption: await subtle.importKey("raw", compositeKey.subarray(0, 32), CRYPTO_KEY_ALGORITHM, true, ["decrypt"]),
-			authentication: await subtle.importKey("raw", compositeKey.subarray(32, 64), AUTHENTICATION_ALGORITHM, false, SIGN_USAGE),
+		decrypt.keys = {
+			decrypt: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(0, 32), CRYPTO_KEY_ALGORITHM, true, ["decrypt"]),
+			authentication: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(32, 64), AUTHENTICATION_ALGORITHM, false, SIGN_USAGE),
 			passwordVerification: passwordVerificationKey
 		};
 		if (passwordVerificationKey[0] != passwordVerification[0] || passwordVerificationKey[1] != passwordVerification[1]) {
@@ -596,19 +597,19 @@
 		}
 	}
 
-	async function createEncryptionKeys(encryption, password) {
-		encryption.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
+	async function createEncryptionKeys(encrypt, password) {
+		encrypt.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
 		const salt = crypto.getRandomValues(new Uint8Array(16));
 		const encodedPassword = (new TextEncoder()).encode(password);
-		const basekey = await subtle.importKey("raw", encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
+		const basekey = await subtle.importKey(RAW_FORMAT, encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
 		const derivedBits = await subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), basekey, DERIVED_BITS_LENGTH);
 		const compositeKey = new Uint8Array(derivedBits);
-		encryption.keys = {
-			encryption: await subtle.importKey("raw", compositeKey.subarray(0, 32), CRYPTO_KEY_ALGORITHM, true, ["encrypt"]),
-			authentication: await subtle.importKey("raw", compositeKey.subarray(32, 64), AUTHENTICATION_ALGORITHM, false, SIGN_USAGE),
+		encrypt.keys = {
+			encrypt: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(0, 32), CRYPTO_KEY_ALGORITHM, true, ["encrypt"]),
+			authentication: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(32, 64), AUTHENTICATION_ALGORITHM, false, SIGN_USAGE),
 			passwordVerification: compositeKey.subarray(64)
 		};
-		return concat(salt, encryption.keys.passwordVerification);
+		return concat(salt, encrypt.keys.passwordVerification);
 	}
 
 	function incrementCounter(counter) {
@@ -669,6 +670,11 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const MESSAGE_INIT = "init";
+	const MESSAGE_APPEND = "append";
+	const MESSAGE_FLUSH = "flush";
+	const MESSAGE_EVENT_TYPE = "message";
+
 	const Z_WORKER_SCRIPT_PATH = "z-worker.js";
 	const DEFAULT_WORKER_SCRIPTS = {
 		deflate: [Z_WORKER_SCRIPT_PATH, "deflate.js"],
@@ -683,13 +689,13 @@
 		const pool = workers.pool;
 		const codecType = options.codecType;
 		if (config.workerScripts != null && config.workerScriptsPath != null) {
-			throw new Error("Either zip.workerScripts or zip.workerScriptsPath may be set, not both");
+			throw new Error("Either workerScripts or workerScriptsPath may be set, not both");
 		}
 		let scripts;
 		if (config.workerScripts) {
 			scripts = config.workerScripts[codecType];
 			if (!Array.isArray(scripts)) {
-				throw new Error("zip.workerScripts." + codecType + " must be an array");
+				throw new Error("workerScripts." + codecType + " must be an array");
 			}
 			scripts = resolveURLs(scripts);
 		} else {
@@ -718,21 +724,22 @@
 		const worker = workerData.worker;
 		const scripts = workerData.scripts.slice(1);
 		let task;
-		worker.addEventListener("message", onMessage, false);
+		worker.addEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
 		workerData.interface = {
 			async append(data) {
-				if (!task) {
-					await sendMessage(Object.assign({ type: "init", options: workerData.options, scripts }));
-				}
-				return sendMessage({ type: "append", data });
+				return initAndSendMessage({ type: MESSAGE_APPEND, data });
 			},
 			async flush() {
-				if (!task) {
-					await sendMessage(Object.assign({ type: "init", options: workerData.options, scripts }));
-				}
-				return sendMessage({ type: "flush" });
+				return initAndSendMessage({ type: MESSAGE_FLUSH });
 			}
 		};
+
+		async function initAndSendMessage(message) {
+			if (!task) {
+				await sendMessage(Object.assign({ type: MESSAGE_INIT, options: workerData.options, scripts }));
+			}
+			return sendMessage(message);
+		}
 
 		function sendMessage(message) {
 			try {
@@ -747,7 +754,7 @@
 				}
 			} catch (error) {
 				task.reject(error);
-				worker.removeEventListener("message", onMessage, false);
+				worker.removeEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
 			}
 			return new Promise((resolve, reject) => task = { resolve, reject });
 		}
@@ -760,9 +767,9 @@
 					const error = new Error(reponseError.message);
 					error.stack = reponseError.stack;
 					task.reject(error);
-					worker.removeEventListener("message", onMessage, false);
-				} else if (message.type == "init" || message.type == "flush" || message.type == "append") {
-					if (message.type == "flush") {
+					worker.removeEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
+				} else if (message.type == MESSAGE_INIT || message.type == MESSAGE_FLUSH || message.type == MESSAGE_APPEND) {
+					if (message.type == MESSAGE_FLUSH) {
 						task.resolve({ data: new Uint8Array(message.data), signature: message.signature });
 						task = null;
 						terminateWorker(workerData);
@@ -824,6 +831,8 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const CODEC_DEFLATE = "deflate";
+	const CODEC_INFLATE = "inflate";
 	const ERR_INVALID_SIGNATURE = "Invalid signature";
 
 	class Inflate {
@@ -835,12 +844,12 @@
 			this.compressed = options.inputCompressed;
 			this.inflate = this.compressed && new ZipInflate();
 			this.crc32 = this.signed && this.signed && new Crc32();
-			this.decryption = this.encrypted && new ZipDecrypt(options.inputPassword);
+			this.decrypt = this.encrypted && new ZipDecrypt(options.inputPassword);
 		}
 
 		async append(data) {
 			if (this.encrypted) {
-				data = await this.decryption.append(data);
+				data = await this.decrypt.append(data);
 			}
 			if (this.compressed && data.length) {
 				data = await this.inflate.append(data);
@@ -854,7 +863,7 @@
 		async flush() {
 			let signature, data = new Uint8Array(0);
 			if (this.encrypted) {
-				const result = await this.decryption.flush();
+				const result = await this.decrypt.flush();
 				if (!result.valid) {
 					throw new Error(ERR_INVALID_SIGNATURE);
 				}
@@ -920,9 +929,9 @@
 	}
 
 	async function createBaseCodec(options) {
-		if (options.codecType.startsWith("deflate")) {
+		if (options.codecType.startsWith(CODEC_DEFLATE)) {
 			return new Deflate(options);
-		} else if (options.codecType.startsWith("inflate")) {
+		} else if (options.codecType.startsWith(CODEC_INFLATE)) {
 			return new Inflate(options);
 		}
 	}
@@ -1087,7 +1096,7 @@
 			const entries = [];
 			let offset = 0;
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
-				const entry = new Entry(this);
+				const entry = new Entry(this.reader, this.config, this.options);
 				if (directoryDataView.getUint32(offset, false) != 0x504b0102) {
 					throw new Error(ERR_CENTRAL_DIRECTORY_NOT_FOUND);
 				}
@@ -1099,16 +1108,19 @@
 				entry.offset = directoryDataView.getUint32(offset + 42, true);
 				entry.rawFilename = dataArray.subarray(offset + 46, offset + 46 + entry.filenameLength);
 				const filename = getString(entry.rawFilename);
-				entry.filename = entry.bitFlag.languageEncodingFlag ? decodeUTF8(filename) : decodeASCII(filename);
+				entry.filename = entry.bitFlag.languageEncodingFlag ? decodeUTF8(filename) : decodeASCII(filename, entry.rawFilename, this.options.filenameEncoding);
 				if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) == "/") {
 					entry.directory = true;
 				}
 				entry.rawExtraField = dataArray.subarray(offset + 46 + entry.filenameLength, offset + 46 + entry.filenameLength + entry.extraFieldLength);
-				readExtraField(entry, directoryDataView, offset + 6, true);
+				readExtraField(entry, directoryDataView, offset + 6);
+				if (entry.compressionMethod != 0x0 && entry.compressionMethod != 0x08) {
+					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
+				}
 				entry.rawComment = dataArray.subarray(offset + 46 + entry.filenameLength + entry.extraFieldLength, offset + 46
 					+ entry.filenameLength + entry.extraFieldLength + entry.commentLength);
 				const comment = getString(entry.rawComment);
-				entry.comment = entry.bitFlag.languageEncodingFlag ? decodeUTF8(comment) : decodeASCII(comment);
+				entry.comment = entry.bitFlag.languageEncodingFlag ? decodeUTF8(comment) : decodeASCII(comment, entry.rawFilename, this.options.commentEncoding);
 				entries.push(entry);
 				offset += 46 + entry.filenameLength + entry.extraFieldLength + entry.commentLength;
 			}
@@ -1121,9 +1133,10 @@
 
 	class Entry {
 
-		constructor(zipReader) {
-			this.reader = zipReader.reader;
-			this.config = zipReader.config;
+		constructor(reader, config, options) {
+			this.reader = reader;
+			this.config = config;
+			this.options = options;
 		}
 
 		async getData(writer, options = {}) {
@@ -1133,25 +1146,31 @@
 			}
 			const dataArray = await reader.readUint8Array(this.offset, 30);
 			const dataView = new DataView(dataArray.buffer);
-			let inputPassword = options.password && options.password.length && options.password;
+			const password = options.password === undefined ? this.options.password : options.password;
+			let inputPassword = password && password.length && password;
 			if (dataView.getUint32(0, false) != 0x504b0304) {
 				throw ERR_LOCAL_FILE_HEADER_NOT_FOUND;
 			}
-			readCommonHeader(this, dataView, 4);
-			readExtraField(this, dataView, 4);
-			let dataOffset = this.offset + 30 + this.filenameLength + this.extraFieldLength;
-			await writer.init();
-			if (this.passwordProtected && !inputPassword) {
+			const localDirectory = this.localDirectory = {};
+			readCommonHeader(localDirectory, dataView, 4);
+			localDirectory.rawExtraField = dataArray.subarray(this.offset + 30 + localDirectory.filenameLength, this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength);
+			readExtraField(localDirectory, dataView, 4);
+			let dataOffset = this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
+			const inputEncrypted = this.bitFlag.encrypted && localDirectory.bitFlag.encrypted;
+			if (inputEncrypted && !inputPassword) {
 				throw new Error(ERR_ENCRYPTED);
 			}
 			const codec = await createCodec(this.config, {
-				codecType: "inflate",
+				codecType: CODEC_INFLATE,
 				inputPassword,
-				inputSigned: options.checkSignature,
+				inputSigned: options.checkSignature === undefined ? this.options.checkSignature : options.checkSignature,
 				inputSignature: this.signature,
 				inputCompressed: this.compressionMethod != 0,
-				inputEncrypted: this.passwordProtected
+				inputEncrypted
 			});
+			if (!writer.initialized) {
+				await writer.init();
+			}
 			await processData(codec, reader, writer, dataOffset, this.compressedSize, this.config, { onprogress: options.onprogress });
 			return writer.getData();
 		}
@@ -1172,21 +1191,25 @@
 		entry.extraFieldLength = dataView.getUint16(offset + 24, true);
 	}
 
-	function readExtraField(entry, dataView, offset, isCentralHeader) {
+	function readExtraField(entry, dataView, offset) {
 		let extraFieldZip64, extraFieldAES;
 		const rawExtraField = entry.rawExtraField;
-		if (rawExtraField) {
+		if (rawExtraField && rawExtraField.length) {
 			const extraField = entry.extraField = new Map();
 			const rawExtraFieldView = new DataView(new Uint8Array(rawExtraField).buffer);
 			let offsetExtraField = 0;
-			while (offsetExtraField < rawExtraField.length) {
-				const type = rawExtraFieldView.getUint16(offsetExtraField, true);
-				const size = rawExtraFieldView.getUint16(offsetExtraField + 2, true);
-				extraField.set(type, {
-					type,
-					data: rawExtraField.slice(offsetExtraField + 4, offsetExtraField + 4 + size)
-				});
-				offsetExtraField += 4 + size;
+			try {
+				while (offsetExtraField < rawExtraField.length) {
+					const type = rawExtraFieldView.getUint16(offsetExtraField, true);
+					const size = rawExtraFieldView.getUint16(offsetExtraField + 2, true);
+					extraField.set(type, {
+						type,
+						data: rawExtraField.slice(offsetExtraField + 4, offsetExtraField + 4 + size)
+					});
+					offsetExtraField += 4 + size;
+				}
+			} catch (error) {
+				// ignored
 			}
 			extraFieldZip64 = entry.extraFieldZip64 = extraField.get(0x01);
 			extraFieldAES = entry.extraFieldAES = extraField.get(0x9901);
@@ -1199,7 +1222,6 @@
 				}
 			}
 			if (extraFieldAES && entry.bitFlag.encrypted) {
-				entry.passwordProtected = true;
 				const compressionMethod = dataView.getUint16(offset + 4, true);
 				if (compressionMethod != 0x63) {
 					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
@@ -1219,16 +1241,13 @@
 		} else {
 			entry.compressionMethod = dataView.getUint16(offset + 4, true);
 		}
-		if (entry.compressionMethod != 0x0 && entry.compressionMethod != 0x08) {
-			throw new Error(ERR_UNSUPPORTED_COMPRESSION);
-		}
 		if (entry.compressionMethod == 0x08) {
 			entry.bitFlag.enhancedDeflating = (entry.rawBitFlag & 0x10) != 0x10;
 		}
-		if (isCentralHeader || !entry.bitFlag.dataDescriptor) {
-			entry.signature = dataView.getUint32(offset + 10, true);
-			entry.uncompressedSize = dataView.getUint32(offset + 18, true);
-			entry.compressedSize = dataView.getUint32(offset + 14, true);
+		entry.signature = dataView.getUint32(offset + 10, true);
+		entry.uncompressedSize = dataView.getUint32(offset + 18, true);
+		entry.compressedSize = dataView.getUint32(offset + 14, true);
+		if (extraFieldZip64) {
 			const properties = ["uncompressedSize", "compressedSize", "offset"];
 			const missingProperties = properties.filter(propertyName => entry[propertyName] == 0xffffffff);
 			for (let indexMissingProperty = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
@@ -1275,17 +1294,21 @@
 		}
 	}
 
-	function decodeASCII(str) {
-		let result = "";
-		for (let indexTable = 0; indexTable < str.length; indexTable++) {
-			const charCode = str.charCodeAt(indexTable) & 0xFF;
-			if (charCode > 127) {
-				result += EXTENDED_US_ASCII[charCode - 128];
-			} else {
-				result += String.fromCharCode(charCode);
+	function decodeASCII(string, rawString, encoding) {
+		if (encoding) {
+			return (new TextDecoder(encoding)).decode(rawString);
+		} else {
+			let result = "";
+			for (let indexTable = 0; indexTable < string.length; indexTable++) {
+				const charCode = string.charCodeAt(indexTable) & 0xFF;
+				if (charCode > 127) {
+					result += EXTENDED_US_ASCII[charCode - 128];
+				} else {
+					result += String.fromCharCode(charCode);
+				}
 			}
+			return result;
 		}
-		return result;
 	}
 
 	function decodeUTF8(string) {
@@ -1337,10 +1360,11 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const COMPRESSION_METHOD_DEFLATE = 0x08;
 	const MAX_COMMENT_LENGTH = 65536;
 	const ERR_DUPLICATED_NAME = "File already exists";
-	const ERR_ZIP_FILE_COMMENT = "Zip file comment exceeds 64KB";
-	const ERR_FILE_ENTRY_COMMENT = "File entry comment exceeds 64KB";
+	const ERR_INVALID_COMMENT = "Zip file comment exceeds 64KB";
+	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
 
 	class ZipWriter {
 
@@ -1363,7 +1387,7 @@
 			}
 			options.comment = getBytes(encodeUTF8(options.comment || ""));
 			if (options.comment > MAX_COMMENT_LENGTH) {
-				throw new Error(ERR_FILE_ENTRY_COMMENT);
+				throw new Error(ERR_INVALID_ENTRY_COMMENT);
 			}
 			options.zip64 = options.zip64 || this.zip64;
 			await addFile(this, name, reader, options);
@@ -1376,7 +1400,7 @@
 			for (const [, fileEntry] of files) {
 				directoryDataLength += 46 + fileEntry.filename.length + fileEntry.comment.length + fileEntry.extraFieldZip64.length + fileEntry.extraFieldAES.length + fileEntry.rawExtraField.length;
 			}
-			if (this.zip64 || directoryOffset + directoryDataLength >= 0xffffffff || filesLength >= 0xffff) {
+			if (directoryOffset + directoryDataLength >= 0xffffffff || filesLength >= 0xffff) {
 				this.zip64 = true;
 			}
 			const directoryDataArray = new Uint8Array(directoryDataLength + (this.zip64 ? 98 : 22));
@@ -1435,7 +1459,7 @@
 				if (comment.length <= MAX_COMMENT_LENGTH) {
 					directoryDataView.setUint16(offset + 20, comment.length, true);
 				} else {
-					throw new Error(ERR_ZIP_FILE_COMMENT);
+					throw new Error(ERR_INVALID_COMMENT);
 				}
 			}
 			await writer.writeUint8Array(directoryDataArray);
@@ -1453,7 +1477,7 @@
 		try {
 			let fileWriter, fileEntry;
 			try {
-				if (options.bufferedWrite || zipWriter.lockWrite) {
+				if ((options.bufferedWrite || zipWriter.options.bufferedWrite) || zipWriter.lockWrite) {
 					fileWriter = new Uint8ArrayWriter();
 					fileWriter.init();
 				} else {
@@ -1466,7 +1490,7 @@
 				if (zipWriter.offset >= 0xffffffff || (reader && (reader.size >= 0xffffffff || zipWriter.offset + reader.size >= 0xffffffff))) {
 					options.zip64 = true;
 				}
-				fileEntry = await createFileEntry(name, reader, fileWriter, zipWriter.config, options);
+				fileEntry = await createFileEntry(name, reader, fileWriter, zipWriter.config, zipWriter.options, options);
 			} catch (error) {
 				files.delete(name);
 				throw error;
@@ -1492,14 +1516,16 @@
 		}
 	}
 
-	async function createFileEntry(name, reader, writer, config, options) {
+	async function createFileEntry(name, reader, writer, config, zipWriterOptions, options) {
 		const filename = getBytes(encodeUTF8(name));
 		const date = options.lastModDate || new Date();
 		const headerArray = new Uint8Array(26);
 		const headerView = new DataView(headerArray.buffer);
-		const outputPassword = options.password && options.password.length && options.password;
-		const compressed = options.level !== 0 && !options.directory;
-		const outputSigned = options.password === undefined || !options.password.length;
+		const password = options.password === undefined ? zipWriterOptions.password : options.password;
+		const outputPassword = password && password.length && password;
+		const level = options.level === undefined ? zipWriterOptions.level : options.level;
+		const compressed = level !== 0 && !options.directory;
+		const outputSigned = password === undefined || !password.length;
 		const zip64 = options.zip64;
 		const fileEntry = {
 			zip64,
@@ -1524,10 +1550,10 @@
 			});
 		}
 		options.bitFlag = 0x08;
-		options.version = options.version || 0x14;
+		options.version = (options.version === undefined ? zipWriterOptions.version : options.version) || 0x14;
 		options.compressionMethod = 0;
 		if (compressed) {
-			options.compressionMethod = 0x08;
+			options.compressionMethod = COMPRESSION_METHOD_DEFLATE;
 		}
 		if (zip64) {
 			options.version = options.version > 0x2D ? options.version : 0x2D;
@@ -1537,7 +1563,7 @@
 			options.bitFlag = 0x09;
 			options.compressionMethod = 0x63;
 			if (compressed) {
-				fileEntry.extraFieldAES[9] = 0x08;
+				fileEntry.extraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
 			}
 		}
 		headerView.setUint16(0, options.version, true);
@@ -1554,14 +1580,16 @@
 		fileDataArray.set(filename, 30);
 		let result;
 		if (reader) {
-			await reader.init();
+			if (!reader.initialized) {
+				await reader.init();
+			}
 			const codec = await createCodec(config, {
-				codecType: "deflate",
-				level: options.level,
-				outputPassword: options.password,
+				codecType: CODEC_DEFLATE,
+				level,
+				outputPassword: password,
 				outputSigned,
 				outputCompressed: compressed,
-				outputEncrypted: Boolean(options.password)
+				outputEncrypted: Boolean(password)
 			});
 			await writer.writeUint8Array(fileDataArray);
 			result = await processData(codec, reader, writer, 0, reader.size, config, { onprogress: options.onprogress });
@@ -1611,6 +1639,8 @@
 		return bytes;
 	}
 
+	const FUNCTION_TYPE = "function";
+
 	var streamCodecShim = (library, options = {}) => {
 		return {
 			ZipDeflate: createCodecClass(library.Deflate, options.deflate),
@@ -1632,9 +1662,9 @@
 					}
 				};
 				this.codec = new constructor(Object.assign({}, constructorOptions, options));
-				if (typeof this.codec.onData == "function") {
+				if (typeof this.codec.onData == FUNCTION_TYPE) {
 					this.codec.onData = onData;
-				} else if (typeof this.codec.on == "function") {
+				} else if (typeof this.codec.on == FUNCTION_TYPE) {
 					this.codec.on("data", onData);
 				} else {
 					throw new Error("Cannot register the callback function");
