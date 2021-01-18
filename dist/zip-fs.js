@@ -1166,6 +1166,8 @@
 			dataDescriptor: (rawBitFlag & 0x08) == 0x08,
 			languageEncodingFlag: (rawBitFlag & 0x0800) == 0x0800
 		};
+		entry.rawLastModDate = dataView.getUint32(offset + 6, true);
+		entry.lastModDate = getDate(entry.rawLastModDate);
 		entry.filenameLength = dataView.getUint16(offset + 22, true);
 		entry.extraFieldLength = dataView.getUint16(offset + 24, true);
 	}
@@ -1223,8 +1225,6 @@
 		if (entry.compressionMethod == 0x08) {
 			entry.bitFlag.enhancedDeflating = (entry.rawBitFlag & 0x10) != 0x10;
 		}
-		entry.lastModDateRaw = dataView.getUint32(offset + 6, true);
-		entry.lastModDate = getDate(entry.lastModDateRaw);
 		if (isCentralHeader || !entry.bitFlag.dataDescriptor) {
 			entry.signature = dataView.getUint32(offset + 10, true);
 			entry.uncompressedSize = dataView.getUint32(offset + 18, true);
