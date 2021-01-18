@@ -201,13 +201,13 @@
 		</dl>
 
 		<h3>Reader members (used internally)</h3>
-		<p>Attributes:</p>
+		<h4>Attributes</h4>
 		<dl>
 			<dt><code>size (number)</code></dt>
 			<dd>The size of data to read in bytes</dd>
 		</dl>
 		<br>
-		<p>Methods:</p>
+		<h4>Methods</h4>
 		<pre><code class="prettyprint">zip.Reader#init()</code></pre>
 		<p>Initialize the <code><a href="#zip-reading">zip.Reader</a></code> object.</p>
 		<p>Returns:</p>
@@ -264,13 +264,13 @@
 		</dl>
 
 		<h3>Writer members (used internally)</h3>
-		<p>Attributes:</p>
+		<h4>Attributes</h4>
 		<dl>
 			<dt><code>size (number)</code></dt>
 			<dd>The size of written data in bytes</dd>
 		</dl>
 		<br>
-		<p>Methods:</p>
+		<h4>Methods</h4>
 		<pre><code class="prettyprint">zip.Writer#init()</code></pre>
 		<p>Initialize the <code><a href="#zip-writer">zip.Writer</a></code> object.</p>
 		<p>Returns:</p>
@@ -322,7 +322,7 @@
 			<dd>the <code><a href="#zip-reading">zip.Reader</a></code> object used to read input data</dd>
 		</dl>
 		<br>
-		<p>Methods:</p>
+		<h3>Methods</h3>
 		<pre><code class="prettyprint">zip.ZipReader#getEntries()</code></pre>
 		<p>
 			Get all entries from a zip.
@@ -348,7 +348,7 @@
 		<p>
 			Constructor representing a zip file entry.
 		</p>
-		<p>Attributes:</p>
+		<h3>Attributes</h3>
 		<dl>
 			<dt><code>filename (string)</code></dt>
 			<dd>file name</dd>
@@ -377,7 +377,7 @@
 			<dd>extra field in binary</dd>
 		</dl>
 		<br>
-		<p>Methods:</p>
+		<h3>Methods</h3>
 		<pre><code class="prettyprint">Entry#getData(writer [, options])</code></pre>
 		<p>
 			Get the data of a zip entry.
@@ -457,7 +457,7 @@ await reader.close();</code></pre>
 			</dd>
 		</dl>
 		<br>
-		<p>Methods:</p>
+		<h3>Methods</h3>
 		<pre><code class="prettyprint">zip.ZipWriter#add(name , reader [, options])</code></pre>
 		<p>
 			Add a new entry into the zip.
