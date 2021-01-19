@@ -39,8 +39,9 @@
 		<h2 id="fs-installation">Installation</h2>
 		<ul>
 			<li>
-				Add <code>zip-fs.min.js</code> from the <code>/dist</code> folder in your project and the 
-				following files depending on your needs:
+				Add <code>zip-fs.min.js</code> from the
+				<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
+				directory in your project and the following files depending on your needs:
 				<ul>
 					<li><code>z-worker.js</code> to zip/unzip files with web workers (recommended)</li>
 					<li><code>deflate.js</code> to zip files</li>
@@ -51,10 +52,10 @@
 			<li>Include <code>zip-fs.min.js</code> script in your HTML page
 				<ul>
 					<li>as a regular script
-						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip-fs.min.js&quot;&gt;&lt;/script&gt;</code></pre>
+						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/zip-fs.min.js&quot;&gt;&lt;/script&gt;</code></pre>
 					</li>
 					<li>or as a module
-						<pre><code class="prettyprint">require(["/lib/zip-fs.min.js"], zip => {
+						<pre><code class="prettyprint">require(["/&lt;library path&gt;/zip-fs.min.js"], zip => {
   // ...
 });</code></pre>
 
@@ -68,15 +69,15 @@
 						Configure zip.js with <code>workerScriptsPath</code> set to the URL of the directory containing
 						<code>z-worker.js</code>, <code>deflate.js</code>, and/or <code>inflate.js</code>.
 						<pre><code class="prettyprint">zip.configure({
-  workerScriptsPath: "/lib/"
+  workerScriptsPath: "/&lt;library path&gt;/"
 });</code></pre>
 
 					</li>
 					<li>without web workers:
 						<br>
 						Include <code>deflate.js</code> and/or <code>inflate.js</code> in the page
-						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/deflate.js&quot;&gt;&lt;/script&gt;
-&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/inflate.js&quot;&gt;&lt;/script&gt;
+						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/deflate.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/inflate.js&quot;&gt;&lt;/script&gt;
 </code></pre>
 						Configure zip.js with <code>useWebWorkers</code> set to <code>false</code>
 						<pre><code class="prettyprint">zip.configure({
@@ -85,7 +86,7 @@
 					</li>
 				</ul>
 			</li>
-		</ul>		
+		</ul>
 
 		<h2 id="fs-constructor">Zip filesystem</h2>
 		<p>

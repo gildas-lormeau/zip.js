@@ -39,8 +39,9 @@
 		<h2 id="installation">Installation</h2>
 		<ul>
 			<li>
-				Add <code>zip.min.js</code> from the <code>/dist</code> folder in your project and the
-				following files depending on your needs:
+				Add <code>zip.min.js</code> from the
+				<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
+				directory in your project and the following files depending on your needs:
 				<ul>
 					<li><code>z-worker.js</code> to zip/unzip files with web workers (recommended)</li>
 					<li><code>deflate.js</code> to zip files</li>
@@ -51,10 +52,10 @@
 			<li>Include <code>zip.min.js</code> script in your HTML page
 				<ul>
 					<li>as a regular script
-						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/zip.min.js&quot;&gt;&lt;/script&gt;</code></pre>
+						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/zip.min.js&quot;&gt;&lt;/script&gt;</code></pre>
 					</li>
 					<li>or as a module
-						<pre><code class="prettyprint">require(["/lib/zip.min.js"], zip => {
+						<pre><code class="prettyprint">require(["/&lt;library path&gt;/zip.min.js"], zip => {
   // ...
 });</code></pre>
 
@@ -68,15 +69,15 @@
 						Configure zip.js with <code>workerScriptsPath</code> set to the URL of the directory containing
 						<code>z-worker.js</code>, <code>deflate.js</code>, and/or <code>inflate.js</code>.
 						<pre><code class="prettyprint">zip.configure({
-  workerScriptsPath: "/lib/"
+  workerScriptsPath: "/&lt;library path&gt;/"
 });</code></pre>
 
 					</li>
 					<li>without web workers:
 						<br>
 						Include <code>deflate.js</code> and/or <code>inflate.js</code> in the page
-						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/deflate.js&quot;&gt;&lt;/script&gt;
-&lt;script type=&quot;text/javascript&quot; src=&quot;/lib/inflate.js&quot;&gt;&lt;/script&gt;
+						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/deflate.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/inflate.js&quot;&gt;&lt;/script&gt;
 </code></pre>
 						Configure zip.js with <code>useWebWorkers</code> set to <code>false</code>
 						<pre><code class="prettyprint">zip.configure({
@@ -172,6 +173,20 @@
 		</dl>
 		<br>
 		<p>
+			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">Uint8Array</a></code>
+			object reader constructor
+		</p>
+		<pre><code class="prettyprint">zip.Uint8ArrayReader(array)</code></pre>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>array (<a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">Uint8Array</a>)</code>
+			</dt>
+			<dd>The
+				<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">Uint8Array</a></code>
+				array to read
+			</dd>
+		</dl>
+		<p>
 			Data URI reader constructor
 		</p>
 		<pre><code class="prettyprint">zip.Data64URIReader(dataURI)</code></pre>
@@ -220,8 +235,7 @@
 		<pre><code class="prettyprint">zip.Reader#readUint8Array(index, length])</code></pre>
 		<p>Extract an
 			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
-			object
-			beginning at <code>index</code> location through the specified <code>length</code>.
+			object beginning at <code>index</code> location through the specified <code>length</code>.
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -239,8 +253,7 @@
 			<dt><code>Promise</code></dt>
 			<dd>A promise with the
 				<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
-				object
-				as resolved value
+				object as resolved value
 			</dd>
 		</dl>
 		<h3>Writer constructors</h3>
@@ -252,7 +265,18 @@
 		<p>
 			<code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object writer constructor
 		</p>
-		<pre><code class="prettyprint">zip.BlobWriter()</code></pre>
+		<pre><code class="prettyprint">zip.BlobWriter([mimeString])</code></pre>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>mimeString (string)</code></dt>
+			<dd>The MIME type of the data to write</dd>
+		</dl>
+		<br>
+		<p>
+			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">Uint8Array</a></code>
+			object writer constructor
+		</p>
+		<pre><code class="prettyprint">zip.Uint8ArrayWriter()</code></pre>
 		<br>
 		<p>
 			Data URI writer constructor
@@ -261,7 +285,7 @@
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>mimeString (string)</code></dt>
-			<dd>the MIME type of the data to write</dd>
+			<dd>The MIME type of the data to write</dd>
 		</dl>
 
 		<h3>Writer members (used internally)</h3>
@@ -283,8 +307,7 @@
 		<pre><code class="prettyprint">zip.Writer#writeUint8Array(array)</code></pre>
 		<p>Write an
 			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
-			object at
-			the current index.
+			object at the current index.
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -292,8 +315,7 @@
 			</dt>
 			<dd>The
 				<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
-				to
-				write
+				to write
 			</dd>
 		</dl>
 		<p>Returns:</p>
@@ -320,15 +342,15 @@
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>reader (<a href="#zip-reading">zip.Reader</a>)</code></dt>
-			<dd>the <code><a href="#zip-reading">zip.Reader</a></code> object used to read input data</dd>
+			<dd>The <code><a href="#zip-reading">zip.Reader</a></code> object used to read input data</dd>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>checkSignature (boolean)</code></dt>
 					<dd>boolean value specifying if the signature of all the files should be verified
 						(<code>false</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to decrypt all the files (empty by default)</dd>
+					<dd>password used to decrypt all the files (<code>undefined</code> by default)</dd>
 					<dt><code>filenameEncoding (string)</code></dt>
 					<dd>encoding of filenames stored in ASCII (<code>windows-1252</code> by default)</dd>
 					<dt><code>commentEncoding (string)</code></dt>
@@ -406,12 +428,13 @@
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
-						value and a <code>max (number)</code> value</dd>
+						value and a <code>max (number)</code> value (<code>undefined</code> by default)</dd>
 					<dt><code>checkSignature (boolean)</code></dt>
 					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
 						default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
+					<dd>password used to decrypt the file encrypted with AES-256 (<code>undefined</code> by default)
+					</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -422,8 +445,6 @@
 				<code><a href="#zip-writer">zip.Writer</a></code> constructor used) as resolved value
 			</dd>
 		</dl>
-
-
 
 		<h2 id="zip-reading-example">ZipReader example</h2>
 		<h3>Read a zip from a Blob/File object</h3>
@@ -462,22 +483,22 @@ await reader.close();</code></pre>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>writer (<a href="#zip-writer">zip.Writer</a>)</code></dt>
-			<dd>the <code><a href="#zip-writer">zip.Writer</a></code> object used to write output data</dd>
+			<dd>The <code><a href="#zip-writer">zip.Writer</a></code> object used to write output data</dd>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>zip64 (boolean)</code></dt>
-					<dd>force all the files to be written in Zip64</dd>
+					<dd>force all the files to be written in Zip64 (<code>false</code> by default)</dd>
 					<dt><code>level (number)</code></dt>
-					<dd>compression level applied on all files</dd>
+					<dd>compression level applied on all files (<code>5</code> by default)</dd>
 					<dt><code>bufferedWrite (boolean)</code></dt>
 					<dd><code>true</code> to explicitely allow calling <code>ZipWriter#add</code> multiple times in
 						parallel (<code>false</code> by default)
 					</dd>
 					<dt><code>version (number)</code></dt>
-					<dd>zip version of all files (empty by default)</dd>
+					<dd>zip version of all files (<code>undefined</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to encrypt all the files (empty by default)</dd>
+					<dd>password used to encrypt all the files (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -490,37 +511,38 @@ await reader.close();</code></pre>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>name (string)</code></dt>
-			<dd>entry file name</dd>
+			<dd>Entry file name</dd>
 			<dt><code>reader (<a href="#zip-reading">zip.Reader</a>)</code></dt>
-			<dd>the <code><a href="#zip-reading">zip.Reader</a></code> object used to read entry data to add -
+			<dd>The <code><a href="#zip-reading">zip.Reader</a></code> object used to read entry data to add -
 				null for directory entry</dd>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
-						value and a <code>max (number)</code> value</dd>
+						value and a <code>max (number)</code> value (<code>undefined</code> by default)</dd>
 					<dt><code>directory (boolean)</code></dt>
-					<dd><code>true</code> if the entry is a directory</dd>
+					<dd><code>true</code> if the entry is a directory (<code>undefined</code> by default)</dd>
 					<dt><code>level (number)</code></dt>
-					<dd>compression level from <code>0</code> to <code>9</code></dd>
+					<dd>compression level from <code>0</code> (no compression) to <code>9</code> (max. compression)
+						(<code>5</code> by default)</dd>
 					<dt><code>bufferedWrite (boolean)</code></dt>
 					<dd><code>true</code> to explicitely allow calling <code>ZipWriter#add</code> multiple times in
 						parallel (<code>false</code> by default)
 					</dd>
 					<dt><code>comment (string)</code></dt>
-					<dd>file comment</dd>
+					<dd>file comment (<code>undefined</code> by default)</dd>
 					<dt><code>lastModDate (Date)</code></dt>
-					<dd>last modification date</dd>
+					<dd>last modification date (current date by default)</dd>
 					<dt><code>version (number)</code></dt>
-					<dd>zip version (empty by default)</dd>
+					<dd>zip version (<code>undefined</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to encrypt the file with AES-256 (empty by default)</dd>
+					<dd>password used to encrypt the file with AES-256 (<code>undefined</code> by default)</dd>
 					<dt><code>zip64 (boolean)</code></dt>
-					<dd>force the file entry to be written in Zip64 (<code>false</code> by default)</dd>
+					<dd>force the file entry to be written in Zip64 (<code>undefined</code> by default)</dd>
 					<dt><code>extraField (Map)</code></dt>
 					<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and
-						the value is a <code>UInt8Array</code>.</dd>
+						the value is a <code>UInt8Array</code> (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -537,7 +559,7 @@ await reader.close();</code></pre>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>comment (UInt8Array)</code></dt>
-			<dd>a comment to add at the end of the zip file</dd>
+			<dd>A comment to add at the end of the zip file</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
@@ -617,7 +639,7 @@ console.log(data);</code></pre>
   }
 });</code></pre>
 				<p><code>&lt;library path&gt;/z-worker-pako.js</code> is the entry script for pako. This file can
-					be found in the <code>/dist/</code> folder. Note that <code>pako.min.js</code> etc. are parts of
+					be found in the <code>/dist/</code> directory. Note that <code>pako.min.js</code> etc. are parts of
 					pako project, and are not provided by zip.js. You can find them <a
 						href="https://github.com/nodeca/pako/tree/master/dist">here</a>.
 				</p>
