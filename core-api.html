@@ -67,7 +67,7 @@
 					<li>with web workers:
 						<br>
 						Configure zip.js with <code>workerScriptsPath</code> set to the URL of the directory containing
-						<code>z-worker.js</code>, <code>deflate.js</code>, and/or <code>inflate.js</code>.
+						<code>z-worker.js</code>, <code>deflate.js</code>, and/or <code>inflate.js</code>
 						<pre><code class="prettyprint">zip.configure({
   workerScriptsPath: "/&lt;library path&gt;/"
 });</code></pre>
@@ -96,7 +96,7 @@
 			<dd>Enables the use of <a href="https://www.w3.org/TR/workers/">Web workers</a> to compress and uncompress
 				data in non-blocking background processes. The default value is <code>true</code>. You must include
 				<code>deflate.js</code> and/or <code>inflate.js</code> in the web page if you set it to
-				<code>false</code>
+				<code>false</code>.
 			</dd>
 		</dl>
 		<dl>
@@ -226,7 +226,7 @@
 		<br>
 		<h4>Methods</h4>
 		<pre><code class="prettyprint">zip.Reader#init()</code></pre>
-		<p>Initialize the <code><a href="#zip-reading">zip.Reader</a></code> object.</p>
+		<p>Initialize the <code><a href="#zip-reading">zip.Reader</a></code> object</p>
 		<p>Returns:</p>
 		<dl>
 			<dt><code>Promise</code></dt>
@@ -236,7 +236,7 @@
 		<pre><code class="prettyprint">zip.Reader#readUint8Array(index, length])</code></pre>
 		<p>Extract an
 			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
-			object beginning at <code>index</code> location through the specified <code>length</code>.
+			object beginning at <code>index</code> location through the specified <code>length</code>
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -298,7 +298,7 @@
 		<br>
 		<h4>Methods</h4>
 		<pre><code class="prettyprint">zip.Writer#init()</code></pre>
-		<p>Initialize the <code><a href="#zip-writer">zip.Writer</a></code> object.</p>
+		<p>Initialize the <code><a href="#zip-writer">zip.Writer</a></code> object</p>
 		<p>Returns:</p>
 		<dl>
 			<dt><code>Promise</code></dt>
@@ -308,7 +308,7 @@
 		<pre><code class="prettyprint">zip.Writer#writeUint8Array(array)</code></pre>
 		<p>Write an
 			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
-			object at the current index.
+			object at the current index
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -386,7 +386,7 @@
 		<h3>Entry class</h3>
 		<pre id="zip-entry"><code class="prettyprint">Entry()</code></pre>
 		<p>
-			Constructor representing a zip file entry.
+			Constructor representing a zip file entry
 		</p>
 		<h3>Attributes</h3>
 		<dl>
@@ -420,7 +420,7 @@
 		<h3>Methods</h3>
 		<pre><code class="prettyprint">Entry#getData(writer [, options])</code></pre>
 		<p>
-			Get the data of a zip entry.
+			Get the data of a zip entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -481,7 +481,7 @@ await reader.close();</code></pre>
 		<h3>Constructor</h3>
 		<pre><code class="prettyprint">zip.ZipWriter(writer [, options])</code></pre>
 		<p>
-			Create a <code><a href="#zip-writing">ZipWriter</a></code> object.
+			Create a <code><a href="#zip-writing">ZipWriter</a></code> object
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -509,7 +509,7 @@ await reader.close();</code></pre>
 		<h3>Methods</h3>
 		<pre><code class="prettyprint">zip.ZipWriter#add(name , reader [, options])</code></pre>
 		<p>
-			Add a new entry into the zip.
+			Add a new entry into the zip
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -557,7 +557,7 @@ await reader.close();</code></pre>
 		<br>
 		<pre><code class="prettyprint">zip.ZipWriter#close([comment])</code></pre>
 		<p>
-			Close the zip file.
+			Close the zip file
 		</p>
 		<p>Parameters:</p>
 		<dl>
