@@ -86,6 +86,7 @@ declare module "zip.js" {
 
     export interface Entry {
         filename: string;
+        rawFilename: Uint8Array;
         directory: boolean;
         compressedSize: number;
         uncompressedSize: number;
