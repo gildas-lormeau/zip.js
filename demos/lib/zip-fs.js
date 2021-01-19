@@ -820,11 +820,8 @@
 
 	function createWorkerCodec(config, options) {
 		const pool = workers.pool;
-		const streamCopy =
-			!options.inputCompressed && !options.inputSigned && !options.inputEncrypted &&
-			!options.outputCompressed && !options.outputSigned && !options.outputEncrypted;
 		let scripts;
-		if (config.useWebWorkers && !streamCopy) {
+		if (config.useWebWorkers) {
 			const codecType = options.codecType;
 			if (config.workerScripts != null && config.workerScriptsPath != null) {
 				throw new Error("Either workerScripts or workerScriptsPath may be set, not both");
@@ -878,7 +875,6 @@
 
 	function createWebWorkerInterface(workerData) {
 		const worker = workerData.worker;
-		const scripts = workerData.scripts.slice(1);
 		let task;
 		worker.addEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
 		workerData.interface = {
@@ -893,6 +889,7 @@
 
 		async function initAndSendMessage(message) {
 			if (!task) {
+				const scripts = workerData.scripts.slice(1);
 				await sendMessage(Object.assign({ type: MESSAGE_INIT, options: workerData.options, scripts }));
 			}
 			return sendMessage(message);
