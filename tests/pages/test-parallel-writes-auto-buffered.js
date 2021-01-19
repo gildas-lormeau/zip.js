@@ -24,9 +24,17 @@ async function test() {
 	await Promise.all(ENTRIES_DATA.map(async entryData => {
 		await zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob));
 	}));
-	await Promise.all(ENTRIES_DATA_PASS2.map(async entryData => {
-		await zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob));
-	}));
+	await Promise.all(ENTRIES_DATA_PASS2.map(async (entryData, indexEntry) =>
+		new Promise((resolve, reject) => {
+			setTimeout(async () => {
+				try {
+					resolve(await zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob), { level: 5 }));
+				} catch (error) {
+					reject(error);
+				}
+			}, Math.random() * 250 + (indexEntry * 100));
+		})
+	));
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
 	const entries = await zipReader.getEntries();
@@ -34,17 +42,10 @@ async function test() {
 		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
 		return compareResult(blob, ENTRIES_DATA[indexEntry].blob);
 	}));
-	const results2 = await Promise.all(entries.slice(ENTRIES_DATA.length).map(async (entry, indexEntry) =>
-		new Promise((resolve, reject) => {
-			setTimeout(async () => {
-				try {
-					const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
-					resolve(compareResult(blob, ENTRIES_DATA_PASS2[indexEntry].blob));
-				} catch (error) {
-					reject(error);
-				}
-			}, Math.random() * 250 + (indexEntry * 100));
-		})));
+	const results2 = await Promise.all(entries.slice(ENTRIES_DATA.length).map(async entry => {
+		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
+		return compareResult(blob, ENTRIES_DATA_PASS2.find(otherEntry => otherEntry.name == entry.filename).blob);
+	}));
 	if (!results.includes(false) && !results2.includes(false)) {
 		document.body.innerHTML = "ok";
 	}
