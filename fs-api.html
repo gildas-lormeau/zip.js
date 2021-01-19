@@ -101,30 +101,36 @@
 		<h3>Attributes</h3>
 		<dl>
 			<dt><code>root (<code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code>)</code></dt>
-			<dd>the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object referencing the root
+			<dd>The <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object referencing the root
 				directory of the filesystem</dd>
 		</dl>
 		<h3>Methods</h3>
 		<pre><code class="prettyprint">FS#importBlob(blob [, options])</code></pre>
 		<p>
-			Reset the filesystem and import a zipped content stored in a
-			<code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
+			Reset the filesystem and import into the root folder a zipped content stored in a
+			<code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>blob (<a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
-			<dd>the <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object to import</dd>
+			<dd>The <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object to import</dd>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
 						value and a <code>max (number)</code> value</dd>
 					<dt><code>checkSignature (boolean)</code></dt>
-					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
-						default)</dd>
+					<dd>boolean value specifying if the signature of the files in the imported zip should be verified
+						(<code>false</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
+					<dd>password used to decrypt the all the files (empty by default)</dd>
+					<dt><code>filenameEncoding (string)</code></dt>
+					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
+					<dt><code>commentEncoding (string)</code></dt>
+					<dd>encoding of comments stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -136,23 +142,30 @@
 		<br>
 		<pre><code class="prettyprint">FS#importData64URI(dataURI [, options])</code></pre>
 		<p>
-			Reset the filesystem and import a zipped content stored in a data URI <code>string</code>.
+			Reset the filesystem and import into the root folder a zipped content stored in a data URI
+			<code>string</code>
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>dataURI (string)</code></dt>
 			<dd>The data URI to import</dd>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
 						value and a <code>max (number)</code> value</dd>
 					<dt><code>checkSignature (boolean)</code></dt>
-					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
-						default)</dd>
+					<dd>boolean value specifying if the signature of the files in the imported zip should be verified
+						(<code>false</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
+					<dd>password used to decrypt the all the files (empty by default)</dd>
+					<dt><code>filenameEncoding (string)</code></dt>
+					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
+					<dt><code>commentEncoding (string)</code></dt>
+					<dd>encoding of comments stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -164,26 +177,29 @@
 		<br>
 		<pre><code class="prettyprint">FS#importHttpContent(URL [, options])</code></pre>
 		<p>
-			Reset the filesystem and import a zipped content retrieved from a URL.
+			Reset the filesystem and import into the root folder a zipped content retrieved from a URL
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>URL (string)</code></dt>
-			<dd>the URL</dd>
+			<dd>The URL referencing the zip to import</dd>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
 						value and a <code>max (number)</code> value</dd>
-					<dt><code>useRangeHeader</code></dt>
-					<dd>set to <code>true</code> to use the HTTP &quot;Range&quot; header to get zip data
-						(<code>false</code> by default</dd>
 					<dt><code>checkSignature (boolean)</code></dt>
-					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
-						default)</dd>
+					<dd>boolean value specifying if the signature of the files in the imported zip should be verified
+						(<code>false</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
+					<dd>password used to decrypt the all the files (empty by default)</dd>
+					<dt><code>filenameEncoding (string)</code></dt>
+					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
+					<dt><code>commentEncoding (string)</code></dt>
+					<dd>encoding of comments stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -195,21 +211,25 @@
 		<br>
 		<pre><code class="prettyprint">FS#exportBlob([options])</code></pre>
 		<p>
-			Export zipped content from the filesystem in a
-			<code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
+			Export zipped content from the root folder of the filesystem in a
+			<code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
-						value and a <code>max (number)</code> value</dd>
+						value and a <code>max (number)</code> value (<code>undefined</code> by default)</dd>
+					<dt><code>zip64 (boolean)</code></dt>
+					<dd>force all the files to be written in Zip64 (<code>false</code> by default)</dd>
 					<dt><code>level (number)</code></dt>
-					<dd>compression level from <code>0</code> to <code>9</code></dd>
+					<dd>compression level applied on all files (<code>5</code> by default)</dd>
+					<dt><code>version (number)</code></dt>
+					<dd>zip version of all files (<code>undefined</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to encrypt the file with AES-256 (empty by default)</dd>
+					<dd>password used to encrypt all the files (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -222,20 +242,24 @@
 		<br>
 		<pre><code class="prettyprint">FS#exportData64URI([options])</code></pre>
 		<p>
-			Export zipped content from the filesystem in a data URI string.
+			Export zipped content from the root folder of the filesystem in a data URI string
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
-						value and a <code>max (number)</code> value</dd>
+						value and a <code>max (number)</code> value (<code>undefined</code> by default)</dd>
+					<dt><code>zip64 (boolean)</code></dt>
+					<dd>force all the files to be written in Zip64 (<code>false</code> by default)</dd>
 					<dt><code>level (number)</code></dt>
-					<dd>compression level from <code>0</code> to <code>9</code></dd>
+					<dd>compression level applied on all files (<code>5</code> by default)</dd>
+					<dt><code>version (number)</code></dt>
+					<dd>zip version of all files (<code>undefined</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to encrypt the file with AES-256 (empty by default)</dd>
+					<dd>password used to encrypt all the files (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -247,42 +271,42 @@
 		<br>
 		<pre><code class="prettyprint">FS#getById(entryId)</code></pre>
 		<p>
-			Get a <code><a href="#zip-entry">ZipEntry</a></code> object given a unique entry id.
+			Get a <code><a href="#zip-entry">ZipEntry</a></code> object given a unique entry id
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>entryId (number)</code></dt>
-			<dd>the entry id</dd>
+			<dd>The id of the entry</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
 			<dt><code>ZipEntry</code></dt>
-			<dd>the ZipEntry object</dd>
+			<dd>The <code><a href="#zip-entry">ZipEntry</a></code> object</dd>
 		</dl>
 		<br>
 		<pre><code class="prettyprint">FS#find(fullname)</code></pre>
 		<p>
-			Get a <code><a href="#zip-entry">ZipEntry</a></code> object given a unique entry full filename.
+			Get a <code><a href="#zip-entry">ZipEntry</a></code> object given a unique entry full filename
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>fullname (string)</code></dt>
-			<dd>the entry full filename</dd>
+			<dd>The entry full filename</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
 			<dt><code>ZipEntry</code></dt>
-			<dd>the ZipEntry object</dd>
+			<dd>The <code><a href="#zip-entry">ZipEntry</a></code> object</dd>
 		</dl>
 		<br>
 		<pre><code class="prettyprint">FS#remove(zipEntry)</code></pre>
 		<p>
-			Remove a <code><a href="#zip-entry">ZipEntry</a></code> object from the virtual filesystem.
+			Remove a <code><a href="#zip-entry">ZipEntry</a></code> object from the virtual filesystem
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>zipEntry (<a href="#zip-entry">ZipEntry</a>)</code></dt>
-			<dd>the entry to remove</dd>
+			<dd>The entry to remove</dd>
 		</dl>
 		<br>
 
@@ -301,45 +325,45 @@
 		<h3>Attributes</h3>
 		<dl>
 			<dt><code>name (string)</code></dt>
-			<dd>the entry filename</dd>
+			<dd>The entry filename</dd>
 			<dt><code>directory (boolean)</code></dt>
 			<dd><code>true</code> if the entry is a <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code>
 				object</dd>
 			<dt><code>children (Array of <a href="#zip-entry">ZipEntry</a>)</code></dt>
-			<dd>the entry children, empty if the entry is a <code><a href="#zip-file-entry">ZipFileEntry</a></code>
+			<dd>The entry children, empty if the entry is a <code><a href="#zip-file-entry">ZipFileEntry</a></code>
 				object</dd>
 			<dt><code>id (number)</code></dt>
-			<dd>the entry unique id</dd>
+			<dd>The id of the entry</dd>
 		</dl>
 		<h3>Methods</h3>
 		<pre><code class="prettyprint">ZipEntry#moveTo(directory)</code></pre>
 		<p>
-			Move the entry into the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> target object.
+			Move the entry into the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> target object
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>directory (<a href="#zip-directory-entry">ZipDirectoryEntry</a>)</code></dt>
-			<dd>the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> target object</dd>
+			<dd>The <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> target object</dd>
 		</dl>
 		<br>
 		<pre><code class="prettyprint">ZipEntry#getFullname()</code></pre>
 		<p>
-			Get the full name of the entry .
+			Get the full name of the entry
 		</p>
 		<p>Returns:</p>
 		<dl>
 			<dt><code>string</code></dt>
-			<dd>the full name</dd>
+			<dd>The full name</dd>
 		</dl>
 		<br>
 		<pre><code class="prettyprint">ZipEntry#isDescendantOf(ancestor)</code></pre>
 		<p>
-			Test if the entry is a descendant of <code>ancestor</code> directory entry.
+			Test if the entry is a descendant of <code>ancestor</code> directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>ancestor (<a href="#zip-directory-entry">ZipDirectoryEntry</a>)</code></dt>
-			<dd>the ancestor</dd>
+			<dd>The ancestor</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
@@ -356,21 +380,21 @@
 		<h3>Methods</h3>
 		<pre><code class="prettyprint">ZipFileEntry#getText([options])</code></pre>
 		<p>
-			Get file entry content as a <code>string</code>.
+			Get file entry content as a <code>string</code>
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
 						value and a <code>max (number)</code> value</dd>
 					<dt><code>checkSignature (boolean)</code></dt>
-					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
-						default)</dd>
+					<dd>boolean value specifying if the signature of should be verified (<code>false</code> by default)
+					</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
+					<dd>password used to decrypt the file (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -382,23 +406,23 @@
 		<br>
 		<pre><code class="prettyprint">ZipFileEntry#getBlob(mimeType [, options])</code></pre>
 		<p>
-			Get file entry content as a <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object.
+			Get file entry content as a <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>mimeType (string)</code></dt>
-			<dd>data MIME type</dd>
+			<dd>A MIME type</dd>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
 						value and a <code>max (number)</code> value</dd>
 					<dt><code>checkSignature (boolean)</code></dt>
-					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
-						default)</dd>
+					<dd>boolean value specifying if the signature of should be verified (<code>false</code> by default)
+					</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
+					<dd>password used to decrypt the file (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -410,23 +434,23 @@
 		<br>
 		<pre><code class="prettyprint">ZipFileEntry#getData64URI(mimeType [, options])</code></pre>
 		<p>
-			Get file entry content as a data URI string.
+			Get file entry content as a data URI string
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>mimeType (string)</code></dt>
-			<dd>data MIME type</dd>
+			<dd>A MIME type</dd>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
 						value and a <code>max (number)</code> value</dd>
 					<dt><code>checkSignature (boolean)</code></dt>
-					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
-						default)</dd>
+					<dd>boolean value specifying if the signature of should be verified (<code>false</code> by default)
+					</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to decrypt the file encrypted with AES-256 (empty by default)</dd>
+					<dd>password used to decrypt the file (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -444,102 +468,102 @@
 		<h3>Methods</h3>
 		<pre><code class="prettyprint">ZipDirectoryEntry#addDirectory(name)</code></pre>
 		<p>
-			Add a directory into the directory entry.
+			Add a directory into the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>name (string)</code></dt>
-			<dd>the directory name</dd>
+			<dd>The directory name</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
 			<dt><code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code></dt>
-			<dd>the new <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object</dd>
+			<dd>The new <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> object</dd>
 		</dl>
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#addBlob(name, blob)</code></pre>
 		<p>
 			Add a <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object file into the directory
-			entry.
+			entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>name (string)</code></dt>
-			<dd>the file name</dd>
+			<dd>The file name</dd>
 		</dl>
 		<dl>
 			<dt><code>blob (<a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
-			<dd>the <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> content</dd>
+			<dd>The <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> content</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
 			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
-			<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
+			<dd>The new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 		</dl>
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#addText(name, text)</code></pre>
 		<p>
-			Add a text file into the directory entry.
+			Add a text file into the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>name (string)</code></dt>
-			<dd>the file name</dd>
+			<dd>The file name</dd>
 		</dl>
 		<dl>
 			<dt><code>text (string)</code></dt>
-			<dd>the text content</dd>
+			<dd>The text content</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
 			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
-			<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
+			<dd>The new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 		</dl>
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#addData64URI(name, dataURI)</code></pre>
 		<p>
-			Add a data URI file into the directory entry.
+			Add a data URI file into the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>name (string)</code></dt>
-			<dd>the file name</dd>
+			<dd>The file name</dd>
 		</dl>
 		<dl>
 			<dt><code>text (string)</code></dt>
-			<dd>the data URI content</dd>
+			<dd>The data URI content</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
 			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
-			<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
+			<dd>The new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 		</dl>
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#addHttpContent(name, URL, size, useRangeHeader)</code></pre>
 		<p>
-			Add a content retrieved from a URL into the directory entry.
+			Add a content retrieved from a URL into the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>name (string)</code></dt>
-			<dd>the file name</dd>
+			<dd>The file name</dd>
 		</dl>
 		<dl>
 			<dt><code>URL (string)</code></dt>
-			<dd>the content URL</dd>
+			<dd>The content URL</dd>
 		</dl>
 		<dl>
 			<dt><code>size (number)</code></dt>
-			<dd>the content size</dd>
+			<dd>The content size</dd>
 		</dl>
 		<dl>
 			<dt><code>useRangeHeader (boolean)</code></dt>
-			<dd>if true then HTTP &quot;Range&quot; header will be used to get content</dd>
+			<dd>If <code>true</code> then HTTP &quot;Range&quot; header will be used to get content</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
 			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
-			<dd>the new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
+			<dd>The new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 		</dl>
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#addFileEntry(entry)</code></pre>
@@ -560,7 +584,7 @@
 		<dl>
 			<dt><code>entry (<a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a href="https://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a>)</code>
 			</dt>
-			<dd>the <a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a
+			<dd>The <a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a
 					href="https://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a> object
 			</dd>
 		</dl>
@@ -579,7 +603,26 @@
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>blob (<a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
-			<dd>the <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object</dd>
+			<dd>The <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>Optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of the files in the imported zip should be verified
+						(<code>false</code> by default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the all the files (empty by default)</dd>
+					<dt><code>filenameEncoding (string)</code></dt>
+					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
+					<dt><code>commentEncoding (string)</code></dt>
+					<dd>encoding of comments stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
+				</dl>
+			</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
@@ -588,14 +631,33 @@
 			</dd>
 		</dl>
 		<br>
-		<pre><code class="prettyprint">ZipDirectoryEntry#importData64URI(dataURI)</code></pre>
+		<pre><code class="prettyprint">ZipDirectoryEntry#importData64URI(dataURI [, options])</code></pre>
 		<p>
-			Import a zipped content stored in a data URI <code>string</code> into the directory entry.
+			Import a zipped content stored in a data URI <code>string</code> into the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>dataURI (string)</code></dt>
 			<dd>The data URI</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>Optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of the files in the imported zip should be verified
+						(<code>false</code> by default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the all the files (empty by default)</dd>
+					<dt><code>filenameEncoding (string)</code></dt>
+					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
+					<dt><code>commentEncoding (string)</code></dt>
+					<dd>encoding of comments stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
+				</dl>
+			</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
@@ -606,21 +668,29 @@
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#importHttpContent(URL [, options])</code></pre>
 		<p>
-			Import a zipped content retrieved from a URL into the directory entry.
+			Import a zipped content retrieved from a URL into the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>URL (string)</code></dt>
-			<dd>the URL</dd>
+			<dd>The URL</dd>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
 						value and a <code>max (number)</code> value</dd>
-					<dt><code>useRangeHeader</code></dt>
-					<dd>set to <code>true</code> to use the HTTP &quot;Range&quot; header to get zip data
-						(<code>false</code> by default</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of the files in the imported zip should be verified
+						(<code>false</code> by default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the all the files (empty by default)</dd>
+					<dt><code>filenameEncoding (string)</code></dt>
+					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
+					<dt><code>commentEncoding (string)</code></dt>
+					<dd>encoding of comments stored in another encoding than UTF-8 (<code>windows-1252</code> by
+						default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -634,16 +704,24 @@
 		<pre><code class="prettyprint">ZipDirectoryEntry#exportBlob([options])</code></pre>
 		<p>
 			Export zipped content in a <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object
-			from the directory entry.
+			from the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
-						value and a <code>max (number)</code> value</dd>
+						value and a <code>max (number)</code> value (<code>undefined</code> by default)</dd>
+					<dt><code>zip64 (boolean)</code></dt>
+					<dd>force all the files to be written in Zip64 (<code>false</code> by default)</dd>
+					<dt><code>level (number)</code></dt>
+					<dd>compression level applied on all files (<code>5</code> by default)</dd>
+					<dt><code>version (number)</code></dt>
+					<dd>zip version of all files (<code>undefined</code> by default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to encrypt all the files (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -655,16 +733,24 @@
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#exportData64URI([options])</code></pre>
 		<p>
-			Export zipped content in a data URI from the directory entry.
+			Export zipped content in a data URI from the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>options (Object)</code></dt>
-			<dd>optional properties:
+			<dd>Optional properties:
 				<dl>
 					<dt><code>onprogress (Function)</code></dt>
 					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
-						value and a <code>max (number)</code> value</dd>
+						value and a <code>max (number)</code> value (<code>undefined</code> by default)</dd>
+					<dt><code>zip64 (boolean)</code></dt>
+					<dd>force all the files to be written in Zip64 (<code>false</code> by default)</dd>
+					<dt><code>level (number)</code></dt>
+					<dd>compression level applied on all files (<code>5</code> by default)</dd>
+					<dt><code>version (number)</code></dt>
+					<dd>zip version of all files (<code>undefined</code> by default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to encrypt all the files (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -676,17 +762,17 @@
 		<br>
 		<pre><code class="prettyprint"><a href="#zip-directory-entry">ZipDirectoryEntry</a>#getChildByName(name)</code></pre>
 		<p>
-			Get a <code><a href="#zip-entry">ZipEntry</a></code> child object given its filename.
+			Get a <code><a href="#zip-entry">ZipEntry</a></code> child object given its filename
 		</p>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>name (string)</code></dt>
-			<dd>the entry name</dd>
+			<dd>The entry name</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
 			<dt><code><a href="#zip-entry">ZipEntry</a></code></dt>
-			<dd>the <code><a href="#zip-entry">ZipEntry</a></code> object</dd>
+			<dd>The <code><a href="#zip-entry">ZipEntry</a></code> object</dd>
 		</dl>
 	</div>
 	<script type="text/javascript" src="google-code-prettify/prettify.js"></script>
