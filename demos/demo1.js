@@ -20,7 +20,7 @@
 			},
 			async getBlobURL() {
 				await zipWriter.close();
-				const blobURL = URL.createObjectURL(writer.getData());
+				const blobURL = URL.createObjectURL(await writer.getData());
 				zipWriter = null;
 				return blobURL;
 			}
