@@ -575,7 +575,7 @@ await reader.close();</code></pre>
 		<h2 id="zip-writing-example">ZipWriter example</h2>
 		<h3>Write a zip into a Blob object</h3>
 		<pre><code class="prettyprint">// use a BlobWriter to store with a ZipWriter the zip into a Blob object
-const blobWriter = new zip.BlobWriter();
+const blobWriter = new zip.BlobWriter("application/zip");
 const writer = new zip.ZipWriter(blobWriter);
 
 // use a TextReader to read the String to add
