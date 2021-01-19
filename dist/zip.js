@@ -1116,9 +1116,6 @@
 				}
 				entry.rawExtraField = dataArray.subarray(offset + 46 + entry.filenameLength, offset + 46 + entry.filenameLength + entry.extraFieldLength);
 				readCommonFooter(entry, entry, directoryDataView, offset + 6);
-				if (entry.compressionMethod != 0x0 && entry.compressionMethod != 0x08) {
-					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
-				}
 				entry.rawComment = dataArray.subarray(offset + 46 + entry.filenameLength + entry.extraFieldLength, offset + 46
 					+ entry.filenameLength + entry.extraFieldLength + entry.commentLength);
 				entry.comment = decodeString(entry.rawComment, entry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.commentEncoding || CHARSET_WIN_1252);
@@ -1149,6 +1146,17 @@
 			const dataView = new DataView(dataArray.buffer);
 			const password = options.password === undefined ? this.options.password : options.password;
 			let inputPassword = password && password.length && password;
+			if (this.extraFieldAES) {
+				if (this.extraFieldAES.originalCompressionMethod != 0x63) {
+					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
+				}
+				if (this.extraFieldAES.strength != 3) {
+					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
+				}
+			}
+			if (this.compressionMethod != 0x0 && this.compressionMethod != 0x08) {
+				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
+			}
 			if (dataView.getUint32(0, false) != 0x504b0304) {
 				throw ERR_LOCAL_FILE_HEADER_NOT_FOUND;
 			}
@@ -1186,6 +1194,7 @@
 			dataDescriptor: (rawBitFlag & 0x08) == 0x08,
 			languageEncodingFlag: (rawBitFlag & 0x0800) == 0x0800
 		};
+		directory.encrypted = directory.bitFlag.encrypted;
 		directory.rawLastModDate = dataView.getUint32(offset + 6, true);
 		directory.lastModDate = getDate(directory.rawLastModDate);
 		directory.filenameLength = dataView.getUint16(offset + 22, true);
@@ -1273,18 +1282,13 @@
 
 	function readExtraFieldAES(extraFieldAES, directory, compressionMethod) {
 		if (extraFieldAES) {
-			if (compressionMethod != 0x63) {
-				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
-			}
 			const extraFieldView = new DataView(extraFieldAES.data.buffer);
 			extraFieldAES.vendorVersion = extraFieldView.getUint8(0);
 			extraFieldAES.vendorId = extraFieldView.getUint8(2);
 			const strength = extraFieldView.getUint8(4);
-			extraFieldAES.compressionMethod = extraFieldView.getUint16(5, true);
-			if (strength != 3) {
-				throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
-			}
-			directory.compressionMethod = extraFieldAES.compressionMethod;
+			extraFieldAES.strength = strength;
+			extraFieldAES.originalCompressionMethod = compressionMethod;
+			directory.compressionMethod = extraFieldAES.compressionMethod = extraFieldView.getUint16(5, true);
 		} else {
 			directory.compressionMethod = compressionMethod;
 		}
