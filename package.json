@@ -18,6 +18,7 @@
         "build": "./build.sh"
     },
     "main": "index.js",
+    "types": "index.d.ts",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/gildas-lormeau/zip.js.git"
