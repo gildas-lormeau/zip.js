@@ -384,6 +384,27 @@
 	const END_OF_CENTRAL_DIR_SIGNATURE = 0x504b0506;
 	const ZIP64_END_OF_CENTRAL_DIR_SIGNATURE = 0x504b0606;
 	const ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE = 0x504b0607;
+	const END_OF_CENTRAL_DIR_LENGTH = 22;
+	const ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH = 20;
+	const ZIP64_END_OF_CENTRAL_DIR_LENGTH = 56;
+	const ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH = END_OF_CENTRAL_DIR_LENGTH + ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH + ZIP64_END_OF_CENTRAL_DIR_LENGTH;
+
+	const EXTRA_FIELD_TYPE_ZIP64 = 0x0001;
+	const EXTRA_FIELD_TYPE_AES = 0x9901;
+	const EXTRA_FIELD_TYPE_UNICODE_PATH = 0x7075;
+
+	const BITFLAG_ENCRYPTED = 0x01;
+	const BITFLAG_LEVEL = 0x06;
+	const BITFLAG_DATA_DESCRIPTOR = 0x0008;
+	const BITFLAG_ENHANCED_DEFLATING = 0x0010;
+	const BITFLAG_LANG_ENCODING_FLAG = 0x0800;
+	const FILE_ATTR_MSDOS_DIR_MASK = 0x10;
+
+	const VERSION_DEFLATE = 0x14;
+	const VERSION_ZIP64 = 0x2D;
+	const VERSION_AES = 0x33;
+
+	const DIRECTORY_SIGNATURE = "/";
 
 	/*
 	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
@@ -1108,12 +1129,13 @@
 	const ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = "End of Zip64 central directory locator not found";
 	const ERR_CENTRAL_DIRECTORY_NOT_FOUND = "Central directory header not found";
 	const ERR_LOCAL_FILE_HEADER_NOT_FOUND = "Local file header not found";
-	const ERR_EXTRA_FIELD_ZIP64_NOT_FOUND = "Zip64 extra field not found";
+	const ERR_EXTRAFIELD_ZIP64_NOT_FOUND = "Zip64 extra field not found";
 	const ERR_ENCRYPTED = "File contains encrypted entry";
 	const ERR_UNSUPPORTED_ENCRYPTION = "Encryption not supported";
 	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 	const CHARSET_UTF8 = "utf-8";
 	const CHARSET_WIN_1252 = "windows-1252";
+	const ZIP64_PROPERTIES = ["uncompressedSize", "compressedSize", "offset"];
 
 	class ZipReader {
 
@@ -1128,30 +1150,30 @@
 			if (!reader.initialized) {
 				await reader.init();
 			}
-			const directoryInfo = await seekSignature(reader, END_OF_CENTRAL_DIR_SIGNATURE, 22, MAX_16_BITS);
+			const directoryInfo = await seekSignature(reader, END_OF_CENTRAL_DIR_SIGNATURE, END_OF_CENTRAL_DIR_LENGTH, MAX_16_BITS);
 			let zip64, directoryDataView = new DataView(directoryInfo.buffer);
-			let dataLength = directoryDataView.getUint32(16, true);
+			let directoryDataLength = directoryDataView.getUint32(16, true);
 			let filesLength = directoryDataView.getUint16(8, true);
-			if (dataLength == MAX_32_BITS || filesLength == MAX_16_BITS) {
+			if (directoryDataLength == MAX_32_BITS || filesLength == MAX_16_BITS) {
 				zip64 = true;
-				const directoryLocatorArray = await reader.readUint8Array(directoryInfo.offset - 20, 20);
+				const directoryLocatorArray = await reader.readUint8Array(directoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH);
 				const directoryLocatorView = new DataView(directoryLocatorArray.buffer);
 				if (Number(directoryLocatorView.getUint32(0, false)) != ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_ZIP64_NOT_FOUND);
 				}
-				dataLength = Number(directoryLocatorView.getBigUint64(8, true));
-				const directoryDataArray = await reader.readUint8Array(dataLength, 56);
+				directoryDataLength = Number(directoryLocatorView.getBigUint64(8, true));
+				const directoryDataArray = await reader.readUint8Array(directoryDataLength, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
 				const directoryDataView = new DataView(directoryDataArray.buffer);
 				if (Number(directoryDataView.getUint32(0, false)) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
 				}
 				filesLength = Number(directoryDataView.getBigUint64(24, true));
-				dataLength -= Number(directoryDataView.getBigUint64(40, true));
+				directoryDataLength -= Number(directoryDataView.getBigUint64(40, true));
 			}
-			if (dataLength < 0 || (!zip64 && (dataLength >= reader.size || filesLength >= MAX_16_BITS))) {
+			if (directoryDataLength < 0 || (!zip64 && (directoryDataLength >= reader.size || filesLength >= MAX_16_BITS))) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
-			const directoryDataArray = await reader.readUint8Array(dataLength, reader.size - dataLength);
+			const directoryDataArray = await reader.readUint8Array(directoryDataLength, reader.size - directoryDataLength);
 			directoryDataView = new DataView(directoryDataArray.buffer);
 			const entries = [];
 			let offset = 0;
@@ -1164,11 +1186,11 @@
 				fileEntry.uncompressedSize = 0;
 				readCommonHeader(fileEntry, directoryDataView, offset + 6);
 				fileEntry.commentLength = directoryDataView.getUint16(offset + 32, true);
-				fileEntry.directory = ((directoryDataView.getUint8(offset + 38) & 0x10) == 0x10);
+				fileEntry.directory = ((directoryDataView.getUint8(offset + 38) & FILE_ATTR_MSDOS_DIR_MASK) == FILE_ATTR_MSDOS_DIR_MASK);
 				fileEntry.offset = directoryDataView.getUint32(offset + 42, true);
 				fileEntry.rawFilename = directoryDataArray.subarray(offset + 46, offset + 46 + fileEntry.filenameLength);
 				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.filenameEncoding || CHARSET_WIN_1252);
-				if (!fileEntry.directory && fileEntry.filename.charAt(fileEntry.filename.length - 1) == "/") {
+				if (!fileEntry.directory && fileEntry.filename && fileEntry.filename.charAt(fileEntry.filename.length - 1) == DIRECTORY_SIGNATURE) {
 					fileEntry.directory = true;
 				}
 				fileEntry.rawExtraField = directoryDataArray.subarray(offset + 46 + fileEntry.filenameLength, offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength);
@@ -1246,10 +1268,10 @@
 		directory.version = dataView.getUint16(offset, true);
 		const rawBitFlag = directory.rawBitFlag = dataView.getUint16(offset + 2, true);
 		directory.bitFlag = {
-			encrypted: (rawBitFlag & 0x01) == 0x01,
-			level: (rawBitFlag & 0x06) >> 1,
-			dataDescriptor: (rawBitFlag & 0x08) == 0x08,
-			languageEncodingFlag: (rawBitFlag & 0x0800) == 0x0800
+			encrypted: (rawBitFlag & BITFLAG_ENCRYPTED) == BITFLAG_ENCRYPTED,
+			level: (rawBitFlag & BITFLAG_LEVEL) >> 1,
+			dataDescriptor: (rawBitFlag & BITFLAG_DATA_DESCRIPTOR) == BITFLAG_DATA_DESCRIPTOR,
+			languageEncodingFlag: (rawBitFlag & BITFLAG_LANG_ENCODING_FLAG) == BITFLAG_LANG_ENCODING_FLAG
 		};
 		directory.encrypted = directory.bitFlag.encrypted;
 		directory.rawLastModDate = dataView.getUint32(offset + 6, true);
@@ -1281,22 +1303,22 @@
 		directory.signature = dataView.getUint32(offset + 10, true);
 		directory.uncompressedSize = dataView.getUint32(offset + 18, true);
 		directory.compressedSize = dataView.getUint32(offset + 14, true);
-		extraFieldZip64 = directory.extraFieldZip64 = extraField.get(0x01);
+		extraFieldZip64 = directory.extraFieldZip64 = extraField.get(EXTRA_FIELD_TYPE_ZIP64);
 		if (extraFieldZip64) {
 			readExtraFieldZip64(extraFieldZip64, directory);
 		}
-		extraFieldUnicodePath = directory.extraFieldUnicodePath = extraField.get(0x7075);
+		extraFieldUnicodePath = directory.extraFieldUnicodePath = extraField.get(EXTRA_FIELD_TYPE_UNICODE_PATH);
 		if (extraFieldUnicodePath) {
 			readExtraFieldUnicodePath(extraFieldUnicodePath, directory, fileEntry);
 		}
-		extraFieldAES = directory.extraFieldAES = extraField.get(0x9901);
+		extraFieldAES = directory.extraFieldAES = extraField.get(EXTRA_FIELD_TYPE_AES);
 		if (extraFieldAES) {
 			readExtraFieldAES(extraFieldAES, directory, compressionMethod);
 		} else {
 			directory.compressionMethod = compressionMethod;
 		}
-		if (directory.compressionMethod == 0x08) {
-			directory.bitFlag.enhancedDeflating = (directory.rawBitFlag & 0x10) != 0x10;
+		if (directory.compressionMethod == COMPRESSION_METHOD_DEFLATE) {
+			directory.bitFlag.enhancedDeflating = (directory.rawBitFlag & BITFLAG_ENHANCED_DEFLATING) != BITFLAG_ENHANCED_DEFLATING;
 		}
 	}
 
@@ -1307,17 +1329,16 @@
 		for (let indexValue = 0; indexValue < Math.floor(extraFieldZip64.data.length / 8); indexValue++) {
 			extraFieldZip64.values.push(Number(extraFieldView.getBigUint64(0 + indexValue * 8, true)));
 		}
-		const properties = ["uncompressedSize", "compressedSize", "offset"];
-		const missingProperties = properties.filter(propertyName => directory[propertyName] == MAX_32_BITS);
+		const missingProperties = ZIP64_PROPERTIES.filter(propertyName => directory[propertyName] == MAX_32_BITS);
 		for (let indexMissingProperty = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
 			extraFieldZip64[missingProperties[indexMissingProperty]] = extraFieldZip64.values[indexMissingProperty];
 		}
-		properties.forEach(propertyName => {
+		ZIP64_PROPERTIES.forEach(propertyName => {
 			if (directory[propertyName] == MAX_32_BITS) {
 				if (extraFieldZip64 && extraFieldZip64[propertyName] !== undefined) {
 					directory[propertyName] = extraFieldZip64 && extraFieldZip64[propertyName];
 				} else {
-					throw new Error(ERR_EXTRA_FIELD_ZIP64_NOT_FOUND);
+					throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
 				}
 			}
 		});
@@ -1360,14 +1381,14 @@
 		}
 		const maximumBytes = minimumBytes + maximumLength;
 		let offset = minimumBytes;
-		let directoryInfo = await seek(offset);
-		if (!directoryInfo) {
-			directoryInfo = await seek(Math.min(maximumBytes, reader.size));
+		let dataInfo = await seek(offset);
+		if (!dataInfo) {
+			dataInfo = await seek(Math.min(maximumBytes, reader.size));
 		}
-		if (!directoryInfo) {
+		if (!dataInfo) {
 			throw new Error(ERR_EOCDR_NOT_FOUND);
 		}
-		return directoryInfo;
+		return dataInfo;
 
 		async function seek(length) {
 			const offset = reader.size - length;
@@ -1433,6 +1454,8 @@
 	const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
 	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
 
+	const EXTRAFIELD_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
+
 	class ZipWriter {
 
 		constructor(writer, options = {}, config = {}) {
@@ -1444,10 +1467,10 @@
 			this.zip64 = options.zip64;
 		}
 
-		async add(name, reader, options = {}) {
+		async add(name = "", reader, options = {}) {
 			name = name.trim();
-			if (options.directory && name.length && name.charAt(name.length - 1) != "/") {
-				name += "/";
+			if (options.directory && (!name.length || name.charAt(name.length - 1) != DIRECTORY_SIGNATURE)) {
+				name += DIRECTORY_SIGNATURE;
 			}
 			if (this.files.has(name)) {
 				throw new Error(ERR_DUPLICATED_NAME);
@@ -1477,8 +1500,9 @@
 			if (directoryOffset + directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS) {
 				this.zip64 = true;
 			}
-			const directoryDataArray = new Uint8Array(directoryDataLength + (this.zip64 ? 98 : 22));
+			const directoryDataArray = new Uint8Array(directoryDataLength + (this.zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH));
 			const directoryDataView = new DataView(directoryDataArray.buffer);
+			this.options.version = this.options.version || VERSION_DEFLATE;
 			for (const [, fileEntry] of files) {
 				const filename = fileEntry.filename;
 				const extraFieldZip64 = fileEntry.extraFieldZip64;
@@ -1486,15 +1510,17 @@
 				const extraFieldLength = extraFieldZip64.length + extraFieldAES.length + fileEntry.rawExtraField.length;
 				directoryDataView.setUint32(offset, CENTRAL_FILE_HEADER_SIGNATURE);
 				if (fileEntry.zip64) {
-					directoryDataView.setUint16(offset + 4, 0x2d00);
+					directoryDataView.setUint16(offset + 4, this.options.version > VERSION_ZIP64 ? this.options : VERSION_ZIP64, true);
+				} if (fileEntry.encrypted) {
+					directoryDataView.setUint16(offset + 4, this.options.version > VERSION_AES ? this.options : VERSION_AES, true);
 				} else {
-					directoryDataView.setUint16(offset + 4, 0x1400);
+					directoryDataView.setUint16(offset + 4, this.options.version > VERSION_DEFLATE ? this.options : VERSION_DEFLATE, true);
 				}
 				directoryDataArray.set(fileEntry.headerArray, offset + 6);
 				directoryDataView.setUint16(offset + 30, extraFieldLength, true);
 				directoryDataView.setUint16(offset + 32, fileEntry.comment.length, true);
 				if (fileEntry.directory) {
-					directoryDataView.setUint8(offset + 38, 0x10);
+					directoryDataView.setUint8(offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 				}
 				if (fileEntry.zip64) {
 					directoryDataView.setUint32(offset + 42, MAX_32_BITS, true);
@@ -1594,6 +1620,15 @@
 		const compressed = level !== 0 && !options.directory;
 		const outputSigned = password === undefined || !password.length;
 		const zip64 = options.zip64;
+		let extraFieldAES;
+		if (outputPassword) {
+			extraFieldAES = new Uint8Array(EXTRAFIELD_AES.length + 2);
+			const extraFieldAESView = new DataView(extraFieldAES.buffer);
+			extraFieldAESView.setUint16(0, EXTRA_FIELD_TYPE_AES, true);
+			extraFieldAES.set(EXTRAFIELD_AES, 2);
+		} else {
+			extraFieldAES = new Uint8Array(0);
+		}
 		const fileEntry = {
 			zip64,
 			headerArray: headerArray,
@@ -1601,7 +1636,7 @@
 			filename: filename,
 			comment: options.comment,
 			extraFieldZip64: zip64 ? new Uint8Array(28) : new Uint8Array(0),
-			extraFieldAES: outputPassword ? new Uint8Array([0x01, 0x99, 0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]) : new Uint8Array(0),
+			extraFieldAES,
 			rawExtraField: new Uint8Array(0)
 		};
 		const extraField = options.extraField;
@@ -1625,8 +1660,8 @@
 				offset += 4 + data.length;
 			});
 		}
-		options.bitFlag = 0x08;
-		options.version = (options.version === undefined ? zipWriterOptions.version : options.version) || 0x14;
+		options.bitFlag = BITFLAG_DATA_DESCRIPTOR;
+		options.version = (options.version === undefined ? zipWriterOptions.version : options.version) || VERSION_DEFLATE;
 		if (options.version > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_VERSION);
 		}
@@ -1635,11 +1670,12 @@
 			options.compressionMethod = COMPRESSION_METHOD_DEFLATE;
 		}
 		if (zip64) {
-			options.version = options.version > 0x2D ? options.version : 0x2D;
+			options.version = options.version > VERSION_ZIP64 ? options.version : VERSION_ZIP64;
 		}
 		if (outputPassword) {
-			options.version = options.version > 0x33 ? options.version : 0x33;
-			options.bitFlag = 0x09;
+			fileEntry.encrypted = true;
+			options.version = options.version > VERSION_AES ? options.version : VERSION_AES;
+			options.bitFlag = options.bitFlag | BITFLAG_ENCRYPTED;
 			options.compressionMethod = COMPRESSION_METHOD_AES;
 			if (compressed) {
 				fileEntry.extraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
@@ -1690,7 +1726,7 @@
 				headerView.setUint32(18, MAX_32_BITS, true);
 				footerView.setBigUint64(16, BigInt(reader.size), true);
 				const extraFieldZip64View = new DataView(fileEntry.extraFieldZip64.buffer);
-				extraFieldZip64View.setUint16(0, 0x01, true);
+				extraFieldZip64View.setUint16(0, EXTRA_FIELD_TYPE_ZIP64, true);
 				extraFieldZip64View.setUint16(2, 24, true);
 				extraFieldZip64View.setBigUint64(4, BigInt(reader.size), true);
 				extraFieldZip64View.setBigUint64(12, BigInt(fileEntry.compressedSize), true);
@@ -1840,7 +1876,8 @@
 	exports.ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND;
 	exports.ERR_EOCDR_NOT_FOUND = ERR_EOCDR_NOT_FOUND;
 	exports.ERR_EOCDR_ZIP64_NOT_FOUND = ERR_EOCDR_ZIP64_NOT_FOUND;
-	exports.ERR_EXTRA_FIELD_ZIP64_NOT_FOUND = ERR_EXTRA_FIELD_ZIP64_NOT_FOUND;
+	exports.ERR_EXTRAFIELD_ZIP64_NOT_FOUND = ERR_EXTRAFIELD_ZIP64_NOT_FOUND;
+	exports.ERR_HTTP_RANGE = ERR_HTTP_RANGE;
 	exports.ERR_INVALID_COMMENT = ERR_INVALID_COMMENT;
 	exports.ERR_INVALID_ENTRY_COMMENT = ERR_INVALID_ENTRY_COMMENT;
 	exports.ERR_INVALID_ENTRY_NAME = ERR_INVALID_ENTRY_NAME;
