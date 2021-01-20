@@ -372,6 +372,48 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const MAX_32_BITS = 0xffffffff;
+	const MAX_16_BITS = 0xffff;
+	const MAX_COMMENT_LENGTH = 65536;
+	const COMPRESSION_METHOD_DEFLATE = 0x08;
+	const COMPRESSION_METHOD_STORE = 0x00;
+	const COMPRESSION_METHOD_AES = 0x63;
+
+	const LOCAL_FILE_HEADER_SIGNATURE = 0x504b0304;
+	const DATA_DESCRIPTOR_RECORD_SIGNATURE = 0x504b0708;
+	const CENTRAL_FILE_HEADER_SIGNATURE = 0x504b0102;
+	const END_OF_CENTRAL_DIR_SIGNATURE = 0x504b0506;
+	const ZIP64_END_OF_CENTRAL_DIR_SIGNATURE = 0x504b0606;
+	const ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE = 0x504b0607;
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
 	class Crc32 {
 
 		constructor() {
@@ -1054,7 +1096,6 @@
 	const ERR_ENCRYPTED = "File contains encrypted entry";
 	const ERR_UNSUPPORTED_ENCRYPTION = "Encryption not supported";
 	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
-	const MAX_ZIP_COMMENT_SIZE = 65536;
 	const CHARSET_UTF8 = "utf-8";
 	const CHARSET_WIN_1252 = "windows-1252";
 
@@ -1071,59 +1112,56 @@
 			if (!reader.initialized) {
 				await reader.init();
 			}
-			const directoryInfo = await seekSignature(reader, [0x50, 0x4b, 0x05, 0x06], 22, MAX_ZIP_COMMENT_SIZE);
+			const directoryInfo = await seekSignature(reader, END_OF_CENTRAL_DIR_SIGNATURE, 22, MAX_COMMENT_LENGTH);
 			let zip64, directoryDataView = new DataView(directoryInfo.buffer);
 			let dataLength = directoryDataView.getUint32(16, true);
 			let filesLength = directoryDataView.getUint16(8, true);
-			if (dataLength == 0xffffffff || filesLength == 0xffff) {
+			if (dataLength == MAX_32_BITS || filesLength == MAX_16_BITS) {
 				zip64 = true;
 				const directoryLocatorArray = await reader.readUint8Array(directoryInfo.offset - 20, 20);
 				const directoryLocatorView = new DataView(directoryLocatorArray.buffer);
-				if (Number(directoryLocatorView.getUint32(0, false)) != 0x504b0607) {
+				if (Number(directoryLocatorView.getUint32(0, false)) != ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_ZIP64_NOT_FOUND);
 				}
 				dataLength = Number(directoryLocatorView.getBigUint64(8, true));
 				const directoryDataArray = await reader.readUint8Array(dataLength, 56);
 				const directoryDataView = new DataView(directoryDataArray.buffer);
-				if (Number(directoryDataView.getUint32(0, false)) != 0x504b0606) {
+				if (Number(directoryDataView.getUint32(0, false)) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
 				}
 				filesLength = Number(directoryDataView.getBigUint64(24, true));
 				dataLength -= Number(directoryDataView.getBigUint64(40, true));
 			}
-			if (dataLength < 0 || (!zip64 && (dataLength >= reader.size || filesLength >= 0xffff))) {
+			if (dataLength < 0 || (!zip64 && (dataLength >= reader.size || filesLength >= MAX_16_BITS))) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
-			const dataArray = await reader.readUint8Array(dataLength, reader.size - dataLength);
-			directoryDataView = new DataView(dataArray.buffer);
+			const directoryDataArray = await reader.readUint8Array(dataLength, reader.size - dataLength);
+			directoryDataView = new DataView(directoryDataArray.buffer);
 			const entries = [];
 			let offset = 0;
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
-				const entry = new Entry(this.reader, this.config, this.options);
-				if (directoryDataView.getUint32(offset, false) != 0x504b0102) {
+				const fileEntry = new Entry(this.reader, this.config, this.options);
+				if (directoryDataView.getUint32(offset, false) != CENTRAL_FILE_HEADER_SIGNATURE) {
 					throw new Error(ERR_CENTRAL_DIRECTORY_NOT_FOUND);
 				}
-				entry.compressedSize = 0;
-				entry.uncompressedSize = 0;
-				readCommonHeader(entry, directoryDataView, offset + 6);
-				entry.commentLength = directoryDataView.getUint16(offset + 32, true);
-				entry.directory = ((directoryDataView.getUint8(offset + 38) & 0x10) == 0x10);
-				entry.offset = directoryDataView.getUint32(offset + 42, true);
-				entry.rawFilename = dataArray.subarray(offset + 46, offset + 46 + entry.filenameLength);
-				entry.filename = decodeString(entry.rawFilename, entry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.filenameEncoding || CHARSET_WIN_1252);
-				if (!entry.directory && entry.filename.charAt(entry.filename.length - 1) == "/") {
-					entry.directory = true;
+				fileEntry.compressedSize = 0;
+				fileEntry.uncompressedSize = 0;
+				readCommonHeader(fileEntry, directoryDataView, offset + 6);
+				fileEntry.commentLength = directoryDataView.getUint16(offset + 32, true);
+				fileEntry.directory = ((directoryDataView.getUint8(offset + 38) & 0x10) == 0x10);
+				fileEntry.offset = directoryDataView.getUint32(offset + 42, true);
+				fileEntry.rawFilename = directoryDataArray.subarray(offset + 46, offset + 46 + fileEntry.filenameLength);
+				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.filenameEncoding || CHARSET_WIN_1252);
+				if (!fileEntry.directory && fileEntry.filename.charAt(fileEntry.filename.length - 1) == "/") {
+					fileEntry.directory = true;
 				}
-				entry.rawExtraField = dataArray.subarray(offset + 46 + entry.filenameLength, offset + 46 + entry.filenameLength + entry.extraFieldLength);
-				readCommonFooter(entry, entry, directoryDataView, offset + 6);
-				if (entry.compressionMethod != 0x0 && entry.compressionMethod != 0x08) {
-					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
-				}
-				entry.rawComment = dataArray.subarray(offset + 46 + entry.filenameLength + entry.extraFieldLength, offset + 46
-					+ entry.filenameLength + entry.extraFieldLength + entry.commentLength);
-				entry.comment = decodeString(entry.rawComment, entry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.commentEncoding || CHARSET_WIN_1252);
-				entries.push(entry);
-				offset += 46 + entry.filenameLength + entry.extraFieldLength + entry.commentLength;
+				fileEntry.rawExtraField = directoryDataArray.subarray(offset + 46 + fileEntry.filenameLength, offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength);
+				readCommonFooter(fileEntry, fileEntry, directoryDataView, offset + 6);
+				fileEntry.rawComment = directoryDataArray.subarray(offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength, offset + 46
+					+ fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength);
+				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.commentEncoding || CHARSET_WIN_1252);
+				entries.push(fileEntry);
+				offset += 46 + fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength;
 			}
 			return entries;
 		}
@@ -1149,8 +1187,19 @@
 			const dataView = new DataView(dataArray.buffer);
 			const password = options.password === undefined ? this.options.password : options.password;
 			let inputPassword = password && password.length && password;
-			if (dataView.getUint32(0, false) != 0x504b0304) {
-				throw ERR_LOCAL_FILE_HEADER_NOT_FOUND;
+			if (this.extraFieldAES) {
+				if (this.extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
+					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
+				}
+				if (this.extraFieldAES.strength != 3) {
+					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
+				}
+			}
+			if (this.compressionMethod != COMPRESSION_METHOD_STORE && this.compressionMethod != COMPRESSION_METHOD_DEFLATE) {
+				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
+			}
+			if (dataView.getUint32(0, false) != LOCAL_FILE_HEADER_SIGNATURE) {
+				throw new Error(ERR_LOCAL_FILE_HEADER_NOT_FOUND);
 			}
 			const localDirectory = this.localDirectory = {};
 			readCommonHeader(localDirectory, dataView, 4);
@@ -1186,13 +1235,14 @@
 			dataDescriptor: (rawBitFlag & 0x08) == 0x08,
 			languageEncodingFlag: (rawBitFlag & 0x0800) == 0x0800
 		};
+		directory.encrypted = directory.bitFlag.encrypted;
 		directory.rawLastModDate = dataView.getUint32(offset + 6, true);
 		directory.lastModDate = getDate(directory.rawLastModDate);
 		directory.filenameLength = dataView.getUint16(offset + 22, true);
 		directory.extraFieldLength = dataView.getUint16(offset + 24, true);
 	}
 
-	function readCommonFooter(entry, directory, dataView, offset) {
+	function readCommonFooter(fileEntry, directory, dataView, offset) {
 		let extraFieldZip64, extraFieldAES, extraFieldUnicodePath;
 		const rawExtraField = directory.rawExtraField;
 		const extraField = directory.extraField = new Map();
@@ -1221,7 +1271,7 @@
 		}
 		extraFieldUnicodePath = directory.extraFieldUnicodePath = extraField.get(0x7075);
 		if (extraFieldUnicodePath) {
-			readExtraFieldUnicodePath(extraFieldUnicodePath, directory, entry);
+			readExtraFieldUnicodePath(extraFieldUnicodePath, directory, fileEntry);
 		}
 		extraFieldAES = directory.extraFieldAES = extraField.get(0x9901);
 		if (extraFieldAES) {
@@ -1242,12 +1292,12 @@
 			extraFieldZip64.values.push(Number(extraFieldView.getBigUint64(0 + indexValue * 8, true)));
 		}
 		const properties = ["uncompressedSize", "compressedSize", "offset"];
-		const missingProperties = properties.filter(propertyName => directory[propertyName] == 0xffffffff);
+		const missingProperties = properties.filter(propertyName => directory[propertyName] == MAX_32_BITS);
 		for (let indexMissingProperty = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
 			extraFieldZip64[missingProperties[indexMissingProperty]] = extraFieldZip64.values[indexMissingProperty];
 		}
 		properties.forEach(propertyName => {
-			if (directory[propertyName] == 0xffffffff) {
+			if (directory[propertyName] == MAX_32_BITS) {
 				if (extraFieldZip64 && extraFieldZip64[propertyName] !== undefined) {
 					directory[propertyName] = extraFieldZip64 && extraFieldZip64[propertyName];
 				} else {
@@ -1257,12 +1307,12 @@
 		});
 	}
 
-	function readExtraFieldUnicodePath(extraFieldUnicodePath, directory, entry) {
+	function readExtraFieldUnicodePath(extraFieldUnicodePath, directory, fileEntry) {
 		const extraFieldView = new DataView(extraFieldUnicodePath.data.buffer);
 		extraFieldUnicodePath.version = extraFieldView.getUint8(0);
 		extraFieldUnicodePath.signature = extraFieldView.getUint32(1, true);
 		const crc32 = new Crc32();
-		crc32.append(entry.rawFilename);
+		crc32.append(fileEntry.rawFilename);
 		const dataViewSignature = new DataView(new Uint8Array(4).buffer);
 		dataViewSignature.setUint32(0, crc32.get());
 		extraFieldUnicodePath.filename = (new TextDecoder()).decode(extraFieldUnicodePath.data.subarray(5));
@@ -1273,24 +1323,22 @@
 
 	function readExtraFieldAES(extraFieldAES, directory, compressionMethod) {
 		if (extraFieldAES) {
-			if (compressionMethod != 0x63) {
-				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
-			}
 			const extraFieldView = new DataView(extraFieldAES.data.buffer);
 			extraFieldAES.vendorVersion = extraFieldView.getUint8(0);
 			extraFieldAES.vendorId = extraFieldView.getUint8(2);
 			const strength = extraFieldView.getUint8(4);
-			extraFieldAES.compressionMethod = extraFieldView.getUint16(5, true);
-			if (strength != 3) {
-				throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
-			}
-			directory.compressionMethod = extraFieldAES.compressionMethod;
+			extraFieldAES.strength = strength;
+			extraFieldAES.originalCompressionMethod = compressionMethod;
+			directory.compressionMethod = extraFieldAES.compressionMethod = extraFieldView.getUint16(5, true);
 		} else {
 			directory.compressionMethod = compressionMethod;
 		}
 	}
 
 	async function seekSignature(reader, signature, minimumBytes, maximumLength) {
+		const signatureArray = new Uint8Array(4);
+		const signatureView = new DataView(signatureArray.buffer);
+		signatureView.setUint32(0, signature);
 		if (reader.size < minimumBytes) {
 			throw new Error(ERR_BAD_FORMAT);
 		}
@@ -1309,7 +1357,8 @@
 			const offset = reader.size - length;
 			const bytes = await reader.readUint8Array(offset, length);
 			for (let indexByte = bytes.length - minimumBytes; indexByte >= 0; indexByte--) {
-				if (bytes[indexByte] == signature[0] && bytes[indexByte + 1] == signature[1] && bytes[indexByte + 2] == signature[2] && bytes[indexByte + 3] == signature[3]) {
+				if (bytes[indexByte] == signatureArray[0] && bytes[indexByte + 1] == signatureArray[1] &&
+					bytes[indexByte + 2] == signatureArray[2] && bytes[indexByte + 3] == signatureArray[3]) {
 					return {
 						offset,
 						buffer: bytes.slice(indexByte, indexByte + minimumBytes).buffer
@@ -1360,12 +1409,9 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const COMPRESSION_METHOD_DEFLATE = 0x08;
-	const MAX_COMMENT_LENGTH = 65536;
 	const ERR_DUPLICATED_NAME = "File already exists";
 	const ERR_INVALID_COMMENT = "Zip file comment exceeds 64KB";
 	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
-
 	class ZipWriter {
 
 		constructor(writer, options = {}, config = {}) {
@@ -1400,7 +1446,7 @@
 			for (const [, fileEntry] of files) {
 				directoryDataLength += 46 + fileEntry.filename.length + fileEntry.comment.length + fileEntry.extraFieldZip64.length + fileEntry.extraFieldAES.length + fileEntry.rawExtraField.length;
 			}
-			if (directoryOffset + directoryDataLength >= 0xffffffff || filesLength >= 0xffff) {
+			if (directoryOffset + directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS) {
 				this.zip64 = true;
 			}
 			const directoryDataArray = new Uint8Array(directoryDataLength + (this.zip64 ? 98 : 22));
@@ -1410,7 +1456,7 @@
 				const extraFieldZip64 = fileEntry.extraFieldZip64;
 				const extraFieldAES = fileEntry.extraFieldAES;
 				const extraFieldLength = extraFieldZip64.length + extraFieldAES.length + fileEntry.rawExtraField.length;
-				directoryDataView.setUint32(offset, 0x504b0102);
+				directoryDataView.setUint32(offset, CENTRAL_FILE_HEADER_SIGNATURE);
 				if (fileEntry.zip64) {
 					directoryDataView.setUint16(offset + 4, 0x2d00);
 				} else {
@@ -1423,7 +1469,7 @@
 					directoryDataView.setUint8(offset + 38, 0x10);
 				}
 				if (fileEntry.zip64) {
-					directoryDataView.setUint32(offset + 42, 0xffffffff, true);
+					directoryDataView.setUint32(offset + 42, MAX_32_BITS, true);
 				} else {
 					directoryDataView.setUint32(offset + 42, fileEntry.offset, true);
 				}
@@ -1435,7 +1481,7 @@
 				offset += 46 + filename.length + extraFieldLength + fileEntry.comment.length;
 			}
 			if (this.zip64) {
-				directoryDataView.setUint32(offset, 0x504b0606);
+				directoryDataView.setUint32(offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
 				directoryDataView.setBigUint64(offset + 4, BigInt(44), true);
 				directoryDataView.setUint16(offset + 12, 45, true);
 				directoryDataView.setUint16(offset + 14, 45, true);
@@ -1443,14 +1489,14 @@
 				directoryDataView.setBigUint64(offset + 32, BigInt(filesLength), true);
 				directoryDataView.setBigUint64(offset + 40, BigInt(directoryDataLength), true);
 				directoryDataView.setBigUint64(offset + 48, BigInt(directoryOffset), true);
-				directoryDataView.setUint32(offset + 56, 0x504b0607);
+				directoryDataView.setUint32(offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
 				directoryDataView.setBigUint64(offset + 64, BigInt(directoryOffset + directoryDataLength), true);
 				directoryDataView.setUint32(offset + 72, 1, true);
-				filesLength = 0xffff;
-				directoryOffset = 0xffffffff;
+				filesLength = MAX_16_BITS;
+				directoryOffset = MAX_32_BITS;
 				offset += 76;
 			}
-			directoryDataView.setUint32(offset, 0x504b0506);
+			directoryDataView.setUint32(offset, END_OF_CENTRAL_DIR_SIGNATURE);
 			directoryDataView.setUint16(offset + 8, filesLength, true);
 			directoryDataView.setUint16(offset + 10, filesLength, true);
 			directoryDataView.setUint32(offset + 12, directoryDataLength, true);
@@ -1487,7 +1533,7 @@
 					}
 					fileWriter = writer;
 				}
-				if (zipWriter.offset >= 0xffffffff || (reader && (reader.size >= 0xffffffff || zipWriter.offset + reader.size >= 0xffffffff))) {
+				if (zipWriter.offset >= MAX_32_BITS || (reader && (reader.size >= MAX_32_BITS || zipWriter.offset + reader.size >= MAX_32_BITS))) {
 					options.zip64 = true;
 				}
 				fileEntry = await createFileEntry(name, reader, fileWriter, zipWriter.config, zipWriter.options, options);
@@ -1551,7 +1597,7 @@
 		}
 		options.bitFlag = 0x08;
 		options.version = (options.version === undefined ? zipWriterOptions.version : options.version) || 0x14;
-		options.compressionMethod = 0;
+		options.compressionMethod = COMPRESSION_METHOD_STORE;
 		if (compressed) {
 			options.compressionMethod = COMPRESSION_METHOD_DEFLATE;
 		}
@@ -1561,7 +1607,7 @@
 		if (outputPassword) {
 			options.version = options.version > 0x33 ? options.version : 0x33;
 			options.bitFlag = 0x09;
-			options.compressionMethod = 0x63;
+			options.compressionMethod = COMPRESSION_METHOD_AES;
 			if (compressed) {
 				fileEntry.extraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
 			}
@@ -1575,7 +1621,7 @@
 		headerView.setUint16(24, 0, true);
 		const fileDataArray = new Uint8Array(30 + filename.length);
 		const fileDataView = new DataView(fileDataArray.buffer);
-		fileDataView.setUint32(0, 0x504b0304);
+		fileDataView.setUint32(0, LOCAL_FILE_HEADER_SIGNATURE);
 		fileDataArray.set(headerArray, 4);
 		fileDataArray.set(filename, 30);
 		let result;
@@ -1599,16 +1645,16 @@
 		}
 		const footerArray = new Uint8Array(zip64 ? 24 : 16);
 		const footerView = new DataView(footerArray.buffer);
-		footerView.setUint32(0, 0x504b0708);
+		footerView.setUint32(0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
 		if (reader) {
 			if (!outputPassword && result.signature !== undefined) {
 				headerView.setUint32(10, result.signature, true);
 				footerView.setUint32(4, result.signature, true);
 			}
 			if (zip64) {
-				headerView.setUint32(14, 0xffffffff, true);
+				headerView.setUint32(14, MAX_32_BITS, true);
 				footerView.setBigUint64(8, BigInt(fileEntry.compressedSize), true);
-				headerView.setUint32(18, 0xffffffff, true);
+				headerView.setUint32(18, MAX_32_BITS, true);
 				footerView.setBigUint64(16, BigInt(reader.size), true);
 				const extraFieldZip64View = new DataView(fileEntry.extraFieldZip64.buffer);
 				extraFieldZip64View.setUint16(0, 0x01, true);
