@@ -88,6 +88,7 @@ declare module "zip.js" {
         filename: string;
         rawFilename: Uint8Array;
         directory: boolean;
+        encrypted: boolean;
         compressedSize: number;
         uncompressedSize: number;
         lastModDate: Date;
