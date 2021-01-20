@@ -133,4 +133,26 @@ declare module "zip.js" {
         zip64?: boolean;
         extraField?: Map<number, Uint8Array>;
     }
+
+    export const ERR_HTTP_RANGE: string;
+    export const ERR_BAD_FORMAT: string;
+    export const ERR_EOCDR_NOT_FOUND: string;
+    export const ERR_EOCDR_ZIP64_NOT_FOUND: string;
+    export const ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND: string;
+    export const ERR_CENTRAL_DIRECTORY_NOT_FOUND: string;
+    export const ERR_LOCAL_FILE_HEADER_NOT_FOUND: string;
+    export const ERR_EXTRAFIELD_ZIP64_NOT_FOUND: string;
+    export const ERR_ENCRYPTED: string;
+    export const ERR_UNSUPPORTED_ENCRYPTION: string;
+    export const ERR_UNSUPPORTED_COMPRESSION: string;
+    export const ERR_INVALID_SIGNATURE: string;
+    export const ERR_INVALID_PASSORD: string;
+    export const ERR_DUPLICATED_NAME: string;
+    export const ERR_INVALID_COMMENT: string;
+    export const ERR_INVALID_ENTRY_NAME: string;
+    export const ERR_INVALID_ENTRY_COMMENT: string;
+    export const ERR_INVALID_VERSION: string;
+    export const ERR_INVALID_EXTRAFIELD_TYPE: string;
+    export const ERR_INVALID_EXTRAFIELD_DATA: string;
+
 }
