@@ -889,28 +889,21 @@
 		let scripts;
 		if (options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers && !streamCopy)) {
 			const codecType = options.codecType;
-			if (config.workerScripts != null && config.workerScriptsPath != null) {
-				throw new Error("Either workerScripts or workerScriptsPath may be set, not both");
-			}
 			if (config.workerScripts) {
-				scripts = config.workerScripts[codecType];
-				if (!Array.isArray(scripts)) {
-					throw new Error("workerScripts." + codecType + " must be an array");
-				}
-				scripts = resolveURLs(scripts);
+				scripts = resolveURLs(config.workerScripts[codecType]);
 			} else {
 				scripts = DEFAULT_WORKER_SCRIPTS[codecType].slice(0);
 				scripts[0] = (config.workerScriptsPath || "") + scripts[0];
 			}
 		}
 		if (pool.length < config.maxWorkers) {
-			const workerData = { busy: true, options, scripts };
+			const workerData = {};
 			pool.push(workerData);
-			return scripts ? createWebWorkerInterface(workerData) : createWorkerInterface(workerData);
+			return getWorkerInterface(workerData, options, scripts);
 		} else {
 			const workerData = pool.find(workerData => !workerData.busy);
 			if (workerData) {
-				return getWorkerInterface(workerData);
+				return getWorkerInterface(workerData, options, scripts);
 			} else {
 				return new Promise(resolve => workers.pendingRequests.push({ resolve, options, scripts }));
 			}
@@ -1133,8 +1126,12 @@
 	const ERR_UNSUPPORTED_ENCRYPTION = "Encryption not supported";
 	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 	const CHARSET_UTF8 = "utf-8";
-	const CHARSET_WIN_1252 = "windows-1252";
 	const ZIP64_PROPERTIES = ["uncompressedSize", "compressedSize", "offset"];
+	const CP437 = [
+		"\u0000", "☺", "☻", "♥", "♦", "♣", "♠", "•", "◘", "○", "◙", "♂", "♀", "♪", "♫", "☼", "►", "◄", "↕", "‼", "¶", "§", "▬", "↨", "↑", "↓", "→", "←", "∟", "↔", "▲", "▼", " ", "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
+		"@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\", "]", "^", "_", "`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~", "⌂",
+		"Ç", "ü", "é", "â", "ä", "à", "å", "ç", "ê", "ë", "è", "ï", "î", "ì", "Ä", "Å", "É", "æ", "Æ", "ô", "ö", "ò", "û", "ù", "ÿ", "Ö", "Ü", "¢", "£", "¥", "₧", "ƒ", "á", "í", "ó", "ú", "ñ", "Ñ", "ª", "º", "¿", "⌐", "¬", "½", "¼", "¡", "«", "»", "░", "▒", "▓", "│", "┤", "╡", "╢", "╖", "╕", "╣", "║", "╗", "╝", "╜", "╛", "┐",
+		"└", "┴", "┬", "├", "─", "┼", "╞", "╟", "╚", "╔", "╩", "╦", "╠", "═", "╬", "╧", "╨", "╤", "╥", "╙", "╘", "╒", "╓", "╫", "╪", "┘", "┌", "█", "▄", "▌", "▐", "▀", "α", "ß", "Γ", "π", "Σ", "σ", "µ", "τ", "Φ", "Θ", "Ω", "δ", "∞", "φ", "ε", "∩", "≡", "±", "≥", "≤", "⌠", "⌡", "÷", "≈", "°", "∙", "·", "√", "ⁿ", "²", "■", " "];
 
 	class ZipReader {
 
@@ -1192,7 +1189,7 @@
 				fileEntry.directory = ((directoryView.getUint8(offset + 38) & FILE_ATTR_MSDOS_DIR_MASK) == FILE_ATTR_MSDOS_DIR_MASK);
 				fileEntry.offset = directoryView.getUint32(offset + 42, true);
 				fileEntry.rawFilename = directoryArray.subarray(offset + 46, offset + 46 + fileEntry.filenameLength);
-				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.filenameEncoding || CHARSET_WIN_1252);
+				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.filenameEncoding);
 				if (!fileEntry.directory && fileEntry.filename && fileEntry.filename.charAt(fileEntry.filename.length - 1) == DIRECTORY_SIGNATURE) {
 					fileEntry.directory = true;
 				}
@@ -1200,7 +1197,7 @@
 				readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
 				fileEntry.rawComment = directoryArray.subarray(offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength, offset + 46
 					+ fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength);
-				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.commentEncoding || CHARSET_WIN_1252);
+				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.commentEncoding);
 				entries.push(fileEntry);
 				offset += 46 + fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength;
 			}
@@ -1343,7 +1340,7 @@
 		ZIP64_PROPERTIES.forEach(propertyName => {
 			if (directory[propertyName] == MAX_32_BITS) {
 				if (extraFieldZip64 && extraFieldZip64[propertyName] !== undefined) {
-					directory[propertyName] = extraFieldZip64 && extraFieldZip64[propertyName];
+					directory[propertyName] = extraFieldZip64[propertyName];
 				} else {
 					throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
 				}
@@ -1352,16 +1349,18 @@
 	}
 
 	function readExtraFieldUnicode(extraFieldUnicode, propertyName, rawPropertyName, directory, fileEntry) {
-		const extraFieldView = new DataView(extraFieldUnicode.data.buffer);
-		extraFieldUnicode.version = extraFieldView.getUint8(0);
-		extraFieldUnicode.signature = extraFieldView.getUint32(1, true);
-		const crc32 = new Crc32();
-		crc32.append(fileEntry[rawPropertyName]);
-		const dataViewSignature = new DataView(new Uint8Array(4).buffer);
-		dataViewSignature.setUint32(0, crc32.get());
-		extraFieldUnicode[propertyName] = (new TextDecoder()).decode(extraFieldUnicode.data.subarray(5));
-		if (extraFieldUnicode.signature == dataViewSignature.getUint32(0, false)) {
-			directory[propertyName] = extraFieldUnicode[propertyName];
+		if (!fileEntry.bitFlag.languageEncodingFlag) {
+			const extraFieldView = new DataView(extraFieldUnicode.data.buffer);
+			extraFieldUnicode.version = extraFieldView.getUint8(0);
+			extraFieldUnicode.signature = extraFieldView.getUint32(1, true);
+			const crc32 = new Crc32();
+			crc32.append(fileEntry[rawPropertyName]);
+			const dataViewSignature = new DataView(new Uint8Array(4).buffer);
+			dataViewSignature.setUint32(0, crc32.get());
+			extraFieldUnicode[propertyName] = (new TextDecoder()).decode(extraFieldUnicode.data.subarray(5));
+			if (extraFieldUnicode.signature == dataViewSignature.getUint32(0, false)) {
+				directory[propertyName] = extraFieldUnicode[propertyName];
+			}
 		}
 	}
 
@@ -1410,7 +1409,15 @@
 	}
 
 	function decodeString(value, encoding) {
-		return (new TextDecoder(encoding)).decode(value);
+		if (!encoding || encoding.toLowerCase() == "cp437") {
+			let result = "";
+			for (let indexCharacter = 0; indexCharacter < value.length; indexCharacter++) {
+				result += CP437[value[indexCharacter]];
+			}
+			return result;
+		} else {
+			return (new TextDecoder(encoding)).decode(value);
+		}
 	}
 
 	function getDate(timeRaw) {
@@ -1864,6 +1871,17 @@
 
 	function configure(configuration) {
 		config = Object.assign({}, config, configuration);
+		if (config.workerScripts != null && config.workerScriptsPath != null) {
+			throw new Error("Either workerScripts or workerScriptsPath may be set, not both");
+		}
+		if (config.workerScripts) {
+			if (config.workerScripts.deflate && !Array.isArray(config.workerScripts.deflate)) {
+				throw new Error("workerScripts.deflate must be an array");
+			}
+			if (config.workerScripts.inflate && !Array.isArray(config.workerScripts.inflate)) {
+				throw new Error("workerScripts.inflate must be an array");
+			}
+		}
 	}
 
 	function getMimeType() {
