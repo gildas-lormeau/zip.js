@@ -82,6 +82,7 @@ declare module "zip.js" {
         password?: string;
         filenameEncoding?: string;
         commentEncoding?: string;
+        useWebWorkers?: boolean;
     }
 
     export interface Entry {
@@ -105,6 +106,7 @@ declare module "zip.js" {
         onprogress?: (progress: number, total: number) => void;
         checkSignature?: boolean;
         password?: string;
+        useWebWorkers?: boolean;
     }
 
     export class ZipWriter {
@@ -119,6 +121,7 @@ declare module "zip.js" {
         bufferedWrite?: boolean;
         version?: number;
         password?: string;
+        useWebWorkers?: boolean;
     }
 
     export interface ZipWriterAddOptions {
@@ -132,6 +135,7 @@ declare module "zip.js" {
         password?: string;
         zip64?: boolean;
         extraField?: Map<number, Uint8Array>;
+        useWebWorkers?: boolean;
     }
 
     export const ERR_HTTP_RANGE: string;
