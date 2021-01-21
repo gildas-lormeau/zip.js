@@ -99,10 +99,10 @@ declare module "zip.js" {
         signature: Uint8Array;
         extraField: Map<number, Uint8Array>;
         rawExtraField: Uint8Array;
-        getData(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
+        getData(writer: Writer, options?: GetDataOptions): Promise<any>;
     }
 
-    export interface EntryGetDataOptions {
+    export interface GetDataOptions {
         onprogress?: (progress: number, total: number) => void;
         checkSignature?: boolean;
         password?: string;
@@ -111,7 +111,7 @@ declare module "zip.js" {
 
     export class ZipWriter {
         constructor(writer: Writer, options?: ZipWriterOptions);
-        public add(name: string, reader: Reader, options?: ZipWriterAddOptions): Promise<void>;
+        public add(name: string, reader: Reader, options?: AddDataOptions): Promise<void>;
         public close(comment?: Uint8Array): Promise<any>;
     }
 
@@ -124,7 +124,7 @@ declare module "zip.js" {
         useWebWorkers?: boolean;
     }
 
-    export interface ZipWriterAddOptions {
+    export interface AddDataOptions {
         onprogress?: (progress: number, total: number) => void;
         directory?: boolean;
         level?: number;
@@ -138,6 +138,58 @@ declare module "zip.js" {
         useWebWorkers?: boolean;
     }
 
+    export interface ZipEntry {
+        name: string;
+        data?: Entry;
+        id: number;
+        parent?: ZipEntry;
+        children: ZipEntry[];
+        uncompressedSize: number;
+        moveTo(entry: ZipDirectoryEntry): void;
+        getFullname(): string;
+        isDescendantOf(entry: ZipDirectoryEntry): boolean;
+    }
+
+    export interface ZipFileEntry extends ZipEntry {
+        reader: Reader;
+        writer: Writer;
+        getText(encoding?: string, options?: GetDataOptions): Promise<string>;
+        getBlob(mimeType?: string, options?: GetDataOptions): Promise<Blob>;
+        getData64URI(mimeType?: string, options?: GetDataOptions): Promise<string>;
+        getData(writer: Writer, options?: GetDataOptions): Promise<any>;
+    }
+
+    export interface ZipDirectoryEntry extends ZipEntry {
+        addDirectory(name: string): ZipDirectoryEntry;
+        addText(name: string, text: string): ZipFileEntry;
+        addBlob(name: string, blob: Blob): ZipFileEntry;
+        addData64URI(name: string, dataURI: string): ZipFileEntry;
+        addHttpContent(name: string, url: string, options?: AddHttpContentOptions): ZipFileEntry;
+        importBlob(blob: Blob, options?: GetDataOptions): Promise<void>;
+        importData64URI(dataURI: string, options?: GetDataOptions): Promise<void>;
+        importHttpContent(url: string, options?: GetDataOptions): Promise<void>;
+        exportBlob(options?: AddDataOptions): Promise<Blob>;
+        exportData64URI(options?: AddDataOptions): Promise<string>;
+        getChildByName(name: string): ZipEntry;
+    }
+
+    export interface AddHttpContentOptions {
+        useRangeHeader?: boolean;
+    }
+
+    export class ZipFileSystem {
+        constructor();
+        remove(entry: ZipEntry): void;
+        find(fullname: string): ZipEntry;
+        getById(id: number): ZipEntry;
+        importBlob(blob: Blob, options?: GetDataOptions): Promise<void>;
+        importData64URI(dataURI: string, options?: GetDataOptions): Promise<void>;
+        importHttpContent(url: string, options?: GetDataOptions): Promise<void>;
+        exportBlob(options?: AddDataOptions): Promise<Blob>;
+        exportData64URI(options?: AddDataOptions): Promise<string>;
+    }
+
+    export const fs: ZipFileSystem;
     export const ERR_HTTP_RANGE: string;
     export const ERR_BAD_FORMAT: string;
     export const ERR_EOCDR_NOT_FOUND: string;
