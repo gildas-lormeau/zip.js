@@ -177,7 +177,7 @@ declare module "zip.js" {
         useRangeHeader?: boolean;
     }
 
-    export class ZipFileSystem {
+    export class FS {
         constructor();
         remove(entry: ZipEntry): void;
         find(fullname: string): ZipEntry;
@@ -189,7 +189,7 @@ declare module "zip.js" {
         exportData64URI(options?: ZipWriterOptions): Promise<string>;
     }
 
-    export const fs: ZipFileSystem;
+    export const fs: { FS: FS, ZipDirectoryEntry: ZipDirectoryEntry, ZipFileEntry: ZipFileEntry };
     export const ERR_HTTP_RANGE: string;
     export const ERR_BAD_FORMAT: string;
     export const ERR_EOCDR_NOT_FOUND: string;
