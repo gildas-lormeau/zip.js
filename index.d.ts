@@ -160,17 +160,17 @@ declare module "zip.js" {
     }
 
     export interface ZipDirectoryEntry extends ZipEntry {
+        getChildByName(name: string): ZipEntry;
         addDirectory(name: string): ZipDirectoryEntry;
         addText(name: string, text: string): ZipFileEntry;
         addBlob(name: string, blob: Blob): ZipFileEntry;
         addData64URI(name: string, dataURI: string): ZipFileEntry;
         addHttpContent(name: string, url: string, options?: AddHttpContentOptions): ZipFileEntry;
-        importBlob(blob: Blob, options?: GetDataOptions): Promise<void>;
-        importData64URI(dataURI: string, options?: GetDataOptions): Promise<void>;
-        importHttpContent(url: string, options?: GetDataOptions): Promise<void>;
-        exportBlob(options?: AddDataOptions): Promise<Blob>;
-        exportData64URI(options?: AddDataOptions): Promise<string>;
-        getChildByName(name: string): ZipEntry;
+        importBlob(blob: Blob, options?: ZipReaderOptions): Promise<void>;
+        importData64URI(dataURI: string, options?: ZipReaderOptions): Promise<void>;
+        importHttpContent(url: string, options?: ZipReaderOptions): Promise<void>;
+        exportBlob(options?: ZipWriterOptions): Promise<Blob>;
+        exportData64URI(options?: ZipWriterOptions): Promise<string>;
     }
 
     export interface AddHttpContentOptions {
@@ -182,11 +182,11 @@ declare module "zip.js" {
         remove(entry: ZipEntry): void;
         find(fullname: string): ZipEntry;
         getById(id: number): ZipEntry;
-        importBlob(blob: Blob, options?: GetDataOptions): Promise<void>;
-        importData64URI(dataURI: string, options?: GetDataOptions): Promise<void>;
-        importHttpContent(url: string, options?: GetDataOptions): Promise<void>;
-        exportBlob(options?: AddDataOptions): Promise<Blob>;
-        exportData64URI(options?: AddDataOptions): Promise<string>;
+        importBlob(blob: Blob, options?: ZipReaderOptions): Promise<void>;
+        importData64URI(dataURI: string, options?: ZipReaderOptions): Promise<void>;
+        importHttpContent(url: string, options?: ZipReaderOptions): Promise<void>;
+        exportBlob(options?: ZipWriterOptions): Promise<Blob>;
+        exportData64URI(options?: ZipWriterOptions): Promise<string>;
     }
 
     export const fs: ZipFileSystem;
