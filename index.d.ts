@@ -2,7 +2,7 @@ declare module "zip.js" {
 
     export function configure(configuration: ConfigurationOptions): void;
 
-    export class ConfigurationOptions {
+    export interface ConfigurationOptions {
         useWebWorkers?: boolean;
         maxWorkers?: number;
         workerScriptsPath?: string;
@@ -115,7 +115,7 @@ declare module "zip.js" {
         public close(comment?: Uint8Array): Promise<any>;
     }
 
-    export class ZipWriterOptions {
+    export interface ZipWriterOptions {
         zip64?: boolean;
         level?: number;
         bufferedWrite?: boolean;
