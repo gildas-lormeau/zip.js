@@ -355,11 +355,13 @@
 					<dt><code>password (string)</code></dt>
 					<dd>password used to decrypt all the files (<code>undefined</code> by default)</dd>
 					<dt><code>filenameEncoding (string)</code></dt>
-					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>windows-1252</code> by
+					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>cp437</code> by
 						default)</dd>
 					<dt><code>commentEncoding (string)</code></dt>
-					<dd>encoding of comments stored in another encoding than UTF-8 (<code>windows-1252</code> by
+					<dd>encoding of comments stored in another encoding than UTF-8 (<code>cp437</code> by
 						default)</dd>
+					<dt><code>useWebWorkers (boolean)</code></dt>
+					<dd>boolean value specifying if web workers should be used (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -442,6 +444,8 @@
 					<dt><code>password (string)</code></dt>
 					<dd>password used to decrypt the file encrypted with AES-256 (<code>undefined</code> by default)
 					</dd>
+					<dt><code>useWebWorkers (boolean)</code></dt>
+					<dd>boolean value specifying if web workers should be used (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -506,6 +510,8 @@ await reader.close();</code></pre>
 					<dd>zip version of all files (<code>undefined</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
 					<dd>password used to encrypt all the files (<code>undefined</code> by default)</dd>
+					<dt><code>useWebWorkers (boolean)</code></dt>
+					<dd>boolean value specifying if web workers should be used (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -550,6 +556,8 @@ await reader.close();</code></pre>
 					<dt><code>extraField (Map)</code></dt>
 					<dd>Map of extra field data where the key <code>(number)</code> is the type of the extra field and
 						the value is a <code>UInt8Array</code> (<code>undefined</code> by default)</dd>
+					<dt><code>useWebWorkers (boolean)</code></dt>
+					<dd>boolean value specifying if web workers should be used (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
