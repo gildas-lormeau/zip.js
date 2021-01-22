@@ -1505,6 +1505,9 @@
 			if (lastModDate.getFullYear() < 1980) {
 				throw new Error(ERR_INVALID_DATE);
 			}
+			if (reader && !reader.initialized) {
+				await reader.init();
+			}
 			let rawExtraField = new Uint8Array(0);
 			const extraField = options.extraField;
 			if (extraField) {
@@ -1710,9 +1713,6 @@
 		fileDataArray.set(rawFilename, 30);
 		let result;
 		if (reader) {
-			if (!reader.initialized) {
-				await reader.init();
-			}
 			const codec = await createWorkerCodec(config, {
 				codecType: CODEC_DEFLATE,
 				level,

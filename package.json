@@ -3,7 +3,7 @@
     "description": "A JavaScript library to zip and unzip files in the browser",
     "author": "Gildas Lormeau",
     "license": "BSD-3-Clause",
-    "version": "2.0.10",
+    "version": "2.0.11",
     "keywords": [
         "zip",
         "unzip",
