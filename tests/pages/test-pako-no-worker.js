@@ -7,14 +7,15 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 const FILENAME = "lorem.txt";
 const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 
-// eslint-disable-next-line no-unused-vars
-const { ZipDeflate, ZipInflate } = zip.initShimAsyncCodec(pako, { deflate: { raw: true }, inflate: { raw: true } });
+const { Deflate, Inflate } = zip.initShimAsyncCodec(pako, { deflate: { raw: true }, inflate: { raw: true } });
 test().catch(error => console.error(error));
 
 async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({
-		useWebWorkers: false
+		useWebWorkers: false,
+		Deflate,
+		Inflate
 	});
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
