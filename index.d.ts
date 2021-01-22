@@ -208,6 +208,7 @@ declare module "zip.js" {
     export const ERR_INVALID_ENTRY_NAME: string;
     export const ERR_INVALID_ENTRY_COMMENT: string;
     export const ERR_INVALID_VERSION: string;
+    export const ERR_INVALID_DATE: string;
     export const ERR_INVALID_EXTRAFIELD_TYPE: string;
     export const ERR_INVALID_EXTRAFIELD_DATA: string;
 
