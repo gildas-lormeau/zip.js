@@ -1461,10 +1461,12 @@
 	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
 	const ERR_INVALID_ENTRY_NAME = "File entry name exceeds 64KB";
 	const ERR_INVALID_VERSION = "Version exceeds 65535";
+	const ERR_INVALID_DATE = "The minimum year for the date is 1980";
 	const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
 	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
+	const EXTRAFIELD_LENGTH_ZIP64 = 24;
 
 	class ZipWriter {
 
@@ -1497,6 +1499,10 @@
 			options.version = this.options.version || options.version || 0;
 			if (options.version > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_VERSION);
+			}
+			options.lastModDate = options.lastModDate || new Date();
+			if (options.lastModDate.getFullYear() < 1980) {
+				throw new Error(ERR_INVALID_DATE);
 			}
 			const extraField = options.extraField;
 			if (extraField) {
@@ -1639,7 +1645,7 @@
 
 	async function createFileEntry(filename, reader, writer, config, zipWriterOptions, options) {
 		const rawFilename = options.rawFilename;
-		const date = options.lastModDate || new Date();
+		const date = options.lastModDate;
 		const headerArray = new Uint8Array(26);
 		const headerView = new DataView(headerArray.buffer);
 		const password = options.password === undefined ? zipWriterOptions.password : options.password;
@@ -1666,14 +1672,14 @@
 			rawFilename,
 			comment: options.comment,
 			rawComment: options.rawComment,
-			extraFieldZip64: zip64 ? new Uint8Array(28) : new Uint8Array(0),
+			extraFieldZip64: zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array(0),
 			extraFieldAES,
 			rawExtraField: options.rawExtraField || new Uint8Array(0)
 		};
-		options.bitFlag = BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
-		options.compressionMethod = COMPRESSION_METHOD_STORE;
+		let bitFlag = BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
+		let compressionMethod = COMPRESSION_METHOD_STORE;
 		if (compressed) {
-			options.compressionMethod = COMPRESSION_METHOD_DEFLATE;
+			compressionMethod = COMPRESSION_METHOD_DEFLATE;
 		}
 		if (zip64) {
 			fileEntry.version = fileEntry.version > VERSION_ZIP64 ? fileEntry.version : VERSION_ZIP64;
@@ -1681,15 +1687,15 @@
 		if (outputPassword) {
 			fileEntry.encrypted = true;
 			fileEntry.version = fileEntry.version > VERSION_AES ? fileEntry.version : VERSION_AES;
-			options.bitFlag = options.bitFlag | BITFLAG_ENCRYPTED;
-			options.compressionMethod = COMPRESSION_METHOD_AES;
+			bitFlag = bitFlag | BITFLAG_ENCRYPTED;
+			compressionMethod = COMPRESSION_METHOD_AES;
 			if (compressed) {
 				fileEntry.extraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
 			}
 		}
 		headerView.setUint16(0, fileEntry.version, true);
-		headerView.setUint16(2, options.bitFlag, true);
-		headerView.setUint16(4, options.compressionMethod, true);
+		headerView.setUint16(2, bitFlag, true);
+		headerView.setUint16(4, compressionMethod, true);
 		headerView.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 		headerView.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
 		headerView.setUint16(22, rawFilename.length, true);
@@ -1734,7 +1740,7 @@
 				footerView.setBigUint64(16, BigInt(reader.size), true);
 				const extraFieldZip64View = new DataView(fileEntry.extraFieldZip64.buffer);
 				extraFieldZip64View.setUint16(0, EXTRAFIELD_TYPE_ZIP64, true);
-				extraFieldZip64View.setUint16(2, 24, true);
+				extraFieldZip64View.setUint16(2, EXTRAFIELD_LENGTH_ZIP64, true);
 				extraFieldZip64View.setBigUint64(4, BigInt(reader.size), true);
 				extraFieldZip64View.setBigUint64(12, BigInt(fileEntry.compressedSize), true);
 			} else {
@@ -2315,6 +2321,7 @@
 	exports.ERR_EXTRAFIELD_ZIP64_NOT_FOUND = ERR_EXTRAFIELD_ZIP64_NOT_FOUND;
 	exports.ERR_HTTP_RANGE = ERR_HTTP_RANGE;
 	exports.ERR_INVALID_COMMENT = ERR_INVALID_COMMENT;
+	exports.ERR_INVALID_DATE = ERR_INVALID_DATE;
 	exports.ERR_INVALID_ENTRY_COMMENT = ERR_INVALID_ENTRY_COMMENT;
 	exports.ERR_INVALID_ENTRY_NAME = ERR_INVALID_ENTRY_NAME;
 	exports.ERR_INVALID_EXTRAFIELD_DATA = ERR_INVALID_EXTRAFIELD_DATA;
