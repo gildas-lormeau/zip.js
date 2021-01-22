@@ -72,17 +72,20 @@ declare module "zip.js" {
     }
 
     export class ZipReader {
-        constructor(reader: Reader, options?: ZipReaderOptions);
-        getEntries(): Promise<Entry[]>;
+        constructor(reader: Reader, options?: ZipReaderOptions | GetEntriesOptions);
+        getEntries(options?: GetEntriesOptions): Promise<Entry[]>;
         close(): Promise<any>;
     }
 
     export interface ZipReaderOptions {
         checkSignature?: boolean;
         password?: string;
+        useWebWorkers?: boolean;
+    }
+
+    export interface GetEntriesOptions {
         filenameEncoding?: string;
         commentEncoding?: string;
-        useWebWorkers?: boolean;
     }
 
     export interface Entry {
@@ -165,15 +168,15 @@ declare module "zip.js" {
         addText(name: string, text: string): ZipFileEntry;
         addBlob(name: string, blob: Blob): ZipFileEntry;
         addData64URI(name: string, dataURI: string): ZipFileEntry;
-        addHttpContent(name: string, url: string, options?: AddHttpContentOptions): ZipFileEntry;
-        importBlob(blob: Blob, options?: ZipReaderOptions): Promise<void>;
-        importData64URI(dataURI: string, options?: ZipReaderOptions): Promise<void>;
-        importHttpContent(url: string, options?: ZipReaderOptions | AddHttpContentOptions): Promise<void>;
+        addHttpContent(name: string, url: string, options?: GetHttpContentOptions): ZipFileEntry;
+        importBlob(blob: Blob, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
+        importData64URI(dataURI: string, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
+        importHttpContent(url: string, options?: ZipReaderOptions | GetEntriesOptions | GetHttpContentOptions): Promise<void>;
         exportBlob(options?: ZipWriterOptions): Promise<Blob>;
         exportData64URI(options?: ZipWriterOptions): Promise<string>;
     }
 
-    export interface AddHttpContentOptions {
+    export interface GetHttpContentOptions {
         useRangeHeader?: boolean;
     }
 
@@ -182,9 +185,9 @@ declare module "zip.js" {
         remove(entry: ZipEntry): void;
         find(fullname: string): ZipEntry;
         getById(id: number): ZipEntry;
-        importBlob(blob: Blob, options?: ZipReaderOptions): Promise<void>;
-        importData64URI(dataURI: string, options?: ZipReaderOptions): Promise<void>;
-        importHttpContent(url: string, options?: ZipReaderOptions): Promise<void>;
+        importBlob(blob: Blob, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
+        importData64URI(dataURI: string, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
+        importHttpContent(url: string, options?: ZipReaderOptions | GetEntriesOptions | GetHttpContentOptions): Promise<void>;
         exportBlob(options?: ZipWriterOptions): Promise<Blob>;
         exportData64URI(options?: ZipWriterOptions): Promise<string>;
     }
