@@ -389,10 +389,12 @@
 	const ZIP64_END_OF_CENTRAL_DIR_LENGTH = 56;
 	const ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH = END_OF_CENTRAL_DIR_LENGTH + ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH + ZIP64_END_OF_CENTRAL_DIR_LENGTH;
 
-	const EXTRA_FIELD_TYPE_ZIP64 = 0x0001;
-	const EXTRA_FIELD_TYPE_AES = 0x9901;
-	const EXTRA_FIELD_TYPE_UNICODE_PATH = 0x7075;
-	const EXTRA_FIELD_TYPE_UNICODE_COMMENT = 0x6375;
+	const ZIP64_TOTAL_NUMBER_OF_DISKS = 1;
+
+	const EXTRAFIELD_TYPE_ZIP64 = 0x0001;
+	const EXTRAFIELD_TYPE_AES = 0x9901;
+	const EXTRAFIELD_TYPE_UNICODE_PATH = 0x7075;
+	const EXTRAFIELD_TYPE_UNICODE_COMMENT = 0x6375;
 
 	const BITFLAG_ENCRYPTED = 0x01;
 	const BITFLAG_LEVEL = 0x06;
@@ -919,24 +921,23 @@
 
 	function createWorkerInterface(workerData) {
 		const interfaceCodec = createCodec(workerData.options);
-		const append = interfaceCodec.append.bind(interfaceCodec);
-		const flush = interfaceCodec.flush.bind(interfaceCodec);
-		interfaceCodec.append = async data => {
-			try {
-				return await append(data);
-			} catch (error) {
-				onTaskFinished(workerData);
-				throw error;
+		return {
+			async append(data) {
+				try {
+					return await interfaceCodec.append(data);
+				} catch (error) {
+					onTaskFinished(workerData);
+					throw error;
+				}
+			},
+			async flush() {
+				try {
+					return await interfaceCodec.flush();
+				} finally {
+					onTaskFinished(workerData);
+				}
 			}
 		};
-		interfaceCodec.flush = async () => {
-			try {
-				return await flush();
-			} finally {
-				onTaskFinished(workerData);
-			}
-		};
-		return interfaceCodec;
 	}
 
 	function createWebWorkerInterface(workerData) {
@@ -1303,19 +1304,19 @@
 		directory.signature = dataView.getUint32(offset + 10, true);
 		directory.uncompressedSize = dataView.getUint32(offset + 18, true);
 		directory.compressedSize = dataView.getUint32(offset + 14, true);
-		const extraFieldZip64 = directory.extraFieldZip64 = extraField.get(EXTRA_FIELD_TYPE_ZIP64);
+		const extraFieldZip64 = directory.extraFieldZip64 = extraField.get(EXTRAFIELD_TYPE_ZIP64);
 		if (extraFieldZip64) {
 			readExtraFieldZip64(extraFieldZip64, directory);
 		}
-		const extraFieldUnicodePath = directory.extraFieldUnicodePath = extraField.get(EXTRA_FIELD_TYPE_UNICODE_PATH);
+		const extraFieldUnicodePath = directory.extraFieldUnicodePath = extraField.get(EXTRAFIELD_TYPE_UNICODE_PATH);
 		if (extraFieldUnicodePath) {
 			readExtraFieldUnicode(extraFieldUnicodePath, "filename", "rawFilename", directory, fileEntry);
 		}
-		let extraFieldUnicodeComment = directory.extraFieldUnicodeComment = extraField.get(EXTRA_FIELD_TYPE_UNICODE_COMMENT);
+		let extraFieldUnicodeComment = directory.extraFieldUnicodeComment = extraField.get(EXTRAFIELD_TYPE_UNICODE_COMMENT);
 		if (extraFieldUnicodeComment) {
 			readExtraFieldUnicode(extraFieldUnicodeComment, "comment", "rawComment", directory, fileEntry);
 		}
-		const extraFieldAES = directory.extraFieldAES = extraField.get(EXTRA_FIELD_TYPE_AES);
+		const extraFieldAES = directory.extraFieldAES = extraField.get(EXTRAFIELD_TYPE_AES);
 		if (extraFieldAES) {
 			readExtraFieldAES(extraFieldAES, directory, compressionMethod);
 		} else {
@@ -1349,18 +1350,16 @@
 	}
 
 	function readExtraFieldUnicode(extraFieldUnicode, propertyName, rawPropertyName, directory, fileEntry) {
-		if (!fileEntry.bitFlag.languageEncodingFlag) {
-			const extraFieldView = new DataView(extraFieldUnicode.data.buffer);
-			extraFieldUnicode.version = extraFieldView.getUint8(0);
-			extraFieldUnicode.signature = extraFieldView.getUint32(1, true);
-			const crc32 = new Crc32();
-			crc32.append(fileEntry[rawPropertyName]);
-			const dataViewSignature = new DataView(new Uint8Array(4).buffer);
-			dataViewSignature.setUint32(0, crc32.get());
-			extraFieldUnicode[propertyName] = (new TextDecoder()).decode(extraFieldUnicode.data.subarray(5));
-			if (extraFieldUnicode.signature == dataViewSignature.getUint32(0, false)) {
-				directory[propertyName] = extraFieldUnicode[propertyName];
-			}
+		const extraFieldView = new DataView(extraFieldUnicode.data.buffer);
+		extraFieldUnicode.version = extraFieldView.getUint8(0);
+		extraFieldUnicode.signature = extraFieldView.getUint32(1, true);
+		const crc32 = new Crc32();
+		crc32.append(fileEntry[rawPropertyName]);
+		const dataViewSignature = new DataView(new Uint8Array(4).buffer);
+		dataViewSignature.setUint32(0, crc32.get());
+		extraFieldUnicode[propertyName] = (new TextDecoder()).decode(extraFieldUnicode.data.subarray(5));
+		if (!fileEntry.bitFlag.languageEncodingFlag && extraFieldUnicode.signature == dataViewSignature.getUint32(0, false)) {
+			directory[propertyName] = extraFieldUnicode[propertyName];
 		}
 	}
 
@@ -1409,7 +1408,7 @@
 	}
 
 	function decodeString(value, encoding) {
-		if (!encoding || encoding.toLowerCase() == "cp437") {
+		if (!encoding || encoding.trim().toLowerCase() == "cp437") {
 			let result = "";
 			for (let indexCharacter = 0; indexCharacter < value.length; indexCharacter++) {
 				result += CP437[value[indexCharacter]];
@@ -1465,7 +1464,7 @@
 	const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
 	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
 
-	const EXTRAFIELD_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
+	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
 
 	class ZipWriter {
 
@@ -1486,19 +1485,46 @@
 			if (this.files.has(name)) {
 				throw new Error(ERR_DUPLICATED_NAME);
 			}
-			options.comment = getBytes(encodeUTF8(options.comment || ""));
-			if (options.comment.length > MAX_16_BITS) {
+			options.rawFilename = (new TextEncoder()).encode(name);
+			if (options.rawFilename.length > MAX_16_BITS) {
+				throw new Error(ERR_INVALID_ENTRY_NAME);
+			}
+			options.comment = options.comment || "";
+			options.rawComment = (new TextEncoder()).encode(options.comment);
+			if (options.rawComment.length > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_ENTRY_COMMENT);
+			}
+			options.version = this.options.version || options.version || 0;
+			if (options.version > MAX_16_BITS) {
+				throw new Error(ERR_INVALID_VERSION);
+			}
+			const extraField = options.extraField;
+			if (extraField) {
+				let extraFieldSize = 4, offset = 0;
+				extraField.forEach(data => extraFieldSize += data.length);
+				const rawExtraField = options.rawExtraField = new Uint8Array(extraFieldSize);
+				extraField.forEach((data, type) => {
+					if (type > MAX_16_BITS) {
+						throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
+					}
+					if (data.length > MAX_16_BITS) {
+						throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
+					}
+					rawExtraField.set(new Uint16Array([type]), offset);
+					rawExtraField.set(new Uint16Array([data.length]), offset + 2);
+					rawExtraField.set(data, offset + 4);
+					offset += 4 + data.length;
+				});
 			}
 			options.zip64 = options.zip64 || this.zip64;
 			await addFile(this, name, reader, options);
 		}
 
-		async close(comment) {
+		async close(comment = new Uint8Array(0)) {
 			const writer = this.writer;
 			const files = this.files;
 			let offset = 0, directoryDataLength = 0, directoryOffset = this.offset, filesLength = files.size;
-			if (comment && comment.length) {
+			if (comment.length) {
 				if (comment.length <= MAX_16_BITS) {
 					directoryView.setUint16(offset + 20, comment.length, true);
 				} else {
@@ -1506,30 +1532,23 @@
 				}
 			}
 			for (const [, fileEntry] of files) {
-				directoryDataLength += 46 + fileEntry.filename.length + fileEntry.comment.length + fileEntry.extraFieldZip64.length + fileEntry.extraFieldAES.length + fileEntry.rawExtraField.length;
+				directoryDataLength += 46 + fileEntry.rawFilename.length + fileEntry.rawComment.length + fileEntry.extraFieldZip64.length + fileEntry.extraFieldAES.length + fileEntry.rawExtraField.length;
 			}
 			if (directoryOffset + directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS) {
 				this.zip64 = true;
 			}
 			const directoryArray = new Uint8Array(directoryDataLength + (this.zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH));
 			const directoryView = new DataView(directoryArray.buffer);
-			this.options.version = this.options.version || VERSION_DEFLATE;
 			for (const [, fileEntry] of files) {
-				const filename = fileEntry.filename;
+				const rawFilename = fileEntry.rawFilename;
 				const extraFieldZip64 = fileEntry.extraFieldZip64;
 				const extraFieldAES = fileEntry.extraFieldAES;
 				const extraFieldLength = extraFieldZip64.length + extraFieldAES.length + fileEntry.rawExtraField.length;
 				directoryView.setUint32(offset, CENTRAL_FILE_HEADER_SIGNATURE);
-				if (fileEntry.zip64) {
-					directoryView.setUint16(offset + 4, this.options.version > VERSION_ZIP64 ? this.options : VERSION_ZIP64, true);
-				} if (fileEntry.encrypted) {
-					directoryView.setUint16(offset + 4, this.options.version > VERSION_AES ? this.options : VERSION_AES, true);
-				} else {
-					directoryView.setUint16(offset + 4, this.options.version > VERSION_DEFLATE ? this.options : VERSION_DEFLATE, true);
-				}
+				directoryView.setUint16(offset + 4, fileEntry.version, true);
 				directoryArray.set(fileEntry.headerArray, offset + 6);
 				directoryView.setUint16(offset + 30, extraFieldLength, true);
-				directoryView.setUint16(offset + 32, fileEntry.comment.length, true);
+				directoryView.setUint16(offset + 32, fileEntry.rawComment.length, true);
 				if (fileEntry.directory) {
 					directoryView.setUint8(offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 				}
@@ -1538,12 +1557,12 @@
 				} else {
 					directoryView.setUint32(offset + 42, fileEntry.offset, true);
 				}
-				directoryArray.set(filename, offset + 46);
-				directoryArray.set(extraFieldZip64, offset + 46 + filename.length);
-				directoryArray.set(extraFieldAES, offset + 46 + filename.length + extraFieldZip64.length);
-				directoryArray.set(fileEntry.rawExtraField, 46 + filename.length + extraFieldZip64.length + extraFieldAES.length);
-				directoryArray.set(fileEntry.comment, offset + 46 + filename.length + extraFieldLength);
-				offset += 46 + filename.length + extraFieldLength + fileEntry.comment.length;
+				directoryArray.set(rawFilename, offset + 46);
+				directoryArray.set(extraFieldZip64, offset + 46 + rawFilename.length);
+				directoryArray.set(extraFieldAES, offset + 46 + rawFilename.length + extraFieldZip64.length);
+				directoryArray.set(fileEntry.rawExtraField, 46 + rawFilename.length + extraFieldZip64.length + extraFieldAES.length);
+				directoryArray.set(fileEntry.rawComment, offset + 46 + rawFilename.length + extraFieldLength);
+				offset += 46 + rawFilename.length + extraFieldLength + fileEntry.rawComment.length;
 			}
 			if (this.zip64) {
 				directoryView.setUint32(offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
@@ -1556,7 +1575,7 @@
 				directoryView.setBigUint64(offset + 48, BigInt(directoryOffset), true);
 				directoryView.setUint32(offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
 				directoryView.setBigUint64(offset + 64, BigInt(directoryOffset + directoryDataLength), true);
-				directoryView.setUint32(offset + 72, 1, true);
+				directoryView.setUint32(offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS, true);
 				filesLength = MAX_16_BITS;
 				directoryOffset = MAX_32_BITS;
 				offset += 76;
@@ -1567,9 +1586,7 @@
 			directoryView.setUint32(offset + 12, directoryDataLength, true);
 			directoryView.setUint32(offset + 16, directoryOffset, true);
 			await writer.writeUint8Array(directoryArray);
-			if (comment && comment.length) {
-				await writer.writeUint8Array(comment);
-			}
+			await writer.writeUint8Array(comment);
 			return writer.getData();
 		}
 	}
@@ -1620,8 +1637,8 @@
 		}
 	}
 
-	async function createFileEntry(name, reader, writer, config, zipWriterOptions, options) {
-		const filename = getBytes(encodeUTF8(name));
+	async function createFileEntry(filename, reader, writer, config, zipWriterOptions, options) {
+		const rawFilename = options.rawFilename;
 		const date = options.lastModDate || new Date();
 		const headerArray = new Uint8Array(26);
 		const headerView = new DataView(headerArray.buffer);
@@ -1633,77 +1650,55 @@
 		const zip64 = options.zip64;
 		let extraFieldAES;
 		if (outputPassword) {
-			extraFieldAES = new Uint8Array(EXTRAFIELD_AES.length + 2);
+			extraFieldAES = new Uint8Array(EXTRAFIELD_DATA_AES.length + 2);
 			const extraFieldAESView = new DataView(extraFieldAES.buffer);
-			extraFieldAESView.setUint16(0, EXTRA_FIELD_TYPE_AES, true);
-			extraFieldAES.set(EXTRAFIELD_AES, 2);
+			extraFieldAESView.setUint16(0, EXTRAFIELD_TYPE_AES, true);
+			extraFieldAES.set(EXTRAFIELD_DATA_AES, 2);
 		} else {
 			extraFieldAES = new Uint8Array(0);
 		}
 		const fileEntry = {
+			version: options.version || VERSION_DEFLATE,
 			zip64,
 			headerArray: headerArray,
 			directory: options.directory,
-			filename: filename,
+			filename,
+			rawFilename,
 			comment: options.comment,
+			rawComment: options.rawComment,
 			extraFieldZip64: zip64 ? new Uint8Array(28) : new Uint8Array(0),
 			extraFieldAES,
-			rawExtraField: new Uint8Array(0)
+			rawExtraField: options.rawExtraField || new Uint8Array(0)
 		};
-		const extraField = options.extraField;
-		if (filename.length > MAX_16_BITS) {
-			throw new Error(ERR_INVALID_ENTRY_NAME);
-		}
-		if (extraField) {
-			let extraFieldSize = 4, offset = 0;
-			extraField.forEach(data => extraFieldSize += data.length);
-			const rawExtraField = fileEntry.rawExtraField = new Uint8Array(extraFieldSize);
-			extraField.forEach((data, type) => {
-				if (type > MAX_16_BITS) {
-					throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
-				}
-				if (data.length > MAX_16_BITS) {
-					throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
-				}
-				rawExtraField.set(new Uint16Array([type]), offset);
-				rawExtraField.set(new Uint16Array([data.length]), offset + 2);
-				rawExtraField.set(data, offset + 4);
-				offset += 4 + data.length;
-			});
-		}
 		options.bitFlag = BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
-		options.version = (options.version === undefined ? zipWriterOptions.version : options.version) || VERSION_DEFLATE;
-		if (options.version > MAX_16_BITS) {
-			throw new Error(ERR_INVALID_VERSION);
-		}
 		options.compressionMethod = COMPRESSION_METHOD_STORE;
 		if (compressed) {
 			options.compressionMethod = COMPRESSION_METHOD_DEFLATE;
 		}
 		if (zip64) {
-			options.version = options.version > VERSION_ZIP64 ? options.version : VERSION_ZIP64;
+			fileEntry.version = fileEntry.version > VERSION_ZIP64 ? fileEntry.version : VERSION_ZIP64;
 		}
 		if (outputPassword) {
 			fileEntry.encrypted = true;
-			options.version = options.version > VERSION_AES ? options.version : VERSION_AES;
+			fileEntry.version = fileEntry.version > VERSION_AES ? fileEntry.version : VERSION_AES;
 			options.bitFlag = options.bitFlag | BITFLAG_ENCRYPTED;
 			options.compressionMethod = COMPRESSION_METHOD_AES;
 			if (compressed) {
 				fileEntry.extraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
 			}
 		}
-		headerView.setUint16(0, options.version, true);
+		headerView.setUint16(0, fileEntry.version, true);
 		headerView.setUint16(2, options.bitFlag, true);
 		headerView.setUint16(4, options.compressionMethod, true);
 		headerView.setUint16(6, (((date.getHours() << 6) | date.getMinutes()) << 5) | date.getSeconds() / 2, true);
 		headerView.setUint16(8, ((((date.getFullYear() - 1980) << 4) | (date.getMonth() + 1)) << 5) | date.getDate(), true);
-		headerView.setUint16(22, filename.length, true);
+		headerView.setUint16(22, rawFilename.length, true);
 		headerView.setUint16(24, 0, true);
-		const fileDataArray = new Uint8Array(30 + filename.length);
+		const fileDataArray = new Uint8Array(30 + rawFilename.length);
 		const fileDataView = new DataView(fileDataArray.buffer);
 		fileDataView.setUint32(0, LOCAL_FILE_HEADER_SIGNATURE);
 		fileDataArray.set(headerArray, 4);
-		fileDataArray.set(filename, 30);
+		fileDataArray.set(rawFilename, 30);
 		let result;
 		if (reader) {
 			if (!reader.initialized) {
@@ -1738,7 +1733,7 @@
 				headerView.setUint32(18, MAX_32_BITS, true);
 				footerView.setBigUint64(16, BigInt(reader.size), true);
 				const extraFieldZip64View = new DataView(fileEntry.extraFieldZip64.buffer);
-				extraFieldZip64View.setUint16(0, EXTRA_FIELD_TYPE_ZIP64, true);
+				extraFieldZip64View.setUint16(0, EXTRAFIELD_TYPE_ZIP64, true);
 				extraFieldZip64View.setUint16(2, 24, true);
 				extraFieldZip64View.setBigUint64(4, BigInt(reader.size), true);
 				extraFieldZip64View.setBigUint64(12, BigInt(fileEntry.compressedSize), true);
@@ -1752,18 +1747,6 @@
 		await writer.writeUint8Array(footerArray);
 		fileEntry.length = fileDataArray.length + (result ? result.length : 0) + footerArray.length;
 		return fileEntry;
-	}
-
-	function encodeUTF8(string) {
-		return unescape(encodeURIComponent(string));
-	}
-
-	function getBytes(string) {
-		const bytes = [];
-		for (let indexString = 0; indexString < string.length; indexString++) {
-			bytes.push(string.charCodeAt(indexString));
-		}
-		return bytes;
 	}
 
 	const FUNCTION_TYPE = "function";
