@@ -44,8 +44,6 @@
 				directory in your project and the following files depending on your needs:
 				<ul>
 					<li><code>z-worker.js</code> to zip/unzip files with web workers (recommended)</li>
-					<li><code>deflate.js</code> to zip files</li>
-					<li><code>inflate.js</code> to unzip files</li>
 				</ul>
 				You can also get the code via <a href="https://www.npmjs.com/package/@zip.js/zip.js">NPM</a> by running
 				<pre><code class="prettyprint">npm install @zip.js/zip.js</code></pre>
@@ -69,7 +67,7 @@
 					<li>with web workers:
 						<br>
 						Configure zip.js with <code>workerScriptsPath</code> set to the URL of the directory containing
-						<code>z-worker.js</code>, <code>deflate.js</code>, and/or <code>inflate.js</code>.
+						<code>z-worker.js</code>
 						<pre><code class="prettyprint">zip.configure({
   workerScriptsPath: "/&lt;library path&gt;/"
 });</code></pre>
@@ -77,10 +75,6 @@
 					</li>
 					<li>without web workers:
 						<br>
-						Include <code>deflate.js</code> and/or <code>inflate.js</code> in the page
-						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/deflate.js&quot;&gt;&lt;/script&gt;
-&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/inflate.js&quot;&gt;&lt;/script&gt;
-</code></pre>
 						Configure zip.js with <code>useWebWorkers</code> set to <code>false</code>
 						<pre><code class="prettyprint">zip.configure({
   useWebWorkers: false

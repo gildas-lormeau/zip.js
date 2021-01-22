@@ -44,8 +44,6 @@
 				directory in your project and the following files depending on your needs:
 				<ul>
 					<li><code>z-worker.js</code> to zip/unzip files with web workers (recommended)</li>
-					<li><code>deflate.js</code> to zip files</li>
-					<li><code>inflate.js</code> to unzip files</li>
 				</ul>
 				You can also get the code via <a href="https://www.npmjs.com/package/@zip.js/zip.js">NPM</a> by running
 				<pre><code class="prettyprint">npm install @zip.js/zip.js</code></pre>
@@ -69,7 +67,7 @@
 					<li>with web workers:
 						<br>
 						Configure zip.js with <code>workerScriptsPath</code> set to the URL of the directory containing
-						<code>z-worker.js</code>, <code>deflate.js</code>, and/or <code>inflate.js</code>
+						<code>z-worker.js</code>
 						<pre><code class="prettyprint">zip.configure({
   workerScriptsPath: "/&lt;library path&gt;/"
 });</code></pre>
@@ -77,10 +75,6 @@
 					</li>
 					<li>without web workers:
 						<br>
-						Include <code>deflate.js</code> and/or <code>inflate.js</code> in the page
-						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/deflate.js&quot;&gt;&lt;/script&gt;
-&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/inflate.js&quot;&gt;&lt;/script&gt;
-</code></pre>
 						Configure zip.js with <code>useWebWorkers</code> set to <code>false</code>
 						<pre><code class="prettyprint">zip.configure({
   useWebWorkers: false
@@ -96,9 +90,7 @@
 		<dl>
 			<dt><code>useWebWorkers (booolean)</code></dt>
 			<dd>Enables the use of <a href="https://www.w3.org/TR/workers/">Web workers</a> to compress and uncompress
-				data in non-blocking background processes. The default value is <code>true</code>. You must include
-				<code>deflate.js</code> and/or <code>inflate.js</code> in the web page if you set it to
-				<code>false</code>.
+				data in non-blocking background processes. The default value is <code>true</code>.
 			</dd>
 		</dl>
 		<dl>
@@ -111,10 +103,9 @@
 		</dl>
 		<dl>
 			<dt><code>workerScriptsPath (string)</code></dt>
-			<dd>URL to the directory containing the default worker scripts (<code>z-worker.js</code>,
-				<code>deflate.js</code>, and <code>inflate.js</code>). If a relative URL is specified, it is resolved
-				against the page's base URL (usually the URL of the web page importing zip.js). By default, the worker
-				scripts are loaded from the directory of the page's base URL.
+			<dd>URL to the directory containing the default worker scripts (<code>z-worker.js</code>). If a relative URL
+				is specified, it is resolved against the page's base URL (usually the URL of the web page importing
+				zip.js). By default, the worker scripts are loaded from the directory of the page's base URL.
 			</dd>
 		</dl>
 		<dl>
@@ -125,12 +116,12 @@
 				specify arrays of URLs to import the deflate/inflate scripts, respectively. All the URLs are resolved
 				relative to the page's base URL. Scripts in the array are executed in order, and the first one should be
 				<code>z-worker.js</code>, which is used to start the worker. If only deflation or inflation is used in
-				your application, the unused <code>workerScripts.deflate/inflate</code> property can be omitted, or
-				the unused <code>deflate.js</code>/<code>inflate.js</code> file can be removed from the array. Example:
+				your application, the unused <code>workerScripts.deflate/inflate</code> property can be omitted.
+				Example:
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
-    deflate: ["&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/deflate.js"],
-    inflate: ["&lt;library path&gt;/z-worker.js", "&lt;library path&gt;/inflate.js"]
+    deflate: ["&lt;library path&gt;/z-worker.js"],
+    inflate: ["&lt;library path&gt;/z-worker.js"]
   }
 });</code></pre>
 			</dd>
