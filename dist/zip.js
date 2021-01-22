@@ -1142,7 +1142,7 @@
 			this.config = config;
 		}
 
-		async getEntries() {
+		async getEntries(options = {}) {
 			const reader = this.reader;
 			if (!reader.initialized) {
 				await reader.init();
@@ -1190,7 +1190,8 @@
 				fileEntry.directory = ((directoryView.getUint8(offset + 38) & FILE_ATTR_MSDOS_DIR_MASK) == FILE_ATTR_MSDOS_DIR_MASK);
 				fileEntry.offset = directoryView.getUint32(offset + 42, true);
 				fileEntry.rawFilename = directoryArray.subarray(offset + 46, offset + 46 + fileEntry.filenameLength);
-				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.filenameEncoding);
+				const filenameEncoding = options.filenameEncoding === undefined ? this.options.filenameEncoding : options.filenameEncoding;
+				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : filenameEncoding);
 				if (!fileEntry.directory && fileEntry.filename && fileEntry.filename.charAt(fileEntry.filename.length - 1) == DIRECTORY_SIGNATURE) {
 					fileEntry.directory = true;
 				}
@@ -1198,7 +1199,8 @@
 				readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
 				fileEntry.rawComment = directoryArray.subarray(offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength, offset + 46
 					+ fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength);
-				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : this.options.commentEncoding);
+				const commentEncoding = options.commentEncoding === undefined ? this.options.commentEncoding : options.commentEncoding;
+				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : commentEncoding);
 				entries.push(fileEntry);
 				offset += 46 + fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength;
 			}
@@ -1487,28 +1489,28 @@
 			if (this.files.has(name)) {
 				throw new Error(ERR_DUPLICATED_NAME);
 			}
-			options.rawFilename = (new TextEncoder()).encode(name);
-			if (options.rawFilename.length > MAX_16_BITS) {
+			const rawFilename = (new TextEncoder()).encode(name);
+			if (rawFilename.length > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_ENTRY_NAME);
 			}
-			options.comment = options.comment || "";
-			options.rawComment = (new TextEncoder()).encode(options.comment);
-			if (options.rawComment.length > MAX_16_BITS) {
+			const rawComment = (new TextEncoder()).encode(options.comment || "");
+			if (rawComment.length > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_ENTRY_COMMENT);
 			}
-			options.version = this.options.version || options.version || 0;
-			if (options.version > MAX_16_BITS) {
+			const version = this.options.version || options.version || 0;
+			if (version > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_VERSION);
 			}
-			options.lastModDate = options.lastModDate || new Date();
-			if (options.lastModDate.getFullYear() < 1980) {
+			const lastModDate = options.lastModDate || new Date();
+			if (lastModDate.getFullYear() < 1980) {
 				throw new Error(ERR_INVALID_DATE);
 			}
+			let rawExtraField = new Uint8Array(0);
 			const extraField = options.extraField;
 			if (extraField) {
 				let extraFieldSize = 4, offset = 0;
 				extraField.forEach(data => extraFieldSize += data.length);
-				const rawExtraField = options.rawExtraField = new Uint8Array(extraFieldSize);
+				rawExtraField = new Uint8Array(extraFieldSize);
 				extraField.forEach((data, type) => {
 					if (type > MAX_16_BITS) {
 						throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
@@ -1522,8 +1524,11 @@
 					offset += 4 + data.length;
 				});
 			}
-			options.zip64 = options.zip64 || this.zip64;
-			await addFile(this, name, reader, options);
+			let zip64 = options.zip64 || this.zip64;
+			if (this.offset >= MAX_32_BITS || (reader && (reader.size >= MAX_32_BITS || this.offset + reader.size >= MAX_32_BITS))) {
+				zip64 = true;
+			}
+			await addFile(this, name, reader, Object.assign({}, options, { rawFilename, rawComment, version, lastModDate, rawExtraField, zip64 }));
 		}
 
 		async close(comment = new Uint8Array(0)) {
@@ -1614,9 +1619,7 @@
 					}
 					fileWriter = writer;
 				}
-				if (zipWriter.offset >= MAX_32_BITS || (reader && (reader.size >= MAX_32_BITS || zipWriter.offset + reader.size >= MAX_32_BITS))) {
-					options.zip64 = true;
-				}
+
 				fileEntry = await createFileEntry(name, reader, fileWriter, zipWriter.config, zipWriter.options, options);
 			} catch (error) {
 				files.delete(name);
@@ -1674,7 +1677,7 @@
 			rawComment: options.rawComment,
 			extraFieldZip64: zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array(0),
 			extraFieldAES,
-			rawExtraField: options.rawExtraField || new Uint8Array(0)
+			rawExtraField: options.rawExtraField
 		};
 		let bitFlag = BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
 		let compressionMethod = COMPRESSION_METHOD_STORE;
