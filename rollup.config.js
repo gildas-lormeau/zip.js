@@ -21,6 +21,42 @@ export default [
 			}
 		]
 	}, {
+		input: "lib/zip-workers.js",
+		output: [
+			{
+				file: "dist/zip-workers.min.js",
+				format: "umd",
+				name: "zip",
+				plugins: [
+					terser()
+				]
+			}
+		]
+	}, {
+		input: "lib/zip-inflate.js",
+		output: [
+			{
+				file: "dist/zip-inflate.min.js",
+				format: "umd",
+				name: "zip",
+				plugins: [
+					terser()
+				]
+			}
+		]
+	}, {
+		input: "lib/zip-deflate.js",
+		output: [
+			{
+				file: "dist/zip-deflate.min.js",
+				format: "umd",
+				name: "zip",
+				plugins: [
+					terser()
+				]
+			}
+		]
+	}, {
 		input: "lib/zip-fs.js",
 		output: [
 			{
@@ -56,6 +92,28 @@ export default [
 		output: [
 			{
 				file: "dist/z-worker.js",
+				format: "iife",
+				plugins: [
+					terser()
+				]
+			}
+		]
+	}, {
+		input: "lib/z-worker-inflate.js",
+		output: [
+			{
+				file: "dist/z-worker-inflate.js",
+				format: "iife",
+				plugins: [
+					terser()
+				]
+			}
+		]
+	}, {
+		input: "lib/z-worker-deflate.js",
+		output: [
+			{
+				file: "dist/z-worker-deflate.js",
 				format: "iife",
 				plugins: [
 					terser()
