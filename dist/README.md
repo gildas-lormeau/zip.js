@@ -1,6 +1,6 @@
 # Build scripts of zip.js
 
-## Main script:
+## Main script
  
 - for development/debugging:
 
@@ -20,7 +20,7 @@
 | zip-fs.min.js       |         x |            x |       x |       x |                       |
 | zip-fs-full.min.js  |         x |            x |       x |       x |                     x |
 
-## Web worker script:
+## Web worker script
 
 |                     | `zip` API | `zip.fs` API | deflate | inflate | `zip.getMimeType` API |
 |---------------------|-----------|--------------|---------|---------|-----------------------|
