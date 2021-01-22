@@ -28,7 +28,9 @@
 
 "use strict";
 
-import {
+import getMimeType from "./lib/util/mime-type.js";
+
+export {
 	fs,
 	configure,
 	initShimAsyncCodec,
@@ -68,46 +70,4 @@ import {
 	ERR_INVALID_EXTRAFIELD_TYPE,
 	ERR_INVALID_EXTRAFIELD_DATA
 } from "./lib/zip-fs.js";
-import getMimeType from "./lib/util/mime-type.js";
-
-export {
-	fs,
-	configure,
-	initShimAsyncCodec,
-	getMimeType,
-	ZipReader,
-	ZipWriter,
-	Reader,
-	Writer,
-	TextReader,
-	TextWriter,
-	Data64URIReader,
-	Data64URIWriter,
-	BlobReader,
-	BlobWriter,
-	HttpReader,
-	HttpRangeReader,
-	Uint8ArrayWriter,
-	Uint8ArrayReader,
-	ERR_HTTP_RANGE,
-	ERR_BAD_FORMAT,
-	ERR_EOCDR_NOT_FOUND,
-	ERR_EOCDR_ZIP64_NOT_FOUND,
-	ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND,
-	ERR_CENTRAL_DIRECTORY_NOT_FOUND,
-	ERR_LOCAL_FILE_HEADER_NOT_FOUND,
-	ERR_EXTRAFIELD_ZIP64_NOT_FOUND,
-	ERR_ENCRYPTED,
-	ERR_UNSUPPORTED_ENCRYPTION,
-	ERR_UNSUPPORTED_COMPRESSION,
-	ERR_INVALID_SIGNATURE,
-	ERR_INVALID_PASSORD,
-	ERR_DUPLICATED_NAME,
-	ERR_INVALID_COMMENT,
-	ERR_INVALID_ENTRY_NAME,
-	ERR_INVALID_ENTRY_COMMENT,
-	ERR_INVALID_VERSION,
-	ERR_INVALID_DATE,
-	ERR_INVALID_EXTRAFIELD_TYPE,
-	ERR_INVALID_EXTRAFIELD_DATA
-};
+export { getMimeType };
