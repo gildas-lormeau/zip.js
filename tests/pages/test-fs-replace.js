@@ -21,7 +21,7 @@ async function test() {
 	let directory = zipFs.root.addDirectory("import");
 	await directory.importHttpContent(url);
 	let firstEntry = directory.children[0];
-	firstEntry.replaceText("This is not the same text");
+	firstEntry.replaceText(NEW_TEXT_CONTENT);
 	const blob = await zipFs.exportBlob();
 	zipFs = new zip.fs.FS();
 	await zipFs.importBlob(blob);
