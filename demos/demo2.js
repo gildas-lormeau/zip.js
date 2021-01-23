@@ -27,7 +27,6 @@
 
 	(() => {
 		const fileInput = document.getElementById("file-input");
-		const encodingItem = document.getElementById("encoding-item");
 		const encodingInput = document.getElementById("encoding-input");
 		const fileInputButton = document.getElementById("file-input-button");
 		const unzipProgress = document.createElement("progress");
@@ -44,7 +43,6 @@
 				alert(error);
 			} finally {
 				fileInputButton.disabled = false;
-				encodingInput.disabled = false;
 				fileInput.value = "";
 			}
 		};
@@ -56,7 +54,6 @@
 			} catch (error) {
 				alert(error);
 			} finally {
-				encodingInput.disabled = false;
 				fileInputButton.disabled = false;
 			}
 		};
@@ -66,7 +63,9 @@
 			emptyList();
 			if (entries && entries.length) {
 				fileList.classList.remove("empty");
-				encodingItem.hidden = !entries.find(entry => !entry.bitFlag.languageEncodingFlag);
+				const languageEncodingFlagSet = Boolean(entries.find(entry => !entry.bitFlag.languageEncodingFlag));
+				encodingInput.value = languageEncodingFlagSet ? "cp437" : "utf-8";
+				encodingInput.disabled = !languageEncodingFlagSet;
 				entries.forEach(entry => {
 					const li = document.createElement("li");
 					const anchor = document.createElement("a");
