@@ -57,7 +57,7 @@ label {
 	display: flex;
 }
 
-input[type=text], button {
+input[type=text], button, select {
 	flex-grow: 1;
 	box-sizing: content-box;
 	font-size: 12pt;
@@ -70,6 +70,10 @@ input[type=text], button {
 	outline-color: #c1c1c1;
 	color: #444444;
 	background-color: #ececec;
+}
+
+select {
+	text-align-last: center;
 }
 
 input[type=text]:hover, button:hover {

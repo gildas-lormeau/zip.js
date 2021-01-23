@@ -35,23 +35,19 @@
 		const fileList = document.getElementById("file-list");
 		const filenameInput = document.getElementById("filename-input");
 		const passwordInput = document.getElementById("password-input");
-		fileInputButton.addEventListener("click", onFileInputClick, false);
+		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
 		downloadButton.addEventListener("click", onDownloadButtonClick, false);
-
-		function onFileInputClick() {
-			fileInput.onchange = async () => {
-				try {
-					await downloadFiles();
-					fileInput.value = "";
-					downloadButton.disabled = false;
-				} catch (error) {
-					alert(error);
-				} finally {
-					zipProgress.remove();
-				}
-			};
-			fileInput.dispatchEvent(new MouseEvent("click"));
-		}
+		fileInput.onchange = async () => {
+			try {
+				await downloadFiles();
+				fileInput.value = "";
+				downloadButton.disabled = false;
+			} catch (error) {
+				alert(error);
+			} finally {
+				zipProgress.remove();
+			}
+		};
 
 		async function downloadFiles() {
 			downloadButton.disabled = true;
@@ -60,10 +56,10 @@
 				const zipProgress = document.createElement("progress");
 				zipProgress.value = 0;
 				zipProgress.max = 0;
-				li.textContent = file.name;				
+				li.textContent = file.name;
 				li.appendChild(zipProgress);
 				fileList.classList.remove("empty");
-				fileList.appendChild(li);				
+				fileList.appendChild(li);
 				await model.addFile(file, {
 					bufferedWrite: true,
 					password: passwordInput.value,

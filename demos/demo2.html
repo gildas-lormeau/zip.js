@@ -3,7 +3,8 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Read a zip file demo</title>
+	<title>Read a zip file (demo zip.js)</title>
+	<meta name="viewport" content="width=device-width">
 	<link rel="stylesheet" href="../default.css">
 	<link rel="stylesheet" href="demo.css">
 	<link href="https://fonts.googleapis.com/css?family=Maven+Pro|Muli|Droid+Sans+Mono|Istok+Web" rel="stylesheet"
@@ -24,19 +25,69 @@
 			<hr>
 		</div>
 
-		<h2>Read a zip file demo</h2>
+		<h2>Read a zip file (demo)</h2>
 
 		<ol id="demo-container">
 			<li>
 				<label>
 					<span class="form-label">choose a zip file</span>
-					<input type="file" accept="application/zip" id="file-input">
+					<button id="file-input-button">Open...</button>
+					<input type="file" id="file-input" accept="application/zip" hidden>
+				</label>
+			</li>
+			<li id="encoding-item" hidden>
+				<label>
+					<span class="form-label">select encoding of file names</span>
+					<select id="encoding-input">
+						<option>cp437</option>
+						<option>utf-8</option>
+						<option>ibm866</option>
+						<option>iso-8859-2</option>
+						<option>iso-8859-3</option>
+						<option>iso-8859-4</option>
+						<option>iso-8859-5</option>
+						<option>iso-8859-6</option>
+						<option>iso-8859-7</option>
+						<option>iso-8859-8</option>
+						<option>iso-8859-10</option>
+						<option>iso-8859-13</option>
+						<option>iso-8859-14</option>
+						<option>iso-8859-15</option>
+						<option>iso-8859-16</option>
+						<option>iso-8859-16</option>
+						<option>koi8-r</option>
+						<option>koi8-u</option>
+						<option>macintosh</option>
+						<option>windows-874</option>
+						<option>windows-1250</option>
+						<option>windows-1251</option>
+						<option>windows-1252</option>
+						<option>windows-1253</option>
+						<option>windows-1254</option>
+						<option>windows-1255</option>
+						<option>windows-1256</option>
+						<option>windows-1257</option>
+						<option>windows-1258</option>
+						<option>x-mac-cyrillic</option>
+						<option>gbk</option>
+						<option>gb18030</option>
+						<option>big5</option>
+						<option>euc-jp</option>
+						<option>iso-2022-jp</option>
+						<option>shift-jis</option>
+						<option>euc-kr</option>
+						<option>utf-16be</option>
+						<option>utf-16le</option>
+						<option>x-user-defined</option>
+					</select>
 				</label>
 			</li>
 			<li>
-				<span class="form-label">download zip content</span>
-				<ul id="file-list">
-				</ul>
+				<label>
+					<span class="form-label">download zip content</span>
+					<ul id="file-list" class="empty">
+					</ul>
+				</label>
 			</li>
 		</ol>
 

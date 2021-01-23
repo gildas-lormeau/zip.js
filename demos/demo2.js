@@ -11,10 +11,10 @@
 	const model = (() => {
 		let blobReader;
 		return {
-			getEntries(file) {
+			getEntries(file, options) {
 				blobReader = new zip.BlobReader(file);
 				const zipReader = new zip.ZipReader(blobReader);
-				return zipReader.getEntries();
+				return zipReader.getEntries(options);
 			},
 			async getEntryFile(entry, options) {
 				let writer;
@@ -27,33 +27,50 @@
 
 	(() => {
 		const fileInput = document.getElementById("file-input");
+		const encodingItem = document.getElementById("encoding-item");
+		const encodingInput = document.getElementById("encoding-input");
+		const fileInputButton = document.getElementById("file-input-button");
 		const unzipProgress = document.createElement("progress");
 		const fileList = document.getElementById("file-list");
-		fileInput.addEventListener("change", onFileInputChange, false);
-
-		async function onFileInputChange() {
-			let entries;
-			fileInput.disabled = true;
+		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
+		let selectedFile;
+		fileInput.onchange = async () => {
 			try {
-				entries = await model.getEntries(fileInput.files[0]);
+				fileInputButton.disabled = true;
+				selectedFile = fileInput.files[0];
+				await loadFiles();
+				fileInputButton.disabled = false;
+				fileInput.value = "";
 			} catch (error) {
 				alert(error);
 			}
-			if (entries) {
+		};
+		encodingInput.onchange = async () => {
+			try {
+				await loadFiles(encodingInput.value);
+			} catch (error) {
+				alert(error);
+			}
+		};
+		async function loadFiles(filenameEncoding) {
+			const entries = await model.getEntries(selectedFile, { filenameEncoding });
+			if (entries && entries.length) {
 				fileList.innerHTML = "";
+				fileList.classList.remove("empty");
+				encodingItem.hidden = !entries.find(entry => !entry.bitFlag.languageEncodingFlag);
 				entries.forEach(entry => {
 					const li = document.createElement("li");
 					const anchor = document.createElement("a");
 					anchor.textContent = entry.filename;
-					anchor.href = "#";
+					anchor.href = "";
 					anchor.addEventListener("click", async event => {
 						if (!anchor.download) {
+							event.preventDefault();
 							try {
 								await download(entry, li, anchor);
 							} catch (error) {
 								alert(error);
 							}
-							event.preventDefault();
 						}
 					}, false);
 					li.appendChild(anchor);
