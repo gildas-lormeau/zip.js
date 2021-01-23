@@ -8,21 +8,23 @@
 }
 
 #file-list {
-	flex-grow: 1;
 	min-width: 200px;
 	padding-left: 10px;
 	padding-top: 12px;
 	font-family: 'Droid Sans Mono', courier;
-	font-size: 12pt;
-	overflow: hidden;
 	white-space: nowrap;
+	min-height: 50px;
+	margin-bottom: 25px;
+}
+
+input[type=text], button, select, #file-list {
+	flex-grow: 1;
+	font-size: 12pt;
 	padding: 4px;
 	border: solid 1px #a7a7a7;
 	border-radius: 2.5px;
-	min-height: 50px;
 	box-shadow: 1px 1px 1px #d8d8d8;
 	color: #444444;
-	margin-bottom: 25px;
 }
 
 #file-list.empty {
@@ -58,17 +60,10 @@ label {
 }
 
 input[type=text], button, select {
-	flex-grow: 1;
 	box-sizing: content-box;
-	font-size: 12pt;
-	padding: 4px;
-	border: solid 1px #a7a7a7;
 	height: 25px;
-	border-radius: 2.5px;
 	text-align: center;
-	box-shadow: 1px 1px 1px #d8d8d8;
 	outline-color: #c1c1c1;
-	color: #444444;
 	background-color: #ececec;
 }
 
