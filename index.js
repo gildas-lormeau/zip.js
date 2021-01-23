@@ -28,7 +28,7 @@
 
 "use strict";
 
-import getMimeType from "./lib/util/mime-type.js";
+import getMimeType from "./lib/core/util/mime-type.js";
 
 export {
 	fs,
