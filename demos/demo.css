@@ -1,105 +1,113 @@
 #container {
-	width: 700px;
+	min-width: 200px;
+	max-width: 800px;
 }
 
 #demo-container li {
-	margin-bottom: 1em;
-	min-height: 40px;
+	min-height: 60px;
 }
 
 #file-list {
+	flex-grow: 1;
+	min-width: 200px;
 	padding-left: 10px;
-	padding-top: 5px;
+	padding-top: 12px;
 	font-family: 'Droid Sans Mono', courier;
 	font-size: 12pt;
 	overflow: hidden;
 	white-space: nowrap;
-	margin-top: 14px;
 	padding: 4px;
-	border: solid 1px #AACFE4;
-	border-radius: 5px;
-	min-height: 28px;
-	background-color: #eee;
-	box-shadow: 0px 0px 10px #ccc;
+	border: solid 1px #a7a7a7;
+	border-radius: 2.5px;
+	min-height: 50px;
+	box-shadow: 1px 1px 1px #d8d8d8;
+	color: #444444;
+	margin-bottom: 25px;
+}
+
+#file-list.empty {
+	min-height: 25px;
 }
 
 #file-list li {
+	display: block;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	position: relative;
 	font-size: 11pt;
 	margin: .5em;
-	min-height: 28px;
+	min-height: 35px;
 }
 
 .form-label {
-	width: 270px;
-	display: inline-block;
-	font-size: 12pt;
+	min-width: 240px;
+	margin-top: 6px;
+	margin-right: 8px;
 }
 
 #demo-container {
-	margin-right: 50px;
+	margin-right: 10px;
 }
 
 input[type=text] {
 	height: 21px;
 }
 
-input[type=text], select {
+label {
+	display: flex;
+}
+
+input[type=text], button {
+	flex-grow: 1;
+	box-sizing: content-box;
 	font-size: 12pt;
 	padding: 4px;
-	border: solid 1px #AACFE4;
-	width: 200px;
-	border-radius: 5px;
+	border: solid 1px #a7a7a7;
+	height: 25px;
+	border-radius: 2.5px;
 	text-align: center;
-	box-shadow: 0px 0px 10px #ccc;
+	box-shadow: 1px 1px 1px #d8d8d8;
+	outline-color: #c1c1c1;
+	color: #444444;
+	background-color: #ececec;
 }
 
-select {
-	width: 212px;
+input[type=text]:hover, button:hover {
+	background-color: #e4e4e4;
 }
 
-input[type=file] {
-	color: transparent;
-	font-size: 12pt;
+button[disabled] {
+	opacity: .5;
+	background-color: #ececec;
 }
 
-button, #download-button {
-	margin: 0px;
-	font-size: 12pt;
-	padding: 4px;
-	border: solid 1px #AACFE4;
-	width: 209px;
-	border-radius: 5px;
-	box-shadow: 0px 0px 10px #ccc;
-}
-
-input[type=file]::-webkit-file-upload-button {
-	margin: 0px;
-	font-size: 12pt;
-	padding: 4px;
-	border: solid 1px #AACFE4;
-	width: 209px;
-	height: 31px;
-	border-radius: 5px;
-	box-shadow: 0px 0px 10px #ccc;
-}
-
-#download-button {
-	height: 21px;
-	width: 200px;
-	display: inline-block;
-	text-align: center;
-	text-decoration: none;
-	cursor: default;
-	color: black;
+button:not([disabled]):hover {
+	cursor: pointer;
 }
 
 progress {
-	position: absolute;
-	right: 0px;
-	top: 1px;
+	display: block;
 	opacity: .7;
-	width: 80px;
+	width: 100%;
+	height: 8px;
+	margin-top: 2px;
+}
+
+@media (max-width: 680px) {
+	label {
+		flex-direction: column;
+	}
+	.form-label {
+		min-width: 190px;
+		margin-bottom: 8px;
+	}
+	#demo-container {
+		margin-right: 0;
+	}
+	#demo-container>li {
+		min-height: 80px;
+	}
+	ol {
+		padding-left: 0;
+	}
 }

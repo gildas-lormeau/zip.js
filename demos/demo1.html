@@ -4,6 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<title>Create a zip file demo</title>
+	<meta name="viewport" content="width=device-width">
 	<link rel="stylesheet" href="../default.css">
 	<link rel="stylesheet" href="demo.css">
 	<link href="https://fonts.googleapis.com/css?family=Maven+Pro|Muli|Droid+Sans+Mono|Istok+Web" rel="stylesheet"
@@ -22,7 +23,7 @@
 			A JavaScript library to zip and unzip files
 			<hr>
 		</div>
-		<h2>Create a zip file demo</h2>
+		<h2>Create a zip file (demo)</h2>
 		<ol id="demo-container">
 			<li>
 				<label>
@@ -33,13 +34,16 @@
 			<li>
 				<label>
 					<span class="form-label">add files into the zip</span>
-					<input type="file" multiple id="file-input">
+					<button id="file-input-button">Add...</button>
+					<input type="file" multiple id="file-input" hidden>
 				</label>
 			</li>
 			<li>
-				<span class="form-label">view zip content</span>
-				<ul id="file-list">
-				</ul>
+				<label>
+					<span class="form-label">view zip content</span>
+					<ul id="file-list" class="empty">
+					</ul>
+				</label>
 			</li>
 			<li>
 				<label>
@@ -48,8 +52,10 @@
 				</label>
 			</li>
 			<li>
-				<span class="form-label">download the zip file</span>
-				<a id="download-button" href="#">Download</a>
+				<label>
+					<span class="form-label">download the zip file</span>
+					<button id="download-button" disabled>Download</button>
+				</label>
 			</li>
 		</ol>
 

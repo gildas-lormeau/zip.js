@@ -29,64 +29,71 @@
 
 	(() => {
 		const fileInput = document.getElementById("file-input");
+		const fileInputButton = document.getElementById("file-input-button");
 		const zipProgress = document.createElement("progress");
 		const downloadButton = document.getElementById("download-button");
 		const fileList = document.getElementById("file-list");
 		const filenameInput = document.getElementById("filename-input");
 		const passwordInput = document.getElementById("password-input");
-		fileInput.addEventListener("change", onFileInputClick, false);
+		fileInputButton.addEventListener("click", onFileInputClick, false);
 		downloadButton.addEventListener("click", onDownloadButtonClick, false);
 
-		async function onFileInputClick() {
-			fileInput.disabled = true;
-			try {
-				downloadButton.removeEventListener("click", onDownloadButtonClick, false);
-				await Promise.all(Array.from(fileInput.files).map(async file => {
-					const li = document.createElement("li");
-					const zipProgress = document.createElement("progress");
-					zipProgress.value = 0;
-					zipProgress.max = 0;
-					li.textContent = file.name;
-					fileList.appendChild(li);
-					await model.addFile(file, {
-						bufferedWrite: true,
-						password: passwordInput.value,
-						onprogress: (index, max) => {
-							li.appendChild(zipProgress);
-							zipProgress.value = index;
-							zipProgress.max = max;
-						}
-					});
+		function onFileInputClick() {
+			fileInput.onchange = async () => {
+				try {
+					await downloadFiles();
+					fileInput.value = "";
+					downloadButton.disabled = false;
+				} catch (error) {
+					alert(error);
+				} finally {
 					zipProgress.remove();
-				}));
-			} catch (error) {
-				alert(error);
-			} finally {
-				downloadButton.addEventListener("click", onDownloadButtonClick, false);
-			}
-			zipProgress.remove();
-			fileInput.value = "";
-			fileInput.disabled = false;
+				}
+			};
+			fileInput.dispatchEvent(new MouseEvent("click"));
+		}
+
+		async function downloadFiles() {
+			downloadButton.disabled = true;
+			await Promise.all(Array.from(fileInput.files).map(async file => {
+				const li = document.createElement("li");
+				const zipProgress = document.createElement("progress");
+				zipProgress.value = 0;
+				zipProgress.max = 0;
+				li.textContent = file.name;				
+				li.appendChild(zipProgress);
+				fileList.classList.remove("empty");
+				fileList.appendChild(li);				
+				await model.addFile(file, {
+					bufferedWrite: true,
+					password: passwordInput.value,
+					onprogress: (index, max) => {
+						zipProgress.value = index;
+						zipProgress.max = max;
+					}
+				});
+				zipProgress.remove();
+			}));
 		}
 
 		async function onDownloadButtonClick(event) {
-			if (!downloadButton.download) {
-				let blobURL;
-				try {
-					blobURL = await model.getBlobURL();
-				} catch (error) {
-					alert(error);
-				}
-				if (blobURL) {
-					const clickEvent = new MouseEvent("click");
-					downloadButton.href = blobURL;
-					downloadButton.download = filenameInput.value;
-					downloadButton.dispatchEvent(clickEvent);
-					downloadButton.download = "";
-					fileList.innerHTML = "";
-				}
-				event.preventDefault();
+			let blobURL;
+			try {
+				blobURL = await model.getBlobURL();
+			} catch (error) {
+				alert(error);
 			}
+			if (blobURL) {
+				const anchor = document.createElement("a");
+				const clickEvent = new MouseEvent("click");
+				anchor.href = blobURL;
+				anchor.download = filenameInput.value;
+				anchor.dispatchEvent(clickEvent);
+				fileList.innerHTML = "";
+				fileList.classList.add("empty");
+			}
+			downloadButton.disabled = true;
+			event.preventDefault();
 		}
 	})();
 
