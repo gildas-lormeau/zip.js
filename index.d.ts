@@ -160,6 +160,8 @@ declare module "zip.js" {
         getBlob(mimeType?: string, options?: GetDataOptions): Promise<Blob>;
         getData64URI(mimeType?: string, options?: GetDataOptions): Promise<string>;
         getData(writer: Writer, options?: GetDataOptions): Promise<any>;
+        replaceBlob(blob: Blob): void;
+        replaceText(text: String): void;
     }
 
     export interface ZipDirectoryEntry extends ZipEntry {
