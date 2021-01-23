@@ -9,6 +9,7 @@
 	});
 
 	const model = (() => {
+
 		let zipWriter;
 		return {
 			async addFile(file, options) {
@@ -27,9 +28,11 @@
 				}
 			}
 		};
+
 	})();
 
 	(() => {
+
 		const fileInput = document.getElementById("file-input");
 		const fileInputButton = document.getElementById("file-input-button");
 		const zipProgress = document.createElement("progress");

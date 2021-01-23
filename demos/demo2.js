@@ -9,6 +9,7 @@
 	});
 
 	const model = (() => {
+
 		return {
 			getEntries(file, options) {
 				return (new zip.ZipReader(new zip.BlobReader(file))).getEntries(options);
@@ -17,9 +18,11 @@
 				return URL.createObjectURL(await entry.getData(new zip.BlobWriter(), options));
 			}
 		};
+
 	})();
 
 	(() => {
+
 		const appContainer = document.getElementById("container");
 		const fileInput = document.getElementById("file-input");
 		const encodingInput = document.getElementById("encoding-input");
