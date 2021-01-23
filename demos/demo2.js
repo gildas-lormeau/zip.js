@@ -26,13 +26,14 @@
 	})();
 
 	(() => {
+		const appContainer = document.getElementById("container");
 		const fileInput = document.getElementById("file-input");
 		const encodingInput = document.getElementById("encoding-input");
 		const fileInputButton = document.getElementById("file-input-button");
 		const unzipProgress = document.createElement("progress");
 		let fileList = document.getElementById("file-list");
 		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
-		let selectedFile;
+		let entries, selectedFile;
 		fileInput.onchange = async () => {
 			try {
 				fileInputButton.disabled = true;
@@ -57,32 +58,34 @@
 				fileInputButton.disabled = false;
 			}
 		};
+		appContainer.addEventListener("click", async event => {
+			const target = event.target;
+			if (target.dataset.entryIndex !== undefined && !target.download) {
+				event.preventDefault();
+				try {
+					await download(entries[Number(target.dataset.entryIndex)], target.parentElement, target);
+				} catch (error) {
+					alert(error);
+				}
+			}
+		}, false);
 
 		async function loadFiles(filenameEncoding) {
-			const entries = await model.getEntries(selectedFile, { filenameEncoding });
+			entries = await model.getEntries(selectedFile, { filenameEncoding });
 			emptyList();
 			if (entries && entries.length) {
 				fileList.classList.remove("empty");
 				const languageEncodingFlagSet = Boolean(entries.find(entry => !entry.bitFlag.languageEncodingFlag));
 				encodingInput.value = languageEncodingFlagSet ? (filenameEncoding || "cp437") : "utf-8";
 				encodingInput.disabled = !languageEncodingFlagSet;
-				entries.forEach(entry => {
+				entries.forEach((entry, entryIndex) => {
 					const li = document.createElement("li");
 					const anchor = document.createElement("a");
+					anchor.dataset.entryIndex = entryIndex;
 					anchor.textContent = anchor.title = entry.filename;
 					anchor.title = `${entry.filename}\n  Last modification date: ${entry.lastModDate.toLocaleString()}\n  Uncompressed size: ${entry.uncompressedSize.toLocaleString()} bytes`;
 					if (!entry.directory) {
 						anchor.href = "";
-						anchor.addEventListener("click", async event => {
-							if (!anchor.download) {
-								event.preventDefault();
-								try {
-									await download(entry, li, anchor);
-								} catch (error) {
-									alert(error);
-								}
-							}
-						}, false);
 					}
 					li.appendChild(anchor);
 					fileList.appendChild(li);
