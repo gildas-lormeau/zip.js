@@ -17,7 +17,7 @@
 	margin-bottom: 25px;
 }
 
-input[type=text], button, select, #file-list {
+input[type=text], input[type=password], button, select, #file-list {
 	flex-grow: 1;
 	font-size: 12pt;
 	padding: 4px;
@@ -60,7 +60,7 @@ input[type=text], button, select, #file-list {
 	margin-right: 10px;
 }
 
-input[type=text] {
+input[type=text], input[type=password] {
 	height: 21px;
 }
 
@@ -68,7 +68,7 @@ label {
 	display: flex;
 }
 
-input[type=text], button, select {
+input[type=text], input[type=password], button, select {
 	box-sizing: content-box;
 	height: 25px;
 	text-align: center;
@@ -80,16 +80,16 @@ select {
 	text-align-last: center;
 }
 
-input[type=text]:hover, button:hover, select:hover {
+input[type=text]:hover, input[type=password]:hover, button:hover, select:hover {
 	background-color: #e4e4e4;
 }
 
-input[type=text][disabled], button[disabled], select[disabled] {
+input[type=text][disabled], input[type=password][disabled], button[disabled], select[disabled] {
 	opacity: .5;
-	background-color: #ececec;
+	background-color: transparent;
 }
 
-input[type=text]:not([disabled]):hover, button:not([disabled]):hover, select:not([disabled]):hover {
+input[type=text]:not([disabled]):hover, input[type=password]:not([disabled]):hover, button:not([disabled]):hover, select:not([disabled]):hover {
 	cursor: pointer;
 }
 
