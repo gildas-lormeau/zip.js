@@ -64,7 +64,7 @@
 			if (entries && entries.length) {
 				fileList.classList.remove("empty");
 				const languageEncodingFlagSet = Boolean(entries.find(entry => !entry.bitFlag.languageEncodingFlag));
-				encodingInput.value = languageEncodingFlagSet ? ("cp437" || filenameEncoding) : "utf-8";
+				encodingInput.value = languageEncodingFlagSet ? (filenameEncoding || "cp437") : "utf-8";
 				encodingInput.disabled = !languageEncodingFlagSet;
 				entries.forEach(entry => {
 					const li = document.createElement("li");
