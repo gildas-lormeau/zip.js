@@ -60,7 +60,8 @@
 				fileInputButton.disabled = false;
 			}
 		};
-		async function loadFiles(filenameEncoding) {			
+
+		async function loadFiles(filenameEncoding) {
 			const entries = await model.getEntries(selectedFile, { filenameEncoding });
 			emptyList();
 			if (entries && entries.length) {
@@ -69,7 +70,8 @@
 				entries.forEach(entry => {
 					const li = document.createElement("li");
 					const anchor = document.createElement("a");
-					anchor.textContent = entry.filename;
+					anchor.textContent = anchor.title = entry.filename;
+					anchor.title = `${entry.filename}\n  Last modification date: ${entry.lastModDate.toLocaleString()}\n  Uncompressed size: ${entry.uncompressedSize.toLocaleString()} bytes`;
 					if (!entry.directory) {
 						anchor.href = "";
 						anchor.addEventListener("click", async event => {
