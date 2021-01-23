@@ -80,9 +80,10 @@
 					const anchor = document.createElement("a");
 					anchor.dataset.entryIndex = entryIndex;
 					anchor.textContent = anchor.title = entry.filename;
-					anchor.title = `${entry.filename}\n  Last modification date: ${entry.lastModDate.toLocaleString()}\n  Uncompressed size: ${entry.uncompressedSize.toLocaleString()} bytes`;
+					anchor.title = `${entry.filename}\n  Last modification date: ${entry.lastModDate.toLocaleString()}`;
 					if (!entry.directory) {
 						anchor.href = "";
+						anchor.title += `\n  Uncompressed size: ${entry.uncompressedSize.toLocaleString()} bytes`;
 					}
 					li.appendChild(anchor);
 					fileList.appendChild(li);
