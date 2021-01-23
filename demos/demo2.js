@@ -31,7 +31,7 @@
 		const encodingInput = document.getElementById("encoding-input");
 		const fileInputButton = document.getElementById("file-input-button");
 		const unzipProgress = document.createElement("progress");
-		const fileList = document.getElementById("file-list");
+		let fileList = document.getElementById("file-list");
 		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
 		let selectedFile;
 		fileInput.onchange = async () => {
@@ -57,7 +57,7 @@
 			}
 		};
 		async function loadFiles(filenameEncoding) {
-			fileList.innerHTML = "";
+			emptyList();
 			const entries = await model.getEntries(selectedFile, { filenameEncoding });
 			if (entries && entries.length) {
 				fileList.classList.remove("empty");
@@ -66,17 +66,19 @@
 					const li = document.createElement("li");
 					const anchor = document.createElement("a");
 					anchor.textContent = entry.filename;
-					anchor.href = "";
-					anchor.addEventListener("click", async event => {
-						if (!anchor.download) {
-							event.preventDefault();
-							try {
-								await download(entry, li, anchor);
-							} catch (error) {
-								alert(error);
+					if (!entry.directory) {
+						anchor.href = "";
+						anchor.addEventListener("click", async event => {
+							if (!anchor.download) {
+								event.preventDefault();
+								try {
+									await download(entry, li, anchor);
+								} catch (error) {
+									alert(error);
+								}
 							}
-						}
-					}, false);
+						}, false);
+					}
 					li.appendChild(anchor);
 					fileList.appendChild(li);
 				});
@@ -98,6 +100,12 @@
 			a.href = blobURL;
 			a.download = entry.filename;
 			a.dispatchEvent(clickEvent);
+		}
+
+		function emptyList() {
+			const newFileList = fileList.cloneNode();
+			fileList = fileList.replaceWith(newFileList);
+			fileList = newFileList;
 		}
 
 	})();
