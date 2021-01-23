@@ -96,6 +96,7 @@
 			downloadButton.disabled = true;
 			event.preventDefault();
 		}
+
 	})();
 
 })();
