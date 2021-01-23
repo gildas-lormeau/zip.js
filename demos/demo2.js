@@ -39,23 +39,27 @@
 				fileInputButton.disabled = true;
 				selectedFile = fileInput.files[0];
 				await loadFiles();
-				fileInputButton.disabled = false;
-				fileInput.value = "";
 			} catch (error) {
 				alert(error);
+			} finally {
+				fileInputButton.disabled = false;
+				fileInput.value = "";
 			}
 		};
 		encodingInput.onchange = async () => {
 			try {
+				fileInputButton.disabled = true;
 				await loadFiles(encodingInput.value);
 			} catch (error) {
 				alert(error);
+			} finally {
+				fileInputButton.disabled = false;
 			}
 		};
 		async function loadFiles(filenameEncoding) {
+			fileList.innerHTML = "";
 			const entries = await model.getEntries(selectedFile, { filenameEncoding });
 			if (entries && entries.length) {
-				fileList.innerHTML = "";
 				fileList.classList.remove("empty");
 				encodingItem.hidden = !entries.find(entry => !entry.bitFlag.languageEncodingFlag);
 				entries.forEach(entry => {
