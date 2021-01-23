@@ -9,20 +9,22 @@
 	});
 
 	const model = (() => {
-		let writer, zipWriter;
+		let zipWriter;
 		return {
 			async addFile(file, options) {
 				if (!zipWriter) {
-					writer = new zip.BlobWriter();
-					zipWriter = new zip.ZipWriter(writer);
+					zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
 				}
 				await zipWriter.add(file.name, new zip.BlobReader(file), options);
 			},
 			async getBlobURL() {
-				await zipWriter.close();
-				const blobURL = URL.createObjectURL(await writer.getData());
-				zipWriter = null;
-				return blobURL;
+				if (zipWriter) {
+					const blobURL = URL.createObjectURL(await zipWriter.close());
+					zipWriter = null;
+					return blobURL;
+				} else {
+					throw new Error("Zip file closed");
+				}
 			}
 		};
 	})();
