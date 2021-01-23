@@ -12,11 +12,11 @@
 
 		let zipWriter;
 		return {
-			async addFile(file, options) {
+			addFile(file, options) {
 				if (!zipWriter) {
 					zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
 				}
-				await zipWriter.add(file.name, new zip.BlobReader(file), options);
+				return zipWriter.add(file.name, new zip.BlobReader(file), options);
 			},
 			async getBlobURL() {
 				if (zipWriter) {
@@ -65,7 +65,7 @@
 				li.appendChild(zipProgress);
 				fileList.classList.remove("empty");
 				fileList.appendChild(li);
-				await model.addFile(file, {
+				const entry = await model.addFile(file, {
 					bufferedWrite: true,
 					password: passwordInput.value,
 					onprogress: (index, max) => {
@@ -73,6 +73,7 @@
 						zipProgress.max = max;
 					}
 				});
+				li.title = `${entry.filename}\n  Last modification date: ${entry.lastModDate.toLocaleString()}\n  Compressed size: ${entry.compressedSize.toLocaleString()} bytes`;
 				zipProgress.remove();
 			}));
 		}
