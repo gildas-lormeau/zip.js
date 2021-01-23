@@ -41,6 +41,15 @@ input[type=text], button, select, #file-list {
 	min-height: 35px;
 }
 
+#file-list li.pending {
+	color: #b1b1b1;
+}
+
+#file-list li.busy {
+	color: #b1b1b1;
+	font-style: italic;
+}
+
 .form-label {
 	min-width: 240px;
 	margin-top: 10px;

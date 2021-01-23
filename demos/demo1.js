@@ -65,15 +65,20 @@
 				li.appendChild(zipProgress);
 				fileList.classList.remove("empty");
 				fileList.appendChild(li);
+				li.title = file.name;
+				li.classList.add("pending");
 				const entry = await model.addFile(file, {
 					bufferedWrite: true,
 					password: passwordInput.value,
 					onprogress: (index, max) => {
+						li.classList.remove("pending");
+						li.classList.add("busy");
 						zipProgress.value = index;
 						zipProgress.max = max;
 					}
 				});
-				li.title = `${entry.filename}\n  Last modification date: ${entry.lastModDate.toLocaleString()}\n  Compressed size: ${entry.compressedSize.toLocaleString()} bytes`;
+				li.classList.remove("busy");
+				li.title += `\n  Last modification date: ${entry.lastModDate.toLocaleString()}\n  Compressed size: ${entry.compressedSize.toLocaleString()} bytes`;
 				zipProgress.remove();
 			}));
 		}
