@@ -5787,7 +5787,8 @@
 			if (rawFilename.length > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_ENTRY_NAME);
 			}
-			const rawComment = (new TextEncoder()).encode(options.comment || "");
+			const comment = options.comment;
+			const rawComment = (new TextEncoder()).encode(comment || "");
 			if (rawComment.length > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_ENTRY_COMMENT);
 			}
@@ -5825,7 +5826,10 @@
 			const password = options.password === undefined ? this.options.password : options.password;
 			const level = options.level === undefined ? this.options.level : options.level;
 			const useWebWorkers = options.useWebWorkers === undefined ? this.options.useWebWorkers : options.useWebWorkers;
-			await addFile(this, name, reader, Object.assign({}, options, { rawFilename, rawComment, version, lastModDate, rawExtraField, zip64, password, level, useWebWorkers }));
+			const fileEntry = await addFile(this, name, reader, Object.assign({}, options, { rawFilename, rawComment, version, lastModDate, rawExtraField, zip64, password, level, useWebWorkers }));
+			fileEntry.filename = name;
+			fileEntry.comment = comment;
+			return fileEntry;
 		}
 
 		async close(comment = new Uint8Array(0)) {
@@ -5932,6 +5936,7 @@
 				setBigUint64(extraFieldZip64View, 20, BigInt(fileEntry.offset));
 			}
 			zipWriter.offset += fileEntry.length;
+			return fileEntry;
 		} finally {
 			if (resolveLockWrite) {
 				zipWriter.lockWrite = null;
@@ -6042,6 +6047,10 @@
 			}
 		}
 		await writer.writeUint8Array(footerArray);
+		fileEntry.compressedSize = compressedSize;
+		fileEntry.unCompressedSize = unCompressedSize;
+		fileEntry.lastModDate = lastModDate;
+		fileEntry.encrypted = outputEncrypted;
 		fileEntry.length = fileDataArray.length + (result ? result.length : 0) + footerArray.length;
 		return fileEntry;
 	}
