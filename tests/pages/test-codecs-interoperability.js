@@ -13,7 +13,7 @@ async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({		
 		workerScripts: {
-			deflate: ["../../dist/z-worker-pako.js", "../vendor/pako_deflate.min.js"],
+			deflate: ["../../dist/z-worker-pako.js", "../../tests/vendor/pako_deflate.min.js"],
 			inflate: ["../../dist/z-worker.js"]
 		}
 	});
