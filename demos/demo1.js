@@ -41,7 +41,7 @@
 		downloadButton.addEventListener("click", onDownloadButtonClick, false);
 		fileInput.onchange = async () => {
 			try {
-				await downloadFiles();
+				await addFiles();
 				fileInput.value = "";
 				downloadButton.disabled = false;
 			} catch (error) {
@@ -51,7 +51,7 @@
 			}
 		};
 
-		async function downloadFiles() {
+		async function addFiles() {
 			downloadButton.disabled = true;
 			await Promise.all(Array.from(fileInput.files).map(async file => {
 				const li = document.createElement("li");
