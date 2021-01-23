@@ -114,7 +114,7 @@ declare module "zip.js" {
 
     export class ZipWriter {
         constructor(writer: Writer, options?: ZipWriterOptions);
-        public add(name: string, reader: Reader, options?: AddDataOptions): Promise<void>;
+        public add(name: string, reader: Reader, options?: AddDataOptions): Promise<Entry>;
         public close(comment?: Uint8Array): Promise<any>;
     }
 
