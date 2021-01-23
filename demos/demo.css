@@ -46,7 +46,6 @@ input[type=text], input[type=password], button, select, #file-list {
 }
 
 #file-list li.busy {
-	color: #b1b1b1;
 	font-style: italic;
 }
 
