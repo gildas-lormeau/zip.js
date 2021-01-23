@@ -73,10 +73,10 @@
 			emptyList();
 			if (entries && entries.length) {
 				fileList.classList.remove("empty");
-				const languageEncodingFlagUnset = Boolean(entries.find(entry => !entry.bitFlag.languageEncodingFlag));
+				const filenameUtf8 = Boolean(!entries.find(entry => !entry.bitFlag.languageEncodingFlag && !entry.extraFieldUnicodePath));
 				const encrypted = Boolean(entries.find(entry => entry.encrypted));
-				encodingInput.value = languageEncodingFlagUnset ? (filenameEncoding || "cp437") : "utf-8";
-				encodingInput.disabled = !languageEncodingFlagUnset;
+				encodingInput.value = filenameUtf8 ? "utf-8" : filenameEncoding || "cp437";
+				encodingInput.disabled = filenameUtf8;
 				passwordInput.value = "";
 				passwordInput.disabled = !encrypted;
 				entries.forEach((entry, entryIndex) => {
