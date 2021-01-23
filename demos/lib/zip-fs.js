@@ -4437,7 +4437,7 @@
 	const COUNTER_DEFAULT_VALUE = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	const subtle = crypto.subtle;
 
-	class ZipDecrypt {
+	class Decrypt {
 
 		constructor(password, signed) {
 			this.password = password;
@@ -4507,7 +4507,7 @@
 
 	}
 
-	class ZipEncrypt {
+	class Encrypt {
 
 		constructor(password) {
 			this.password = password;
@@ -4666,7 +4666,7 @@
 			this.compressed = options.inputCompressed;
 			this.inflate = this.compressed && new options.codecConstructor();
 			this.crc32 = this.signed && this.signed && new Crc32();
-			this.decrypt = this.encrypted && new ZipDecrypt(options.inputPassword);
+			this.decrypt = this.encrypted && new Decrypt(options.inputPassword);
 		}
 
 		async append(data) {
@@ -4714,7 +4714,7 @@
 			this.compressed = options.outputCompressed;
 			this.deflate = this.compressed && new options.codecConstructor({ level: options.level || 5 });
 			this.crc32 = this.signed && new Crc32();
-			this.encrypt = this.encrypted && new ZipEncrypt(options.outputPassword);
+			this.encrypt = this.encrypted && new Encrypt(options.outputPassword);
 		}
 
 		async append(inputData) {
@@ -5293,7 +5293,7 @@
 		const crc32 = new Crc32();
 		crc32.append(fileEntry[rawPropertyName]);
 		const dataViewSignature = new DataView(new Uint8Array(4).buffer);
-		dataViewSignature.setUint32(0, crc32.get());
+		dataViewSignature.setUint32(0, crc32.get(), true);
 		extraFieldUnicode[propertyName] = (new TextDecoder()).decode(extraFieldUnicode.data.subarray(5));
 		if (!fileEntry.bitFlag.languageEncodingFlag && extraFieldUnicode.signature == getUint32(dataViewSignature, 0)) {
 			directory[propertyName] = extraFieldUnicode[propertyName];
