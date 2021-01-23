@@ -100,9 +100,9 @@ declare module "zip.js" {
         comment: string;
         rawComment: Uint8Array;
         signature: Uint8Array;
-        extraField: Map<number, Uint8Array>;
+        extraField?: Map<number, Uint8Array>;
         rawExtraField: Uint8Array;
-        getData(writer: Writer, options?: GetDataOptions): Promise<any>;
+        getData?(writer: Writer, options?: GetDataOptions): Promise<any>;
     }
 
     export interface GetDataOptions {
