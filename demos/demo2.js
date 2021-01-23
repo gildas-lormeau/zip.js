@@ -27,6 +27,7 @@
 		const fileInput = document.getElementById("file-input");
 		const encodingInput = document.getElementById("encoding-input");
 		const fileInputButton = document.getElementById("file-input-button");
+		const passwordInput = document.getElementById("password-input");
 		const unzipProgress = document.createElement("progress");
 		let fileList = document.getElementById("file-list");
 		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
@@ -72,9 +73,12 @@
 			emptyList();
 			if (entries && entries.length) {
 				fileList.classList.remove("empty");
-				const languageEncodingFlagSet = Boolean(entries.find(entry => !entry.bitFlag.languageEncodingFlag));
-				encodingInput.value = languageEncodingFlagSet ? (filenameEncoding || "cp437") : "utf-8";
-				encodingInput.disabled = !languageEncodingFlagSet;
+				const languageEncodingFlagUnset = Boolean(entries.find(entry => !entry.bitFlag.languageEncodingFlag));
+				const encrypted = Boolean(entries.find(entry => entry.encrypted));
+				encodingInput.value = languageEncodingFlagUnset ? (filenameEncoding || "cp437") : "utf-8";
+				encodingInput.disabled = !languageEncodingFlagUnset;
+				passwordInput.value = "";
+				passwordInput.disabled = !encrypted;
 				entries.forEach((entry, entryIndex) => {
 					const li = document.createElement("li");
 					const anchor = document.createElement("a");
@@ -93,6 +97,7 @@
 
 		async function download(entry, li, a) {
 			const blobURL = await model.getEntryFile(entry, {
+				password: passwordInput.value,
 				onprogress: (index, max) => {
 					unzipProgress.value = index;
 					unzipProgress.max = max;

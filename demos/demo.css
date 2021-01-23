@@ -84,12 +84,12 @@ input[type=text]:hover, button:hover, select:hover {
 	background-color: #e4e4e4;
 }
 
-button[disabled], select[disabled] {
+input[type=text][disabled], button[disabled], select[disabled] {
 	opacity: .5;
 	background-color: #ececec;
 }
 
-button:not([disabled]):hover, select:not([disabled]):hover {
+input[type=text]:not([disabled]):hover, button:not([disabled]):hover, select:not([disabled]):hover {
 	cursor: pointer;
 }
 
