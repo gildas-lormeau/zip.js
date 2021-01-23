@@ -9,18 +9,12 @@
 	});
 
 	const model = (() => {
-		let blobReader;
 		return {
 			getEntries(file, options) {
-				blobReader = new zip.BlobReader(file);
-				const zipReader = new zip.ZipReader(blobReader);
-				return zipReader.getEntries(options);
+				return (new zip.ZipReader(new zip.BlobReader(file))).getEntries(options);
 			},
 			async getEntryFile(entry, options) {
-				let writer;
-				writer = new zip.BlobWriter();
-				const blob = await entry.getData(writer, options);
-				return URL.createObjectURL(blob);
+				return URL.createObjectURL(await entry.getData(new zip.BlobWriter(), options));
 			}
 		};
 	})();
