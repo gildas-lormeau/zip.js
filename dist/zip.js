@@ -4437,7 +4437,7 @@
 	const COUNTER_DEFAULT_VALUE = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	const subtle = crypto.subtle;
 
-	class ZipDecrypt {
+	class Decrypt {
 
 		constructor(password, signed) {
 			this.password = password;
@@ -4507,7 +4507,7 @@
 
 	}
 
-	class ZipEncrypt {
+	class Encrypt {
 
 		constructor(password) {
 			this.password = password;
@@ -4666,7 +4666,7 @@
 			this.compressed = options.inputCompressed;
 			this.inflate = this.compressed && new options.codecConstructor();
 			this.crc32 = this.signed && this.signed && new Crc32();
-			this.decrypt = this.encrypted && new ZipDecrypt(options.inputPassword);
+			this.decrypt = this.encrypted && new Decrypt(options.inputPassword);
 		}
 
 		async append(data) {
@@ -4714,7 +4714,7 @@
 			this.compressed = options.outputCompressed;
 			this.deflate = this.compressed && new options.codecConstructor({ level: options.level || 5 });
 			this.crc32 = this.signed && new Crc32();
-			this.encrypt = this.encrypted && new ZipEncrypt(options.outputPassword);
+			this.encrypt = this.encrypted && new Encrypt(options.outputPassword);
 		}
 
 		async append(inputData) {
@@ -4791,50 +4791,48 @@
 	const MESSAGE_FLUSH = "flush";
 	const MESSAGE_EVENT_TYPE = "message";
 
-	const Z_WORKER_SCRIPT_PATH = "z-worker.js";
-	const DEFAULT_WORKER_SCRIPTS = {
-		deflate: [Z_WORKER_SCRIPT_PATH],
-		inflate: [Z_WORKER_SCRIPT_PATH]
-	};
+	let Z_WORKER_SCRIPT_PATH = "z-worker.js";
+
 	const workers = {
 		pool: [],
 		pendingRequests: []
 	};
 
-	function createWorkerCodec(config, options) {
+	function createWorkerCodec(options, config) {
 		const pool = workers.pool;
 		const streamCopy =
 			!options.inputCompressed && !options.inputSigned && !options.inputEncrypted &&
 			!options.outputCompressed && !options.outputSigned && !options.outputEncrypted;
+		const webWorker = options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers && !streamCopy);
 		let scripts;
-		if (options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers && !streamCopy)) {
+		if (webWorker) {
 			const codecType = options.codecType;
 			if (config.workerScripts) {
-				scripts = resolveURLs(config.workerScripts[codecType]);
+				scripts = config.workerScripts[codecType];
 			} else {
-				scripts = DEFAULT_WORKER_SCRIPTS[codecType].slice(0);
-				scripts[0] = (config.workerScriptsPath || "") + scripts[0];
+				options.workerScriptsPath = (config.workerScriptsPath || "") + Z_WORKER_SCRIPT_PATH;
 			}
 		}
 		if (pool.length < config.maxWorkers) {
 			const workerData = {};
 			pool.push(workerData);
-			return getWorkerInterface(workerData, options, scripts);
+			return getWorkerInterface(workerData, options, webWorker, scripts);
 		} else {
 			const workerData = pool.find(workerData => !workerData.busy);
 			if (workerData) {
-				return getWorkerInterface(workerData, options, scripts);
+				return getWorkerInterface(workerData, options, webWorker, scripts);
 			} else {
-				return new Promise(resolve => workers.pendingRequests.push({ resolve, options, scripts }));
+				return new Promise(resolve => workers.pendingRequests.push({ resolve, options, webWorker, scripts }));
 			}
 		}
 	}
 
-	function getWorkerInterface(workerData, options, scripts) {
+	function getWorkerInterface(workerData, options, webWorker, scripts) {
 		workerData.busy = true;
 		workerData.options = options;
 		workerData.scripts = scripts;
-		return scripts ? createWebWorkerInterface(workerData) : createWorkerInterface(workerData);
+		workerData.webWorker = webWorker;
+		return webWorker ? createWebWorkerInterface(workerData, options) : createWorkerInterface(workerData);
 	}
 
 	function createWorkerInterface(workerData) {
@@ -4858,10 +4856,14 @@
 		};
 	}
 
-	function createWebWorkerInterface(workerData) {
+	function createWebWorkerInterface(workerData, options) {
 		let task;
 		if (!workerData.interface) {
-			workerData.worker = new Worker(workerData.scripts[0]);
+			if (workerData.scripts) {
+				workerData.worker = new Worker(new URL(workerData.scripts[0], (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('zip.js', document.baseURI).href))));
+			} else {
+				workerData.worker = new Worker(new URL(options.workerScriptsPath, (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('zip.js', document.baseURI).href))));
+			}
 			workerData.worker.addEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
 			workerData.interface = {
 				append(data) {
@@ -4877,7 +4879,7 @@
 		async function initAndSendMessage(message) {
 			if (!task) {
 				const options = workerData.options;
-				const scripts = workerData.scripts.slice(1);
+				const scripts = workerData.scripts ? workerData.scripts.slice(1) : [];
 				await sendMessage(Object.assign({
 					scripts,
 					type: MESSAGE_INIT, options: {
@@ -4945,21 +4947,13 @@
 	function onTaskFinished(workerData) {
 		workerData.busy = false;
 		if (workers.pendingRequests.length) {
-			const [{ resolve, options, scripts }] = workers.pendingRequests.splice(0, 1);
-			resolve(getWorkerInterface(workerData, options, scripts));
+			const [{ resolve, options, webWorker, scripts }] = workers.pendingRequests.splice(0, 1);
+			resolve(getWorkerInterface(workerData, options, webWorker, scripts));
 		} else {
 			if (workerData.worker) {
 				workerData.worker.terminate();
 			}
 			workers.pool = workers.pool.filter(data => data != workerData);
-		}
-	}
-
-	function resolveURLs(urls) {
-		if (typeof document != "undefined") {
-			return urls.map(url => new URL(url, document.baseURI).href);
-		} else {
-			return urls;
 		}
 	}
 
@@ -5020,6 +5014,48 @@
 			await writer.writeUint8Array(data);
 		}
 		return data.length;
+	}
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	const PROPERTY_NAMES = [
+		"filename", "rawFilename", "directory", "encrypted", "compressedSize", "uncompressedSize",
+		"lastModDate", "rawLastModDate", "comment", "rawComment", "signature", "extraField",
+		"rawExtraField", "bitFlag", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment",
+		"extraFieldAES"];
+
+	class Entry {
+
+		constructor(data) {
+			PROPERTY_NAMES.forEach(name => this[name] = data[name]);
+		}
+
 	}
 
 	/*
@@ -5113,7 +5149,7 @@
 			const entries = [];
 			let offset = 0;
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
-				const fileEntry = new Entry(this.reader, this.config, this.options);
+				const fileEntry = new ZipEntry(this.reader, this.config, this.options);
 				if (getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE) {
 					throw new Error(ERR_CENTRAL_DIRECTORY_NOT_FOUND);
 				}
@@ -5135,7 +5171,9 @@
 					+ fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength);
 				const commentEncoding = options.commentEncoding === undefined ? this.options.commentEncoding : options.commentEncoding;
 				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.bitFlag.languageEncodingFlag ? CHARSET_UTF8 : commentEncoding);
-				entries.push(fileEntry);
+				const entry = new Entry(fileEntry);
+				entry.getData = (writer, options) => fileEntry.getData(writer, options);
+				entries.push(entry);
 				offset += 46 + fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength;
 			}
 			return entries;
@@ -5145,7 +5183,7 @@
 		}
 	}
 
-	class Entry {
+	class ZipEntry {
 
 		constructor(reader, config, options) {
 			this.reader = reader;
@@ -5185,7 +5223,7 @@
 			if (inputEncrypted && !inputPassword) {
 				throw new Error(ERR_ENCRYPTED);
 			}
-			const codec = await createWorkerCodec(this.config, {
+			const codec = await createWorkerCodec({
 				codecType: CODEC_INFLATE,
 				codecConstructor: this.config.Inflate,
 				inputPassword,
@@ -5194,7 +5232,7 @@
 				inputCompressed: this.compressionMethod != 0,
 				inputEncrypted,
 				useWebWorkers: options.useWebWorkers === undefined ? this.options.useWebWorkers : options.useWebWorkers
-			});
+			}, this.config);
 			if (!writer.initialized) {
 				await writer.init();
 			}
@@ -5293,9 +5331,10 @@
 		const crc32 = new Crc32();
 		crc32.append(fileEntry[rawPropertyName]);
 		const dataViewSignature = new DataView(new Uint8Array(4).buffer);
-		dataViewSignature.setUint32(0, crc32.get());
+		dataViewSignature.setUint32(0, crc32.get(), true);
 		extraFieldUnicode[propertyName] = (new TextDecoder()).decode(extraFieldUnicode.data.subarray(5));
-		if (!fileEntry.bitFlag.languageEncodingFlag && extraFieldUnicode.signature == getUint32(dataViewSignature, 0)) {
+		extraFieldUnicode.valid = !fileEntry.bitFlag.languageEncodingFlag && extraFieldUnicode.signature == getUint32(dataViewSignature, 0);
+		if (extraFieldUnicode.valid) {
 			directory[propertyName] = extraFieldUnicode[propertyName];
 		}
 	}
@@ -5787,7 +5826,8 @@
 			if (rawFilename.length > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_ENTRY_NAME);
 			}
-			const rawComment = (new TextEncoder()).encode(options.comment || "");
+			const comment = options.comment || "";
+			const rawComment = (new TextEncoder()).encode(comment);
 			if (rawComment.length > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_ENTRY_COMMENT);
 			}
@@ -5825,7 +5865,11 @@
 			const password = options.password === undefined ? this.options.password : options.password;
 			const level = options.level === undefined ? this.options.level : options.level;
 			const useWebWorkers = options.useWebWorkers === undefined ? this.options.useWebWorkers : options.useWebWorkers;
-			await addFile(this, name, reader, Object.assign({}, options, { rawFilename, rawComment, version, lastModDate, rawExtraField, zip64, password, level, useWebWorkers }));
+			const fileEntry = await addFile(this, name, reader, Object.assign({}, options, { rawFilename, rawComment, version, lastModDate, rawExtraField, zip64, password, level, useWebWorkers }));
+			fileEntry.filename = name;
+			fileEntry.comment = comment;
+			fileEntry.extraField = extraField;
+			return new Entry(fileEntry);
 		}
 
 		async close(comment = new Uint8Array(0)) {
@@ -5840,16 +5884,16 @@
 				}
 			}
 			for (const [, fileEntry] of files) {
-				directoryDataLength += 46 + fileEntry.rawFilename.length + fileEntry.rawComment.length + fileEntry.extraFieldZip64.length + fileEntry.extraFieldAES.length + fileEntry.rawExtraField.length;
+				directoryDataLength += 46 + fileEntry.rawFilename.length + fileEntry.rawComment.length + fileEntry.rawExtraFieldZip64.length + fileEntry.rawExtraFieldAES.length + fileEntry.rawExtraField.length;
 			}
 			const zip64 = this.options.zip64 || directoryOffset + directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS;
 			const directoryArray = new Uint8Array(directoryDataLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH));
 			const directoryView = new DataView(directoryArray.buffer);
 			for (const [, fileEntry] of files) {
 				const rawFilename = fileEntry.rawFilename;
-				const extraFieldZip64 = fileEntry.extraFieldZip64;
-				const extraFieldAES = fileEntry.extraFieldAES;
-				const extraFieldLength = extraFieldZip64.length + extraFieldAES.length + fileEntry.rawExtraField.length;
+				const rawExtraFieldZip64 = fileEntry.rawExtraFieldZip64;
+				const rawExtraFieldAES = fileEntry.rawExtraFieldAES;
+				const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + fileEntry.rawExtraField.length;
 				setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 				setUint16(directoryView, offset + 4, fileEntry.version);
 				directoryArray.set(fileEntry.headerArray, offset + 6);
@@ -5864,9 +5908,9 @@
 					setUint32$1(directoryView, offset + 42, fileEntry.offset);
 				}
 				directoryArray.set(rawFilename, offset + 46);
-				directoryArray.set(extraFieldZip64, offset + 46 + rawFilename.length);
-				directoryArray.set(extraFieldAES, offset + 46 + rawFilename.length + extraFieldZip64.length);
-				directoryArray.set(fileEntry.rawExtraField, 46 + rawFilename.length + extraFieldZip64.length + extraFieldAES.length);
+				directoryArray.set(rawExtraFieldZip64, offset + 46 + rawFilename.length);
+				directoryArray.set(rawExtraFieldAES, offset + 46 + rawFilename.length + rawExtraFieldZip64.length);
+				directoryArray.set(fileEntry.rawExtraField, 46 + rawFilename.length + rawExtraFieldZip64.length + rawExtraFieldAES.length);
 				directoryArray.set(fileEntry.rawComment, offset + 46 + rawFilename.length + extraFieldLength);
 				offset += 46 + rawFilename.length + extraFieldLength + fileEntry.rawComment.length;
 			}
@@ -5928,10 +5972,11 @@
 			}
 			fileEntry.offset = zipWriter.offset;
 			if (fileEntry.zip64) {
-				const extraFieldZip64View = new DataView(fileEntry.extraFieldZip64.buffer);
-				setBigUint64(extraFieldZip64View, 20, BigInt(fileEntry.offset));
+				const rawExtraFieldZip64View = new DataView(fileEntry.rawExtraFieldZip64.buffer);
+				setBigUint64(rawExtraFieldZip64View, 20, BigInt(fileEntry.offset));
 			}
 			zipWriter.offset += fileEntry.length;
+			return fileEntry;
 		} finally {
 			if (resolveLockWrite) {
 				zipWriter.lockWrite = null;
@@ -5944,27 +5989,27 @@
 		const rawFilename = options.rawFilename;
 		const lastModDate = options.lastModDate;
 		const outputPassword = options.password;
-		const outputEncrypted = outputPassword && outputPassword.length;
+		const outputEncrypted = Boolean(outputPassword && outputPassword.length);
 		const level = options.level;
 		const outputCompressed = level !== 0 && !options.directory;
 		const zip64 = options.zip64;
-		let extraFieldAES;
+		let rawExtraFieldAES;
 		if (outputEncrypted) {
-			extraFieldAES = new Uint8Array(EXTRAFIELD_DATA_AES.length + 2);
-			const extraFieldAESView = new DataView(extraFieldAES.buffer);
+			rawExtraFieldAES = new Uint8Array(EXTRAFIELD_DATA_AES.length + 2);
+			const extraFieldAESView = new DataView(rawExtraFieldAES.buffer);
 			setUint16(extraFieldAESView, 0, EXTRAFIELD_TYPE_AES);
-			extraFieldAES.set(EXTRAFIELD_DATA_AES, 2);
+			rawExtraFieldAES.set(EXTRAFIELD_DATA_AES, 2);
 		} else {
-			extraFieldAES = new Uint8Array(0);
+			rawExtraFieldAES = new Uint8Array(0);
 		}
 		const fileEntry = {
 			version: options.version || VERSION_DEFLATE,
 			zip64,
-			directory: options.directory,
+			directory: Boolean(options.directory),
 			rawFilename,
 			rawComment: options.rawComment,
-			extraFieldZip64: zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array(0),
-			extraFieldAES,
+			rawExtraFieldZip64: zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array(0),
+			rawExtraFieldAES: rawExtraFieldAES,
 			rawExtraField: options.rawExtraField
 		};
 		let bitFlag = BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
@@ -5980,7 +6025,7 @@
 			bitFlag = bitFlag | BITFLAG_ENCRYPTED;
 			compressionMethod = COMPRESSION_METHOD_AES;
 			if (outputCompressed) {
-				fileEntry.extraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
+				fileEntry.rawExtraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
 			}
 		}
 		const headerArray = fileEntry.headerArray = new Uint8Array(26);
@@ -5992,15 +6037,16 @@
 		setUint16(headerView, 8, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
 		setUint16(headerView, 22, rawFilename.length);
 		setUint16(headerView, 24, 0);
+		const rawLastModDate = headerView.getUint32(6, true);
 		const fileDataArray = new Uint8Array(30 + rawFilename.length);
 		const fileDataView = new DataView(fileDataArray.buffer);
 		setUint32$1(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
 		fileDataArray.set(headerArray, 4);
 		fileDataArray.set(rawFilename, 30);
-		let result, unCompressedSize, compressedSize;
+		let result, uncompressedSize = 0, compressedSize = 0;
 		if (reader) {
-			unCompressedSize = reader.size;
-			const codec = await createWorkerCodec(config, {
+			uncompressedSize = reader.size;
+			const codec = await createWorkerCodec({
 				codecType: CODEC_DEFLATE,
 				codecConstructor: config.Deflate,
 				level,
@@ -6009,9 +6055,9 @@
 				outputCompressed,
 				outputEncrypted,
 				useWebWorkers: options.useWebWorkers
-			});
+			}, config);
 			await writer.writeUint8Array(fileDataArray);
-			result = await processData(codec, reader, writer, 0, unCompressedSize, config, { onprogress: options.onprogress });
+			result = await processData(codec, reader, writer, 0, uncompressedSize, config, { onprogress: options.onprogress });
 			compressedSize = result.length;
 		} else {
 			await writer.writeUint8Array(fileDataArray);
@@ -6023,25 +6069,31 @@
 			if (!outputEncrypted && result.signature !== undefined) {
 				setUint32$1(headerView, 10, result.signature);
 				setUint32$1(footerView, 4, result.signature);
+				fileEntry.signature = result.signature;
 			}
 			if (zip64) {
-				const extraFieldZip64View = new DataView(fileEntry.extraFieldZip64.buffer);
-				setUint16(extraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
-				setUint16(extraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
+				const rawExtraFieldZip64View = new DataView(fileEntry.rawExtraFieldZip64.buffer);
+				setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
+				setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
 				setUint32$1(headerView, 14, MAX_32_BITS);
 				setBigUint64(footerView, 8, BigInt(compressedSize));
-				setBigUint64(extraFieldZip64View, 12, BigInt(compressedSize));
+				setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
 				setUint32$1(headerView, 18, MAX_32_BITS);
-				setBigUint64(footerView, 16, BigInt(unCompressedSize));
-				setBigUint64(extraFieldZip64View, 4, BigInt(unCompressedSize));
+				setBigUint64(footerView, 16, BigInt(uncompressedSize));
+				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
 			} else {
 				setUint32$1(headerView, 14, compressedSize);
 				setUint32$1(footerView, 8, compressedSize);
-				setUint32$1(headerView, 18, unCompressedSize);
-				setUint32$1(footerView, 12, unCompressedSize);
+				setUint32$1(headerView, 18, uncompressedSize);
+				setUint32$1(footerView, 12, uncompressedSize);
 			}
 		}
 		await writer.writeUint8Array(footerArray);
+		fileEntry.compressedSize = compressedSize;
+		fileEntry.uncompressedSize = uncompressedSize;
+		fileEntry.lastModDate = lastModDate;
+		fileEntry.rawLastModDate = rawLastModDate;
+		fileEntry.encrypted = outputEncrypted;
 		fileEntry.length = fileDataArray.length + (result ? result.length : 0) + footerArray.length;
 		return fileEntry;
 	}
