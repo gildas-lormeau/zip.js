@@ -76,16 +76,16 @@ select {
 	text-align-last: center;
 }
 
-input[type=text]:hover, button:hover {
+input[type=text]:hover, button:hover, select:hover {
 	background-color: #e4e4e4;
 }
 
-button[disabled] {
+button[disabled], select[disabled] {
 	opacity: .5;
 	background-color: #ececec;
 }
 
-button:not([disabled]):hover {
+button:not([disabled]):hover, select:not([disabled]):hover {
 	cursor: pointer;
 }
 
