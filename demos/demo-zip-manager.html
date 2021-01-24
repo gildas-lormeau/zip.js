@@ -3,15 +3,17 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Zip manager</title>
+	<title>Zip Manager (demo eip.js)</title>
+	<meta name="viewport" content="width=device-width">
 	<link rel="stylesheet" href="../default.css">
-	<link rel="stylesheet" href="demo3.css">
+	<link rel="stylesheet" href="demo-zip-manager.css">
 	<link href="https://fonts.googleapis.com/css?family=Maven+Pro|Muli|Droid+Sans+Mono|Istok+Web" rel="stylesheet"
 		type="text/css">
 </head>
 
 <body>
-	<a href="https://github.com/gildas-lormeau/zip.js/tree/gh-pages/demos"><img style="position: absolute; top: 0; right: 0; border: 0;"
+	<a href="https://github.com/gildas-lormeau/zip.js/tree/gh-pages/demos"><img
+			style="position: absolute; top: 0; right: 0; border: 0;"
 			src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
 			alt="Fork me on GitHub" /></a>
 	<div id="container">
@@ -23,18 +25,20 @@
 			A JavaScript library to zip and unzip files
 			<hr>
 		</div>
-		<div class="directories">
-			<div id="tree" class="tree"></div>
-		</div>
+		<div class="explorer">
+			<div class="directories">
+				<div id="tree" class="tree"></div>
+			</div>
 
-		<div class="files">
-			<ul id="listing" class="listing"></ul>
+			<div class="files">
+				<ul id="listing" class="listing"></ul>
+			</div>
 		</div>
 		<progress id="progress-export-zip" class="progress-export-zip"></progress>
 
 	</div>
 	<script type="text/javascript" src="lib/zip-fs.js"></script>
-	<script type="text/javascript" src="demo3.js"></script>
+	<script type="text/javascript" src="demo-zip-manager.js"></script>
 </body>
 
 </html>

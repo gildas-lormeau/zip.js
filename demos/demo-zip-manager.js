@@ -54,6 +54,7 @@
 		listing.addEventListener("click", async event => {
 			const target = event.target;
 			if (target.className == "file-label") {
+				event.preventDefault();
 				const li = target.parentElement;
 				if (!li.classList.contains("selected")) {
 					selectFile(target.parentElement);
@@ -72,7 +73,6 @@
 						refreshListing();
 					}
 				}
-				event.preventDefault();
 			} else {
 				refreshListing();
 			}
@@ -81,7 +81,8 @@
 		tree.addEventListener("click", async event => {
 			const target = event.target;
 			if (target.className == "dir-label") {
-				const details = target.parentElement.parentElement;
+				const details = target.parentElement.parentElement.parentElement;
+				event.preventDefault();
 				if (!details.classList.contains("selected")) {
 					selectDirectory(details);
 				} else if (getFileNode(selectedDirectory).parent) {
@@ -101,7 +102,6 @@
 						refreshTree();
 					}
 				}
-				event.preventDefault();
 			} else if (target.className == "dir-summary") {
 				const node = getFileNode(target.parentElement);
 				node.expanded = !node.expanded;
@@ -293,6 +293,7 @@
 		function resetSelectedLabel(resetValue) {
 			if (selectedLabel) {
 				selectedLabel.contentEditable = false;
+				selectedLabel.scrollLeft = 0;
 				selectedLabel.blur();
 				if (resetValue) {
 					selectedLabel.textContent = selectedLabelValue;
@@ -309,8 +310,8 @@
 			return new Promise(resolve => {
 				const node = getFileNode(nodeElement);
 				labelElement.addEventListener("keydown", event => {
-					const cancel = event.keyCode == "27";
-					if (event.keyCode == "13" || cancel) {
+					const cancel = event.keyCode == 27;
+					if (event.keyCode == 13 || cancel) {
 						if (labelElement.textContent) {
 							resetSelectedLabel(cancel);
 							model.rename(node, labelElement.textContent);
@@ -321,7 +322,7 @@
 						event.preventDefault();
 						resolve(cancel ? "canceled" : "");
 					}
-				}, true);
+				}, false);
 			});
 		}
 
@@ -335,6 +336,7 @@
 			if (node.directory) {
 				details = document.createElement("details");
 				const summary = document.createElement("summary");
+				const summaryContent = document.createElement("span");
 				const label = document.createElement("span");
 				const newDirectory = document.createElement("a");
 				const exportDirectory = document.createElement("a");
@@ -343,7 +345,11 @@
 				if (selectedDirectory && selectedDirectory.dataset.fileId == node.id) {
 					selectDirectory(details);
 				}
-				summary.className = "dir-summary";
+				summaryContent.classList.add("dir-summary-content");
+				summary.classList.add("dir-summary");
+				if (!node.children.find(child => child.directory)) {
+					summary.classList.add("dir-summary-empty");
+				}
 				if (node.parent) {
 					label.textContent = node.name;
 				} else {
@@ -356,9 +362,10 @@
 				exportDirectory.className = "save-button button";
 				exportDirectory.title = "Export folder content into a zip file";
 				exportDirectory.addEventListener("click", onexport(false), false);
-				summary.appendChild(label);
-				summary.appendChild(newDirectory);
-				summary.appendChild(exportDirectory);
+				summary.appendChild(summaryContent);
+				summaryContent.appendChild(label);
+				summaryContent.appendChild(newDirectory);
+				summaryContent.appendChild(exportDirectory);
 				details.appendChild(summary);
 				element.appendChild(details);
 			}
