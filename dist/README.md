@@ -17,7 +17,7 @@
 | zip.deflate.min.js  |         x |              |       x |         |                       | compression with or without web workers               |
 | zip.inflate.min.js  |         x |              |         |       x |                       | decompression with or without web workers             |
 | zip.min.js          |         x |              |       x |       x |                       | compression/decompression with or without web workers |
-| zip-fs.min.js       |         x |            x |       x |       x |                       | compression/decompression with or without web workers |
+| zip-fs.min.js       |         x |            x |         |         |                       | compression/decompression with                        |
 | zip-fs-full.min.js  |         x |            x |       x |       x |                     x | compression/decompression with or without web workers |
 
 ## Web worker script
