@@ -150,10 +150,14 @@
 	 */
 
 	const CP437 = [
-		"\u0000", "☺", "☻", "♥", "♦", "♣", "♠", "•", "◘", "○", "◙", "♂", "♀", "♪", "♫", "☼", "►", "◄", "↕", "‼", "¶", "§", "▬", "↨", "↑", "↓", "→", "←", "∟", "↔", "▲", "▼", " ", "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
-		"@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\", "]", "^", "_", "`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~", "⌂",
-		"Ç", "ü", "é", "â", "ä", "à", "å", "ç", "ê", "ë", "è", "ï", "î", "ì", "Ä", "Å", "É", "æ", "Æ", "ô", "ö", "ò", "û", "ù", "ÿ", "Ö", "Ü", "¢", "£", "¥", "₧", "ƒ", "á", "í", "ó", "ú", "ñ", "Ñ", "ª", "º", "¿", "⌐", "¬", "½", "¼", "¡", "«", "»", "░", "▒", "▓", "│", "┤", "╡", "╢", "╖", "╕", "╣", "║", "╗", "╝", "╜", "╛", "┐",
-		"└", "┴", "┬", "├", "─", "┼", "╞", "╟", "╚", "╔", "╩", "╦", "╠", "═", "╬", "╧", "╨", "╤", "╥", "╙", "╘", "╒", "╓", "╫", "╪", "┘", "┌", "█", "▄", "▌", "▐", "▀", "α", "ß", "Γ", "π", "Σ", "σ", "µ", "τ", "Φ", "Θ", "Ω", "δ", "∞", "φ", "ε", "∩", "≡", "±", "≥", "≤", "⌠", "⌡", "÷", "≈", "°", "∙", "·", "√", "ⁿ", "²", "■", " "];
+		"\0", "☺", "☻", "♥", "♦", "♣", "♠", "•", "◘", "○", "◙", "♂", "♀", "♪", "♫", "☼", "►", "◄", "↕", "‼", "¶", "§", "▬", "↨", "↑", "↓", "→", "←", "∟", "↔", "▲", "▼",
+		" ", "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
+		"@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\", "]", "^", "_",
+		"`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~", "⌂",
+		"Ç", "ü", "é", "â", "ä", "à", "å", "ç", "ê", "ë", "è", "ï", "î", "ì", "Ä", "Å", "É", "æ", "Æ", "ô", "ö", "ò", "û", "ù", "ÿ", "Ö", "Ü", "¢", "£", "¥", "₧", "ƒ",
+		"á", "í", "ó", "ú", "ñ", "Ñ", "ª", "º", "¿", "⌐", "¬", "½", "¼", "¡", "«", "»", "░", "▒", "▓", "│", "┤", "╡", "╢", "╖", "╕", "╣", "║", "╗", "╝", "╜", "╛", "┐",
+		"└", "┴", "┬", "├", "─", "┼", "╞", "╟", "╚", "╔", "╩", "╦", "╠", "═", "╬", "╧", "╨", "╤", "╥", "╙", "╘", "╒", "╓", "╫", "╪", "┘", "┌", "█", "▄", "▌", "▐", "▀",
+		"α", "ß", "Γ", "π", "Σ", "σ", "µ", "τ", "Φ", "Θ", "Ω", "δ", "∞", "φ", "ε", "∩", "≡", "±", "≥", "≤", "⌠", "⌡", "÷", "≈", "°", "∙", "·", "√", "ⁿ", "²", "■", " "];
 
 
 	var decodeCP437 = stringValue => {
@@ -2107,13 +2111,11 @@
 			if (!writer || (writer.constructor == this.Writer && this.data)) {
 				return this.data;
 			} else {
-				if (!this.reader) {
-					this.reader = new this.Reader(this.data);
-				}
+				this.reader = new this.Reader(this.data, options);
 				await this.reader.init();
 				await writer.init();
 				this.uncompressedSize = this.reader.size;
-				return bufferedCopy(this.reader, writer, options);
+				return bufferedCopy(this.reader, writer);
 			}
 		}
 		getText(encoding, options) {
@@ -2125,12 +2127,12 @@
 		getData64URI(mimeType, options) {
 			return this.getData(new Data64URIWriter(mimeType), options);
 		}
-		replaceBlob(blob) {		
+		replaceBlob(blob) {
 			this.data = blob;
 			this.Reader = BlobReader;
 			this.reader = null;
 		}
-		replaceText(text) {		
+		replaceText(text) {
 			this.data = text;
 			this.Reader = TextReader;
 			this.reader = null;
@@ -2197,24 +2199,14 @@
 			await reader.init();
 			const zipReader = new ZipReader$1(reader, options);
 			const entries = await zipReader.getEntries();
-			let currentIndex = 0;
-			const totalSize = getTotalSize(entries, "compressedSize");
-			entries.forEach(entry => {
+			entries.forEach((entry) => {
 				let parent = this, path = entry.filename.split("/"), name = path.pop();
 				path.forEach(pathPart => parent = parent.getChildByName(pathPart) || new ZipDirectoryEntry(this.fs, pathPart, null, parent));
 				if (!entry.directory) {
-					let currentIndexEntry = currentIndex;
 					addChild(parent, name, {
 						data: entry,
-						Reader: getZipBlobReader(Object.assign({}, {
-							onprogress: indexProgress => {
-								if (options.onprogress) {
-									options.onprogress(currentIndexEntry + indexProgress, totalSize);
-								}
-							}
-						}))
+						Reader: getZipBlobReader(Object.assign({}, options))
 					});
-					currentIndex += entry.compressedSize;
 				}
 			});
 		}
@@ -2254,13 +2246,13 @@
 		getById(id) {
 			return this.entries[id];
 		}
-		async importBlob(blob) {
+		async importBlob(blob, options) {
 			resetFS(this);
-			await this.root.importBlob(blob);
+			await this.root.importBlob(blob, options);
 		}
-		async importData64URI(dataURI) {
+		async importData64URI(dataURI, options) {
 			resetFS(this);
-			await this.root.importData64URI(dataURI);
+			await this.root.importData64URI(dataURI, options);
 		}
 		async importHttpContent(url, options) {
 			this.entries = [];
@@ -2291,16 +2283,17 @@
 	}
 
 	function getZipBlobReader(options) {
-		return class {
+		return class extends Reader {
 
-			constructor(entry) {
+			constructor(entry, options = {}) {
+				super();
 				this.entry = entry;
-				this.size = 0;
+				this.options = options;
 			}
 
 			async readUint8Array(index, length) {
 				if (!this.blobReader) {
-					const data = await this.entry.getData(new BlobWriter(), options);
+					const data = await this.entry.getData(new BlobWriter(), Object.assign({}, this.options, options));
 					this.data = data;
 					this.blobReader = new BlobReader(data);
 				}
@@ -2336,29 +2329,34 @@
 	}
 
 	async function exportZip(zipWriter, entry, totalSize, options) {
-		let currentIndex = 0;
+		const entryOffsets = new Map();
 		await process(zipWriter, entry);
 
 		async function process(zipWriter, entry) {
 			await exportChild();
 
 			async function exportChild() {
-				let index = 0;
-				for (const child of entry.children) {
-					let currentIndexEntry = currentIndex;
-					await zipWriter.add(child.getFullname(), child.reader, Object.assign({
-						directory: child.directory
-					}, {
-						onprogress: indexProgress => {
-							if (options.onprogress) {
-								options.onprogress(currentIndexEntry + index + indexProgress, totalSize);
-							}
-						}
-					}));
-					currentIndex += child.uncompressedSize;
-					await process(zipWriter, child);
-					index++;
+				if (options.bufferedWrite) {
+					await Promise.all(entry.children.map(processChild));
+				} else {
+					for (const child of entry.children) {
+						await processChild(child);
+					}
 				}
+			}
+
+			async function processChild(child) {
+				await zipWriter.add(child.getFullname(), child.reader, Object.assign({
+					directory: child.directory
+				}, Object.assign({}, options, {
+					onprogress: indexProgress => {
+						if (options.onprogress) {
+							entryOffsets.set(child.getFullname(), indexProgress);
+							options.onprogress(Array.from(entryOffsets.values()).reduce((previousValue, currentValue) => previousValue + currentValue), totalSize);
+						}
+					}
+				})));
+				await process(zipWriter, child);
 			}
 		}
 	}
@@ -2423,14 +2421,11 @@
 		fs.root = new ZipDirectoryEntry(fs);
 	}
 
-	async function bufferedCopy(reader, writer, options) {
+	async function bufferedCopy(reader, writer) {
 		return stepCopy();
 
 		async function stepCopy(chunkIndex = 0) {
 			const index = chunkIndex * CHUNK_SIZE;
-			if (options.onprogress) {
-				options.onprogress(index, reader.size);
-			}
 			if (index < reader.size) {
 				const array = await reader.readUint8Array(index, Math.min(CHUNK_SIZE, reader.size - index));
 				await writer.writeUint8Array(array);
