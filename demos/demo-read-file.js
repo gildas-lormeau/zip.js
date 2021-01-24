@@ -32,6 +32,7 @@
 		let fileList = document.getElementById("file-list");
 		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
 		let entries, selectedFile;
+		passwordInput.onchange = async () => fileList.querySelectorAll("a[download]").forEach(anchor => anchor.download = "");
 		fileInput.onchange = async () => {
 			try {
 				fileInputButton.disabled = true;
