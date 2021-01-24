@@ -116,6 +116,7 @@ details[open]>.dir-summary::marker {
 	padding: 5px;
 	height: calc(100% - 10px);
 	overflow: auto;
+	margin: 0;
 }
 
 .listing>li {
