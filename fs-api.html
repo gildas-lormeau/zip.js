@@ -451,12 +451,32 @@
 				</dl>
 			</dd>
 		</dl>
+		<p>Returns:</p>
 		<dl>
 			<dt><code>Promise</code></dt>
 			<dd>A promise with the unzipped content as resolved value
 			</dd>
 		</dl>
-
+		<br>
+		<pre><code class="prettyprint">ZipFileEntry#replaceBlob(blob)</code></pre>
+		<p>
+			Replace the file entry content with a blob object
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>blob (<a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a>)</code></dt>
+			<dd>the blob object</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipFileEntry#replaceText(text)</code></pre>
+		<p>
+			Replace the file entry content with a string
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>text (string)</code></dt>
+			<dd>the string</dd>
+		</dl>
 		<h3 id="zip-directory-entry">Zip directory entry</h3>
 		<p>
 			ZipDirectoryEntry constructor
