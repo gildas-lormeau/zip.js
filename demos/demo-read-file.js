@@ -99,6 +99,7 @@
 				newFileList.appendChild(li);
 			});
 			fileList.replaceWith(newFileList);
+			fileList = newFileList;
 		}
 
 		async function download(entry, li, a) {
