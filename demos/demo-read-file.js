@@ -71,7 +71,6 @@
 
 		async function loadFiles(filenameEncoding) {
 			entries = await model.getEntries(selectedFile, { filenameEncoding });
-			emptyList();
 			if (entries && entries.length) {
 				fileList.classList.remove("empty");
 				const filenamesUTF8 = Boolean(!entries.find(entry => !entry.filenameUTF8));
@@ -80,20 +79,26 @@
 				encodingInput.disabled = filenamesUTF8;
 				passwordInput.value = "";
 				passwordInput.disabled = !encrypted;
-				entries.forEach((entry, entryIndex) => {
-					const li = document.createElement("li");
-					const anchor = document.createElement("a");
-					anchor.dataset.entryIndex = entryIndex;
-					anchor.textContent = anchor.title = entry.filename;
-					anchor.title = `${entry.filename}\n  Last modification date: ${entry.lastModDate.toLocaleString()}`;
-					if (!entry.directory) {
-						anchor.href = "";
-						anchor.title += `\n  Uncompressed size: ${entry.uncompressedSize.toLocaleString()} bytes`;
-					}
-					li.appendChild(anchor);
-					fileList.appendChild(li);
-				});
+				refreshList();
 			}
+		}
+
+		function refreshList() {
+			const newFileList = fileList.cloneNode();
+			entries.forEach((entry, entryIndex) => {
+				const li = document.createElement("li");
+				const anchor = document.createElement("a");
+				anchor.dataset.entryIndex = entryIndex;
+				anchor.textContent = anchor.title = entry.filename;
+				anchor.title = `${entry.filename}\n  Last modification date: ${entry.lastModDate.toLocaleString()}`;
+				if (!entry.directory) {
+					anchor.href = "";
+					anchor.title += `\n  Uncompressed size: ${entry.uncompressedSize.toLocaleString()} bytes`;
+				}
+				li.appendChild(anchor);
+				newFileList.appendChild(li);
+			});
+			fileList.replaceWith(newFileList);
 		}
 
 		async function download(entry, li, a) {
@@ -112,12 +117,6 @@
 			a.href = blobURL;
 			a.download = entry.filename;
 			a.dispatchEvent(clickEvent);
-		}
-
-		function emptyList() {
-			const newFileList = fileList.cloneNode();
-			fileList = fileList.replaceWith(newFileList);
-			fileList = newFileList;
 		}
 
 	})();
