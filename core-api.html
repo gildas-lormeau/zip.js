@@ -113,10 +113,10 @@
 			<dd>Advanced option used as an alternative to <code>workerScriptsPath</code> to explicitly control which
 				scripts are loaded in the web worker. It allows using alternative deflate implementations, or
 				concatenating worker scripts. The properties <code>deflate</code> and <code>inflate</code> must
-				specify arrays of URLs to import the deflate/inflate scripts, respectively. All the URLs are resolved
-				relative to the page's base URL. Scripts in the array are executed in order, and the first one should be
-				<code>z-worker.js</code>, which is used to start the worker. If only deflation or inflation is used in
-				your application, the unused <code>workerScripts.deflate/inflate</code> property can be omitted.
+				specify arrays of URLs to import the deflate/inflate scripts, respectively. The first URL is relative
+				to the base URI of the document. The other URLs are relative to the URL of the first script. Scripts in
+				the array are executed in order. If only deflation or inflation is used in your application, the unused
+				<code>workerScripts.deflate/inflate</code> property can be omitted.
 				Example:
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
