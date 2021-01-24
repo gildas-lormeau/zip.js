@@ -29,7 +29,7 @@ async function test() {
 				data = await entries[0].getData(dataBlobWriter, { password: "notagoodpassword" });
 				data = null;
 			} catch (error) {
-				if (error.message == zip.ERR_INVALID_PASSORD) {
+				if (error.message == zip.ERR_INVALID_PASSWORD) {
 					data = await entries[0].getData(dataBlobWriter, { password: "password" });
 				}
 			}

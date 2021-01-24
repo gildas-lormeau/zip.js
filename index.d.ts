@@ -209,7 +209,7 @@ declare module "zip.js" {
     export const ERR_UNSUPPORTED_ENCRYPTION: string;
     export const ERR_UNSUPPORTED_COMPRESSION: string;
     export const ERR_INVALID_SIGNATURE: string;
-    export const ERR_INVALID_PASSORD: string;
+    export const ERR_INVALID_PASSWORD: string;
     export const ERR_DUPLICATED_NAME: string;
     export const ERR_INVALID_COMMENT: string;
     export const ERR_INVALID_ENTRY_NAME: string;
