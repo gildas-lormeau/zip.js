@@ -157,11 +157,11 @@ details[open]>.dir-summary::marker {
 }
 
 .save-button {
-	background-image: url(resources/save.png);
+	background-image: url(resources/save.svg);
 }
 
 .newdir-button {
-	background-image: url(resources/new-directory.png);
+	background-image: url(resources/new-directory.svg);
 }
 
 @media (max-width: 680px) {
