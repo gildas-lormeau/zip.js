@@ -217,18 +217,17 @@
 					const filename = prompt("Filename", isFile ? node.name : node.parent ? node.name + ".zip" : "example.zip");
 					if (filename) {
 						progressExport.style.opacity = 1;
-						progressExport.offsetHeight;
+						progressExport.value = 0;
+						progressExport.max = 0;
 						let blobURL;
 						try {
-							blobURL = isFile ? await model.getBlobURL(node, { onprogress }) : await model.exportZip(node, { onprogress });
+							blobURL = isFile ? await model.getBlobURL(node, { onprogress, bufferedWrite: true }) : await model.exportZip(node, { onprogress });
 						} catch (error) {
 							alert(error);
 						}
 						if (blobURL) {
 							const clickEvent = new MouseEvent("click");
 							progressExport.style.opacity = 0.2;
-							progressExport.value = 0;
-							progressExport.max = 0;
 							target.href = blobURL;
 							target.download = filename;
 							target.dispatchEvent(clickEvent);
