@@ -91,6 +91,7 @@ declare module "zip.js" {
     export interface Entry {
         filename: string;
         rawFilename: Uint8Array;
+        filenameUTF8: boolean;
         directory: boolean;
         encrypted: boolean;
         compressedSize: number;
@@ -99,6 +100,7 @@ declare module "zip.js" {
         rawLastModDate: number;
         comment: string;
         rawComment: Uint8Array;
+        commentUTF8: boolean;
         signature: Uint8Array;
         extraField?: Map<number, Uint8Array>;
         rawExtraField: Uint8Array;
