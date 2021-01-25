@@ -1,4 +1,4 @@
-# Build scripts of zip.js
+# Built scripts of zip.js
  
 - for production (minified):
 
