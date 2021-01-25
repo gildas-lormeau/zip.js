@@ -1,6 +1,4 @@
 # Build scripts of zip.js
-
-## Main script
  
 - for production (minified):
 
@@ -19,9 +17,3 @@
 | zip-full.js         |         x |              |           x |              x |
 | zip-fs.js           |         x |            x |           x |                |
 | zip-fs-full.js      |         x |            x |           x |              x |
-
-## Web worker script
-
-|                     | `zip` API | `zip.fs` API | deflate | inflate | usage                                               |
-|---------------------|-----------|--------------|---------|---------|-----------------------------------------------------|
-| z-worker-pako.js    |           |              |         |         | compression/decompression with web workers and pako |
