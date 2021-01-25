@@ -39,24 +39,31 @@
 
 		<h2 id="fs-installation">Installation</h2>
 		<ul>
-			<li>
-				Add <code>zip-fs.min.js</code> from the
-				<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
-				directory in your project. If you don't want to use web workers, download <code>zip-fs-full.min.js</code>
-				instead. You can also get the code via <a href="https://www.npmjs.com/package/@zip.js/zip.js">NPM</a> by
-				running
-				<pre><code class="prettyprint">npm install @zip.js/zip.js</code></pre>
-			</li>
-			<li>Include <code>zip-fs.min.js</code> (or <code>zip-fs-full.min.js</code>) in your HTML page
+			<li>Import zip-fs.js in your project:
 				<ul>
-					<li>as a regular script
-						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/zip-fs.min.js&quot;&gt;&lt;/script&gt;</code></pre>
+					<li>
+						To install the library with NPM, run:
+						<pre><code class="prettyprint">npm install @zip.js/zip.js</code></pre>
+						Then, you can import it as a JavaScript module in your project and bundle it with your favorite
+						tools.
 					</li>
-					<li>or as a module
-						<pre><code class="prettyprint">require(["/&lt;library path&gt;/zip-fs.min.js"], zip => {
+					<li>
+						To install zip-fs.js manually, add <code>zip-fs.min.js</code> from the
+						<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
+						directory in your project. If you don't want to use web workers, download
+						<code>zip-fs-full.min.js</code> instead. Then, include <code>zip.min.js</code> (or
+						<code>zip-fs-full.min.js</code>) in your HTML page
+						<ul>
+							<li>as a regular script
+								<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/zip-fs.min.js&quot;&gt;&lt;/script&gt;</code></pre>
+							</li>
+							<li>or as a module
+								<pre><code class="prettyprint">require(["/&lt;library path&gt;/zip-fs.min.js"], zip => {
   // ...
 });</code></pre>
 
+							</li>
+						</ul>
 					</li>
 				</ul>
 			</li>
