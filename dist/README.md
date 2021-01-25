@@ -17,3 +17,6 @@
 | zip-full.js         |         x |              |           x |              x |
 | zip-fs.js           |         x |            x |           x |                |
 | zip-fs-full.js      |         x |            x |           x |              x |
+
+- z-worker.js can be used as a web worker script if the CSP don't allow to load it with a Blob URI
+- z-worker-pako.js is the web worker script for using pako
