@@ -21,8 +21,8 @@ export default [
 				file: "lib/z-worker-inline.js",
 				format: "esm",
 				name: "worker",
-				intro: "import { configure } from \"./core/zip-core.js\"; function configureWebWorker() { const uri = URL.createObjectURL(new Blob([`",
-				outro: "`])); configure({ workerScripts: { inflate: [uri], deflate: [uri] } }); } export default configureWebWorker;",
+				intro: "import { configure } from \"./core/zip-core.js\"; function configureWebWorker() { const uri = URL.createObjectURL(new Blob([\"(\"+(()=>{",
+				outro: "}).toString()+\")()\"])); configure({ workerScripts: { inflate: [uri], deflate: [uri] } }); } export default configureWebWorker;",
 				plugins: [
 					terser()
 				]
