@@ -89,5 +89,16 @@ export default [
 				]
 			}
 		]
+	}, {
+		input: "lib/z-worker.js",
+		output: [
+			{
+				file: "dist/z-worker.js",
+				format: "iife",
+				plugins: [
+					terser()
+				]
+			}
+		]
 	}
 ];
