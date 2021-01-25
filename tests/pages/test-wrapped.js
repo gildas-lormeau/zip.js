@@ -13,7 +13,7 @@ async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
 	const blobWriter = new zip.BlobWriter("application/zip");
-	blobWriter.writeUint8Array(new Uint8Array([60, 61, 62]));
+	await blobWriter.writeUint8Array(new Uint8Array([60, 61, 62]));
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	await zipWriter.close(new Uint8Array([60, 61, 62]));
