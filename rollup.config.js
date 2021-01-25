@@ -2,7 +2,7 @@ import { terser } from "rollup-plugin-terser";
 
 export default [
 	{
-		input: "lib/zip.js",
+		input: ["lib/zip.js"],
 		output: [
 			{
 				file: "dist/zip.min.js",
@@ -20,39 +20,23 @@ export default [
 				]
 			}
 		]
-	}, {
-		input: "lib/zip-workers.js",
+	},
+	{
+		input: ["lib/zip-full.js"],
 		output: [
 			{
-				file: "dist/zip-workers.min.js",
+				file: "dist/zip-full.min.js",
 				format: "umd",
 				name: "zip",
 				plugins: [
 					terser()
 				]
-			}
-		]
-	}, {
-		input: "lib/zip-inflate.js",
-		output: [
+			},
 			{
-				file: "dist/zip-inflate.min.js",
+				file: "dist/zip-full.js",
 				format: "umd",
 				name: "zip",
 				plugins: [
-					terser()
-				]
-			}
-		]
-	}, {
-		input: "lib/zip-deflate.js",
-		output: [
-			{
-				file: "dist/zip-deflate.min.js",
-				format: "umd",
-				name: "zip",
-				plugins: [
-					terser()
 				]
 			}
 		]
@@ -79,42 +63,16 @@ export default [
 		input: "index.js",
 		output: [
 			{
-				file: "dist/zip-fs-full.min.js",
+				file: "dist/zip-fs-full.js",
 				format: "umd",
 				name: "zip",
 				plugins: [
-					terser()
 				]
-			}
-		]
-	}, {
-		input: "lib/z-worker.js",
-		output: [
+			},
 			{
-				file: "dist/z-worker.js",
-				format: "iife",
-				plugins: [
-					terser()
-				]
-			}
-		]
-	}, {
-		input: "lib/z-worker-inflate.js",
-		output: [
-			{
-				file: "dist/z-worker-inflate.js",
-				format: "iife",
-				plugins: [
-					terser()
-				]
-			}
-		]
-	}, {
-		input: "lib/z-worker-deflate.js",
-		output: [
-			{
-				file: "dist/z-worker-deflate.js",
-				format: "iife",
+				file: "dist/zip-fs-full.min.js",
+				format: "umd",
+				name: "zip",
 				plugins: [
 					terser()
 				]
