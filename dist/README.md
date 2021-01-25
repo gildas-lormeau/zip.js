@@ -22,6 +22,6 @@
 
 ## Web worker script
 
-|                     | `zip` API | `zip.fs` API | deflate | inflate | usage                                      |
+|                     | `zip` API | `zip.fs` API | deflate | inflate | usage                                               |
 |---------------------|-----------|--------------|---------|---------|-----------------------------------------------------|
-| z-worker-pako.js    |           |              |         |         | compression/decompression with web workers and Pako |
+| z-worker-pako.js    |           |              |         |         | compression/decompression with web workers and pako |
