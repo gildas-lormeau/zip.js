@@ -22,7 +22,7 @@ export default [
 				format: "esm",
 				name: "worker",
 				intro: "import { configure } from \"./core/zip-core.js\"; function configureWebWorker() { const uri = URL.createObjectURL(new Blob([`",
-				outro: "`])); configure({ workerScriptsPath: null, workerScripts: { inflate: [uri], deflate: [uri] } }); } export default configureWebWorker;",
+				outro: "`])); configure({ workerScripts: { inflate: [uri], deflate: [uri] } }); } export default configureWebWorker;",
 				plugins: [
 					terser()
 				]

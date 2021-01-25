@@ -11,11 +11,7 @@ test().catch(error => console.error(error));
 async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({
-		chunkSize: 128,
-		workerScripts: {
-			deflate: ["../../dist/z-worker-deflate.js"],
-			inflate: ["../../dist/z-worker-inflate.js"]
-		}
+		chunkSize: 128
 	});
 	let zipFs = new zip.fs.FS();
 	let directory = zipFs.root.addDirectory("import");

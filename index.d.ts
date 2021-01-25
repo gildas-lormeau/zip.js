@@ -5,7 +5,6 @@ declare module "zip.js" {
     export interface ConfigurationOptions {
         useWebWorkers?: boolean;
         maxWorkers?: number;
-        workerScriptsPath?: string;
         workerScripts?: {
             deflater?: string[];
             inflater?: string[];
