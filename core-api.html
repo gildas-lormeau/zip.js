@@ -42,15 +42,13 @@
 			<li>
 				Add <code>zip.min.js</code> from the
 				<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
-				directory in your project and the following files depending on your needs:
-				<ul>
-					<li><code>z-worker.js</code> to zip/unzip files with web workers (recommended)</li>
-				</ul>
-				You can also get the code via <a href="https://www.npmjs.com/package/@zip.js/zip.js">NPM</a> by running
+				directory in your project. If you don't want to use web workers, download <code>zip-full.min.js</code>
+				instead. You can also get the code via <a href="https://www.npmjs.com/package/@zip.js/zip.js">NPM</a> by
+				running
 				<pre><code class="prettyprint">npm install @zip.js/zip.js</code></pre>
 			</li>
 
-			<li>Include <code>zip.min.js</code> script in your HTML page
+			<li>Include <code>zip.min.js</code> (or <code>zip-full.min.js</code>) in your HTML page
 				<ul>
 					<li>as a regular script
 						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/zip.min.js&quot;&gt;&lt;/script&gt;</code></pre>
@@ -63,25 +61,11 @@
 					</li>
 				</ul>
 			</li>
-			<li>The last step depends on whether you use web workers or not
-				<ul>
-					<li>with web workers:
-						<br>
-						Configure zip.js with <code>workerScriptsPath</code> set to the URL of the directory containing
-						<code>z-worker.js</code>
-						<pre><code class="prettyprint">zip.configure({
-  workerScriptsPath: "/&lt;library path&gt;/"
-});</code></pre>
-
-					</li>
-					<li>without web workers:
-						<br>
-						Configure zip.js with <code>useWebWorkers</code> set to <code>false</code>
-						<pre><code class="prettyprint">zip.configure({
+			<li>If you don't want to use web workers, configure zip.js with <code>useWebWorkers</code> set to
+				<code>false</code>
+				<pre><code class="prettyprint">zip.configure({
   useWebWorkers: false
 });</code></pre>
-					</li>
-				</ul>
 			</li>
 		</ul>
 
@@ -103,26 +87,17 @@
 			</dd>
 		</dl>
 		<dl>
-			<dt><code>workerScriptsPath (string)</code></dt>
-			<dd>URL to the directory containing the default worker scripts (<code>z-worker.js</code>). If a relative URL
-				is specified, it is resolved against the page's base URL (usually the URL of the web page importing
-				zip.js). By default, the worker scripts are loaded from the directory of the page's base URL.
-			</dd>
-		</dl>
-		<dl>
 			<dt><code>workerScripts (Object)</code></dt>
-			<dd>Advanced option used as an alternative to <code>workerScriptsPath</code> to explicitly control which
-				scripts are loaded in the web worker. It allows using alternative deflate implementations, or
-				concatenating worker scripts. The properties <code>deflate</code> and <code>inflate</code> must
-				specify arrays of URLs to import the deflate/inflate scripts, respectively. The first URL is relative
-				to the base URI of the document. The other URLs are relative to the URL of the first script. Scripts in
-				the array are executed in order. If only deflation or inflation is used in your application, the unused
-				<code>workerScripts.deflate/inflate</code> property can be omitted.
-				Example:
+			<dd>Advanced option to explicitly control which scripts are loaded in the web worker. It allows using
+				alternative deflate implementations. The properties <code>deflate</code> and <code>inflate</code> must
+				specify arrays of URLs to import the deflate/inflate scripts, respectively. The first URL is relative to
+				the base URI of the document. The other URLs are relative to the URL of the first script. Scripts in the
+				array are executed in order. If only deflation or inflation is used in your application, the unused
+				<code>workerScripts.deflate/inflate</code> property can be omitted. Example:
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
-    deflate: ["&lt;library path&gt;/z-worker.js"],
-    inflate: ["&lt;library path&gt;/z-worker.js"]
+    deflate: ["&lt;library path&gt;/custom-worker.js", "&lt;library path&gt;/custom-deflate.min.js"],
+    inflate: ["&lt;library path&gt;/custom-worker.js", "&lt;library path&gt;/custom-inflate.min.js"]
   }
 });</code></pre>
 			</dd>
@@ -641,8 +616,7 @@ console.log(data);</code></pre>
 				target="repository">/demos</a> directories of the project.</p>
 		<h2 id="alternative-codecs">Alternative DEFLATE implementations</h2>
 		<p>Alternative DEFLATE implementations can be used with zip.js in favor of better performance and/or better
-			compliance. Currently only pako is supported. In order to use them, you need to specify the
-			<code>workerScripts</code> configuration property instead of <code>workerScriptsPath</code>, see below.
+			compliance. Currently only pako is supported.
 		</p>
 		<ul>
 			<li>

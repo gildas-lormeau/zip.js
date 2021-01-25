@@ -42,15 +42,12 @@
 			<li>
 				Add <code>zip-fs.min.js</code> from the
 				<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
-				directory in your project and the following files depending on your needs:
-				<ul>
-					<li><code>z-worker.js</code> to zip/unzip files with web workers (recommended)</li>
-				</ul>
-				You can also get the code via <a href="https://www.npmjs.com/package/@zip.js/zip.js">NPM</a> by running
+				directory in your project. If you don't want to use web workers, download <code>zip-fs-full.min.js</code>
+				instead. You can also get the code via <a href="https://www.npmjs.com/package/@zip.js/zip.js">NPM</a> by
+				running
 				<pre><code class="prettyprint">npm install @zip.js/zip.js</code></pre>
 			</li>
-
-			<li>Include <code>zip-fs.min.js</code> script in your HTML page
+			<li>Include <code>zip-fs.min.js</code> (or <code>zip-fs-full.min.js</code>) in your HTML page
 				<ul>
 					<li>as a regular script
 						<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/zip-fs.min.js&quot;&gt;&lt;/script&gt;</code></pre>
@@ -63,25 +60,11 @@
 					</li>
 				</ul>
 			</li>
-			<li>The last step depends on whether you use web workers or not
-				<ul>
-					<li>with web workers:
-						<br>
-						Configure zip.js with <code>workerScriptsPath</code> set to the URL of the directory containing
-						<code>z-worker.js</code>
-						<pre><code class="prettyprint">zip.configure({
-  workerScriptsPath: "/&lt;library path&gt;/"
-});</code></pre>
-
-					</li>
-					<li>without web workers:
-						<br>
-						Configure zip.js with <code>useWebWorkers</code> set to <code>false</code>
-						<pre><code class="prettyprint">zip.configure({
+			<li>If you don't want to use web workers, configure zip.js with <code>useWebWorkers</code> set to
+				<code>false</code>
+				<pre><code class="prettyprint">zip.configure({
   useWebWorkers: false
 });</code></pre>
-					</li>
-				</ul>
 			</li>
 		</ul>
 
