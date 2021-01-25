@@ -19,7 +19,7 @@ declare module "zip.js" {
     }
 
     export class Reader extends Stream {
-        public readUint8Array(index: number, length: number): Uint8Array;
+        public readUint8Array(index: number, length: number): Promise<Uint8Array>;
     }
 
     export class TextReader extends Reader {
@@ -47,27 +47,27 @@ declare module "zip.js" {
     }
 
     export class Writer extends Stream {
-        public writeUint8Array(array: Uint8Array): void;
+        public writeUint8Array(array: Uint8Array): Promise<void>;
     }
 
     export class TextWriter extends Writer {
         constructor(encoding?: string);
-        public getData(): Promise<string>;
+        public getData(): string;
     }
 
     export class BlobWriter extends Writer {
         constructor(mimeString?: string);
-        public getData(): Promise<Blob>;
+        public getData(): Blob;
     }
 
     export class Data64URIWriter extends Writer {
         constructor(mimeString?: string);
-        public getData(): Promise<string>;
+        public getData(): string;
     }
 
     export class Uint8ArrayWriter extends Writer {
         constructor();
-        public getData(): Promise<Uint8Array>;
+        public getData(): Uint8Array;
     }
 
     export class ZipReader {
