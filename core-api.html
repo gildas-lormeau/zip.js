@@ -113,8 +113,8 @@
 				<code>workerScripts.deflate/inflate</code> property can be omitted. Example:
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
-    deflate: ["&lt;library path&gt;/custom-worker.js", "&lt;library path&gt;/custom-deflate.min.js"],
-    inflate: ["&lt;library path&gt;/custom-worker.js", "&lt;library path&gt;/custom-inflate.min.js"]
+    deflate: ["&lt;library path&gt;/custom-worker.js", "&lt;library path&gt;/custom-deflate.js"],
+    inflate: ["&lt;library path&gt;/custom-worker.js", "&lt;library path&gt;/custom-inflate.js"]
   }
 });</code></pre>
 				You can use this property if the CSP blocks scripts imported with a Blob URL. For this, you have to
