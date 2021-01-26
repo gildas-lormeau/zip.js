@@ -103,15 +103,28 @@
 		<dl>
 			<dt><code>workerScripts (Object)</code></dt>
 			<dd>Advanced option to explicitly control which scripts are loaded in the web worker. It allows using
-				alternative deflate implementations. The properties <code>deflate</code> and <code>inflate</code> must
-				specify arrays of URLs to import the deflate/inflate scripts, respectively. The first URL is relative to
-				the base URI of the document. The other URLs are relative to the URL of the first script. Scripts in the
-				array are executed in order. If only deflation or inflation is used in your application, the unused
+				alternative deflate implementations or specifying a URL to the worker script if the CSP blocks scripts
+				imported with a Blob URL.
+				<br>
+				The properties <code>deflate</code> and <code>inflate</code> must specify arrays of URLs to import
+				the deflate/inflate scripts, respectively. The first URL is relative to the base URI of the document.
+				The other URLs are relative to the URL of the first script. Scripts in the array are executed in order.
+				If only deflation or inflation is used in your application, the unused
 				<code>workerScripts.deflate/inflate</code> property can be omitted. Example:
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
     deflate: ["&lt;library path&gt;/custom-worker.js", "&lt;library path&gt;/custom-deflate.min.js"],
     inflate: ["&lt;library path&gt;/custom-worker.js", "&lt;library path&gt;/custom-inflate.min.js"]
+  }
+});</code></pre>
+				You can use this property if the CSP blocks scripts imported with a Blob URL. For this, you have to
+				specify the URL where the <code>z-worker.js</code> script (from the
+				<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
+				directory) can be found. Example:
+				<pre><code class="prettyprint">zip.configure({
+  workerScripts: {
+    deflate: ["&lt;library path&gt;/z-worker.js"],
+    inflate: ["&lt;library path&gt;/z-worker.js"]
   }
 });</code></pre>
 			</dd>
