@@ -8,6 +8,7 @@
         "zip",
         "unzip",
         "browser",
+        "web",
         "aes-256",
         "aes-192",
         "aes-128",
