@@ -8,11 +8,14 @@
         "zip",
         "unzip",
         "browser",
-        "filessystem",
         "aes-256",
+        "aes-192",
+        "aes-128",
         "encryption",
         "zip64",
-        "stream"
+        "stream",
+        "web-crypto",
+        "web-workers"
     ],
     "scripts": {
         "build": "./build.sh"
