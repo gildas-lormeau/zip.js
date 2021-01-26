@@ -48,10 +48,10 @@
 						tools.
 						<ul>
 							<li>ES6 <code>import</code>
-								<pre><code class="prettyprint">import { fs } from "@zip.js/zip.js";</code></pre>
+								<pre><code class="prettyprint">import { fs, configure } from "@zip.js/zip.js";</code></pre>
 							</li>
 							<li>CJS <code>require</code>
-								<pre><code class="prettyprint">const fs = require("@zip.js/zip.js").fs;</code></pre>
+								<pre><code class="prettyprint">const { fs, configure } = require("@zip.js/zip.js");</code></pre>
 							</li>
 						</ul>
 					</li>
@@ -67,6 +67,7 @@
 							</li>
 							<li>or as a module
 								<pre><code class="prettyprint">require(["/&lt;library path&gt;/zip-fs.min.js"], zip => {
+  const { fs, configure } = zip;
   // ...
 });</code></pre>
 
