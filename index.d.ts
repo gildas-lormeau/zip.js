@@ -1,4 +1,4 @@
-declare module "zip.js" {
+declare module "@zip.js/zip.js" {
 
     export function configure(configuration: ConfigurationOptions): void;
 
