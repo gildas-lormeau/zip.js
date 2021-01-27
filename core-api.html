@@ -621,34 +621,41 @@ await writer.close();
 // get the zip file as a Blob
 const blob = await blobWriter.getData();</code></pre>
 		<h2 id="full-example">Full example</h2>
-		<pre><code class="prettyprint">// create the inputBlob object storing the data to compress
+		<pre><code class="prettyprint">// - create the inputBlob object storing the data to compress
 const inputBlob = new Blob(
   ["Lorem ipsum dolor sit amet, consectetuer adipiscing elit..."], 
   { type: "text/plain" });
 
-// - create a BlobWriter object to write the zipped data into a Blob object
-// - create a ZipWriter object with the BlobWriter object as parameter
-const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
+// - create a Data64URIWriter object to write the zipped data into a data URI
+// - create a ZipWriter object with the Data64URIWriter object as parameter
+const zipWriter = new zip.ZipWriter(new zip.Data64URIWriter("application/zip"));
 
 // - create a BlobReader object to read the content of inputBlob
 // - add a new file named "text.txt" in the zip and associate it to the BlobReader object
 await zipWriter.add("test.txt", new zip.BlobReader(inputBlob));
 
-// - close the ZipWriter object
-// - create a BlobReader object with the zipped content 
-// - create a ZipWriter object to read the zipped data
-const zipReader = new zip.ZipReader(new zip.BlobReader(await zipWriter.close()));
+// - close the ZipWriter object and get compressed data
+const dataURI = await zipWriter.close();
+// - log compressed data
+console.log(dataURI);
+// data:application/zip;base64,UEsDBBQACAgIAJuFO1IAAAAAAAAAAAAAAAAIAAAAdGVzdC50e...
 
-// get entries from the zip file
+
+// - create a Data64URIReader object with the zipped content 
+// - create a ZipWriter object to read the zipped data
+const zipReader = new zip.ZipReader(new zip.Data64URIReader(dataURI));
+
+// - get entries from the zip file
 const entries = await zipReader.getEntries();
 
-// use a BlobWriter object to write the unzipped data of the first entry into a Blob object
-const data = await entries[0].getData(new zip.BlobWriter("text/plain"));
-// close the ZipReader object
+// - use a TextWriter object to write the unzipped data of the first entry into a string
+const data = await entries[0].getData(new zip.TextWriter());
+// - close the ZipReader object
 await zipReader.close();
 
-// log the data
-console.log(data);</code></pre>
+// - log data
+console.log(data);
+// Lorem ipsum dolor sit amet, consectetuer adipiscing elit...</code></pre>
 		<p>You can find some other examples of code in the <a
 				href="https://github.com/gildas-lormeau/zip.js/tree/master/tests" target="repository">/tests</a>
 			and the <a href="https://github.com/gildas-lormeau/zip.js/tree/gh-pages/demos"
