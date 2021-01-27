@@ -6,8 +6,8 @@ declare module "@zip.js/zip.js" {
         useWebWorkers?: boolean;
         maxWorkers?: number;
         workerScripts?: {
-            deflater?: string[];
-            inflater?: string[];
+            deflate?: string[];
+            inflate?: string[];
         };
         chunkSize?: number;
         Deflate?: Codec;
