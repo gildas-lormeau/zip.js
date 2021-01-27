@@ -107,8 +107,8 @@
 		<dl>
 			<dt><code>workerScripts (Object)</code></dt>
 			<dd>Advanced option to explicitly control which scripts are loaded in the web worker. It allows using
-				alternative deflate implementations or specifying a URL to the worker script if the CSP blocks scripts
-				imported with a Blob URL.
+				alternative deflate implementations or specifying a URL to the worker script if the CSP of the page
+				blocks scripts imported with a Blob URL.
 				<br>
 				The properties <code>deflate</code> and <code>inflate</code> must specify arrays of URLs to import
 				the deflate/inflate scripts, respectively. The first URL is relative to the base URI of the document.
@@ -121,10 +121,10 @@
     inflate: ["&lt;library path&gt;/custom-worker.js", "&lt;library path&gt;/custom-inflate.js"]
   }
 });</code></pre>
-				You can use this property if the CSP blocks scripts imported with a Blob URL. For this, you have to
-				specify the URL where the <code>z-worker.js</code> script (from the
+				You can use this property if the CSP of the page blocks scripts imported with a Blob URL. For this, you
+				have to add <code>z-worker.js</code> from the
 				<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
-				directory) can be found. Example:
+				directory in your project and specify the URL where it can be found in your project. Example:
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
     deflate: ["&lt;library path&gt;/z-worker.js"],
@@ -139,12 +139,12 @@
 		<p>
 			<code>zip.js</code> can handle multiple types of data thanks to a generic API. This feature is based on 2
 			abstract constructors: <code><a href="#zip-reading">zip.Reader</a></code> and
-			<code><a href="#zip-writer">zip.Writer</a></code>. <code><a href="#zip-reading">zip.Reader</a></code>
-			constructors help to read data from a file and <code><a href="#zip-writer">zip.Writer</a></code>
-			constructors help to write data into a file.
+			<code><a href="#zip-writer">zip.Writer</a></code>. The <code><a href="#zip-reading">zip.Reader</a></code>
+			constructors help to read data from a source of data. The <code><a href="#zip-writer">zip.Writer</a></code>
+			constructors help to write data into a destination.
 		</p>
 		<p>
-			For example, if you need to read a zip and store its file into a variable, you must use a
+			For example, if you need to read a zip and store a uncompressed file into a variable, you must use a
 			<code><a href="#zip-reading">zip.Reader</a></code> object to read the compressed zip data. You must also use
 			a <code><a href="#zip-writer">zip.Writer</a></code> object to write the uncompressed file data into the
 			variable.
