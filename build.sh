@@ -1,4 +1,4 @@
 #!/bin/sh
 
-rollup -c rollup-inline-worker.config.js
-rollup -c
+npx rollup -c rollup-inline-worker.config.js
+npx rollup -c
