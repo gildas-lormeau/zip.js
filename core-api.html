@@ -79,8 +79,8 @@
 					</li>
 				</ul>
 			</li>
-			<li>If you don't want to use web workers, configure zip.js with <code>useWebWorkers</code> set to
-				<code>false</code>
+			<li>If you don't want to use <a href="https://www.w3.org/TR/workers/">Web workers</a>, configure zip.js with
+				<code>useWebWorkers</code> set to <code>false</code>
 				<pre><code class="prettyprint">zip.configure({
   useWebWorkers: false
 });</code></pre>
@@ -91,7 +91,7 @@
 		<p>You can call the function <code>zip.configure</code> in order to configure zip.js. It accepts a configuration
 			object as parameter with these optional properties:</p>
 		<dl>
-			<dt><code>useWebWorkers (booolean)</code></dt>
+			<dt><code>useWebWorkers (boolean)</code></dt>
 			<dd>Enables the use of <a href="https://www.w3.org/TR/workers/">Web workers</a> to compress and uncompress
 				data in non-blocking background processes. The default value is <code>true</code>.
 			</dd>
