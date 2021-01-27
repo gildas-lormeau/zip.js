@@ -15,7 +15,7 @@
 
 		return {
 			addDirectory(name, parent) {
-				parent.addDirectory(name);
+				return parent.addDirectory(name);
 			},
 			addFile(name, blob, parent) {
 				parent.addBlob(name, blob);
@@ -260,10 +260,13 @@
 		function onnewDirectory() {
 			const name = prompt("Directory name");
 			if (name) {
-				model.addDirectory(name, getFileNode(selectedDirectory));
-				refreshTree();
-				if (selectedDirectory) {
+				try {
+					const entry = model.addDirectory(name, getFileNode(selectedDirectory));
+					refreshTree();
+					selectDirectory(document.querySelector("[data-file-id=\"" + entry.id + "\"]"));
 					getFileNode(selectedDirectory).expanded = selectedDirectory.open = true;
+				} catch (error) {
+					alert(error);
 				}
 			}
 		}
