@@ -20,6 +20,9 @@
 			addFile(name, blob, parent) {
 				parent.addBlob(name, blob);
 			},
+			importDirectory(directoryEntry, parent) {
+				return parent.addFileSystemEntry(directoryEntry);
+			},
 			getRoot() {
 				return fs.root;
 			},
@@ -123,8 +126,16 @@
 			if (target) {
 				const targetNode = getFileNode(target);
 				if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
-					const file = event.dataTransfer.files[0];
-					if (file) {
+					const item = event.dataTransfer.items[0];
+					if (item.webkitGetAsEntry !== undefined) {
+						const directoryEntry = await item.webkitGetAsEntry();
+						await model.importDirectory(directoryEntry, targetNode);
+						selectDirectory(target);
+						expandTree(targetNode);
+						refreshTree();
+						refreshListing();
+					} else {
+						const file = item.getAsFile();
 						try {
 							await model.importZip(file, targetNode);
 						} catch (error) {

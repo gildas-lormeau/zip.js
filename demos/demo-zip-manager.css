@@ -89,7 +89,7 @@ details[open]>.dir-summary::marker {
 .directories.empty::after {
 	font-family: sans-serif;
 	color: #bbb;
-	content: "Drag and drop zip files into folders";
+	content: "Drag and drop zip files or folders into folders";
 	display: block;
 	width: calc(100% - 5px);
 	text-align: center;
