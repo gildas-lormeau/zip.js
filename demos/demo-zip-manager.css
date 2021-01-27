@@ -54,7 +54,7 @@ summary {
 
 .selected>summary .dir-label[contenteditable=true], .selected>.file-label[contenteditable=true] {
 	color: inherit;
-	background-color: #ddd;
+	background-color: transparent;
 }
 
 .dir-summary {
