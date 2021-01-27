@@ -48,24 +48,28 @@
 						tools:
 						<ul>
 							<li>as an ES6 module imported with <code>import</code>
-								<pre><code class="prettyprint">import * as zip from "@zip.js/zip.js";</code></pre>
+								<pre><code class="prettyprint">import { fs, configure } from "@zip.js/zip.js";</code></pre>
 							</li>
 							<li>or as a CommonJS module imported with <code>require</code>
-								<pre><code class="prettyprint">const zip = require("@zip.js/zip.js");</code></pre>
+								<pre><code class="prettyprint">const { fs, configure } = require("@zip.js/zip.js");</code></pre>
 							</li>
 						</ul>
 					</li>
 					<li>
 						To install zip-fs.js manually, add <code>zip-fs.min.js</code> from the
 						<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
-						directory in your project. If you don't want to use web workers, download
+						directory in your project. If you don't want to use web workers, add
 						<code>zip-fs-full.min.js</code> instead. Then, include <code>zip.min.js</code> (or
 						<code>zip-fs-full.min.js</code>) in your HTML page:
 						<ul>
 							<li>as a regular script
-								<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/zip-fs.min.js&quot;&gt;&lt;/script&gt;</code></pre>
+								<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/&lt;library path&gt;/zip-fs.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+  const { fs, configure } = window.zip;
+  // ...
+&lt;/script&gt;</code></pre>								
 							</li>
-							<li>or as a module
+							<li>or as an AMD module
 								<pre><code class="prettyprint">require(["/&lt;library path&gt;/zip-fs.min.js"], zip => {
   const { fs, configure } = zip;
   // ...
