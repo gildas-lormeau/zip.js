@@ -190,7 +190,7 @@
 				selectedDrag = selectedFile;
 			}
 		}, false);
-		progressExport.style.opacity = 0.2;
+		progressExport.style.opacity = 0;
 		expandTree();
 		refreshTree();
 
@@ -238,7 +238,7 @@
 						}
 						if (blobURL) {
 							const clickEvent = new MouseEvent("click");
-							progressExport.style.opacity = 0.2;
+							progressExport.style.opacity = 0;
 							target.href = blobURL;
 							target.download = filename;
 							target.dispatchEvent(clickEvent);
