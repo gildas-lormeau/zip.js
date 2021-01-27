@@ -2202,7 +2202,7 @@
 			});
 		}
 		async addFileSystemEntry(fileSystemEntry) {
-			await addFileSystemEntry(this, fileSystemEntry);
+			return addFileSystemEntry(this, fileSystemEntry);
 		}
 		async addData(name, params) {
 			return addChild(this, name, params);
@@ -2390,14 +2390,11 @@
 
 	async function addFileSystemEntry(zipEntry, fileSystemEntry) {
 		if (fileSystemEntry.isDirectory) {
-			await addDirectory(zipEntry, fileSystemEntry);
+			const entry = zipEntry.addDirectory(fileSystemEntry.name);
+			await addDirectory(entry, fileSystemEntry);
+			return entry;
 		} else {
-			await new Promise((resolve, reject) => {
-				fileSystemEntry.file(file => {
-					zipEntry.addBlob(fileSystemEntry.name, file);
-					resolve();
-				}, reject);
-			});
+			return new Promise((resolve, reject) => fileSystemEntry.file(file => resolve(zipEntry.addBlob(fileSystemEntry.name, file)), reject));
 		}
 
 		async function addDirectory(zipEntry, fileEntry) {
