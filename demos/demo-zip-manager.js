@@ -18,9 +18,9 @@
 				return parent.addDirectory(name);
 			},
 			addFile(name, blob, parent) {
-				parent.addBlob(name, blob);
+				return parent.addBlob(name, blob);
 			},
-			importDirectory(directoryEntry, parent) {
+			addFileSystemEntry(directoryEntry, parent) {
 				return parent.addFileSystemEntry(directoryEntry);
 			},
 			getRoot() {
@@ -128,12 +128,17 @@
 				if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
 					const item = event.dataTransfer.items[0];
 					if (item.webkitGetAsEntry !== undefined) {
-						const directoryEntry = await item.webkitGetAsEntry();
-						await model.importDirectory(directoryEntry, targetNode);
-						selectDirectory(target);
-						expandTree(targetNode);
+						const fileEntry = await item.webkitGetAsEntry();
+						const entry = await model.addFileSystemEntry(fileEntry, targetNode);
+						if (fileEntry.isDirectory) {
+							selectDirectory(target);
+							expandTree(targetNode);
+						}
 						refreshTree();
 						refreshListing();
+						if (fileEntry.isDirectory) {
+							selectDirectory(findFileElement(entry.id));
+						}
 					} else {
 						const file = item.getAsFile();
 						try {
@@ -177,8 +182,9 @@
 
 		listing.addEventListener("drop", event => {
 			if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
-				Array.from(event.dataTransfer.files).forEach(file => model.addFile(file.name, file, getFileNode(selectedDirectory)));
+				const entries = Array.from(event.dataTransfer.files).map(file => model.addFile(file.name, file, getFileNode(selectedDirectory)));
 				refreshListing();
+				selectFile(findFileElement(entries[0].id));
 			}
 			stopEvent(event);
 		}, false);
@@ -196,6 +202,10 @@
 
 		function getFileNode(element) {
 			return element ? model.getById(element.dataset.fileId) : model.getRoot();
+		}
+
+		function findFileElement(id) {
+			return document.querySelector("[data-file-id=\"" + id + "\"]");
 		}
 
 		function getFileElement(element) {
@@ -263,7 +273,7 @@
 				try {
 					const entry = model.addDirectory(name, getFileNode(selectedDirectory));
 					refreshTree();
-					selectDirectory(document.querySelector("[data-file-id=\"" + entry.id + "\"]"));
+					selectDirectory(findFileElement(entry.id));
 					getFileNode(selectedDirectory).expanded = selectedDirectory.open = true;
 				} catch (error) {
 					alert(error);
