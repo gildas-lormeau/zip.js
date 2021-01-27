@@ -2,6 +2,10 @@ declare module "@zip.js/zip.js" {
 
     export function configure(configuration: ConfigurationOptions): void;
 
+    global {
+        interface FileSystemEntry { }
+    }
+
     export interface ConfigurationOptions {
         useWebWorkers?: boolean;
         maxWorkers?: number;
