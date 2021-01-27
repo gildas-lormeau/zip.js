@@ -67,7 +67,7 @@
 &lt;script&gt;
   const { fs, configure } = window.zip;
   // ...
-&lt;/script&gt;</code></pre>								
+&lt;/script&gt;</code></pre>
 							</li>
 							<li>or as an AMD module
 								<pre><code class="prettyprint">require(["/&lt;library path&gt;/zip-fs.min.js"], zip => {
@@ -595,26 +595,23 @@
 			<dd>The new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 		</dl>
 		<br>
-		<pre><code class="prettyprint">ZipDirectoryEntry#addFileEntry(entry)</code></pre>
+		<pre><code class="prettyprint">ZipDirectoryEntry#addFileSystemEntry(fileSystemEntry)</code></pre>
 		<p>
-			Add a <code><a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> or
-			a
-			<code><a href="https://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a></code>
-			into the directory entry. If entry is a
-			<code><a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a></code> object
-			then the
-			<code><a href="https://www.w3.org/TR/file-system-api/#widl-FileEntry-file">FileEntry#file()</a></code>
-			function is called in order to get its content. If entry is a
-			<code><a href="https://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a></code>
-			object then all its children (file or directory) will be added recursively into the directory
-			entry.
+			Add a <code><a href="https://wicg.github.io/entries-api/#filesystementry">FileSystemEntry</a></code> object.
+			If the entry is a
+			<code><a href="https://wicg.github.io/entries-api/#filesystemfileentry">FileSystemFileEntry</a></code>
+			object then the
+			<code><a href="https://wicg.github.io/entries-api/#dom-filesystemfileentry-file">FileSystemFileEntry#file()</a></code>
+			function is called in order to get its content. If the entry is a
+			<code><a href="https://wicg.github.io/entries-api/#filesystemdirectoryentry">FileSystemDirectoryEntry</a></code>
+			object then it will ba added as a directory and all its children will be added recursively.
 		</p>
 		<p>Parameters:</p>
 		<dl>
-			<dt><code>entry (<a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a href="https://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a>)</code>
+			<dt><code>entry (<a href="https://wicg.github.io/entries-api/#filesystementry">FileSystemEntry</a>)</code>
 			</dt>
-			<dd>The <a href="https://www.w3.org/TR/file-system-api/#the-fileentry-interface">FileEntry</a> or <a
-					href="https://www.w3.org/TR/file-system-api/#the-directoryentry-interface">DirectoryEntry</a> object
+			<dd>The <code><a href="https://wicg.github.io/entries-api/#filesystementry">FileSystemEntry</a></code>
+				object to add
 			</dd>
 		</dl>
 		<p>Returns:</p>
