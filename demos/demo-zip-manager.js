@@ -1,4 +1,4 @@
-/* globals zip, document, URL, MouseEvent, alert, prompt */
+/* globals zip, document, URL, MouseEvent, alert, prompt, Range, getSelection */
 
 (() => {
 
@@ -302,7 +302,7 @@
 
 		function resetSelectedLabel(resetValue) {
 			if (selectedLabel) {
-				selectedLabel.contentEditable = false;
+				selectedLabel.contentEditable = "false";
 				selectedLabel.scrollLeft = 0;
 				selectedLabel.blur();
 				if (resetValue) {
@@ -313,27 +313,35 @@
 		}
 
 		async function editName(labelElement, nodeElement) {
-			labelElement.contentEditable = true;
-			labelElement.focus();
-			selectedLabel = labelElement;
-			selectedLabelValue = labelElement.textContent;
-			return new Promise(resolve => {
-				const node = getFileNode(nodeElement);
-				labelElement.addEventListener("keydown", event => {
-					const cancel = event.keyCode == 27;
-					if (event.keyCode == 13 || cancel) {
-						if (labelElement.textContent) {
-							resetSelectedLabel(cancel);
-							model.rename(node, labelElement.textContent);
-						} else {
-							model.remove(node);
-							resolve("deleted");
+			if (labelElement.contentEditable != "true") {
+				labelElement.contentEditable = "true";
+				const range = new Range();
+				range.setStartBefore(labelElement.childNodes[0]);
+				range.setEndAfter(labelElement.childNodes[0]);
+				const selection = getSelection();
+				selection.removeAllRanges();
+				selection.addRange(range);
+				labelElement.focus();
+				selectedLabel = labelElement;
+				selectedLabelValue = labelElement.textContent;
+				return new Promise(resolve => {
+					const node = getFileNode(nodeElement);
+					labelElement.addEventListener("keydown", event => {
+						const cancel = event.keyCode == 27;
+						if (event.keyCode == 13 || cancel) {
+							if (labelElement.textContent) {
+								resetSelectedLabel(cancel);
+								model.rename(node, labelElement.textContent);
+							} else {
+								model.remove(node);
+								resolve("deleted");
+							}
+							event.preventDefault();
+							resolve(cancel ? "canceled" : "");
 						}
-						event.preventDefault();
-						resolve(cancel ? "canceled" : "");
-					}
-				}, false);
-			});
+					}, false);
+				});
+			}
 		}
 
 		function refreshTree(node, element) {
