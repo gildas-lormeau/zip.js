@@ -318,6 +318,19 @@
 			<dd>The entry to remove</dd>
 		</dl>
 		<br>
+		<pre><code class="prettyprint">FS#move(entry, destination)</code></pre>
+		<p>
+			Move a <code><a href="#zip-entry">ZipEntry</a></code> object into the
+			<code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> destination object
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>entry (<a href="#zip-entry">ZipEntry</a>)</code></dt>
+			<dd>The <code><a href="#zip-entry">ZipEntry</a></code> to move</dd>
+			<dt><code>destination (<a href="#zip-directory-entry">ZipDirectoryEntry</a>)</code></dt>
+			<dd>The <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> destination object</dd>
+		</dl>
+		<br>
 
 		<h3 id="zip-entry">Zip entry</h3>
 		<p>
@@ -345,16 +358,6 @@
 			<dd>The id of the entry</dd>
 		</dl>
 		<h3>Methods</h3>
-		<pre><code class="prettyprint">ZipEntry#moveTo(directory)</code></pre>
-		<p>
-			Move the entry into the <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> target object
-		</p>
-		<p>Parameters:</p>
-		<dl>
-			<dt><code>directory (<a href="#zip-directory-entry">ZipDirectoryEntry</a>)</code></dt>
-			<dd>The <code><a href="#zip-directory-entry">ZipDirectoryEntry</a></code> target object</dd>
-		</dl>
-		<br>
 		<pre><code class="prettyprint">ZipEntry#getFullname()</code></pre>
 		<p>
 			Get the full name of the entry
@@ -488,6 +491,15 @@
 		<dl>
 			<dt><code>text (string)</code></dt>
 			<dd>the string</dd>
+		</dl>
+		<pre><code class="prettyprint">ZipFileEntry#replaceData64URI(text)</code></pre>
+		<p>
+			Replace the file entry content with a data URI
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>data URI (string)</code></dt>
+			<dd>the data URI</dd>
 		</dl>
 		<h3 id="zip-directory-entry">Zip directory entry</h3>
 		<p>
