@@ -130,7 +130,8 @@
 				const targetNode = getFileNode(target);
 				if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
 					const item = event.dataTransfer.items[0];
-					if (item.webkitGetAsEntry !== undefined) {
+					const file = event.dataTransfer.files[0];
+					if (item && file && !item.type.includes("zip") && !file.name.endsWith(".zip") && item.webkitGetAsEntry !== undefined) {
 						const fileEntry = await item.webkitGetAsEntry();
 						const entry = await model.addFileSystemEntry(fileEntry, targetNode);
 						if (fileEntry.isDirectory) {
