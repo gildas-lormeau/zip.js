@@ -32,6 +32,9 @@
 			remove(entry) {
 				fs.remove(entry);
 			},
+			move(entry, target) {
+				fs.move(entry, target);
+			},
 			rename(entry, name) {
 				entry.name = name;
 			},
@@ -154,7 +157,7 @@
 				} else {
 					const srcNode = getFileNode(selectedDrag);
 					if (targetNode != srcNode && targetNode != srcNode.parent && !targetNode.isDescendantOf(srcNode)) {
-						srcNode.moveTo(targetNode);
+						model.move(srcNode, targetNode);
 						targetNode.expanded = target.open = true;
 						refreshTree();
 						refreshListing();

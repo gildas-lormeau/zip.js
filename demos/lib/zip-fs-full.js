@@ -7285,22 +7285,7 @@
 			}
 		}
 		moveTo(target) {
-			if (target.directory) {
-				if (!target.isDescendantOf(this)) {
-					if (this != target) {
-						if (target.getChildByName(this.name)) {
-							throw new Error("Entry filename already exists");
-						}
-						detach(this);
-						this.parent = target;
-						target.children.push(this);
-					}
-				} else {
-					throw new Error("Entry is a ancestor of target entry");
-				}
-			} else {
-				throw new Error("Target entry is not a directory");
-			}
+			this.fs.move(this, target);
 		}
 		getFullname() {
 			let fullname = this.name, entry = this.parent;
@@ -7455,6 +7440,24 @@
 		remove(entry) {
 			detach(entry);
 			this.entries[entry.id] = null;
+		}
+		move(entry, targetDirectory) {
+			if (targetDirectory.directory) {
+				if (!targetDirectory.isDescendantOf(entry)) {
+					if (entry != targetDirectory) {
+						if (targetDirectory.getChildByName(entry.name)) {
+							throw new Error("Entry filename already exists");
+						}
+						detach(entry);
+						entry.parent = targetDirectory;
+						targetDirectory.children.push(entry);
+					}
+				} else {
+					throw new Error("Entry is a ancestor of target entry");
+				}
+			} else {
+				throw new Error("Target entry is not a directory");
+			}
 		}
 		find(fullname) {
 			const path = fullname.split("/");
