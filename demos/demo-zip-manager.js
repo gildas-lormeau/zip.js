@@ -343,7 +343,7 @@
 				selectedLabelValue = labelElement.textContent;
 				return new Promise(resolve => {
 					const node = getFileNode(nodeElement);
-					labelElement.addEventListener("keydown", event => {
+					labelElement.onkeydown = event => {
 						const cancel = event.keyCode == 27;
 						if (event.keyCode == 13 || cancel) {
 							if (labelElement.textContent) {
@@ -356,7 +356,7 @@
 							event.preventDefault();
 							resolve(cancel ? "canceled" : "");
 						}
-					}, false);
+					};
 				});
 			}
 		}
