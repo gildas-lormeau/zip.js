@@ -164,7 +164,6 @@ declare module "@zip.js/zip.js" {
         parent?: ZipEntry;
         children: ZipEntry[];
         uncompressedSize: number;
-        moveTo(entry: ZipDirectoryEntry): void;
         getFullname(): string;
         isDescendantOf(entry: ZipDirectoryEntry): boolean;
     }
@@ -202,6 +201,7 @@ declare module "@zip.js/zip.js" {
     export class FS {
         constructor();
         remove(entry: ZipEntry): void;
+        move(entry: ZipEntry, destination: ZipDirectoryEntry): void;
         find(fullname: string): ZipEntry;
         getById(id: number): ZipEntry;
         importBlob(blob: Blob, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
