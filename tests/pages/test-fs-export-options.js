@@ -14,13 +14,13 @@ async function test() {
 		chunkSize: 128
 	});
 	let zipFs = new zip.fs.FS();
-	let directory = zipFs.root.addDirectory("import");
+	let directory = zipFs.addDirectory("import");
 	await directory.importHttpContent(url);
 	const blob = await zipFs.exportBlob({ password: "password" });
 	zipFs = new zip.fs.FS();
 	let text;
 	await zipFs.importBlob(blob);
-	directory = zipFs.root.getChildByName("import");
+	directory = zipFs.getChildByName("import");
 	const firstEntry = directory.children[0];
 	try {
 		text = await firstEntry.getText();

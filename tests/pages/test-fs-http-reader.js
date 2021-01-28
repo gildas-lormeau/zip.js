@@ -13,11 +13,11 @@ async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
 	let zipFs = new zip.fs.FS();
-	zipFs.root.addHttpContent(FILENAME, url);
+	zipFs.addHttpContent(FILENAME, url);
 	const blob = await zipFs.exportBlob();
 	zipFs = new zip.fs.FS();
 	await zipFs.importBlob(blob);
-	const firstEntry = zipFs.root.children[0];
+	const firstEntry = zipFs.children[0];
 	const text = await firstEntry.getText("text/plain");
 	if (text == TEXT_CONTENT && firstEntry.name == FILENAME && firstEntry.uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";

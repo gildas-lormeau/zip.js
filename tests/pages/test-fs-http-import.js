@@ -14,12 +14,12 @@ async function test() {
 		chunkSize: 128
 	});
 	let zipFs = new zip.fs.FS();
-	let directory = zipFs.root.addDirectory("import");
+	let directory = zipFs.addDirectory("import");
 	await directory.importHttpContent(url);
 	const blob = await zipFs.exportBlob();
 	zipFs = new zip.fs.FS();
 	await zipFs.importBlob(blob);
-	directory = zipFs.root.getChildByName("import");
+	directory = zipFs.getChildByName("import");
 	const firstEntry = directory.children[0];
 	const text = await firstEntry.getText();
 	if (text == TEXT_CONTENT && firstEntry.uncompressedSize == TEXT_CONTENT.length) {
