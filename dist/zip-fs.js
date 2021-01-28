@@ -826,10 +826,11 @@
 			const chunkOffset = chunkIndex * chunkSize;
 			if (chunkOffset < inputLength) {
 				const inputData = await reader.readUint8Array(chunkOffset + offset, Math.min(chunkSize, inputLength - chunkOffset));
+				const chunkLength = inputData.length;
 				const data = await codec.append(inputData);
 				length += await writeData(writer, data);
 				if (options.onprogress) {
-					options.onprogress(chunkOffset + inputData.length, inputLength);
+					options.onprogress(chunkOffset + chunkLength, inputLength);
 				}
 				return processChunk(chunkIndex + 1, length);
 			} else {
@@ -2091,30 +2092,19 @@
 			}
 		}
 		moveTo(target) {
-			if (target.directory) {
-				if (!target.isDescendantOf(this)) {
-					if (this != target) {
-						if (target.getChildByName(this.name)) {
-							throw new Error("Entry filename already exists");
-						}
-						detach(this);
-						this.parent = target;
-						target.children.push(this);
-					}
-				} else {
-					throw new Error("Entry is a ancestor of target entry");
-				}
-			} else {
-				throw new Error("Target entry is not a directory");
-			}
+			// deprecated
+			this.fs.move(this, target);
 		}
 		getFullname() {
-			let fullname = this.name, entry = this.parent;
-			while (entry) {
-				fullname = (entry.name ? entry.name + "/" : "") + fullname;
+			return this.getRelativeName();
+		}
+		getRelativeName(ancestor = this.fs.root) {
+			let relativeName = this.name, entry = this.parent;
+			while (entry && entry != ancestor) {
+				relativeName = (entry.name ? entry.name + "/" : "") + relativeName;
 				entry = entry.parent;
 			}
-			return fullname;
+			return relativeName;
 		}
 		isDescendantOf(ancestor) {
 			let entry = this.parent;
@@ -2162,6 +2152,11 @@
 		replaceText(text) {
 			this.data = text;
 			this.Reader = TextReader;
+			this.reader = null;
+		}
+		replaceData64URI(dataURI) {
+			this.data = dataURI;
+			this.Reader = Data64URIReader;
 			this.reader = null;
 		}
 	}
@@ -2258,9 +2253,34 @@
 		constructor() {
 			resetFS(this);
 		}
+		get children() {
+			return this.root.children;
+		}
 		remove(entry) {
 			detach(entry);
 			this.entries[entry.id] = null;
+		}
+		move(entry, destination) {
+			if (entry == this.root) {
+				throw new Error("Root directory cannot be moved");
+			} else {
+				if (destination.directory) {
+					if (!destination.isDescendantOf(entry)) {
+						if (entry != destination) {
+							if (destination.getChildByName(entry.name)) {
+								throw new Error("Entry filename already exists");
+							}
+							detach(entry);
+							entry.parent = destination;
+							destination.children.push(entry);
+						}
+					} else {
+						throw new Error("Entry is a ancestor of target entry");
+					}
+				} else {
+					throw new Error("Target entry is not a directory");
+				}
+			}
 		}
 		find(fullname) {
 			const path = fullname.split("/");
@@ -2273,6 +2293,30 @@
 		getById(id) {
 			return this.entries[id];
 		}
+		getChildByName(name) {
+			return this.root.getChildByName(name);
+		}
+		addDirectory(name) {
+			return this.root.addDirectory(name);
+		}
+		addText(name, text) {
+			return this.root.addText(name, text);
+		}
+		addBlob(name, blob) {
+			return this.root.addBlob(name, blob);
+		}
+		addData64URI(name, dataURI) {
+			return this.root.addData64URI(name, dataURI);
+		}
+		addHttpContent(name, url, options) {
+			return this.root.addHttpContent(name, url, options);
+		}
+		async addFileSystemEntry(fileSystemEntry) {
+			return this.root.addFileSystemEntry(fileSystemEntry);
+		}
+		async addData(name, params) {
+			return this.root.addData(name, params);
+		}
 		async importBlob(blob, options) {
 			resetFS(this);
 			await this.root.importBlob(blob, options);
@@ -2282,8 +2326,7 @@
 			await this.root.importData64URI(dataURI, options);
 		}
 		async importHttpContent(url, options) {
-			this.entries = [];
-			this.root = new ZipDirectoryEntry(this);
+			resetFS(this);
 			await this.root.importHttpContent(url, options);
 		}
 		async exportBlob(options) {
@@ -2356,6 +2399,7 @@
 	}
 
 	async function exportZip(zipWriter, entry, totalSize, options) {
+		const selectedEntry = entry;
 		const entryOffsets = new Map();
 		await process(zipWriter, entry);
 
@@ -2373,12 +2417,13 @@
 			}
 
 			async function processChild(child) {
-				await zipWriter.add(child.getFullname(), child.reader, Object.assign({
+				const name = options.relativePath ? child.getRelativeName(selectedEntry) : child.getFullname();
+				await zipWriter.add(name, child.reader, Object.assign({
 					directory: child.directory
 				}, Object.assign({}, options, {
 					onprogress: indexProgress => {
 						if (options.onprogress) {
-							entryOffsets.set(child.getFullname(), indexProgress);
+							entryOffsets.set(name, indexProgress);
 							options.onprogress(Array.from(entryOffsets.values()).reduce((previousValue, currentValue) => previousValue + currentValue), totalSize);
 						}
 					}
