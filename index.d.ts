@@ -199,17 +199,12 @@ declare module "@zip.js/zip.js" {
         useRangeHeader?: boolean;
     }
 
-    export class FS {
+    export class FS extends ZipDirectoryEntry {
         constructor();
         remove(entry: ZipEntry): void;
         move(entry: ZipEntry, destination: ZipDirectoryEntry): void;
         find(fullname: string): ZipEntry;
         getById(id: number): ZipEntry;
-        importBlob(blob: Blob, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
-        importData64URI(dataURI: string, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
-        importHttpContent(url: string, options?: ZipReaderOptions | GetEntriesOptions | GetHttpContentOptions): Promise<void>;
-        exportBlob(options?: ZipWriterOptions): Promise<Blob>;
-        exportData64URI(options?: ZipWriterOptions): Promise<string>;
     }
 
     export const fs: { FS: FS, ZipDirectoryEntry: ZipDirectoryEntry, ZipFileEntry: ZipFileEntry };
