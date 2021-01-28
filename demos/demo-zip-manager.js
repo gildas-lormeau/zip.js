@@ -245,7 +245,7 @@
 						progressExport.max = 0;
 						let blobURL;
 						try {
-							blobURL = isFile ? await model.getBlobURL(node, { onprogress, bufferedWrite: true }) : await model.exportZip(node, { onprogress });
+							blobURL = isFile ? await model.getBlobURL(node, { onprogress, bufferedWrite: true }) : await model.exportZip(node, { onprogress, relativePath: true });
 						} catch (error) {
 							alert(error);
 						}

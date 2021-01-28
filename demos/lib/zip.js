@@ -826,10 +826,11 @@
 			const chunkOffset = chunkIndex * chunkSize;
 			if (chunkOffset < inputLength) {
 				const inputData = await reader.readUint8Array(chunkOffset + offset, Math.min(chunkSize, inputLength - chunkOffset));
+				const chunkLength = inputData.length;
 				const data = await codec.append(inputData);
 				length += await writeData(writer, data);
 				if (options.onprogress) {
-					options.onprogress(chunkOffset + inputData.length, inputLength);
+					options.onprogress(chunkOffset + chunkLength, inputLength);
 				}
 				return processChunk(chunkIndex + 1, length);
 			} else {
