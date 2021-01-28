@@ -199,8 +199,8 @@ declare module "@zip.js/zip.js" {
         useRangeHeader?: boolean;
     }
 
-    export class FS extends ZipDirectoryEntry {
-        constructor();
+    export interface FS extends ZipDirectoryEntry {
+        root: ZipDirectoryEntry;
         remove(entry: ZipEntry): void;
         move(entry: ZipEntry, destination: ZipDirectoryEntry): void;
         find(fullname: string): ZipEntry;
