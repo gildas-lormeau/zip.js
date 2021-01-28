@@ -177,6 +177,7 @@ declare module "@zip.js/zip.js" {
         getData(writer: Writer, options?: GetDataOptions): Promise<any>;
         replaceBlob(blob: Blob): void;
         replaceText(text: String): void;
+        replaceData64URI(dataURI: String): void;
     }
 
     export interface ZipDirectoryEntry extends ZipEntry {
