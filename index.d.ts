@@ -165,7 +165,8 @@ declare module "@zip.js/zip.js" {
         children: ZipEntry[];
         uncompressedSize: number;
         getFullname(): string;
-        isDescendantOf(entry: ZipDirectoryEntry): boolean;
+        getRelativeName(ancestor: ZipDirectoryEntry): string
+        isDescendantOf(ancestor: ZipDirectoryEntry): boolean;
     }
 
     export interface ZipFileEntry extends ZipEntry {
@@ -180,6 +181,10 @@ declare module "@zip.js/zip.js" {
         replaceData64URI(dataURI: String): void;
     }
 
+    interface ExportOptions {
+        relativePath?: boolean;
+    }
+
     export interface ZipDirectoryEntry extends ZipEntry {
         getChildByName(name: string): ZipEntry;
         addDirectory(name: string): ZipDirectoryEntry;
@@ -191,8 +196,8 @@ declare module "@zip.js/zip.js" {
         importBlob(blob: Blob, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
         importData64URI(dataURI: string, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
         importHttpContent(url: string, options?: ZipReaderOptions | GetEntriesOptions | GetHttpContentOptions): Promise<void>;
-        exportBlob(options?: ZipWriterOptions): Promise<Blob>;
-        exportData64URI(options?: ZipWriterOptions): Promise<string>;
+        exportBlob(options?: ZipWriterOptions | ExportOptions): Promise<Blob>;
+        exportData64URI(options?: ZipWriterOptions | ExportOptions): Promise<string>;
     }
 
     export interface GetHttpContentOptions {
