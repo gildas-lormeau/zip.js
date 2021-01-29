@@ -13,7 +13,7 @@ export default [{
 		file: "lib/z-worker-inline.js",
 		format: "esm",
 		intro: "import { configure } from './core/zip-core.js'; export default () => { const uri = URL.createObjectURL(new Blob(['(' + (() => {",
-		outro: "}).toString() + ')()'])); configure({ workerScripts: { inflate: [uri], deflate: [uri] } }); };",
+		outro: "}).toString() + ')()'], { type : 'text/javascript' })); configure({ workerScripts: { inflate: [uri], deflate: [uri] } }); };",
 		plugins: [terser()]
 	}]
 }];
