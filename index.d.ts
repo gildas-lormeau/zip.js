@@ -165,7 +165,7 @@ declare module "@zip.js/zip.js" {
         children: ZipEntry[];
         uncompressedSize: number;
         getFullname(): string;
-        getRelativeName(ancestor: ZipDirectoryEntry): string
+        getRelativeName(ancestor: ZipDirectoryEntry): string;
         isDescendantOf(ancestor: ZipDirectoryEntry): boolean;
     }
 
