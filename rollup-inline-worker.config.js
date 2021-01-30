@@ -12,8 +12,17 @@ export default [{
 	output: [{
 		file: "lib/z-worker-inline.js",
 		format: "esm",
-		intro: "import { configure } from './core/zip-core.js'; export default () => { const uri = URL.createObjectURL(new Blob(['(' + (() => {",
-		outro: "}).toString() + ')()'], { type : 'text/javascript' })); configure({ workerScripts: { inflate: [uri], deflate: [uri] } }); };",
+		intro: `
+			import { configure } from "./core/zip-core.js"; 
+			export default () => { 
+				const code = (() => {`,
+		outro: `
+				}).toString(); 
+				if (typeof URL.createObjectURL != "undefined") {
+					const uri = URL.createObjectURL(new Blob(["(" + code + ")()"], { type : "text/javascript" })); 
+					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
+				}
+			};`,
 		plugins: [terser()]
 	}]
 }];
