@@ -18,7 +18,7 @@ export default [{
 				const code = (() => {`,
 		outro: `
 				}).toString(); 
-				if (typeof URL.createObjectURL != "undefined") {
+				if (typeof URL.createObjectURL == "function") {
 					const uri = URL.createObjectURL(new Blob(["(" + code + ")()"], { type : "text/javascript" })); 
 					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
 				}
