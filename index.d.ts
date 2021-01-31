@@ -53,11 +53,21 @@ declare module "@zip.js/zip.js" {
     }
 
     export class HttpReader extends Reader {
-        constructor(url: string);
+        constructor(url: string, options: HttpOptions);
     }
 
     export class HttpRangeReader extends Reader {
-        constructor(url: string);
+        constructor(url: string, options: HttpRangeOptions);
+    }
+
+    export interface HttpOptions extends HttpRangeOptions {
+        useRangeRequests?: boolean;
+        preventHeadRequest?: boolean;
+    }
+
+    export interface HttpRangeOptions {
+        forceRangeRequests?: boolean;
+        useXHR?: boolean;
     }
 
     export class Writer extends Stream {
