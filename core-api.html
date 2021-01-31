@@ -680,7 +680,7 @@ console.log(dataURI);
 
 
 // - create a Data64URIReader object with the zipped content 
-// - create a ZipWriter object to read the zipped data
+// - create a ZipReader object to read the zipped data
 const zipReader = new zip.ZipReader(new zip.Data64URIReader(dataURI));
 
 // - get entries from the zip file
