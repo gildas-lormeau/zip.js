@@ -61,7 +61,7 @@ declare module "@zip.js/zip.js" {
     }
 
     export interface HttpOptions extends HttpRangeOptions {
-        useRangeRequests?: boolean;
+        useRangeHeader?: boolean;
         preventHeadRequest?: boolean;
     }
 
