@@ -11,18 +11,11 @@ test().catch(error => console.error(error));
 async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
-	const zipReader = new zip.ZipReader(new zip.HttpReader("../data/lorem-zip64.zip"));
+	const zipReader = new zip.ZipReader(new zip.HttpReader("../data/lorem-zip64.zip", { useXHR: true }));
 	const entries = await zipReader.getEntries();
 	const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
-	let data;
-	try {
-		data = await entries[0].getData(dataBlobWriter);
-		data = null;
-	} catch (error) {
-		data = await entries[0].getData(dataBlobWriter, { password: "password" });
-	}
+	let data = await entries[0].getData(dataBlobWriter);
 	await zipReader.close();
-	console.log(await getBlobText(data));
 	if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
