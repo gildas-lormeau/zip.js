@@ -200,21 +200,59 @@
 		<p>
 			HTTP content reader constructor
 		</p>
-		<pre><code class="prettyprint">zip.HttpReader(URL)</code></pre>
+		<pre><code class="prettyprint">zip.HttpReader(URL [, options])</code></pre>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>URL (string)</code></dt>
 			<dd>The URL of the content to read</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>Optional properties:
+				<dl>
+					<dt><code>useRangeHeader (boolean)</code></dt>
+					<dd>boolean value specifying if the <code>Range</code> request header should be used
+						(<code>false</code> by default)</dd>
+					<dt><code>preventHeadRequest (boolean)</code></dt>
+					<dd>boolean value specifying if a <code>HEAD</code> request can be sent in order the get the content
+						length (<code>false</code> by default)</dd>
+					<dt><code>forceRangeRequests (boolean)</code></dt>
+					<dd>boolean value specifying if the <code>Range</code> request header should be sent even if the
+						server does not send responses with the header <code>Accept-Ranges: bytes</code>
+						(<code>false</code> by default)</dd>
+					<dt><code>useXHR (boolean)</code></dt>
+					<dd>boolean value specifying if the implementation should rely on the <a
+							href="https://xhr.spec.whatwg.org/"><code>XMLHttpRequest</code></a>
+						API instead of the <a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API to send
+						requests (<code>false</code> by default)</dd>
+				</dl>
+				If <code>useXHR</code> is not set to <code>true</code>, you can additionnally pass any option the
+				<a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API accepts.
+			</dd>
 		</dl>
 		<br>
 		<p>
-			HTTP content reader using &quot;Range&quot; request header constructor
+			HTTP content reader using <code>Range</code> request header constructor
 		</p>
-		<pre><code class="prettyprint">zip.HttpRangeReader(URL)</code></pre>
+		<pre><code class="prettyprint">zip.HttpRangeReader(URL [, options])</code></pre>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>URL (string)</code></dt>
 			<dd>The URL of the content to read</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>Optional properties:
+				<dl>
+					<dt><code>forceRangeRequests (boolean)</code></dt>
+					<dd>boolean value specifying if the <code>Range</code> request header should be sent even if the
+						server does not send responses with the header <code>Accept-Ranges: bytes</code>
+						(<code>false</code> by default)</dd>
+					<dt><code>useXHR (boolean)</code></dt>
+					<dd>boolean value specifying if the implementation should rely on the <a
+							href="https://xhr.spec.whatwg.org/"><code>XMLHttpRequest</code></a>
+						API instead of the <a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API to send
+						requests (<code>false</code> by default)</dd>
+				</dl>
+				If <code>useXHR</code> is not set to <code>true</code>, you can additionnally pass any option the
+				<a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API accepts.
+			</dd>
 		</dl>
 
 		<h3>Reader members (used internally)</h3>
