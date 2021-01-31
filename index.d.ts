@@ -201,19 +201,14 @@ declare module "@zip.js/zip.js" {
         addText(name: string, text: string): ZipFileEntry;
         addBlob(name: string, blob: Blob): ZipFileEntry;
         addData64URI(name: string, dataURI: string): ZipFileEntry;
-        addHttpContent(name: string, url: string, options?: GetHttpContentOptions): ZipFileEntry;
+        addHttpContent(name: string, url: string, options?: HttpOptions): ZipFileEntry;
         addFileSystemEntry(fileSystemEntry: FileSystemEntry): Promise<ZipEntry>;
         importBlob(blob: Blob, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
         importData64URI(dataURI: string, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
-        importHttpContent(url: string, options?: ZipReaderOptions | GetEntriesOptions | GetHttpContentOptions): Promise<void>;
+        importHttpContent(url: string, options?: ZipReaderOptions | GetEntriesOptions | HttpOptions): Promise<void>;
         exportBlob(options?: ZipWriterOptions | ExportOptions): Promise<Blob>;
         exportData64URI(options?: ZipWriterOptions | ExportOptions): Promise<string>;
     }
-
-    export interface GetHttpContentOptions {
-        useRangeHeader?: boolean;
-    }
-
     export interface FS extends ZipDirectoryEntry {
         root: ZipDirectoryEntry;
         remove(entry: ZipEntry): void;
