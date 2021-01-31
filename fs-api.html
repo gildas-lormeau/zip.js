@@ -424,7 +424,7 @@
 			<dd>The new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
 		</dl>
 		<br>
-		<pre><code class="prettyprint">ZipDirectoryEntry#addHttpContent(name, URL, size, useRangeHeader)</code></pre>
+		<pre><code class="prettyprint">ZipDirectoryEntry#addHttpContent(name, URL, [, options])</code></pre>
 		<p>
 			Add a content retrieved from a URL into the directory entry
 		</p>
@@ -437,14 +437,28 @@
 			<dt><code>URL (string)</code></dt>
 			<dd>The content URL</dd>
 		</dl>
-		<dl>
-			<dt><code>size (number)</code></dt>
-			<dd>The content size</dd>
-		</dl>
-		<dl>
-			<dt><code>useRangeHeader (boolean)</code></dt>
-			<dd>If <code>true</code> then HTTP &quot;Range&quot; header will be used to get content</dd>
-		</dl>
+		<dt><code>options (Object)</code></dt>
+			<dd>Optional properties:
+				<dl>
+					<dt><code>useRangeHeader (boolean)</code></dt>
+					<dd>boolean value specifying if the <code>Range</code> request header should be used
+						(<code>false</code> by default)</dd>
+					<dt><code>preventHeadRequest (boolean)</code></dt>
+					<dd>boolean value specifying if a <code>HEAD</code> request can be sent in order the get the content
+						length (<code>false</code> by default)</dd>
+					<dt><code>forceRangeRequests (boolean)</code></dt>
+					<dd>boolean value specifying if the <code>Range</code> request header should be sent even if the
+						server does not send responses with the header <code>Accept-Ranges: bytes</code>
+						(<code>false</code> by default)</dd>
+					<dt><code>useXHR (boolean)</code></dt>
+					<dd>boolean value specifying if the implementation should rely on the <a
+							href="https://xhr.spec.whatwg.org/"><code>XMLHttpRequest</code></a>
+						API instead of the <a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API to send
+						requests (<code>false</code> by default)</dd>
+				</dl>
+				If <code>useXHR</code> is not set to <code>true</code>, you can additionnally pass any option the
+				<a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API accepts.
+			</dd>
 		<p>Returns:</p>
 		<dl>
 			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
@@ -573,7 +587,24 @@
 					<dt><code>commentEncoding (string)</code></dt>
 					<dd>encoding of comments stored in another encoding than UTF-8 (<code>cp437</code> by
 						default)</dd>
+					<dt><code>useRangeHeader (boolean)</code></dt>
+					<dd>boolean value specifying if the <code>Range</code> request header should be used
+						(<code>false</code> by default)</dd>
+					<dt><code>preventHeadRequest (boolean)</code></dt>
+					<dd>boolean value specifying if a <code>HEAD</code> request can be sent in order the get the content
+						length (<code>false</code> by default)</dd>
+					<dt><code>forceRangeRequests (boolean)</code></dt>
+					<dd>boolean value specifying if the <code>Range</code> request header should be sent even if the
+						server does not send responses with the header <code>Accept-Ranges: bytes</code>
+						(<code>false</code> by default)</dd>
+					<dt><code>useXHR (boolean)</code></dt>
+					<dd>boolean value specifying if the implementation should rely on the <a
+							href="https://xhr.spec.whatwg.org/"><code>XMLHttpRequest</code></a>
+						API instead of the <a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API to send
+						requests (<code>false</code> by default)</dd>
 				</dl>
+				If <code>useXHR</code> is not set to <code>true</code>, you can additionnally pass any option the
+				<a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API accepts.
 			</dd>
 		</dl>
 		<p>Returns:</p>
@@ -644,7 +675,7 @@
 						<code>3</code> for AES-256 (<code>3</code> by default)
 					</dd>
 					<dt><code>relativePath (boolean)</code></dt>
-					<dd>create filenames relative to the directory entry (<code>false</code> by default)</dd>					
+					<dd>create filenames relative to the directory entry (<code>false</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
