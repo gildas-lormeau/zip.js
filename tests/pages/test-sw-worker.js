@@ -1,8 +1,8 @@
-/* global self, zip, importScripts, fetch, Response */
+/* global self, zip, importScripts, Response */
 
 "use strict";
 
-importScripts("./../../dist/zip-full.min.js");
+importScripts("./../../dist/zip-full.js");
 zip.configure({ useWebWorkers: false });
 self.addEventListener("fetch", async (event) => {
 	const matchZipEntry = event.request.url.match(/.zip#(.+)$/i);
@@ -13,8 +13,19 @@ self.addEventListener("fetch", async (event) => {
 });
 
 async function getFileEntry(url, filenameEntry) {
-	const zipReader = new zip.ZipReader(new zip.BlobReader(await (await fetch(url)).blob()));
-	const entries = await zipReader.getEntries();
+	let zipReader, entries;
+	try {
+		zipReader = new zip.ZipReader(new zip.HttpRangeReader(url));
+		entries = await zipReader.getEntries();
+	} catch (error) {
+		if (error.message == zip.ERR_HTTP_RANGE) {
+			zipReader = new zip.ZipReader(new zip.HttpReader(url));
+			entries = await zipReader.getEntries();
+		} else {
+			throw error;
+		}
+	}
 	const fileEntry = entries.find(entry => entry.filename == filenameEntry);
+	zipReader.close();
 	return fileEntry.getData(new zip.BlobWriter());
 }
