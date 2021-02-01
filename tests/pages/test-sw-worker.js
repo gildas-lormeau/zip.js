@@ -25,7 +25,8 @@ async function getFileEntry(url, filenameEntry) {
 			throw error;
 		}
 	}
-	const fileEntry = entries.find(entry => entry.filename == filenameEntry);
-	zipReader.close();
-	return fileEntry.getData(new zip.BlobWriter());
+	const fileEntry = entries.find(entry => entry.filename == filenameEntry);	
+	const data = await fileEntry.getData(new zip.BlobWriter());
+	await zipReader.close();
+	return data;
 }
