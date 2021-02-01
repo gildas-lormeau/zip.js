@@ -56,7 +56,8 @@
 		const progressExport = document.getElementById("progress-export-zip");
 		const tree = document.getElementById("tree");
 		const listing = document.getElementById("listing");
-		let selectedDirectory, selectedFile, selectedLabel, selectedLabelValue, selectedDrag, hoveredElement;
+		const separator = document.getElementById("separator");
+		let selectedDirectory, selectedFile, selectedLabel, selectedLabelValue, selectedDrag, hoveredElement, movingSeparator;
 		listing.addEventListener("click", async event => {
 			const target = event.target;
 			if (target.className == "file-label") {
@@ -200,6 +201,27 @@
 				selectedDrag = selectedFile;
 			}
 		}, false);
+
+		document.addEventListener("dragstart", event => {
+			if (event.target == separator) {
+				stopEvent(event);
+			}
+		});
+		separator.addEventListener("mousedown", () => {
+			movingSeparator = true;
+		}, false);
+		separator.parentElement.addEventListener("mousemove", event => {
+			if (movingSeparator) {
+				const treeWidth = event.clientX - tree.parentElement.offsetLeft;
+				const explorerWidth = tree.parentElement.parentElement.offsetWidth;
+				tree.parentElement.style.setProperty("max-width", (treeWidth - 4) + "px");
+				listing.parentElement.style.setProperty("max-width", (explorerWidth - treeWidth - 4) + "px");
+			}
+		}, false);
+		document.addEventListener("mouseup", () => {
+			movingSeparator = false;
+		}, false);
+
 		progressExport.style.opacity = 0;
 		expandTree();
 		refreshTree();
