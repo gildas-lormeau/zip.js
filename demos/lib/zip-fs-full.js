@@ -7636,16 +7636,16 @@
 			}
 
 			async readUint8Array(index, length) {
-				if (!this.blobReader) {
-					const data = await this.entry.getData(new BlobWriter(), Object.assign({}, this.options, options));
-					this.data = data;
-					this.blobReader = new BlobReader(data);
-				}
 				return this.blobReader.readUint8Array(index, length);
 			}
 
 			async init() {
 				this.size = this.entry.uncompressedSize;
+				if (!this.blobReader) {
+					const data = await this.entry.getData(new BlobWriter(), Object.assign({}, this.options, options));
+					this.data = data;
+					this.blobReader = new BlobReader(data);
+				}
 			}
 		};
 	}

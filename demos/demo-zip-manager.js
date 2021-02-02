@@ -269,8 +269,8 @@
 						let blobURL;
 						try {
 							blobURL = isFile ?
-								await model.getBlobURL(node, { onprogress }) :
-								await model.exportZip(node, { onprogress, relativePath: true });
+								await model.getBlobURL(node, { onprogress, bufferedWrite: true }) :
+								await model.exportZip(node, { onprogress, relativePath: true, bufferedWrite: true });
 						} catch (error) {
 							alert(error);
 						}
