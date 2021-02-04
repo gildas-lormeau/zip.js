@@ -27,6 +27,30 @@ export default [{
 		plugins: []
 	}]
 }, {
+	input: "lib/zip-no-worker.js",
+	output: [{
+		file: "dist/zip-no-worker.min.js",
+		format: "umd",
+		name: "zip",
+		plugins: [terser()]
+	}]
+}, {
+	input: "lib/zip-no-worker-deflate.js",
+	output: [{
+		file: "dist/zip-no-worker-deflate.min.js",
+		format: "umd",
+		name: "zip",
+		plugins: [terser()]
+	}]
+}, {
+	input: "lib/zip-no-worker-inflate.js",
+	output: [{
+		file: "dist/zip-no-worker-inflate.min.js",
+		format: "umd",
+		name: "zip",
+		plugins: [terser()]
+	}]
+}, {
 	input: "lib/zip-fs.js",
 	output: [{
 		file: "dist/zip-fs.min.js",
