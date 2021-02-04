@@ -2,12 +2,16 @@
  
 - for production (minified):
 
-|                     | `zip` API | `zip.fs` API | Web Workers | No Web Workers | Usage                                                 |
-|---------------------|-----------|--------------|-------------|----------------|-------------------------------------------------------|
-| zip.min.js          |         x |              |           x |                | compression/decompression with web workers            |
-| zip-full.min.js     |         x |              |           x |              x | compression/decompression with or without web workers |
-| zip-fs.min.js       |         x |            x |           x |                | compression/decompression with web workers            |
-| zip-fs-full.min.js  |         x |            x |           x |              x | compression/decompression with or without web workers |
+|                              | `ZipReader` API | `ZipWriter` API | `zip.fs` API | Web Workers | No Web Workers | Usage                                                 |
+|------------------------------|-----------------|-----------------|--------------|-------------|----------------|-------------------------------------------------------|
+| zip.min.js                   |               x |               x |              |           x |                | compression/decompression with web workers            |
+| zip-no-worker.min.js         |               x |               x |              |             |              x | compression/decompression without web workers         |
+| zip-no-worker-deflate.min.js |                 |               x |              |             |              x | compression without web workers                       |
+| zip-no-worker-inflate.min.js |               x |                 |              |             |              x | decompression without web workers                     |
+| zip-fs.min.js                |               x |               x |            x |           x |                | compression/decompression with web workers            |
+| zip.min.js                   |               x |               x |              |           x |                | compression/decompression with web workers            |
+| zip-full.min.js              |               x |               x |              |           x |              x | compression/decompression with or without web workers |
+| zip-fs-full.min.js           |               x |               x |            x |           x |              x | compression/decompression with or without web workers |
 
 - for development/debugging:
 
