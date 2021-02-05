@@ -13,7 +13,7 @@ export default [{
 		file: "lib/z-worker-inline.js",
 		format: "esm",
 		intro: `
-			import { configure } from "./core/zip-core.js"; 
+			import { configure } from "./core/configuration.js"; 
 			export default () => { 
 				const code = (() => {`,
 		outro: `

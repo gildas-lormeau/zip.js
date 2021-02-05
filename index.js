@@ -30,7 +30,7 @@
 
 import Deflate from "./lib/core/codecs/deflate.js";
 import Inflate from "./lib/core/codecs/inflate.js";
-import { configure } from "./lib/core/zip-core.js";
+import { configure } from "./lib/core/configuration.js";
 import getMimeType from "./lib/core/util/mime-type.js";
 
 configure({ Deflate, Inflate });
