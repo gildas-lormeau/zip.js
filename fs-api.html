@@ -438,27 +438,27 @@
 			<dd>The content URL</dd>
 		</dl>
 		<dt><code>options (Object)</code></dt>
-			<dd>Optional properties:
-				<dl>
-					<dt><code>useRangeHeader (boolean)</code></dt>
-					<dd>boolean value specifying if the <code>Range</code> request header should be used
-						(<code>false</code> by default)</dd>
-					<dt><code>preventHeadRequest (boolean)</code></dt>
-					<dd>boolean value specifying if a <code>HEAD</code> request can be sent in order the get the content
-						length (<code>false</code> by default)</dd>
-					<dt><code>forceRangeRequests (boolean)</code></dt>
-					<dd>boolean value specifying if the <code>Range</code> request header should be sent even if the
-						server does not send responses with the header <code>Accept-Ranges: bytes</code>
-						(<code>false</code> by default)</dd>
-					<dt><code>useXHR (boolean)</code></dt>
-					<dd>boolean value specifying if the implementation should rely on the <a
-							href="https://xhr.spec.whatwg.org/"><code>XMLHttpRequest</code></a>
-						API instead of the <a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API to send
-						requests (<code>false</code> by default)</dd>
-				</dl>
-				If <code>useXHR</code> is not set to <code>true</code>, you can additionnally pass any option the
-				<a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API accepts.
-			</dd>
+		<dd>Optional properties:
+			<dl>
+				<dt><code>useRangeHeader (boolean)</code></dt>
+				<dd>boolean value specifying if the <code>Range</code> request header should be used
+					(<code>false</code> by default)</dd>
+				<dt><code>preventHeadRequest (boolean)</code></dt>
+				<dd>boolean value specifying if a <code>HEAD</code> request can be sent in order the get the content
+					length (<code>false</code> by default)</dd>
+				<dt><code>forceRangeRequests (boolean)</code></dt>
+				<dd>boolean value specifying if the <code>Range</code> request header should be sent even if the
+					server does not send responses with the header <code>Accept-Ranges: bytes</code>
+					(<code>false</code> by default)</dd>
+				<dt><code>useXHR (boolean)</code></dt>
+				<dd>boolean value specifying if the implementation should rely on the <a
+						href="https://xhr.spec.whatwg.org/"><code>XMLHttpRequest</code></a>
+					API instead of the <a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API to send
+					requests (<code>false</code> by default)</dd>
+			</dl>
+			If <code>useXHR</code> is not set to <code>true</code>, you can additionnally pass any option the
+			<a href="https://fetch.spec.whatwg.org/"><code>fetch</code></a> API accepts.
+		</dd>
 		<p>Returns:</p>
 		<dl>
 			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
