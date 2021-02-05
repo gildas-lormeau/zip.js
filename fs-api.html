@@ -310,10 +310,34 @@
 				</dl>
 			</dd>
 		</dl>
+		<pre><code class="prettyprint">ZipFileEntry#getUint8Array([options])</code></pre>
+		<p>
+			Get file entry content as a
+			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
+			object
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>options (Object)</code></dt>
+			<dd>Optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of should be verified (<code>false</code> by default)
+					</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the file (<code>undefined</code> by default)</dd>
+				</dl>
+			</dd>
+		</dl>
 		<p>Returns:</p>
 		<dl>
 			<dt><code>Promise</code></dt>
-			<dd>A promise with the unzipped content as resolved value
+			<dd>A promise with the
+				<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
+				object as resolved value
 			</dd>
 		</dl>
 		<br>
@@ -344,6 +368,21 @@
 		<dl>
 			<dt><code>data URI (string)</code></dt>
 			<dd>the data URI</dd>
+		</dl>
+		<pre><code class="prettyprint">ZipFileEntry#replaceUint8Array(array)</code></pre>
+		<p>
+			Replace the file entry content with a
+			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
+			object
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>array (<a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a>)</code>
+			</dt>
+			<dd>the
+				<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
+				object
+			</dd>
 		</dl>
 		<h3 id="zip-directory-entry">Zip directory entry</h3>
 		<p>
@@ -388,7 +427,7 @@
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#addText(name, text)</code></pre>
 		<p>
-			Add a text file into the directory entry
+			Add a text object into the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -407,7 +446,7 @@
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#addData64URI(name, dataURI)</code></pre>
 		<p>
-			Add a data URI file into the directory entry
+			Add a data URI object into the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -417,6 +456,28 @@
 		<dl>
 			<dt><code>text (string)</code></dt>
 			<dd>The data URI content</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code><a href="#zip-file-entry">ZipFileEntry</a></code></dt>
+			<dd>The new <code><a href="#zip-file-entry">ZipFileEntry</a></code> object</dd>
+		</dl>
+		<pre><code class="prettyprint">ZipDirectoryEntry#addUint8Array(name, array)</code></pre>
+		<p>
+			Add a
+			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
+			object into the directory entry
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>name (string)</code></dt>
+			<dd>The file name</dd>
+		</dl>
+		<dl>
+			<dt><code>array (<a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a>)</code>
+			</dt>
+			<dd>The <a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a>
+				objact</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
@@ -562,6 +623,47 @@
 			</dd>
 		</dl>
 		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#importUint8Array(array [, options])</code></pre>
+		<p>
+			Import a zipped content stored in a
+			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
+			object into the directory entry
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>array (<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>)</code>
+			</dt>
+			<dd>The
+				<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
+				object
+			</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>Optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value</dd>
+					<dt><code>checkSignature (boolean)</code></dt>
+					<dd>boolean value specifying if the signature of the files in the imported zip should be verified
+						(<code>false</code> by default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to decrypt the all the files (empty by default)</dd>
+					<dt><code>filenameEncoding (string)</code></dt>
+					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>cp437</code> by
+						default)</dd>
+					<dt><code>commentEncoding (string)</code></dt>
+					<dd>encoding of comments stored in another encoding than UTF-8 (<code>cp437</code> by
+						default)</dd>
+				</dl>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with <code>undefined</code> as resolved value
+			</dd>
+		</dl>
+		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#importHttpContent(URL [, options])</code></pre>
 		<p>
 			Import a zipped content retrieved from a URL into the directory entry
@@ -616,8 +718,8 @@
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#exportBlob([options])</code></pre>
 		<p>
-			Export zipped content in a <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code> object
-			from the directory entry
+			Export the zipped content in a <code><a href="https://www.w3.org/TR/FileAPI/#dfn-Blob">Blob</a></code>
+			object from the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
@@ -652,7 +754,44 @@
 		<br>
 		<pre><code class="prettyprint">ZipDirectoryEntry#exportData64URI([options])</code></pre>
 		<p>
-			Export zipped content in a data URI from the directory entry
+			Export the zipped content in a data URI from the directory entry
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>options (Object)</code></dt>
+			<dd>Optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value and a <code>max (number)</code> value (<code>undefined</code> by default)</dd>
+					<dt><code>zip64 (boolean)</code></dt>
+					<dd>force all the files to be written in Zip64 (<code>false</code> by default)</dd>
+					<dt><code>level (number)</code></dt>
+					<dd>compression level applied on all files (<code>5</code> by default)</dd>
+					<dt><code>version (number)</code></dt>
+					<dd>zip version of all files (<code>undefined</code> by default)</dd>
+					<dt><code>password (string)</code></dt>
+					<dd>password used to encrypt all the files (<code>undefined</code> by default)</dd>
+					<dt><code>encryptionStrength (number)</code></dt>
+					<dd>strength of the encryption algorithm: <code>1</code> for AES-128, <code>2</code> for AES-192,
+						<code>3</code> for AES-256 (<code>3</code> by default)
+					</dd>
+					<dt><code>relativePath (boolean)</code></dt>
+					<dd>create filenames relative to the directory entry (<code>false</code> by default)</dd>
+				</dl>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Promise</code></dt>
+			<dd>A promise with the zipped content as resolved value</dd>
+		</dl>
+		<br>
+		<pre><code class="prettyprint">ZipDirectoryEntry#exportUint8Array([options])</code></pre>
+		<p>
+			Export the zipped content in a
+			<code><a href="https://www.ecma-international.org/ecma-262/6.0/#sec-typedarray-objects">UInt8Array</a></code>
+			object from the directory entry
 		</p>
 		<p>Parameters:</p>
 		<dl>
