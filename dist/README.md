@@ -9,7 +9,6 @@
 | `zip-no-worker-deflate.min.js` |                 |               x |              |             |              x | compression without web workers                       |
 | `zip-no-worker-inflate.min.js` |               x |                 |              |             |              x | decompression without web workers                     |
 | `zip-fs.min.js`                |               x |               x |            x |           x |                | compression/decompression with web workers            |
-| `zip.min.js`                   |               x |               x |              |           x |                | compression/decompression with web workers            |
 | `zip-full.min.js`              |               x |               x |              |           x |              x | compression/decompression with or without web workers |
 | `zip-fs-full.min.js`           |               x |               x |            x |           x |              x | compression/decompression with or without web workers |
 
