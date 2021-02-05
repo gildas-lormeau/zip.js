@@ -13,7 +13,8 @@
         "sourceType": "module"
     },
     "ignorePatterns": [
-        "dist/"
+        "dist/",
+        "*-inline.js"
     ],
     "rules": {
         "indent": [
