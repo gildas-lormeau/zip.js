@@ -232,6 +232,7 @@ declare module "@zip.js/zip.js" {
     export const ERR_LOCAL_FILE_HEADER_NOT_FOUND: string;
     export const ERR_EXTRAFIELD_ZIP64_NOT_FOUND: string;
     export const ERR_ENCRYPTED: string;
+    export const ERR_USUPPORTED_ENCRYPTION: string;
     export const ERR_UNSUPPORTED_COMPRESSION: string;
     export const ERR_INVALID_SIGNATURE: string;
     export const ERR_INVALID_PASSWORD: string;
