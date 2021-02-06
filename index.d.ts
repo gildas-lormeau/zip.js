@@ -145,6 +145,7 @@ declare module "@zip.js/zip.js" {
         zip64?: boolean;
         level?: number;
         bufferedWrite?: boolean;
+        keepOrder?: boolean;
         version?: number;
         password?: string;
         encryptionStrength?: number;
