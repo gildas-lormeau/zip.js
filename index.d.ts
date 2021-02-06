@@ -112,7 +112,7 @@ declare module "@zip.js/zip.js" {
     }
 
     export interface Entry {
-        offset: number;
+        offset?: number;
         filename: string;
         rawFilename: Uint8Array;
         filenameUTF8: boolean;
