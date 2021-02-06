@@ -560,6 +560,10 @@ await reader.close();</code></pre>
 					<dd><code>true</code> to explicitely allow calling <code>ZipWriter#add</code> multiple times in
 						parallel (<code>false</code> by default)
 					</dd>
+					<dt><code>keepOrder (boolean)</code></dt>
+					<dd><code>true</code> to keep the files in order when calling <code>ZipWriter#add</code> multiple
+						times in parallel (<code>false</code> by default)
+					</dd>
 					<dt><code>version (number)</code></dt>
 					<dd>zip version of all files (<code>undefined</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
@@ -600,6 +604,10 @@ await reader.close();</code></pre>
 					<dt><code>bufferedWrite (boolean)</code></dt>
 					<dd><code>true</code> to explicitely allow calling <code>ZipWriter#add</code> multiple times in
 						parallel (<code>false</code> by default)
+					</dd>
+					<dt><code>keepOrder (boolean)</code></dt>
+					<dd><code>true</code> to keep the files in order when calling <code>ZipWriter#add</code> multiple
+						times in parallel (<code>false</code> by default)
 					</dd>
 					<dt><code>comment (string)</code></dt>
 					<dd>file comment (<code>undefined</code> by default)</dd>
