@@ -10,19 +10,21 @@ export default [{
 }, {
 	input: "lib/z-worker-inline.js",
 	output: [{
-		file: "lib/z-worker-inline.js",
-		format: "esm",
-		intro: `
+		intro:
+			`
 			import { configure } from "./core/configuration.js"; 
 			export default () => { 
-				const code = (() => {`,
-		outro: `
-				}).toString(); 
+				const code = (() => {
+			`,
+		file: "lib/z-worker-inline.js",
+		outro:
+			`	}).toString(); 
 				if (typeof URL.createObjectURL == "function") {
 					const uri = URL.createObjectURL(new Blob(["(" + code + ")()"], { type : "text/javascript" })); 
 					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
 				}
 			};`,
+		format: "esm",
 		plugins: [terser()]
 	}]
 }];
