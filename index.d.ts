@@ -128,6 +128,7 @@ declare module "@zip.js/zip.js" {
         signature: Uint8Array;
         extraField?: Map<number, Uint8Array>;
         rawExtraField: Uint8Array;
+        zip64: boolean;
         getData?(writer: Writer, options?: GetDataOptions | ZipReaderOptions): Promise<any>;
     }
 
