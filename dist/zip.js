@@ -96,6 +96,7 @@
 
 	function createCodecClass(constructor, constructorOptions) {
 		return class {
+
 			constructor(options) {
 				const onData = data => {
 					if (this.pendingData) {
@@ -165,6 +166,422 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const ERR_HTTP_STATUS = "HTTP error ";
+	const ERR_HTTP_RANGE = "HTTP Range not supported";
+
+	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
+	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
+	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
+	const HTTP_HEADER_RANGE = "Range";
+	const HTTP_METHOD_HEAD = "HEAD";
+	const HTTP_METHOD_GET = "GET";
+	const HTTP_RANGE_UNIT = "bytes";
+
+	class Stream {
+
+		constructor() {
+			this.size = 0;
+		}
+
+		init() {
+			this.initialized = true;
+		}
+	}
+	class Reader extends Stream {
+	}
+
+	class Writer extends Stream {
+
+		writeUint8Array(array) {
+			this.size += array.length;
+		}
+	}
+
+	class TextReader extends Reader {
+
+		constructor(text) {
+			super();
+			this.blobReader = new BlobReader(new Blob([text], { type: CONTENT_TYPE_TEXT_PLAIN }));
+		}
+
+		async init() {
+			super.init();
+			this.blobReader.init();
+			this.size = this.blobReader.size;
+		}
+
+		async readUint8Array(offset, length) {
+			return this.blobReader.readUint8Array(offset, length);
+		}
+	}
+
+	class TextWriter extends Writer {
+
+		constructor(encoding) {
+			super();
+			this.encoding = encoding;
+			this.blob = new Blob([], { type: CONTENT_TYPE_TEXT_PLAIN });
+		}
+
+		async writeUint8Array(array) {
+			super.writeUint8Array(array);
+			this.blob = new Blob([this.blob, array.buffer], { type: CONTENT_TYPE_TEXT_PLAIN });
+		}
+
+		getData() {
+			const reader = new FileReader();
+			return new Promise((resolve, reject) => {
+				reader.onload = event => resolve(event.target.result);
+				reader.onerror = reject;
+				reader.readAsText(this.blob, this.encoding);
+			});
+		}
+	}
+
+	class Data64URIReader extends Reader {
+
+		constructor(dataURI) {
+			super();
+			this.dataURI = dataURI;
+			let dataEnd = dataURI.length;
+			while (dataURI.charAt(dataEnd - 1) == "=") {
+				dataEnd--;
+			}
+			this.dataStart = dataURI.indexOf(",") + 1;
+			this.size = Math.floor((dataEnd - this.dataStart) * 0.75);
+		}
+
+		async readUint8Array(offset, length) {
+			const dataArray = new Uint8Array(length);
+			const start = Math.floor(offset / 3) * 4;
+			const bytes = atob(this.dataURI.substring(start + this.dataStart, Math.ceil((offset + length) / 3) * 4 + this.dataStart));
+			const delta = offset - Math.floor(start / 4) * 3;
+			for (let indexByte = delta; indexByte < delta + length; indexByte++) {
+				dataArray[indexByte - delta] = bytes.charCodeAt(indexByte);
+			}
+			return dataArray;
+		}
+	}
+
+	class Data64URIWriter extends Writer {
+
+		constructor(contentType) {
+			super();
+			this.data = "data:" + (contentType || "") + ";base64,";
+			this.pending = [];
+		}
+
+		async writeUint8Array(array) {
+			super.writeUint8Array(array);
+			let indexArray = 0, dataString = this.pending;
+			const delta = this.pending.length;
+			this.pending = "";
+			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
+				dataString += String.fromCharCode(array[indexArray]);
+			}
+			for (; indexArray < array.length; indexArray++) {
+				this.pending += String.fromCharCode(array[indexArray]);
+			}
+			if (dataString.length > 2) {
+				this.data += btoa(dataString);
+			} else {
+				this.pending = dataString;
+			}
+		}
+
+		getData() {
+			return this.data + btoa(this.pending);
+		}
+	}
+
+	class BlobReader extends Reader {
+
+		constructor(blob) {
+			super();
+			this.blob = blob;
+			this.size = blob.size;
+		}
+
+		async readUint8Array(offset, length) {
+			const reader = new FileReader();
+			return new Promise((resolve, reject) => {
+				reader.onload = event => resolve(new Uint8Array(event.target.result));
+				reader.onerror = reject;
+				reader.readAsArrayBuffer(this.blob.slice(offset, offset + length));
+			});
+		}
+	}
+
+	class BlobWriter extends Writer {
+
+		constructor(contentType) {
+			super();
+			this.offset = 0;
+			this.contentType = contentType;
+			this.blob = new Blob([], { type: contentType });
+		}
+
+		async writeUint8Array(array) {
+			super.writeUint8Array(array);
+			this.blob = new Blob([this.blob, array.buffer], { type: this.contentType });
+			this.offset = this.blob.size;
+		}
+
+		getData() {
+			return this.blob;
+		}
+	}
+
+	class FetchReader extends Reader {
+
+		constructor(url, options) {
+			super();
+			this.url = url;
+			this.preventHeadRequest = options.preventHeadRequest;
+			this.useRangeHeader = options.useRangeHeader;
+			this.forceRangeRequests = options.forceRangeRequests;
+			this.options = Object.assign({}, options);
+			delete this.options.preventHeadRequest;
+			delete this.options.useRangeHeader;
+			delete this.options.forceRangeRequests;
+			delete this.options.useXHR;
+		}
+
+		async init() {
+			super.init();
+			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
+				const response = await sendFetchRequest(HTTP_METHOD_HEAD, this.url, this.options);
+				this.size = Number(response.headers.get(HTTP_HEADER_CONTENT_LENGTH));
+				if (!this.forceRangeRequests && this.useRangeHeader && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
+					throw new Error(ERR_HTTP_RANGE);
+				} else if (this.size === undefined) {
+					await getFetchData(this, this.options);
+				}
+			} else {
+				await getFetchData(this, this.options);
+			}
+		}
+
+		async readUint8Array(index, length) {
+			if (this.useRangeHeader) {
+				const response = await sendFetchRequest(HTTP_METHOD_GET, this.url, this.options, Object.assign({}, this.options.headers,
+					{ HEADER_RANGE: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) }));
+				if (response.status != 206) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+				return new Uint8Array(await response.arrayBuffer());
+			} else {
+				if (!this.data) {
+					await getFetchData(this, this.options);
+				}
+				return new Uint8Array(this.data.subarray(index, index + length));
+			}
+		}
+	}
+
+	async function getFetchData(httpReader, options) {
+		const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader.url, options);
+		httpReader.data = new Uint8Array(await response.arrayBuffer());
+		if (!httpReader.size) {
+			httpReader.size = httpReader.data.length;
+		}
+	}
+
+	async function sendFetchRequest(method, url, options, headers) {
+		headers = Object.assign({}, options.headers, headers);
+		const response = await fetch(url, Object.assign({}, options, { method, headers }));
+		if (response.status < 400) {
+			return response;
+		} else {
+			throw new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
+		}
+	}
+
+	class XHRReader extends Reader {
+
+		constructor(url, options) {
+			super();
+			this.url = url;
+			this.preventHeadRequest = options.preventHeadRequest;
+			this.useRangeHeader = options.useRangeHeader;
+			this.forceRangeRequests = options.forceRangeRequests;
+		}
+
+		async init() {
+			super.init();
+			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
+				return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_HEAD, this.url, request => {
+					this.size = Number(request.getResponseHeader(HTTP_HEADER_CONTENT_LENGTH));
+					if (this.useRangeHeader) {
+						if (this.forceRangeRequests || request.getResponseHeader(HTTP_HEADER_ACCEPT_RANGES) == HTTP_RANGE_UNIT) {
+							resolve();
+						} else {
+							reject(new Error(ERR_HTTP_RANGE));
+						}
+					} else if (this.size === undefined) {
+						getXHRData(this, this.url).then(() => resolve()).catch(reject);
+					} else {
+						resolve();
+					}
+				}, reject));
+			} else {
+				await getXHRData(this, this.url);
+			}
+		}
+
+		async readUint8Array(index, length) {
+			if (this.useRangeHeader) {
+				const request = await new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, this.url, request => resolve(new Uint8Array(request.response)), reject,
+					[[HTTP_HEADER_RANGE, HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1)]]));
+				if (request.status != 206) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+			} else {
+				if (!this.data) {
+					await getXHRData(this, this.url);
+				}
+				return new Uint8Array(this.data.subarray(index, index + length));
+			}
+		}
+	}
+
+	function getXHRData(httpReader, url) {
+		return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, url, request => {
+			httpReader.data = new Uint8Array(request.response);
+			if (!httpReader.size) {
+				httpReader.size = httpReader.data.length;
+			}
+			resolve();
+		}, reject));
+	}
+
+	function sendXHR(method, url, onload, onerror, headers = []) {
+		const request = new XMLHttpRequest();
+		request.addEventListener("load", () => {
+			if (request.status < 400) {
+				onload(request);
+			} else {
+				onerror(ERR_HTTP_STATUS + (request.statusText || request.status));
+			}
+		}, false);
+		request.addEventListener("error", onerror, false);
+		request.open(method, url);
+		headers.forEach(header => request.setRequestHeader(header[0], header[1]));
+		request.responseType = "arraybuffer";
+		request.send();
+		return request;
+	}
+
+	class HttpReader extends Reader {
+
+		constructor(url, options = {}) {
+			super();
+			this.url = url;
+			if (options.useXHR) {
+				this.reader = new XHRReader(url, options);
+			} else {
+				this.reader = new FetchReader(url, options);
+			}
+		}
+
+		set size(value) {
+			// ignored
+		}
+
+		get size() {
+			return this.reader.size;
+		}
+
+		async init() {
+			super.init();
+			await this.reader.init();
+		}
+
+		async readUint8Array(index, length) {
+			return this.reader.readUint8Array(index, length);
+		}
+	}
+
+	class HttpRangeReader extends HttpReader {
+
+		constructor(url, options = {}) {
+			options.useRangeHeader = true;
+			super(url, options);
+		}
+	}
+
+
+	class Uint8ArrayReader extends Reader {
+
+		constructor(array) {
+			super();
+			this.array = array;
+			this.size = array.length;
+		}
+
+		async readUint8Array(index, length) {
+			return this.array.slice(index, index + length);
+		}
+	}
+
+	class Uint8ArrayWriter extends Writer {
+
+		constructor() {
+			super();
+			this.array = new Uint8Array(0);
+		}
+
+		async writeUint8Array(array) {
+			super.writeUint8Array(array);
+			const previousArray = this.array;
+			this.array = new Uint8Array(previousArray.length + array.length);
+			this.array.set(previousArray);
+			this.array.set(array, previousArray.length);
+		}
+
+		getData() {
+			return this.array;
+		}
+	}
+
+	function isHttpFamily(url) {
+		if (typeof document != "undefined") {
+			const anchor = document.createElement("a");
+			anchor.href = url;
+			return anchor.protocol == "http:" || anchor.protocol == "https:";
+		} else {
+			return /^https?:\/\//i.test(url);
+		}
+	}
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
 	const MAX_32_BITS = 0xffffffff;
 	const MAX_16_BITS = 0xffff;
 	const COMPRESSION_METHOD_DEFLATE = 0x08;
@@ -201,6 +618,56 @@
 	const VERSION_AES = 0x33;
 
 	const DIRECTORY_SIGNATURE = "/";
+
+	const MAX_DATE = new Date(2107, 11, 31);
+	const MIN_DATE = new Date(1980, 0, 1);
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	const CP437 = [
+		"\0", "☺", "☻", "♥", "♦", "♣", "♠", "•", "◘", "○", "◙", "♂", "♀", "♪", "♫", "☼", "►", "◄", "↕", "‼", "¶", "§", "▬", "↨", "↑", "↓", "→", "←", "∟", "↔", "▲", "▼",
+		" ", "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
+		"@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\", "]", "^", "_",
+		"`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~", "⌂",
+		"Ç", "ü", "é", "â", "ä", "à", "å", "ç", "ê", "ë", "è", "ï", "î", "ì", "Ä", "Å", "É", "æ", "Æ", "ô", "ö", "ò", "û", "ù", "ÿ", "Ö", "Ü", "¢", "£", "¥", "₧", "ƒ",
+		"á", "í", "ó", "ú", "ñ", "Ñ", "ª", "º", "¿", "⌐", "¬", "½", "¼", "¡", "«", "»", "░", "▒", "▓", "│", "┤", "╡", "╢", "╖", "╕", "╣", "║", "╗", "╝", "╜", "╛", "┐",
+		"└", "┴", "┬", "├", "─", "┼", "╞", "╟", "╚", "╔", "╩", "╦", "╠", "═", "╬", "╧", "╨", "╤", "╥", "╙", "╘", "╒", "╓", "╫", "╪", "┘", "┌", "█", "▄", "▌", "▐", "▀",
+		"α", "ß", "Γ", "π", "Σ", "σ", "µ", "τ", "Φ", "Θ", "Ω", "δ", "∞", "φ", "ε", "∩", "≡", "±", "≥", "≤", "⌠", "⌡", "÷", "≈", "°", "∙", "·", "√", "ⁿ", "²", "■", " "];
+
+
+	var decodeCP437 = stringValue => {
+		let result = "";
+		for (let indexCharacter = 0; indexCharacter < stringValue.length; indexCharacter++) {
+			result += CP437[stringValue[indexCharacter]];
+		}
+		return result;
+	};
 
 	/*
 	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
@@ -872,422 +1339,6 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const ERR_HTTP_STATUS = "HTTP error ";
-	const ERR_HTTP_RANGE = "HTTP Range not supported";
-
-	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
-	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
-	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
-	const HTTP_HEADER_RANGE = "Range";
-	const HTTP_METHOD_HEAD = "HEAD";
-	const HTTP_METHOD_GET = "GET";
-	const HTTP_RANGE_UNIT = "bytes";
-
-	class Stream {
-
-		constructor() {
-			this.size = 0;
-		}
-
-		async init() {
-			this.initialized = true;
-		}
-	}
-	class Reader extends Stream {
-	}
-
-	class Writer extends Stream {
-
-		async writeUint8Array(array) {
-			this.size += array.length;
-		}
-	}
-
-	class TextReader extends Reader {
-
-		constructor(text) {
-			super();
-			this.blobReader = new BlobReader(new Blob([text], { type: CONTENT_TYPE_TEXT_PLAIN }));
-		}
-
-		async init() {
-			await super.init();
-			this.blobReader.init();
-			this.size = this.blobReader.size;
-		}
-
-		async readUint8Array(offset, length) {
-			return this.blobReader.readUint8Array(offset, length);
-		}
-	}
-
-	class TextWriter extends Writer {
-
-		constructor(encoding) {
-			super();
-			this.encoding = encoding;
-			this.blob = new Blob([], { type: CONTENT_TYPE_TEXT_PLAIN });
-		}
-
-		async writeUint8Array(array) {
-			await super.writeUint8Array(array);
-			this.blob = new Blob([this.blob, array.buffer], { type: CONTENT_TYPE_TEXT_PLAIN });
-		}
-
-		getData() {
-			const reader = new FileReader();
-			return new Promise((resolve, reject) => {
-				reader.onload = event => resolve(event.target.result);
-				reader.onerror = reject;
-				reader.readAsText(this.blob, this.encoding);
-			});
-		}
-	}
-
-	class Data64URIReader extends Reader {
-
-		constructor(dataURI) {
-			super();
-			this.dataURI = dataURI;
-			let dataEnd = dataURI.length;
-			while (dataURI.charAt(dataEnd - 1) == "=") {
-				dataEnd--;
-			}
-			this.dataStart = dataURI.indexOf(",") + 1;
-			this.size = Math.floor((dataEnd - this.dataStart) * 0.75);
-		}
-
-		async readUint8Array(offset, length) {
-			const dataArray = new Uint8Array(length);
-			const start = Math.floor(offset / 3) * 4;
-			const bytes = atob(this.dataURI.substring(start + this.dataStart, Math.ceil((offset + length) / 3) * 4 + this.dataStart));
-			const delta = offset - Math.floor(start / 4) * 3;
-			for (let indexByte = delta; indexByte < delta + length; indexByte++) {
-				dataArray[indexByte - delta] = bytes.charCodeAt(indexByte);
-			}
-			return dataArray;
-		}
-	}
-
-	class Data64URIWriter extends Writer {
-
-		constructor(contentType) {
-			super();
-			this.data = "data:" + (contentType || "") + ";base64,";
-			this.pending = [];
-		}
-
-		async writeUint8Array(array) {
-			await super.writeUint8Array(array);
-			let indexArray = 0, dataString = this.pending;
-			const delta = this.pending.length;
-			this.pending = "";
-			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
-				dataString += String.fromCharCode(array[indexArray]);
-			}
-			for (; indexArray < array.length; indexArray++) {
-				this.pending += String.fromCharCode(array[indexArray]);
-			}
-			if (dataString.length > 2) {
-				this.data += btoa(dataString);
-			} else {
-				this.pending = dataString;
-			}
-		}
-
-		getData() {
-			return this.data + btoa(this.pending);
-		}
-	}
-
-	class BlobReader extends Reader {
-
-		constructor(blob) {
-			super();
-			this.blob = blob;
-			this.size = blob.size;
-		}
-
-		async readUint8Array(offset, length) {
-			const reader = new FileReader();
-			return new Promise((resolve, reject) => {
-				reader.onload = event => resolve(new Uint8Array(event.target.result));
-				reader.onerror = reject;
-				reader.readAsArrayBuffer(this.blob.slice(offset, offset + length));
-			});
-		}
-	}
-
-	class BlobWriter extends Writer {
-
-		constructor(contentType) {
-			super();
-			this.offset = 0;
-			this.contentType = contentType;
-			this.blob = new Blob([], { type: contentType });
-		}
-
-		async writeUint8Array(array) {
-			await super.writeUint8Array(array);
-			this.blob = new Blob([this.blob, array.buffer], { type: this.contentType });
-			this.offset = this.blob.size;
-		}
-
-		getData() {
-			return this.blob;
-		}
-	}
-
-	class FetchReader extends Reader {
-
-		constructor(url, options) {
-			super();
-			this.url = url;
-			this.preventHeadRequest = options.preventHeadRequest;
-			this.useRangeHeader = options.useRangeHeader;
-			this.forceRangeRequests = options.forceRangeRequests;
-			this.options = Object.assign({}, options);
-			delete this.options.preventHeadRequest;
-			delete this.options.useRangeHeader;
-			delete this.options.forceRangeRequests;
-			delete this.options.useXHR;
-		}
-
-		async init() {
-			await super.init();
-			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
-				const response = await sendFetchRequest(HTTP_METHOD_HEAD, this.url, this.options);
-				this.size = Number(response.headers.get(HTTP_HEADER_CONTENT_LENGTH));
-				if (!this.forceRangeRequests && this.useRangeHeader && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
-					throw new Error(ERR_HTTP_RANGE);
-				} else if (this.size === undefined) {
-					await getFetchData(this, this.options);
-				}
-			} else {
-				await getFetchData(this, this.options);
-			}
-		}
-
-		async readUint8Array(index, length) {
-			if (this.useRangeHeader) {
-				const response = await sendFetchRequest(HTTP_METHOD_GET, this.url, this.options, Object.assign({}, this.options.headers,
-					{ HEADER_RANGE: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) }));
-				if (response.status != 206) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-				return new Uint8Array(await response.arrayBuffer());
-			} else {
-				if (!this.data) {
-					await getFetchData(this, this.options);
-				}
-				return new Uint8Array(this.data.subarray(index, index + length));
-			}
-		}
-	}
-
-	async function getFetchData(httpReader, options) {
-		const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader.url, options);
-		httpReader.data = new Uint8Array(await response.arrayBuffer());
-		if (!httpReader.size) {
-			httpReader.size = httpReader.data.length;
-		}
-	}
-
-	async function sendFetchRequest(method, url, options, headers) {
-		headers = Object.assign({}, options.headers, headers);
-		const response = await fetch(url, Object.assign({}, options, { method, headers }));
-		if (response.status < 400) {
-			return response;
-		} else {
-			throw new Error(ERR_HTTP_STATUS + (response.statusText || response.status) + ".");
-		}
-	}
-
-	class XHRReader extends Reader {
-
-		constructor(url, options) {
-			super();
-			this.url = url;
-			this.preventHeadRequest = options.preventHeadRequest;
-			this.useRangeHeader = options.useRangeHeader;
-			this.forceRangeRequests = options.forceRangeRequests;
-		}
-
-		async init() {
-			await super.init();
-			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
-				return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_HEAD, this.url, request => {
-					this.size = Number(request.getResponseHeader(HTTP_HEADER_CONTENT_LENGTH));
-					if (this.useRangeHeader) {
-						if (this.forceRangeRequests || request.getResponseHeader(HTTP_HEADER_ACCEPT_RANGES) == HTTP_RANGE_UNIT) {
-							resolve();
-						} else {
-							reject(new Error(ERR_HTTP_RANGE));
-						}
-					} else if (this.size === undefined) {
-						getXHRData(this, this.url).then(() => resolve()).catch(reject);
-					} else {
-						resolve();
-					}
-				}, reject));
-			} else {
-				await getXHRData(this, this.url);
-			}
-		}
-
-		async readUint8Array(index, length) {
-			if (this.useRangeHeader) {
-				const request = await new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, this.url, request => resolve(new Uint8Array(request.response)), reject,
-					[[HTTP_HEADER_RANGE, HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1)]]));
-				if (request.status != 206) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-			} else {
-				if (!this.data) {
-					await getXHRData(this, this.url);
-				}
-				return new Uint8Array(this.data.subarray(index, index + length));
-			}
-		}
-	}
-
-	function getXHRData(httpReader, url) {
-		return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, url, request => {
-			httpReader.data = new Uint8Array(request.response);
-			if (!httpReader.size) {
-				httpReader.size = httpReader.data.length;
-			}
-			resolve();
-		}, reject));
-	}
-
-	function sendXHR(method, url, onload, onerror, headers = []) {
-		const request = new XMLHttpRequest();
-		request.addEventListener("load", () => {
-			if (request.status < 400) {
-				onload(request);
-			} else {
-				onerror(ERR_HTTP_STATUS + (request.statusText || request.status) + ".");
-			}
-		}, false);
-		request.addEventListener("error", onerror, false);
-		request.open(method, url);
-		headers.forEach(header => request.setRequestHeader(header[0], header[1]));
-		request.responseType = "arraybuffer";
-		request.send();
-		return request;
-	}
-
-	class HttpReader extends Reader {
-
-		constructor(url, options = {}) {
-			super();
-			this.url = url;
-			if (options.useXHR) {
-				this.reader = new XHRReader(url, options);
-			} else {
-				this.reader = new FetchReader(url, options);
-			}
-		}
-
-		set size(value) {
-			// ignored
-		}
-
-		get size() {
-			return this.reader.size;
-		}
-
-		async init() {
-			await super.init();
-			await this.reader.init();
-		}
-
-		async readUint8Array(index, length) {
-			return this.reader.readUint8Array(index, length);
-		}
-	}
-
-	class HttpRangeReader extends HttpReader {
-
-		constructor(url, options = {}) {
-			options.useRangeHeader = true;
-			super(url, options);
-		}
-	}
-
-
-	class Uint8ArrayReader extends Reader {
-
-		constructor(array) {
-			super();
-			this.array = array;
-			this.size = array.length;
-		}
-
-		async readUint8Array(index, length) {
-			return this.array.slice(index, index + length);
-		}
-	}
-
-	class Uint8ArrayWriter extends Writer {
-
-		constructor() {
-			super();
-			this.array = new Uint8Array(0);
-		}
-
-		async writeUint8Array(array) {
-			await super.writeUint8Array(array);
-			const previousArray = this.array;
-			this.array = new Uint8Array(previousArray.length + array.length);
-			this.array.set(previousArray);
-			this.array.set(array, previousArray.length);
-		}
-
-		getData() {
-			return this.array;
-		}
-	}
-
-	function isHttpFamily(url) {
-		if (typeof document != "undefined") {
-			const anchor = document.createElement("a");
-			anchor.href = url;
-			return anchor.protocol == "http:" || anchor.protocol == "https:";
-		} else {
-			return /^https?:\/\//i.test(url);
-		}
-	}
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
 	const MINIMUM_CHUNK_SIZE = 64;
 
 	async function processData(codec, reader, writer, offset, inputLength, config, options) {
@@ -1390,449 +1441,6 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const ERR_DUPLICATED_NAME = "File already exists";
-	const ERR_INVALID_COMMENT = "Zip file comment exceeds 64KB";
-	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
-	const ERR_INVALID_ENTRY_NAME = "File entry name exceeds 64KB";
-	const ERR_INVALID_VERSION = "Version exceeds 65535";
-	const ERR_INVALID_DATE = "The minimum year for the date is 1980";
-	const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
-	const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
-	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
-
-	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
-	const EXTRAFIELD_LENGTH_ZIP64 = 24;
-
-	class ZipWriter {
-
-		constructor(writer, options = {}, config = {}) {
-			this.writer = writer;
-			this.options = options;
-			this.config = config;
-			this.files = new Map();
-			this.offset = writer.size;
-		}
-
-		async add(name = "", reader, options = {}) {
-			name = name.trim();
-			if (options.directory && (!name.length || name.charAt(name.length - 1) != DIRECTORY_SIGNATURE)) {
-				name += DIRECTORY_SIGNATURE;
-			}
-			if (this.files.has(name)) {
-				throw new Error(ERR_DUPLICATED_NAME);
-			}
-			const rawFilename = (new TextEncoder()).encode(name);
-			if (rawFilename.length > MAX_16_BITS) {
-				throw new Error(ERR_INVALID_ENTRY_NAME);
-			}
-			const comment = options.comment || "";
-			const rawComment = (new TextEncoder()).encode(comment);
-			if (rawComment.length > MAX_16_BITS) {
-				throw new Error(ERR_INVALID_ENTRY_COMMENT);
-			}
-			const version = this.options.version || options.version || 0;
-			if (version > MAX_16_BITS) {
-				throw new Error(ERR_INVALID_VERSION);
-			}
-			const lastModDate = options.lastModDate || new Date();
-			if (lastModDate.getFullYear() < 1980) {
-				throw new Error(ERR_INVALID_DATE);
-			}
-			const password = options.password === undefined ? this.options.password : options.password;
-			const encryptionStrength = (options.encryptionStrength === undefined ? this.options.encryptionStrength : options.encryptionStrength) || 3;
-			if (password !== undefined && encryptionStrength !== undefined && (encryptionStrength < 1 || encryptionStrength > 3)) {
-				throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
-			}
-			if (reader && !reader.initialized) {
-				await reader.init();
-			}
-			let rawExtraField = new Uint8Array(0);
-			const extraField = options.extraField;
-			if (extraField) {
-				let extraFieldSize = 4, offset = 0;
-				extraField.forEach(data => extraFieldSize += data.length);
-				rawExtraField = new Uint8Array(extraFieldSize);
-				extraField.forEach((data, type) => {
-					if (type > MAX_16_BITS) {
-						throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
-					}
-					if (data.length > MAX_16_BITS) {
-						throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
-					}
-					rawExtraField.set(new Uint16Array([type]), offset);
-					rawExtraField.set(new Uint16Array([data.length]), offset + 2);
-					rawExtraField.set(data, offset + 4);
-					offset += 4 + data.length;
-				});
-			}
-			const zip64 = options.zip64 || this.options.zip64 || this.offset >= MAX_32_BITS || (reader && (reader.size >= MAX_32_BITS || this.offset + reader.size >= MAX_32_BITS));
-			const level = options.level === undefined ? this.options.level : options.level;
-			const useWebWorkers = options.useWebWorkers === undefined ? this.options.useWebWorkers : options.useWebWorkers;
-			const fileEntry = await addFile(this, name, reader, Object.assign({}, options,
-				{ rawFilename, rawComment, version, lastModDate, rawExtraField, zip64, password, level, useWebWorkers, encryptionStrength }));
-			fileEntry.filename = name;
-			fileEntry.comment = comment;
-			fileEntry.extraField = extraField;
-			return new Entry(fileEntry);
-		}
-
-		async close(comment = new Uint8Array(0)) {
-			const writer = this.writer;
-			const files = this.files;
-			let offset = 0, directoryDataLength = 0, directoryOffset = this.offset, filesLength = files.size;
-			for (const [, fileEntry] of files) {
-				directoryDataLength += 46 + fileEntry.rawFilename.length + fileEntry.rawComment.length + fileEntry.rawExtraFieldZip64.length + fileEntry.rawExtraFieldAES.length + fileEntry.rawExtraField.length;
-			}
-			const zip64 = this.options.zip64 || directoryOffset + directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS;
-			const directoryArray = new Uint8Array(directoryDataLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH));
-			const directoryView = new DataView(directoryArray.buffer);
-			if (comment.length) {
-				if (comment.length <= MAX_16_BITS) {
-					setUint16(directoryView, offset + 20, comment.length);
-				} else {
-					throw new Error(ERR_INVALID_COMMENT);
-				}
-			}
-			for (const [, fileEntry] of files) {
-				const rawFilename = fileEntry.rawFilename;
-				const rawExtraFieldZip64 = fileEntry.rawExtraFieldZip64;
-				const rawExtraFieldAES = fileEntry.rawExtraFieldAES;
-				const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + fileEntry.rawExtraField.length;
-				setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
-				setUint16(directoryView, offset + 4, fileEntry.version);
-				directoryArray.set(fileEntry.headerArray, offset + 6);
-				setUint16(directoryView, offset + 30, extraFieldLength);
-				setUint16(directoryView, offset + 32, fileEntry.rawComment.length);
-				if (fileEntry.directory) {
-					setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
-				}
-				if (fileEntry.zip64) {
-					setUint32(directoryView, offset + 42, MAX_32_BITS);
-				} else {
-					setUint32(directoryView, offset + 42, fileEntry.offset);
-				}
-				directoryArray.set(rawFilename, offset + 46);
-				directoryArray.set(rawExtraFieldZip64, offset + 46 + rawFilename.length);
-				directoryArray.set(rawExtraFieldAES, offset + 46 + rawFilename.length + rawExtraFieldZip64.length);
-				directoryArray.set(fileEntry.rawExtraField, 46 + rawFilename.length + rawExtraFieldZip64.length + rawExtraFieldAES.length);
-				directoryArray.set(fileEntry.rawComment, offset + 46 + rawFilename.length + extraFieldLength);
-				offset += 46 + rawFilename.length + extraFieldLength + fileEntry.rawComment.length;
-			}
-			if (zip64) {
-				setUint32(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
-				setBigUint64(directoryView, offset + 4, BigInt(44));
-				setUint16(directoryView, offset + 12, 45);
-				setUint16(directoryView, offset + 14, 45);
-				setBigUint64(directoryView, offset + 24, BigInt(filesLength));
-				setBigUint64(directoryView, offset + 32, BigInt(filesLength));
-				setBigUint64(directoryView, offset + 40, BigInt(directoryDataLength));
-				setBigUint64(directoryView, offset + 48, BigInt(directoryOffset));
-				setUint32(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
-				setBigUint64(directoryView, offset + 64, BigInt(directoryOffset + directoryDataLength));
-				setUint32(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
-				filesLength = MAX_16_BITS;
-				directoryOffset = MAX_32_BITS;
-				offset += 76;
-			}
-			setUint32(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
-			setUint16(directoryView, offset + 8, filesLength);
-			setUint16(directoryView, offset + 10, filesLength);
-			setUint32(directoryView, offset + 12, directoryDataLength);
-			setUint32(directoryView, offset + 16, directoryOffset);
-			await writer.writeUint8Array(directoryArray);
-			await writer.writeUint8Array(comment);
-			return writer.getData();
-		}
-	}
-
-	async function addFile(zipWriter, name, reader, options) {
-		const files = zipWriter.files, writer = zipWriter.writer;
-		files.set(name, null);
-		let resolveLockWrite;
-		try {
-			let fileWriter, fileEntry;
-			try {
-				if (options.bufferedWrite || zipWriter.options.bufferedWrite || zipWriter.lockWrite) {
-					fileWriter = new Uint8ArrayWriter();
-					await fileWriter.init();
-				} else {
-					zipWriter.lockWrite = new Promise(resolve => resolveLockWrite = resolve);
-					if (!writer.initialized) {
-						await writer.init();
-					}
-					fileWriter = writer;
-				}
-				fileEntry = await createFileEntry(reader, fileWriter, zipWriter.config, options);
-			} catch (error) {
-				files.delete(name);
-				throw error;
-			}
-			files.set(name, fileEntry);
-			if (fileWriter != writer) {
-				if (zipWriter.lockWrite) {
-					await zipWriter.lockWrite;
-				}
-				await writer.writeUint8Array(fileWriter.getData());
-			}
-			fileEntry.offset = zipWriter.offset;
-			if (fileEntry.zip64) {
-				const rawExtraFieldZip64View = new DataView(fileEntry.rawExtraFieldZip64.buffer);
-				setBigUint64(rawExtraFieldZip64View, 20, BigInt(fileEntry.offset));
-			}
-			zipWriter.offset += fileEntry.length;
-			return fileEntry;
-		} finally {
-			if (resolveLockWrite) {
-				zipWriter.lockWrite = null;
-				resolveLockWrite();
-			}
-		}
-	}
-
-	async function createFileEntry(reader, writer, config, options) {
-		const rawFilename = options.rawFilename;
-		const lastModDate = options.lastModDate;
-		const outputPassword = options.password;
-		const outputEncrypted = Boolean(outputPassword && outputPassword.length);
-		const level = options.level;
-		const outputCompressed = level !== 0 && !options.directory;
-		const zip64 = options.zip64;
-		let rawExtraFieldAES, outputEncryptionStrength;
-		if (outputEncrypted) {
-			rawExtraFieldAES = new Uint8Array(EXTRAFIELD_DATA_AES.length + 2);
-			const extraFieldAESView = new DataView(rawExtraFieldAES.buffer);
-			setUint16(extraFieldAESView, 0, EXTRAFIELD_TYPE_AES);
-			rawExtraFieldAES.set(EXTRAFIELD_DATA_AES, 2);
-			outputEncryptionStrength = options.encryptionStrength;
-			setUint8(extraFieldAESView, 8, outputEncryptionStrength);
-		} else {
-			rawExtraFieldAES = new Uint8Array(0);
-		}
-		const fileEntry = {
-			version: options.version || VERSION_DEFLATE,
-			zip64,
-			directory: Boolean(options.directory),
-			filenameUTF8: true,
-			rawFilename,
-			commentUTF8: true,
-			rawComment: options.rawComment,
-			rawExtraFieldZip64: zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array(0),
-			rawExtraFieldAES: rawExtraFieldAES,
-			rawExtraField: options.rawExtraField
-		};
-		let bitFlag = BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
-		let compressionMethod = COMPRESSION_METHOD_STORE;
-		if (outputCompressed) {
-			compressionMethod = COMPRESSION_METHOD_DEFLATE;
-		}
-		if (zip64) {
-			fileEntry.version = fileEntry.version > VERSION_ZIP64 ? fileEntry.version : VERSION_ZIP64;
-		}
-		if (outputEncrypted) {
-			fileEntry.version = fileEntry.version > VERSION_AES ? fileEntry.version : VERSION_AES;
-			bitFlag = bitFlag | BITFLAG_ENCRYPTED;
-			compressionMethod = COMPRESSION_METHOD_AES;
-			if (outputCompressed) {
-				fileEntry.rawExtraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
-			}
-		}
-		const headerArray = fileEntry.headerArray = new Uint8Array(26);
-		const headerView = new DataView(headerArray.buffer);
-		setUint16(headerView, 0, fileEntry.version);
-		setUint16(headerView, 2, bitFlag);
-		setUint16(headerView, 4, compressionMethod);
-		setUint16(headerView, 6, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
-		setUint16(headerView, 8, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
-		setUint16(headerView, 22, rawFilename.length);
-		setUint16(headerView, 24, 0);
-		const rawLastModDate = headerView.getUint32(6, true);
-		const fileDataArray = new Uint8Array(30 + rawFilename.length);
-		const fileDataView = new DataView(fileDataArray.buffer);
-		setUint32(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
-		fileDataArray.set(headerArray, 4);
-		fileDataArray.set(rawFilename, 30);
-		let result, uncompressedSize = 0, compressedSize = 0;
-		if (reader) {
-			uncompressedSize = reader.size;
-			const codec = await createCodec$1({
-				codecType: CODEC_DEFLATE,
-				codecConstructor: config.Deflate,
-				level,
-				outputPassword,
-				outputEncryptionStrength,
-				outputSigned: true,
-				outputCompressed,
-				outputEncrypted,
-				useWebWorkers: options.useWebWorkers
-			}, config);
-			await writer.writeUint8Array(fileDataArray);
-			result = await processData(codec, reader, writer, 0, uncompressedSize, config, { onprogress: options.onprogress });
-			compressedSize = result.length;
-		} else {
-			await writer.writeUint8Array(fileDataArray);
-		}
-		const footerArray = new Uint8Array(zip64 ? 24 : 16);
-		const footerView = new DataView(footerArray.buffer);
-		setUint32(footerView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
-		if (reader) {
-			if (!outputEncrypted && result.signature !== undefined) {
-				setUint32(headerView, 10, result.signature);
-				setUint32(footerView, 4, result.signature);
-				fileEntry.signature = result.signature;
-			}
-			if (zip64) {
-				const rawExtraFieldZip64View = new DataView(fileEntry.rawExtraFieldZip64.buffer);
-				setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
-				setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
-				setUint32(headerView, 14, MAX_32_BITS);
-				setBigUint64(footerView, 8, BigInt(compressedSize));
-				setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
-				setUint32(headerView, 18, MAX_32_BITS);
-				setBigUint64(footerView, 16, BigInt(uncompressedSize));
-				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
-			} else {
-				setUint32(headerView, 14, compressedSize);
-				setUint32(footerView, 8, compressedSize);
-				setUint32(headerView, 18, uncompressedSize);
-				setUint32(footerView, 12, uncompressedSize);
-			}
-		}
-		await writer.writeUint8Array(footerArray);
-		fileEntry.compressedSize = compressedSize;
-		fileEntry.uncompressedSize = uncompressedSize;
-		fileEntry.lastModDate = lastModDate;
-		fileEntry.rawLastModDate = rawLastModDate;
-		fileEntry.encrypted = outputEncrypted;
-		fileEntry.length = fileDataArray.length + (result ? result.length : 0) + footerArray.length;
-		return fileEntry;
-	}
-
-	function setUint8(view, offset, value) {
-		view.setUint8(offset, value);
-	}
-
-	function setUint16(view, offset, value) {
-		view.setUint16(offset, value, true);
-	}
-
-	function setUint32(view, offset, value) {
-		view.setUint32(offset, value, true);
-	}
-
-	function setBigUint64(view, offset, value) {
-		view.setBigUint64(offset, value, true);
-	}
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-	class ZipWriter$1 extends ZipWriter {
-
-		constructor(writer, options) {
-			super(writer, options, getConfiguration());
-		}
-	}
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-	const CP437 = [
-		"\0", "☺", "☻", "♥", "♦", "♣", "♠", "•", "◘", "○", "◙", "♂", "♀", "♪", "♫", "☼", "►", "◄", "↕", "‼", "¶", "§", "▬", "↨", "↑", "↓", "→", "←", "∟", "↔", "▲", "▼",
-		" ", "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
-		"@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\", "]", "^", "_",
-		"`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~", "⌂",
-		"Ç", "ü", "é", "â", "ä", "à", "å", "ç", "ê", "ë", "è", "ï", "î", "ì", "Ä", "Å", "É", "æ", "Æ", "ô", "ö", "ò", "û", "ù", "ÿ", "Ö", "Ü", "¢", "£", "¥", "₧", "ƒ",
-		"á", "í", "ó", "ú", "ñ", "Ñ", "ª", "º", "¿", "⌐", "¬", "½", "¼", "¡", "«", "»", "░", "▒", "▓", "│", "┤", "╡", "╢", "╖", "╕", "╣", "║", "╗", "╝", "╜", "╛", "┐",
-		"└", "┴", "┬", "├", "─", "┼", "╞", "╟", "╚", "╔", "╩", "╦", "╠", "═", "╬", "╧", "╨", "╤", "╥", "╙", "╘", "╒", "╓", "╫", "╪", "┘", "┌", "█", "▄", "▌", "▐", "▀",
-		"α", "ß", "Γ", "π", "Σ", "σ", "µ", "τ", "Φ", "Θ", "Ω", "δ", "∞", "φ", "ε", "∩", "≡", "±", "≥", "≤", "⌠", "⌡", "÷", "≈", "°", "∙", "·", "√", "ⁿ", "²", "■", " "];
-
-
-	var decodeCP437 = stringValue => {
-		let result = "";
-		for (let indexCharacter = 0; indexCharacter < stringValue.length; indexCharacter++) {
-			result += CP437[stringValue[indexCharacter]];
-		}
-		return result;
-	};
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
 	const ERR_BAD_FORMAT = "File format is not recognized";
 	const ERR_EOCDR_NOT_FOUND = "End of central directory not found";
 	const ERR_EOCDR_ZIP64_NOT_FOUND = "End of Zip64 central directory not found";
@@ -1844,6 +1452,7 @@
 	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 	const CHARSET_UTF8 = "utf-8";
 	const ZIP64_PROPERTIES = ["uncompressedSize", "compressedSize", "offset"];
+
 	class ZipReader {
 
 		constructor(reader, options = {}, config = {}) {
@@ -1906,7 +1515,7 @@
 				const filenameEncoding = options.filenameEncoding === undefined ? this.options.filenameEncoding : options.filenameEncoding;
 				fileEntry.filenameUTF8 = fileEntry.commentUTF8 = Boolean(fileEntry.bitFlag.languageEncodingFlag);
 				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.filenameUTF8 ? CHARSET_UTF8 : filenameEncoding);
-				if (!fileEntry.directory && fileEntry.filename && fileEntry.filename.charAt(fileEntry.filename.length - 1) == DIRECTORY_SIGNATURE) {
+				if (!fileEntry.directory && fileEntry.filename.endsWith(DIRECTORY_SIGNATURE)) {
 					fileEntry.directory = true;
 				}
 				fileEntry.rawExtraField = directoryArray.subarray(offset + 46 + fileEntry.filenameLength, offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength);
@@ -2099,7 +1708,7 @@
 	async function seekSignature(reader, signature, minimumBytes, maximumLength) {
 		const signatureArray = new Uint8Array(4);
 		const signatureView = new DataView(signatureArray.buffer);
-		setUint32$1(signatureView, 0, signature);
+		setUint32(signatureView, 0, signature);
 		const maximumBytes = minimumBytes + maximumLength;
 		let offset = minimumBytes;
 		let dataInfo = await seek(offset);
@@ -2156,7 +1765,7 @@
 		return view.getBigUint64(offset, true);
 	}
 
-	function setUint32$1(view, offset, value) {
+	function setUint32(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
@@ -2192,6 +1801,406 @@
 
 		constructor(reader, options) {
 			super(reader, options, getConfiguration());
+		}
+	}
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	const ERR_DUPLICATED_NAME = "File already exists";
+	const ERR_INVALID_COMMENT = "Zip file comment exceeds 64KB";
+	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
+	const ERR_INVALID_ENTRY_NAME = "File entry name exceeds 64KB";
+	const ERR_INVALID_VERSION = "Version exceeds 65535";
+	const ERR_INVALID_DATE = "The modification date must be between 1/1/1980 and 12/31/2107";
+	const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
+	const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
+	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
+
+	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
+	const EXTRAFIELD_LENGTH_ZIP64 = 24;
+
+	class ZipWriter {
+
+		constructor(writer, options = {}, config = {}) {
+			this.writer = writer;
+			this.options = options;
+			this.config = config;
+			this.files = new Map();
+			this.offset = writer.size;
+		}
+
+		async add(name = "", reader, options = {}) {
+			name = name.trim();
+			if (options.directory && (!name.endsWith(DIRECTORY_SIGNATURE))) {
+				name += DIRECTORY_SIGNATURE;
+			} else {
+				options.directory = name.endsWith(DIRECTORY_SIGNATURE);
+			}
+			if (this.files.has(name)) {
+				throw new Error(ERR_DUPLICATED_NAME);
+			}
+			const rawFilename = (new TextEncoder()).encode(name);
+			if (rawFilename.length > MAX_16_BITS) {
+				throw new Error(ERR_INVALID_ENTRY_NAME);
+			}
+			const comment = options.comment || "";
+			const rawComment = (new TextEncoder()).encode(comment);
+			if (rawComment.length > MAX_16_BITS) {
+				throw new Error(ERR_INVALID_ENTRY_COMMENT);
+			}
+			const version = this.options.version || options.version || 0;
+			if (version > MAX_16_BITS) {
+				throw new Error(ERR_INVALID_VERSION);
+			}
+			const lastModDate = options.lastModDate || new Date();
+			if (lastModDate < MIN_DATE || lastModDate > MAX_DATE) {
+				throw new Error(ERR_INVALID_DATE);
+			}
+			const password = options.password === undefined ? this.options.password : options.password;
+			const encryptionStrength = (options.encryptionStrength === undefined ? this.options.encryptionStrength : options.encryptionStrength) || 3;
+			if (password !== undefined && encryptionStrength !== undefined && (encryptionStrength < 1 || encryptionStrength > 3)) {
+				throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
+			}
+			if (reader && !reader.initialized) {
+				await reader.init();
+			}
+			let rawExtraField = new Uint8Array(0);
+			const extraField = options.extraField;
+			if (extraField) {
+				let extraFieldSize = 4, offset = 0;
+				extraField.forEach(data => extraFieldSize += data.length);
+				rawExtraField = new Uint8Array(extraFieldSize);
+				extraField.forEach((data, type) => {
+					if (type > MAX_16_BITS) {
+						throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
+					}
+					if (data.length > MAX_16_BITS) {
+						throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
+					}
+					rawExtraField.set(new Uint16Array([type]), offset);
+					rawExtraField.set(new Uint16Array([data.length]), offset + 2);
+					rawExtraField.set(data, offset + 4);
+					offset += 4 + data.length;
+				});
+			}
+			const zip64 = options.zip64 || this.options.zip64 || this.offset >= MAX_32_BITS || (reader && (reader.size >= MAX_32_BITS || this.offset + reader.size >= MAX_32_BITS));
+			const level = options.level === undefined ? this.options.level : options.level;
+			const useWebWorkers = options.useWebWorkers === undefined ? this.options.useWebWorkers : options.useWebWorkers;
+			const fileEntry = await addFile(this, name, reader, Object.assign({}, options,
+				{ rawFilename, rawComment, version, lastModDate, rawExtraField, zip64, password, level, useWebWorkers, encryptionStrength }));
+			fileEntry.filename = name;
+			fileEntry.comment = comment;
+			fileEntry.extraField = extraField;
+			return new Entry(fileEntry);
+		}
+
+		async close(comment = new Uint8Array(0)) {
+			const writer = this.writer;
+			const files = this.files;
+			let offset = 0, directoryDataLength = 0, directoryOffset = this.offset, filesLength = files.size;
+			for (const [, fileEntry] of files) {
+				directoryDataLength += 46 + fileEntry.rawFilename.length + fileEntry.rawComment.length + fileEntry.rawExtraFieldZip64.length + fileEntry.rawExtraFieldAES.length + fileEntry.rawExtraField.length;
+			}
+			const zip64 = this.options.zip64 || directoryOffset + directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS;
+			const directoryArray = new Uint8Array(directoryDataLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH));
+			const directoryView = new DataView(directoryArray.buffer);
+			if (comment.length) {
+				if (comment.length <= MAX_16_BITS) {
+					setUint16(directoryView, offset + 20, comment.length);
+				} else {
+					throw new Error(ERR_INVALID_COMMENT);
+				}
+			}
+			for (const [, fileEntry] of files) {
+				const rawFilename = fileEntry.rawFilename;
+				const rawExtraFieldZip64 = fileEntry.rawExtraFieldZip64;
+				const rawExtraFieldAES = fileEntry.rawExtraFieldAES;
+				const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + fileEntry.rawExtraField.length;
+				setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
+				setUint16(directoryView, offset + 4, fileEntry.version);
+				directoryArray.set(fileEntry.headerArray, offset + 6);
+				setUint16(directoryView, offset + 30, extraFieldLength);
+				setUint16(directoryView, offset + 32, fileEntry.rawComment.length);
+				if (fileEntry.directory) {
+					setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
+				}
+				if (fileEntry.zip64) {
+					setUint32$1(directoryView, offset + 42, MAX_32_BITS);
+				} else {
+					setUint32$1(directoryView, offset + 42, fileEntry.offset);
+				}
+				directoryArray.set(rawFilename, offset + 46);
+				directoryArray.set(rawExtraFieldZip64, offset + 46 + rawFilename.length);
+				directoryArray.set(rawExtraFieldAES, offset + 46 + rawFilename.length + rawExtraFieldZip64.length);
+				directoryArray.set(fileEntry.rawExtraField, 46 + rawFilename.length + rawExtraFieldZip64.length + rawExtraFieldAES.length);
+				directoryArray.set(fileEntry.rawComment, offset + 46 + rawFilename.length + extraFieldLength);
+				offset += 46 + rawFilename.length + extraFieldLength + fileEntry.rawComment.length;
+			}
+			if (zip64) {
+				setUint32$1(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
+				setBigUint64(directoryView, offset + 4, BigInt(44));
+				setUint16(directoryView, offset + 12, 45);
+				setUint16(directoryView, offset + 14, 45);
+				setBigUint64(directoryView, offset + 24, BigInt(filesLength));
+				setBigUint64(directoryView, offset + 32, BigInt(filesLength));
+				setBigUint64(directoryView, offset + 40, BigInt(directoryDataLength));
+				setBigUint64(directoryView, offset + 48, BigInt(directoryOffset));
+				setUint32$1(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
+				setBigUint64(directoryView, offset + 64, BigInt(directoryOffset + directoryDataLength));
+				setUint32$1(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
+				filesLength = MAX_16_BITS;
+				directoryOffset = MAX_32_BITS;
+				offset += 76;
+			}
+			setUint32$1(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
+			setUint16(directoryView, offset + 8, filesLength);
+			setUint16(directoryView, offset + 10, filesLength);
+			setUint32$1(directoryView, offset + 12, directoryDataLength);
+			setUint32$1(directoryView, offset + 16, directoryOffset);
+			await writer.writeUint8Array(directoryArray);
+			if (comment.length) {
+				await writer.writeUint8Array(comment);
+			}
+			return writer.getData();
+		}
+	}
+
+	async function addFile(zipWriter, name, reader, options) {
+		const files = zipWriter.files, writer = zipWriter.writer;
+		files.set(name, null);
+		let resolveLockWrite;
+		try {
+			let fileWriter, fileEntry;
+			try {
+				if (options.bufferedWrite || zipWriter.options.bufferedWrite || zipWriter.lockWrite) {
+					fileWriter = new Uint8ArrayWriter();
+					await fileWriter.init();
+				} else {
+					zipWriter.lockWrite = new Promise(resolve => resolveLockWrite = resolve);
+					if (!writer.initialized) {
+						await writer.init();
+					}
+					fileWriter = writer;
+				}
+				fileEntry = await createFileEntry(reader, fileWriter, zipWriter.config, options);
+			} catch (error) {
+				files.delete(name);
+				throw error;
+			}
+			files.set(name, fileEntry);
+			if (fileWriter != writer) {
+				if (zipWriter.lockWrite) {
+					await zipWriter.lockWrite;
+				}
+				await writer.writeUint8Array(fileWriter.getData());
+			}
+			fileEntry.offset = zipWriter.offset;
+			if (fileEntry.zip64) {
+				const rawExtraFieldZip64View = new DataView(fileEntry.rawExtraFieldZip64.buffer);
+				setBigUint64(rawExtraFieldZip64View, 20, BigInt(fileEntry.offset));
+			}
+			zipWriter.offset += fileEntry.length;
+			return fileEntry;
+		} finally {
+			if (resolveLockWrite) {
+				zipWriter.lockWrite = null;
+				resolveLockWrite();
+			}
+		}
+	}
+
+	async function createFileEntry(reader, writer, config, options) {
+		const rawFilename = options.rawFilename;
+		const lastModDate = options.lastModDate;
+		const outputPassword = options.password;
+		const outputEncrypted = Boolean(outputPassword && outputPassword.length);
+		const level = options.level;
+		const outputCompressed = level !== 0 && !options.directory;
+		const zip64 = options.zip64;
+		let rawExtraFieldAES, outputEncryptionStrength;
+		if (outputEncrypted) {
+			rawExtraFieldAES = new Uint8Array(EXTRAFIELD_DATA_AES.length + 2);
+			const extraFieldAESView = new DataView(rawExtraFieldAES.buffer);
+			setUint16(extraFieldAESView, 0, EXTRAFIELD_TYPE_AES);
+			rawExtraFieldAES.set(EXTRAFIELD_DATA_AES, 2);
+			outputEncryptionStrength = options.encryptionStrength;
+			setUint8(extraFieldAESView, 8, outputEncryptionStrength);
+		} else {
+			rawExtraFieldAES = new Uint8Array(0);
+		}
+		const fileEntry = {
+			version: options.version || VERSION_DEFLATE,
+			zip64,
+			directory: Boolean(options.directory),
+			filenameUTF8: true,
+			rawFilename,
+			commentUTF8: true,
+			rawComment: options.rawComment,
+			rawExtraFieldZip64: zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array(0),
+			rawExtraFieldAES: rawExtraFieldAES,
+			rawExtraField: options.rawExtraField
+		};
+		let bitFlag = BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
+		let compressionMethod = COMPRESSION_METHOD_STORE;
+		if (outputCompressed) {
+			compressionMethod = COMPRESSION_METHOD_DEFLATE;
+		}
+		if (zip64) {
+			fileEntry.version = fileEntry.version > VERSION_ZIP64 ? fileEntry.version : VERSION_ZIP64;
+		}
+		if (outputEncrypted) {
+			fileEntry.version = fileEntry.version > VERSION_AES ? fileEntry.version : VERSION_AES;
+			bitFlag = bitFlag | BITFLAG_ENCRYPTED;
+			compressionMethod = COMPRESSION_METHOD_AES;
+			if (outputCompressed) {
+				fileEntry.rawExtraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
+			}
+		}
+		const headerArray = fileEntry.headerArray = new Uint8Array(26);
+		const headerView = new DataView(headerArray.buffer);
+		setUint16(headerView, 0, fileEntry.version);
+		setUint16(headerView, 2, bitFlag);
+		setUint16(headerView, 4, compressionMethod);
+		setUint16(headerView, 6, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
+		setUint16(headerView, 8, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
+		setUint16(headerView, 22, rawFilename.length);
+		setUint16(headerView, 24, 0);
+		const rawLastModDate = headerView.getUint32(6, true);
+		const fileDataArray = new Uint8Array(30 + rawFilename.length);
+		const fileDataView = new DataView(fileDataArray.buffer);
+		setUint32$1(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
+		fileDataArray.set(headerArray, 4);
+		fileDataArray.set(rawFilename, 30);
+		let result, uncompressedSize = 0, compressedSize = 0;
+		if (reader) {
+			uncompressedSize = reader.size;
+			const codec = await createCodec$1({
+				codecType: CODEC_DEFLATE,
+				codecConstructor: config.Deflate,
+				level,
+				outputPassword,
+				outputEncryptionStrength,
+				outputSigned: true,
+				outputCompressed,
+				outputEncrypted,
+				useWebWorkers: options.useWebWorkers
+			}, config);
+			await writer.writeUint8Array(fileDataArray);
+			result = await processData(codec, reader, writer, 0, uncompressedSize, config, { onprogress: options.onprogress });
+			compressedSize = result.length;
+		} else {
+			await writer.writeUint8Array(fileDataArray);
+		}
+		const footerArray = new Uint8Array(zip64 ? 24 : 16);
+		const footerView = new DataView(footerArray.buffer);
+		setUint32$1(footerView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
+		if (reader) {
+			if (!outputEncrypted && result.signature !== undefined) {
+				setUint32$1(headerView, 10, result.signature);
+				setUint32$1(footerView, 4, result.signature);
+				fileEntry.signature = result.signature;
+			}
+			if (zip64) {
+				const rawExtraFieldZip64View = new DataView(fileEntry.rawExtraFieldZip64.buffer);
+				setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
+				setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
+				setUint32$1(headerView, 14, MAX_32_BITS);
+				setBigUint64(footerView, 8, BigInt(compressedSize));
+				setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
+				setUint32$1(headerView, 18, MAX_32_BITS);
+				setBigUint64(footerView, 16, BigInt(uncompressedSize));
+				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
+			} else {
+				setUint32$1(headerView, 14, compressedSize);
+				setUint32$1(footerView, 8, compressedSize);
+				setUint32$1(headerView, 18, uncompressedSize);
+				setUint32$1(footerView, 12, uncompressedSize);
+			}
+		}
+		await writer.writeUint8Array(footerArray);
+		fileEntry.compressedSize = compressedSize;
+		fileEntry.uncompressedSize = uncompressedSize;
+		fileEntry.lastModDate = lastModDate;
+		fileEntry.rawLastModDate = rawLastModDate;
+		fileEntry.encrypted = outputEncrypted;
+		fileEntry.length = fileDataArray.length + (result ? result.length : 0) + footerArray.length;
+		return fileEntry;
+	}
+
+	function setUint8(view, offset, value) {
+		view.setUint8(offset, value);
+	}
+
+	function setUint16(view, offset, value) {
+		view.setUint16(offset, value, true);
+	}
+
+	function setUint32$1(view, offset, value) {
+		view.setUint32(offset, value, true);
+	}
+
+	function setBigUint64(view, offset, value) {
+		view.setBigUint64(offset, value, true);
+	}
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	class ZipWriter$1 extends ZipWriter {
+
+		constructor(writer, options) {
+			super(writer, options, getConfiguration());
 		}
 	}
 
