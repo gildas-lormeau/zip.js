@@ -14,12 +14,12 @@ export default [{
 			`
 			import { configure } from "./core/configuration.js"; 
 			export default () => { 
-				const code = (() => {
+				if (typeof URL.createObjectURL == "function") {
+					const code = (() => {
 			`,
 		file: "lib/z-worker-inline.js",
 		outro:
-			`	}).toString(); 
-				if (typeof URL.createObjectURL == "function") {
+			`		}).toString(); 				
 					const uri = URL.createObjectURL(new Blob(["(" + code + ")()"], { type : "text/javascript" })); 
 					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
 				}
