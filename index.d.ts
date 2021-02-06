@@ -127,19 +127,16 @@ declare module "@zip.js/zip.js" {
         signature: Uint8Array;
         extraField?: Map<number, Uint8Array>;
         rawExtraField: Uint8Array;
-        getData?(writer: Writer, options?: GetDataOptions): Promise<any>;
+        getData?(writer: Writer, options?: GetDataOptions | ZipReaderOptions): Promise<any>;
     }
 
     export interface GetDataOptions {
         onprogress?: (progress: number, total: number) => void;
-        checkSignature?: boolean;
-        password?: string;
-        useWebWorkers?: boolean;
     }
 
     export class ZipWriter {
         constructor(writer: Writer, options?: ZipWriterOptions);
-        public add(name: string, reader: Reader, options?: AddDataOptions): Promise<Entry>;
+        public add(name: string, reader: Reader, options?: AddDataOptions | ZipWriterOptions): Promise<Entry>;
         public close(comment?: Uint8Array): Promise<any>;
     }
 
@@ -156,15 +153,9 @@ declare module "@zip.js/zip.js" {
     export interface AddDataOptions {
         onprogress?: (progress: number, total: number) => void;
         directory?: boolean;
-        level?: number;
-        bufferedWrite?: boolean;
         comment?: string;
         lastModDate?: Date;
-        version?: number;
-        password?: string;
-        zip64?: boolean;
         extraField?: Map<number, Uint8Array>;
-        useWebWorkers?: boolean;
     }
 
     export interface ZipEntry {
@@ -182,11 +173,11 @@ declare module "@zip.js/zip.js" {
     export interface ZipFileEntry extends ZipEntry {
         reader: Reader;
         writer: Writer;
-        getText(encoding?: string, options?: GetDataOptions): Promise<string>;
-        getBlob(mimeType?: string, options?: GetDataOptions): Promise<Blob>;
-        getData64URI(mimeType?: string, options?: GetDataOptions): Promise<string>;
-        getUint8Array(options?: GetDataOptions): Promise<Uint8Array>;
-        getData(writer: Writer, options?: GetDataOptions): Promise<any>;
+        getText(encoding?: string, options?: GetDataOptions | ZipReaderOptions): Promise<string>;
+        getBlob(mimeType?: string, options?: GetDataOptions | ZipReaderOptions): Promise<Blob>;
+        getData64URI(mimeType?: string, options?: GetDataOptions | ZipReaderOptions): Promise<string>;
+        getUint8Array(options?: GetDataOptions | ZipReaderOptions): Promise<Uint8Array>;
+        getData(writer: Writer, options?: GetDataOptions | ZipReaderOptions): Promise<any>;
         replaceBlob(blob: Blob): void;
         replaceText(text: String): void;
         replaceData64URI(dataURI: String): void;
