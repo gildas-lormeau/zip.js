@@ -3,7 +3,7 @@
     "description": "A JavaScript library to zip and unzip files in the browser",
     "author": "Gildas Lormeau",
     "license": "BSD-3-Clause",
-    "version": "2.2.11",
+    "version": "2.2.12",
     "keywords": [
         "zip",
         "unzip",
@@ -32,7 +32,7 @@
     },
     "homepage": "https://github.com/gildas-lormeau/zip.js#readme",
     "devDependencies": {
-        "rollup": "^2.38.0",
+        "rollup": "^2.38.5",
         "rollup-plugin-terser": "^7.0.2"
     }
 }

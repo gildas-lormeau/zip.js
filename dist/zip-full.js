@@ -5644,7 +5644,7 @@
 	const ERR_LOCAL_FILE_HEADER_NOT_FOUND = "Local file header not found";
 	const ERR_EXTRAFIELD_ZIP64_NOT_FOUND = "Zip64 extra field not found";
 	const ERR_ENCRYPTED = "File contains encrypted entry";
-	const ERR_USUPPORTED_ENCRYPTION = "Encryption method not supported";
+	const ERR_UNSUPPORTED_ENCRYPTION = "Encryption method not supported";
 	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 	const CHARSET_UTF8 = "utf-8";
 	const ZIP64_PROPERTIES = ["uncompressedSize", "compressedSize", "offset"];
@@ -5790,7 +5790,7 @@
 			const inputEncryptionStrength = this.extraFieldAES && this.extraFieldAES.strength;
 			if (inputEncrypted) {
 				if (inputEncryptionStrength === undefined) {
-					throw new Error(ERR_USUPPORTED_ENCRYPTION);
+					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
 				} else if (!inputPassword) {
 					throw new Error(ERR_ENCRYPTED);
 				}
@@ -6534,7 +6534,7 @@
 	exports.ERR_INVALID_VERSION = ERR_INVALID_VERSION;
 	exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
 	exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION;
-	exports.ERR_USUPPORTED_ENCRYPTION = ERR_USUPPORTED_ENCRYPTION;
+	exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
 	exports.HttpRangeReader = HttpRangeReader;
 	exports.HttpReader = HttpReader;
 	exports.Reader = Reader;
