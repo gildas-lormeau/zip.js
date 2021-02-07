@@ -14,7 +14,7 @@
 			getEntries(file, options) {
 				return (new zip.ZipReader(new zip.BlobReader(file))).getEntries(options);
 			},
-			async getEntryFile(entry, options) {
+			async getURL(entry, options) {
 				return URL.createObjectURL(await entry.getData(new zip.BlobWriter(), options));
 			}
 		};
@@ -104,7 +104,7 @@
 
 		async function download(entry, li, a) {
 			li.appendChild(unzipProgress);
-			const blobURL = await model.getEntryFile(entry, {
+			const blobURL = await model.getURL(entry, {
 				password: passwordInput.value,
 				onprogress: (index, max) => {
 					unzipProgress.value = index;
