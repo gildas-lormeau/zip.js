@@ -103,12 +103,12 @@
 		}
 
 		async function download(entry, li, a) {
+			li.appendChild(unzipProgress);
 			const blobURL = await model.getEntryFile(entry, {
 				password: passwordInput.value,
 				onprogress: (index, max) => {
 					unzipProgress.value = index;
 					unzipProgress.max = max;
-					li.appendChild(unzipProgress);
 				}
 			});
 			const clickEvent = new MouseEvent("click");
