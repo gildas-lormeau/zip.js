@@ -4,6 +4,7 @@
     "author": "Gildas Lormeau",
     "license": "BSD-3-Clause",
     "version": "2.2.12",
+    "type": "module",
     "keywords": [
         "zip",
         "unzip",
