@@ -11,24 +11,34 @@ async function test() {
 	document.body.innerHTML = "...";
 	if (!location.search) {
 		await registerServiceWorker();
-		location.search = "?reload";
-	} else if (location.search == "?reload") {
-		const response = await fetch("./../data/lorem.zip#lorem.txt");
-		const result = await response.text();
-		await unregisterServiceWorker();
-		if (TEXT_CONTENT == result) {
-			location.search = "?done";
+		location.search = "?service-worker-registered";
+	} else if (location.search == "?service-worker-registered") {
+		let result;
+		try {
+			const response = await fetch("./../data/lorem.zip#lorem.txt");
+			result = await response.text();
+			await unregisterServiceWorker();
+		} catch (error) {
+			resetSearch();
 		}
-	} else if (location.search == "?done") {
+		if (TEXT_CONTENT == result) {
+			location.search = "?test-ok";
+		} else {
+			resetSearch();
+		}
+	} else if (location.search == "?test-ok") {
 		document.body.innerHTML = "ok";
-		history.replaceState(null, null, location.href.split("?done")[0]);
+		resetSearch();
 	}
+}
+
+function resetSearch() {
+	history.replaceState(null, null, location.href.split("?")[0]);
 }
 
 async function registerServiceWorker() {
 	await navigator.serviceWorker.register("./test-sw-worker.js");
 	await navigator.serviceWorker.ready;
-	location.search = "?reload";
 }
 
 async function unregisterServiceWorker() {
