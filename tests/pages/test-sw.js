@@ -10,14 +10,12 @@ test().catch(error => console.error(error));
 async function test() {
 	document.body.innerHTML = "...";
 	if (!location.search) {
-		await navigator.serviceWorker.register("./test-sw-worker.js");
-		await navigator.serviceWorker.ready;
+		await registerServiceWorker();
 		location.search = "?reload";
 	} else if (location.search == "?reload") {
 		const response = await fetch("./../data/lorem.zip#lorem.txt");
 		const result = await response.text();
-		const registrations = await navigator.serviceWorker.getRegistrations();
-		registrations.forEach(registration => registration.unregister());
+		await unregisterServiceWorker();
 		if (TEXT_CONTENT == result) {
 			location.search = "?done";
 		}
@@ -25,4 +23,15 @@ async function test() {
 		document.body.innerHTML = "ok";
 		history.replaceState(null, null, location.href.split("?done")[0]);
 	}
+}
+
+async function registerServiceWorker() {
+	await navigator.serviceWorker.register("./test-sw-worker.js");
+	await navigator.serviceWorker.ready;
+	location.search = "?reload";
+}
+
+async function unregisterServiceWorker() {
+	const registrations = await navigator.serviceWorker.getRegistrations();
+	await Promise.all(registrations.map(registration => registration.unregister()));
 }
