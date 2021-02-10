@@ -4846,16 +4846,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const CP437 = [
-		"\0", "☺", "☻", "♥", "♦", "♣", "♠", "•", "◘", "○", "◙", "♂", "♀", "♪", "♫", "☼", "►", "◄", "↕", "‼", "¶", "§", "▬", "↨", "↑", "↓", "→", "←", "∟", "↔", "▲", "▼",
-		" ", "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
-		"@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\", "]", "^", "_",
-		"`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~", "⌂",
-		"Ç", "ü", "é", "â", "ä", "à", "å", "ç", "ê", "ë", "è", "ï", "î", "ì", "Ä", "Å", "É", "æ", "Æ", "ô", "ö", "ò", "û", "ù", "ÿ", "Ö", "Ü", "¢", "£", "¥", "₧", "ƒ",
-		"á", "í", "ó", "ú", "ñ", "Ñ", "ª", "º", "¿", "⌐", "¬", "½", "¼", "¡", "«", "»", "░", "▒", "▓", "│", "┤", "╡", "╢", "╖", "╕", "╣", "║", "╗", "╝", "╜", "╛", "┐",
-		"└", "┴", "┬", "├", "─", "┼", "╞", "╟", "╚", "╔", "╩", "╦", "╠", "═", "╬", "╧", "╨", "╤", "╥", "╙", "╘", "╒", "╓", "╫", "╪", "┘", "┌", "█", "▄", "▌", "▐", "▀",
-		"α", "ß", "Γ", "π", "Σ", "σ", "µ", "τ", "Φ", "Θ", "Ω", "δ", "∞", "φ", "ε", "∩", "≡", "±", "≥", "≤", "⌠", "⌡", "÷", "≈", "°", "∙", "·", "√", "ⁿ", "²", "■", " "];
-
+	const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
 
 	var decodeCP437 = stringValue => {
 		let result = "";
@@ -5548,7 +5539,11 @@
 				const data = await codec.append(inputData);
 				outputLength += await writeData(writer, data);
 				if (options.onprogress) {
-					options.onprogress(chunkOffset + chunkLength, inputLength);
+					try {
+						options.onprogress(chunkOffset + chunkLength, inputLength);
+					} catch (error) {
+						// ignored
+					}
 				}
 				return processChunk(chunkOffset + chunkSize, outputLength);
 			} else {
@@ -5670,50 +5665,48 @@
 				throw new Error(ERR_EOCDR_NOT_FOUND);
 			}
 			const endOfDirectoryView = new DataView(endOfDirectoryInfo.buffer);
-			let zip64;
 			let directoryDataLength = getUint32(endOfDirectoryView, 12);
 			let directoryDataOffset = getUint32(endOfDirectoryView, 16);
 			let filesLength = getUint16(endOfDirectoryView, 8), prependedBytesLength = 0;
 			if (directoryDataOffset == MAX_32_BITS || filesLength == MAX_16_BITS) {
-				zip64 = true;
 				const endOfDirectoryLocatorArray = await reader.readUint8Array(endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH);
 				const endOfDirectoryLocatorView = new DataView(endOfDirectoryLocatorArray.buffer);
-				if (Number(getUint32(endOfDirectoryLocatorView, 0)) != ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE) {
+				if (getUint32(endOfDirectoryLocatorView, 0) != ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_ZIP64_NOT_FOUND);
 				}
-				directoryDataOffset = Number(getBigUint64(endOfDirectoryLocatorView, 8));
+				directoryDataOffset = getBigUint64(endOfDirectoryLocatorView, 8);
 				let endOfDirectoryArray = await reader.readUint8Array(directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
 				let endOfDirectoryView = new DataView(endOfDirectoryArray.buffer);
-				if (Number(getUint32(endOfDirectoryView, 0)) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE &&
-					directoryDataOffset != endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH - ZIP64_END_OF_CENTRAL_DIR_LENGTH) {
+				const computedDirectoryDataOffset = endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH - ZIP64_END_OF_CENTRAL_DIR_LENGTH;
+				if (getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE && directoryDataOffset != computedDirectoryDataOffset) {
 					const originalDirectoryDataOffset = directoryDataOffset;
-					directoryDataOffset = endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH - ZIP64_END_OF_CENTRAL_DIR_LENGTH;
+					directoryDataOffset = computedDirectoryDataOffset;
 					prependedBytesLength = directoryDataOffset - originalDirectoryDataOffset;
 					endOfDirectoryArray = await reader.readUint8Array(directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
 					endOfDirectoryView = new DataView(endOfDirectoryArray.buffer);
 				}
-				if (Number(getUint32(endOfDirectoryView, 0)) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
+				if (getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
 				}
-				filesLength = Number(getBigUint64(endOfDirectoryView, 24));
-				directoryDataLength = Number(getBigUint64(endOfDirectoryLocatorView, 4));
-				directoryDataOffset -= Number(getBigUint64(endOfDirectoryView, 40));
+				filesLength = getBigUint64(endOfDirectoryView, 24);
+				directoryDataLength = getBigUint64(endOfDirectoryLocatorView, 4);
+				directoryDataOffset -= getBigUint64(endOfDirectoryView, 40);
 			}
-			if (directoryDataOffset < 0 || (!zip64 && (directoryDataOffset >= reader.size || filesLength >= MAX_16_BITS))) {
+			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
 			let offset = 0;
 			let directoryArray = await reader.readUint8Array(directoryDataOffset, reader.size - directoryDataOffset);
 			let directoryView = new DataView(directoryArray.buffer);
-			if (getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE &&
-				directoryDataOffset != endOfDirectoryInfo.offset - directoryDataLength) {
+			const computedDirectoryDataOffset = endOfDirectoryInfo.offset - directoryDataLength;
+			if (getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE && directoryDataOffset != computedDirectoryDataOffset) {
 				const originalDirectoryDataOffset = directoryDataOffset;
-				directoryDataOffset = endOfDirectoryInfo.offset - directoryDataLength;
+				directoryDataOffset = computedDirectoryDataOffset;
 				prependedBytesLength = directoryDataOffset - originalDirectoryDataOffset;
 				directoryArray = await reader.readUint8Array(directoryDataOffset, reader.size - directoryDataOffset);
 				directoryView = new DataView(directoryArray.buffer);
 			}
-			if (directoryDataOffset < 0) {
+			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
 			const entries = [];
@@ -5880,7 +5873,7 @@
 		const extraFieldView = new DataView(extraFieldZip64.data.buffer);
 		extraFieldZip64.values = [];
 		for (let indexValue = 0; indexValue < Math.floor(extraFieldZip64.data.length / 8); indexValue++) {
-			extraFieldZip64.values.push(Number(getBigUint64(extraFieldView, 0 + indexValue * 8)));
+			extraFieldZip64.values.push(getBigUint64(extraFieldView, 0 + indexValue * 8));
 		}
 		const missingProperties = ZIP64_PROPERTIES.filter(propertyName => directory[propertyName] == MAX_32_BITS);
 		for (let indexMissingProperty = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
@@ -5946,7 +5939,7 @@
 				if (bytes[indexByte] == signatureArray[0] && bytes[indexByte + 1] == signatureArray[1] &&
 					bytes[indexByte + 2] == signatureArray[2] && bytes[indexByte + 3] == signatureArray[3]) {
 					return {
-						offset,
+						offset: offset + indexByte,
 						buffer: bytes.slice(indexByte, indexByte + minimumBytes).buffer
 					};
 				}
@@ -5988,7 +5981,7 @@
 	}
 
 	function getBigUint64(view, offset) {
-		return view.getBigUint64(offset, true);
+		return Number(view.getBigUint64(offset, true));
 	}
 
 	function setUint32(view, offset, value) {
@@ -6200,7 +6193,7 @@
 				setBigUint64(directoryView, offset + 40, BigInt(directoryDataLength));
 				setBigUint64(directoryView, offset + 48, BigInt(directoryOffset));
 				setUint32$1(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
-				setBigUint64(directoryView, offset + 64, BigInt(directoryOffset + directoryDataLength));
+				setBigUint64(directoryView, offset + 64, BigInt(directoryOffset) + BigInt(directoryDataLength));
 				setUint32$1(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
 				filesLength = MAX_16_BITS;
 				directoryOffset = MAX_32_BITS;
@@ -6325,11 +6318,14 @@
 		setUint16(headerView, 0, fileEntry.version);
 		setUint16(headerView, 2, bitFlag);
 		setUint16(headerView, 4, compressionMethod);
-		setUint16(headerView, 6, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
-		setUint16(headerView, 8, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
+		const dateArray = new Uint32Array(1);
+		const dateView = new DataView(dateArray.buffer);
+		setUint16(dateView, 0, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
+		setUint16(dateView, 2, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
+		const rawLastModDate = dateArray[0];
+		setUint32$1(headerView, 6, rawLastModDate);
 		setUint16(headerView, 22, rawFilename.length);
 		setUint16(headerView, 24, 0);
-		const rawLastModDate = headerView.getUint32(6, true);
 		const fileDataArray = new Uint8Array(30 + rawFilename.length);
 		const fileDataView = new DataView(fileDataArray.buffer);
 		setUint32$1(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
