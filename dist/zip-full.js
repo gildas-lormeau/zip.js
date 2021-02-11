@@ -4235,7 +4235,7 @@
 		workerScripts: undefined
 	};
 
-	let config = Object.assign({}, DEFAULT_CONFIGURATION);
+	const config = Object.assign({}, DEFAULT_CONFIGURATION);
 
 	function getConfiguration() {
 		return config;
@@ -4469,7 +4469,8 @@
 
 		async writeUint8Array(array) {
 			super.writeUint8Array(array);
-			let indexArray = 0, dataString = this.pending;
+			let indexArray = 0;
+			let dataString = this.pending;
 			const delta = this.pending.length;
 			this.pending = "";
 			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
@@ -5205,7 +5206,8 @@
 		}
 
 		async flush() {
-			let signature, data = new Uint8Array(0);
+			let signature;
+			let data = new Uint8Array(0);
 			if (this.encrypted) {
 				const result = await this.decrypt.flush();
 				if (!result.valid) {
@@ -5253,7 +5255,8 @@
 		}
 
 		async flush() {
-			let data = new Uint8Array(0), signature;
+			let signature;
+			let data = new Uint8Array(0);
 			if (this.compressed) {
 				data = (await this.deflate.flush()) || new Uint8Array(0);
 			}
@@ -5465,7 +5468,8 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	let pool = [], pendingRequests = [];
+	let pool = [];
+	let pendingRequests = [];
 
 	function createCodec$1(options, config) {
 		const streamCopy =
@@ -5667,8 +5671,9 @@
 			const endOfDirectoryView = new DataView(endOfDirectoryInfo.buffer);
 			let directoryDataLength = getUint32(endOfDirectoryView, 12);
 			let directoryDataOffset = getUint32(endOfDirectoryView, 16);
-			let filesLength = getUint16(endOfDirectoryView, 8), prependedBytesLength = 0;
-			if (directoryDataOffset == MAX_32_BITS || filesLength == MAX_16_BITS) {
+			let filesLength = getUint16(endOfDirectoryView, 8);
+			let prependedBytesLength = 0;
+			if (directoryDataOffset == MAX_32_BITS || directoryDataLength == MAX_32_BITS ||  filesLength == MAX_16_BITS) {
 				const endOfDirectoryLocatorArray = await reader.readUint8Array(endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH);
 				const endOfDirectoryLocatorView = new DataView(endOfDirectoryLocatorArray.buffer);
 				if (getUint32(endOfDirectoryLocatorView, 0) != ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE) {
@@ -5778,7 +5783,7 @@
 			readCommonHeader(localDirectory, dataView, 4);
 			localDirectory.rawExtraField = dataArray.subarray(this.offset + 30 + localDirectory.filenameLength, this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength);
 			readCommonFooter(this, localDirectory, dataView, 4);
-			let dataOffset = this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
+			const dataOffset = this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
 			const inputEncrypted = this.bitFlag.encrypted && localDirectory.bitFlag.encrypted;
 			const inputEncryptionStrength = this.extraFieldAES && this.extraFieldAES.strength;
 			if (inputEncrypted) {
@@ -5853,7 +5858,7 @@
 		if (extraFieldUnicodePath) {
 			readExtraFieldUnicode(extraFieldUnicodePath, "filename", "rawFilename", directory, fileEntry);
 		}
-		let extraFieldUnicodeComment = directory.extraFieldUnicodeComment = extraField.get(EXTRAFIELD_TYPE_UNICODE_COMMENT);
+		const extraFieldUnicodeComment = directory.extraFieldUnicodeComment = extraField.get(EXTRAFIELD_TYPE_UNICODE_COMMENT);
 		if (extraFieldUnicodeComment) {
 			readExtraFieldUnicode(extraFieldUnicodeComment, "comment", "rawComment", directory, fileEntry);
 		}
@@ -5925,12 +5930,7 @@
 		const signatureView = new DataView(signatureArray.buffer);
 		setUint32(signatureView, 0, signature);
 		const maximumBytes = minimumBytes + maximumLength;
-		let offset = minimumBytes;
-		let dataInfo = await seek(offset);
-		if (!dataInfo) {
-			dataInfo = await seek(Math.min(maximumBytes, reader.size));
-		}
-		return dataInfo;
+		return (await seek(minimumBytes)) || await seek(Math.min(maximumBytes, reader.size));
 
 		async function seek(length) {
 			const offset = reader.size - length;
@@ -6112,7 +6112,8 @@
 			let rawExtraField = new Uint8Array(0);
 			const extraField = options.extraField;
 			if (extraField) {
-				let extraFieldSize = 0, offset = 0;
+				let extraFieldSize = 0;
+				let offset = 0;
 				extraField.forEach(data => extraFieldSize += 4 + data.length);
 				rawExtraField = new Uint8Array(extraFieldSize);
 				extraField.forEach((data, type) => {
@@ -6144,11 +6145,19 @@
 		async close(comment = new Uint8Array(0)) {
 			const writer = this.writer;
 			const files = this.files;
-			let offset = 0, directoryDataLength = 0, directoryOffset = this.offset, filesLength = files.size;
+			let offset = 0;
+			let directoryDataLength = 0;
+			let directoryOffset = this.offset;
+			let filesLength = files.size;
 			for (const [, fileEntry] of files) {
-				directoryDataLength += 46 + fileEntry.rawFilename.length + fileEntry.rawComment.length + fileEntry.rawExtraFieldZip64.length + fileEntry.rawExtraFieldAES.length + fileEntry.rawExtraField.length;
+				directoryDataLength += 46 +
+					fileEntry.rawFilename.length +
+					fileEntry.rawComment.length +
+					fileEntry.rawExtraFieldZip64.length +
+					fileEntry.rawExtraFieldAES.length +
+					fileEntry.rawExtraField.length;
 			}
-			const zip64 = this.options.zip64 || directoryOffset + directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS;
+			const zip64 = this.options.zip64 || directoryOffset >= MAX_32_BITS || directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS;
 			const directoryArray = new Uint8Array(directoryDataLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH));
 			const directoryView = new DataView(directoryArray.buffer);
 			if (comment.length) {
@@ -6197,6 +6206,7 @@
 				setUint32$1(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
 				filesLength = MAX_16_BITS;
 				directoryOffset = MAX_32_BITS;
+				directoryDataLength = MAX_32_BITS;
 				offset += 76;
 			}
 			setUint32$1(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
@@ -6215,9 +6225,12 @@
 	async function addFile(zipWriter, name, reader, options) {
 		const files = zipWriter.files, writer = zipWriter.writer;
 		files.set(name, null);
-		let resolveLockWrite, lockPreviousFile, resolveLockPreviousFile;
+		let resolveLockWrite;
+		let lockPreviousFile;
+		let resolveLockPreviousFile;
 		try {
-			let fileWriter, fileEntry;
+			let fileWriter;
+			let fileEntry;
 			try {
 				if (options.keepOrder) {
 					lockPreviousFile = zipWriter.lockPreviousFile;
@@ -6274,7 +6287,8 @@
 		const level = options.level;
 		const outputCompressed = level !== 0 && !options.directory;
 		const zip64 = options.zip64;
-		let rawExtraFieldAES, outputEncryptionStrength;
+		let rawExtraFieldAES;
+		let outputEncryptionStrength;
 		if (outputEncrypted) {
 			rawExtraFieldAES = new Uint8Array(EXTRAFIELD_DATA_AES.length + 2);
 			const extraFieldAESView = new DataView(rawExtraFieldAES.buffer);
@@ -6331,7 +6345,9 @@
 		setUint32$1(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
 		fileDataArray.set(headerArray, 4);
 		fileDataArray.set(rawFilename, 30);
-		let result, uncompressedSize = 0, compressedSize = 0;
+		let result;
+		let uncompressedSize = 0;
+		let compressedSize = 0;
 		if (reader) {
 			uncompressedSize = reader.size;
 			const codec = await createCodec$1({
