@@ -6237,6 +6237,7 @@
 			}
 			const password = getOptionValue$1(this, options, "password");
 			const encryptionStrength = getOptionValue$1(this, options, "encryptionStrength") || 3;
+			const zipCrypto = getOptionValue$1(this, options, "zipCrypto");
 			if (password !== undefined && encryptionStrength !== undefined && (encryptionStrength < 1 || encryptionStrength > 3)) {
 				throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
 			}
@@ -6270,7 +6271,7 @@
 			const bufferedWrite = getOptionValue$1(this, options, "bufferedWrite");
 			const keepOrder = getOptionValue$1(this, options, "keepOrder");
 			const fileEntry = await addFile(this, name, reader, Object.assign({}, options,
-				{ rawFilename, rawComment, version, lastModDate, rawExtraField, zip64, password, level, useWebWorkers, encryptionStrength, bufferedWrite, keepOrder }));
+				{ rawFilename, rawComment, version, lastModDate, rawExtraField, zip64, password, level, useWebWorkers, encryptionStrength, zipCrypto, bufferedWrite, keepOrder }));
 			Object.assign(fileEntry, { name, comment, extraField });
 			return new Entry(fileEntry);
 		}
