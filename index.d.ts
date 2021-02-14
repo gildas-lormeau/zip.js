@@ -150,6 +150,7 @@ declare module "@zip.js/zip.js" {
         version?: number;
         password?: string;
         encryptionStrength?: number;
+        zipCrypto?: boolean;
         useWebWorkers?: boolean;
     }
 
