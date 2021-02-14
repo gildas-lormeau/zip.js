@@ -13,6 +13,7 @@
         "aes-256",
         "aes-192",
         "aes-128",
+        "zip-crypto",
         "encryption",
         "zip64",
         "stream",
