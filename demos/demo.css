@@ -118,3 +118,15 @@ progress {
 		padding-left: 0;
 	}
 }
+
+@media (prefers-color-scheme: dark) {
+	input[type="text"], input[type="password"], button, select {
+		background-color: #353535;
+	}
+	input[type="text"], input[type="password"], button, select, #file-list {
+		color: whitesmoke;
+	}
+	input[type="text"]:hover, input[type="password"]:hover, button:hover, select:hover {
+		background-color: #262626;
+	}
+}

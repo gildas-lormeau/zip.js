@@ -186,3 +186,15 @@ details[open]>.dir-summary::marker {
 		height: 8px;
 	}
 }
+
+@media (prefers-color-scheme: dark) {
+	.drag-over>summary {
+		border-color: whitesmoke;
+	}
+	.directories, .files {
+		background-color: #202020;
+	}
+	.selected>summary .button, .selected>.button {
+		filter: invert();
+	}
+}

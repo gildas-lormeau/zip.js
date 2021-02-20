@@ -112,3 +112,50 @@ code.prettyprint {
 p {
 	text-align: justify;
 }
+
+@media (prefers-color-scheme: dark) {
+	body {
+		color: whitesmoke;
+	}
+	#container {
+		background: #282828;
+	}
+	a {
+		color: #80afc6;
+	}
+	a img {
+		filter: invert(80%);
+	}
+	h2 {
+		color: #80afc6;
+	}
+	pre {
+		background: black;
+		color: white;
+		box-shadow: 0px 0px 10px #393939;
+	}
+	pre .pln {
+		color: white;
+	}
+	pre .kwd {
+		color: #9c9cff;
+	}
+	pre .lit {
+		color: white;
+	}
+	pre .tag {
+		color: #9c9cff;
+	}
+	pre .atn {
+		color: #f5f;
+	}
+	pre .com {
+		color: #ffa1a1;
+	}
+	pre .clo, pre .opn, pre .pun {
+		color: #a6a691;
+	}
+	pre .typ {
+		color: #ffc9ff;
+	}
+}
