@@ -116,9 +116,11 @@ p {
 @media (prefers-color-scheme: dark) {
 	body {
 		color: whitesmoke;
+		background-color: #332B22;
 	}
 	#container {
-		background: #282828;
+		background: #1e1e1e;
+		box-shadow: 3px 3px 5px #171717;
 	}
 	a {
 		color: #80afc6;
