@@ -6785,10 +6785,10 @@
 
 	class ZipReader {
 
-		constructor(reader, options = {}, config = {}) {
+		constructor(reader, options = {}) {
 			this.reader = reader;
 			this.options = options;
-			this.config = config;
+			this.config = getConfiguration();
 		}
 
 		async getEntries(options = {}) {
@@ -7152,41 +7152,6 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	class ZipReader$1 extends ZipReader {
-
-		constructor(reader, options) {
-			super(reader, options, getConfiguration());
-		}
-	}
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
 	const ERR_DUPLICATED_NAME = "File already exists";
 	const ERR_INVALID_COMMENT = "Zip file comment exceeds 64KB";
 	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
@@ -7202,10 +7167,10 @@
 
 	class ZipWriter {
 
-		constructor(writer, options = {}, config = {}) {
+		constructor(writer, options = {}) {
 			this.writer = writer;
 			this.options = options;
-			this.config = config;
+			this.config = getConfiguration();
 			this.files = new Map();
 			this.offset = writer.size;
 		}
@@ -7373,7 +7338,7 @@
 					zipWriter.lockPreviousFile = new Promise(resolve => resolveLockPreviousFile = resolve);
 				}
 				if (options.bufferedWrite || zipWriter.lockWrite) {
-					fileWriter = new Uint8ArrayWriter();
+					fileWriter = new BlobWriter();
 					await fileWriter.init();
 				} else {
 					zipWriter.lockWrite = new Promise(resolve => resolveLockWrite = resolve);
@@ -7389,13 +7354,15 @@
 			}
 			files.set(name, fileEntry);
 			if (fileWriter != writer) {
-				if (zipWriter.lockWrite) {
-					await zipWriter.lockWrite;
-				}
-				if (lockPreviousFile) {
-					await lockPreviousFile;
-				}
-				await writer.writeUint8Array(fileWriter.getData());
+				const blob = fileWriter.getData();
+				const fileReader = new FileReader();
+				const arrayBuffer = await new Promise((resolve, reject) => {
+					fileReader.onload = event => resolve(event.target.result);
+					fileReader.onerror = reject;
+					fileReader.readAsArrayBuffer(blob);
+				});
+				await Promise.all([zipWriter.lockWrite, lockPreviousFile]);
+				await writer.writeUint8Array(new Uint8Array(arrayBuffer));
 			}
 			fileEntry.offset = zipWriter.offset;
 			if (fileEntry.zip64) {
@@ -7556,41 +7523,6 @@
 
 	function setBigUint64(view, offset, value) {
 		view.setBigUint64(offset, value, true);
-	}
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-	class ZipWriter$1 extends ZipWriter {
-
-		constructor(writer, options) {
-			super(writer, options, getConfiguration());
-		}
 	}
 
 	/*
@@ -7837,7 +7769,7 @@
 			if (!reader.initialized) {
 				await reader.init();
 			}
-			const zipReader = new ZipReader$1(reader, options);
+			const zipReader = new ZipReader(reader, options);
 			const entries = await zipReader.getEntries();
 			entries.forEach((entry) => {
 				let parent = this;
@@ -7856,7 +7788,7 @@
 		async exportZip(writer, options) {
 			await initReaders(this);
 			await writer.init();
-			const zipWriter = new ZipWriter$1(writer, options);
+			const zipWriter = new ZipWriter(writer, options);
 			await exportZip(zipWriter, this, getTotalSize([this], "uncompressedSize"), options);
 			await zipWriter.close();
 			return writer.getData();
@@ -8251,8 +8183,8 @@
 	exports.Uint8ArrayReader = Uint8ArrayReader;
 	exports.Uint8ArrayWriter = Uint8ArrayWriter;
 	exports.Writer = Writer;
-	exports.ZipReader = ZipReader$1;
-	exports.ZipWriter = ZipWriter$1;
+	exports.ZipReader = ZipReader;
+	exports.ZipWriter = ZipWriter;
 	exports.configure = configure;
 	exports.fs = fs;
 	exports.getMimeType = getMimeType;
