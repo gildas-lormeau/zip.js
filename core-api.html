@@ -497,7 +497,7 @@
 					<dd>boolean value specifying if the signature of the file should be verified (<code>false</code> by
 						default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to decrypt the file encrypted with AES-256 (<code>undefined</code> by default)
+					<dd>password used to decrypt the file encrypted with AES or ZipCrypto (<code>undefined</code> by default)
 					</dd>
 					<dt><code>useWebWorkers (boolean)</code></dt>
 					<dd>boolean value specifying if web workers should be used (<code>undefined</code> by default)</dd>
@@ -620,7 +620,7 @@ await reader.close();</code></pre>
 					<dt><code>version (number)</code></dt>
 					<dd>zip version (<code>undefined</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
-					<dd>password used to encrypt the file with AES-256 (<code>undefined</code> by default)</dd>
+					<dd>password used to encrypt the file with AES or ZipCrypto (<code>undefined</code> by default)</dd>
 					<dt><code>encryptionStrength (number)</code></dt>
 					<dd>strength of the encryption algorithm: <code>1</code> for AES-128, <code>2</code> for AES-192,
 						<code>3</code> for AES-256 (<code>3</code> by default)
