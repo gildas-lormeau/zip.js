@@ -29,10 +29,29 @@
 		const passwordInput = document.getElementById("password-input");
 		const inflateImplementationInput = document.getElementById("inflate-implementation-input");
 		let fileList = document.getElementById("file-list");
-		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
-		let entries, selectedFile;
+		let entries;
+		let selectedFile;
 		passwordInput.onchange = async () => fileList.querySelectorAll("a[download]").forEach(anchor => anchor.download = "");
-		fileInput.onchange = async () => {
+		fileInput.onchange = selectFile;
+		encodingInput.onchange = selectEncoding;
+		inflateImplementationInput.onchange = selectInflateImplementation;
+		appContainer.onclick = downloadFile;
+		fileInputButton.onclick = () => fileInput.dispatchEvent(new MouseEvent("click"));		
+		selectInflateImplementation();
+
+		async function downloadFile(event) {
+			const target = event.target;
+			if (target.dataset.entryIndex !== undefined && !target.download) {
+				event.preventDefault();
+				try {
+					await download(entries[Number(target.dataset.entryIndex)], target.parentElement, target);
+				} catch (error) {
+					alert(error);
+				}
+			}
+		}
+
+		async function selectFile() {
 			try {
 				fileInputButton.disabled = true;
 				encodingInput.disabled = true;
@@ -44,8 +63,9 @@
 				fileInputButton.disabled = false;
 				fileInput.value = "";
 			}
-		};
-		encodingInput.onchange = async () => {
+		}
+
+		async function selectEncoding() {
 			try {
 				encodingInput.disabled = true;
 				fileInputButton.disabled = true;
@@ -55,24 +75,14 @@
 			} finally {
 				fileInputButton.disabled = false;
 			}
-		};
-		inflateImplementationInput.onchange = () => {
+		}
+
+		function selectInflateImplementation() {
 			const inflateImplementation = INFLATE_IMPLEMENTATIONS[inflateImplementationInput.value];
 			if (inflateImplementation) {
 				zip.configure({ workerScripts: { inflate: inflateImplementation } });
 			}
-		};
-		appContainer.addEventListener("click", async event => {
-			const target = event.target;
-			if (target.dataset.entryIndex !== undefined && !target.download) {
-				event.preventDefault();
-				try {
-					await download(entries[Number(target.dataset.entryIndex)], target.parentElement, target);
-				} catch (error) {
-					alert(error);
-				}
-			}
-		}, false);
+		}
 
 		async function loadFiles(filenameEncoding) {
 			entries = await model.getEntries(selectedFile, { filenameEncoding });

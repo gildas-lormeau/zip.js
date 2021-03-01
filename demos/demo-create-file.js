@@ -42,7 +42,11 @@
 		const deflateImplementationInput = document.getElementById("deflate-implementation-input");
 		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
 		downloadButton.addEventListener("click", onDownloadButtonClick, false);
-		fileInput.onchange = async () => {
+		fileInput.onchange = selectFiles;
+		deflateImplementationInput.onchange = selectDeflateImplementation;
+		selectDeflateImplementation();
+
+		async function selectFiles() {
 			try {
 				await addFiles();
 				fileInput.value = "";
@@ -52,13 +56,14 @@
 			} finally {
 				zipProgress.remove();
 			}
-		};
-		deflateImplementationInput.onchange = () => {
+		}
+
+		function selectDeflateImplementation() {
 			const deflateImplementation = DEFLATE_IMPLEMENTATIONS[deflateImplementationInput.value];
 			if (deflateImplementation) {
 				zip.configure({ workerScripts: { deflate: deflateImplementation } });
 			}
-		};
+		}
 
 		async function addFiles() {
 			downloadButton.disabled = true;
