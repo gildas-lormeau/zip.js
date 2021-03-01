@@ -3,8 +3,9 @@
 (() => {
 
 	const INFLATE_IMPLEMENTATIONS = {
-		fflate: ["lib/z-worker-fflate.js", "fflate.min.js"],
-		pako: ["lib/z-worker-pako.js", "pako_inflate.min.js"],
+		"zip.js": ["lib/z-worker.js"],
+		"fflate": ["lib/z-worker-fflate.js", "fflate.min.js"],
+		"pako": ["lib/z-worker-pako.js", "pako_inflate.min.js"]
 	};
 
 	const model = (() => {
@@ -36,7 +37,7 @@
 		encodingInput.onchange = selectEncoding;
 		inflateImplementationInput.onchange = selectInflateImplementation;
 		appContainer.onclick = downloadFile;
-		fileInputButton.onclick = () => fileInput.dispatchEvent(new MouseEvent("click"));		
+		fileInputButton.onclick = () => fileInput.dispatchEvent(new MouseEvent("click"));
 		selectInflateImplementation();
 
 		async function downloadFile(event) {
@@ -79,9 +80,7 @@
 
 		function selectInflateImplementation() {
 			const inflateImplementation = INFLATE_IMPLEMENTATIONS[inflateImplementationInput.value];
-			if (inflateImplementation) {
-				zip.configure({ workerScripts: { inflate: inflateImplementation } });
-			}
+			zip.configure({ workerScripts: { inflate: inflateImplementation } });
 		}
 
 		async function loadFiles(filenameEncoding) {

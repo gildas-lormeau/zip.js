@@ -3,8 +3,9 @@
 (() => {
 
 	const DEFLATE_IMPLEMENTATIONS = {
-		fflate: ["lib/z-worker-fflate.js", "fflate.min.js"],
-		pako: ["lib/z-worker-pako.js", "pako_deflate.min.js"],
+		"zip.js": ["lib/z-worker.js"],
+		"fflate": ["lib/z-worker-fflate.js", "fflate.min.js"],
+		"pako": ["lib/z-worker-pako.js", "pako_deflate.min.js"],
 	};
 
 	const model = (() => {
@@ -60,9 +61,7 @@
 
 		function selectDeflateImplementation() {
 			const deflateImplementation = DEFLATE_IMPLEMENTATIONS[deflateImplementationInput.value];
-			if (deflateImplementation) {
-				zip.configure({ workerScripts: { deflate: deflateImplementation } });
-			}
+			zip.configure({ workerScripts: { deflate: deflateImplementation } });
 		}
 
 		async function addFiles() {
