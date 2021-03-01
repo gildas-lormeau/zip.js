@@ -7,7 +7,7 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 const FILENAME = "lorem.txt";
 const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 
-const { Deflate, Inflate } = zip.initShimAsyncCodec(pako, { deflate: { raw: true }, inflate: { raw: true } });
+const { Deflate, Inflate } = zip.initShimAsyncCodec(pako, { deflate: { raw: true }, inflate: { raw: true } }, (codec, onData) => codec.onData = onData);
 test().catch(error => console.error(error));
 
 async function test() {
