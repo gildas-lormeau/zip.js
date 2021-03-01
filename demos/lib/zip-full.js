@@ -4313,16 +4313,14 @@
 		return "application/octet-stream";
 	}
 
-	const FUNCTION_TYPE = "function";
-
-	var streamCodecShim = (library, options = {}) => {
+	var streamCodecShim = (library, options = {}, registerDataHandler) => {
 		return {
-			Deflate: createCodecClass(library.Deflate, options.deflate),
-			Inflate: createCodecClass(library.Inflate, options.inflate)
+			Deflate: createCodecClass(library.Deflate, options.deflate, registerDataHandler),
+			Inflate: createCodecClass(library.Inflate, options.inflate, registerDataHandler)
 		};
 	};
 
-	function createCodecClass(constructor, constructorOptions) {
+	function createCodecClass(constructor, constructorOptions, registerDataHandler) {
 		return class {
 
 			constructor(options) {
@@ -4337,13 +4335,7 @@
 					}
 				};
 				this.codec = new constructor(Object.assign({}, constructorOptions, options));
-				if (typeof this.codec.onData == FUNCTION_TYPE) {
-					this.codec.onData = onData;
-				} else if (typeof this.codec.on == FUNCTION_TYPE) {
-					this.codec.on("data", onData);
-				} else {
-					throw new Error("Cannot register the callback function");
-				}
+				registerDataHandler(this.codec, onData);
 			}
 			async append(data) {
 				this.codec.push(data);

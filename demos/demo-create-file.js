@@ -2,11 +2,10 @@
 
 (() => {
 
-	zip.configure({
-		workerScripts: {
-			deflate: ["lib/z-worker-pako.js", "pako_deflate.min.js"]
-		}
-	});
+	const DEFLATE_IMPLEMENTATIONS = {
+		fflate: ["lib/z-worker-fflate.js", "fflate.min.js"],
+		pako: ["lib/z-worker-pako.js", "pako_deflate.min.js"],
+	};
 
 	const model = (() => {
 
@@ -40,6 +39,7 @@
 		const fileList = document.getElementById("file-list");
 		const filenameInput = document.getElementById("filename-input");
 		const passwordInput = document.getElementById("password-input");
+		const deflateImplementationInput = document.getElementById("deflate-implementation-input");
 		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
 		downloadButton.addEventListener("click", onDownloadButtonClick, false);
 		fileInput.onchange = async () => {
@@ -51,6 +51,12 @@
 				alert(error);
 			} finally {
 				zipProgress.remove();
+			}
+		};
+		deflateImplementationInput.onchange = () => {
+			const deflateImplementation = DEFLATE_IMPLEMENTATIONS[deflateImplementationInput.value];
+			if (deflateImplementation) {
+				zip.configure({ workerScripts: { deflate: deflateImplementation } });
 			}
 		};
 

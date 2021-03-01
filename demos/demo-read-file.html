@@ -25,7 +25,7 @@
 
 		<h2>Read a zip file (demo)</h2>
 
-		<ol id="demo-container">
+		<ol id="demo-container">			
 			<li>
 				<label>
 					<span class="form-label">choose a zip file</span>
@@ -83,6 +83,16 @@
 				<label>
 					<span class="form-label">set the password</span>
 					<input type="password" id="password-input" value="" disabled>
+				</label>
+			</li>
+			<li>
+				<label>
+					<span class="form-label">choose inflate implementation</span>
+					<select id="inflate-implementation-input">
+						<option>zip.js</option>
+						<option>fflate</option>
+						<option>pako</option>
+					</select>					
 				</label>
 			</li>
 			<li>

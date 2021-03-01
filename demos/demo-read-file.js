@@ -2,11 +2,10 @@
 
 (() => {
 
-	zip.configure({
-		workerScripts: {
-			inflate: ["lib/z-worker-pako.js", "pako_inflate.min.js"]
-		}
-	});
+	const INFLATE_IMPLEMENTATIONS = {
+		fflate: ["lib/z-worker-fflate.js", "fflate.min.js"],
+		pako: ["lib/z-worker-pako.js", "pako_inflate.min.js"],
+	};
 
 	const model = (() => {
 
@@ -28,7 +27,7 @@
 		const encodingInput = document.getElementById("encoding-input");
 		const fileInputButton = document.getElementById("file-input-button");
 		const passwordInput = document.getElementById("password-input");
-		const unzipProgress = document.createElement("progress");
+		const inflateImplementationInput = document.getElementById("inflate-implementation-input");
 		let fileList = document.getElementById("file-list");
 		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
 		let entries, selectedFile;
@@ -55,6 +54,12 @@
 				alert(error);
 			} finally {
 				fileInputButton.disabled = false;
+			}
+		};
+		inflateImplementationInput.onchange = () => {
+			const inflateImplementation = INFLATE_IMPLEMENTATIONS[inflateImplementationInput.value];
+			if (inflateImplementation) {
+				zip.configure({ workerScripts: { inflate: inflateImplementation } });
 			}
 		};
 		appContainer.addEventListener("click", async event => {
@@ -103,6 +108,7 @@
 		}
 
 		async function download(entry, li, a) {
+			const unzipProgress = document.createElement("progress");
 			li.appendChild(unzipProgress);
 			const blobURL = await model.getURL(entry, {
 				password: passwordInput.value,
