@@ -763,8 +763,8 @@ console.log(data);
 				</p>
 				<pre><code class="prettyprint">zip.configure({
   workerScripts: {
-    deflate: ["library_path/z-worker-pako.js", "library_path/fflate.min.js"],
-    inflate: ["library_path/z-worker-pako.js", "library_path/fflate.min.js"]
+    deflate: ["library_path/z-worker-fflate.js", "library_path/fflate.min.js"],
+    inflate: ["library_path/z-worker-fflate.js", "library_path/fflate.min.js"]
   }
 });</code></pre>
 				<p><code>library_path/z-worker-pako.js</code> is the entry script for fflate. This file can
