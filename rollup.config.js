@@ -84,6 +84,13 @@ export default [{
 		plugins: [terser()]
 	}]
 }, {
+	input: "lib/z-worker-fflate.js",
+	output: [{
+		file: "dist/z-worker-fflate.js",
+		format: "iife",
+		plugins: [terser()]
+	}]
+}, {
 	input: "lib/z-worker.js",
 	output: [{
 		file: "dist/z-worker.js",

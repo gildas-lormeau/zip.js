@@ -117,16 +117,14 @@
 		return "application/octet-stream";
 	}
 
-	const FUNCTION_TYPE = "function";
-
-	var streamCodecShim = (library, options = {}) => {
+	var streamCodecShim = (library, options = {}, registerDataHandler) => {
 		return {
-			Deflate: createCodecClass(library.Deflate, options.deflate),
-			Inflate: createCodecClass(library.Inflate, options.inflate)
+			Deflate: createCodecClass(library.Deflate, options.deflate, registerDataHandler),
+			Inflate: createCodecClass(library.Inflate, options.inflate, registerDataHandler)
 		};
 	};
 
-	function createCodecClass(constructor, constructorOptions) {
+	function createCodecClass(constructor, constructorOptions, registerDataHandler) {
 		return class {
 
 			constructor(options) {
@@ -141,13 +139,7 @@
 					}
 				};
 				this.codec = new constructor(Object.assign({}, constructorOptions, options));
-				if (typeof this.codec.onData == FUNCTION_TYPE) {
-					this.codec.onData = onData;
-				} else if (typeof this.codec.on == FUNCTION_TYPE) {
-					this.codec.on("data", onData);
-				} else {
-					throw new Error("Cannot register the callback function");
-				}
+				registerDataHandler(this.codec, onData);
 			}
 			async append(data) {
 				this.codec.push(data);
@@ -927,7 +919,7 @@
 	}
 
 	async function createDecryptionKeys(decrypt, preambuleArray, password) {
-		await createKeys(decrypt, password, preambuleArray.subarray(0, SALT_LENGTH[decrypt.strength]), ["decrypt"]);
+		await createKeys$1(decrypt, password, preambuleArray.subarray(0, SALT_LENGTH[decrypt.strength]), ["decrypt"]);
 		const passwordVerification = preambuleArray.subarray(SALT_LENGTH[decrypt.strength]);
 		const passwordVerificationKey = decrypt.keys.passwordVerification;
 		if (passwordVerificationKey[0] != passwordVerification[0] || passwordVerificationKey[1] != passwordVerification[1]) {
@@ -937,11 +929,11 @@
 
 	async function createEncryptionKeys(encrypt, password) {
 		const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH[encrypt.strength]));
-		await createKeys(encrypt, password, salt, ["encrypt"]);
+		await createKeys$1(encrypt, password, salt, ["encrypt"]);
 		return concat(salt, encrypt.keys.passwordVerification);
 	}
 
-	async function createKeys(target, password, salt, keyUsage) {
+	async function createKeys$1(target, password, salt, keyUsage) {
 		target.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
 		const encodedPassword = (new TextEncoder()).encode(password);
 		const basekey = await subtle.importKey(RAW_FORMAT, encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
@@ -1019,7 +1011,7 @@
 		constructor(password, passwordVerification) {
 			this.password = password;
 			this.passwordVerification = passwordVerification;
-			createKeys$1(this, password);
+			createKeys(this, password);
 		}
 
 		async append(input) {
@@ -1047,7 +1039,7 @@
 		constructor(password, passwordVerification) {
 			this.passwordVerification = passwordVerification;
 			this.password = password;
-			createKeys$1(this, password);
+			createKeys(this, password);
 		}
 
 		async append(input) {
@@ -1093,7 +1085,7 @@
 		return output;
 	}
 
-	function createKeys$1(target, password) {
+	function createKeys(target, password) {
 		target.keys = [0x12345678, 0x23456789, 0x34567890];
 		target.crcKey0 = new Crc32(target.keys[0]);
 		target.crcKey2 = new Crc32(target.keys[2]);
@@ -1261,7 +1253,7 @@
 		}
 	}
 
-	function createCodec(codecConstructor, options) {
+	function createCodec$1(codecConstructor, options) {
 		if (options.codecType.startsWith(CODEC_DEFLATE)) {
 			return new Deflate(codecConstructor, options);
 		} else if (options.codecType.startsWith(CODEC_INFLATE)) {
@@ -1319,7 +1311,7 @@
 	};
 
 	function createWorkerInterface(workerData) {
-		const interfaceCodec = createCodec(workerData.codecConstructor, workerData.options);
+		const interfaceCodec = createCodec$1(workerData.codecConstructor, workerData.options);
 		return {
 			async append(data) {
 				try {
@@ -1442,7 +1434,7 @@
 	let pool = [];
 	let pendingRequests = [];
 
-	function createCodec$1(codecConstructor, options, config) {
+	function createCodec(codecConstructor, options, config) {
 		const streamCopy = !options.compressed && !options.signed && !options.encrypted;
 		const webWorker = !streamCopy && (options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers));
 		const scripts = webWorker && config.workerScripts ? config.workerScripts[options.codecType] : [];
@@ -1696,7 +1688,7 @@
 				fileEntry.directory = (getUint8(directoryView, offset + 38) & FILE_ATTR_MSDOS_DIR_MASK) == FILE_ATTR_MSDOS_DIR_MASK;
 				fileEntry.offset = getUint32(directoryView, offset + 42) + prependedBytesLength;
 				fileEntry.rawFilename = directoryArray.subarray(offset + 46, offset + 46 + fileEntry.filenameLength);
-				const filenameEncoding = getOptionValue(this, options, "filenameEncoding");
+				const filenameEncoding = getOptionValue$1(this, options, "filenameEncoding");
 				fileEntry.filenameUTF8 = fileEntry.commentUTF8 = Boolean(fileEntry.bitFlag.languageEncodingFlag);
 				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.filenameUTF8 ? CHARSET_UTF8 : filenameEncoding);
 				if (!fileEntry.directory && fileEntry.filename.endsWith(DIRECTORY_SIGNATURE)) {
@@ -1705,7 +1697,7 @@
 				fileEntry.rawExtraField = directoryArray.subarray(offset + 46 + fileEntry.filenameLength, offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength);
 				fileEntry.rawComment = directoryArray.subarray(offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength, offset + 46
 					+ fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength);
-				const commentEncoding = getOptionValue(this, options, "commentEncoding");
+				const commentEncoding = getOptionValue$1(this, options, "commentEncoding");
 				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.commentUTF8 ? CHARSET_UTF8 : commentEncoding);
 				readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
 				const entry = new Entry(fileEntry);
@@ -1735,7 +1727,7 @@
 			}
 			const dataArray = await reader.readUint8Array(this.offset, 30);
 			const dataView = new DataView(dataArray.buffer);
-			let password = getOptionValue(this, options, "password");
+			let password = getOptionValue$1(this, options, "password");
 			password = password && password.length && password;
 			if (this.extraFieldAES) {
 				if (this.extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
@@ -1762,17 +1754,17 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const codec = await createCodec$1(this.config.Inflate, {
+			const codec = await createCodec(this.config.Inflate, {
 				codecType: CODEC_INFLATE,
 				password,
 				zipCrypto,
 				encryptionStrength: this.extraFieldAES && this.extraFieldAES.strength,
-				signed: getOptionValue(this, options, "checkSignature"),
+				signed: getOptionValue$1(this, options, "checkSignature"),
 				passwordVerification: zipCrypto && (this.bitFlag.dataDescriptor ? ((this.rawLastModDate >>> 8) & 0xFF) : ((this.signature >>> 24) & 0xFF)),
 				signature: this.signature,
 				compressed: this.compressionMethod != 0,
 				encrypted,
-				useWebWorkers: getOptionValue(this, options, "useWebWorkers")
+				useWebWorkers: getOptionValue$1(this, options, "useWebWorkers")
 			}, this.config);
 			if (!writer.initialized) {
 				await writer.init();
@@ -1898,7 +1890,7 @@
 	async function seekSignature(reader, signature, minimumBytes, maximumLength) {
 		const signatureArray = new Uint8Array(4);
 		const signatureView = new DataView(signatureArray.buffer);
-		setUint32(signatureView, 0, signature);
+		setUint32$1(signatureView, 0, signature);
 		const maximumBytes = minimumBytes + maximumLength;
 		return (await seek(minimumBytes)) || await seek(Math.min(maximumBytes, reader.size));
 
@@ -1917,7 +1909,7 @@
 		}
 	}
 
-	function getOptionValue(zipReader, options, name) {
+	function getOptionValue$1(zipReader, options, name) {
 		return options[name] === undefined ? zipReader.options[name] : options[name];
 	}
 
@@ -1954,7 +1946,7 @@
 		return Number(view.getBigUint64(offset, true));
 	}
 
-	function setUint32(view, offset, value) {
+	function setUint32$1(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
@@ -2036,9 +2028,9 @@
 			if (lastModDate < MIN_DATE || lastModDate > MAX_DATE) {
 				throw new Error(ERR_INVALID_DATE);
 			}
-			const password = getOptionValue$1(this, options, "password");
-			const encryptionStrength = getOptionValue$1(this, options, "encryptionStrength") || 3;
-			const zipCrypto = getOptionValue$1(this, options, "zipCrypto");
+			const password = getOptionValue(this, options, "password");
+			const encryptionStrength = getOptionValue(this, options, "encryptionStrength") || 3;
+			const zipCrypto = getOptionValue(this, options, "zipCrypto");
 			if (password !== undefined && encryptionStrength !== undefined && (encryptionStrength < 1 || encryptionStrength > 3)) {
 				throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
 			}
@@ -2067,10 +2059,10 @@
 			}
 			const outputSize = reader ? reader.size * 1.05 : 0;
 			const zip64 = options.zip64 || this.options.zip64 || this.offset >= MAX_32_BITS || outputSize >= MAX_32_BITS || this.offset + outputSize >= MAX_32_BITS;
-			const level = getOptionValue$1(this, options, "level");
-			const useWebWorkers = getOptionValue$1(this, options, "useWebWorkers");
-			const bufferedWrite = getOptionValue$1(this, options, "bufferedWrite");
-			const keepOrder = getOptionValue$1(this, options, "keepOrder");
+			const level = getOptionValue(this, options, "level");
+			const useWebWorkers = getOptionValue(this, options, "useWebWorkers");
+			const bufferedWrite = getOptionValue(this, options, "bufferedWrite");
+			const keepOrder = getOptionValue(this, options, "keepOrder");
 			const fileEntry = await addFile(this, name, reader, Object.assign({}, options,
 				{ rawFilename, rawComment, version, lastModDate, rawExtraField, zip64, password, level, useWebWorkers, encryptionStrength, zipCrypto, bufferedWrite, keepOrder }));
 			Object.assign(fileEntry, { name, comment, extraField });
@@ -2107,7 +2099,7 @@
 				const rawExtraFieldZip64 = fileEntry.rawExtraFieldZip64;
 				const rawExtraFieldAES = fileEntry.rawExtraFieldAES;
 				const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + fileEntry.rawExtraField.length;
-				setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
+				setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 				setUint16(directoryView, offset + 4, fileEntry.version);
 				directoryArray.set(fileEntry.headerArray, offset + 6);
 				setUint16(directoryView, offset + 30, extraFieldLength);
@@ -2116,9 +2108,9 @@
 					setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 				}
 				if (fileEntry.zip64) {
-					setUint32$1(directoryView, offset + 42, MAX_32_BITS);
+					setUint32(directoryView, offset + 42, MAX_32_BITS);
 				} else {
-					setUint32$1(directoryView, offset + 42, fileEntry.offset);
+					setUint32(directoryView, offset + 42, fileEntry.offset);
 				}
 				directoryArray.set(rawFilename, offset + 46);
 				directoryArray.set(rawExtraFieldZip64, offset + 46 + rawFilename.length);
@@ -2128,7 +2120,7 @@
 				offset += 46 + rawFilename.length + extraFieldLength + fileEntry.rawComment.length;
 			}
 			if (zip64) {
-				setUint32$1(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
+				setUint32(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
 				setBigUint64(directoryView, offset + 4, BigInt(44));
 				setUint16(directoryView, offset + 12, 45);
 				setUint16(directoryView, offset + 14, 45);
@@ -2136,19 +2128,19 @@
 				setBigUint64(directoryView, offset + 32, BigInt(filesLength));
 				setBigUint64(directoryView, offset + 40, BigInt(directoryDataLength));
 				setBigUint64(directoryView, offset + 48, BigInt(directoryOffset));
-				setUint32$1(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
+				setUint32(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
 				setBigUint64(directoryView, offset + 64, BigInt(directoryOffset) + BigInt(directoryDataLength));
-				setUint32$1(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
+				setUint32(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
 				filesLength = MAX_16_BITS;
 				directoryOffset = MAX_32_BITS;
 				directoryDataLength = MAX_32_BITS;
 				offset += 76;
 			}
-			setUint32$1(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
+			setUint32(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
 			setUint16(directoryView, offset + 8, filesLength);
 			setUint16(directoryView, offset + 10, filesLength);
-			setUint32$1(directoryView, offset + 12, directoryDataLength);
-			setUint32$1(directoryView, offset + 16, directoryOffset);
+			setUint32(directoryView, offset + 12, directoryDataLength);
+			setUint32(directoryView, offset + 16, directoryOffset);
 			await writer.writeUint8Array(directoryArray);
 			if (comment.length) {
 				await writer.writeUint8Array(comment);
@@ -2276,12 +2268,12 @@
 		setUint16(dateView, 0, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
 		setUint16(dateView, 2, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
 		const rawLastModDate = dateArray[0];
-		setUint32$1(headerView, 6, rawLastModDate);
+		setUint32(headerView, 6, rawLastModDate);
 		setUint16(headerView, 22, rawFilename.length);
 		setUint16(headerView, 24, 0);
 		const fileDataArray = new Uint8Array(30 + rawFilename.length);
 		const fileDataView = new DataView(fileDataArray.buffer);
-		setUint32$1(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
+		setUint32(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
 		fileDataArray.set(headerArray, 4);
 		fileDataArray.set(rawFilename, 30);
 		let result;
@@ -2289,7 +2281,7 @@
 		let compressedSize = 0;
 		if (reader) {
 			uncompressedSize = reader.size;
-			const codec = await createCodec$1(config.Deflate, {
+			const codec = await createCodec(config.Deflate, {
 				codecType: CODEC_DEFLATE,
 				level,
 				password,
@@ -2309,28 +2301,28 @@
 		}
 		const dataDescriptorArray = new Uint8Array(zip64 ? 24 : 16);
 		const dataDescriptorView = new DataView(dataDescriptorArray.buffer);
-		setUint32$1(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
+		setUint32(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
 		if (reader) {
 			if ((!encrypted || options.zipCrypto) && result.signature !== undefined) {
-				setUint32$1(headerView, 10, result.signature);
-				setUint32$1(dataDescriptorView, 4, result.signature);
+				setUint32(headerView, 10, result.signature);
+				setUint32(dataDescriptorView, 4, result.signature);
 				fileEntry.signature = result.signature;
 			}
 			if (zip64) {
 				const rawExtraFieldZip64View = new DataView(fileEntry.rawExtraFieldZip64.buffer);
 				setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
 				setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
-				setUint32$1(headerView, 14, MAX_32_BITS);
+				setUint32(headerView, 14, MAX_32_BITS);
 				setBigUint64(dataDescriptorView, 8, BigInt(compressedSize));
 				setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
-				setUint32$1(headerView, 18, MAX_32_BITS);
+				setUint32(headerView, 18, MAX_32_BITS);
 				setBigUint64(dataDescriptorView, 16, BigInt(uncompressedSize));
 				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
 			} else {
-				setUint32$1(headerView, 14, compressedSize);
-				setUint32$1(dataDescriptorView, 8, compressedSize);
-				setUint32$1(headerView, 18, uncompressedSize);
-				setUint32$1(dataDescriptorView, 12, uncompressedSize);
+				setUint32(headerView, 14, compressedSize);
+				setUint32(dataDescriptorView, 8, compressedSize);
+				setUint32(headerView, 18, uncompressedSize);
+				setUint32(dataDescriptorView, 12, uncompressedSize);
 			}
 		}
 		await writer.writeUint8Array(dataDescriptorArray);
@@ -2339,7 +2331,7 @@
 		return fileEntry;
 	}
 
-	function getOptionValue$1(zipWriter, options, name) {
+	function getOptionValue(zipWriter, options, name) {
 		return options[name] === undefined ? zipWriter.options[name] : options[name];
 	}
 
@@ -2351,7 +2343,7 @@
 		view.setUint16(offset, value, true);
 	}
 
-	function setUint32$1(view, offset, value) {
+	function setUint32(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
