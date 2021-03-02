@@ -732,46 +732,86 @@ console.log(data);
 			<li>
 				<h3>pako</h3>
 				<p><a href="https://github.com/nodeca/pako">Pako</a> is a handwritten JavaScript port of zlib. Its
-					compatibility and performance is believed to be good. To use pako with web workers, configure zip.js
-					as follows:
+					compatibility and performance is believed to be good. To use pako, configure zip.js as follows:
 				</p>
-				<pre><code class="prettyprint">zip.configure({
+				<ul>
+					<li>
+						with web workers:
+						<pre><code class="prettyprint">zip.configure({
   workerScripts: {
     deflate: ["library_path/z-worker-pako.js", "library_path/pako.min.js"],
     inflate: ["library_path/z-worker-pako.js", "library_path/pako.min.js"]
   }
 });</code></pre>
-				<p>Pako also has separate js files for deflating/inflating, you can also use them instead of
-					<code>pako.min.js</code>:
-				</p>
-				<pre><code class="prettyprint">zip.configure({
+						<p>Pako also has separate js files for deflating/inflating, you can also use them instead of
+							<code>pako.min.js</code>:
+						</p>
+						<pre><code class="prettyprint">zip.configure({
   workerScripts: {
     deflate: ["library_path/z-worker-pako.js", "library_path/pako_deflate.min.js"],
     inflate: ["library_path/z-worker-pako.js", "library_path/pako_inflate.min.js"]
   }
 });</code></pre>
-				<p><code>library_path/z-worker-pako.js</code> is the entry script for pako. This file can
-					be found in the <code>/dist/</code> directory. Note that <code>pako.min.js</code> etc. are parts of
-					pako project, and are not provided by zip.js. You can find them <a
-						href="https://github.com/nodeca/pako/tree/master/dist">here</a>.
+						<p><code>library_path/z-worker-pako.js</code> is the entry script for pako. This file can
+							be found in the <code>/dist/</code> directory</p>
+					</li>
+					<li>
+						without web workers:
+						<pre><code class="prettyprint">const { Deflate, Inflate } = 
+  zip.initShimAsyncCodec(
+    pako, 
+    { deflate: { raw: true }, inflate: { raw: true } },
+    (codec, onData) => codec.onData = onData
+  );
+
+zip.configure({
+  useWebWorkers: false,
+  Deflate,
+  Inflate
+});</code></pre>
+					</li>
+				</ul>
+
+				<p>Note that <code>pako.min.js</code> etc. are parts of pako project, and are not provided by zip.js.
+					You can find them <a href="https://github.com/nodeca/pako/tree/master/dist">here</a>.
 				</p>
 			</li>
 			<li>
 				<h3>fflate</h3>
 				<p><a href="https://github.com/101arrowz/fflate">fflate</a> claims to be the fastest, smallest, and most
-					versatile pure JavaScript compression and decompression library in existence. To use fflate with web
-					workers, configure zip.js as follows:
+					versatile pure JavaScript compression and decompression library in existence. To use fflate,
+					configure zip.js as follows:
 				</p>
-				<pre><code class="prettyprint">zip.configure({
+				<ul>
+					<li>
+						with web workers:
+						<pre><code class="prettyprint">zip.configure({
   workerScripts: {
     deflate: ["library_path/z-worker-fflate.js", "library_path/fflate.min.js"],
     inflate: ["library_path/z-worker-fflate.js", "library_path/fflate.min.js"]
   }
 });</code></pre>
-				<p><code>library_path/z-worker-fflate.js</code> is the entry script for fflate. This file can
-					be found in the <code>/dist/</code> directory. Note that <code>fflate.min.js</code> is part of
-					fflate project, and is not provided by zip.js. You can download it <a
-						href="https://cdn.jsdelivr.net/npm/fflate/umd/index.js">here</a>.
+						<p><code>library_path/z-worker-fflate.js</code> is the entry script for fflate. This file can
+							be found in the <code>/dist/</code> directory</p>
+					</li>
+					<li>
+						without web workers:
+						<pre><code class="prettyprint">const { Deflate, Inflate } = 
+  zip.initShimAsyncCodec(
+    fflate, 
+    undefined, 
+    (codec, onData) => codec.ondata = onData
+  );
+
+zip.configure({
+  useWebWorkers: false,
+  Deflate,
+  Inflate
+});</code></pre>
+					</li>
+				</ul>
+				<p>Note that <code>fflate.min.js</code> is part of fflate project, and is not provided by zip.js. You
+					can download it <a href="https://cdn.jsdelivr.net/npm/fflate/umd/index.js">here</a>.
 				</p>
 			</li>
 		</ul>
