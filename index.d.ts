@@ -152,6 +152,7 @@ declare module "@zip.js/zip.js" {
         encryptionStrength?: number;
         zipCrypto?: boolean;
         useWebWorkers?: boolean;
+        dataDescriptor?: boolean;
     }
 
     export interface AddDataOptions {
