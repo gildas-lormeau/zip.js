@@ -104,6 +104,7 @@ declare module "@zip.js/zip.js" {
         checkSignature?: boolean;
         password?: string;
         useWebWorkers?: boolean;
+        signal?: AbortSignal;
     }
 
     export interface GetEntriesOptions {
@@ -153,6 +154,7 @@ declare module "@zip.js/zip.js" {
         zipCrypto?: boolean;
         useWebWorkers?: boolean;
         dataDescriptor?: boolean;
+        signal?: AbortSignal;
     }
 
     export interface AddDataOptions {
