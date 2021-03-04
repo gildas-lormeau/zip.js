@@ -4386,6 +4386,80 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const MINIMUM_CHUNK_SIZE = 64;
+	const ERR_ABORT = "Abort error";
+
+	async function processData(codec, reader, writer, offset, inputLength, config, options) {
+		const chunkSize = Math.max(config.chunkSize, MINIMUM_CHUNK_SIZE);
+		return processChunk();
+
+		async function processChunk(chunkOffset = 0, outputLength = 0) {
+			const signal = options.signal;
+			if (chunkOffset < inputLength) {
+				testAborted(signal);
+				const inputData = await reader.readUint8Array(chunkOffset + offset, Math.min(chunkSize, inputLength - chunkOffset));
+				const chunkLength = inputData.length;
+				testAborted(signal);
+				const data = await codec.append(inputData);
+				testAborted(signal);
+				outputLength += await writeData(writer, data);
+				if (options.onprogress) {
+					try {
+						options.onprogress(chunkOffset + chunkLength, inputLength);
+					} catch (error) {
+						// ignored
+					}
+				}
+				return processChunk(chunkOffset + chunkSize, outputLength);
+			} else {
+				const result = await codec.flush();
+				outputLength += await writeData(writer, result.data);
+				return { signature: result.signature, length: outputLength };
+			}
+		}
+	}
+
+	function testAborted(signal) {
+		if (signal && signal.aborted) {
+			throw new Error(ERR_ABORT);
+		}
+	}
+
+	async function writeData(writer, data) {
+		if (data.length) {
+			await writer.writeUint8Array(data);
+		}
+		return data.length;
+	}
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
 	const ERR_HTTP_STATUS = "HTTP error ";
 	const ERR_HTTP_RANGE = "HTTP Range not supported";
 
@@ -5687,69 +5761,6 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const MINIMUM_CHUNK_SIZE = 64;
-
-	async function processData(codec, reader, writer, offset, inputLength, config, options) {
-		const chunkSize = Math.max(config.chunkSize, MINIMUM_CHUNK_SIZE);
-		return processChunk();
-
-		async function processChunk(chunkOffset = 0, outputLength = 0) {
-			if (chunkOffset < inputLength) {
-				const inputData = await reader.readUint8Array(chunkOffset + offset, Math.min(chunkSize, inputLength - chunkOffset));
-				const chunkLength = inputData.length;
-				const data = await codec.append(inputData);
-				outputLength += await writeData(writer, data);
-				if (options.onprogress) {
-					try {
-						options.onprogress(chunkOffset + chunkLength, inputLength);
-					} catch (error) {
-						// ignored
-					}
-				}
-				return processChunk(chunkOffset + chunkSize, outputLength);
-			} else {
-				const result = await codec.flush();
-				outputLength += await writeData(writer, result.data);
-				return { signature: result.signature, length: outputLength };
-			}
-		}
-	}
-
-	async function writeData(writer, data) {
-		if (data.length) {
-			await writer.writeUint8Array(data);
-		}
-		return data.length;
-	}
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
 	const PROPERTY_NAMES = [
 		"filename", "rawFilename", "directory", "encrypted", "compressedSize", "uncompressedSize",
 		"lastModDate", "rawLastModDate", "comment", "rawComment", "signature", "extraField",
@@ -5921,16 +5932,22 @@
 			if (!reader.initialized) {
 				await reader.init();
 			}
-			const dataArray = await reader.readUint8Array(this.offset, 30);
+			const offset = this.offset;
+			const dataArray = await reader.readUint8Array(offset, 30);
 			const dataView = new DataView(dataArray.buffer);
+			const extraFieldAES = this.extraFieldAES;
+			const compressionMethod = this.compressionMethod;
+			const config = this.config;
+			const bitFlag = this.bitFlag;
+			const signature = this.signature;
 			let password = getOptionValue$1(this, options, "password");
 			password = password && password.length && password;
-			if (this.extraFieldAES) {
-				if (this.extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
+			if (extraFieldAES) {
+				if (extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
 					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 				}
 			}
-			if (this.compressionMethod != COMPRESSION_METHOD_STORE && this.compressionMethod != COMPRESSION_METHOD_DEFLATE) {
+			if (compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE) {
 				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 			}
 			if (getUint32(dataView, 0) != LOCAL_FILE_HEADER_SIGNATURE) {
@@ -5938,34 +5955,34 @@
 			}
 			const localDirectory = this.localDirectory = {};
 			readCommonHeader(localDirectory, dataView, 4);
-			localDirectory.rawExtraField = dataArray.subarray(this.offset + 30 + localDirectory.filenameLength, this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength);
+			localDirectory.rawExtraField = dataArray.subarray(offset + 30 + localDirectory.filenameLength, offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength);
 			readCommonFooter(this, localDirectory, dataView, 4);
-			const dataOffset = this.offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
-			const encrypted = this.bitFlag.encrypted && localDirectory.bitFlag.encrypted;
-			const zipCrypto = encrypted && !this.extraFieldAES;
+			const dataOffset = offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
+			const encrypted = bitFlag.encrypted && localDirectory.bitFlag.encrypted;
+			const zipCrypto = encrypted && !extraFieldAES;
 			if (encrypted) {
-				if (!zipCrypto && this.extraFieldAES.strength === undefined) {
+				if (!zipCrypto && extraFieldAES.strength === undefined) {
 					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
 				} else if (!password) {
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const codec = await createCodec(this.config.Inflate, {
+			const codec = await createCodec(config.Inflate, {
 				codecType: CODEC_INFLATE,
 				password,
 				zipCrypto,
-				encryptionStrength: this.extraFieldAES && this.extraFieldAES.strength,
+				encryptionStrength: extraFieldAES && extraFieldAES.strength,
 				signed: getOptionValue$1(this, options, "checkSignature"),
-				passwordVerification: zipCrypto && (this.bitFlag.dataDescriptor ? ((this.rawLastModDate >>> 8) & 0xFF) : ((this.signature >>> 24) & 0xFF)),
-				signature: this.signature,
-				compressed: this.compressionMethod != 0,
+				passwordVerification: zipCrypto && (bitFlag.dataDescriptor ? ((this.rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
+				signature,
+				compressed: compressionMethod != 0,
 				encrypted,
 				useWebWorkers: getOptionValue$1(this, options, "useWebWorkers")
-			}, this.config);
+			}, config);
 			if (!writer.initialized) {
 				await writer.init();
 			}
-			await processData(codec, reader, writer, dataOffset, this.compressedSize, this.config, { onprogress: options.onprogress });
+			await processData(codec, reader, writer, dataOffset, this.compressedSize, config, { onprogress: options.onprogress, signal: getOptionValue$1(this, options, "signal") });
 			return writer.getData();
 		}
 	}
@@ -6259,8 +6276,28 @@
 			const useWebWorkers = getOptionValue(this, options, "useWebWorkers");
 			const bufferedWrite = getOptionValue(this, options, "bufferedWrite");
 			const keepOrder = getOptionValue(this, options, "keepOrder");
-			const fileEntry = await addFile(this, name, reader, Object.assign({}, options,
-				{ rawFilename, rawComment, version, lastModDate, rawExtraField, zip64, password, level, useWebWorkers, encryptionStrength, zipCrypto, bufferedWrite, keepOrder }));
+			let dataDescriptor = getOptionValue(this, options, "dataDescriptor");
+			const signal = getOptionValue(this, options, "signal");
+			if (dataDescriptor === undefined) {
+				dataDescriptor = true;
+			}
+			const fileEntry = await addFile(this, name, reader, Object.assign({}, options, {
+				rawFilename,
+				rawComment,
+				version,
+				lastModDate,
+				rawExtraField,
+				zip64,
+				password,
+				level,
+				useWebWorkers,
+				encryptionStrength,
+				zipCrypto,
+				bufferedWrite,
+				keepOrder,
+				dataDescriptor,
+				signal
+			}));
 			Object.assign(fileEntry, { name, comment, extraField });
 			return new Entry(fileEntry);
 		}
@@ -6346,7 +6383,8 @@
 	}
 
 	async function addFile(zipWriter, name, reader, options) {
-		const files = zipWriter.files, writer = zipWriter.writer;
+		const files = zipWriter.files;
+		const writer = zipWriter.writer;
 		files.set(name, null);
 		let resolveLockWrite;
 		let lockPreviousFile;
@@ -6359,7 +6397,7 @@
 					lockPreviousFile = zipWriter.lockPreviousFile;
 					zipWriter.lockPreviousFile = new Promise(resolve => resolveLockPreviousFile = resolve);
 				}
-				if (options.bufferedWrite || zipWriter.lockWrite) {
+				if (options.bufferedWrite || zipWriter.lockWrite || !options.dataDescriptor) {
 					fileWriter = new BlobWriter();
 					await fileWriter.init();
 				} else {
@@ -6378,12 +6416,25 @@
 			if (fileWriter != writer) {
 				const blob = fileWriter.getData();
 				const fileReader = new FileReader();
-				const arrayBuffer = await new Promise((resolve, reject) => {
+				const arrayBufferPromise = new Promise((resolve, reject) => {
 					fileReader.onload = event => resolve(event.target.result);
 					fileReader.onerror = reject;
 					fileReader.readAsArrayBuffer(blob);
 				});
-				await Promise.all([zipWriter.lockWrite, lockPreviousFile]);
+				const [arrayBuffer] = await Promise.all([arrayBufferPromise, zipWriter.lockWrite, lockPreviousFile]);
+				if (!options.dataDescriptor) {
+					const arrayBufferView = new DataView(arrayBuffer);
+					if (!fileEntry.encrypted || options.zipCrypto) {
+						setUint32(arrayBufferView, 14, fileEntry.signature);
+					}
+					if (fileEntry.zip64) {
+						setUint32(arrayBufferView, 18, MAX_32_BITS);
+						setUint32(arrayBufferView, 22, MAX_32_BITS);
+					} else {
+						setUint32(arrayBufferView, 18, fileEntry.compressedSize);
+						setUint32(arrayBufferView, 22, fileEntry.uncompressedSize);
+					}
+				}
 				await writer.writeUint8Array(new Uint8Array(arrayBuffer));
 			}
 			fileEntry.offset = zipWriter.offset;
@@ -6398,7 +6449,6 @@
 				resolveLockPreviousFile();
 			}
 			if (resolveLockWrite) {
-				zipWriter.lockWrite = null;
 				resolveLockWrite();
 			}
 		}
@@ -6436,7 +6486,10 @@
 			rawExtraFieldAES: rawExtraFieldAES,
 			rawExtraField: options.rawExtraField
 		};
-		let bitFlag = BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
+		let bitFlag = BITFLAG_LANG_ENCODING_FLAG;
+		if (options.dataDescriptor) {
+			bitFlag = bitFlag | BITFLAG_DATA_DESCRIPTOR;
+		}
 		let compressionMethod = COMPRESSION_METHOD_STORE;
 		if (compressed) {
 			compressionMethod = COMPRESSION_METHOD_DEFLATE;
@@ -6490,38 +6543,50 @@
 				useWebWorkers: options.useWebWorkers
 			}, config);
 			await writer.writeUint8Array(fileDataArray);
-			result = await processData(codec, reader, writer, 0, uncompressedSize, config, { onprogress: options.onprogress });
+			result = await processData(codec, reader, writer, 0, uncompressedSize, config, { onprogress: options.onprogress, signal: options.signal });
 			compressedSize = result.length;
 		} else {
 			await writer.writeUint8Array(fileDataArray);
 		}
-		const dataDescriptorArray = new Uint8Array(zip64 ? 24 : 16);
-		const dataDescriptorView = new DataView(dataDescriptorArray.buffer);
-		setUint32(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
+		let dataDescriptorArray = new Uint8Array(0);
+		let dataDescriptorView;
+		if (options.dataDescriptor) {
+			dataDescriptorArray = new Uint8Array(zip64 ? 24 : 16);
+			dataDescriptorView = new DataView(dataDescriptorArray.buffer);
+			setUint32(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
+		}
 		if (reader) {
 			if ((!encrypted || options.zipCrypto) && result.signature !== undefined) {
 				setUint32(headerView, 10, result.signature);
-				setUint32(dataDescriptorView, 4, result.signature);
 				fileEntry.signature = result.signature;
+				if (options.dataDescriptor) {
+					setUint32(dataDescriptorView, 4, result.signature);
+				}
 			}
 			if (zip64) {
 				const rawExtraFieldZip64View = new DataView(fileEntry.rawExtraFieldZip64.buffer);
 				setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
 				setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
 				setUint32(headerView, 14, MAX_32_BITS);
-				setBigUint64(dataDescriptorView, 8, BigInt(compressedSize));
 				setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
 				setUint32(headerView, 18, MAX_32_BITS);
-				setBigUint64(dataDescriptorView, 16, BigInt(uncompressedSize));
 				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
+				if (options.dataDescriptor) {
+					setBigUint64(dataDescriptorView, 8, BigInt(compressedSize));
+					setBigUint64(dataDescriptorView, 16, BigInt(uncompressedSize));
+				}
 			} else {
 				setUint32(headerView, 14, compressedSize);
-				setUint32(dataDescriptorView, 8, compressedSize);
 				setUint32(headerView, 18, uncompressedSize);
-				setUint32(dataDescriptorView, 12, uncompressedSize);
+				if (options.dataDescriptor) {
+					setUint32(dataDescriptorView, 8, compressedSize);
+					setUint32(dataDescriptorView, 12, uncompressedSize);
+				}
 			}
 		}
-		await writer.writeUint8Array(dataDescriptorArray);
+		if (options.dataDescriptor) {
+			await writer.writeUint8Array(dataDescriptorArray);
+		}
 		const length = fileDataArray.length + (result ? result.length : 0) + dataDescriptorArray.length;
 		Object.assign(fileEntry, { compressedSize, uncompressedSize, lastModDate, rawLastModDate, encrypted, length });
 		return fileEntry;
@@ -6582,6 +6647,7 @@
 	exports.BlobWriter = BlobWriter;
 	exports.Data64URIReader = Data64URIReader;
 	exports.Data64URIWriter = Data64URIWriter;
+	exports.ERR_ABORT = ERR_ABORT;
 	exports.ERR_BAD_FORMAT = ERR_BAD_FORMAT;
 	exports.ERR_CENTRAL_DIRECTORY_NOT_FOUND = ERR_CENTRAL_DIRECTORY_NOT_FOUND;
 	exports.ERR_DUPLICATED_NAME = ERR_DUPLICATED_NAME;
