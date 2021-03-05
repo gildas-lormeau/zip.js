@@ -8210,6 +8210,7 @@
 	exports.BlobWriter = BlobWriter;
 	exports.Data64URIReader = Data64URIReader;
 	exports.Data64URIWriter = Data64URIWriter;
+	exports.ERR_ABORT = ERR_ABORT;
 	exports.ERR_BAD_FORMAT = ERR_BAD_FORMAT;
 	exports.ERR_CENTRAL_DIRECTORY_NOT_FOUND = ERR_CENTRAL_DIRECTORY_NOT_FOUND;
 	exports.ERR_DUPLICATED_NAME = ERR_DUPLICATED_NAME;
