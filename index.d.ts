@@ -243,5 +243,6 @@ declare module "@zip.js/zip.js" {
     export const ERR_INVALID_EXTRAFIELD_TYPE: string;
     export const ERR_INVALID_EXTRAFIELD_DATA: string;
     export const ERR_INVALID_ENCRYPTION_STRENGTH: string;
+    export const ERR_ABORT: string;
 
 }
