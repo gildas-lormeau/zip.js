@@ -285,6 +285,7 @@
 			this.initialized = true;
 		}
 	}
+
 	class Reader extends Stream {
 	}
 
@@ -819,6 +820,509 @@
 		}
 	}
 
+	// Derived from https://github.com/xqdoo00o/jszip/blob/master/lib/sjcl.js
+	/*jslint indent: 2, bitwise: false, nomen: false, plusplus: false, white: false, regexp: false */
+
+	/** @fileOverview Arrays of bits, encoded as arrays of Numbers.
+	 *
+	 * @author Emily Stark
+	 * @author Mike Hamburg
+	 * @author Dan Boneh
+	 */
+
+	/**
+	 * Arrays of bits, encoded as arrays of Numbers.
+	 * @namespace
+	 * @description
+	 * <p>
+	 * These objects are the currency accepted by SJCL's crypto functions.
+	 * </p>
+	 *
+	 * <p>
+	 * Most of our crypto primitives operate on arrays of 4-byte words internally,
+	 * but many of them can take arguments that are not a multiple of 4 bytes.
+	 * This library encodes arrays of bits (whose size need not be a multiple of 8
+	 * bits) as arrays of 32-bit words.  The bits are packed, big-endian, into an
+	 * array of words, 32 bits at a time.  Since the words are double-precision
+	 * floating point numbers, they fit some extra data.  We use this (in a private,
+	 * possibly-changing manner) to encode the number of bits actually  present
+	 * in the last word of the array.
+	 * </p>
+	 *
+	 * <p>
+	 * Because bitwise ops clear this out-of-band data, these arrays can be passed
+	 * to ciphers like AES which want arrays of words.
+	 * </p>
+	 */
+	const bitArray = {
+		/**
+		 * Concatenate two bit arrays.
+		 * @param {bitArray} a1 The first array.
+		 * @param {bitArray} a2 The second array.
+		 * @return {bitArray} The concatenation of a1 and a2.
+		 */
+		concat(a1, a2) {
+			if (a1.length === 0 || a2.length === 0) {
+				return a1.concat(a2);
+			}
+
+			const last = a1[a1.length - 1], shift = bitArray.getPartial(last);
+			if (shift === 32) {
+				return a1.concat(a2);
+			} else {
+				return bitArray._shiftRight(a2, shift, last | 0, a1.slice(0, a1.length - 1));
+			}
+		},
+
+		/**
+		 * Find the length of an array of bits.
+		 * @param {bitArray} a The array.
+		 * @return {Number} The length of a, in bits.
+		 */
+		bitLength(a) {
+			const l = a.length;
+			if (l === 0) {
+				return 0;
+			}
+			const x = a[l - 1];
+			return (l - 1) * 32 + bitArray.getPartial(x);
+		},
+
+		/**
+		 * Truncate an array.
+		 * @param {bitArray} a The array.
+		 * @param {Number} len The length to truncate to, in bits.
+		 * @return {bitArray} A new array, truncated to len bits.
+		 */
+		clamp(a, len) {
+			if (a.length * 32 < len) {
+				return a;
+			}
+			a = a.slice(0, Math.ceil(len / 32));
+			const l = a.length;
+			len = len & 31;
+			if (l > 0 && len) {
+				a[l - 1] = bitArray.partial(len, a[l - 1] & 0x80000000 >> (len - 1), 1);
+			}
+			return a;
+		},
+
+		/**
+		 * Make a partial word for a bit array.
+		 * @param {Number} len The number of bits in the word.
+		 * @param {Number} x The bits.
+		 * @param {Number} [_end=0] Pass 1 if x has already been shifted to the high side.
+		 * @return {Number} The partial word.
+		 */
+		partial(len, x, _end) {
+			if (len === 32) {
+				return x;
+			}
+			return (_end ? x | 0 : x << (32 - len)) + len * 0x10000000000;
+		},
+
+		/**
+		 * Get the number of bits used by a partial word.
+		 * @param {Number} x The partial word.
+		 * @return {Number} The number of bits used by the partial word.
+		 */
+		getPartial(x) {
+			return Math.round(x / 0x10000000000) || 32;
+		},
+
+		/** Shift an array right.
+		 * @param {bitArray} a The array to shift.
+		 * @param {Number} shift The number of bits to shift.
+		 * @param {Number} [carry=0] A byte to carry in
+		 * @param {bitArray} [out=[]] An array to prepend to the output.
+		 * @private
+		 */
+		_shiftRight(a, shift, carry, out) {
+			if (out === undefined) {
+				out = [];
+			}
+
+			for (; shift >= 32; shift -= 32) {
+				out.push(carry);
+				carry = 0;
+			}
+			if (shift === 0) {
+				return out.concat(a);
+			}
+
+			for (let i = 0; i < a.length; i++) {
+				out.push(carry | a[i] >>> shift);
+				carry = a[i] << (32 - shift);
+			}
+			const last2 = a.length ? a[a.length - 1] : 0;
+			const shift2 = bitArray.getPartial(last2);
+			out.push(bitArray.partial(shift + shift2 & 31, (shift + shift2 > 32) ? carry : out.pop(), 1));
+			return out;
+		}
+	};
+
+	/** @fileOverview Bit array codec implementations.
+	 *
+	 * @author Emily Stark
+	 * @author Mike Hamburg
+	 * @author Dan Boneh
+	 */
+
+	/**
+	 * Arrays of bytes
+	 * @namespace
+	 */
+	const codec = {
+		bytes: {
+			/** Convert from a bitArray to an array of bytes. */
+			fromBits(arr) {
+				const bl = bitArray.bitLength(arr);
+				const byteLength = bl / 8;
+				const out = new Uint8Array(byteLength);
+				let tmp;
+				for (let i = 0; i < byteLength; i++) {
+					if ((i & 3) === 0) {
+						tmp = arr[i / 4];
+					}
+					out[i] = tmp >>> 24;
+					tmp <<= 8;
+				}
+				return out;
+			},
+			/** Convert from an array of bytes to a bitArray. */
+			toBits(bytes) {
+				const out = [];
+				let i;
+				let tmp = 0;
+				for (i = 0; i < bytes.length; i++) {
+					tmp = tmp << 8 | bytes[i];
+					if ((i & 3) === 3) {
+						out.push(tmp);
+						tmp = 0;
+					}
+				}
+				if (i & 3) {
+					out.push(bitArray.partial(8 * (i & 3), tmp));
+				}
+				return out;
+			}
+		}
+	};
+
+	/** @fileOverview Low-level AES implementation.
+	 *
+	 * This file contains a low-level implementation of AES, optimized for
+	 * size and for efficiency on several browsers.  It is based on
+	 * OpenSSL's aes_core.c, a public-domain implementation by Vincent
+	 * Rijmen, Antoon Bosselaers and Paulo Barreto.
+	 *
+	 * An older version of this implementation is available in the public
+	 * domain, but this one is (c) Emily Stark, Mike Hamburg, Dan Boneh,
+	 * Stanford University 2008-2010 and BSD-licensed for liability
+	 * reasons.
+	 *
+	 * @author Emily Stark
+	 * @author Mike Hamburg
+	 * @author Dan Boneh
+	 */
+
+	const cipher = {};
+
+	/**
+	 * Schedule out an AES key for both encryption and decryption.  This
+	 * is a low-level class.  Use a cipher mode to do bulk encryption.
+	 *
+	 * @constructor
+	 * @param {Array} key The key as an array of 4, 6 or 8 words.
+	 */
+	cipher.aes = class {
+		constructor(key) {
+			/**
+			 * The expanded S-box and inverse S-box tables.  These will be computed
+			 * on the client so that we don't have to send them down the wire.
+			 *
+			 * There are two tables, _tables[0] is for encryption and
+			 * _tables[1] is for decryption.
+			 *
+			 * The first 4 sub-tables are the expanded S-box with MixColumns.  The
+			 * last (_tables[01][4]) is the S-box itself.
+			 *
+			 * @private
+			 */
+			const aes = this;
+			aes._tables = [[[], [], [], [], []], [[], [], [], [], []]];
+
+			if (!aes._tables[0][0][0]) {
+				aes._precompute();
+			}
+
+			const sbox = aes._tables[0][4];
+			const decTable = aes._tables[1];
+			const keyLen = key.length;
+
+			let i, encKey, decKey, rcon = 1;
+
+			if (keyLen !== 4 && keyLen !== 6 && keyLen !== 8) {
+				throw new Error("invalid aes key size");
+			}
+
+			aes._key = [encKey = key.slice(0), decKey = []];
+
+			// schedule encryption keys
+			for (i = keyLen; i < 4 * keyLen + 28; i++) {
+				let tmp = encKey[i - 1];
+
+				// apply sbox
+				if (i % keyLen === 0 || (keyLen === 8 && i % keyLen === 4)) {
+					tmp = sbox[tmp >>> 24] << 24 ^ sbox[tmp >> 16 & 255] << 16 ^ sbox[tmp >> 8 & 255] << 8 ^ sbox[tmp & 255];
+
+					// shift rows and add rcon
+					if (i % keyLen === 0) {
+						tmp = tmp << 8 ^ tmp >>> 24 ^ rcon << 24;
+						rcon = rcon << 1 ^ (rcon >> 7) * 283;
+					}
+				}
+
+				encKey[i] = encKey[i - keyLen] ^ tmp;
+			}
+
+			// schedule decryption keys
+			for (let j = 0; i; j++, i--) {
+				const tmp = encKey[j & 3 ? i : i - 4];
+				if (i <= 4 || j < 4) {
+					decKey[j] = tmp;
+				} else {
+					decKey[j] = decTable[0][sbox[tmp >>> 24]] ^
+						decTable[1][sbox[tmp >> 16 & 255]] ^
+						decTable[2][sbox[tmp >> 8 & 255]] ^
+						decTable[3][sbox[tmp & 255]];
+				}
+			}
+		}
+		// public
+		/* Something like this might appear here eventually
+		name: "AES",
+		blockSize: 4,
+		keySizes: [4,6,8],
+		*/
+
+		/**
+		 * Encrypt an array of 4 big-endian words.
+		 * @param {Array} data The plaintext.
+		 * @return {Array} The ciphertext.
+		 */
+		encrypt(data) {
+			return this._crypt(data, 0);
+		}
+
+		/**
+		 * Decrypt an array of 4 big-endian words.
+		 * @param {Array} data The ciphertext.
+		 * @return {Array} The plaintext.
+		 */
+		decrypt(data) {
+			return this._crypt(data, 1);
+		}
+
+		/**
+		 * Expand the S-box tables.
+		 *
+		 * @private
+		 */
+		_precompute() {
+			const encTable = this._tables[0];
+			const decTable = this._tables[1];
+			const sbox = encTable[4];
+			const sboxInv = decTable[4];
+			const d = [];
+			const th = [];
+			let xInv, x2, x4, x8;
+
+			// Compute double and third tables
+			for (let i = 0; i < 256; i++) {
+				th[(d[i] = i << 1 ^ (i >> 7) * 283) ^ i] = i;
+			}
+
+			for (let x = xInv = 0; !sbox[x]; x ^= x2 || 1, xInv = th[xInv] || 1) {
+				// Compute sbox
+				let s = xInv ^ xInv << 1 ^ xInv << 2 ^ xInv << 3 ^ xInv << 4;
+				s = s >> 8 ^ s & 255 ^ 99;
+				sbox[x] = s;
+				sboxInv[s] = x;
+
+				// Compute MixColumns
+				x8 = d[x4 = d[x2 = d[x]]];
+				let tDec = x8 * 0x1010101 ^ x4 * 0x10001 ^ x2 * 0x101 ^ x * 0x1010100;
+				let tEnc = d[s] * 0x101 ^ s * 0x1010100;
+
+				for (let i = 0; i < 4; i++) {
+					encTable[i][x] = tEnc = tEnc << 24 ^ tEnc >>> 8;
+					decTable[i][s] = tDec = tDec << 24 ^ tDec >>> 8;
+				}
+			}
+
+			// Compactify.  Considerable speedup on Firefox.
+			for (let i = 0; i < 5; i++) {
+				encTable[i] = encTable[i].slice(0);
+				decTable[i] = decTable[i].slice(0);
+			}
+		}
+
+		/**
+		 * Encryption and decryption core.
+		 * @param {Array} input Four words to be encrypted or decrypted.
+		 * @param dir The direction, 0 for encrypt and 1 for decrypt.
+		 * @return {Array} The four encrypted or decrypted words.
+		 * @private
+		 */
+		_crypt(input, dir) {
+			if (input.length !== 4) {
+				throw new Error("invalid aes block size");
+			}
+
+			const key = this._key[dir];
+
+			const nInnerRounds = key.length / 4 - 2;
+			const out = [0, 0, 0, 0];
+			const table = this._tables[dir];
+
+			// load up the tables
+			const t0 = table[0];
+			const t1 = table[1];
+			const t2 = table[2];
+			const t3 = table[3];
+			const sbox = table[4];
+
+			// state variables a,b,c,d are loaded with pre-whitened data
+			let a = input[0] ^ key[0];
+			let b = input[dir ? 3 : 1] ^ key[1];
+			let c = input[2] ^ key[2];
+			let d = input[dir ? 1 : 3] ^ key[3];
+			let kIndex = 4;
+			let a2, b2, c2;
+
+			// Inner rounds.  Cribbed from OpenSSL.
+			for (let i = 0; i < nInnerRounds; i++) {
+				a2 = t0[a >>> 24] ^ t1[b >> 16 & 255] ^ t2[c >> 8 & 255] ^ t3[d & 255] ^ key[kIndex];
+				b2 = t0[b >>> 24] ^ t1[c >> 16 & 255] ^ t2[d >> 8 & 255] ^ t3[a & 255] ^ key[kIndex + 1];
+				c2 = t0[c >>> 24] ^ t1[d >> 16 & 255] ^ t2[a >> 8 & 255] ^ t3[b & 255] ^ key[kIndex + 2];
+				d = t0[d >>> 24] ^ t1[a >> 16 & 255] ^ t2[b >> 8 & 255] ^ t3[c & 255] ^ key[kIndex + 3];
+				kIndex += 4;
+				a = a2; b = b2; c = c2;
+			}
+
+			// Last round.
+			for (let i = 0; i < 4; i++) {
+				out[dir ? 3 & -i : i] =
+					sbox[a >>> 24] << 24 ^
+					sbox[b >> 16 & 255] << 16 ^
+					sbox[c >> 8 & 255] << 8 ^
+					sbox[d & 255] ^
+					key[kIndex++];
+				a2 = a; a = b; b = c; c = d; d = a2;
+			}
+
+			return out;
+		}
+	};
+
+	/** @fileOverview CTR mode implementation.
+	 *
+	 * Special thanks to Roy Nicholson for pointing out a bug in our
+	 * implementation.
+	 *
+	 * @author Emily Stark
+	 * @author Mike Hamburg
+	 * @author Dan Boneh
+	 */
+
+	/** Brian Gladman's CTR Mode.
+	* @constructor
+	* @param {Object} _prf The aes instance to generate key.
+	* @param {bitArray} _iv The iv for ctr mode, it must be 128 bits.
+	*/
+
+	const mode = {};
+
+	/**
+	 * Brian Gladman's CTR Mode.
+	 * @namespace
+	 */
+	mode.ctrGladman = class {
+		constructor(prf, iv) {
+			this._prf = prf;
+			this._initIv = iv;
+			this._iv = iv;
+		}
+
+		reset() {
+			this._iv = this._initIv;
+		}
+
+		/** Input some data to calculate.
+		 * @param {bitArray} data the data to process, it must be intergral multiple of 128 bits unless it's the last.
+		 */
+		update(data) {
+			return this.calculate(this._prf, data, this._iv);
+		}
+
+		incWord(word) {
+			if (((word >> 24) & 0xff) === 0xff) { //overflow
+				let b1 = (word >> 16) & 0xff;
+				let b2 = (word >> 8) & 0xff;
+				let b3 = word & 0xff;
+
+				if (b1 === 0xff) { // overflow b1   
+					b1 = 0;
+					if (b2 === 0xff) {
+						b2 = 0;
+						if (b3 === 0xff) {
+							b3 = 0;
+						} else {
+							++b3;
+						}
+					} else {
+						++b2;
+					}
+				} else {
+					++b1;
+				}
+
+				word = 0;
+				word += (b1 << 16);
+				word += (b2 << 8);
+				word += b3;
+			} else {
+				word += (0x01 << 24);
+			}
+			return word;
+		}
+
+		incCounter(counter) {
+			if ((counter[0] = this.incWord(counter[0])) === 0) {
+				// encr_data in fileenc.c from  Dr Brian Gladman's counts only with DWORD j < 8
+				counter[1] = this.incWord(counter[1]);
+			}
+		}
+
+		calculate(prf, data, iv) {
+			let l;
+			if (!(l = data.length)) {
+				return [];
+			}
+			const bl = bitArray.bitLength(data);
+			for (let i = 0; i < l; i += 4) {
+				this.incCounter(iv);
+				const e = prf.encrypt(iv);
+				data[i] ^= e[0];
+				data[i + 1] ^= e[1];
+				data[i + 2] ^= e[2];
+				data[i + 3] ^= e[3];
+			}
+			return bitArray.clamp(data, bl);
+		}
+	};
+
 	/*
 	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
 
@@ -853,17 +1357,15 @@
 	const PBKDF2_ALGORITHM = { name: "PBKDF2" };
 	const SIGNATURE_ALGORITHM = { name: "HMAC" };
 	const HASH_FUNCTION = "SHA-1";
-	const CRYPTO_KEY_ALGORITHM = { name: "AES-CTR" };
 	const BASE_KEY_ALGORITHM = Object.assign({ hash: SIGNATURE_ALGORITHM }, PBKDF2_ALGORITHM);
 	const DERIVED_BITS_ALGORITHM = Object.assign({ iterations: 1000, hash: { name: HASH_FUNCTION } }, PBKDF2_ALGORITHM);
 	const AUTHENTICATION_ALGORITHM = Object.assign({ hash: HASH_FUNCTION }, SIGNATURE_ALGORITHM);
-	const CRYPTO_ALGORITHM = Object.assign({ length: BLOCK_LENGTH }, CRYPTO_KEY_ALGORITHM);
 	const DERIVED_BITS_USAGE = ["deriveBits"];
 	const SIGN_USAGE = ["sign"];
 	const SALT_LENGTH = [8, 12, 16];
 	const KEY_LENGTH = [16, 24, 32];
 	const SIGNATURE_LENGTH = 10;
-	const COUNTER_DEFAULT_VALUE = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	const COUNTER_DEFAULT_VALUE = [0, 0, 0, 0];
 	const subtle = crypto.subtle;
 
 	class AESDecrypt {
@@ -877,26 +1379,11 @@
 		}
 
 		async append(input) {
-			const decrypt = async (offset = 0) => {
-				if (offset + BLOCK_LENGTH <= bufferedInput.length - SIGNATURE_LENGTH) {
-					const chunkToDecrypt = bufferedInput.subarray(offset, offset + BLOCK_LENGTH);
-					const outputChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.key, chunkToDecrypt);
-					incrementCounter(this.counter);
-					output.set(new Uint8Array(outputChunk), offset);
-					return decrypt(offset + BLOCK_LENGTH);
-				} else {
-					this.pendingInput = bufferedInput.subarray(offset);
-					if (this.signed) {
-						this.input = concat(this.input, input);
-					}
-					return output;
-				}
-			};
-
 			if (this.password) {
 				const preambule = input.subarray(0, SALT_LENGTH[this.strength] + 2);
 				await createDecryptionKeys(this, preambule, this.password);
 				this.password = null;
+				this.aesCtrGladman = new mode.ctrGladman(new cipher.aes(this.keys.key), Array.from(COUNTER_DEFAULT_VALUE));
 				input = input.subarray(SALT_LENGTH[this.strength] + 2);
 			}
 			let output = new Uint8Array(input.length - SIGNATURE_LENGTH - ((input.length - SIGNATURE_LENGTH) % BLOCK_LENGTH));
@@ -905,7 +1392,18 @@
 				bufferedInput = concat(this.pendingInput, input);
 				output = expand(output, bufferedInput.length - SIGNATURE_LENGTH - ((bufferedInput.length - SIGNATURE_LENGTH) % BLOCK_LENGTH));
 			}
-			return decrypt();
+			let offset;
+			for (offset = 0; offset <= bufferedInput.length - SIGNATURE_LENGTH - BLOCK_LENGTH; offset += BLOCK_LENGTH) {
+				const inputChunk = bufferedInput.subarray(offset, offset + BLOCK_LENGTH);
+				const chunkToDecrypt = codec.bytes.toBits(inputChunk);
+				const outputChunk = this.aesCtrGladman.update(chunkToDecrypt);
+				output.set(codec.bytes.fromBits(outputChunk), offset);
+			}
+			this.pendingInput = bufferedInput.subarray(offset);
+			if (this.signed) {
+				this.input = concat(this.input, input);
+			}
+			return output;
 		}
 
 		async flush() {
@@ -915,13 +1413,13 @@
 			const originalSignatureArray = pendingInput.subarray(pendingInput.length - SIGNATURE_LENGTH);
 			let decryptedChunkArray = new Uint8Array(0);
 			if (chunkToDecrypt.length) {
-				const decryptedChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), keys.key, chunkToDecrypt);
-				decryptedChunkArray = new Uint8Array(decryptedChunk);
+				const decryptedChunk = this.aesCtrGladman.update(codec.bytes.toBits(chunkToDecrypt));
+				decryptedChunkArray = codec.bytes.fromBits(decryptedChunk);
 			}
 			let valid = true;
 			if (this.signed) {
 				const signature = await subtle.sign(SIGNATURE_ALGORITHM, keys.authentication, this.input.subarray(0, this.input.length - SIGNATURE_LENGTH));
-				const signatureArray = new Uint8Array(signature);
+				const signatureArray = new Uint8Array(signature).subarray(0, SIGNATURE_LENGTH);
 				this.input = null;
 				for (let indexSignature = 0; indexSignature < SIGNATURE_LENGTH; indexSignature++) {
 					if (signatureArray[indexSignature] != originalSignatureArray[indexSignature]) {
@@ -947,24 +1445,11 @@
 		}
 
 		async append(input) {
-			const encrypt = async (offset = 0) => {
-				if (offset + BLOCK_LENGTH <= input.length) {
-					const chunkToEncrypt = input.subarray(offset, offset + BLOCK_LENGTH);
-					const outputChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.key, chunkToEncrypt);
-					incrementCounter(this.counter);
-					output.set(new Uint8Array(outputChunk), offset + preambule.length);
-					return encrypt(offset + BLOCK_LENGTH);
-				} else {
-					this.pendingInput = input.subarray(offset);
-					this.output = concat(this.output, output);
-					return output;
-				}
-			};
-
 			let preambule = new Uint8Array(0);
 			if (this.password) {
 				preambule = await createEncryptionKeys(this, this.password);
 				this.password = null;
+				this.aesCtrGladman = new mode.ctrGladman(new cipher.aes(this.keys.key), Array.from(COUNTER_DEFAULT_VALUE));
 			}
 			let output = new Uint8Array(preambule.length + input.length - (input.length % BLOCK_LENGTH));
 			output.set(preambule, 0);
@@ -972,14 +1457,22 @@
 				input = concat(this.pendingInput, input);
 				output = expand(output, input.length - (input.length % BLOCK_LENGTH));
 			}
-			return encrypt();
+			let offset;
+			for (offset = 0; offset <= input.length - BLOCK_LENGTH; offset += BLOCK_LENGTH) {
+				const chunkToEncrypt = codec.bytes.toBits(input.subarray(offset, offset + BLOCK_LENGTH));
+				const outputChunk = this.aesCtrGladman.update(chunkToEncrypt);
+				output.set(codec.bytes.fromBits(outputChunk), offset + preambule.length);
+			}
+			this.pendingInput = input.subarray(offset);
+			this.output = concat(this.output, output);
+			return output;
 		}
 
 		async flush() {
 			let encryptedChunkArray = new Uint8Array(0);
 			if (this.pendingInput.length) {
-				const encryptedChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.key, this.pendingInput);
-				encryptedChunkArray = new Uint8Array(encryptedChunk);
+				const encryptedChunk = this.aesCtrGladman.update(codec.bytes.toBits(this.pendingInput));
+				encryptedChunkArray = codec.bytes.fromBits(encryptedChunk);
 				this.output = concat(this.output, encryptedChunkArray);
 			}
 			const signature = await subtle.sign(SIGNATURE_ALGORITHM, this.keys.authentication, this.output.subarray(SALT_LENGTH[this.strength] + 2));
@@ -993,7 +1486,7 @@
 	}
 
 	async function createDecryptionKeys(decrypt, preambuleArray, password) {
-		await createKeys$1(decrypt, password, preambuleArray.subarray(0, SALT_LENGTH[decrypt.strength]), ["decrypt"]);
+		await createKeys(decrypt, password, preambuleArray.subarray(0, SALT_LENGTH[decrypt.strength]));
 		const passwordVerification = preambuleArray.subarray(SALT_LENGTH[decrypt.strength]);
 		const passwordVerificationKey = decrypt.keys.passwordVerification;
 		if (passwordVerificationKey[0] != passwordVerification[0] || passwordVerificationKey[1] != passwordVerification[1]) {
@@ -1003,32 +1496,20 @@
 
 	async function createEncryptionKeys(encrypt, password) {
 		const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH[encrypt.strength]));
-		await createKeys$1(encrypt, password, salt, ["encrypt"]);
+		await createKeys(encrypt, password, salt);
 		return concat(salt, encrypt.keys.passwordVerification);
 	}
 
-	async function createKeys$1(target, password, salt, keyUsage) {
-		target.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
+	async function createKeys(target, password, salt) {
 		const encodedPassword = (new TextEncoder()).encode(password);
 		const basekey = await subtle.importKey(RAW_FORMAT, encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
 		const derivedBits = await subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), basekey, 8 * ((KEY_LENGTH[target.strength] * 2) + 2));
 		const compositeKey = new Uint8Array(derivedBits);
 		target.keys = {
-			key: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(0, KEY_LENGTH[target.strength]), CRYPTO_KEY_ALGORITHM, true, keyUsage),
+			key: codec.bytes.toBits(compositeKey.subarray(0, KEY_LENGTH[target.strength])),
 			authentication: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(KEY_LENGTH[target.strength], KEY_LENGTH[target.strength] * 2), AUTHENTICATION_ALGORITHM, false, SIGN_USAGE),
 			passwordVerification: compositeKey.subarray(KEY_LENGTH[target.strength] * 2)
 		};
-	}
-
-	function incrementCounter(counter) {
-		for (let indexCounter = 0; indexCounter < 16; indexCounter++) {
-			if (counter[indexCounter] == 255) {
-				counter[indexCounter] = 0;
-			} else {
-				counter[indexCounter]++;
-				break;
-			}
-		}
 	}
 
 	function concat(leftArray, rightArray) {
@@ -1085,7 +1566,7 @@
 		constructor(password, passwordVerification) {
 			this.password = password;
 			this.passwordVerification = passwordVerification;
-			createKeys(this, password);
+			createKeys$1(this, password);
 		}
 
 		async append(input) {
@@ -1113,7 +1594,7 @@
 		constructor(password, passwordVerification) {
 			this.passwordVerification = passwordVerification;
 			this.password = password;
-			createKeys(this, password);
+			createKeys$1(this, password);
 		}
 
 		async append(input) {
@@ -1159,7 +1640,7 @@
 		return output;
 	}
 
-	function createKeys(target, password) {
+	function createKeys$1(target, password) {
 		target.keys = [0x12345678, 0x23456789, 0x34567890];
 		target.crcKey0 = new Crc32(target.keys[0]);
 		target.crcKey2 = new Crc32(target.keys[2]);
@@ -1327,7 +1808,7 @@
 		}
 	}
 
-	function createCodec$1(codecConstructor, options) {
+	function createCodec(codecConstructor, options) {
 		if (options.codecType.startsWith(CODEC_DEFLATE)) {
 			return new Deflate(codecConstructor, options);
 		} else if (options.codecType.startsWith(CODEC_INFLATE)) {
@@ -1385,7 +1866,7 @@
 	};
 
 	function createWorkerInterface(workerData) {
-		const interfaceCodec = createCodec$1(workerData.codecConstructor, workerData.options);
+		const interfaceCodec = createCodec(workerData.codecConstructor, workerData.options);
 		return {
 			async append(data) {
 				try {
@@ -1508,7 +1989,7 @@
 	let pool = [];
 	let pendingRequests = [];
 
-	function createCodec(codecConstructor, options, config) {
+	function createCodec$1(codecConstructor, options, config) {
 		const streamCopy = !options.compressed && !options.signed && !options.encrypted;
 		const webWorker = !streamCopy && (options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers));
 		const scripts = webWorker && config.workerScripts ? config.workerScripts[options.codecType] : [];
@@ -1699,7 +2180,7 @@
 				fileEntry.directory = (getUint8(directoryView, offset + 38) & FILE_ATTR_MSDOS_DIR_MASK) == FILE_ATTR_MSDOS_DIR_MASK;
 				fileEntry.offset = getUint32(directoryView, offset + 42) + prependedBytesLength;
 				fileEntry.rawFilename = directoryArray.subarray(offset + 46, offset + 46 + fileEntry.filenameLength);
-				const filenameEncoding = getOptionValue$1(this, options, "filenameEncoding");
+				const filenameEncoding = getOptionValue(this, options, "filenameEncoding");
 				fileEntry.filenameUTF8 = fileEntry.commentUTF8 = Boolean(fileEntry.bitFlag.languageEncodingFlag);
 				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.filenameUTF8 ? CHARSET_UTF8 : filenameEncoding);
 				if (!fileEntry.directory && fileEntry.filename.endsWith(DIRECTORY_SIGNATURE)) {
@@ -1708,7 +2189,7 @@
 				fileEntry.rawExtraField = directoryArray.subarray(offset + 46 + fileEntry.filenameLength, offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength);
 				fileEntry.rawComment = directoryArray.subarray(offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength, offset + 46
 					+ fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength);
-				const commentEncoding = getOptionValue$1(this, options, "commentEncoding");
+				const commentEncoding = getOptionValue(this, options, "commentEncoding");
 				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.commentUTF8 ? CHARSET_UTF8 : commentEncoding);
 				readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
 				const entry = new Entry(fileEntry);
@@ -1744,7 +2225,7 @@
 			const config = this.config;
 			const bitFlag = this.bitFlag;
 			const signature = this.signature;
-			let password = getOptionValue$1(this, options, "password");
+			let password = getOptionValue(this, options, "password");
 			password = password && password.length && password;
 			if (extraFieldAES) {
 				if (extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
@@ -1771,22 +2252,22 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const codec = await createCodec(config.Inflate, {
+			const codec = await createCodec$1(config.Inflate, {
 				codecType: CODEC_INFLATE,
 				password,
 				zipCrypto,
 				encryptionStrength: extraFieldAES && extraFieldAES.strength,
-				signed: getOptionValue$1(this, options, "checkSignature"),
+				signed: getOptionValue(this, options, "checkSignature"),
 				passwordVerification: zipCrypto && (bitFlag.dataDescriptor ? ((this.rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
 				signature,
 				compressed: compressionMethod != 0,
 				encrypted,
-				useWebWorkers: getOptionValue$1(this, options, "useWebWorkers")
+				useWebWorkers: getOptionValue(this, options, "useWebWorkers")
 			}, config);
 			if (!writer.initialized) {
 				await writer.init();
 			}
-			await processData(codec, reader, writer, dataOffset, this.compressedSize, config, { onprogress: options.onprogress, signal: getOptionValue$1(this, options, "signal") });
+			await processData(codec, reader, writer, dataOffset, this.compressedSize, config, { onprogress: options.onprogress, signal: getOptionValue(this, options, "signal") });
 			return writer.getData();
 		}
 	}
@@ -1907,7 +2388,7 @@
 	async function seekSignature(reader, signature, minimumBytes, maximumLength) {
 		const signatureArray = new Uint8Array(4);
 		const signatureView = new DataView(signatureArray.buffer);
-		setUint32$1(signatureView, 0, signature);
+		setUint32(signatureView, 0, signature);
 		const maximumBytes = minimumBytes + maximumLength;
 		return (await seek(minimumBytes)) || await seek(Math.min(maximumBytes, reader.size));
 
@@ -1926,7 +2407,7 @@
 		}
 	}
 
-	function getOptionValue$1(zipReader, options, name) {
+	function getOptionValue(zipReader, options, name) {
 		return options[name] === undefined ? zipReader.options[name] : options[name];
 	}
 
@@ -1963,7 +2444,7 @@
 		return Number(view.getBigUint64(offset, true));
 	}
 
-	function setUint32$1(view, offset, value) {
+	function setUint32(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
@@ -2045,9 +2526,9 @@
 			if (lastModDate < MIN_DATE || lastModDate > MAX_DATE) {
 				throw new Error(ERR_INVALID_DATE);
 			}
-			const password = getOptionValue(this, options, "password");
-			const encryptionStrength = getOptionValue(this, options, "encryptionStrength") || 3;
-			const zipCrypto = getOptionValue(this, options, "zipCrypto");
+			const password = getOptionValue$1(this, options, "password");
+			const encryptionStrength = getOptionValue$1(this, options, "encryptionStrength") || 3;
+			const zipCrypto = getOptionValue$1(this, options, "zipCrypto");
 			if (password !== undefined && encryptionStrength !== undefined && (encryptionStrength < 1 || encryptionStrength > 3)) {
 				throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
 			}
@@ -2076,12 +2557,12 @@
 			}
 			const outputSize = reader ? reader.size * 1.05 : 0;
 			const zip64 = options.zip64 || this.options.zip64 || this.offset >= MAX_32_BITS || outputSize >= MAX_32_BITS || this.offset + outputSize >= MAX_32_BITS;
-			const level = getOptionValue(this, options, "level");
-			const useWebWorkers = getOptionValue(this, options, "useWebWorkers");
-			const bufferedWrite = getOptionValue(this, options, "bufferedWrite");
-			const keepOrder = getOptionValue(this, options, "keepOrder");
-			let dataDescriptor = getOptionValue(this, options, "dataDescriptor");
-			const signal = getOptionValue(this, options, "signal");
+			const level = getOptionValue$1(this, options, "level");
+			const useWebWorkers = getOptionValue$1(this, options, "useWebWorkers");
+			const bufferedWrite = getOptionValue$1(this, options, "bufferedWrite");
+			const keepOrder = getOptionValue$1(this, options, "keepOrder");
+			let dataDescriptor = getOptionValue$1(this, options, "dataDescriptor");
+			const signal = getOptionValue$1(this, options, "signal");
 			if (dataDescriptor === undefined) {
 				dataDescriptor = true;
 			}
@@ -2136,7 +2617,7 @@
 				const rawExtraFieldZip64 = fileEntry.rawExtraFieldZip64;
 				const rawExtraFieldAES = fileEntry.rawExtraFieldAES;
 				const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + fileEntry.rawExtraField.length;
-				setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
+				setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 				setUint16(directoryView, offset + 4, fileEntry.version);
 				directoryArray.set(fileEntry.headerArray, offset + 6);
 				setUint16(directoryView, offset + 30, extraFieldLength);
@@ -2145,9 +2626,9 @@
 					setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 				}
 				if (fileEntry.zip64) {
-					setUint32(directoryView, offset + 42, MAX_32_BITS);
+					setUint32$1(directoryView, offset + 42, MAX_32_BITS);
 				} else {
-					setUint32(directoryView, offset + 42, fileEntry.offset);
+					setUint32$1(directoryView, offset + 42, fileEntry.offset);
 				}
 				directoryArray.set(rawFilename, offset + 46);
 				directoryArray.set(rawExtraFieldZip64, offset + 46 + rawFilename.length);
@@ -2157,7 +2638,7 @@
 				offset += 46 + rawFilename.length + extraFieldLength + fileEntry.rawComment.length;
 			}
 			if (zip64) {
-				setUint32(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
+				setUint32$1(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
 				setBigUint64(directoryView, offset + 4, BigInt(44));
 				setUint16(directoryView, offset + 12, 45);
 				setUint16(directoryView, offset + 14, 45);
@@ -2165,19 +2646,19 @@
 				setBigUint64(directoryView, offset + 32, BigInt(filesLength));
 				setBigUint64(directoryView, offset + 40, BigInt(directoryDataLength));
 				setBigUint64(directoryView, offset + 48, BigInt(directoryOffset));
-				setUint32(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
+				setUint32$1(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
 				setBigUint64(directoryView, offset + 64, BigInt(directoryOffset) + BigInt(directoryDataLength));
-				setUint32(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
+				setUint32$1(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
 				filesLength = MAX_16_BITS;
 				directoryOffset = MAX_32_BITS;
 				directoryDataLength = MAX_32_BITS;
 				offset += 76;
 			}
-			setUint32(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
+			setUint32$1(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
 			setUint16(directoryView, offset + 8, filesLength);
 			setUint16(directoryView, offset + 10, filesLength);
-			setUint32(directoryView, offset + 12, directoryDataLength);
-			setUint32(directoryView, offset + 16, directoryOffset);
+			setUint32$1(directoryView, offset + 12, directoryDataLength);
+			setUint32$1(directoryView, offset + 16, directoryOffset);
 			await writer.writeUint8Array(directoryArray);
 			if (comment.length) {
 				await writer.writeUint8Array(comment);
@@ -2229,14 +2710,14 @@
 				if (!options.dataDescriptor) {
 					const arrayBufferView = new DataView(arrayBuffer);
 					if (!fileEntry.encrypted || options.zipCrypto) {
-						setUint32(arrayBufferView, 14, fileEntry.signature);
+						setUint32$1(arrayBufferView, 14, fileEntry.signature);
 					}
 					if (fileEntry.zip64) {
-						setUint32(arrayBufferView, 18, MAX_32_BITS);
-						setUint32(arrayBufferView, 22, MAX_32_BITS);
+						setUint32$1(arrayBufferView, 18, MAX_32_BITS);
+						setUint32$1(arrayBufferView, 22, MAX_32_BITS);
 					} else {
-						setUint32(arrayBufferView, 18, fileEntry.compressedSize);
-						setUint32(arrayBufferView, 22, fileEntry.uncompressedSize);
+						setUint32$1(arrayBufferView, 18, fileEntry.compressedSize);
+						setUint32$1(arrayBufferView, 22, fileEntry.uncompressedSize);
 					}
 				}
 				await writer.writeUint8Array(new Uint8Array(arrayBuffer));
@@ -2321,12 +2802,12 @@
 		setUint16(dateView, 0, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
 		setUint16(dateView, 2, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
 		const rawLastModDate = dateArray[0];
-		setUint32(headerView, 6, rawLastModDate);
+		setUint32$1(headerView, 6, rawLastModDate);
 		setUint16(headerView, 22, rawFilename.length);
 		setUint16(headerView, 24, 0);
 		const fileDataArray = new Uint8Array(30 + rawFilename.length);
 		const fileDataView = new DataView(fileDataArray.buffer);
-		setUint32(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
+		setUint32$1(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
 		fileDataArray.set(headerArray, 4);
 		fileDataArray.set(rawFilename, 30);
 		let result;
@@ -2334,7 +2815,7 @@
 		let compressedSize = 0;
 		if (reader) {
 			uncompressedSize = reader.size;
-			const codec = await createCodec(config.Deflate, {
+			const codec = await createCodec$1(config.Deflate, {
 				codecType: CODEC_DEFLATE,
 				level,
 				password,
@@ -2357,34 +2838,34 @@
 		if (options.dataDescriptor) {
 			dataDescriptorArray = new Uint8Array(zip64 ? 24 : 16);
 			dataDescriptorView = new DataView(dataDescriptorArray.buffer);
-			setUint32(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
+			setUint32$1(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
 		}
 		if (reader) {
 			if ((!encrypted || options.zipCrypto) && result.signature !== undefined) {
-				setUint32(headerView, 10, result.signature);
+				setUint32$1(headerView, 10, result.signature);
 				fileEntry.signature = result.signature;
 				if (options.dataDescriptor) {
-					setUint32(dataDescriptorView, 4, result.signature);
+					setUint32$1(dataDescriptorView, 4, result.signature);
 				}
 			}
 			if (zip64) {
 				const rawExtraFieldZip64View = new DataView(fileEntry.rawExtraFieldZip64.buffer);
 				setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
 				setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
-				setUint32(headerView, 14, MAX_32_BITS);
+				setUint32$1(headerView, 14, MAX_32_BITS);
 				setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
-				setUint32(headerView, 18, MAX_32_BITS);
+				setUint32$1(headerView, 18, MAX_32_BITS);
 				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
 				if (options.dataDescriptor) {
 					setBigUint64(dataDescriptorView, 8, BigInt(compressedSize));
 					setBigUint64(dataDescriptorView, 16, BigInt(uncompressedSize));
 				}
 			} else {
-				setUint32(headerView, 14, compressedSize);
-				setUint32(headerView, 18, uncompressedSize);
+				setUint32$1(headerView, 14, compressedSize);
+				setUint32$1(headerView, 18, uncompressedSize);
 				if (options.dataDescriptor) {
-					setUint32(dataDescriptorView, 8, compressedSize);
-					setUint32(dataDescriptorView, 12, uncompressedSize);
+					setUint32$1(dataDescriptorView, 8, compressedSize);
+					setUint32$1(dataDescriptorView, 12, uncompressedSize);
 				}
 			}
 		}
@@ -2396,7 +2877,7 @@
 		return fileEntry;
 	}
 
-	function getOptionValue(zipWriter, options, name) {
+	function getOptionValue$1(zipWriter, options, name) {
 		return options[name] === undefined ? zipWriter.options[name] : options[name];
 	}
 
@@ -2408,7 +2889,7 @@
 		view.setUint16(offset, value, true);
 	}
 
-	function setUint32(view, offset, value) {
+	function setUint32$1(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
