@@ -17,7 +17,7 @@ async function test() {
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await Promise.all(ENTRIES_DATA.map(async entryData => {
-		await zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob), { bufferedWrite: true, level: Math.random() > .5 ? 5 : 0 });
+		await zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob), { keepOrder: false, bufferedWrite: true, level: Math.random() > .5 ? 5 : 0 });
 	}));
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));

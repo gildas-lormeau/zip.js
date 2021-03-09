@@ -15,7 +15,7 @@ async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 512 });
 	const blobWriter = new zip.BlobWriter("application/zip");
-	const zipWriter = new zip.ZipWriter(blobWriter, { keepOrder: true });
+	const zipWriter = new zip.ZipWriter(blobWriter);
 	await Promise.all(ENTRIES_DATA.map(async entryData => {
 		await zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob));
 	}));
