@@ -34,7 +34,7 @@
 
 	// Global
 
-	const MAX_BITS$1 = 15;
+	const MAX_BITS = 15;
 	const D_CODES = 30;
 	const BL_CODES = 19;
 
@@ -71,17 +71,17 @@
 	const Z_HUFFMAN_ONLY = 2;
 	const Z_DEFAULT_STRATEGY = 0;
 
-	const Z_NO_FLUSH$1 = 0;
+	const Z_NO_FLUSH = 0;
 	const Z_PARTIAL_FLUSH = 1;
 	const Z_FULL_FLUSH = 3;
-	const Z_FINISH$1 = 4;
+	const Z_FINISH = 4;
 
-	const Z_OK$1 = 0;
-	const Z_STREAM_END$1 = 1;
-	const Z_NEED_DICT$1 = 2;
-	const Z_STREAM_ERROR$1 = -2;
-	const Z_DATA_ERROR$1 = -3;
-	const Z_BUF_ERROR$1 = -5;
+	const Z_OK = 0;
+	const Z_STREAM_END = 1;
+	const Z_NEED_DICT = 2;
+	const Z_STREAM_ERROR = -2;
+	const Z_DATA_ERROR = -3;
+	const Z_BUF_ERROR = -5;
 
 	// Tree
 
@@ -124,7 +124,7 @@
 			let f; // frequency
 			let overflow = 0; // number of elements with bit length too large
 
-			for (bits = 0; bits <= MAX_BITS$1; bits++)
+			for (bits = 0; bits <= MAX_BITS; bits++)
 				s.bl_count[bits] = 0;
 
 			// In a first pass, compute the optimal bit lengths (which may
@@ -220,7 +220,7 @@
 
 			// The distribution counts are first used to generate the code values
 			// without bit reversal.
-			for (bits = 1; bits <= MAX_BITS$1; bits++) {
+			for (bits = 1; bits <= MAX_BITS; bits++) {
 				next_code[bits] = code = ((code + bl_count[bits - 1]) << 1);
 			}
 
@@ -384,9 +384,9 @@
 	StaticTree.static_dtree = [0, 5, 16, 5, 8, 5, 24, 5, 4, 5, 20, 5, 12, 5, 28, 5, 2, 5, 18, 5, 10, 5, 26, 5, 6, 5, 22, 5, 14, 5, 30, 5, 1, 5, 17, 5, 9, 5,
 		25, 5, 5, 5, 21, 5, 13, 5, 29, 5, 3, 5, 19, 5, 11, 5, 27, 5, 7, 5, 23, 5];
 
-	StaticTree.static_l_desc = new StaticTree(StaticTree.static_ltree, Tree.extra_lbits, LITERALS + 1, L_CODES, MAX_BITS$1);
+	StaticTree.static_l_desc = new StaticTree(StaticTree.static_ltree, Tree.extra_lbits, LITERALS + 1, L_CODES, MAX_BITS);
 
-	StaticTree.static_d_desc = new StaticTree(StaticTree.static_dtree, Tree.extra_dbits, 0, D_CODES, MAX_BITS$1);
+	StaticTree.static_d_desc = new StaticTree(StaticTree.static_dtree, Tree.extra_dbits, 0, D_CODES, MAX_BITS);
 
 	StaticTree.static_bl_desc = new StaticTree(null, Tree.extra_blbits, 0, BL_CODES, MAX_BL_BITS);
 
@@ -404,11 +404,11 @@
 		that.func = func;
 	}
 
-	const STORED$1 = 0;
+	const STORED = 0;
 	const FAST = 1;
 	const SLOW = 2;
 	const config_table = [
-		new Config(0, 0, 0, 0, STORED$1),
+		new Config(0, 0, 0, 0, STORED),
 		new Config(4, 4, 8, 4, FAST),
 		new Config(4, 5, 16, 8, FAST),
 		new Config(4, 6, 32, 32, FAST),
@@ -445,14 +445,14 @@
 	const FinishDone = 3;
 
 	// preset dictionary flag in zlib header
-	const PRESET_DICT$1 = 0x20;
+	const PRESET_DICT = 0x20;
 
 	const INIT_STATE = 42;
 	const BUSY_STATE = 113;
 	const FINISH_STATE = 666;
 
 	// The deflate compression method
-	const Z_DEFLATED$1 = 8;
+	const Z_DEFLATED = 8;
 
 	const STORED_BLOCK = 0;
 	const STATIC_TREES = 1;
@@ -468,7 +468,7 @@
 		return (tn2 < tm2 || (tn2 == tm2 && depth[n] <= depth[m]));
 	}
 
-	function Deflate$1() {
+	function Deflate() {
 
 		const that = this;
 		let strm; // pointer back to this zlib stream
@@ -1245,7 +1245,7 @@
 				// Fill the window as much as possible:
 				if (lookahead <= 1) {
 					fill_window();
-					if (lookahead === 0 && flush == Z_NO_FLUSH$1)
+					if (lookahead === 0 && flush == Z_NO_FLUSH)
 						return NeedMore;
 					if (lookahead === 0)
 						break; // flush the current block
@@ -1276,11 +1276,11 @@
 				}
 			}
 
-			flush_block_only(flush == Z_FINISH$1);
+			flush_block_only(flush == Z_FINISH);
 			if (strm.avail_out === 0)
-				return (flush == Z_FINISH$1) ? FinishStarted : NeedMore;
+				return (flush == Z_FINISH) ? FinishStarted : NeedMore;
 
-			return flush == Z_FINISH$1 ? FinishDone : BlockDone;
+			return flush == Z_FINISH ? FinishDone : BlockDone;
 		}
 
 		function longest_match(cur_match) {
@@ -1378,7 +1378,7 @@
 				// string following the next match.
 				if (lookahead < MIN_LOOKAHEAD) {
 					fill_window();
-					if (lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH$1) {
+					if (lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH) {
 						return NeedMore;
 					}
 					if (lookahead === 0)
@@ -1457,14 +1457,14 @@
 				}
 			}
 
-			flush_block_only(flush == Z_FINISH$1);
+			flush_block_only(flush == Z_FINISH);
 			if (strm.avail_out === 0) {
-				if (flush == Z_FINISH$1)
+				if (flush == Z_FINISH)
 					return FinishStarted;
 				else
 					return NeedMore;
 			}
-			return flush == Z_FINISH$1 ? FinishDone : BlockDone;
+			return flush == Z_FINISH ? FinishDone : BlockDone;
 		}
 
 		// Same as above, but achieves better compression. We use a lazy
@@ -1486,7 +1486,7 @@
 
 				if (lookahead < MIN_LOOKAHEAD) {
 					fill_window();
-					if (lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH$1) {
+					if (lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH) {
 						return NeedMore;
 					}
 					if (lookahead === 0)
@@ -1590,16 +1590,16 @@
 				bflush = _tr_tally(0, window[strstart - 1] & 0xff);
 				match_available = 0;
 			}
-			flush_block_only(flush == Z_FINISH$1);
+			flush_block_only(flush == Z_FINISH);
 
 			if (strm.avail_out === 0) {
-				if (flush == Z_FINISH$1)
+				if (flush == Z_FINISH)
 					return FinishStarted;
 				else
 					return NeedMore;
 			}
 
-			return flush == Z_FINISH$1 ? FinishDone : BlockDone;
+			return flush == Z_FINISH ? FinishDone : BlockDone;
 		}
 
 		function deflateReset(strm) {
@@ -1611,16 +1611,16 @@
 
 			status = BUSY_STATE;
 
-			last_flush = Z_NO_FLUSH$1;
+			last_flush = Z_NO_FLUSH;
 
 			tr_init();
 			lm_init();
-			return Z_OK$1;
+			return Z_OK;
 		}
 
 		that.deflateInit = function (strm, _level, bits, _method, memLevel, _strategy) {
 			if (!_method)
-				_method = Z_DEFLATED$1;
+				_method = Z_DEFLATED;
 			if (!memLevel)
 				memLevel = DEF_MEM_LEVEL;
 			if (!_strategy)
@@ -1639,9 +1639,9 @@
 			if (_level == Z_DEFAULT_COMPRESSION)
 				_level = 6;
 
-			if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || _method != Z_DEFLATED$1 || bits < 9 || bits > 15 || _level < 0 || _level > 9 || _strategy < 0
+			if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || _method != Z_DEFLATED || bits < 9 || bits > 15 || _level < 0 || _level > 9 || _strategy < 0
 				|| _strategy > Z_HUFFMAN_ONLY) {
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			}
 
 			strm.dstate = that;
@@ -1678,7 +1678,7 @@
 
 		that.deflateEnd = function () {
 			if (status != INIT_STATE && status != BUSY_STATE && status != FINISH_STATE) {
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			}
 			// Deallocate in reverse order of allocations:
 			that.pending_buf = null;
@@ -1687,17 +1687,17 @@
 			window = null;
 			// free
 			that.dstate = null;
-			return status == BUSY_STATE ? Z_DATA_ERROR$1 : Z_OK$1;
+			return status == BUSY_STATE ? Z_DATA_ERROR : Z_OK;
 		};
 
 		that.deflateParams = function (strm, _level, _strategy) {
-			let err = Z_OK$1;
+			let err = Z_OK;
 
 			if (_level == Z_DEFAULT_COMPRESSION) {
 				_level = 6;
 			}
 			if (_level < 0 || _level > 9 || _strategy < 0 || _strategy > Z_HUFFMAN_ONLY) {
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			}
 
 			if (config_table[level].func != config_table[_level].func && strm.total_in !== 0) {
@@ -1721,10 +1721,10 @@
 			let n, index = 0;
 
 			if (!dictionary || status != INIT_STATE)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 
 			if (length < MIN_MATCH)
-				return Z_OK$1;
+				return Z_OK;
 			if (length > w_size - MIN_LOOKAHEAD) {
 				length = w_size - MIN_LOOKAHEAD;
 				index = dictLength - length; // use the tail of the dictionary
@@ -1746,23 +1746,23 @@
 				prev[n & w_mask] = head[ins_h];
 				head[ins_h] = n;
 			}
-			return Z_OK$1;
+			return Z_OK;
 		};
 
 		that.deflate = function (_strm, flush) {
 			let i, header, level_flags, old_flush, bstate;
 
-			if (flush > Z_FINISH$1 || flush < 0) {
-				return Z_STREAM_ERROR$1;
+			if (flush > Z_FINISH || flush < 0) {
+				return Z_STREAM_ERROR;
 			}
 
-			if (!_strm.next_out || (!_strm.next_in && _strm.avail_in !== 0) || (status == FINISH_STATE && flush != Z_FINISH$1)) {
-				_strm.msg = z_errmsg[Z_NEED_DICT$1 - (Z_STREAM_ERROR$1)];
-				return Z_STREAM_ERROR$1;
+			if (!_strm.next_out || (!_strm.next_in && _strm.avail_in !== 0) || (status == FINISH_STATE && flush != Z_FINISH)) {
+				_strm.msg = z_errmsg[Z_NEED_DICT - (Z_STREAM_ERROR)];
+				return Z_STREAM_ERROR;
 			}
 			if (_strm.avail_out === 0) {
-				_strm.msg = z_errmsg[Z_NEED_DICT$1 - (Z_BUF_ERROR$1)];
-				return Z_BUF_ERROR$1;
+				_strm.msg = z_errmsg[Z_NEED_DICT - (Z_BUF_ERROR)];
+				return Z_BUF_ERROR;
 			}
 
 			strm = _strm; // just in case
@@ -1771,14 +1771,14 @@
 
 			// Write the zlib header
 			if (status == INIT_STATE) {
-				header = (Z_DEFLATED$1 + ((w_bits - 8) << 4)) << 8;
+				header = (Z_DEFLATED + ((w_bits - 8) << 4)) << 8;
 				level_flags = ((level - 1) & 0xff) >> 1;
 
 				if (level_flags > 3)
 					level_flags = 3;
 				header |= (level_flags << 6);
 				if (strstart !== 0)
-					header |= PRESET_DICT$1;
+					header |= PRESET_DICT;
 				header += 31 - (header % 31);
 
 				status = BUSY_STATE;
@@ -1796,29 +1796,29 @@
 					// but this is not an error situation so make sure we
 					// return OK instead of BUF_ERROR at next call of deflate:
 					last_flush = -1;
-					return Z_OK$1;
+					return Z_OK;
 				}
 
 				// Make sure there is something to do and avoid duplicate
 				// consecutive
 				// flushes. For repeated and useless calls with Z_FINISH, we keep
 				// returning Z_STREAM_END instead of Z_BUFF_ERROR.
-			} else if (strm.avail_in === 0 && flush <= old_flush && flush != Z_FINISH$1) {
-				strm.msg = z_errmsg[Z_NEED_DICT$1 - (Z_BUF_ERROR$1)];
-				return Z_BUF_ERROR$1;
+			} else if (strm.avail_in === 0 && flush <= old_flush && flush != Z_FINISH) {
+				strm.msg = z_errmsg[Z_NEED_DICT - (Z_BUF_ERROR)];
+				return Z_BUF_ERROR;
 			}
 
 			// User must not provide more input after the first FINISH:
 			if (status == FINISH_STATE && strm.avail_in !== 0) {
-				_strm.msg = z_errmsg[Z_NEED_DICT$1 - (Z_BUF_ERROR$1)];
-				return Z_BUF_ERROR$1;
+				_strm.msg = z_errmsg[Z_NEED_DICT - (Z_BUF_ERROR)];
+				return Z_BUF_ERROR;
 			}
 
 			// Start a new block or continue the current one.
-			if (strm.avail_in !== 0 || lookahead !== 0 || (flush != Z_NO_FLUSH$1 && status != FINISH_STATE)) {
+			if (strm.avail_in !== 0 || lookahead !== 0 || (flush != Z_NO_FLUSH && status != FINISH_STATE)) {
 				bstate = -1;
 				switch (config_table[level].func) {
-					case STORED$1:
+					case STORED:
 						bstate = deflate_stored(flush);
 						break;
 					case FAST:
@@ -1836,7 +1836,7 @@
 					if (strm.avail_out === 0) {
 						last_flush = -1; // avoid BUF_ERROR next call, see above
 					}
-					return Z_OK$1;
+					return Z_OK;
 					// If flush != Z_NO_FLUSH && avail_out === 0, the next call
 					// of deflate should use the same flush parameter to make sure
 					// that the flush is complete. So we don't have to output an
@@ -1862,20 +1862,20 @@
 					strm.flush_pending();
 					if (strm.avail_out === 0) {
 						last_flush = -1; // avoid BUF_ERROR at next call, see above
-						return Z_OK$1;
+						return Z_OK;
 					}
 				}
 			}
 
-			if (flush != Z_FINISH$1)
-				return Z_OK$1;
-			return Z_STREAM_END$1;
+			if (flush != Z_FINISH)
+				return Z_OK;
+			return Z_STREAM_END;
 		};
 	}
 
 	// ZStream
 
-	function ZStream$1() {
+	function ZStream() {
 		const that = this;
 		that.next_in_index = 0;
 		that.next_out_index = 0;
@@ -1889,19 +1889,19 @@
 		// that.dstate;
 	}
 
-	ZStream$1.prototype = {
+	ZStream.prototype = {
 		deflateInit: function (level, bits) {
 			const that = this;
-			that.dstate = new Deflate$1();
+			that.dstate = new Deflate();
 			if (!bits)
-				bits = MAX_BITS$1;
+				bits = MAX_BITS;
 			return that.dstate.deflateInit(that, level, bits);
 		},
 
 		deflate: function (flush) {
 			const that = this;
 			if (!that.dstate) {
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			}
 			return that.dstate.deflate(that, flush);
 		},
@@ -1909,7 +1909,7 @@
 		deflateEnd: function () {
 			const that = this;
 			if (!that.dstate)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			const ret = that.dstate.deflateEnd();
 			that.dstate = null;
 			return ret;
@@ -1918,14 +1918,14 @@
 		deflateParams: function (level, strategy) {
 			const that = this;
 			if (!that.dstate)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			return that.dstate.deflateParams(that, level, strategy);
 		},
 
 		deflateSetDictionary: function (dictionary, dictLength) {
 			const that = this;
 			if (!that.dstate)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			return that.dstate.deflateSetDictionary(that, dictionary, dictLength);
 		},
 
@@ -1986,9 +1986,9 @@
 
 	function ZipDeflate(options) {
 		const that = this;
-		const z = new ZStream$1();
+		const z = new ZStream();
 		const bufsize = 512;
-		const flush = Z_NO_FLUSH$1;
+		const flush = Z_NO_FLUSH;
 		const buf = new Uint8Array(bufsize);
 		let level = options ? options.level : Z_DEFAULT_COMPRESSION;
 		if (typeof level == "undefined")
@@ -2008,7 +2008,7 @@
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
 				err = z.deflate(flush);
-				if (err != Z_OK$1)
+				if (err != Z_OK)
 					throw new Error("deflating: " + z.msg);
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
@@ -2034,8 +2034,8 @@
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
-				err = z.deflate(Z_FINISH$1);
-				if (err != Z_STREAM_END$1 && err != Z_OK$1)
+				err = z.deflate(Z_FINISH);
+				if (err != Z_STREAM_END && err != Z_OK)
 					throw new Error("deflating: " + z.msg);
 				if (bufsize - z.avail_out > 0)
 					buffers.push(new Uint8Array(buf.subarray(0, z.next_out_index)));
@@ -2080,15 +2080,15 @@
 	 */
 
 	// Global
-	const MAX_BITS = 15;
+	const MAX_BITS$1 = 15;
 
-	const Z_OK = 0;
-	const Z_STREAM_END = 1;
-	const Z_NEED_DICT = 2;
-	const Z_STREAM_ERROR = -2;
-	const Z_DATA_ERROR = -3;
+	const Z_OK$1 = 0;
+	const Z_STREAM_END$1 = 1;
+	const Z_NEED_DICT$1 = 2;
+	const Z_STREAM_ERROR$1 = -2;
+	const Z_DATA_ERROR$1 = -3;
 	const Z_MEM_ERROR = -4;
-	const Z_BUF_ERROR = -5;
+	const Z_BUF_ERROR$1 = -5;
 
 	const inflate_mask = [0x00000000, 0x00000001, 0x00000003, 0x00000007, 0x0000000f, 0x0000001f, 0x0000003f, 0x0000007f, 0x000000ff, 0x000001ff, 0x000003ff,
 		0x000007ff, 0x00000fff, 0x00001fff, 0x00003fff, 0x00007fff, 0x0000ffff];
@@ -2096,8 +2096,8 @@
 	const MANY = 1440;
 
 	// JZlib version : "1.0.2"
-	const Z_NO_FLUSH = 0;
-	const Z_FINISH = 4;
+	const Z_NO_FLUSH$1 = 0;
+	const Z_FINISH$1 = 4;
 
 	// InfTree
 	const fixed_bl = 9;
@@ -2222,7 +2222,7 @@
 			if (c[0] == n) { // null input--all zero length codes
 				t[0] = -1;
 				m[0] = 0;
-				return Z_OK;
+				return Z_OK$1;
 			}
 
 			// Find minimum and maximum length, bound *m by those
@@ -2247,11 +2247,11 @@
 			// Adjust last length count to fill out codes, if needed
 			for (y = 1 << j; j < i; j++, y <<= 1) {
 				if ((y -= c[j]) < 0) {
-					return Z_DATA_ERROR;
+					return Z_DATA_ERROR$1;
 				}
 			}
 			if ((y -= c[i]) < 0) {
-				return Z_DATA_ERROR;
+				return Z_DATA_ERROR$1;
 			}
 			c[i] += y;
 
@@ -2314,7 +2314,7 @@
 
 						// allocate new table
 						if (hn[0] + z > MANY) { // (note: doesn't matter for fixed)
-							return Z_DATA_ERROR; // overflow of MANY
+							return Z_DATA_ERROR$1; // overflow of MANY
 						}
 						u[h] = q = /* hp+ */hn[0]; // DEBUG
 						hn[0] += z;
@@ -2371,7 +2371,7 @@
 				}
 			}
 			// Return Z_BUF_ERROR if we were given an incomplete table
-			return y !== 0 && g != 1 ? Z_BUF_ERROR : Z_OK;
+			return y !== 0 && g != 1 ? Z_BUF_ERROR$1 : Z_OK$1;
 		}
 
 		function initWorkArea(vsize) {
@@ -2413,11 +2413,11 @@
 			hn[0] = 0;
 			result = huft_build(c, 0, 19, 19, null, null, tb, bb, hp, hn, v);
 
-			if (result == Z_DATA_ERROR) {
+			if (result == Z_DATA_ERROR$1) {
 				z.msg = "oversubscribed dynamic bit lengths tree";
-			} else if (result == Z_BUF_ERROR || bb[0] === 0) {
+			} else if (result == Z_BUF_ERROR$1 || bb[0] === 0) {
 				z.msg = "incomplete dynamic bit lengths tree";
-				result = Z_DATA_ERROR;
+				result = Z_DATA_ERROR$1;
 			}
 			return result;
 		};
@@ -2438,12 +2438,12 @@
 			initWorkArea(288);
 			hn[0] = 0;
 			result = huft_build(c, 0, nl, 257, cplens, cplext, tl, bl, hp, hn, v);
-			if (result != Z_OK || bl[0] === 0) {
-				if (result == Z_DATA_ERROR) {
+			if (result != Z_OK$1 || bl[0] === 0) {
+				if (result == Z_DATA_ERROR$1) {
 					z.msg = "oversubscribed literal/length tree";
 				} else if (result != Z_MEM_ERROR) {
 					z.msg = "incomplete literal/length tree";
-					result = Z_DATA_ERROR;
+					result = Z_DATA_ERROR$1;
 				}
 				return result;
 			}
@@ -2452,20 +2452,20 @@
 			initWorkArea(288);
 			result = huft_build(c, nl, nd, 0, cpdist, cpdext, td, bd, hp, hn, v);
 
-			if (result != Z_OK || (bd[0] === 0 && nl > 257)) {
-				if (result == Z_DATA_ERROR) {
+			if (result != Z_OK$1 || (bd[0] === 0 && nl > 257)) {
+				if (result == Z_DATA_ERROR$1) {
 					z.msg = "oversubscribed distance tree";
-				} else if (result == Z_BUF_ERROR) {
+				} else if (result == Z_BUF_ERROR$1) {
 					z.msg = "incomplete distance tree";
-					result = Z_DATA_ERROR;
+					result = Z_DATA_ERROR$1;
 				} else if (result != Z_MEM_ERROR) {
 					z.msg = "empty distance tree with lengths";
-					result = Z_DATA_ERROR;
+					result = Z_DATA_ERROR$1;
 				}
 				return result;
 			}
 
-			return Z_OK;
+			return Z_OK$1;
 		};
 
 	}
@@ -2479,7 +2479,7 @@
 		bd[0] = fixed_bd;
 		tl[0] = fixed_tl;
 		td[0] = fixed_td;
-		return Z_OK;
+		return Z_OK$1;
 	};
 
 	// InfCodes
@@ -2702,7 +2702,7 @@
 								z.next_in_index = p;
 								s.write = q;
 
-								return Z_DATA_ERROR;
+								return Z_DATA_ERROR$1;
 							}
 							// eslint-disable-next-line no-constant-condition
 						} while (true);
@@ -2737,7 +2737,7 @@
 						z.next_in_index = p;
 						s.write = q;
 
-						return Z_STREAM_END;
+						return Z_STREAM_END$1;
 					} else {
 						z.msg = "invalid literal/length code";
 
@@ -2754,7 +2754,7 @@
 						z.next_in_index = p;
 						s.write = q;
 
-						return Z_DATA_ERROR;
+						return Z_DATA_ERROR$1;
 					}
 					// eslint-disable-next-line no-constant-condition
 				} while (true);
@@ -2774,7 +2774,7 @@
 			z.next_in_index = p;
 			s.write = q;
 
-			return Z_OK;
+			return Z_OK$1;
 		}
 
 		that.init = function (bl, bd, tl, tl_index, td, td_index) {
@@ -2831,8 +2831,8 @@
 							q = s.write;
 							m = q < s.read ? s.read - q - 1 : s.end - q;
 
-							if (r != Z_OK) {
-								mode = r == Z_STREAM_END ? WASH : BADCODE;
+							if (r != Z_OK$1) {
+								mode = r == Z_STREAM_END$1 ? WASH : BADCODE;
 								break;
 							}
 						}
@@ -2847,7 +2847,7 @@
 
 						while (k < (j)) {
 							if (n !== 0)
-								r = Z_OK;
+								r = Z_OK$1;
 							else {
 
 								s.bitb = b;
@@ -2892,7 +2892,7 @@
 						}
 						mode = BADCODE; // invalid code
 						z.msg = "invalid literal/length code";
-						r = Z_DATA_ERROR;
+						r = Z_DATA_ERROR$1;
 
 						s.bitb = b;
 						s.bitk = k;
@@ -2907,7 +2907,7 @@
 
 						while (k < (j)) {
 							if (n !== 0)
-								r = Z_OK;
+								r = Z_OK$1;
 							else {
 
 								s.bitb = b;
@@ -2938,7 +2938,7 @@
 
 						while (k < (j)) {
 							if (n !== 0)
-								r = Z_OK;
+								r = Z_OK$1;
 							else {
 
 								s.bitb = b;
@@ -2973,7 +2973,7 @@
 						}
 						mode = BADCODE; // invalid code
 						z.msg = "invalid distance code";
-						r = Z_DATA_ERROR;
+						r = Z_DATA_ERROR$1;
 
 						s.bitb = b;
 						s.bitk = k;
@@ -2988,7 +2988,7 @@
 
 						while (k < (j)) {
 							if (n !== 0)
-								r = Z_OK;
+								r = Z_OK$1;
 							else {
 
 								s.bitb = b;
@@ -3082,7 +3082,7 @@
 								}
 							}
 						}
-						r = Z_OK;
+						r = Z_OK$1;
 
 						s.window[q++] = /* (byte) */lit;
 						m--;
@@ -3113,7 +3113,7 @@
 						mode = END;
 					/* falls through */
 					case END:
-						r = Z_STREAM_END;
+						r = Z_STREAM_END$1;
 						s.bitb = b;
 						s.bitk = k;
 						z.avail_in = n;
@@ -3124,7 +3124,7 @@
 
 					case BADCODE: // x: got error
 
-						r = Z_DATA_ERROR;
+						r = Z_DATA_ERROR$1;
 
 						s.bitb = b;
 						s.bitk = k;
@@ -3135,7 +3135,7 @@
 						return s.inflate_flush(z, r);
 
 					default:
-						r = Z_STREAM_ERROR;
+						r = Z_STREAM_ERROR$1;
 
 						s.bitb = b;
 						s.bitk = k;
@@ -3162,7 +3162,7 @@
 
 	const TYPE = 0; // get type bits (3, including end bit)
 	const LENS = 1; // get lengths for stored
-	const STORED = 2;// processing stored block
+	const STORED$1 = 2;// processing stored block
 	const TABLE = 3; // get table lengths
 	const BTREE = 4; // get bit lengths tree for a dynamic
 	// block
@@ -3231,8 +3231,8 @@
 			n = /* (int) */((q <= that.write ? that.write : that.end) - q);
 			if (n > z.avail_out)
 				n = z.avail_out;
-			if (n !== 0 && r == Z_BUF_ERROR)
-				r = Z_OK;
+			if (n !== 0 && r == Z_BUF_ERROR$1)
+				r = Z_OK$1;
 
 			// update counters
 			z.avail_out -= n;
@@ -3254,8 +3254,8 @@
 				n = that.write - q;
 				if (n > z.avail_out)
 					n = z.avail_out;
-				if (n !== 0 && r == Z_BUF_ERROR)
-					r = Z_OK;
+				if (n !== 0 && r == Z_BUF_ERROR$1)
+					r = Z_OK$1;
 
 				// update counters
 				z.avail_out -= n;
@@ -3308,7 +3308,7 @@
 
 						while (k < (3)) {
 							if (n !== 0) {
-								r = Z_OK;
+								r = Z_OK$1;
 							} else {
 								that.bitb = b;
 								that.bitk = k;
@@ -3374,7 +3374,7 @@
 								// }
 								mode = BADBLOCKS;
 								z.msg = "invalid block type";
-								r = Z_DATA_ERROR;
+								r = Z_DATA_ERROR$1;
 
 								that.bitb = b;
 								that.bitk = k;
@@ -3389,7 +3389,7 @@
 
 						while (k < (32)) {
 							if (n !== 0) {
-								r = Z_OK;
+								r = Z_OK$1;
 							} else {
 								that.bitb = b;
 								that.bitk = k;
@@ -3407,7 +3407,7 @@
 						if ((((~b) >>> 16) & 0xffff) != (b & 0xffff)) {
 							mode = BADBLOCKS;
 							z.msg = "invalid stored block lengths";
-							r = Z_DATA_ERROR;
+							r = Z_DATA_ERROR$1;
 
 							that.bitb = b;
 							that.bitk = k;
@@ -3419,9 +3419,9 @@
 						}
 						left = (b & 0xffff);
 						b = k = 0; // dump bits
-						mode = left !== 0 ? STORED : (last !== 0 ? DRY : TYPE);
+						mode = left !== 0 ? STORED$1 : (last !== 0 ? DRY : TYPE);
 						break;
-					case STORED:
+					case STORED$1:
 						if (n === 0) {
 							that.bitb = b;
 							that.bitk = k;
@@ -3457,7 +3457,7 @@
 								}
 							}
 						}
-						r = Z_OK;
+						r = Z_OK$1;
 
 						t = left;
 						if (t > n)
@@ -3477,7 +3477,7 @@
 
 						while (k < (14)) {
 							if (n !== 0) {
-								r = Z_OK;
+								r = Z_OK$1;
 							} else {
 								that.bitb = b;
 								that.bitk = k;
@@ -3497,7 +3497,7 @@
 						if ((t & 0x1f) > 29 || ((t >> 5) & 0x1f) > 29) {
 							mode = BADBLOCKS;
 							z.msg = "too many length or distance symbols";
-							r = Z_DATA_ERROR;
+							r = Z_DATA_ERROR$1;
 
 							that.bitb = b;
 							that.bitk = k;
@@ -3528,7 +3528,7 @@
 						while (index < 4 + (table >>> 10)) {
 							while (k < (3)) {
 								if (n !== 0) {
-									r = Z_OK;
+									r = Z_OK$1;
 								} else {
 									that.bitb = b;
 									that.bitk = k;
@@ -3557,9 +3557,9 @@
 
 						bb[0] = 7;
 						t = inftree.inflate_trees_bits(blens, bb, tb, hufts, z);
-						if (t != Z_OK) {
+						if (t != Z_OK$1) {
 							r = t;
-							if (r == Z_DATA_ERROR) {
+							if (r == Z_DATA_ERROR$1) {
 								blens = null;
 								mode = BADBLOCKS;
 							}
@@ -3590,7 +3590,7 @@
 
 							while (k < (t)) {
 								if (n !== 0) {
-									r = Z_OK;
+									r = Z_OK$1;
 								} else {
 									that.bitb = b;
 									that.bitk = k;
@@ -3622,7 +3622,7 @@
 
 								while (k < (t + i)) {
 									if (n !== 0) {
-										r = Z_OK;
+										r = Z_OK$1;
 									} else {
 										that.bitb = b;
 										that.bitk = k;
@@ -3651,7 +3651,7 @@
 									blens = null;
 									mode = BADBLOCKS;
 									z.msg = "invalid bit length repeat";
-									r = Z_DATA_ERROR;
+									r = Z_DATA_ERROR$1;
 
 									that.bitb = b;
 									that.bitk = k;
@@ -3682,8 +3682,8 @@
 						t = table;
 						t = inftree.inflate_trees_dynamic(257 + (t & 0x1f), 1 + ((t >> 5) & 0x1f), blens, bl_, bd_, tl_, td_, hufts, z);
 
-						if (t != Z_OK) {
-							if (t == Z_DATA_ERROR) {
+						if (t != Z_OK$1) {
+							if (t == Z_DATA_ERROR$1) {
 								blens = null;
 								mode = BADBLOCKS;
 							}
@@ -3709,10 +3709,10 @@
 						z.next_in_index = p;
 						that.write = q;
 
-						if ((r = codes.proc(that, z, r)) != Z_STREAM_END) {
+						if ((r = codes.proc(that, z, r)) != Z_STREAM_END$1) {
 							return that.inflate_flush(z, r);
 						}
-						r = Z_OK;
+						r = Z_OK$1;
 						codes.free(z);
 
 						p = z.next_in_index;
@@ -3745,7 +3745,7 @@
 						mode = DONELOCKS;
 					/* falls through */
 					case DONELOCKS:
-						r = Z_STREAM_END;
+						r = Z_STREAM_END$1;
 
 						that.bitb = b;
 						that.bitk = k;
@@ -3755,7 +3755,7 @@
 						that.write = q;
 						return that.inflate_flush(z, r);
 					case BADBLOCKS:
-						r = Z_DATA_ERROR;
+						r = Z_DATA_ERROR$1;
 
 						that.bitb = b;
 						that.bitk = k;
@@ -3766,7 +3766,7 @@
 						return that.inflate_flush(z, r);
 
 					default:
-						r = Z_STREAM_ERROR;
+						r = Z_STREAM_ERROR$1;
 
 						that.bitb = b;
 						that.bitk = k;
@@ -3802,9 +3802,9 @@
 	// Inflate
 
 	// preset dictionary flag in zlib header
-	const PRESET_DICT = 0x20;
+	const PRESET_DICT$1 = 0x20;
 
-	const Z_DEFLATED = 8;
+	const Z_DEFLATED$1 = 8;
 
 	const METHOD = 0; // waiting for method byte
 	const FLAG = 1; // waiting for flag byte
@@ -3819,7 +3819,7 @@
 
 	const mark = [0, 0, 0xff, 0xff];
 
-	function Inflate$1() {
+	function Inflate() {
 		const that = this;
 
 		that.mode = 0; // current inflate mode
@@ -3841,13 +3841,13 @@
 
 		function inflateReset(z) {
 			if (!z || !z.istate)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 
 			z.total_in = z.total_out = 0;
 			z.msg = null;
 			z.istate.mode = BLOCKS;
 			z.istate.blocks.reset(z, null);
-			return Z_OK;
+			return Z_OK$1;
 		}
 
 		that.inflateEnd = function (z) {
@@ -3855,7 +3855,7 @@
 				that.blocks.free(z);
 			that.blocks = null;
 			// ZFREE(z, z->state);
-			return Z_OK;
+			return Z_OK$1;
 		};
 
 		that.inflateInit = function (z, w) {
@@ -3865,7 +3865,7 @@
 			// set window size
 			if (w < 8 || w > 15) {
 				that.inflateEnd(z);
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			}
 			that.wbits = w;
 
@@ -3873,7 +3873,7 @@
 
 			// reset state
 			inflateReset(z);
-			return Z_OK;
+			return Z_OK$1;
 		};
 
 		that.inflate = function (z, f) {
@@ -3881,10 +3881,10 @@
 			let b;
 
 			if (!z || !z.istate || !z.next_in)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			const istate = z.istate;
-			f = f == Z_FINISH ? Z_BUF_ERROR : Z_OK;
-			r = Z_BUF_ERROR;
+			f = f == Z_FINISH$1 ? Z_BUF_ERROR$1 : Z_OK$1;
+			r = Z_BUF_ERROR$1;
 			// eslint-disable-next-line no-constant-condition
 			while (true) {
 				switch (istate.mode) {
@@ -3896,7 +3896,7 @@
 
 						z.avail_in--;
 						z.total_in++;
-						if (((istate.method = z.read_byte(z.next_in_index++)) & 0xf) != Z_DEFLATED) {
+						if (((istate.method = z.read_byte(z.next_in_index++)) & 0xf) != Z_DEFLATED$1) {
 							istate.mode = BAD;
 							z.msg = "unknown compression method";
 							istate.marker = 5; // can't try inflateSync
@@ -3927,7 +3927,7 @@
 							break;
 						}
 
-						if ((b & PRESET_DICT) === 0) {
+						if ((b & PRESET_DICT$1) === 0) {
 							istate.mode = BLOCKS;
 							break;
 						}
@@ -3976,24 +3976,24 @@
 						z.total_in++;
 						istate.need += (z.read_byte(z.next_in_index++) & 0xff);
 						istate.mode = DICT0;
-						return Z_NEED_DICT;
+						return Z_NEED_DICT$1;
 					case DICT0:
 						istate.mode = BAD;
 						z.msg = "need dictionary";
 						istate.marker = 0; // can try inflateSync
-						return Z_STREAM_ERROR;
+						return Z_STREAM_ERROR$1;
 					case BLOCKS:
 
 						r = istate.blocks.proc(z, r);
-						if (r == Z_DATA_ERROR) {
+						if (r == Z_DATA_ERROR$1) {
 							istate.mode = BAD;
 							istate.marker = 0; // can try inflateSync
 							break;
 						}
-						if (r == Z_OK) {
+						if (r == Z_OK$1) {
 							r = f;
 						}
-						if (r != Z_STREAM_END) {
+						if (r != Z_STREAM_END$1) {
 							return r;
 						}
 						r = f;
@@ -4001,11 +4001,11 @@
 						istate.mode = DONE;
 					/* falls through */
 					case DONE:
-						return Z_STREAM_END;
+						return Z_STREAM_END$1;
 					case BAD:
-						return Z_DATA_ERROR;
+						return Z_DATA_ERROR$1;
 					default:
-						return Z_STREAM_ERROR;
+						return Z_STREAM_ERROR$1;
 				}
 			}
 		};
@@ -4013,7 +4013,7 @@
 		that.inflateSetDictionary = function (z, dictionary, dictLength) {
 			let index = 0, length = dictLength;
 			if (!z || !z.istate || z.istate.mode != DICT0)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			const istate = z.istate;
 			if (length >= (1 << istate.wbits)) {
 				length = (1 << istate.wbits) - 1;
@@ -4021,7 +4021,7 @@
 			}
 			istate.blocks.set_dictionary(dictionary, index, length);
 			istate.mode = BLOCKS;
-			return Z_OK;
+			return Z_OK$1;
 		};
 
 		that.inflateSync = function (z) {
@@ -4032,14 +4032,14 @@
 
 			// set up
 			if (!z || !z.istate)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			const istate = z.istate;
 			if (istate.mode != BAD) {
 				istate.mode = BAD;
 				istate.marker = 0;
 			}
 			if ((n = z.avail_in) === 0)
-				return Z_BUF_ERROR;
+				return Z_BUF_ERROR$1;
 			p = z.next_in_index;
 			m = istate.marker;
 
@@ -4064,7 +4064,7 @@
 
 			// return no joy or set up to restart on a new block
 			if (m != 4) {
-				return Z_DATA_ERROR;
+				return Z_DATA_ERROR$1;
 			}
 			r = z.total_in;
 			w = z.total_out;
@@ -4072,7 +4072,7 @@
 			z.total_in = r;
 			z.total_out = w;
 			istate.mode = BLOCKS;
-			return Z_OK;
+			return Z_OK$1;
 		};
 
 		// Returns true if inflate is currently at the end of a block generated
@@ -4084,36 +4084,36 @@
 		// waiting for these length bytes.
 		that.inflateSyncPoint = function (z) {
 			if (!z || !z.istate || !z.istate.blocks)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			return z.istate.blocks.sync_point();
 		};
 	}
 
 	// ZStream
 
-	function ZStream() {
+	function ZStream$1() {
 	}
 
-	ZStream.prototype = {
+	ZStream$1.prototype = {
 		inflateInit: function (bits) {
 			const that = this;
-			that.istate = new Inflate$1();
+			that.istate = new Inflate();
 			if (!bits)
-				bits = MAX_BITS;
+				bits = MAX_BITS$1;
 			return that.istate.inflateInit(that, bits);
 		},
 
 		inflate: function (f) {
 			const that = this;
 			if (!that.istate)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			return that.istate.inflate(that, f);
 		},
 
 		inflateEnd: function () {
 			const that = this;
 			if (!that.istate)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			const ret = that.istate.inflateEnd(that);
 			that.istate = null;
 			return ret;
@@ -4122,13 +4122,13 @@
 		inflateSync: function () {
 			const that = this;
 			if (!that.istate)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			return that.istate.inflateSync(that);
 		},
 		inflateSetDictionary: function (dictionary, dictLength) {
 			const that = this;
 			if (!that.istate)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			return that.istate.inflateSetDictionary(that, dictionary, dictLength);
 		},
 		read_byte: function (start) {
@@ -4145,9 +4145,9 @@
 
 	function ZipInflate() {
 		const that = this;
-		const z = new ZStream();
+		const z = new ZStream$1();
 		const bufsize = 512;
-		const flush = Z_NO_FLUSH;
+		const flush = Z_NO_FLUSH$1;
 		const buf = new Uint8Array(bufsize);
 		let nomoreinput = false;
 
@@ -4170,12 +4170,12 @@
 					nomoreinput = true;
 				}
 				err = z.inflate(flush);
-				if (nomoreinput && (err === Z_BUF_ERROR)) {
+				if (nomoreinput && (err === Z_BUF_ERROR$1)) {
 					if (z.avail_in !== 0)
 						throw new Error("inflating: bad input");
-				} else if (err !== Z_OK && err !== Z_STREAM_END)
+				} else if (err !== Z_OK$1 && err !== Z_STREAM_END$1)
 					throw new Error("inflating: " + z.msg);
-				if ((nomoreinput || err === Z_STREAM_END) && (z.avail_in === data.length))
+				if ((nomoreinput || err === Z_STREAM_END$1) && (z.avail_in === data.length))
 					throw new Error("inflating: bad input");
 				if (z.next_out_index)
 					if (z.next_out_index === bufsize)
@@ -4481,6 +4481,7 @@
 			this.initialized = true;
 		}
 	}
+
 	class Reader extends Stream {
 	}
 
@@ -5015,6 +5016,509 @@
 		}
 	}
 
+	// Derived from https://github.com/xqdoo00o/jszip/blob/master/lib/sjcl.js
+	/*jslint indent: 2, bitwise: false, nomen: false, plusplus: false, white: false, regexp: false */
+
+	/** @fileOverview Arrays of bits, encoded as arrays of Numbers.
+	 *
+	 * @author Emily Stark
+	 * @author Mike Hamburg
+	 * @author Dan Boneh
+	 */
+
+	/**
+	 * Arrays of bits, encoded as arrays of Numbers.
+	 * @namespace
+	 * @description
+	 * <p>
+	 * These objects are the currency accepted by SJCL's crypto functions.
+	 * </p>
+	 *
+	 * <p>
+	 * Most of our crypto primitives operate on arrays of 4-byte words internally,
+	 * but many of them can take arguments that are not a multiple of 4 bytes.
+	 * This library encodes arrays of bits (whose size need not be a multiple of 8
+	 * bits) as arrays of 32-bit words.  The bits are packed, big-endian, into an
+	 * array of words, 32 bits at a time.  Since the words are double-precision
+	 * floating point numbers, they fit some extra data.  We use this (in a private,
+	 * possibly-changing manner) to encode the number of bits actually  present
+	 * in the last word of the array.
+	 * </p>
+	 *
+	 * <p>
+	 * Because bitwise ops clear this out-of-band data, these arrays can be passed
+	 * to ciphers like AES which want arrays of words.
+	 * </p>
+	 */
+	const bitArray = {
+		/**
+		 * Concatenate two bit arrays.
+		 * @param {bitArray} a1 The first array.
+		 * @param {bitArray} a2 The second array.
+		 * @return {bitArray} The concatenation of a1 and a2.
+		 */
+		concat(a1, a2) {
+			if (a1.length === 0 || a2.length === 0) {
+				return a1.concat(a2);
+			}
+
+			const last = a1[a1.length - 1], shift = bitArray.getPartial(last);
+			if (shift === 32) {
+				return a1.concat(a2);
+			} else {
+				return bitArray._shiftRight(a2, shift, last | 0, a1.slice(0, a1.length - 1));
+			}
+		},
+
+		/**
+		 * Find the length of an array of bits.
+		 * @param {bitArray} a The array.
+		 * @return {Number} The length of a, in bits.
+		 */
+		bitLength(a) {
+			const l = a.length;
+			if (l === 0) {
+				return 0;
+			}
+			const x = a[l - 1];
+			return (l - 1) * 32 + bitArray.getPartial(x);
+		},
+
+		/**
+		 * Truncate an array.
+		 * @param {bitArray} a The array.
+		 * @param {Number} len The length to truncate to, in bits.
+		 * @return {bitArray} A new array, truncated to len bits.
+		 */
+		clamp(a, len) {
+			if (a.length * 32 < len) {
+				return a;
+			}
+			a = a.slice(0, Math.ceil(len / 32));
+			const l = a.length;
+			len = len & 31;
+			if (l > 0 && len) {
+				a[l - 1] = bitArray.partial(len, a[l - 1] & 0x80000000 >> (len - 1), 1);
+			}
+			return a;
+		},
+
+		/**
+		 * Make a partial word for a bit array.
+		 * @param {Number} len The number of bits in the word.
+		 * @param {Number} x The bits.
+		 * @param {Number} [_end=0] Pass 1 if x has already been shifted to the high side.
+		 * @return {Number} The partial word.
+		 */
+		partial(len, x, _end) {
+			if (len === 32) {
+				return x;
+			}
+			return (_end ? x | 0 : x << (32 - len)) + len * 0x10000000000;
+		},
+
+		/**
+		 * Get the number of bits used by a partial word.
+		 * @param {Number} x The partial word.
+		 * @return {Number} The number of bits used by the partial word.
+		 */
+		getPartial(x) {
+			return Math.round(x / 0x10000000000) || 32;
+		},
+
+		/** Shift an array right.
+		 * @param {bitArray} a The array to shift.
+		 * @param {Number} shift The number of bits to shift.
+		 * @param {Number} [carry=0] A byte to carry in
+		 * @param {bitArray} [out=[]] An array to prepend to the output.
+		 * @private
+		 */
+		_shiftRight(a, shift, carry, out) {
+			if (out === undefined) {
+				out = [];
+			}
+
+			for (; shift >= 32; shift -= 32) {
+				out.push(carry);
+				carry = 0;
+			}
+			if (shift === 0) {
+				return out.concat(a);
+			}
+
+			for (let i = 0; i < a.length; i++) {
+				out.push(carry | a[i] >>> shift);
+				carry = a[i] << (32 - shift);
+			}
+			const last2 = a.length ? a[a.length - 1] : 0;
+			const shift2 = bitArray.getPartial(last2);
+			out.push(bitArray.partial(shift + shift2 & 31, (shift + shift2 > 32) ? carry : out.pop(), 1));
+			return out;
+		}
+	};
+
+	/** @fileOverview Bit array codec implementations.
+	 *
+	 * @author Emily Stark
+	 * @author Mike Hamburg
+	 * @author Dan Boneh
+	 */
+
+	/**
+	 * Arrays of bytes
+	 * @namespace
+	 */
+	const codec = {
+		bytes: {
+			/** Convert from a bitArray to an array of bytes. */
+			fromBits(arr) {
+				const bl = bitArray.bitLength(arr);
+				const byteLength = bl / 8;
+				const out = new Uint8Array(byteLength);
+				let tmp;
+				for (let i = 0; i < byteLength; i++) {
+					if ((i & 3) === 0) {
+						tmp = arr[i / 4];
+					}
+					out[i] = tmp >>> 24;
+					tmp <<= 8;
+				}
+				return out;
+			},
+			/** Convert from an array of bytes to a bitArray. */
+			toBits(bytes) {
+				const out = [];
+				let i;
+				let tmp = 0;
+				for (i = 0; i < bytes.length; i++) {
+					tmp = tmp << 8 | bytes[i];
+					if ((i & 3) === 3) {
+						out.push(tmp);
+						tmp = 0;
+					}
+				}
+				if (i & 3) {
+					out.push(bitArray.partial(8 * (i & 3), tmp));
+				}
+				return out;
+			}
+		}
+	};
+
+	/** @fileOverview Low-level AES implementation.
+	 *
+	 * This file contains a low-level implementation of AES, optimized for
+	 * size and for efficiency on several browsers.  It is based on
+	 * OpenSSL's aes_core.c, a public-domain implementation by Vincent
+	 * Rijmen, Antoon Bosselaers and Paulo Barreto.
+	 *
+	 * An older version of this implementation is available in the public
+	 * domain, but this one is (c) Emily Stark, Mike Hamburg, Dan Boneh,
+	 * Stanford University 2008-2010 and BSD-licensed for liability
+	 * reasons.
+	 *
+	 * @author Emily Stark
+	 * @author Mike Hamburg
+	 * @author Dan Boneh
+	 */
+
+	const cipher = {};
+
+	/**
+	 * Schedule out an AES key for both encryption and decryption.  This
+	 * is a low-level class.  Use a cipher mode to do bulk encryption.
+	 *
+	 * @constructor
+	 * @param {Array} key The key as an array of 4, 6 or 8 words.
+	 */
+	cipher.aes = class {
+		constructor(key) {
+			/**
+			 * The expanded S-box and inverse S-box tables.  These will be computed
+			 * on the client so that we don't have to send them down the wire.
+			 *
+			 * There are two tables, _tables[0] is for encryption and
+			 * _tables[1] is for decryption.
+			 *
+			 * The first 4 sub-tables are the expanded S-box with MixColumns.  The
+			 * last (_tables[01][4]) is the S-box itself.
+			 *
+			 * @private
+			 */
+			const aes = this;
+			aes._tables = [[[], [], [], [], []], [[], [], [], [], []]];
+
+			if (!aes._tables[0][0][0]) {
+				aes._precompute();
+			}
+
+			const sbox = aes._tables[0][4];
+			const decTable = aes._tables[1];
+			const keyLen = key.length;
+
+			let i, encKey, decKey, rcon = 1;
+
+			if (keyLen !== 4 && keyLen !== 6 && keyLen !== 8) {
+				throw new Error("invalid aes key size");
+			}
+
+			aes._key = [encKey = key.slice(0), decKey = []];
+
+			// schedule encryption keys
+			for (i = keyLen; i < 4 * keyLen + 28; i++) {
+				let tmp = encKey[i - 1];
+
+				// apply sbox
+				if (i % keyLen === 0 || (keyLen === 8 && i % keyLen === 4)) {
+					tmp = sbox[tmp >>> 24] << 24 ^ sbox[tmp >> 16 & 255] << 16 ^ sbox[tmp >> 8 & 255] << 8 ^ sbox[tmp & 255];
+
+					// shift rows and add rcon
+					if (i % keyLen === 0) {
+						tmp = tmp << 8 ^ tmp >>> 24 ^ rcon << 24;
+						rcon = rcon << 1 ^ (rcon >> 7) * 283;
+					}
+				}
+
+				encKey[i] = encKey[i - keyLen] ^ tmp;
+			}
+
+			// schedule decryption keys
+			for (let j = 0; i; j++, i--) {
+				const tmp = encKey[j & 3 ? i : i - 4];
+				if (i <= 4 || j < 4) {
+					decKey[j] = tmp;
+				} else {
+					decKey[j] = decTable[0][sbox[tmp >>> 24]] ^
+						decTable[1][sbox[tmp >> 16 & 255]] ^
+						decTable[2][sbox[tmp >> 8 & 255]] ^
+						decTable[3][sbox[tmp & 255]];
+				}
+			}
+		}
+		// public
+		/* Something like this might appear here eventually
+		name: "AES",
+		blockSize: 4,
+		keySizes: [4,6,8],
+		*/
+
+		/**
+		 * Encrypt an array of 4 big-endian words.
+		 * @param {Array} data The plaintext.
+		 * @return {Array} The ciphertext.
+		 */
+		encrypt(data) {
+			return this._crypt(data, 0);
+		}
+
+		/**
+		 * Decrypt an array of 4 big-endian words.
+		 * @param {Array} data The ciphertext.
+		 * @return {Array} The plaintext.
+		 */
+		decrypt(data) {
+			return this._crypt(data, 1);
+		}
+
+		/**
+		 * Expand the S-box tables.
+		 *
+		 * @private
+		 */
+		_precompute() {
+			const encTable = this._tables[0];
+			const decTable = this._tables[1];
+			const sbox = encTable[4];
+			const sboxInv = decTable[4];
+			const d = [];
+			const th = [];
+			let xInv, x2, x4, x8;
+
+			// Compute double and third tables
+			for (let i = 0; i < 256; i++) {
+				th[(d[i] = i << 1 ^ (i >> 7) * 283) ^ i] = i;
+			}
+
+			for (let x = xInv = 0; !sbox[x]; x ^= x2 || 1, xInv = th[xInv] || 1) {
+				// Compute sbox
+				let s = xInv ^ xInv << 1 ^ xInv << 2 ^ xInv << 3 ^ xInv << 4;
+				s = s >> 8 ^ s & 255 ^ 99;
+				sbox[x] = s;
+				sboxInv[s] = x;
+
+				// Compute MixColumns
+				x8 = d[x4 = d[x2 = d[x]]];
+				let tDec = x8 * 0x1010101 ^ x4 * 0x10001 ^ x2 * 0x101 ^ x * 0x1010100;
+				let tEnc = d[s] * 0x101 ^ s * 0x1010100;
+
+				for (let i = 0; i < 4; i++) {
+					encTable[i][x] = tEnc = tEnc << 24 ^ tEnc >>> 8;
+					decTable[i][s] = tDec = tDec << 24 ^ tDec >>> 8;
+				}
+			}
+
+			// Compactify.  Considerable speedup on Firefox.
+			for (let i = 0; i < 5; i++) {
+				encTable[i] = encTable[i].slice(0);
+				decTable[i] = decTable[i].slice(0);
+			}
+		}
+
+		/**
+		 * Encryption and decryption core.
+		 * @param {Array} input Four words to be encrypted or decrypted.
+		 * @param dir The direction, 0 for encrypt and 1 for decrypt.
+		 * @return {Array} The four encrypted or decrypted words.
+		 * @private
+		 */
+		_crypt(input, dir) {
+			if (input.length !== 4) {
+				throw new Error("invalid aes block size");
+			}
+
+			const key = this._key[dir];
+
+			const nInnerRounds = key.length / 4 - 2;
+			const out = [0, 0, 0, 0];
+			const table = this._tables[dir];
+
+			// load up the tables
+			const t0 = table[0];
+			const t1 = table[1];
+			const t2 = table[2];
+			const t3 = table[3];
+			const sbox = table[4];
+
+			// state variables a,b,c,d are loaded with pre-whitened data
+			let a = input[0] ^ key[0];
+			let b = input[dir ? 3 : 1] ^ key[1];
+			let c = input[2] ^ key[2];
+			let d = input[dir ? 1 : 3] ^ key[3];
+			let kIndex = 4;
+			let a2, b2, c2;
+
+			// Inner rounds.  Cribbed from OpenSSL.
+			for (let i = 0; i < nInnerRounds; i++) {
+				a2 = t0[a >>> 24] ^ t1[b >> 16 & 255] ^ t2[c >> 8 & 255] ^ t3[d & 255] ^ key[kIndex];
+				b2 = t0[b >>> 24] ^ t1[c >> 16 & 255] ^ t2[d >> 8 & 255] ^ t3[a & 255] ^ key[kIndex + 1];
+				c2 = t0[c >>> 24] ^ t1[d >> 16 & 255] ^ t2[a >> 8 & 255] ^ t3[b & 255] ^ key[kIndex + 2];
+				d = t0[d >>> 24] ^ t1[a >> 16 & 255] ^ t2[b >> 8 & 255] ^ t3[c & 255] ^ key[kIndex + 3];
+				kIndex += 4;
+				a = a2; b = b2; c = c2;
+			}
+
+			// Last round.
+			for (let i = 0; i < 4; i++) {
+				out[dir ? 3 & -i : i] =
+					sbox[a >>> 24] << 24 ^
+					sbox[b >> 16 & 255] << 16 ^
+					sbox[c >> 8 & 255] << 8 ^
+					sbox[d & 255] ^
+					key[kIndex++];
+				a2 = a; a = b; b = c; c = d; d = a2;
+			}
+
+			return out;
+		}
+	};
+
+	/** @fileOverview CTR mode implementation.
+	 *
+	 * Special thanks to Roy Nicholson for pointing out a bug in our
+	 * implementation.
+	 *
+	 * @author Emily Stark
+	 * @author Mike Hamburg
+	 * @author Dan Boneh
+	 */
+
+	/** Brian Gladman's CTR Mode.
+	* @constructor
+	* @param {Object} _prf The aes instance to generate key.
+	* @param {bitArray} _iv The iv for ctr mode, it must be 128 bits.
+	*/
+
+	const mode = {};
+
+	/**
+	 * Brian Gladman's CTR Mode.
+	 * @namespace
+	 */
+	mode.ctrGladman = class {
+		constructor(prf, iv) {
+			this._prf = prf;
+			this._initIv = iv;
+			this._iv = iv;
+		}
+
+		reset() {
+			this._iv = this._initIv;
+		}
+
+		/** Input some data to calculate.
+		 * @param {bitArray} data the data to process, it must be intergral multiple of 128 bits unless it's the last.
+		 */
+		update(data) {
+			return this.calculate(this._prf, data, this._iv);
+		}
+
+		incWord(word) {
+			if (((word >> 24) & 0xff) === 0xff) { //overflow
+				let b1 = (word >> 16) & 0xff;
+				let b2 = (word >> 8) & 0xff;
+				let b3 = word & 0xff;
+
+				if (b1 === 0xff) { // overflow b1   
+					b1 = 0;
+					if (b2 === 0xff) {
+						b2 = 0;
+						if (b3 === 0xff) {
+							b3 = 0;
+						} else {
+							++b3;
+						}
+					} else {
+						++b2;
+					}
+				} else {
+					++b1;
+				}
+
+				word = 0;
+				word += (b1 << 16);
+				word += (b2 << 8);
+				word += b3;
+			} else {
+				word += (0x01 << 24);
+			}
+			return word;
+		}
+
+		incCounter(counter) {
+			if ((counter[0] = this.incWord(counter[0])) === 0) {
+				// encr_data in fileenc.c from  Dr Brian Gladman's counts only with DWORD j < 8
+				counter[1] = this.incWord(counter[1]);
+			}
+		}
+
+		calculate(prf, data, iv) {
+			let l;
+			if (!(l = data.length)) {
+				return [];
+			}
+			const bl = bitArray.bitLength(data);
+			for (let i = 0; i < l; i += 4) {
+				this.incCounter(iv);
+				const e = prf.encrypt(iv);
+				data[i] ^= e[0];
+				data[i + 1] ^= e[1];
+				data[i + 2] ^= e[2];
+				data[i + 3] ^= e[3];
+			}
+			return bitArray.clamp(data, bl);
+		}
+	};
+
 	/*
 	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
 
@@ -5049,17 +5553,15 @@
 	const PBKDF2_ALGORITHM = { name: "PBKDF2" };
 	const SIGNATURE_ALGORITHM = { name: "HMAC" };
 	const HASH_FUNCTION = "SHA-1";
-	const CRYPTO_KEY_ALGORITHM = { name: "AES-CTR" };
 	const BASE_KEY_ALGORITHM = Object.assign({ hash: SIGNATURE_ALGORITHM }, PBKDF2_ALGORITHM);
 	const DERIVED_BITS_ALGORITHM = Object.assign({ iterations: 1000, hash: { name: HASH_FUNCTION } }, PBKDF2_ALGORITHM);
 	const AUTHENTICATION_ALGORITHM = Object.assign({ hash: HASH_FUNCTION }, SIGNATURE_ALGORITHM);
-	const CRYPTO_ALGORITHM = Object.assign({ length: BLOCK_LENGTH }, CRYPTO_KEY_ALGORITHM);
 	const DERIVED_BITS_USAGE = ["deriveBits"];
 	const SIGN_USAGE = ["sign"];
 	const SALT_LENGTH = [8, 12, 16];
 	const KEY_LENGTH = [16, 24, 32];
 	const SIGNATURE_LENGTH = 10;
-	const COUNTER_DEFAULT_VALUE = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	const COUNTER_DEFAULT_VALUE = [0, 0, 0, 0];
 	const subtle = crypto.subtle;
 
 	class AESDecrypt {
@@ -5073,26 +5575,11 @@
 		}
 
 		async append(input) {
-			const decrypt = async (offset = 0) => {
-				if (offset + BLOCK_LENGTH <= bufferedInput.length - SIGNATURE_LENGTH) {
-					const chunkToDecrypt = bufferedInput.subarray(offset, offset + BLOCK_LENGTH);
-					const outputChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.key, chunkToDecrypt);
-					incrementCounter(this.counter);
-					output.set(new Uint8Array(outputChunk), offset);
-					return decrypt(offset + BLOCK_LENGTH);
-				} else {
-					this.pendingInput = bufferedInput.subarray(offset);
-					if (this.signed) {
-						this.input = concat(this.input, input);
-					}
-					return output;
-				}
-			};
-
 			if (this.password) {
 				const preambule = input.subarray(0, SALT_LENGTH[this.strength] + 2);
 				await createDecryptionKeys(this, preambule, this.password);
 				this.password = null;
+				this.aesCtrGladman = new mode.ctrGladman(new cipher.aes(this.keys.key), Array.from(COUNTER_DEFAULT_VALUE));
 				input = input.subarray(SALT_LENGTH[this.strength] + 2);
 			}
 			let output = new Uint8Array(input.length - SIGNATURE_LENGTH - ((input.length - SIGNATURE_LENGTH) % BLOCK_LENGTH));
@@ -5101,7 +5588,18 @@
 				bufferedInput = concat(this.pendingInput, input);
 				output = expand(output, bufferedInput.length - SIGNATURE_LENGTH - ((bufferedInput.length - SIGNATURE_LENGTH) % BLOCK_LENGTH));
 			}
-			return decrypt();
+			let offset;
+			for (offset = 0; offset <= bufferedInput.length - SIGNATURE_LENGTH - BLOCK_LENGTH; offset += BLOCK_LENGTH) {
+				const inputChunk = bufferedInput.subarray(offset, offset + BLOCK_LENGTH);
+				const chunkToDecrypt = codec.bytes.toBits(inputChunk);
+				const outputChunk = this.aesCtrGladman.update(chunkToDecrypt);
+				output.set(codec.bytes.fromBits(outputChunk), offset);
+			}
+			this.pendingInput = bufferedInput.subarray(offset);
+			if (this.signed) {
+				this.input = concat(this.input, input);
+			}
+			return output;
 		}
 
 		async flush() {
@@ -5111,13 +5609,13 @@
 			const originalSignatureArray = pendingInput.subarray(pendingInput.length - SIGNATURE_LENGTH);
 			let decryptedChunkArray = new Uint8Array(0);
 			if (chunkToDecrypt.length) {
-				const decryptedChunk = await subtle.decrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), keys.key, chunkToDecrypt);
-				decryptedChunkArray = new Uint8Array(decryptedChunk);
+				const decryptedChunk = this.aesCtrGladman.update(codec.bytes.toBits(chunkToDecrypt));
+				decryptedChunkArray = codec.bytes.fromBits(decryptedChunk);
 			}
 			let valid = true;
 			if (this.signed) {
 				const signature = await subtle.sign(SIGNATURE_ALGORITHM, keys.authentication, this.input.subarray(0, this.input.length - SIGNATURE_LENGTH));
-				const signatureArray = new Uint8Array(signature);
+				const signatureArray = new Uint8Array(signature).subarray(0, SIGNATURE_LENGTH);
 				this.input = null;
 				for (let indexSignature = 0; indexSignature < SIGNATURE_LENGTH; indexSignature++) {
 					if (signatureArray[indexSignature] != originalSignatureArray[indexSignature]) {
@@ -5143,24 +5641,11 @@
 		}
 
 		async append(input) {
-			const encrypt = async (offset = 0) => {
-				if (offset + BLOCK_LENGTH <= input.length) {
-					const chunkToEncrypt = input.subarray(offset, offset + BLOCK_LENGTH);
-					const outputChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.key, chunkToEncrypt);
-					incrementCounter(this.counter);
-					output.set(new Uint8Array(outputChunk), offset + preambule.length);
-					return encrypt(offset + BLOCK_LENGTH);
-				} else {
-					this.pendingInput = input.subarray(offset);
-					this.output = concat(this.output, output);
-					return output;
-				}
-			};
-
 			let preambule = new Uint8Array(0);
 			if (this.password) {
 				preambule = await createEncryptionKeys(this, this.password);
 				this.password = null;
+				this.aesCtrGladman = new mode.ctrGladman(new cipher.aes(this.keys.key), Array.from(COUNTER_DEFAULT_VALUE));
 			}
 			let output = new Uint8Array(preambule.length + input.length - (input.length % BLOCK_LENGTH));
 			output.set(preambule, 0);
@@ -5168,14 +5653,22 @@
 				input = concat(this.pendingInput, input);
 				output = expand(output, input.length - (input.length % BLOCK_LENGTH));
 			}
-			return encrypt();
+			let offset;
+			for (offset = 0; offset <= input.length - BLOCK_LENGTH; offset += BLOCK_LENGTH) {
+				const chunkToEncrypt = codec.bytes.toBits(input.subarray(offset, offset + BLOCK_LENGTH));
+				const outputChunk = this.aesCtrGladman.update(chunkToEncrypt);
+				output.set(codec.bytes.fromBits(outputChunk), offset + preambule.length);
+			}
+			this.pendingInput = input.subarray(offset);
+			this.output = concat(this.output, output);
+			return output;
 		}
 
 		async flush() {
 			let encryptedChunkArray = new Uint8Array(0);
 			if (this.pendingInput.length) {
-				const encryptedChunk = await subtle.encrypt(Object.assign({ counter: this.counter }, CRYPTO_ALGORITHM), this.keys.key, this.pendingInput);
-				encryptedChunkArray = new Uint8Array(encryptedChunk);
+				const encryptedChunk = this.aesCtrGladman.update(codec.bytes.toBits(this.pendingInput));
+				encryptedChunkArray = codec.bytes.fromBits(encryptedChunk);
 				this.output = concat(this.output, encryptedChunkArray);
 			}
 			const signature = await subtle.sign(SIGNATURE_ALGORITHM, this.keys.authentication, this.output.subarray(SALT_LENGTH[this.strength] + 2));
@@ -5189,7 +5682,7 @@
 	}
 
 	async function createDecryptionKeys(decrypt, preambuleArray, password) {
-		await createKeys$1(decrypt, password, preambuleArray.subarray(0, SALT_LENGTH[decrypt.strength]), ["decrypt"]);
+		await createKeys(decrypt, password, preambuleArray.subarray(0, SALT_LENGTH[decrypt.strength]));
 		const passwordVerification = preambuleArray.subarray(SALT_LENGTH[decrypt.strength]);
 		const passwordVerificationKey = decrypt.keys.passwordVerification;
 		if (passwordVerificationKey[0] != passwordVerification[0] || passwordVerificationKey[1] != passwordVerification[1]) {
@@ -5199,32 +5692,20 @@
 
 	async function createEncryptionKeys(encrypt, password) {
 		const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH[encrypt.strength]));
-		await createKeys$1(encrypt, password, salt, ["encrypt"]);
+		await createKeys(encrypt, password, salt);
 		return concat(salt, encrypt.keys.passwordVerification);
 	}
 
-	async function createKeys$1(target, password, salt, keyUsage) {
-		target.counter = new Uint8Array(COUNTER_DEFAULT_VALUE);
+	async function createKeys(target, password, salt) {
 		const encodedPassword = (new TextEncoder()).encode(password);
 		const basekey = await subtle.importKey(RAW_FORMAT, encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
 		const derivedBits = await subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), basekey, 8 * ((KEY_LENGTH[target.strength] * 2) + 2));
 		const compositeKey = new Uint8Array(derivedBits);
 		target.keys = {
-			key: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(0, KEY_LENGTH[target.strength]), CRYPTO_KEY_ALGORITHM, true, keyUsage),
+			key: codec.bytes.toBits(compositeKey.subarray(0, KEY_LENGTH[target.strength])),
 			authentication: await subtle.importKey(RAW_FORMAT, compositeKey.subarray(KEY_LENGTH[target.strength], KEY_LENGTH[target.strength] * 2), AUTHENTICATION_ALGORITHM, false, SIGN_USAGE),
 			passwordVerification: compositeKey.subarray(KEY_LENGTH[target.strength] * 2)
 		};
-	}
-
-	function incrementCounter(counter) {
-		for (let indexCounter = 0; indexCounter < 16; indexCounter++) {
-			if (counter[indexCounter] == 255) {
-				counter[indexCounter] = 0;
-			} else {
-				counter[indexCounter]++;
-				break;
-			}
-		}
 	}
 
 	function concat(leftArray, rightArray) {
@@ -5281,7 +5762,7 @@
 		constructor(password, passwordVerification) {
 			this.password = password;
 			this.passwordVerification = passwordVerification;
-			createKeys(this, password);
+			createKeys$1(this, password);
 		}
 
 		async append(input) {
@@ -5309,7 +5790,7 @@
 		constructor(password, passwordVerification) {
 			this.passwordVerification = passwordVerification;
 			this.password = password;
-			createKeys(this, password);
+			createKeys$1(this, password);
 		}
 
 		async append(input) {
@@ -5355,7 +5836,7 @@
 		return output;
 	}
 
-	function createKeys(target, password) {
+	function createKeys$1(target, password) {
 		target.keys = [0x12345678, 0x23456789, 0x34567890];
 		target.crcKey0 = new Crc32(target.keys[0]);
 		target.crcKey2 = new Crc32(target.keys[2]);
@@ -5418,7 +5899,7 @@
 	const CODEC_INFLATE = "inflate";
 	const ERR_INVALID_SIGNATURE = "Invalid signature";
 
-	class Inflate {
+	class Inflate$1 {
 
 		constructor(codecConstructor, options) {
 			this.signature = options.signature;
@@ -5473,7 +5954,7 @@
 		}
 	}
 
-	class Deflate {
+	class Deflate$1 {
 
 		constructor(codecConstructor, options) {
 			this.encrypted = options.encrypted;
@@ -5523,11 +6004,11 @@
 		}
 	}
 
-	function createCodec$1(codecConstructor, options) {
+	function createCodec(codecConstructor, options) {
 		if (options.codecType.startsWith(CODEC_DEFLATE)) {
-			return new Deflate(codecConstructor, options);
+			return new Deflate$1(codecConstructor, options);
 		} else if (options.codecType.startsWith(CODEC_INFLATE)) {
-			return new Inflate(codecConstructor, options);
+			return new Inflate$1(codecConstructor, options);
 		}
 	}
 
@@ -5581,7 +6062,7 @@
 	};
 
 	function createWorkerInterface(workerData) {
-		const interfaceCodec = createCodec$1(workerData.codecConstructor, workerData.options);
+		const interfaceCodec = createCodec(workerData.codecConstructor, workerData.options);
 		return {
 			async append(data) {
 				try {
@@ -5704,7 +6185,7 @@
 	let pool = [];
 	let pendingRequests = [];
 
-	function createCodec(codecConstructor, options, config) {
+	function createCodec$1(codecConstructor, options, config) {
 		const streamCopy = !options.compressed && !options.signed && !options.encrypted;
 		const webWorker = !streamCopy && (options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers));
 		const scripts = webWorker && config.workerScripts ? config.workerScripts[options.codecType] : [];
@@ -5895,7 +6376,7 @@
 				fileEntry.directory = (getUint8(directoryView, offset + 38) & FILE_ATTR_MSDOS_DIR_MASK) == FILE_ATTR_MSDOS_DIR_MASK;
 				fileEntry.offset = getUint32(directoryView, offset + 42) + prependedBytesLength;
 				fileEntry.rawFilename = directoryArray.subarray(offset + 46, offset + 46 + fileEntry.filenameLength);
-				const filenameEncoding = getOptionValue$1(this, options, "filenameEncoding");
+				const filenameEncoding = getOptionValue(this, options, "filenameEncoding");
 				fileEntry.filenameUTF8 = fileEntry.commentUTF8 = Boolean(fileEntry.bitFlag.languageEncodingFlag);
 				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.filenameUTF8 ? CHARSET_UTF8 : filenameEncoding);
 				if (!fileEntry.directory && fileEntry.filename.endsWith(DIRECTORY_SIGNATURE)) {
@@ -5904,7 +6385,7 @@
 				fileEntry.rawExtraField = directoryArray.subarray(offset + 46 + fileEntry.filenameLength, offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength);
 				fileEntry.rawComment = directoryArray.subarray(offset + 46 + fileEntry.filenameLength + fileEntry.extraFieldLength, offset + 46
 					+ fileEntry.filenameLength + fileEntry.extraFieldLength + fileEntry.commentLength);
-				const commentEncoding = getOptionValue$1(this, options, "commentEncoding");
+				const commentEncoding = getOptionValue(this, options, "commentEncoding");
 				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.commentUTF8 ? CHARSET_UTF8 : commentEncoding);
 				readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
 				const entry = new Entry(fileEntry);
@@ -5940,7 +6421,7 @@
 			const config = this.config;
 			const bitFlag = this.bitFlag;
 			const signature = this.signature;
-			let password = getOptionValue$1(this, options, "password");
+			let password = getOptionValue(this, options, "password");
 			password = password && password.length && password;
 			if (extraFieldAES) {
 				if (extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
@@ -5967,22 +6448,22 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const codec = await createCodec(config.Inflate, {
+			const codec = await createCodec$1(config.Inflate, {
 				codecType: CODEC_INFLATE,
 				password,
 				zipCrypto,
 				encryptionStrength: extraFieldAES && extraFieldAES.strength,
-				signed: getOptionValue$1(this, options, "checkSignature"),
+				signed: getOptionValue(this, options, "checkSignature"),
 				passwordVerification: zipCrypto && (bitFlag.dataDescriptor ? ((this.rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
 				signature,
 				compressed: compressionMethod != 0,
 				encrypted,
-				useWebWorkers: getOptionValue$1(this, options, "useWebWorkers")
+				useWebWorkers: getOptionValue(this, options, "useWebWorkers")
 			}, config);
 			if (!writer.initialized) {
 				await writer.init();
 			}
-			await processData(codec, reader, writer, dataOffset, this.compressedSize, config, { onprogress: options.onprogress, signal: getOptionValue$1(this, options, "signal") });
+			await processData(codec, reader, writer, dataOffset, this.compressedSize, config, { onprogress: options.onprogress, signal: getOptionValue(this, options, "signal") });
 			return writer.getData();
 		}
 	}
@@ -6103,7 +6584,7 @@
 	async function seekSignature(reader, signature, minimumBytes, maximumLength) {
 		const signatureArray = new Uint8Array(4);
 		const signatureView = new DataView(signatureArray.buffer);
-		setUint32$1(signatureView, 0, signature);
+		setUint32(signatureView, 0, signature);
 		const maximumBytes = minimumBytes + maximumLength;
 		return (await seek(minimumBytes)) || await seek(Math.min(maximumBytes, reader.size));
 
@@ -6122,7 +6603,7 @@
 		}
 	}
 
-	function getOptionValue$1(zipReader, options, name) {
+	function getOptionValue(zipReader, options, name) {
 		return options[name] === undefined ? zipReader.options[name] : options[name];
 	}
 
@@ -6159,7 +6640,7 @@
 		return Number(view.getBigUint64(offset, true));
 	}
 
-	function setUint32$1(view, offset, value) {
+	function setUint32(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
@@ -6241,9 +6722,9 @@
 			if (lastModDate < MIN_DATE || lastModDate > MAX_DATE) {
 				throw new Error(ERR_INVALID_DATE);
 			}
-			const password = getOptionValue(this, options, "password");
-			const encryptionStrength = getOptionValue(this, options, "encryptionStrength") || 3;
-			const zipCrypto = getOptionValue(this, options, "zipCrypto");
+			const password = getOptionValue$1(this, options, "password");
+			const encryptionStrength = getOptionValue$1(this, options, "encryptionStrength") || 3;
+			const zipCrypto = getOptionValue$1(this, options, "zipCrypto");
 			if (password !== undefined && encryptionStrength !== undefined && (encryptionStrength < 1 || encryptionStrength > 3)) {
 				throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
 			}
@@ -6272,12 +6753,12 @@
 			}
 			const outputSize = reader ? reader.size * 1.05 : 0;
 			const zip64 = options.zip64 || this.options.zip64 || this.offset >= MAX_32_BITS || outputSize >= MAX_32_BITS || this.offset + outputSize >= MAX_32_BITS;
-			const level = getOptionValue(this, options, "level");
-			const useWebWorkers = getOptionValue(this, options, "useWebWorkers");
-			const bufferedWrite = getOptionValue(this, options, "bufferedWrite");
-			const keepOrder = getOptionValue(this, options, "keepOrder");
-			let dataDescriptor = getOptionValue(this, options, "dataDescriptor");
-			const signal = getOptionValue(this, options, "signal");
+			const level = getOptionValue$1(this, options, "level");
+			const useWebWorkers = getOptionValue$1(this, options, "useWebWorkers");
+			const bufferedWrite = getOptionValue$1(this, options, "bufferedWrite");
+			const keepOrder = getOptionValue$1(this, options, "keepOrder");
+			let dataDescriptor = getOptionValue$1(this, options, "dataDescriptor");
+			const signal = getOptionValue$1(this, options, "signal");
 			if (dataDescriptor === undefined) {
 				dataDescriptor = true;
 			}
@@ -6332,7 +6813,7 @@
 				const rawExtraFieldZip64 = fileEntry.rawExtraFieldZip64;
 				const rawExtraFieldAES = fileEntry.rawExtraFieldAES;
 				const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + fileEntry.rawExtraField.length;
-				setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
+				setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 				setUint16(directoryView, offset + 4, fileEntry.version);
 				directoryArray.set(fileEntry.headerArray, offset + 6);
 				setUint16(directoryView, offset + 30, extraFieldLength);
@@ -6341,9 +6822,9 @@
 					setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 				}
 				if (fileEntry.zip64) {
-					setUint32(directoryView, offset + 42, MAX_32_BITS);
+					setUint32$1(directoryView, offset + 42, MAX_32_BITS);
 				} else {
-					setUint32(directoryView, offset + 42, fileEntry.offset);
+					setUint32$1(directoryView, offset + 42, fileEntry.offset);
 				}
 				directoryArray.set(rawFilename, offset + 46);
 				directoryArray.set(rawExtraFieldZip64, offset + 46 + rawFilename.length);
@@ -6353,7 +6834,7 @@
 				offset += 46 + rawFilename.length + extraFieldLength + fileEntry.rawComment.length;
 			}
 			if (zip64) {
-				setUint32(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
+				setUint32$1(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
 				setBigUint64(directoryView, offset + 4, BigInt(44));
 				setUint16(directoryView, offset + 12, 45);
 				setUint16(directoryView, offset + 14, 45);
@@ -6361,19 +6842,19 @@
 				setBigUint64(directoryView, offset + 32, BigInt(filesLength));
 				setBigUint64(directoryView, offset + 40, BigInt(directoryDataLength));
 				setBigUint64(directoryView, offset + 48, BigInt(directoryOffset));
-				setUint32(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
+				setUint32$1(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
 				setBigUint64(directoryView, offset + 64, BigInt(directoryOffset) + BigInt(directoryDataLength));
-				setUint32(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
+				setUint32$1(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
 				filesLength = MAX_16_BITS;
 				directoryOffset = MAX_32_BITS;
 				directoryDataLength = MAX_32_BITS;
 				offset += 76;
 			}
-			setUint32(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
+			setUint32$1(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
 			setUint16(directoryView, offset + 8, filesLength);
 			setUint16(directoryView, offset + 10, filesLength);
-			setUint32(directoryView, offset + 12, directoryDataLength);
-			setUint32(directoryView, offset + 16, directoryOffset);
+			setUint32$1(directoryView, offset + 12, directoryDataLength);
+			setUint32$1(directoryView, offset + 16, directoryOffset);
 			await writer.writeUint8Array(directoryArray);
 			if (comment.length) {
 				await writer.writeUint8Array(comment);
@@ -6425,14 +6906,14 @@
 				if (!options.dataDescriptor) {
 					const arrayBufferView = new DataView(arrayBuffer);
 					if (!fileEntry.encrypted || options.zipCrypto) {
-						setUint32(arrayBufferView, 14, fileEntry.signature);
+						setUint32$1(arrayBufferView, 14, fileEntry.signature);
 					}
 					if (fileEntry.zip64) {
-						setUint32(arrayBufferView, 18, MAX_32_BITS);
-						setUint32(arrayBufferView, 22, MAX_32_BITS);
+						setUint32$1(arrayBufferView, 18, MAX_32_BITS);
+						setUint32$1(arrayBufferView, 22, MAX_32_BITS);
 					} else {
-						setUint32(arrayBufferView, 18, fileEntry.compressedSize);
-						setUint32(arrayBufferView, 22, fileEntry.uncompressedSize);
+						setUint32$1(arrayBufferView, 18, fileEntry.compressedSize);
+						setUint32$1(arrayBufferView, 22, fileEntry.uncompressedSize);
 					}
 				}
 				await writer.writeUint8Array(new Uint8Array(arrayBuffer));
@@ -6517,12 +6998,12 @@
 		setUint16(dateView, 0, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
 		setUint16(dateView, 2, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
 		const rawLastModDate = dateArray[0];
-		setUint32(headerView, 6, rawLastModDate);
+		setUint32$1(headerView, 6, rawLastModDate);
 		setUint16(headerView, 22, rawFilename.length);
 		setUint16(headerView, 24, 0);
 		const fileDataArray = new Uint8Array(30 + rawFilename.length);
 		const fileDataView = new DataView(fileDataArray.buffer);
-		setUint32(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
+		setUint32$1(fileDataView, 0, LOCAL_FILE_HEADER_SIGNATURE);
 		fileDataArray.set(headerArray, 4);
 		fileDataArray.set(rawFilename, 30);
 		let result;
@@ -6530,7 +7011,7 @@
 		let compressedSize = 0;
 		if (reader) {
 			uncompressedSize = reader.size;
-			const codec = await createCodec(config.Deflate, {
+			const codec = await createCodec$1(config.Deflate, {
 				codecType: CODEC_DEFLATE,
 				level,
 				password,
@@ -6553,34 +7034,34 @@
 		if (options.dataDescriptor) {
 			dataDescriptorArray = new Uint8Array(zip64 ? 24 : 16);
 			dataDescriptorView = new DataView(dataDescriptorArray.buffer);
-			setUint32(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
+			setUint32$1(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
 		}
 		if (reader) {
 			if ((!encrypted || options.zipCrypto) && result.signature !== undefined) {
-				setUint32(headerView, 10, result.signature);
+				setUint32$1(headerView, 10, result.signature);
 				fileEntry.signature = result.signature;
 				if (options.dataDescriptor) {
-					setUint32(dataDescriptorView, 4, result.signature);
+					setUint32$1(dataDescriptorView, 4, result.signature);
 				}
 			}
 			if (zip64) {
 				const rawExtraFieldZip64View = new DataView(fileEntry.rawExtraFieldZip64.buffer);
 				setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
 				setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
-				setUint32(headerView, 14, MAX_32_BITS);
+				setUint32$1(headerView, 14, MAX_32_BITS);
 				setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
-				setUint32(headerView, 18, MAX_32_BITS);
+				setUint32$1(headerView, 18, MAX_32_BITS);
 				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
 				if (options.dataDescriptor) {
 					setBigUint64(dataDescriptorView, 8, BigInt(compressedSize));
 					setBigUint64(dataDescriptorView, 16, BigInt(uncompressedSize));
 				}
 			} else {
-				setUint32(headerView, 14, compressedSize);
-				setUint32(headerView, 18, uncompressedSize);
+				setUint32$1(headerView, 14, compressedSize);
+				setUint32$1(headerView, 18, uncompressedSize);
 				if (options.dataDescriptor) {
-					setUint32(dataDescriptorView, 8, compressedSize);
-					setUint32(dataDescriptorView, 12, uncompressedSize);
+					setUint32$1(dataDescriptorView, 8, compressedSize);
+					setUint32$1(dataDescriptorView, 12, uncompressedSize);
 				}
 			}
 		}
@@ -6592,7 +7073,7 @@
 		return fileEntry;
 	}
 
-	function getOptionValue(zipWriter, options, name) {
+	function getOptionValue$1(zipWriter, options, name) {
 		return options[name] === undefined ? zipWriter.options[name] : options[name];
 	}
 
@@ -6604,7 +7085,7 @@
 		view.setUint16(offset, value, true);
 	}
 
-	function setUint32(view, offset, value) {
+	function setUint32$1(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
