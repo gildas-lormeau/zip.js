@@ -26,12 +26,54 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* global self */
+"use strict";
 
-import "./core/z-worker-core.js";
-import { Deflate, Inflate } from "fflate";
+import { Deflate, Inflate} from "fflate";
+import { configure } from "./lib/core/configuration.js";
+import getMimeType from "./lib/core/util/mime-type.js";
 
-self.initCodec = () => {
-	self.Deflate = Deflate;
-	self.Inflate = Inflate;
-};
+configure({ Deflate, Inflate });
+
+export {
+	fs,
+	configure,
+	initShimAsyncCodec,
+	ZipReader,
+	ZipWriter,
+	Reader,
+	Writer,
+	TextReader,
+	TextWriter,
+	Data64URIReader,
+	Data64URIWriter,
+	BlobReader,
+	BlobWriter,
+	HttpReader,
+	HttpRangeReader,
+	Uint8ArrayWriter,
+	Uint8ArrayReader,
+	ERR_HTTP_RANGE,
+	ERR_BAD_FORMAT,
+	ERR_EOCDR_NOT_FOUND,
+	ERR_EOCDR_ZIP64_NOT_FOUND,
+	ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND,
+	ERR_CENTRAL_DIRECTORY_NOT_FOUND,
+	ERR_LOCAL_FILE_HEADER_NOT_FOUND,
+	ERR_EXTRAFIELD_ZIP64_NOT_FOUND,
+	ERR_ENCRYPTED,
+	ERR_UNSUPPORTED_ENCRYPTION,
+	ERR_UNSUPPORTED_COMPRESSION,
+	ERR_INVALID_SIGNATURE,
+	ERR_INVALID_PASSWORD,
+	ERR_DUPLICATED_NAME,
+	ERR_INVALID_COMMENT,
+	ERR_INVALID_ENTRY_NAME,
+	ERR_INVALID_ENTRY_COMMENT,
+	ERR_INVALID_VERSION,
+	ERR_INVALID_DATE,
+	ERR_INVALID_EXTRAFIELD_TYPE,
+	ERR_INVALID_EXTRAFIELD_DATA,
+	ERR_INVALID_ENCRYPTION_STRENGTH,
+	ERR_ABORT
+} from "./lib/zip-fs.js";
+export { getMimeType };
