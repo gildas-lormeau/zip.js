@@ -1,6 +1,33 @@
 import { terser } from "rollup-plugin-terser";
 
 export default [{
+	input: "lib/z-worker.js",
+	output: [{
+		file: "lib/z-worker-inline.js",
+		format: "es"
+	}],
+	plugins: [terser()]
+}, {
+	input: "lib/z-worker-inline.js",
+	output: [{
+		intro:
+			`
+			import { configure } from "./core/configuration.js"; 
+			export default () => { 
+				if (typeof URL.createObjectURL == "function") {
+					const code = (() => {
+			`,
+		file: "lib/z-worker-inline.js",
+		outro:
+			`		}).toString(); 				
+					const uri = URL.createObjectURL(new Blob(["(" + code + ")()"], { type : "text/javascript" })); 
+					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
+				}
+			};`,
+		format: "esm"
+	}],
+	plugins: [terser()]
+}, {
 	input: ["lib/zip.js"],
 	output: [{
 		file: "dist/zip.min.js",
@@ -77,14 +104,14 @@ export default [{
 		plugins: [terser()]
 	}]
 }, {
-	input: "lib/z-worker-pako.js",
+	input: "lib/z-worker-bootstrap-pako.js",
 	output: [{
 		file: "dist/z-worker-pako.js",
 		format: "iife",
 		plugins: [terser()]
 	}]
 }, {
-	input: "lib/z-worker-fflate.js",
+	input: "lib/z-worker-bootstrap-fflate.js",
 	output: [{
 		file: "dist/z-worker-fflate.js",
 		format: "iife",
