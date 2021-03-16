@@ -30,7 +30,7 @@ async function test() {
 				data = null;
 			} catch (error) {
 				if (error.message == zip.ERR_INVALID_PASSWORD) {
-					data = await entries[0].getData(dataBlobWriter, { password: "password" });
+					data = await entries[0].getData(dataBlobWriter, { password: "password", checkSignature: true });
 				}
 			}
 		}
