@@ -42,7 +42,7 @@
 
 		async function downloadFile(event) {
 			const target = event.target;
-			if (target.dataset.entryIndex !== undefined && !target.download) {
+			if (target.dataset.entryIndex !== undefined && !target.download && !target.getAttribute("href")) {
 				event.preventDefault();
 				try {
 					await download(entries[Number(target.dataset.entryIndex)], target.parentElement, target);
