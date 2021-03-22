@@ -6750,7 +6750,7 @@
 				await writer.init();
 			}
 			const signal = getOptionValue$1(zipEntry, options, "signal");
-			await processData(codec, reader, writer, dataOffset, compressedSize, config, { onprogress, signal });
+			await processData(codec, reader, writer, dataOffset, compressedSize, config, { onprogress: options.onprogress, signal });
 			return writer.getData();
 		}
 	}
