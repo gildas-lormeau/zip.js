@@ -7493,7 +7493,7 @@
 		"filename", "rawFilename", "directory", "encrypted", "compressedSize", "uncompressedSize",
 		"lastModDate", "rawLastModDate", "comment", "rawComment", "signature", "extraField",
 		"rawExtraField", "bitFlag", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment",
-		"extraFieldAES", "filenameUTF8", "commentUTF8", "offset", "zip64"];
+		"extraFieldAES", "filenameUTF8", "commentUTF8", "offset", "zip64", "compressionMethod"];
 
 	class Entry {
 
@@ -8298,6 +8298,7 @@
 				}
 			}
 		}
+		fileEntry.compressionMethod = compressionMethod;
 		const headerArray = fileEntry.headerArray = new Uint8Array(26);
 		const headerView = getDataView(headerArray);
 		setUint16(headerView, 0, fileEntry.version);
