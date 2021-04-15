@@ -16,16 +16,20 @@ async function test() {
 	});
 	const blobWriter = new zip.BlobWriter("application/zip");
 	let zipWriter = new zip.ZipWriter(blobWriter);
-	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { level: 0 });
-	await zipWriter.close();
-	const compressedData = blobWriter.getData();
-	if ((await getBlobText(compressedData)).includes(TEXT_CONTENT)) {
-		const zipReader = new zip.ZipReader(new zip.BlobReader(compressedData));
-		const entries = await zipReader.getEntries();
-		const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
-		await zipReader.close();
-		if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
-			document.body.innerHTML = "ok";
+	const entry = await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { level: 0 });
+	if (entry.compressionMethod === 0x00) {
+		await zipWriter.close();
+		const compressedData = blobWriter.getData();
+		if ((await getBlobText(compressedData)).includes(TEXT_CONTENT)) {
+			const zipReader = new zip.ZipReader(new zip.BlobReader(compressedData));
+			const entries = await zipReader.getEntries();
+			if (entries[0].compressionMethod === 0x00) {
+				const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
+				await zipReader.close();
+				if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
+					document.body.innerHTML = "ok";
+				}
+			}
 		}
 	}
 }

@@ -14,14 +14,18 @@ async function test() {
 	zip.configure({ chunkSize: 128 });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
-	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
-	await zipWriter.close();
-	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
-	const entries = await zipReader.getEntries();
-	const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
-	await zipReader.close();
-	if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
-		document.body.innerHTML = "ok";
+	const entry = await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
+	if (entry.compressionMethod == 0x08) {
+		await zipWriter.close();
+		const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
+		const entries = await zipReader.getEntries();
+		if (entries[0].compressionMethod == 0x08) {
+			const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
+			await zipReader.close();
+			if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
+				document.body.innerHTML = "ok";
+			}
+		}
 	}
 }
 
