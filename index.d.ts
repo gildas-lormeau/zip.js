@@ -201,7 +201,7 @@ declare module "@zip.js/zip.js" {
         addText(name: string, text: string): ZipFileEntry;
         addBlob(name: string, blob: Blob): ZipFileEntry;
         addData64URI(name: string, dataURI: string): ZipFileEntry;
-        addUint8Array(name, array): ZipFileEntry;
+        addUint8Array(name: string, array: Uint8Array): ZipFileEntry;
         addHttpContent(name: string, url: string, options?: HttpOptions): ZipFileEntry;
         addFileSystemEntry(fileSystemEntry: FileSystemEntry): Promise<ZipEntry>;
         importBlob(blob: Blob, options?: ZipReaderOptions | GetEntriesOptions): Promise<void>;
