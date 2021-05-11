@@ -28,7 +28,7 @@
 
 "use strict";
 
-import { Deflate, Inflate} from "fflate";
+import { Deflate, Inflate } from "./zip-fflate-shim.js";
 import { configure } from "./lib/core/configuration.js";
 import getMimeType from "./lib/core/util/mime-type.js";
 
