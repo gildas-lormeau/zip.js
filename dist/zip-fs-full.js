@@ -7956,6 +7956,8 @@
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
 	const EXTRAFIELD_LENGTH_ZIP64 = 24;
 
+	let workers = 0;
+
 	class ZipWriter {
 
 		constructor(writer, options = {}) {
@@ -7965,113 +7967,29 @@
 				config: getConfiguration(),
 				files: new Map(),
 				offset: writer.size,
-				pendingOutputSize: 0
+				pendingOutputSize: 0,
+				pendingEntries: []
 			});
 		}
 
 		async add(name = "", reader, options = {}) {
 			const zipWriter = this;
-			name = name.trim();
-			if (options.directory && (!name.endsWith(DIRECTORY_SIGNATURE))) {
-				name += DIRECTORY_SIGNATURE;
-			} else {
-				options.directory = name.endsWith(DIRECTORY_SIGNATURE);
-			}
-			if (zipWriter.files.has(name)) {
-				throw new Error(ERR_DUPLICATED_NAME);
-			}
-			const rawFilename = (new TextEncoder()).encode(name);
-			if (rawFilename.length > MAX_16_BITS) {
-				throw new Error(ERR_INVALID_ENTRY_NAME);
-			}
-			const comment = options.comment || "";
-			const rawComment = (new TextEncoder()).encode(comment);
-			if (rawComment.length > MAX_16_BITS) {
-				throw new Error(ERR_INVALID_ENTRY_COMMENT);
-			}
-			const version = zipWriter.options.version || options.version || 0;
-			if (version > MAX_16_BITS) {
-				throw new Error(ERR_INVALID_VERSION);
-			}
-			const lastModDate = options.lastModDate || new Date();
-			if (lastModDate < MIN_DATE || lastModDate > MAX_DATE) {
-				throw new Error(ERR_INVALID_DATE);
-			}
-			const password = getOptionValue$1(zipWriter, options, "password");
-			const encryptionStrength = getOptionValue$1(zipWriter, options, "encryptionStrength") || 3;
-			const zipCrypto = getOptionValue$1(zipWriter, options, "zipCrypto");
-			if (password !== undefined && encryptionStrength !== undefined && (encryptionStrength < 1 || encryptionStrength > 3)) {
-				throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
-			}
-			let rawExtraField = new Uint8Array(0);
-			const extraField = options.extraField;
-			if (extraField) {
-				let extraFieldSize = 0;
-				let offset = 0;
-				extraField.forEach(data => extraFieldSize += 4 + data.length);
-				rawExtraField = new Uint8Array(extraFieldSize);
-				extraField.forEach((data, type) => {
-					if (type > MAX_16_BITS) {
-						throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
+			if (workers < zipWriter.config.maxWorkers) {
+				workers++;
+				try {
+					return await addFile(zipWriter, name, reader, options);
+				} finally {
+					workers--;
+					const pendingEntry = zipWriter.pendingEntries.shift();
+					if (pendingEntry) {
+						zipWriter.add(pendingEntry.name, pendingEntry.reader, pendingEntry.options)
+							.then(pendingEntry.resolve)
+							.catch(pendingEntry.reject);
 					}
-					if (data.length > MAX_16_BITS) {
-						throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
-					}
-					arraySet(rawExtraField, new Uint16Array([type]), offset);
-					arraySet(rawExtraField, new Uint16Array([data.length]), offset + 2);
-					arraySet(rawExtraField, data, offset + 4);
-					offset += 4 + data.length;
-				});
-			}
-			let zip64 = false;
-			let outputSize = 0;
-			const zip64Enabled = reader && options.zip64 !== false && zipWriter.options.zip64 !== false;
-			if (zip64Enabled) {
-				zip64 = options.zip64 || zipWriter.options.zip64;
-				if (!zip64) {
-					if (!reader.initialized) {
-						await reader.init();
-					}
-					outputSize = Math.floor(reader.size * 1.05);
-					zipWriter.pendingOutputSize += outputSize;
-					zip64 = zipWriter.offset >= MAX_32_BITS || outputSize >= MAX_32_BITS || zipWriter.offset + zipWriter.pendingOutputSize >= MAX_32_BITS;
-					await Promise.resolve();
 				}
+			} else {
+				return new Promise((resolve, reject) => zipWriter.pendingEntries.push({ name, reader, options, resolve, reject }));
 			}
-			const level = getOptionValue$1(zipWriter, options, "level");
-			const useWebWorkers = getOptionValue$1(zipWriter, options, "useWebWorkers");
-			const bufferedWrite = getOptionValue$1(zipWriter, options, "bufferedWrite");
-			let keepOrder = getOptionValue$1(zipWriter, options, "keepOrder");
-			let dataDescriptor = getOptionValue$1(zipWriter, options, "dataDescriptor");
-			const signal = getOptionValue$1(zipWriter, options, "signal");
-			if (dataDescriptor === undefined) {
-				dataDescriptor = true;
-			}
-			if (keepOrder === undefined) {
-				keepOrder = true;
-			}
-			const fileEntry = await addFile(zipWriter, name, reader, Object.assign({}, options, {
-				rawFilename,
-				rawComment,
-				version,
-				lastModDate,
-				rawExtraField,
-				zip64,
-				password,
-				level,
-				useWebWorkers,
-				encryptionStrength,
-				zipCrypto,
-				bufferedWrite,
-				keepOrder,
-				dataDescriptor,
-				signal
-			}));
-			if (zip64Enabled) {
-				zipWriter.pendingOutputSize -= outputSize;
-			}
-			Object.assign(fileEntry, { name, comment, extraField });
-			return new Entry(fileEntry);
 		}
 
 		async close(comment = new Uint8Array(0)) {
@@ -8164,6 +8082,110 @@
 	}
 
 	async function addFile(zipWriter, name, reader, options) {
+		name = name.trim();
+		if (options.directory && (!name.endsWith(DIRECTORY_SIGNATURE))) {
+			name += DIRECTORY_SIGNATURE;
+		} else {
+			options.directory = name.endsWith(DIRECTORY_SIGNATURE);
+		}
+		if (zipWriter.files.has(name)) {
+			throw new Error(ERR_DUPLICATED_NAME);
+		}
+		const rawFilename = (new TextEncoder()).encode(name);
+		if (rawFilename.length > MAX_16_BITS) {
+			throw new Error(ERR_INVALID_ENTRY_NAME);
+		}
+		const comment = options.comment || "";
+		const rawComment = (new TextEncoder()).encode(comment);
+		if (rawComment.length > MAX_16_BITS) {
+			throw new Error(ERR_INVALID_ENTRY_COMMENT);
+		}
+		const version = zipWriter.options.version || options.version || 0;
+		if (version > MAX_16_BITS) {
+			throw new Error(ERR_INVALID_VERSION);
+		}
+		const lastModDate = options.lastModDate || new Date();
+		if (lastModDate < MIN_DATE || lastModDate > MAX_DATE) {
+			throw new Error(ERR_INVALID_DATE);
+		}
+		const password = getOptionValue$1(zipWriter, options, "password");
+		const encryptionStrength = getOptionValue$1(zipWriter, options, "encryptionStrength") || 3;
+		const zipCrypto = getOptionValue$1(zipWriter, options, "zipCrypto");
+		if (password !== undefined && encryptionStrength !== undefined && (encryptionStrength < 1 || encryptionStrength > 3)) {
+			throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
+		}
+		let rawExtraField = new Uint8Array(0);
+		const extraField = options.extraField;
+		if (extraField) {
+			let extraFieldSize = 0;
+			let offset = 0;
+			extraField.forEach(data => extraFieldSize += 4 + data.length);
+			rawExtraField = new Uint8Array(extraFieldSize);
+			extraField.forEach((data, type) => {
+				if (type > MAX_16_BITS) {
+					throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
+				}
+				if (data.length > MAX_16_BITS) {
+					throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
+				}
+				arraySet(rawExtraField, new Uint16Array([type]), offset);
+				arraySet(rawExtraField, new Uint16Array([data.length]), offset + 2);
+				arraySet(rawExtraField, data, offset + 4);
+				offset += 4 + data.length;
+			});
+		}
+		let zip64 = false;
+		let outputSize = 0;
+		const zip64Enabled = reader && options.zip64 !== false && zipWriter.options.zip64 !== false;
+		if (zip64Enabled) {
+			zip64 = options.zip64 || zipWriter.options.zip64;
+			if (!zip64) {
+				if (!reader.initialized) {
+					await reader.init();
+				}
+				outputSize = Math.floor(reader.size * 1.05);
+				zipWriter.pendingOutputSize += outputSize;
+				zip64 = zipWriter.offset >= MAX_32_BITS || outputSize >= MAX_32_BITS || zipWriter.offset + zipWriter.pendingOutputSize >= MAX_32_BITS;
+				await Promise.resolve();
+			}
+		}
+		const level = getOptionValue$1(zipWriter, options, "level");
+		const useWebWorkers = getOptionValue$1(zipWriter, options, "useWebWorkers");
+		const bufferedWrite = getOptionValue$1(zipWriter, options, "bufferedWrite");
+		let keepOrder = getOptionValue$1(zipWriter, options, "keepOrder");
+		let dataDescriptor = getOptionValue$1(zipWriter, options, "dataDescriptor");
+		const signal = getOptionValue$1(zipWriter, options, "signal");
+		if (dataDescriptor === undefined) {
+			dataDescriptor = true;
+		}
+		if (keepOrder === undefined) {
+			keepOrder = true;
+		}
+		const fileEntry = await getFileEntry(zipWriter, name, reader, Object.assign({}, options, {
+			rawFilename,
+			rawComment,
+			version,
+			lastModDate,
+			rawExtraField,
+			zip64,
+			password,
+			level,
+			useWebWorkers,
+			encryptionStrength,
+			zipCrypto,
+			bufferedWrite,
+			keepOrder,
+			dataDescriptor,
+			signal
+		}));
+		if (zip64Enabled) {
+			zipWriter.pendingOutputSize -= outputSize;
+		}
+		Object.assign(fileEntry, { name, comment, extraField });
+		return new Entry(fileEntry);
+	}
+
+	async function getFileEntry(zipWriter, name, reader, options) {
 		const files = zipWriter.files;
 		const writer = zipWriter.writer;
 		const previousFileEntry = Array.from(files.values()).pop();
