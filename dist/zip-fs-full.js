@@ -4239,6 +4239,7 @@
 	const DEFAULT_CONFIGURATION = {
 		chunkSize: 512 * 1024,
 		maxWorkers: (typeof navigator != "undefined" && navigator.hardwareConcurrency) || 2,
+		terminateWorkerTimeout: 1000,
 		useWebWorkers: true,
 		workerScripts: undefined
 	};
@@ -4255,6 +4256,9 @@
 		}
 		if (configuration.maxWorkers !== undefined) {
 			config.maxWorkers = configuration.maxWorkers;
+		}
+		if (configuration.terminateWorkerTimeout !== undefined) {
+			config.terminateWorkerTimeout = configuration.terminateWorkerTimeout;
 		}
 		if (configuration.useWebWorkers !== undefined) {
 			config.useWebWorkers = configuration.useWebWorkers;
@@ -7225,10 +7229,7 @@
 			webWorker,
 			onTaskFinished() {
 				workerData.busy = false;
-				const terminateWorker = onTaskFinished(workerData);
-				if (terminateWorker && workerData.worker) {
-					workerData.worker.terminate();
-				}
+				onTaskFinished(workerData);
 			}
 		});
 		return webWorker ? createWebWorkerInterface(workerData, config) : createWorkerInterface(workerData, config);
@@ -7369,6 +7370,7 @@
 		} else {
 			const workerData = pool.find(workerData => !workerData.busy);
 			if (workerData) {
+				clearTerminateTimeout(workerData);
 				return getWorker(workerData, codecConstructor, options, config, onTaskFinished, webWorker, scripts);
 			} else {
 				return new Promise(resolve => pendingRequests.push({ resolve, codecConstructor, options, webWorker, scripts }));
@@ -7376,14 +7378,25 @@
 		}
 
 		function onTaskFinished(workerData) {
-			const finished = !pendingRequests.length;
-			if (finished) {
-				pool = pool.filter(data => data != workerData);
-			} else {
+			if (pendingRequests.length) {
 				const [{ resolve, codecConstructor, options, webWorker, scripts }] = pendingRequests.splice(0, 1);
 				resolve(getWorker(workerData, codecConstructor, options, config, onTaskFinished, webWorker, scripts));
+			} else if (workerData.worker) {
+				clearTerminateTimeout(workerData);
+				workerData.terminateTimeout = setTimeout(() => {
+					pool = pool.filter(data => data != workerData);
+					workerData.worker.terminate();
+				}, config.terminateWorkerTimeout);
+			} else {
+				pool = pool.filter(data => data != workerData);
 			}
-			return finished;
+		}
+	}
+
+	function clearTerminateTimeout(workerData) {
+		if (workerData.terminateTimeout) {
+			clearTimeout(workerData.terminateTimeout);
+			workerData.terminateTimeout = null;
 		}
 	}
 
@@ -7425,12 +7438,12 @@
 		async function processChunk(chunkOffset = 0, outputLength = 0) {
 			const signal = options.signal;
 			if (chunkOffset < inputLength) {
-				testAborted(signal);
+				testAborted(signal, codec);
 				const inputData = await reader.readUint8Array(chunkOffset + offset, Math.min(chunkSize, inputLength - chunkOffset));
 				const chunkLength = inputData.length;
-				testAborted(signal);
+				testAborted(signal, codec);
 				const data = await codec.append(inputData);
-				testAborted(signal);
+				testAborted(signal, codec);
 				outputLength += await writeData(writer, data);
 				if (options.onprogress) {
 					try {
@@ -7448,8 +7461,9 @@
 		}
 	}
 
-	function testAborted(signal) {
+	function testAborted(signal, codec) {
 		if (signal && signal.aborted) {
+			codec.flush();
 			throw new Error(ERR_ABORT);
 		}
 	}
