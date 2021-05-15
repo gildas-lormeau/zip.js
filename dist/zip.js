@@ -195,604 +195,6 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const MINIMUM_CHUNK_SIZE = 64;
-	const ERR_ABORT = "Abort error";
-
-	async function processData(codec, reader, writer, offset, inputLength, config, options) {
-		const chunkSize = Math.max(config.chunkSize, MINIMUM_CHUNK_SIZE);
-		return processChunk();
-
-		async function processChunk(chunkOffset = 0, outputLength = 0) {
-			const signal = options.signal;
-			if (chunkOffset < inputLength) {
-				testAborted(signal, codec);
-				const inputData = await reader.readUint8Array(chunkOffset + offset, Math.min(chunkSize, inputLength - chunkOffset));
-				const chunkLength = inputData.length;
-				testAborted(signal, codec);
-				const data = await codec.append(inputData);
-				testAborted(signal, codec);
-				outputLength += await writeData(writer, data);
-				if (options.onprogress) {
-					try {
-						options.onprogress(chunkOffset + chunkLength, inputLength);
-					} catch (error) {
-						// ignored
-					}
-				}
-				return processChunk(chunkOffset + chunkSize, outputLength);
-			} else {
-				const result = await codec.flush();
-				outputLength += await writeData(writer, result.data);
-				return { signature: result.signature, length: outputLength };
-			}
-		}
-	}
-
-	function testAborted(signal, codec) {
-		if (signal && signal.aborted) {
-			codec.flush();
-			throw new Error(ERR_ABORT);
-		}
-	}
-
-	async function writeData(writer, data) {
-		if (data.length) {
-			await writer.writeUint8Array(data);
-		}
-		return data.length;
-	}
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-	const ERR_HTTP_STATUS = "HTTP error ";
-	const ERR_HTTP_RANGE = "HTTP Range not supported";
-
-	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
-	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
-	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
-	const HTTP_HEADER_RANGE = "Range";
-	const HTTP_METHOD_HEAD = "HEAD";
-	const HTTP_METHOD_GET = "GET";
-	const HTTP_RANGE_UNIT = "bytes";
-
-	class Stream {
-
-		constructor() {
-			this.size = 0;
-		}
-
-		init() {
-			this.initialized = true;
-		}
-	}
-
-	class Reader extends Stream {
-	}
-
-	class Writer extends Stream {
-
-		writeUint8Array(array) {
-			this.size += array.length;
-		}
-	}
-
-	class TextReader extends Reader {
-
-		constructor(text) {
-			super();
-			this.blobReader = new BlobReader(new Blob([text], { type: CONTENT_TYPE_TEXT_PLAIN }));
-		}
-
-		async init() {
-			super.init();
-			this.blobReader.init();
-			this.size = this.blobReader.size;
-		}
-
-		async readUint8Array(offset, length) {
-			return this.blobReader.readUint8Array(offset, length);
-		}
-	}
-
-	class TextWriter extends Writer {
-
-		constructor(encoding) {
-			super();
-			this.encoding = encoding;
-			this.blob = new Blob([], { type: CONTENT_TYPE_TEXT_PLAIN });
-		}
-
-		async writeUint8Array(array) {
-			super.writeUint8Array(array);
-			this.blob = new Blob([this.blob, array.buffer], { type: CONTENT_TYPE_TEXT_PLAIN });
-		}
-
-		getData() {
-			const reader = new FileReader();
-			return new Promise((resolve, reject) => {
-				reader.onload = event => resolve(event.target.result);
-				reader.onerror = () => reject(reader.error);
-				reader.readAsText(this.blob, this.encoding);
-			});
-		}
-	}
-
-	class Data64URIReader extends Reader {
-
-		constructor(dataURI) {
-			super();
-			this.dataURI = dataURI;
-			let dataEnd = dataURI.length;
-			while (dataURI.charAt(dataEnd - 1) == "=") {
-				dataEnd--;
-			}
-			this.dataStart = dataURI.indexOf(",") + 1;
-			this.size = Math.floor((dataEnd - this.dataStart) * 0.75);
-		}
-
-		async readUint8Array(offset, length) {
-			const dataArray = new Uint8Array(length);
-			const start = Math.floor(offset / 3) * 4;
-			const bytes = atob(this.dataURI.substring(start + this.dataStart, Math.ceil((offset + length) / 3) * 4 + this.dataStart));
-			const delta = offset - Math.floor(start / 4) * 3;
-			for (let indexByte = delta; indexByte < delta + length; indexByte++) {
-				dataArray[indexByte - delta] = bytes.charCodeAt(indexByte);
-			}
-			return dataArray;
-		}
-	}
-
-	class Data64URIWriter extends Writer {
-
-		constructor(contentType) {
-			super();
-			this.data = "data:" + (contentType || "") + ";base64,";
-			this.pending = [];
-		}
-
-		async writeUint8Array(array) {
-			super.writeUint8Array(array);
-			let indexArray = 0;
-			let dataString = this.pending;
-			const delta = this.pending.length;
-			this.pending = "";
-			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
-				dataString += String.fromCharCode(array[indexArray]);
-			}
-			for (; indexArray < array.length; indexArray++) {
-				this.pending += String.fromCharCode(array[indexArray]);
-			}
-			if (dataString.length > 2) {
-				this.data += btoa(dataString);
-			} else {
-				this.pending = dataString;
-			}
-		}
-
-		getData() {
-			return this.data + btoa(this.pending);
-		}
-	}
-
-	class BlobReader extends Reader {
-
-		constructor(blob) {
-			super();
-			this.blob = blob;
-			this.size = blob.size;
-		}
-
-		async readUint8Array(offset, length) {
-			const reader = new FileReader();
-			return new Promise((resolve, reject) => {
-				reader.onload = event => resolve(new Uint8Array(event.target.result));
-				reader.onerror = () => reject(reader.error);
-				reader.readAsArrayBuffer(this.blob.slice(offset, offset + length));
-			});
-		}
-	}
-
-	class BlobWriter extends Writer {
-
-		constructor(contentType) {
-			super();
-			this.offset = 0;
-			this.contentType = contentType;
-			this.blob = new Blob([], { type: contentType });
-		}
-
-		async writeUint8Array(array) {
-			super.writeUint8Array(array);
-			this.blob = new Blob([this.blob, array.buffer], { type: this.contentType });
-			this.offset = this.blob.size;
-		}
-
-		getData() {
-			return this.blob;
-		}
-	}
-
-	class FetchReader extends Reader {
-
-		constructor(url, options) {
-			super();
-			this.url = url;
-			this.preventHeadRequest = options.preventHeadRequest;
-			this.useRangeHeader = options.useRangeHeader;
-			this.forceRangeRequests = options.forceRangeRequests;
-			this.options = Object.assign({}, options);
-			delete this.options.preventHeadRequest;
-			delete this.options.useRangeHeader;
-			delete this.options.forceRangeRequests;
-			delete this.options.useXHR;
-		}
-
-		async init() {
-			super.init();
-			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
-				const response = await sendFetchRequest(HTTP_METHOD_HEAD, this.url, this.options);
-				this.size = Number(response.headers.get(HTTP_HEADER_CONTENT_LENGTH));
-				if (!this.forceRangeRequests && this.useRangeHeader && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
-					throw new Error(ERR_HTTP_RANGE);
-				} else if (this.size === undefined) {
-					await getFetchData(this, this.options);
-				}
-			} else {
-				await getFetchData(this, this.options);
-			}
-		}
-
-		async readUint8Array(index, length) {
-			if (this.useRangeHeader) {
-				const response = await sendFetchRequest(HTTP_METHOD_GET, this.url, this.options, Object.assign({}, this.options.headers,
-					{ HEADER_RANGE: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) }));
-				if (response.status != 206) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-				return new Uint8Array(await response.arrayBuffer());
-			} else {
-				if (!this.data) {
-					await getFetchData(this, this.options);
-				}
-				return new Uint8Array(this.data.subarray(index, index + length));
-			}
-		}
-	}
-
-	async function getFetchData(httpReader, options) {
-		const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader.url, options);
-		httpReader.data = new Uint8Array(await response.arrayBuffer());
-		if (!httpReader.size) {
-			httpReader.size = httpReader.data.length;
-		}
-	}
-
-	async function sendFetchRequest(method, url, options, headers) {
-		headers = Object.assign({}, options.headers, headers);
-		const response = await fetch(url, Object.assign({}, options, { method, headers }));
-		if (response.status < 400) {
-			return response;
-		} else {
-			throw new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
-		}
-	}
-
-	class XHRReader extends Reader {
-
-		constructor(url, options) {
-			super();
-			this.url = url;
-			this.preventHeadRequest = options.preventHeadRequest;
-			this.useRangeHeader = options.useRangeHeader;
-			this.forceRangeRequests = options.forceRangeRequests;
-		}
-
-		async init() {
-			super.init();
-			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
-				return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_HEAD, this.url, request => {
-					this.size = Number(request.getResponseHeader(HTTP_HEADER_CONTENT_LENGTH));
-					if (this.useRangeHeader) {
-						if (this.forceRangeRequests || request.getResponseHeader(HTTP_HEADER_ACCEPT_RANGES) == HTTP_RANGE_UNIT) {
-							resolve();
-						} else {
-							reject(new Error(ERR_HTTP_RANGE));
-						}
-					} else if (this.size === undefined) {
-						getXHRData(this, this.url).then(() => resolve()).catch(reject);
-					} else {
-						resolve();
-					}
-				}, reject));
-			} else {
-				await getXHRData(this, this.url);
-			}
-		}
-
-		async readUint8Array(index, length) {
-			if (this.useRangeHeader) {
-				const request = await new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, this.url, request => resolve(new Uint8Array(request.response)), reject,
-					[[HTTP_HEADER_RANGE, HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1)]]));
-				if (request.status != 206) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-			} else {
-				if (!this.data) {
-					await getXHRData(this, this.url);
-				}
-				return new Uint8Array(this.data.subarray(index, index + length));
-			}
-		}
-	}
-
-	function getXHRData(httpReader, url) {
-		return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, url, request => {
-			httpReader.data = new Uint8Array(request.response);
-			if (!httpReader.size) {
-				httpReader.size = httpReader.data.length;
-			}
-			resolve();
-		}, reject));
-	}
-
-	function sendXHR(method, url, onload, onerror, headers = []) {
-		const request = new XMLHttpRequest();
-		request.addEventListener("load", () => {
-			if (request.status < 400) {
-				onload(request);
-			} else {
-				onerror(ERR_HTTP_STATUS + (request.statusText || request.status));
-			}
-		}, false);
-		request.addEventListener("error", onerror, false);
-		request.open(method, url);
-		headers.forEach(header => request.setRequestHeader(header[0], header[1]));
-		request.responseType = "arraybuffer";
-		request.send();
-		return request;
-	}
-
-	class HttpReader extends Reader {
-
-		constructor(url, options = {}) {
-			super();
-			this.url = url;
-			if (options.useXHR) {
-				this.reader = new XHRReader(url, options);
-			} else {
-				this.reader = new FetchReader(url, options);
-			}
-		}
-
-		set size(value) {
-			// ignored
-		}
-
-		get size() {
-			return this.reader.size;
-		}
-
-		async init() {
-			super.init();
-			await this.reader.init();
-		}
-
-		async readUint8Array(index, length) {
-			return this.reader.readUint8Array(index, length);
-		}
-	}
-
-	class HttpRangeReader extends HttpReader {
-
-		constructor(url, options = {}) {
-			options.useRangeHeader = true;
-			super(url, options);
-		}
-	}
-
-
-	class Uint8ArrayReader extends Reader {
-
-		constructor(array) {
-			super();
-			this.array = array;
-			this.size = array.length;
-		}
-
-		async readUint8Array(index, length) {
-			return this.array.slice(index, index + length);
-		}
-	}
-
-	class Uint8ArrayWriter extends Writer {
-
-		constructor() {
-			super();
-			this.array = new Uint8Array(0);
-		}
-
-		async writeUint8Array(array) {
-			super.writeUint8Array(array);
-			const previousArray = this.array;
-			this.array = new Uint8Array(previousArray.length + array.length);
-			this.array.set(previousArray);
-			this.array.set(array, previousArray.length);
-		}
-
-		getData() {
-			return this.array;
-		}
-	}
-
-	function isHttpFamily(url) {
-		if (typeof document != "undefined") {
-			const anchor = document.createElement("a");
-			anchor.href = url;
-			return anchor.protocol == "http:" || anchor.protocol == "https:";
-		} else {
-			return /^https?:\/\//i.test(url);
-		}
-	}
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-	const MAX_32_BITS = 0xffffffff;
-	const MAX_16_BITS = 0xffff;
-	const COMPRESSION_METHOD_DEFLATE = 0x08;
-	const COMPRESSION_METHOD_STORE = 0x00;
-	const COMPRESSION_METHOD_AES = 0x63;
-
-	const LOCAL_FILE_HEADER_SIGNATURE = 0x04034b50;
-	const DATA_DESCRIPTOR_RECORD_SIGNATURE = 0x08074b50;
-	const CENTRAL_FILE_HEADER_SIGNATURE = 0x02014b50;
-	const END_OF_CENTRAL_DIR_SIGNATURE = 0x06054b50;
-	const ZIP64_END_OF_CENTRAL_DIR_SIGNATURE = 0x06064b50;
-	const ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE = 0x07064b50;
-	const END_OF_CENTRAL_DIR_LENGTH = 22;
-	const ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH = 20;
-	const ZIP64_END_OF_CENTRAL_DIR_LENGTH = 56;
-	const ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH = END_OF_CENTRAL_DIR_LENGTH + ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH + ZIP64_END_OF_CENTRAL_DIR_LENGTH;
-
-	const ZIP64_TOTAL_NUMBER_OF_DISKS = 1;
-
-	const EXTRAFIELD_TYPE_ZIP64 = 0x0001;
-	const EXTRAFIELD_TYPE_AES = 0x9901;
-	const EXTRAFIELD_TYPE_UNICODE_PATH = 0x7075;
-	const EXTRAFIELD_TYPE_UNICODE_COMMENT = 0x6375;
-
-	const BITFLAG_ENCRYPTED = 0x01;
-	const BITFLAG_LEVEL = 0x06;
-	const BITFLAG_DATA_DESCRIPTOR = 0x0008;
-	const BITFLAG_LANG_ENCODING_FLAG = 0x0800;
-	const FILE_ATTR_MSDOS_DIR_MASK = 0x10;
-
-	const VERSION_DEFLATE = 0x14;
-	const VERSION_ZIP64 = 0x2D;
-	const VERSION_AES = 0x33;
-
-	const DIRECTORY_SIGNATURE = "/";
-
-	const MAX_DATE = new Date(2107, 11, 31);
-	const MIN_DATE = new Date(1980, 0, 1);
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-	const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
-
-	var decodeCP437 = stringValue => {
-		let result = "";
-		for (let indexCharacter = 0; indexCharacter < stringValue.length; indexCharacter++) {
-			result += CP437[stringValue[indexCharacter]];
-		}
-		return result;
-	};
-
-	/*
-	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
 	const table = [];
 	for (let i = 0; i < 256; i++) {
 		let t = i;
@@ -1721,7 +1123,7 @@
 	}
 
 	async function createDecryptionKeys(decrypt, preambleArray, password) {
-		await createKeys$1(decrypt, password, subarray(preambleArray, 0, SALT_LENGTH[decrypt.strength]));
+		await createKeys(decrypt, password, subarray(preambleArray, 0, SALT_LENGTH[decrypt.strength]));
 		const passwordVerification = subarray(preambleArray, SALT_LENGTH[decrypt.strength]);
 		const passwordVerificationKey = decrypt.keys.passwordVerification;
 		if (passwordVerificationKey[0] != passwordVerification[0] || passwordVerificationKey[1] != passwordVerification[1]) {
@@ -1731,11 +1133,11 @@
 
 	async function createEncryptionKeys(encrypt, password) {
 		const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH[encrypt.strength]));
-		await createKeys$1(encrypt, password, salt);
+		await createKeys(encrypt, password, salt);
 		return concat(salt, encrypt.keys.passwordVerification);
 	}
 
-	async function createKeys$1(target, password, salt) {
+	async function createKeys(target, password, salt) {
 		const encodedPassword = (new TextEncoder()).encode(password);
 		const basekey = await subtle.importKey(RAW_FORMAT, encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
 		const derivedBits = await subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), basekey, 8 * ((KEY_LENGTH[target.strength] * 2) + 2));
@@ -1808,7 +1210,7 @@
 				password,
 				passwordVerification
 			});
-			createKeys(zipCrypto, password);
+			createKeys$1(zipCrypto, password);
 		}
 
 		async append(input) {
@@ -1840,7 +1242,7 @@
 				password,
 				passwordVerification
 			});
-			createKeys(zipCrypto, password);
+			createKeys$1(zipCrypto, password);
 		}
 
 		async append(input) {
@@ -1887,7 +1289,7 @@
 		return output;
 	}
 
-	function createKeys(target, password) {
+	function createKeys$1(target, password) {
 		target.keys = [0x12345678, 0x23456789, 0x34567890];
 		target.crcKey0 = new Crc32(target.keys[0]);
 		target.crcKey2 = new Crc32(target.keys[2]);
@@ -2080,7 +1482,7 @@
 		}
 	}
 
-	function createCodec$1(codecConstructor, options, config) {
+	function createCodec(codecConstructor, options, config) {
 		if (options.codecType.startsWith(CODEC_DEFLATE)) {
 			return new Deflate(codecConstructor, options, config);
 		} else if (options.codecType.startsWith(CODEC_INFLATE)) {
@@ -2127,7 +1529,12 @@
 			codecConstructor,
 			options: Object.assign({}, options),
 			scripts,
-			webWorker,
+			terminate() {
+				if (workerData.worker && !workerData.busy) {
+					workerData.worker.terminate();
+					workerData.interface = null;
+				}
+			},
 			onTaskFinished() {
 				workerData.busy = false;
 				onTaskFinished(workerData);
@@ -2137,7 +1544,7 @@
 	};
 
 	function createWorkerInterface(workerData, config) {
-		const interfaceCodec = createCodec$1(workerData.codecConstructor, workerData.options, config);
+		const interfaceCodec = createCodec(workerData.codecConstructor, workerData.options, config);
 		return {
 			async append(data) {
 				try {
@@ -2260,7 +1667,7 @@
 	let pool = [];
 	let pendingRequests = [];
 
-	function createCodec(codecConstructor, options, config) {
+	function createCodec$1(codecConstructor, options, config) {
 		const streamCopy = !options.compressed && !options.signed && !options.encrypted;
 		const webWorker = !streamCopy && (options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers));
 		const scripts = webWorker && config.workerScripts ? config.workerScripts[options.codecType] : [];
@@ -2284,10 +1691,12 @@
 				resolve(getWorker(workerData, codecConstructor, options, config, onTaskFinished, webWorker, scripts));
 			} else if (workerData.worker) {
 				clearTerminateTimeout(workerData);
-				workerData.terminateTimeout = setTimeout(() => {
-					pool = pool.filter(data => data != workerData);
-					workerData.worker.terminate();
-				}, config.terminateWorkerTimeout);
+				if (Number.isFinite(config.terminateWorkerTimeout) && config.terminateWorkerTimeout >= 0) {
+					workerData.terminateTimeout = setTimeout(() => {
+						pool = pool.filter(data => data != workerData);
+						workerData.terminate();
+					}, config.terminateWorkerTimeout);
+				}
 			} else {
 				pool = pool.filter(data => data != workerData);
 			}
@@ -2300,6 +1709,608 @@
 			workerData.terminateTimeout = null;
 		}
 	}
+
+	function terminateWorkers() {
+		pool.forEach(workerData => workerData.terminate());
+	}
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	const MINIMUM_CHUNK_SIZE = 64;
+	const ERR_ABORT = "Abort error";
+
+	async function processData(codec, reader, writer, offset, inputLength, config, options) {
+		const chunkSize = Math.max(config.chunkSize, MINIMUM_CHUNK_SIZE);
+		return processChunk();
+
+		async function processChunk(chunkOffset = 0, outputLength = 0) {
+			const signal = options.signal;
+			if (chunkOffset < inputLength) {
+				testAborted(signal, codec);
+				const inputData = await reader.readUint8Array(chunkOffset + offset, Math.min(chunkSize, inputLength - chunkOffset));
+				const chunkLength = inputData.length;
+				testAborted(signal, codec);
+				const data = await codec.append(inputData);
+				testAborted(signal, codec);
+				outputLength += await writeData(writer, data);
+				if (options.onprogress) {
+					try {
+						options.onprogress(chunkOffset + chunkLength, inputLength);
+					} catch (error) {
+						// ignored
+					}
+				}
+				return processChunk(chunkOffset + chunkSize, outputLength);
+			} else {
+				const result = await codec.flush();
+				outputLength += await writeData(writer, result.data);
+				return { signature: result.signature, length: outputLength };
+			}
+		}
+	}
+
+	function testAborted(signal, codec) {
+		if (signal && signal.aborted) {
+			codec.flush();
+			throw new Error(ERR_ABORT);
+		}
+	}
+
+	async function writeData(writer, data) {
+		if (data.length) {
+			await writer.writeUint8Array(data);
+		}
+		return data.length;
+	}
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	const ERR_HTTP_STATUS = "HTTP error ";
+	const ERR_HTTP_RANGE = "HTTP Range not supported";
+
+	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
+	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
+	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
+	const HTTP_HEADER_RANGE = "Range";
+	const HTTP_METHOD_HEAD = "HEAD";
+	const HTTP_METHOD_GET = "GET";
+	const HTTP_RANGE_UNIT = "bytes";
+
+	class Stream {
+
+		constructor() {
+			this.size = 0;
+		}
+
+		init() {
+			this.initialized = true;
+		}
+	}
+
+	class Reader extends Stream {
+	}
+
+	class Writer extends Stream {
+
+		writeUint8Array(array) {
+			this.size += array.length;
+		}
+	}
+
+	class TextReader extends Reader {
+
+		constructor(text) {
+			super();
+			this.blobReader = new BlobReader(new Blob([text], { type: CONTENT_TYPE_TEXT_PLAIN }));
+		}
+
+		async init() {
+			super.init();
+			this.blobReader.init();
+			this.size = this.blobReader.size;
+		}
+
+		async readUint8Array(offset, length) {
+			return this.blobReader.readUint8Array(offset, length);
+		}
+	}
+
+	class TextWriter extends Writer {
+
+		constructor(encoding) {
+			super();
+			this.encoding = encoding;
+			this.blob = new Blob([], { type: CONTENT_TYPE_TEXT_PLAIN });
+		}
+
+		async writeUint8Array(array) {
+			super.writeUint8Array(array);
+			this.blob = new Blob([this.blob, array.buffer], { type: CONTENT_TYPE_TEXT_PLAIN });
+		}
+
+		getData() {
+			const reader = new FileReader();
+			return new Promise((resolve, reject) => {
+				reader.onload = event => resolve(event.target.result);
+				reader.onerror = () => reject(reader.error);
+				reader.readAsText(this.blob, this.encoding);
+			});
+		}
+	}
+
+	class Data64URIReader extends Reader {
+
+		constructor(dataURI) {
+			super();
+			this.dataURI = dataURI;
+			let dataEnd = dataURI.length;
+			while (dataURI.charAt(dataEnd - 1) == "=") {
+				dataEnd--;
+			}
+			this.dataStart = dataURI.indexOf(",") + 1;
+			this.size = Math.floor((dataEnd - this.dataStart) * 0.75);
+		}
+
+		async readUint8Array(offset, length) {
+			const dataArray = new Uint8Array(length);
+			const start = Math.floor(offset / 3) * 4;
+			const bytes = atob(this.dataURI.substring(start + this.dataStart, Math.ceil((offset + length) / 3) * 4 + this.dataStart));
+			const delta = offset - Math.floor(start / 4) * 3;
+			for (let indexByte = delta; indexByte < delta + length; indexByte++) {
+				dataArray[indexByte - delta] = bytes.charCodeAt(indexByte);
+			}
+			return dataArray;
+		}
+	}
+
+	class Data64URIWriter extends Writer {
+
+		constructor(contentType) {
+			super();
+			this.data = "data:" + (contentType || "") + ";base64,";
+			this.pending = [];
+		}
+
+		async writeUint8Array(array) {
+			super.writeUint8Array(array);
+			let indexArray = 0;
+			let dataString = this.pending;
+			const delta = this.pending.length;
+			this.pending = "";
+			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
+				dataString += String.fromCharCode(array[indexArray]);
+			}
+			for (; indexArray < array.length; indexArray++) {
+				this.pending += String.fromCharCode(array[indexArray]);
+			}
+			if (dataString.length > 2) {
+				this.data += btoa(dataString);
+			} else {
+				this.pending = dataString;
+			}
+		}
+
+		getData() {
+			return this.data + btoa(this.pending);
+		}
+	}
+
+	class BlobReader extends Reader {
+
+		constructor(blob) {
+			super();
+			this.blob = blob;
+			this.size = blob.size;
+		}
+
+		async readUint8Array(offset, length) {
+			const reader = new FileReader();
+			return new Promise((resolve, reject) => {
+				reader.onload = event => resolve(new Uint8Array(event.target.result));
+				reader.onerror = () => reject(reader.error);
+				reader.readAsArrayBuffer(this.blob.slice(offset, offset + length));
+			});
+		}
+	}
+
+	class BlobWriter extends Writer {
+
+		constructor(contentType) {
+			super();
+			this.offset = 0;
+			this.contentType = contentType;
+			this.blob = new Blob([], { type: contentType });
+		}
+
+		async writeUint8Array(array) {
+			super.writeUint8Array(array);
+			this.blob = new Blob([this.blob, array.buffer], { type: this.contentType });
+			this.offset = this.blob.size;
+		}
+
+		getData() {
+			return this.blob;
+		}
+	}
+
+	class FetchReader extends Reader {
+
+		constructor(url, options) {
+			super();
+			this.url = url;
+			this.preventHeadRequest = options.preventHeadRequest;
+			this.useRangeHeader = options.useRangeHeader;
+			this.forceRangeRequests = options.forceRangeRequests;
+			this.options = Object.assign({}, options);
+			delete this.options.preventHeadRequest;
+			delete this.options.useRangeHeader;
+			delete this.options.forceRangeRequests;
+			delete this.options.useXHR;
+		}
+
+		async init() {
+			super.init();
+			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
+				const response = await sendFetchRequest(HTTP_METHOD_HEAD, this.url, this.options);
+				this.size = Number(response.headers.get(HTTP_HEADER_CONTENT_LENGTH));
+				if (!this.forceRangeRequests && this.useRangeHeader && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
+					throw new Error(ERR_HTTP_RANGE);
+				} else if (this.size === undefined) {
+					await getFetchData(this, this.options);
+				}
+			} else {
+				await getFetchData(this, this.options);
+			}
+		}
+
+		async readUint8Array(index, length) {
+			if (this.useRangeHeader) {
+				const response = await sendFetchRequest(HTTP_METHOD_GET, this.url, this.options, Object.assign({}, this.options.headers,
+					{ HEADER_RANGE: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) }));
+				if (response.status != 206) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+				return new Uint8Array(await response.arrayBuffer());
+			} else {
+				if (!this.data) {
+					await getFetchData(this, this.options);
+				}
+				return new Uint8Array(this.data.subarray(index, index + length));
+			}
+		}
+	}
+
+	async function getFetchData(httpReader, options) {
+		const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader.url, options);
+		httpReader.data = new Uint8Array(await response.arrayBuffer());
+		if (!httpReader.size) {
+			httpReader.size = httpReader.data.length;
+		}
+	}
+
+	async function sendFetchRequest(method, url, options, headers) {
+		headers = Object.assign({}, options.headers, headers);
+		const response = await fetch(url, Object.assign({}, options, { method, headers }));
+		if (response.status < 400) {
+			return response;
+		} else {
+			throw new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
+		}
+	}
+
+	class XHRReader extends Reader {
+
+		constructor(url, options) {
+			super();
+			this.url = url;
+			this.preventHeadRequest = options.preventHeadRequest;
+			this.useRangeHeader = options.useRangeHeader;
+			this.forceRangeRequests = options.forceRangeRequests;
+		}
+
+		async init() {
+			super.init();
+			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
+				return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_HEAD, this.url, request => {
+					this.size = Number(request.getResponseHeader(HTTP_HEADER_CONTENT_LENGTH));
+					if (this.useRangeHeader) {
+						if (this.forceRangeRequests || request.getResponseHeader(HTTP_HEADER_ACCEPT_RANGES) == HTTP_RANGE_UNIT) {
+							resolve();
+						} else {
+							reject(new Error(ERR_HTTP_RANGE));
+						}
+					} else if (this.size === undefined) {
+						getXHRData(this, this.url).then(() => resolve()).catch(reject);
+					} else {
+						resolve();
+					}
+				}, reject));
+			} else {
+				await getXHRData(this, this.url);
+			}
+		}
+
+		async readUint8Array(index, length) {
+			if (this.useRangeHeader) {
+				const request = await new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, this.url, request => resolve(new Uint8Array(request.response)), reject,
+					[[HTTP_HEADER_RANGE, HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1)]]));
+				if (request.status != 206) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+			} else {
+				if (!this.data) {
+					await getXHRData(this, this.url);
+				}
+				return new Uint8Array(this.data.subarray(index, index + length));
+			}
+		}
+	}
+
+	function getXHRData(httpReader, url) {
+		return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, url, request => {
+			httpReader.data = new Uint8Array(request.response);
+			if (!httpReader.size) {
+				httpReader.size = httpReader.data.length;
+			}
+			resolve();
+		}, reject));
+	}
+
+	function sendXHR(method, url, onload, onerror, headers = []) {
+		const request = new XMLHttpRequest();
+		request.addEventListener("load", () => {
+			if (request.status < 400) {
+				onload(request);
+			} else {
+				onerror(ERR_HTTP_STATUS + (request.statusText || request.status));
+			}
+		}, false);
+		request.addEventListener("error", onerror, false);
+		request.open(method, url);
+		headers.forEach(header => request.setRequestHeader(header[0], header[1]));
+		request.responseType = "arraybuffer";
+		request.send();
+		return request;
+	}
+
+	class HttpReader extends Reader {
+
+		constructor(url, options = {}) {
+			super();
+			this.url = url;
+			if (options.useXHR) {
+				this.reader = new XHRReader(url, options);
+			} else {
+				this.reader = new FetchReader(url, options);
+			}
+		}
+
+		set size(value) {
+			// ignored
+		}
+
+		get size() {
+			return this.reader.size;
+		}
+
+		async init() {
+			super.init();
+			await this.reader.init();
+		}
+
+		async readUint8Array(index, length) {
+			return this.reader.readUint8Array(index, length);
+		}
+	}
+
+	class HttpRangeReader extends HttpReader {
+
+		constructor(url, options = {}) {
+			options.useRangeHeader = true;
+			super(url, options);
+		}
+	}
+
+
+	class Uint8ArrayReader extends Reader {
+
+		constructor(array) {
+			super();
+			this.array = array;
+			this.size = array.length;
+		}
+
+		async readUint8Array(index, length) {
+			return this.array.slice(index, index + length);
+		}
+	}
+
+	class Uint8ArrayWriter extends Writer {
+
+		constructor() {
+			super();
+			this.array = new Uint8Array(0);
+		}
+
+		async writeUint8Array(array) {
+			super.writeUint8Array(array);
+			const previousArray = this.array;
+			this.array = new Uint8Array(previousArray.length + array.length);
+			this.array.set(previousArray);
+			this.array.set(array, previousArray.length);
+		}
+
+		getData() {
+			return this.array;
+		}
+	}
+
+	function isHttpFamily(url) {
+		if (typeof document != "undefined") {
+			const anchor = document.createElement("a");
+			anchor.href = url;
+			return anchor.protocol == "http:" || anchor.protocol == "https:";
+		} else {
+			return /^https?:\/\//i.test(url);
+		}
+	}
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	const MAX_32_BITS = 0xffffffff;
+	const MAX_16_BITS = 0xffff;
+	const COMPRESSION_METHOD_DEFLATE = 0x08;
+	const COMPRESSION_METHOD_STORE = 0x00;
+	const COMPRESSION_METHOD_AES = 0x63;
+
+	const LOCAL_FILE_HEADER_SIGNATURE = 0x04034b50;
+	const DATA_DESCRIPTOR_RECORD_SIGNATURE = 0x08074b50;
+	const CENTRAL_FILE_HEADER_SIGNATURE = 0x02014b50;
+	const END_OF_CENTRAL_DIR_SIGNATURE = 0x06054b50;
+	const ZIP64_END_OF_CENTRAL_DIR_SIGNATURE = 0x06064b50;
+	const ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE = 0x07064b50;
+	const END_OF_CENTRAL_DIR_LENGTH = 22;
+	const ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH = 20;
+	const ZIP64_END_OF_CENTRAL_DIR_LENGTH = 56;
+	const ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH = END_OF_CENTRAL_DIR_LENGTH + ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH + ZIP64_END_OF_CENTRAL_DIR_LENGTH;
+
+	const ZIP64_TOTAL_NUMBER_OF_DISKS = 1;
+
+	const EXTRAFIELD_TYPE_ZIP64 = 0x0001;
+	const EXTRAFIELD_TYPE_AES = 0x9901;
+	const EXTRAFIELD_TYPE_UNICODE_PATH = 0x7075;
+	const EXTRAFIELD_TYPE_UNICODE_COMMENT = 0x6375;
+
+	const BITFLAG_ENCRYPTED = 0x01;
+	const BITFLAG_LEVEL = 0x06;
+	const BITFLAG_DATA_DESCRIPTOR = 0x0008;
+	const BITFLAG_LANG_ENCODING_FLAG = 0x0800;
+	const FILE_ATTR_MSDOS_DIR_MASK = 0x10;
+
+	const VERSION_DEFLATE = 0x14;
+	const VERSION_ZIP64 = 0x2D;
+	const VERSION_AES = 0x33;
+
+	const DIRECTORY_SIGNATURE = "/";
+
+	const MAX_DATE = new Date(2107, 11, 31);
+	const MIN_DATE = new Date(1980, 0, 1);
+
+	/*
+	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
+
+	var decodeCP437 = stringValue => {
+		let result = "";
+		for (let indexCharacter = 0; indexCharacter < stringValue.length; indexCharacter++) {
+			result += CP437[stringValue[indexCharacter]];
+		}
+		return result;
+	};
 
 	/*
 	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
@@ -2407,27 +2418,27 @@
 			if (!endOfDirectoryInfo) {
 				throw new Error(ERR_EOCDR_NOT_FOUND);
 			}
-			const endOfDirectoryView = getDataView$1(endOfDirectoryInfo);
+			const endOfDirectoryView = getDataView(endOfDirectoryInfo);
 			let directoryDataLength = getUint32(endOfDirectoryView, 12);
 			let directoryDataOffset = getUint32(endOfDirectoryView, 16);
 			let filesLength = getUint16(endOfDirectoryView, 8);
 			let prependedDataLength = 0;
 			if (directoryDataOffset == MAX_32_BITS || filesLength == MAX_16_BITS) {
 				const endOfDirectoryLocatorArray = await readUint8Array(reader, endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH);
-				const endOfDirectoryLocatorView = getDataView$1(endOfDirectoryLocatorArray);
+				const endOfDirectoryLocatorView = getDataView(endOfDirectoryLocatorArray);
 				if (getUint32(endOfDirectoryLocatorView, 0) != ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_ZIP64_NOT_FOUND);
 				}
 				directoryDataOffset = getBigUint64(endOfDirectoryLocatorView, 8);
 				let endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
-				let endOfDirectoryView = getDataView$1(endOfDirectoryArray);
+				let endOfDirectoryView = getDataView(endOfDirectoryArray);
 				const expectedDirectoryDataOffset = endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH - ZIP64_END_OF_CENTRAL_DIR_LENGTH;
 				if (getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE && directoryDataOffset != expectedDirectoryDataOffset) {
 					const originalDirectoryDataOffset = directoryDataOffset;
 					directoryDataOffset = expectedDirectoryDataOffset;
 					prependedDataLength = directoryDataOffset - originalDirectoryDataOffset;
 					endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
-					endOfDirectoryView = getDataView$1(endOfDirectoryArray);
+					endOfDirectoryView = getDataView(endOfDirectoryArray);
 				}
 				if (getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
@@ -2441,14 +2452,14 @@
 			}
 			let offset = 0;
 			let directoryArray = await readUint8Array(reader, directoryDataOffset, reader.size - directoryDataOffset);
-			let directoryView = getDataView$1(directoryArray);
+			let directoryView = getDataView(directoryArray);
 			const expectedDirectoryDataOffset = endOfDirectoryInfo.offset - directoryDataLength;
 			if (getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE && directoryDataOffset != expectedDirectoryDataOffset) {
 				const originalDirectoryDataOffset = directoryDataOffset;
 				directoryDataOffset = expectedDirectoryDataOffset;
 				prependedDataLength = directoryDataOffset - originalDirectoryDataOffset;
 				directoryArray = await readUint8Array(reader, directoryDataOffset, reader.size - directoryDataOffset);
-				directoryView = getDataView$1(directoryArray);
+				directoryView = getDataView(directoryArray);
 			}
 			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
 				throw new Error(ERR_BAD_FORMAT);
@@ -2477,8 +2488,8 @@
 				});
 				const endOffset = commentOffset + fileEntry.commentLength;
 				fileEntry.rawComment = directoryArray.subarray(commentOffset, endOffset);
-				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.filenameUTF8 ? CHARSET_UTF8 : getOptionValue$1(zipReader, options, "filenameEncoding"));
-				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.commentUTF8 ? CHARSET_UTF8 : getOptionValue$1(zipReader, options, "commentEncoding"));
+				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.filenameUTF8 ? CHARSET_UTF8 : getOptionValue(zipReader, options, "filenameEncoding"));
+				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.commentUTF8 ? CHARSET_UTF8 : getOptionValue(zipReader, options, "commentEncoding"));
 				if (!fileEntry.directory && fileEntry.filename.endsWith(DIRECTORY_SIGNATURE)) {
 					fileEntry.directory = true;
 				}
@@ -2523,8 +2534,8 @@
 				await reader.init();
 			}
 			const dataArray = await readUint8Array(reader, offset, 30);
-			const dataView = getDataView$1(dataArray);
-			let password = getOptionValue$1(zipEntry, options, "password");
+			const dataView = getDataView(dataArray);
+			let password = getOptionValue(zipEntry, options, "password");
 			password = password && password.length && password;
 			if (extraFieldAES) {
 				if (extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
@@ -2551,22 +2562,22 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const codec = await createCodec(config.Inflate, {
+			const codec = await createCodec$1(config.Inflate, {
 				codecType: CODEC_INFLATE,
 				password,
 				zipCrypto,
 				encryptionStrength: extraFieldAES && extraFieldAES.strength,
-				signed: getOptionValue$1(zipEntry, options, "checkSignature"),
+				signed: getOptionValue(zipEntry, options, "checkSignature"),
 				passwordVerification: zipCrypto && (bitFlag.dataDescriptor ? ((rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
 				signature,
 				compressed: compressionMethod != 0,
 				encrypted,
-				useWebWorkers: getOptionValue$1(zipEntry, options, "useWebWorkers")
+				useWebWorkers: getOptionValue(zipEntry, options, "useWebWorkers")
 			}, config);
 			if (!writer.initialized) {
 				await writer.init();
 			}
-			const signal = getOptionValue$1(zipEntry, options, "signal");
+			const signal = getOptionValue(zipEntry, options, "signal");
 			await processData(codec, reader, writer, dataOffset, compressedSize, config, { onprogress: options.onprogress, signal });
 			return writer.getData();
 		}
@@ -2593,7 +2604,7 @@
 	function readCommonFooter(fileEntry, directory, dataView, offset) {
 		const rawExtraField = directory.rawExtraField;
 		const extraField = directory.extraField = new Map();
-		const rawExtraFieldView = getDataView$1(new Uint8Array(rawExtraField));
+		const rawExtraFieldView = getDataView(new Uint8Array(rawExtraField));
 		let offsetExtraField = 0;
 		try {
 			while (offsetExtraField < rawExtraField.length) {
@@ -2634,7 +2645,7 @@
 
 	function readExtraFieldZip64(extraFieldZip64, directory) {
 		directory.zip64 = true;
-		const extraFieldView = getDataView$1(extraFieldZip64.data);
+		const extraFieldView = getDataView(extraFieldZip64.data);
 		extraFieldZip64.values = [];
 		for (let indexValue = 0; indexValue < Math.floor(extraFieldZip64.data.length / 8); indexValue++) {
 			extraFieldZip64.values.push(getBigUint64(extraFieldView, 0 + indexValue * 8));
@@ -2655,12 +2666,12 @@
 	}
 
 	function readExtraFieldUnicode(extraFieldUnicode, propertyName, rawPropertyName, directory, fileEntry) {
-		const extraFieldView = getDataView$1(extraFieldUnicode.data);
+		const extraFieldView = getDataView(extraFieldUnicode.data);
 		extraFieldUnicode.version = getUint8(extraFieldView, 0);
 		extraFieldUnicode.signature = getUint32(extraFieldView, 1);
 		const crc32 = new Crc32();
 		crc32.append(fileEntry[rawPropertyName]);
-		const dataViewSignature = getDataView$1(new Uint8Array(4));
+		const dataViewSignature = getDataView(new Uint8Array(4));
 		dataViewSignature.setUint32(0, crc32.get(), true);
 		extraFieldUnicode[propertyName] = (new TextDecoder()).decode(extraFieldUnicode.data.subarray(5));
 		extraFieldUnicode.valid = !fileEntry.bitFlag.languageEncodingFlag && extraFieldUnicode.signature == getUint32(dataViewSignature, 0);
@@ -2672,7 +2683,7 @@
 
 	function readExtraFieldAES(extraFieldAES, directory, compressionMethod) {
 		if (extraFieldAES) {
-			const extraFieldView = getDataView$1(extraFieldAES.data);
+			const extraFieldView = getDataView(extraFieldAES.data);
 			extraFieldAES.vendorVersion = getUint8(extraFieldView, 0);
 			extraFieldAES.vendorId = getUint8(extraFieldView, 2);
 			const strength = getUint8(extraFieldView, 4);
@@ -2686,8 +2697,8 @@
 
 	async function seekSignature(reader, signature, startOffset, minimumBytes, maximumLength) {
 		const signatureArray = new Uint8Array(4);
-		const signatureView = getDataView$1(signatureArray);
-		setUint32$1(signatureView, 0, signature);
+		const signatureView = getDataView(signatureArray);
+		setUint32(signatureView, 0, signature);
 		const maximumBytes = minimumBytes + maximumLength;
 		return (await seek(minimumBytes)) || await seek(Math.min(maximumBytes, startOffset));
 
@@ -2706,7 +2717,7 @@
 		}
 	}
 
-	function getOptionValue$1(zipReader, options, name) {
+	function getOptionValue(zipReader, options, name) {
 		return options[name] === undefined ? zipReader.options[name] : options[name];
 	}
 
@@ -2743,11 +2754,11 @@
 		return Number(view.getBigUint64(offset, true));
 	}
 
-	function setUint32$1(view, offset, value) {
+	function setUint32(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
-	function getDataView$1(array) {
+	function getDataView(array) {
 		return new DataView(array.buffer);
 	}
 
@@ -2850,7 +2861,7 @@
 			}
 			const zip64 = zipWriter.options.zip64 || directoryOffset >= MAX_32_BITS || directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS;
 			const directoryArray = new Uint8Array(directoryDataLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH));
-			const directoryView = getDataView(directoryArray);
+			const directoryView = getDataView$1(directoryArray);
 			if (comment.length) {
 				if (comment.length <= MAX_16_BITS) {
 					setUint16(directoryView, offset + 20, comment.length);
@@ -2871,7 +2882,7 @@
 					zip64
 				} = fileEntry;
 				const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraField.length;
-				setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
+				setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 				setUint16(directoryView, offset + 4, version);
 				arraySet(directoryArray, headerArray, offset + 6);
 				setUint16(directoryView, offset + 30, extraFieldLength);
@@ -2880,9 +2891,9 @@
 					setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 				}
 				if (zip64) {
-					setUint32(directoryView, offset + 42, MAX_32_BITS);
+					setUint32$1(directoryView, offset + 42, MAX_32_BITS);
 				} else {
-					setUint32(directoryView, offset + 42, fileEntry.offset);
+					setUint32$1(directoryView, offset + 42, fileEntry.offset);
 				}
 				arraySet(directoryArray, rawFilename, offset + 46);
 				arraySet(directoryArray, rawExtraFieldZip64, offset + 46 + rawFilename.length);
@@ -2892,7 +2903,7 @@
 				offset += 46 + rawFilename.length + extraFieldLength + rawComment.length;
 			}
 			if (zip64) {
-				setUint32(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
+				setUint32$1(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
 				setBigUint64(directoryView, offset + 4, BigInt(44));
 				setUint16(directoryView, offset + 12, 45);
 				setUint16(directoryView, offset + 14, 45);
@@ -2900,19 +2911,19 @@
 				setBigUint64(directoryView, offset + 32, BigInt(filesLength));
 				setBigUint64(directoryView, offset + 40, BigInt(directoryDataLength));
 				setBigUint64(directoryView, offset + 48, BigInt(directoryOffset));
-				setUint32(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
+				setUint32$1(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
 				setBigUint64(directoryView, offset + 64, BigInt(directoryOffset) + BigInt(directoryDataLength));
-				setUint32(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
+				setUint32$1(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
 				filesLength = MAX_16_BITS;
 				directoryOffset = MAX_32_BITS;
 				directoryDataLength = MAX_32_BITS;
 				offset += 76;
 			}
-			setUint32(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
+			setUint32$1(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
 			setUint16(directoryView, offset + 8, filesLength);
 			setUint16(directoryView, offset + 10, filesLength);
-			setUint32(directoryView, offset + 12, directoryDataLength);
-			setUint32(directoryView, offset + 16, directoryOffset);
+			setUint32$1(directoryView, offset + 12, directoryDataLength);
+			setUint32$1(directoryView, offset + 16, directoryOffset);
 			await writer.writeUint8Array(directoryArray);
 			if (comment.length) {
 				await writer.writeUint8Array(comment);
@@ -2948,9 +2959,9 @@
 		if (lastModDate < MIN_DATE || lastModDate > MAX_DATE) {
 			throw new Error(ERR_INVALID_DATE);
 		}
-		const password = getOptionValue(zipWriter, options, "password");
-		const encryptionStrength = getOptionValue(zipWriter, options, "encryptionStrength") || 3;
-		const zipCrypto = getOptionValue(zipWriter, options, "zipCrypto");
+		const password = getOptionValue$1(zipWriter, options, "password");
+		const encryptionStrength = getOptionValue$1(zipWriter, options, "encryptionStrength") || 3;
+		const zipCrypto = getOptionValue$1(zipWriter, options, "zipCrypto");
 		if (password !== undefined && encryptionStrength !== undefined && (encryptionStrength < 1 || encryptionStrength > 3)) {
 			throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
 		}
@@ -2989,12 +3000,12 @@
 				await Promise.resolve();
 			}
 		}
-		const level = getOptionValue(zipWriter, options, "level");
-		const useWebWorkers = getOptionValue(zipWriter, options, "useWebWorkers");
-		const bufferedWrite = getOptionValue(zipWriter, options, "bufferedWrite");
-		let keepOrder = getOptionValue(zipWriter, options, "keepOrder");
-		let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor");
-		const signal = getOptionValue(zipWriter, options, "signal");
+		const level = getOptionValue$1(zipWriter, options, "level");
+		const useWebWorkers = getOptionValue$1(zipWriter, options, "useWebWorkers");
+		const bufferedWrite = getOptionValue$1(zipWriter, options, "bufferedWrite");
+		let keepOrder = getOptionValue$1(zipWriter, options, "keepOrder");
+		let dataDescriptor = getOptionValue$1(zipWriter, options, "dataDescriptor");
+		const signal = getOptionValue$1(zipWriter, options, "signal");
 		if (dataDescriptor === undefined) {
 			dataDescriptor = true;
 		}
@@ -3076,14 +3087,14 @@
 					const arrayBuffer = await sliceAsArrayBuffer(blob, 0, headerLength);
 					const arrayBufferView = new DataView(arrayBuffer);
 					if (!fileEntry.encrypted || options.zipCrypto) {
-						setUint32(arrayBufferView, 14, fileEntry.signature);
+						setUint32$1(arrayBufferView, 14, fileEntry.signature);
 					}
 					if (fileEntry.zip64) {
-						setUint32(arrayBufferView, 18, MAX_32_BITS);
-						setUint32(arrayBufferView, 22, MAX_32_BITS);
+						setUint32$1(arrayBufferView, 18, MAX_32_BITS);
+						setUint32$1(arrayBufferView, 22, MAX_32_BITS);
 					} else {
-						setUint32(arrayBufferView, 18, fileEntry.compressedSize);
-						setUint32(arrayBufferView, 22, fileEntry.uncompressedSize);
+						setUint32$1(arrayBufferView, 18, fileEntry.compressedSize);
+						setUint32$1(arrayBufferView, 22, fileEntry.uncompressedSize);
 					}
 					await writer.writeUint8Array(new Uint8Array(arrayBuffer));
 					indexWrittenData = headerLength;
@@ -3093,7 +3104,7 @@
 			}
 			fileEntry.offset = zipWriter.offset;
 			if (fileEntry.zip64) {
-				const rawExtraFieldZip64View = getDataView(fileEntry.rawExtraFieldZip64);
+				const rawExtraFieldZip64View = getDataView$1(fileEntry.rawExtraFieldZip64);
 				setBigUint64(rawExtraFieldZip64View, 20, BigInt(fileEntry.offset));
 			}
 			zipWriter.offset += fileEntry.length;
@@ -3129,7 +3140,7 @@
 		let rawExtraFieldAES;
 		if (encrypted && !zipCrypto) {
 			rawExtraFieldAES = new Uint8Array(EXTRAFIELD_DATA_AES.length + 2);
-			const extraFieldAESView = getDataView(rawExtraFieldAES);
+			const extraFieldAESView = getDataView$1(rawExtraFieldAES);
 			setUint16(extraFieldAESView, 0, EXTRAFIELD_TYPE_AES);
 			arraySet(rawExtraFieldAES, EXTRAFIELD_DATA_AES, 2);
 			setUint8(extraFieldAESView, 8, encryptionStrength);
@@ -3171,22 +3182,22 @@
 		}
 		fileEntry.compressionMethod = compressionMethod;
 		const headerArray = fileEntry.headerArray = new Uint8Array(26);
-		const headerView = getDataView(headerArray);
+		const headerView = getDataView$1(headerArray);
 		setUint16(headerView, 0, fileEntry.version);
 		setUint16(headerView, 2, bitFlag);
 		setUint16(headerView, 4, compressionMethod);
 		const dateArray = new Uint32Array(1);
-		const dateView = getDataView(dateArray);
+		const dateView = getDataView$1(dateArray);
 		setUint16(dateView, 0, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
 		setUint16(dateView, 2, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
 		const rawLastModDate = dateArray[0];
-		setUint32(headerView, 6, rawLastModDate);
+		setUint32$1(headerView, 6, rawLastModDate);
 		setUint16(headerView, 22, rawFilename.length);
 		setUint16(headerView, 24, 0);
 		setUint16(headerView, 24, rawExtraFieldAES.length + fileEntry.rawExtraField.length);
 		const localHeaderArray = new Uint8Array(30 + rawFilename.length + rawExtraFieldAES.length + fileEntry.rawExtraField.length);
-		const localHeaderView = getDataView(localHeaderArray);
-		setUint32(localHeaderView, 0, LOCAL_FILE_HEADER_SIGNATURE);
+		const localHeaderView = getDataView$1(localHeaderArray);
+		setUint32$1(localHeaderView, 0, LOCAL_FILE_HEADER_SIGNATURE);
 		arraySet(localHeaderArray, headerArray, 4);
 		arraySet(localHeaderArray, rawFilename, 30);
 		arraySet(localHeaderArray, rawExtraFieldAES, 30 + rawFilename.length);
@@ -3196,7 +3207,7 @@
 		let compressedSize = 0;
 		if (reader) {
 			uncompressedSize = reader.size;
-			const codec = await createCodec(config.Deflate, {
+			const codec = await createCodec$1(config.Deflate, {
 				codecType: CODEC_DEFLATE,
 				level,
 				password,
@@ -3221,36 +3232,36 @@
 		let dataDescriptorView;
 		if (dataDescriptor) {
 			dataDescriptorArray = new Uint8Array(zip64 ? 24 : 16);
-			dataDescriptorView = getDataView(dataDescriptorArray);
-			setUint32(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
+			dataDescriptorView = getDataView$1(dataDescriptorArray);
+			setUint32$1(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
 		}
 		if (reader) {
 			const signature = result.signature;
 			if ((!encrypted || zipCrypto) && signature !== undefined) {
-				setUint32(headerView, 10, signature);
+				setUint32$1(headerView, 10, signature);
 				fileEntry.signature = signature;
 				if (dataDescriptor) {
-					setUint32(dataDescriptorView, 4, signature);
+					setUint32$1(dataDescriptorView, 4, signature);
 				}
 			}
 			if (zip64) {
-				const rawExtraFieldZip64View = getDataView(fileEntry.rawExtraFieldZip64);
+				const rawExtraFieldZip64View = getDataView$1(fileEntry.rawExtraFieldZip64);
 				setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
 				setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
-				setUint32(headerView, 14, MAX_32_BITS);
+				setUint32$1(headerView, 14, MAX_32_BITS);
 				setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
-				setUint32(headerView, 18, MAX_32_BITS);
+				setUint32$1(headerView, 18, MAX_32_BITS);
 				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
 				if (dataDescriptor) {
 					setBigUint64(dataDescriptorView, 8, BigInt(compressedSize));
 					setBigUint64(dataDescriptorView, 16, BigInt(uncompressedSize));
 				}
 			} else {
-				setUint32(headerView, 14, compressedSize);
-				setUint32(headerView, 18, uncompressedSize);
+				setUint32$1(headerView, 14, compressedSize);
+				setUint32$1(headerView, 18, uncompressedSize);
 				if (dataDescriptor) {
-					setUint32(dataDescriptorView, 8, compressedSize);
-					setUint32(dataDescriptorView, 12, uncompressedSize);
+					setUint32$1(dataDescriptorView, 8, compressedSize);
+					setUint32$1(dataDescriptorView, 12, uncompressedSize);
 				}
 			}
 		}
@@ -3285,7 +3296,7 @@
 		}
 	}
 
-	function getOptionValue(zipWriter, options, name) {
+	function getOptionValue$1(zipWriter, options, name) {
 		return options[name] === undefined ? zipWriter.options[name] : options[name];
 	}
 
@@ -3297,7 +3308,7 @@
 		view.setUint16(offset, value, true);
 	}
 
-	function setUint32(view, offset, value) {
+	function setUint32$1(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
@@ -3309,7 +3320,7 @@
 		array.set(typedArray, offset);
 	}
 
-	function getDataView(array) {
+	function getDataView$1(array) {
 		return new DataView(array.buffer);
 	}
 
@@ -3383,6 +3394,7 @@
 	exports.configure = configure;
 	exports.getMimeType = getMimeType;
 	exports.initShimAsyncCodec = streamCodecShim;
+	exports.terminateWorkers = terminateWorkers;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
