@@ -21,6 +21,8 @@ declare module "@zip.js/zip.js" {
 
     export function initShimAsyncCodec(constructor: object, constructorOptions?: any): { Deflate: Codec, Inflate: Codec };
 
+    export function terminateWorkers(): void;
+
     export interface Codec {
         append(data: Uint8Array): Promise<Uint8Array>;
         flush(): Promise<Uint8Array>;
