@@ -106,6 +106,11 @@
 			</dd>
 		</dl>
 		<dl>
+			<dt><code>terminateWorkerTimeout (number)</code></dt>
+			<dd>Delay before terminating a web worker in ms. The default value is <code>5000</code>. You can call <code>zip.terminateWorkers()</code> to terminate idle workers.
+			</dd>
+		</dl>
+		<dl>
 			<dt><code>maxWorkers (number)</code></dt>
 			<dd>Number of workers used simultaneously to process data. The default value is the number of logical
 				cores returned by the attribute
