@@ -49,6 +49,27 @@ input[type=text], input[type=password], button, select, #file-list {
 	font-style: italic;
 }
 
+#file-list .filename-container {
+	display: flex;
+}
+
+#file-list .filename {
+	text-overflow: ellipsis;
+    overflow: hidden;
+	flex: 1;
+    margin-bottom: 8px;
+}
+
+#file-list .filename-container button {
+	flex: 0;
+    font-size: 9px;
+    margin: 0;
+    padding: 3px;
+	padding-right: 4px;
+    height: 12px;
+	margin-left: 8px;	
+}
+
 .form-label {
 	min-width: 240px;
 	margin-top: 10px;

@@ -1,4 +1,4 @@
-/* globals zip, document, URL, MouseEvent, alert */
+/* globals zip, document, URL, MouseEvent, AbortController, alert */
 
 (() => {
 
@@ -68,28 +68,54 @@
 			downloadButton.disabled = true;
 			await Promise.all(Array.from(fileInput.files).map(async file => {
 				const li = document.createElement("li");
+				const filenameContainer = document.createElement("span");
+				const filename = document.createElement("span");
 				const zipProgress = document.createElement("progress");
+				filenameContainer.classList.add("filename-container");
+				li.appendChild(filenameContainer);
+				filename.classList.add("filename");
+				filename.textContent = file.name;
+				filenameContainer.appendChild(filename);
 				zipProgress.value = 0;
 				zipProgress.max = 0;
-				li.textContent = file.name;
 				li.appendChild(zipProgress);
 				fileList.classList.remove("empty");
 				fileList.appendChild(li);
 				li.title = file.name;
 				li.classList.add("pending");
-				const entry = await model.addFile(file, {
-					bufferedWrite: true,
-					password: passwordInput.value,
-					onprogress: (index, max) => {
-						li.classList.remove("pending");
-						li.classList.add("busy");
-						zipProgress.value = index;
-						zipProgress.max = max;
+				const controller = new AbortController();
+				const signal = controller.signal;
+				const abortButton = document.createElement("button");
+				abortButton.onclick = () => controller.abort();
+				abortButton.textContent = "✖";
+				abortButton.title = "Abort";
+				filenameContainer.appendChild(abortButton);
+				try {
+					const entry = await model.addFile(file, {
+						bufferedWrite: true,
+						password: passwordInput.value,
+						signal,
+						onprogress: (index, max) => {
+							li.classList.remove("pending");
+							li.classList.add("busy");
+							zipProgress.value = index;
+							zipProgress.max = max;
+						},
+					});
+					li.title += `\n  Last modification date: ${entry.lastModDate.toLocaleString()}\n  Compressed size: ${entry.compressedSize.toLocaleString()} bytes`;
+				} catch (error) {
+					if (error.message == zip.ERR_ABORT) {
+						if (!li.previousElementSibling && !li.nextElementSibling) {
+							fileList.classList.add("empty");
+						}
+						li.remove();
+					} else {
+						throw error;
 					}
-				});
-				li.classList.remove("busy");
-				li.title += `\n  Last modification date: ${entry.lastModDate.toLocaleString()}\n  Compressed size: ${entry.compressedSize.toLocaleString()} bytes`;
-				zipProgress.remove();
+				} finally {
+					li.classList.remove("busy");
+					zipProgress.remove();
+				}
 			}));
 		}
 
