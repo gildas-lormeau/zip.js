@@ -99,7 +99,7 @@ declare module "@zip.js/zip.js" {
 
     export class ZipReader {
         constructor(reader: Reader, options?: ZipReaderOptions | GetEntriesOptions);
-        getEntries(options?: GetEntriesOptions): Promise<Entry[]>;
+        getEntries(options?: OnprogressOption | GetEntriesOptions): Promise<Entry[]>;
         close(): Promise<any>;
     }
 
@@ -113,7 +113,6 @@ declare module "@zip.js/zip.js" {
     export interface GetEntriesOptions {
         filenameEncoding?: string;
         commentEncoding?: string;
-        onprogress?: (progress: number, total: number) => void;
     }
 
     export interface Entry {
@@ -134,18 +133,14 @@ declare module "@zip.js/zip.js" {
         extraField?: Map<number, Uint8Array>;
         rawExtraField: Uint8Array;
         zip64: boolean;
-        getData?(writer: Writer, options?: GetDataOptions | ZipReaderOptions): Promise<any>;
-    }
-
-    export interface GetDataOptions {
-        onprogress?: (progress: number, total: number) => void;
+        getData?(writer: Writer, options?: OnprogressOption | ZipReaderOptions): Promise<any>;
     }
 
     export class ZipWriter {
         readonly hasCorruptedEntries?: boolean;
         constructor(writer: Writer, options?: ZipWriterOptions);
-        public add(name: string, reader: Reader, options?: AddDataOptions | ZipWriterOptions): Promise<Entry>;
-        public close(comment?: Uint8Array, options?: CloseOptions): Promise<any>;
+        public add(name: string, reader: Reader, options?: OnprogressOption | AddDataOptions | ZipWriterOptions): Promise<Entry>;
+        public close(comment?: Uint8Array, options?: OnprogressOption): Promise<any>;
     }
 
     export interface ZipWriterOptions {
@@ -163,14 +158,13 @@ declare module "@zip.js/zip.js" {
     }
 
     export interface AddDataOptions {
-        onprogress?: (progress: number, total: number) => void;
         directory?: boolean;
         comment?: string;
         lastModDate?: Date;
         extraField?: Map<number, Uint8Array>;
     }
 
-    export interface CloseOptions {
+    export interface OnprogressOption {
         onprogress?: (progress: number, total: number) => void;
     }
 
@@ -253,6 +247,6 @@ declare module "@zip.js/zip.js" {
     export const ERR_INVALID_EXTRAFIELD_DATA: string;
     export const ERR_INVALID_ENCRYPTION_STRENGTH: string;
     export const ERR_UNSUPPORTED_FORMAT: string;
-    export const ERR_ABORT: string;    
+    export const ERR_ABORT: string;
 
 }
