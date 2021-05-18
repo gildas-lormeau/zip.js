@@ -183,11 +183,11 @@ declare module "@zip.js/zip.js" {
     export interface ZipFileEntry extends ZipEntry {
         reader: Reader;
         writer: Writer;
-        getText(encoding?: string, options?: GetDataOptions | ZipReaderOptions): Promise<string>;
-        getBlob(mimeType?: string, options?: GetDataOptions | ZipReaderOptions): Promise<Blob>;
-        getData64URI(mimeType?: string, options?: GetDataOptions | ZipReaderOptions): Promise<string>;
-        getUint8Array(options?: GetDataOptions | ZipReaderOptions): Promise<Uint8Array>;
-        getData(writer: Writer, options?: GetDataOptions | ZipReaderOptions): Promise<any>;
+        getText(encoding?: string, options?: OnprogressOption | ZipReaderOptions): Promise<string>;
+        getBlob(mimeType?: string, options?: OnprogressOption | ZipReaderOptions): Promise<Blob>;
+        getData64URI(mimeType?: string, options?: OnprogressOption | ZipReaderOptions): Promise<string>;
+        getUint8Array(options?: OnprogressOption | ZipReaderOptions): Promise<Uint8Array>;
+        getData(writer: Writer, options?: OnprogressOption | ZipReaderOptions): Promise<any>;
         replaceBlob(blob: Blob): void;
         replaceText(text: String): void;
         replaceData64URI(dataURI: String): void;
