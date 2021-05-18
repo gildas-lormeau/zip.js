@@ -155,12 +155,12 @@ declare module "@zip.js/zip.js" {
         useWebWorkers?: boolean;
         dataDescriptor?: boolean;
         signal?: AbortSignal;
+        lastModDate?: Date;
     }
 
     export interface AddDataOptions {
         directory?: boolean;
         comment?: string;
-        lastModDate?: Date;
         extraField?: Map<number, Uint8Array>;
     }
 
