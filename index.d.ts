@@ -141,6 +141,7 @@ declare module "@zip.js/zip.js" {
     }
 
     export class ZipWriter {
+        readonly hasCorruptedEntries?: boolean;
         constructor(writer: Writer, options?: ZipWriterOptions);
         public add(name: string, reader: Reader, options?: AddDataOptions | ZipWriterOptions): Promise<Entry>;
         public close(comment?: Uint8Array): Promise<any>;
