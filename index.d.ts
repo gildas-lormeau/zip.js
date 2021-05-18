@@ -113,6 +113,7 @@ declare module "@zip.js/zip.js" {
     export interface GetEntriesOptions {
         filenameEncoding?: string;
         commentEncoding?: string;
+        onprogress?: (progress: number, total: number) => void;
     }
 
     export interface Entry {
