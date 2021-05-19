@@ -8101,7 +8101,12 @@
 					await reader.init();
 				}
 				maximumOutputSize = getMaximumCompressedSize$1(reader.size);
-				zip64 = zipWriter.offset >= MAX_32_BITS || maximumOutputSize >= MAX_32_BITS || zipWriter.offset + zipWriter.pendingOutputSize >= MAX_32_BITS || zipWriter.offset + zipWriter.pendingOutputSize + maximumOutputSize >= MAX_32_BITS;
+				zip64 =
+					zipWriter.offset >= MAX_32_BITS ||
+					reader.size >= MAX_32_BITS ||
+					maximumOutputSize >= MAX_32_BITS ||
+					zipWriter.offset + zipWriter.pendingOutputSize >= MAX_32_BITS ||
+					zipWriter.offset + zipWriter.pendingOutputSize + maximumOutputSize >= MAX_32_BITS;
 				zipWriter.pendingOutputSize += maximumOutputSize;
 				await Promise.resolve();
 			}
