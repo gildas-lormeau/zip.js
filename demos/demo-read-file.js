@@ -121,37 +121,39 @@
 		}
 
 		async function download(entry, li, a) {
-			const unzipProgress = document.createElement("progress");
-			li.appendChild(unzipProgress);
-			const controller = new AbortController();
-			const signal = controller.signal;
-			const abortButton = document.createElement("button");
-			abortButton.onclick = () => controller.abort();
-			abortButton.textContent = "✖";
-			abortButton.title = "Abort";
-			li.querySelector(".filename-container").appendChild(abortButton);
-			li.classList.add("busy");
-			try {
-				const blobURL = await model.getURL(entry, {
-					password: passwordInput.value,
-					onprogress: (index, max) => {
-						unzipProgress.value = index;
-						unzipProgress.max = max;
-					},
-					signal
-				});
-				a.href = blobURL;
-				a.download = entry.filename;
-				const clickEvent = new MouseEvent("click");
-				a.dispatchEvent(clickEvent);
-			} catch (error) {
-				if (error.message != zip.ERR_ABORT) {
-					throw error;
+			if (!li.classList.contains("busy")) {
+				const unzipProgress = document.createElement("progress");
+				li.appendChild(unzipProgress);
+				const controller = new AbortController();
+				const signal = controller.signal;
+				const abortButton = document.createElement("button");
+				abortButton.onclick = () => controller.abort();
+				abortButton.textContent = "✖";
+				abortButton.title = "Abort";
+				li.querySelector(".filename-container").appendChild(abortButton);
+				li.classList.add("busy");
+				try {
+					const blobURL = await model.getURL(entry, {
+						password: passwordInput.value,
+						onprogress: (index, max) => {
+							unzipProgress.value = index;
+							unzipProgress.max = max;
+						},
+						signal
+					});
+					a.href = blobURL;
+					a.download = entry.filename;
+					const clickEvent = new MouseEvent("click");
+					a.dispatchEvent(clickEvent);
+				} catch (error) {
+					if (error.message != zip.ERR_ABORT) {
+						throw error;
+					}
+				} finally {
+					li.classList.remove("busy");
+					unzipProgress.remove();
+					abortButton.remove();
 				}
-			} finally {
-				li.classList.remove("busy");
-				unzipProgress.remove();
-				abortButton.remove();
 			}
 		}
 
