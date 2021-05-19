@@ -99,7 +99,7 @@ declare module "@zip.js/zip.js" {
 
     export class ZipReader {
         constructor(reader: Reader, options?: ZipReaderOptions | GetEntriesOptions);
-        getEntries(options?: OnprogressOption | GetEntriesOptions): Promise<Entry[]>;
+        getEntries(options?: OnprogressEntryOption | GetEntriesOptions): Promise<Entry[]>;
         close(): Promise<any>;
     }
 
@@ -133,14 +133,14 @@ declare module "@zip.js/zip.js" {
         extraField?: Map<number, Uint8Array>;
         rawExtraField: Uint8Array;
         zip64: boolean;
-        getData?(writer: Writer, options?: OnprogressOption | ZipReaderOptions): Promise<any>;
+        getData?(writer: Writer, options?: OnprogressEntryDataOption | ZipReaderOptions): Promise<any>;
     }
 
     export class ZipWriter {
         readonly hasCorruptedEntries?: boolean;
         constructor(writer: Writer, options?: ZipWriterOptions);
-        public add(name: string, reader: Reader, options?: OnprogressOption | AddDataOptions | ZipWriterOptions): Promise<Entry>;
-        public close(comment?: Uint8Array, options?: OnprogressOption): Promise<any>;
+        public add(name: string, reader: Reader, options?: OnprogressEntryDataOption | AddDataOptions | ZipWriterOptions): Promise<Entry>;
+        public close(comment?: Uint8Array, options?: OnprogressEntryOption): Promise<any>;
     }
 
     export interface ZipWriterOptions {
@@ -164,8 +164,12 @@ declare module "@zip.js/zip.js" {
         extraField?: Map<number, Uint8Array>;
     }
 
-    export interface OnprogressOption {
+    export interface OnprogressEntryDataOption {
         onprogress?: (progress: number, total: number) => void;
+    }
+
+    export interface OnprogressEntryOption {
+        onprogress?: (progress: number, total: number, entry: Entry) => void;
     }
 
     export interface ZipEntry {
@@ -183,11 +187,11 @@ declare module "@zip.js/zip.js" {
     export interface ZipFileEntry extends ZipEntry {
         reader: Reader;
         writer: Writer;
-        getText(encoding?: string, options?: OnprogressOption | ZipReaderOptions): Promise<string>;
-        getBlob(mimeType?: string, options?: OnprogressOption | ZipReaderOptions): Promise<Blob>;
-        getData64URI(mimeType?: string, options?: OnprogressOption | ZipReaderOptions): Promise<string>;
-        getUint8Array(options?: OnprogressOption | ZipReaderOptions): Promise<Uint8Array>;
-        getData(writer: Writer, options?: OnprogressOption | ZipReaderOptions): Promise<any>;
+        getText(encoding?: string, options?: OnprogressEntryDataOption | ZipReaderOptions): Promise<string>;
+        getBlob(mimeType?: string, options?: OnprogressEntryDataOption | ZipReaderOptions): Promise<Blob>;
+        getData64URI(mimeType?: string, options?: OnprogressEntryDataOption | ZipReaderOptions): Promise<string>;
+        getUint8Array(options?: OnprogressEntryDataOption | ZipReaderOptions): Promise<Uint8Array>;
+        getData(writer: Writer, options?: OnprogressEntryDataOption | ZipReaderOptions): Promise<any>;
         replaceBlob(blob: Blob): void;
         replaceText(text: String): void;
         replaceData64URI(dataURI: String): void;
