@@ -1,4 +1,4 @@
-/* globals zip, document, URL, MouseEvent, alert */
+/* globals zip, document, URL, MouseEvent, AbortController, alert */
 
 (() => {
 
@@ -45,7 +45,7 @@
 			if (target.dataset.entryIndex !== undefined && !target.download && !target.getAttribute("href")) {
 				event.preventDefault();
 				try {
-					await download(entries[Number(target.dataset.entryIndex)], target.parentElement, target);
+					await download(entries[Number(target.dataset.entryIndex)], target.parentElement.parentElement, target);
 				} catch (error) {
 					alert(error);
 				}
@@ -101,15 +101,19 @@
 			const newFileList = fileList.cloneNode();
 			entries.forEach((entry, entryIndex) => {
 				const li = document.createElement("li");
-				const anchor = document.createElement("a");
-				anchor.dataset.entryIndex = entryIndex;
-				anchor.textContent = anchor.title = entry.filename;
-				anchor.title = `${entry.filename}\n  Last modification date: ${entry.lastModDate.toLocaleString()}`;
+				const filenameContainer = document.createElement("span");
+				const filename = document.createElement("a");
+				filenameContainer.classList.add("filename-container");
+				li.appendChild(filenameContainer);
+				filename.classList.add("filename");
+				filename.dataset.entryIndex = entryIndex;
+				filename.textContent = filename.title = entry.filename;
+				filename.title = `${entry.filename}\n  Last modification date: ${entry.lastModDate.toLocaleString()}`;
 				if (!entry.directory) {
-					anchor.href = "";
-					anchor.title += `\n  Uncompressed size: ${entry.uncompressedSize.toLocaleString()} bytes`;
+					filename.href = "";
+					filename.title += `\n  Uncompressed size: ${entry.uncompressedSize.toLocaleString()} bytes`;
 				}
-				li.appendChild(anchor);
+				filenameContainer.appendChild(filename);
 				newFileList.appendChild(li);
 			});
 			fileList.replaceWith(newFileList);
@@ -119,20 +123,36 @@
 		async function download(entry, li, a) {
 			const unzipProgress = document.createElement("progress");
 			li.appendChild(unzipProgress);
-			const blobURL = await model.getURL(entry, {
-				password: passwordInput.value,
-				onprogress: (index, max) => {
-					unzipProgress.value = index;
-					unzipProgress.max = max;
+			const controller = new AbortController();
+			const signal = controller.signal;
+			const abortButton = document.createElement("button");
+			abortButton.onclick = () => controller.abort();
+			abortButton.textContent = "✖";
+			abortButton.title = "Abort";
+			li.querySelector(".filename-container").appendChild(abortButton);
+			li.classList.add("busy");
+			try {
+				const blobURL = await model.getURL(entry, {
+					password: passwordInput.value,
+					onprogress: (index, max) => {
+						unzipProgress.value = index;
+						unzipProgress.max = max;
+					},
+					signal
+				});
+				a.href = blobURL;
+				a.download = entry.filename;
+				const clickEvent = new MouseEvent("click");
+				a.dispatchEvent(clickEvent);
+			} catch (error) {
+				if (error.message != zip.ERR_ABORT) {
+					throw error;
 				}
-			});
-			const clickEvent = new MouseEvent("click");
-			unzipProgress.remove();
-			unzipProgress.value = 0;
-			unzipProgress.max = 0;
-			a.href = blobURL;
-			a.download = entry.filename;
-			a.dispatchEvent(clickEvent);
+			} finally {
+				li.classList.remove("busy");
+				unzipProgress.remove();
+				abortButton.remove();
+			}
 		}
 
 	})();
