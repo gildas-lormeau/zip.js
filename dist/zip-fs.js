@@ -2826,7 +2826,7 @@
 				config: getConfiguration(),
 				files: new Map(),
 				offset: writer.size,
-				pendingOutputSize: 0,
+				pendingCompressedSize: 0,
 				pendingEntries: []
 			});
 		}
@@ -2910,30 +2910,31 @@
 			});
 		}
 		let zip64 = false;
-		let maximumOutputSize = 0;
+		let maximumCompressedSize = 0;
 		let keepOrder = getOptionValue$1(zipWriter, options, "keepOrder");
 		if (keepOrder === undefined) {
 			keepOrder = true;
 		}
-		const zip64Enabled = reader && options.zip64 !== false && zipWriter.options.zip64 !== false;
-		if (zip64Enabled) {
+		if (options.zip64 !== false && zipWriter.options.zip64 !== false) {
 			zip64 = options.zip64 || zipWriter.options.zip64;
 			if (!zip64) {
-				if (!reader.initialized) {
-					await reader.init();
+				let uncompressedSize = 0;
+				if (reader) {
+					if (!reader.initialized) {
+						await reader.init();
+					}
+					uncompressedSize = reader.size;
+					maximumCompressedSize = getMaximumCompressedSize(uncompressedSize);
 				}
-				maximumOutputSize = getMaximumCompressedSize(reader.size);
 				zip64 =
-					zipWriter.offset >= MAX_32_BITS ||
-					reader.size >= MAX_32_BITS ||
-					maximumOutputSize >= MAX_32_BITS ||
-					zipWriter.offset + zipWriter.pendingOutputSize >= MAX_32_BITS ||
-					zipWriter.offset + zipWriter.pendingOutputSize + maximumOutputSize >= MAX_32_BITS;
-				zipWriter.pendingOutputSize += maximumOutputSize;
+					zipWriter.offset + zipWriter.pendingCompressedSize >= MAX_32_BITS ||
+					uncompressedSize >= MAX_32_BITS ||
+					maximumCompressedSize >= MAX_32_BITS;
+				if (!keepOrder && zip64) {
+					throw new Error(ERR_UNSUPPORTED_FORMAT);
+				}
+				zipWriter.pendingCompressedSize += maximumCompressedSize;
 				await Promise.resolve();
-			}
-			if (!keepOrder && zip64) {
-				throw new Error(ERR_UNSUPPORTED_FORMAT);
 			}
 		}
 		const level = getOptionValue$1(zipWriter, options, "level");
@@ -2961,8 +2962,8 @@
 			dataDescriptor,
 			signal
 		}));
-		if (zip64Enabled) {
-			zipWriter.pendingOutputSize -= maximumOutputSize;
+		if (maximumCompressedSize) {
+			zipWriter.pendingCompressedSize -= maximumCompressedSize;
 		}
 		Object.assign(fileEntry, { name, comment, extraField });
 		return new Entry(fileEntry);
