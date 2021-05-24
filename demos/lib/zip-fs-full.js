@@ -8030,7 +8030,8 @@
 		}
 
 		async close(comment = new Uint8Array(0), options = {}) {
-			return closeFile(this, comment, options);
+			await closeFile(this, comment, options);
+			return this.writer.getData();
 		}
 	}
 
