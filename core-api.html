@@ -107,7 +107,8 @@
 		</dl>
 		<dl>
 			<dt><code>terminateWorkerTimeout (number)</code></dt>
-			<dd>Delay before terminating a web worker in ms. The default value is <code>5000</code>. You can call <code>zip.terminateWorkers()</code> to terminate idle workers.
+			<dd>Delay before terminating a web worker in ms. The default value is <code>5000</code>. You can call
+				<code>zip.terminateWorkers()</code> to terminate idle workers.
 			</dd>
 		</dl>
 		<dl>
@@ -431,6 +432,10 @@
 			<dt><code>options (Object)</code></dt>
 			<dd>Optional properties:
 				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value, a <code>max (number)</code> value (<code>undefined</code> by default) and the file entry
+					</dd>
 					<dt><code>filenameEncoding (string)</code></dt>
 					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>cp437</code> by
 						default)</dd>
@@ -683,7 +688,7 @@ await reader.close();</code></pre>
 			<dd>A promise with an <code><a href="#zip-entry">Entry</a></code> object as resolved value</dd>
 		</dl>
 		<br>
-		<pre><code class="prettyprint">zip.ZipWriter#close([comment])</code></pre>
+		<pre><code class="prettyprint">zip.ZipWriter#close([comment], [options])</code></pre>
 		<p>
 			Close the zip file
 		</p>
@@ -691,6 +696,17 @@ await reader.close();</code></pre>
 		<dl>
 			<dt><code>comment (UInt8Array)</code></dt>
 			<dd>A comment to add at the end of the zip file</dd>
+			<dt><code>options (Object)</code></dt>
+			<dd>Optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value, a <code>max (number)</code> value (<code>undefined</code> by default) and the file entry
+					</dd>
+					<dt><code>zip64 (boolean)</code></dt>
+					<dd>force the file entry to be written in Zip64 (<code>undefined</code> by default)</dd>
+				</dl>
+			</dd>
 		</dl>
 		<p>Returns:</p>
 		<dl>
