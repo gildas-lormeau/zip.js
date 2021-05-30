@@ -28,7 +28,7 @@ async function test() {
 		}
 	}
 	await zipReader.close();
-	if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
+	if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].zip64 && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
 		document.body.innerHTML = "ok";
 	}
 }
