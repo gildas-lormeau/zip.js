@@ -140,7 +140,7 @@ declare module "@zip.js/zip.js" {
         readonly hasCorruptedEntries?: boolean;
         constructor(writer: Writer, options?: ZipWriterOptions);
         public add(name: string, reader: Reader, options?: OnprogressEntryDataOption | AddDataOptions | ZipWriterOptions): Promise<Entry>;
-        public close(comment?: Uint8Array, options?: OnprogressEntryOption): Promise<any>;
+        public close(comment?: Uint8Array, options?: OnprogressEntryOption | CloseOptions): Promise<any>;
     }
 
     export interface ZipWriterOptions {
@@ -162,6 +162,10 @@ declare module "@zip.js/zip.js" {
         directory?: boolean;
         comment?: string;
         extraField?: Map<number, Uint8Array>;
+    }
+
+    export interface CloseOptions {
+        zip64?: boolean;
     }
 
     export interface OnprogressEntryDataOption {
