@@ -7018,7 +7018,7 @@
 	const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
 	const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
 	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
-	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported when keepOrder is set to false";
+	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported";
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
 	const EXTRAFIELD_LENGTH_ZIP64 = 24;
@@ -7118,34 +7118,31 @@
 				offset += 4 + data.length;
 			});
 		}
-		let zip64 = false;
 		let maximumCompressedSize = 0;
 		let keepOrder = getOptionValue$1(zipWriter, options, "keepOrder");
 		if (keepOrder === undefined) {
 			keepOrder = true;
 		}
-		if (options.zip64 !== false && zipWriter.options.zip64 !== false) {
-			zip64 = options.zip64 || zipWriter.options.zip64;
-			if (!zip64) {
-				let uncompressedSize = 0;
-				if (reader) {
-					if (!reader.initialized) {
-						await reader.init();
-					}
-					uncompressedSize = reader.size;
-					maximumCompressedSize = getMaximumCompressedSize$1(uncompressedSize);
-				}
-				zip64 =
-					zipWriter.offset + zipWriter.pendingCompressedSize >= MAX_32_BITS ||
-					uncompressedSize >= MAX_32_BITS ||
-					maximumCompressedSize >= MAX_32_BITS;
-				if (!keepOrder && zip64) {
-					throw new Error(ERR_UNSUPPORTED_FORMAT);
-				}
-				zipWriter.pendingCompressedSize += maximumCompressedSize;
-				await Promise.resolve();
+		let uncompressedSize = 0;
+		if (reader) {
+			if (!reader.initialized) {
+				await reader.init();
+			}
+			uncompressedSize = reader.size;
+			maximumCompressedSize = getMaximumCompressedSize$1(uncompressedSize);
+		}
+		let zip64 = options.zip64 || zipWriter.options.zip64 || false;
+		if (zipWriter.offset + zipWriter.pendingCompressedSize >= MAX_32_BITS ||
+			uncompressedSize >= MAX_32_BITS ||
+			maximumCompressedSize >= MAX_32_BITS) {
+			if ((options.zip64 === false || zipWriter.options.zip64 === false) || !keepOrder) {
+				throw new Error(ERR_UNSUPPORTED_FORMAT);
+			} else {
+				zip64 = true;
 			}
 		}
+		zipWriter.pendingCompressedSize += maximumCompressedSize;
+		await Promise.resolve();
 		const level = getOptionValue$1(zipWriter, options, "level");
 		const useWebWorkers = getOptionValue$1(zipWriter, options, "useWebWorkers");
 		const bufferedWrite = getOptionValue$1(zipWriter, options, "bufferedWrite");
@@ -7245,6 +7242,8 @@
 			if (fileEntry.zip64) {
 				const rawExtraFieldZip64View = getDataView$1(fileEntry.rawExtraFieldZip64);
 				setBigUint64(rawExtraFieldZip64View, 20, BigInt(fileEntry.offset));
+			} else if (fileEntry.offset >= MAX_32_BITS) {
+				throw new Error(ERR_UNSUPPORTED_FORMAT);
 			}
 			zipWriter.offset += fileEntry.length;
 			return fileEntry;
@@ -7369,9 +7368,6 @@
 			}, config);
 			await writer.writeUint8Array(localHeaderArray);
 			fileEntry.dataWritten = true;
-			if (!reader.initialized) {
-				await reader.init();
-			}
 			result = await processData(codec, reader, writer, 0, uncompressedSize, config, { onprogress, signal });
 			compressedSize = result.length;
 		} else {
@@ -7438,7 +7434,14 @@
 				fileEntry.rawExtraFieldAES.length +
 				fileEntry.rawExtraField.length;
 		}
-		const zip64 = zipWriter.options.zip64 || directoryOffset >= MAX_32_BITS || directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS;
+		let zip64 = options.zip64 || zipWriter.options.zip64 || false;
+		if (directoryOffset >= MAX_32_BITS || directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS) {
+			if (options.zip64 === false || zipWriter.options.zip64 === false) {
+				throw new Error(ERR_UNSUPPORTED_FORMAT);
+			} else {
+				zip64 = true;
+			}
+		}
 		const directoryArray = new Uint8Array(directoryDataLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH));
 		const directoryView = getDataView$1(directoryArray);
 		if (comment && comment.length) {
