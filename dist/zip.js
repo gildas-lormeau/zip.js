@@ -2682,7 +2682,7 @@
 		}
 		ZIP64_PROPERTIES.forEach(propertyName => {
 			if (directory[propertyName] == MAX_32_BITS) {
-				if (extraFieldZip64 && extraFieldZip64[propertyName] !== undefined) {
+				if (extraFieldZip64[propertyName] !== undefined) {
 					directory[propertyName] = extraFieldZip64[propertyName];
 				} else {
 					throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
@@ -2758,28 +2758,31 @@
 
 	function readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory) {
 		const extraFieldView = getDataView(extraFieldExtendedTimestamp.data);
-		let rawLastAccessDate;
-		let rawCreationDate;
-		let lastAccessDate;
-		let creationDate;
-		const rawLastModDate = getUint32(extraFieldView, 1);
-		const lastModDate = new Date(rawLastModDate * 1000);
-		if (extraFieldView.length == 9) {
-			rawLastAccessDate = getUint32(extraFieldView, 1);
-			lastAccessDate = new Date(rawLastAccessDate * 1000);
+		const flags = getUint8(extraFieldView, 0);
+		const timeProperties = [];
+		const timeRawProperties = [];
+		if (flags & 0x001) {
+			timeProperties.push("lastModDate");
+			timeRawProperties.push("rawLastModDate");
 		}
-		if (extraFieldView.length == 13) {
-			rawCreationDate = getUint32(extraFieldView, 1);
-			creationDate = new Date(rawCreationDate * 1000);
+		if (flags & 0x010) {
+			timeProperties.push("lastAccessDate");
+			timeRawProperties.push("rawLastAccessDate");
 		}
-		Object.assign(extraFieldExtendedTimestamp, {
-			rawLastModDate,
-			rawLastAccessDate,
-			rawCreationDate
+		if (flags & 0x100) {
+			timeProperties.push("creationDate");
+			timeRawProperties.push("rawCreationDate");
+		}
+		let offset = 1;
+		timeProperties.forEach((propertyName, indexProperty) => {
+			if (extraFieldExtendedTimestamp.data.length >= offset + 4) {
+				const time = getUint32(extraFieldView, offset);
+				directory[propertyName] = extraFieldExtendedTimestamp[propertyName] = new Date(time * 1000);
+				const rawPropertyName = timeRawProperties[indexProperty];
+				extraFieldExtendedTimestamp[rawPropertyName] = time;
+			}
+			offset += 4;
 		});
-		const extraFieldData = { lastModDate, lastAccessDate, creationDate };
-		Object.assign(extraFieldExtendedTimestamp, extraFieldData);
-		Object.assign(directory, extraFieldData);
 	}
 
 	async function seekSignature(reader, signature, startOffset, minimumBytes, maximumLength) {
