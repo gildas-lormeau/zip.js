@@ -2761,15 +2761,15 @@
 		const flags = getUint8(extraFieldView, 0);
 		const timeProperties = [];
 		const timeRawProperties = [];
-		if (flags & 0x001) {
+		if (flags & 0x001 == 0x001) {
 			timeProperties.push("lastModDate");
 			timeRawProperties.push("rawLastModDate");
 		}
-		if (flags & 0x010) {
+		if (flags & 0x010 == 0x010) {
 			timeProperties.push("lastAccessDate");
 			timeRawProperties.push("rawLastAccessDate");
 		}
-		if (flags & 0x100) {
+		if (flags & 0x100 == 0x100) {
 			timeProperties.push("creationDate");
 			timeRawProperties.push("rawCreationDate");
 		}
