@@ -125,7 +125,11 @@ declare module "@zip.js/zip.js" {
         compressedSize: number;
         uncompressedSize: number;
         lastModDate: Date;
+        lastAccessDate?: Date;
+        creationDate?: Date;
         rawLastModDate: number;
+        rawLastAccessDate?: Date;
+        rawCreationDate?: Date;
         comment: string;
         rawComment: Uint8Array;
         commentUTF8: boolean;
