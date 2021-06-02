@@ -8351,6 +8351,12 @@
 		} else {
 			rawExtraFieldAES = new Uint8Array(0);
 		}
+		const rawExtraFieldExtendedTimestamp = new Uint8Array(9);
+		const extraFieldExtendedTimestampView = getDataView$1(rawExtraFieldExtendedTimestamp);
+		setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
+		setUint16(extraFieldExtendedTimestampView, 2, rawExtraFieldExtendedTimestamp.length - 4);
+		setUint8(extraFieldExtendedTimestampView, 4, 1);
+		setUint32$1(extraFieldExtendedTimestampView, 5, lastModDate.getTime() * 1000);
 		const fileEntry = {
 			version: version || VERSION_DEFLATE,
 			zip64,
@@ -8361,6 +8367,7 @@
 			rawComment,
 			rawExtraFieldZip64: zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array(0),
 			rawExtraFieldAES,
+			rawExtraFieldExtendedTimestamp,
 			rawExtraField
 		};
 		let uncompressedSize = fileEntry.uncompressedSize = 0;
@@ -8398,15 +8405,15 @@
 		const rawLastModDate = dateArray[0];
 		setUint32$1(headerView, 6, rawLastModDate);
 		setUint16(headerView, 22, rawFilename.length);
-		setUint16(headerView, 24, 0);
-		setUint16(headerView, 24, rawExtraFieldAES.length + fileEntry.rawExtraField.length);
-		const localHeaderArray = new Uint8Array(30 + rawFilename.length + rawExtraFieldAES.length + fileEntry.rawExtraField.length);
+		setUint16(headerView, 24, rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + fileEntry.rawExtraField.length);
+		const localHeaderArray = new Uint8Array(30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + fileEntry.rawExtraField.length);
 		const localHeaderView = getDataView$1(localHeaderArray);
 		setUint32$1(localHeaderView, 0, LOCAL_FILE_HEADER_SIGNATURE);
 		arraySet(localHeaderArray, headerArray, 4);
 		arraySet(localHeaderArray, rawFilename, 30);
 		arraySet(localHeaderArray, rawExtraFieldAES, 30 + rawFilename.length);
-		arraySet(localHeaderArray, fileEntry.rawExtraField, 30 + rawFilename.length + rawExtraFieldAES.length);
+		arraySet(localHeaderArray, rawExtraFieldExtendedTimestamp, 30 + rawFilename.length + rawExtraFieldAES.length);
+		arraySet(localHeaderArray, fileEntry.rawExtraField, 30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length);
 		let result;
 		let compressedSize = 0;
 		if (reader) {
@@ -8489,6 +8496,7 @@
 				fileEntry.rawComment.length +
 				fileEntry.rawExtraFieldZip64.length +
 				fileEntry.rawExtraFieldAES.length +
+				fileEntry.rawExtraFieldExtendedTimestamp.length +
 				fileEntry.rawExtraField.length;
 		}
 		let zip64 = options.zip64 || zipWriter.options.zip64 || false;
@@ -8513,6 +8521,7 @@
 				rawFilename,
 				rawExtraFieldZip64,
 				rawExtraFieldAES,
+				rawExtraFieldExtendedTimestamp,
 				rawExtraField,
 				rawComment,
 				version,
@@ -8520,7 +8529,7 @@
 				directory,
 				zip64
 			} = fileEntry;
-			const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraField.length;
+			const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraField.length;
 			setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 			setUint16(directoryView, offset + 4, version);
 			arraySet(directoryArray, headerArray, offset + 6);
@@ -8537,7 +8546,8 @@
 			arraySet(directoryArray, rawFilename, offset + 46);
 			arraySet(directoryArray, rawExtraFieldZip64, offset + 46 + rawFilename.length);
 			arraySet(directoryArray, rawExtraFieldAES, offset + 46 + rawFilename.length + rawExtraFieldZip64.length);
-			arraySet(directoryArray, rawExtraField, 46 + rawFilename.length + rawExtraFieldZip64.length + rawExtraFieldAES.length);
+			arraySet(directoryArray, rawExtraFieldExtendedTimestamp, offset + 46 + rawFilename.length + rawExtraFieldZip64.length + rawExtraFieldAES.length);
+			arraySet(directoryArray, rawExtraField, offset + 46 + rawFilename.length + rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length);
 			arraySet(directoryArray, rawComment, offset + 46 + rawFilename.length + extraFieldLength);
 			offset += 46 + rawFilename.length + extraFieldLength + rawComment.length;
 			if (options.onprogress) {
