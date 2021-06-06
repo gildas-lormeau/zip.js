@@ -2499,7 +2499,7 @@
 				}
 				readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
 				const entry = new Entry(fileEntry);
-				entry.getData = (writer, options) => fileEntry.getData(writer, options);
+				entry.getData = (writer, options) => fileEntry.getData(writer, entry, options);
 				entries.push(entry);
 				offset = endOffset;
 				if (options.onprogress) {
@@ -2527,7 +2527,7 @@
 			});
 		}
 
-		async getData(writer, options = {}) {
+		async getData(writer, fileEntry, options = {}) {
 			const zipEntry = this;
 			const {
 				reader,
@@ -2544,7 +2544,7 @@
 			if (!reader.initialized) {
 				await reader.init();
 			}
-			const dataArray = await readUint8Array(reader, offset, 30);
+			let dataArray = await readUint8Array(reader, offset, 30);
 			const dataView = getDataView(dataArray);
 			let password = getOptionValue(zipEntry, options, "password");
 			password = password && password.length && password;
@@ -2560,10 +2560,11 @@
 				throw new Error(ERR_LOCAL_FILE_HEADER_NOT_FOUND);
 			}
 			readCommonHeader(localDirectory, dataView, 4);
-			const extraFieldOffset = offset + 30 + localDirectory.filenameLength;
-			const dataOffset = extraFieldOffset + localDirectory.extraFieldLength;
-			localDirectory.rawExtraField = dataArray.subarray(extraFieldOffset, dataOffset);
+			dataArray = await readUint8Array(reader, offset, 30 + localDirectory.filenameLength + localDirectory.extraFieldLength);
+			localDirectory.rawExtraField = dataArray.subarray(30 + localDirectory.filenameLength);
 			readCommonFooter(zipEntry, localDirectory, dataView, 4);
+			fileEntry.lastAccessDate = localDirectory.lastAccessDate;
+			fileEntry.creationDate = localDirectory.creationDate;
 			const encrypted = zipEntry.encrypted && localDirectory.encrypted;
 			const zipCrypto = encrypted && !extraFieldAES;
 			if (encrypted) {
@@ -2589,6 +2590,7 @@
 				await writer.init();
 			}
 			const signal = getOptionValue(zipEntry, options, "signal");
+			const dataOffset = offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
 			await processData(codec, reader, writer, dataOffset, compressedSize, config, { onprogress: options.onprogress, signal });
 			return writer.getData();
 		}
@@ -2761,15 +2763,15 @@
 		const flags = getUint8(extraFieldView, 0);
 		const timeProperties = [];
 		const timeRawProperties = [];
-		if ((flags & 0x001) == 0x001) {
+		if ((flags & 0x1) == 0x1) {
 			timeProperties.push("lastModDate");
 			timeRawProperties.push("rawLastModDate");
 		}
-		if ((flags & 0x010) == 0x010) {
+		if ((flags & 0x2) == 0x2) {
 			timeProperties.push("lastAccessDate");
 			timeRawProperties.push("rawLastAccessDate");
 		}
-		if ((flags & 0x100) == 0x100) {
+		if ((flags & 0x5) == 0x5) {
 			timeProperties.push("creationDate");
 			timeRawProperties.push("rawCreationDate");
 		}
@@ -2893,7 +2895,6 @@
 	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
 	const ERR_INVALID_ENTRY_NAME = "File entry name exceeds 64KB";
 	const ERR_INVALID_VERSION = "Version exceeds 65535";
-	const ERR_INVALID_DATE = "The modification date must be between 1/1/1980 and 12/31/2107";
 	const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
 	const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
 	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
@@ -2968,9 +2969,8 @@
 			throw new Error(ERR_INVALID_VERSION);
 		}
 		const lastModDate = getOptionValue$1(zipWriter, options, "lastModDate") || new Date();
-		if (lastModDate < MIN_DATE || lastModDate > MAX_DATE) {
-			throw new Error(ERR_INVALID_DATE);
-		}
+		const lastAccessDate = getOptionValue$1(zipWriter, options, "lastAccessDate");
+		const creationDate = getOptionValue$1(zipWriter, options, "creationDate");
 		const password = getOptionValue$1(zipWriter, options, "password");
 		const encryptionStrength = getOptionValue$1(zipWriter, options, "encryptionStrength") || 3;
 		const zipCrypto = getOptionValue$1(zipWriter, options, "zipCrypto");
@@ -3035,6 +3035,8 @@
 			rawComment,
 			version,
 			lastModDate,
+			lastAccessDate,
+			creationDate,
 			rawExtraField,
 			zip64,
 			password,
@@ -3146,7 +3148,8 @@
 	async function createFileEntry(reader, writer, config, options) {
 		const {
 			rawFilename,
-			lastModDate,
+			lastAccessDate,
+			creationDate,
 			password,
 			level,
 			zip64,
@@ -3173,12 +3176,19 @@
 		} else {
 			rawExtraFieldAES = new Uint8Array(0);
 		}
-		const rawExtraFieldExtendedTimestamp = new Uint8Array(9);
+		const rawExtraFieldExtendedTimestamp = new Uint8Array(9 + (lastAccessDate ? 4 : 0) + (creationDate ? 4 : 0));
 		const extraFieldExtendedTimestampView = getDataView$1(rawExtraFieldExtendedTimestamp);
 		setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 		setUint16(extraFieldExtendedTimestampView, 2, rawExtraFieldExtendedTimestamp.length - 4);
-		setUint8(extraFieldExtendedTimestampView, 4, 1);
-		setUint32$1(extraFieldExtendedTimestampView, 5, Math.floor(lastModDate.getTime() / 1000));
+		const extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x5 : 0);
+		setUint8(extraFieldExtendedTimestampView, 4, extraFieldExtendedTimestampFlag);
+		setUint32$1(extraFieldExtendedTimestampView, 5, Math.floor(options.lastModDate.getTime() / 1000));
+		if (lastAccessDate) {
+			setUint32$1(extraFieldExtendedTimestampView, 9, Math.floor(lastAccessDate.getTime() / 1000));
+		}
+		if (creationDate) {
+			setUint32$1(extraFieldExtendedTimestampView, 13, Math.floor(creationDate.getTime() / 1000));
+		}
 		const fileEntry = {
 			version: version || VERSION_DEFLATE,
 			zip64,
@@ -3189,7 +3199,6 @@
 			rawComment,
 			rawExtraFieldZip64: zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array(0),
 			rawExtraFieldAES,
-			rawExtraFieldExtendedTimestamp,
 			rawExtraField
 		};
 		let uncompressedSize = fileEntry.uncompressedSize = 0;
@@ -3222,6 +3231,14 @@
 		setUint16(headerView, 4, compressionMethod);
 		const dateArray = new Uint32Array(1);
 		const dateView = getDataView$1(dateArray);
+		let lastModDate;
+		if (options.lastModDate < MIN_DATE) {
+			lastModDate = MIN_DATE;
+		} else if (options.lastModDate > MAX_DATE) {
+			lastModDate = MAX_DATE;
+		} else {
+			lastModDate = options.lastModDate;
+		}
 		setUint16(dateView, 0, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
 		setUint16(dateView, 2, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
 		const rawLastModDate = dateArray[0];
@@ -3318,7 +3335,7 @@
 				fileEntry.rawComment.length +
 				fileEntry.rawExtraFieldZip64.length +
 				fileEntry.rawExtraFieldAES.length +
-				fileEntry.rawExtraFieldExtendedTimestamp.length +
+				9 +
 				fileEntry.rawExtraField.length;
 		}
 		let zip64 = options.zip64 || zipWriter.options.zip64 || false;
@@ -3343,7 +3360,6 @@
 				rawFilename,
 				rawExtraFieldZip64,
 				rawExtraFieldAES,
-				rawExtraFieldExtendedTimestamp,
 				rawExtraField,
 				rawComment,
 				version,
@@ -3351,7 +3367,13 @@
 				directory,
 				zip64
 			} = fileEntry;
-			const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraField.length;
+			const rawExtraFieldExtendedTimestamp = new Uint8Array(9);
+			const extraFieldExtendedTimestampView = getDataView$1(rawExtraFieldExtendedTimestamp);
+			setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
+			setUint16(extraFieldExtendedTimestampView, 2, rawExtraFieldExtendedTimestamp.length - 4);
+			setUint8(extraFieldExtendedTimestampView, 4, 0x1);
+			setUint32$1(extraFieldExtendedTimestampView, 5, Math.floor(fileEntry.lastModDate.getTime() / 1000));
+			const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + 9 + rawExtraField.length;
 			setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 			setUint16(directoryView, offset + 4, version);
 			arraySet(directoryArray, headerArray, offset + 6);
@@ -3508,7 +3530,6 @@
 	exports.ERR_EXTRAFIELD_ZIP64_NOT_FOUND = ERR_EXTRAFIELD_ZIP64_NOT_FOUND;
 	exports.ERR_HTTP_RANGE = ERR_HTTP_RANGE;
 	exports.ERR_INVALID_COMMENT = ERR_INVALID_COMMENT;
-	exports.ERR_INVALID_DATE = ERR_INVALID_DATE;
 	exports.ERR_INVALID_ENCRYPTION_STRENGTH = ERR_INVALID_ENCRYPTION_STRENGTH;
 	exports.ERR_INVALID_ENTRY_COMMENT = ERR_INVALID_ENTRY_COMMENT;
 	exports.ERR_INVALID_ENTRY_NAME = ERR_INVALID_ENTRY_NAME;
