@@ -160,6 +160,8 @@ declare module "@zip.js/zip.js" {
         dataDescriptor?: boolean;
         signal?: AbortSignal;
         lastModDate?: Date;
+        lastAccessDate?: Date;
+        creationDate?: Date;
     }
 
     export interface AddDataOptions {
