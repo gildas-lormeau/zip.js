@@ -3178,7 +3178,7 @@
 		setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 		setUint16(extraFieldExtendedTimestampView, 2, rawExtraFieldExtendedTimestamp.length - 4);
 		setUint8(extraFieldExtendedTimestampView, 4, 1);
-		setUint32$1(extraFieldExtendedTimestampView, 5, lastModDate.getTime() * 1000);
+		setUint32$1(extraFieldExtendedTimestampView, 5, Math.floor(lastModDate.getTime() / 1000));
 		const fileEntry = {
 			version: version || VERSION_DEFLATE,
 			zip64,
