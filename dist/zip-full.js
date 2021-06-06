@@ -6979,7 +6979,7 @@
 			timeProperties.push("lastAccessDate");
 			timeRawProperties.push("rawLastAccessDate");
 		}
-		if ((flags & 0x5) == 0x5) {
+		if ((flags & 0x4) == 0x4) {
 			timeProperties.push("creationDate");
 			timeRawProperties.push("rawCreationDate");
 		}
@@ -7388,7 +7388,7 @@
 		const extraFieldExtendedTimestampView = getDataView$1(rawExtraFieldExtendedTimestamp);
 		setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 		setUint16(extraFieldExtendedTimestampView, 2, rawExtraFieldExtendedTimestamp.length - 4);
-		const extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x5 : 0);
+		const extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0);
 		setUint8(extraFieldExtendedTimestampView, 4, extraFieldExtendedTimestampFlag);
 		setUint32$1(extraFieldExtendedTimestampView, 5, Math.floor(options.lastModDate.getTime() / 1000));
 		if (lastAccessDate) {
