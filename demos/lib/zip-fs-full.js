@@ -8265,6 +8265,7 @@
 			fileEntry = await createFileEntry(reader, fileWriter, zipWriter.config, options);
 			fileEntry.lock = lockCurrentFileEntry;
 			files.set(name, fileEntry);
+			fileEntry.filename = name;
 			if (bufferedWrite) {
 				let indexWrittenData = 0;
 				const blob = fileWriter.getData();
@@ -8367,6 +8368,21 @@
 		if (creationDate) {
 			setUint32$1(extraFieldExtendedTimestampView, 13, Math.floor(creationDate.getTime() / 1000));
 		}
+		let rawExtraFieldNTFS;
+		try {
+			rawExtraFieldNTFS = new Uint8Array(36);
+			const extraFieldNTFSView = getDataView$1(rawExtraFieldNTFS);
+			const lastModTimeNTFS = getTimeNTFS(options.lastModDate);
+			setUint16(extraFieldNTFSView, 0, EXTRAFIELD_TYPE_NTFS);
+			setUint16(extraFieldNTFSView, 2, 32);
+			setUint16(extraFieldNTFSView, 8, EXTRAFIELD_TYPE_NTFS_TAG1);
+			setUint16(extraFieldNTFSView, 10, 24);
+			setBigUint64(extraFieldNTFSView, 12, lastModTimeNTFS);
+			setBigUint64(extraFieldNTFSView, 20, getTimeNTFS(lastAccessDate) || lastModTimeNTFS);
+			setBigUint64(extraFieldNTFSView, 28, getTimeNTFS(creationDate) || lastModTimeNTFS);
+		} catch (error) {
+			rawExtraFieldNTFS = new Uint8Array(0);
+		}
 		const fileEntry = {
 			version: version || VERSION_DEFLATE,
 			zip64,
@@ -8376,6 +8392,8 @@
 			commentUTF8: true,
 			rawComment,
 			rawExtraFieldZip64: zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array(0),
+			rawExtraFieldExtendedTimestamp,
+			rawExtraFieldNTFS,
 			rawExtraFieldAES,
 			rawExtraField
 		};
@@ -8422,15 +8440,17 @@
 		const rawLastModDate = dateArray[0];
 		setUint32$1(headerView, 6, rawLastModDate);
 		setUint16(headerView, 22, rawFilename.length);
-		setUint16(headerView, 24, rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + fileEntry.rawExtraField.length);
-		const localHeaderArray = new Uint8Array(30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + fileEntry.rawExtraField.length);
+		const extraFieldLength = rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length + fileEntry.rawExtraField.length;
+		setUint16(headerView, 24, extraFieldLength);
+		const localHeaderArray = new Uint8Array(30 + rawFilename.length + extraFieldLength);
 		const localHeaderView = getDataView$1(localHeaderArray);
 		setUint32$1(localHeaderView, 0, LOCAL_FILE_HEADER_SIGNATURE);
 		arraySet(localHeaderArray, headerArray, 4);
 		arraySet(localHeaderArray, rawFilename, 30);
 		arraySet(localHeaderArray, rawExtraFieldAES, 30 + rawFilename.length);
 		arraySet(localHeaderArray, rawExtraFieldExtendedTimestamp, 30 + rawFilename.length + rawExtraFieldAES.length);
-		arraySet(localHeaderArray, fileEntry.rawExtraField, 30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length);
+		arraySet(localHeaderArray, rawExtraFieldNTFS, 30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length);
+		arraySet(localHeaderArray, fileEntry.rawExtraField, 30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length);
 		let result;
 		let compressedSize = 0;
 		if (reader) {
@@ -8496,7 +8516,7 @@
 			await writer.writeUint8Array(dataDescriptorArray);
 		}
 		const length = localHeaderArray.length + compressedSize + dataDescriptorArray.length;
-		Object.assign(fileEntry, { compressedSize, lastModDate, rawLastModDate, encrypted, length });
+		Object.assign(fileEntry, { compressedSize, lastModDate, rawLastModDate, creationDate, lastAccessDate, encrypted, length });
 		return fileEntry;
 	}
 
@@ -8513,7 +8533,8 @@
 				fileEntry.rawComment.length +
 				fileEntry.rawExtraFieldZip64.length +
 				fileEntry.rawExtraFieldAES.length +
-				9 +
+				fileEntry.rawExtraFieldExtendedTimestamp.length +
+				fileEntry.rawExtraFieldNTFS.length +
 				fileEntry.rawExtraField.length;
 		}
 		let zip64 = options.zip64 || zipWriter.options.zip64 || false;
@@ -8537,6 +8558,7 @@
 			const {
 				rawFilename,
 				rawExtraFieldZip64,
+				rawExtraFieldNTFS,
 				rawExtraFieldAES,
 				rawExtraField,
 				rawComment,
@@ -8551,7 +8573,7 @@
 			setUint16(extraFieldExtendedTimestampView, 2, rawExtraFieldExtendedTimestamp.length - 4);
 			setUint8(extraFieldExtendedTimestampView, 4, 0x1);
 			setUint32$1(extraFieldExtendedTimestampView, 5, Math.floor(fileEntry.lastModDate.getTime() / 1000));
-			const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + 9 + rawExtraField.length;
+			const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length + rawExtraField.length;
 			setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 			setUint16(directoryView, offset + 4, version);
 			arraySet(directoryArray, headerArray, offset + 6);
@@ -8569,7 +8591,8 @@
 			arraySet(directoryArray, rawExtraFieldZip64, offset + 46 + rawFilename.length);
 			arraySet(directoryArray, rawExtraFieldAES, offset + 46 + rawFilename.length + rawExtraFieldZip64.length);
 			arraySet(directoryArray, rawExtraFieldExtendedTimestamp, offset + 46 + rawFilename.length + rawExtraFieldZip64.length + rawExtraFieldAES.length);
-			arraySet(directoryArray, rawExtraField, offset + 46 + rawFilename.length + rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length);
+			arraySet(directoryArray, rawExtraFieldNTFS, offset + 46 + rawFilename.length + rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length);
+			arraySet(directoryArray, rawExtraField, offset + 46 + rawFilename.length + rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length);
 			arraySet(directoryArray, rawComment, offset + 46 + rawFilename.length + extraFieldLength);
 			offset += 46 + rawFilename.length + extraFieldLength + rawComment.length;
 			if (options.onprogress) {
@@ -8628,6 +8651,12 @@
 				start += blockSize;
 				await writeSlice();
 			}
+		}
+	}
+
+	function getTimeNTFS(date) {
+		if (date) {
+			return ((BigInt(date.getTime()) + 11644473600000n) * 10000n);
 		}
 	}
 
