@@ -49,6 +49,10 @@ input[type=text], input[type=password], button, select, #file-list {
 	font-style: italic;
 }
 
+#file-list li.busy progress {
+	visibility: visible;
+}
+
 #file-list .filename-container {
 	display: flex;
 }
@@ -119,6 +123,7 @@ input[type=text]:not([disabled]):hover, input[type=password]:not([disabled]):hov
 }
 
 progress {
+	visibility: hidden;
 	display: block;
 	opacity: .7;
 	width: 100%;
