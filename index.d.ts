@@ -162,6 +162,7 @@ declare module "@zip.js/zip.js" {
         lastModDate?: Date;
         lastAccessDate?: Date;
         creationDate?: Date;
+        extendedTimestamp?: boolean;
     }
 
     export interface AddDataOptions {
