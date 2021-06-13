@@ -6557,7 +6557,7 @@
 		"rawExtraField", "bitFlag", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment",
 		"extraFieldAES", "filenameUTF8", "commentUTF8", "offset", "zip64", "compressionMethod",
 		"extraFieldNTFS", "lastAccessDate", "creationDate", "extraFieldExtendedTimestamp",
-		"versionMadeBy", "msDosCompatible", "internalFileAttribute", "externalFileAttribute"];
+		"version", "versionMadeBy", "msDosCompatible", "internalFileAttribute", "externalFileAttribute"];
 
 	class Entry {
 
@@ -7183,6 +7183,10 @@
 		if (version > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_VERSION);
 		}
+		const versionMadeBy = zipWriter.options.versionMadeBy || options.versionMadeBy || 20;
+		if (versionMadeBy > MAX_16_BITS) {
+			throw new Error(ERR_INVALID_VERSION);
+		}
 		const lastModDate = getOptionValue$1(zipWriter, options, "lastModDate") || new Date();
 		const lastAccessDate = getOptionValue$1(zipWriter, options, "lastAccessDate");
 		const creationDate = getOptionValue$1(zipWriter, options, "creationDate");
@@ -7222,6 +7226,12 @@
 			keepOrder = true;
 		}
 		let uncompressedSize = 0;
+		let msDosCompatible = getOptionValue$1(zipWriter, options, "msDosCompatible");
+		if (msDosCompatible === undefined) {
+			msDosCompatible = true;
+		}
+		const internalFileAttribute = getOptionValue$1(zipWriter, options, "internalFileAttribute") || 0;
+		const externalFileAttribute = getOptionValue$1(zipWriter, options, "externalFileAttribute") || 0;
 		if (reader) {
 			if (!reader.initialized) {
 				await reader.init();
@@ -7253,6 +7263,7 @@
 			rawFilename,
 			rawComment,
 			version,
+			versionMadeBy,
 			lastModDate,
 			lastAccessDate,
 			creationDate,
@@ -7267,7 +7278,10 @@
 			bufferedWrite,
 			keepOrder,
 			dataDescriptor,
-			signal
+			signal,
+			msDosCompatible,
+			internalFileAttribute,
+			externalFileAttribute
 		}));
 		if (maximumCompressedSize) {
 			zipWriter.pendingCompressedSize -= maximumCompressedSize;
@@ -7378,13 +7392,17 @@
 			dataDescriptor,
 			directory,
 			version,
+			versionMadeBy,
 			rawComment,
 			rawExtraField,
 			useWebWorkers,
 			onprogress,
 			signal,
 			encryptionStrength,
-			extendedTimestamp
+			extendedTimestamp,
+			msDosCompatible,
+			internalFileAttribute,
+			externalFileAttribute
 		} = options;
 		const encrypted = Boolean(password && password.length);
 		const compressed = level !== 0 && !directory;
@@ -7433,6 +7451,7 @@
 		}
 		const fileEntry = {
 			version: version || VERSION_DEFLATE,
+			versionMadeBy,
 			zip64,
 			directory: Boolean(directory),
 			filenameUTF8: true,
@@ -7444,7 +7463,10 @@
 			rawExtraFieldNTFS,
 			rawExtraFieldAES,
 			rawExtraField,
-			extendedTimestamp
+			extendedTimestamp,
+			msDosCompatible,
+			internalFileAttribute,
+			externalFileAttribute
 		};
 		let uncompressedSize = fileEntry.uncompressedSize = 0;
 		let bitFlag = BITFLAG_LANG_ENCODING_FLAG;
@@ -7610,10 +7632,13 @@
 				rawExtraFieldAES,
 				rawExtraField,
 				rawComment,
-				version,
+				versionMadeBy,
 				headerArray,
 				directory,
-				zip64
+				zip64,
+				msDosCompatible,
+				internalFileAttribute,
+				externalFileAttribute
 			} = fileEntry;
 			let rawExtraFieldExtendedTimestamp;
 			let rawExtraFieldNTFS;
@@ -7630,11 +7655,14 @@
 			}
 			const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length + rawExtraField.length;
 			setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
-			setUint16(directoryView, offset + 4, version);
+			setUint16(directoryView, offset + 4, versionMadeBy);
 			arraySet(directoryArray, headerArray, offset + 6);
 			setUint16(directoryView, offset + 30, extraFieldLength);
 			setUint16(directoryView, offset + 32, rawComment.length);
-			if (directory) {
+			setUint32$1(directoryView, offset + 34, internalFileAttribute);
+			if (externalFileAttribute) {
+				setUint32$1(directoryView, offset + 38, externalFileAttribute);
+			} else if (directory && msDosCompatible) {
 				setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 			}
 			if (zip64) {
