@@ -168,6 +168,9 @@ declare module "@zip.js/zip.js" {
         lastAccessDate?: Date;
         creationDate?: Date;
         extendedTimestamp?: boolean;
+        msDosCompatible?: boolean;
+        internalFileAttribute?: number;
+        externalFileAttribute?: number;
     }
 
     export interface AddDataOptions {
