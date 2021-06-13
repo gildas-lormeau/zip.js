@@ -137,6 +137,10 @@ declare module "@zip.js/zip.js" {
         extraField?: Map<number, Uint8Array>;
         rawExtraField: Uint8Array;
         zip64: boolean;
+        versionMadeBy: number;
+        msDosCompatible: boolean;
+        internalFileAttribute: number;
+        externalFileAttribute: number;
         getData?(writer: Writer, options?: OnprogressEntryDataOption | ZipReaderOptions): Promise<any>;
     }
 
