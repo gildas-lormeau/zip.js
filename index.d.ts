@@ -138,6 +138,7 @@ declare module "@zip.js/zip.js" {
         rawExtraField: Uint8Array;
         zip64: boolean;
         version: number;
+        versionMadeBy: number;
         msDosCompatible: boolean;
         internalFileAttribute: number;
         externalFileAttribute: number;
