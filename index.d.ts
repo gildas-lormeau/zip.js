@@ -137,7 +137,7 @@ declare module "@zip.js/zip.js" {
         extraField?: Map<number, Uint8Array>;
         rawExtraField: Uint8Array;
         zip64: boolean;
-        versionMadeBy: number;
+        version: number;
         msDosCompatible: boolean;
         internalFileAttribute: number;
         externalFileAttribute: number;
