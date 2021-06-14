@@ -484,6 +484,10 @@
 			<dd>uncompressed data size</dd>
 			<dt><code>lastModDate (Date)</code></dt>
 			<dd>last modification date</dd>
+			<dt><code>lastAccessDate (Date)</code></dt>
+			<dd>last access date (current date by default)</dd>
+			<dt><code>creationDate (Date)</code></dt>
+			<dd>creation date (current date by default)</dd>
 			<dt><code>rawLastModDate (number)</code></dt>
 			<dd>last modification date in binary format (MS-DOS)</dd>
 			<dt><code>comment (string)</code></dt>
@@ -593,6 +597,12 @@ await reader.close();</code></pre>
 					<dd><code>true</code> to keep the files in order when calling <code>ZipWriter#add</code> multiple
 						times in parallel (<code>true</code> by default)
 					</dd>
+					<dt><code>lastModDate (Date)</code></dt>
+					<dd>last modification date of all files (current date by default)</dd>
+					<dt><code>lastAccessDate (Date)</code></dt>
+					<dd>last access date of all files (current date by default)</dd>
+					<dt><code>creationDate (Date)</code></dt>
+					<dd>creation date of all files (current date by default)</dd>
 					<dt><code>version (number)</code></dt>
 					<dd>zip version of all files (<code>undefined</code> by default)</dd>
 					<dt><code>versionMadeBy (number)</code></dt>
@@ -659,10 +669,14 @@ await reader.close();</code></pre>
 					<dd>file comment (<code>undefined</code> by default)</dd>
 					<dt><code>lastModDate (Date)</code></dt>
 					<dd>last modification date (current date by default)</dd>
+					<dt><code>lastAccessDate (Date)</code></dt>
+					<dd>last access date (current date by default)</dd>
+					<dt><code>creationDate (Date)</code></dt>
+					<dd>creation date (current date by default)</dd>
 					<dt><code>version (number)</code></dt>
 					<dd>zip version (<code>undefined</code> by default)</dd>
 					<dt><code>versionMadeBy (number)</code></dt>
-					<dd>"version made by" field (<code>29</code> by default)</dd>					
+					<dd>"version made by" field (<code>29</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
 					<dd>password used to encrypt the file with AES or ZipCrypto (<code>undefined</code> by default)</dd>
 					<dt><code>encryptionStrength (number)</code></dt>
