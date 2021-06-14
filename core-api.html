@@ -595,6 +595,8 @@ await reader.close();</code></pre>
 					</dd>
 					<dt><code>version (number)</code></dt>
 					<dd>zip version of all files (<code>undefined</code> by default)</dd>
+					<dt><code>versionMadeBy (number)</code></dt>
+					<dd>"version made by" field of all files (<code>29</code> by default)</dd>
 					<dt><code>password (string)</code></dt>
 					<dd>password used to encrypt all the files (<code>undefined</code> by default)</dd>
 					<dt><code>encryptionStrength (number)</code></dt>
@@ -614,6 +616,10 @@ await reader.close();</code></pre>
 					<dd>signal object created with an <a
 							href="https://dom.spec.whatwg.org/#dom-abortcontroller-abortcontroller">AbortController</a>
 						instance and used to cancel the compression</dd>
+					<dt><code>internalFileAttribute (number)</code></dt>
+					<dd>internal file attribute of all files (<code>undefined</code> by default)</dd>
+					<dt><code>externalFileAttribute (number)</code></dt>
+					<dd>external file attribute of all files (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -655,6 +661,8 @@ await reader.close();</code></pre>
 					<dd>last modification date (current date by default)</dd>
 					<dt><code>version (number)</code></dt>
 					<dd>zip version (<code>undefined</code> by default)</dd>
+					<dt><code>versionMadeBy (number)</code></dt>
+					<dd>"version made by" field (<code>29</code> by default)</dd>					
 					<dt><code>password (string)</code></dt>
 					<dd>password used to encrypt the file with AES or ZipCrypto (<code>undefined</code> by default)</dd>
 					<dt><code>encryptionStrength (number)</code></dt>
@@ -679,6 +687,10 @@ await reader.close();</code></pre>
 					<dd>signal object created with an <a
 							href="https://dom.spec.whatwg.org/#dom-abortcontroller-abortcontroller">AbortController</a>
 						instance and used to cancel the compression</dd>
+					<dt><code>internalFileAttribute (number)</code></dt>
+					<dd>internal file attribute (<code>undefined</code> by default)</dd>
+					<dt><code>externalFileAttribute (number)</code></dt>
+					<dd>external file attribute (<code>undefined</code> by default)</dd>
 				</dl>
 			</dd>
 		</dl>
