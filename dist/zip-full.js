@@ -34,7 +34,7 @@
 
 	// Global
 
-	const MAX_BITS = 15;
+	const MAX_BITS$1 = 15;
 	const D_CODES = 30;
 	const BL_CODES = 19;
 
@@ -71,17 +71,17 @@
 	const Z_HUFFMAN_ONLY = 2;
 	const Z_DEFAULT_STRATEGY = 0;
 
-	const Z_NO_FLUSH = 0;
+	const Z_NO_FLUSH$1 = 0;
 	const Z_PARTIAL_FLUSH = 1;
 	const Z_FULL_FLUSH = 3;
-	const Z_FINISH = 4;
+	const Z_FINISH$1 = 4;
 
-	const Z_OK = 0;
-	const Z_STREAM_END = 1;
-	const Z_NEED_DICT = 2;
-	const Z_STREAM_ERROR = -2;
-	const Z_DATA_ERROR = -3;
-	const Z_BUF_ERROR = -5;
+	const Z_OK$1 = 0;
+	const Z_STREAM_END$1 = 1;
+	const Z_NEED_DICT$1 = 2;
+	const Z_STREAM_ERROR$1 = -2;
+	const Z_DATA_ERROR$1 = -3;
+	const Z_BUF_ERROR$1 = -5;
 
 	// Tree
 
@@ -124,7 +124,7 @@
 			let f; // frequency
 			let overflow = 0; // number of elements with bit length too large
 
-			for (bits = 0; bits <= MAX_BITS; bits++)
+			for (bits = 0; bits <= MAX_BITS$1; bits++)
 				s.bl_count[bits] = 0;
 
 			// In a first pass, compute the optimal bit lengths (which may
@@ -220,7 +220,7 @@
 
 			// The distribution counts are first used to generate the code values
 			// without bit reversal.
-			for (bits = 1; bits <= MAX_BITS; bits++) {
+			for (bits = 1; bits <= MAX_BITS$1; bits++) {
 				next_code[bits] = code = ((code + bl_count[bits - 1]) << 1);
 			}
 
@@ -384,9 +384,9 @@
 	StaticTree.static_dtree = [0, 5, 16, 5, 8, 5, 24, 5, 4, 5, 20, 5, 12, 5, 28, 5, 2, 5, 18, 5, 10, 5, 26, 5, 6, 5, 22, 5, 14, 5, 30, 5, 1, 5, 17, 5, 9, 5,
 		25, 5, 5, 5, 21, 5, 13, 5, 29, 5, 3, 5, 19, 5, 11, 5, 27, 5, 7, 5, 23, 5];
 
-	StaticTree.static_l_desc = new StaticTree(StaticTree.static_ltree, Tree.extra_lbits, LITERALS + 1, L_CODES, MAX_BITS);
+	StaticTree.static_l_desc = new StaticTree(StaticTree.static_ltree, Tree.extra_lbits, LITERALS + 1, L_CODES, MAX_BITS$1);
 
-	StaticTree.static_d_desc = new StaticTree(StaticTree.static_dtree, Tree.extra_dbits, 0, D_CODES, MAX_BITS);
+	StaticTree.static_d_desc = new StaticTree(StaticTree.static_dtree, Tree.extra_dbits, 0, D_CODES, MAX_BITS$1);
 
 	StaticTree.static_bl_desc = new StaticTree(null, Tree.extra_blbits, 0, BL_CODES, MAX_BL_BITS);
 
@@ -404,11 +404,11 @@
 		that.func = func;
 	}
 
-	const STORED = 0;
+	const STORED$1 = 0;
 	const FAST = 1;
 	const SLOW = 2;
 	const config_table = [
-		new Config(0, 0, 0, 0, STORED),
+		new Config(0, 0, 0, 0, STORED$1),
 		new Config(4, 4, 8, 4, FAST),
 		new Config(4, 5, 16, 8, FAST),
 		new Config(4, 6, 32, 32, FAST),
@@ -445,14 +445,14 @@
 	const FinishDone = 3;
 
 	// preset dictionary flag in zlib header
-	const PRESET_DICT = 0x20;
+	const PRESET_DICT$1 = 0x20;
 
 	const INIT_STATE = 42;
 	const BUSY_STATE = 113;
 	const FINISH_STATE = 666;
 
 	// The deflate compression method
-	const Z_DEFLATED = 8;
+	const Z_DEFLATED$1 = 8;
 
 	const STORED_BLOCK = 0;
 	const STATIC_TREES = 1;
@@ -468,7 +468,7 @@
 		return (tn2 < tm2 || (tn2 == tm2 && depth[n] <= depth[m]));
 	}
 
-	function Deflate() {
+	function Deflate$1() {
 
 		const that = this;
 		let strm; // pointer back to this zlib stream
@@ -1245,7 +1245,7 @@
 				// Fill the window as much as possible:
 				if (lookahead <= 1) {
 					fill_window();
-					if (lookahead === 0 && flush == Z_NO_FLUSH)
+					if (lookahead === 0 && flush == Z_NO_FLUSH$1)
 						return NeedMore;
 					if (lookahead === 0)
 						break; // flush the current block
@@ -1276,11 +1276,11 @@
 				}
 			}
 
-			flush_block_only(flush == Z_FINISH);
+			flush_block_only(flush == Z_FINISH$1);
 			if (strm.avail_out === 0)
-				return (flush == Z_FINISH) ? FinishStarted : NeedMore;
+				return (flush == Z_FINISH$1) ? FinishStarted : NeedMore;
 
-			return flush == Z_FINISH ? FinishDone : BlockDone;
+			return flush == Z_FINISH$1 ? FinishDone : BlockDone;
 		}
 
 		function longest_match(cur_match) {
@@ -1378,7 +1378,7 @@
 				// string following the next match.
 				if (lookahead < MIN_LOOKAHEAD) {
 					fill_window();
-					if (lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH) {
+					if (lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH$1) {
 						return NeedMore;
 					}
 					if (lookahead === 0)
@@ -1457,14 +1457,14 @@
 				}
 			}
 
-			flush_block_only(flush == Z_FINISH);
+			flush_block_only(flush == Z_FINISH$1);
 			if (strm.avail_out === 0) {
-				if (flush == Z_FINISH)
+				if (flush == Z_FINISH$1)
 					return FinishStarted;
 				else
 					return NeedMore;
 			}
-			return flush == Z_FINISH ? FinishDone : BlockDone;
+			return flush == Z_FINISH$1 ? FinishDone : BlockDone;
 		}
 
 		// Same as above, but achieves better compression. We use a lazy
@@ -1486,7 +1486,7 @@
 
 				if (lookahead < MIN_LOOKAHEAD) {
 					fill_window();
-					if (lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH) {
+					if (lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH$1) {
 						return NeedMore;
 					}
 					if (lookahead === 0)
@@ -1590,16 +1590,16 @@
 				bflush = _tr_tally(0, window[strstart - 1] & 0xff);
 				match_available = 0;
 			}
-			flush_block_only(flush == Z_FINISH);
+			flush_block_only(flush == Z_FINISH$1);
 
 			if (strm.avail_out === 0) {
-				if (flush == Z_FINISH)
+				if (flush == Z_FINISH$1)
 					return FinishStarted;
 				else
 					return NeedMore;
 			}
 
-			return flush == Z_FINISH ? FinishDone : BlockDone;
+			return flush == Z_FINISH$1 ? FinishDone : BlockDone;
 		}
 
 		function deflateReset(strm) {
@@ -1611,16 +1611,16 @@
 
 			status = BUSY_STATE;
 
-			last_flush = Z_NO_FLUSH;
+			last_flush = Z_NO_FLUSH$1;
 
 			tr_init();
 			lm_init();
-			return Z_OK;
+			return Z_OK$1;
 		}
 
 		that.deflateInit = function (strm, _level, bits, _method, memLevel, _strategy) {
 			if (!_method)
-				_method = Z_DEFLATED;
+				_method = Z_DEFLATED$1;
 			if (!memLevel)
 				memLevel = DEF_MEM_LEVEL;
 			if (!_strategy)
@@ -1639,9 +1639,9 @@
 			if (_level == Z_DEFAULT_COMPRESSION)
 				_level = 6;
 
-			if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || _method != Z_DEFLATED || bits < 9 || bits > 15 || _level < 0 || _level > 9 || _strategy < 0
+			if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || _method != Z_DEFLATED$1 || bits < 9 || bits > 15 || _level < 0 || _level > 9 || _strategy < 0
 				|| _strategy > Z_HUFFMAN_ONLY) {
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			}
 
 			strm.dstate = that;
@@ -1678,7 +1678,7 @@
 
 		that.deflateEnd = function () {
 			if (status != INIT_STATE && status != BUSY_STATE && status != FINISH_STATE) {
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			}
 			// Deallocate in reverse order of allocations:
 			that.pending_buf = null;
@@ -1687,17 +1687,17 @@
 			window = null;
 			// free
 			that.dstate = null;
-			return status == BUSY_STATE ? Z_DATA_ERROR : Z_OK;
+			return status == BUSY_STATE ? Z_DATA_ERROR$1 : Z_OK$1;
 		};
 
 		that.deflateParams = function (strm, _level, _strategy) {
-			let err = Z_OK;
+			let err = Z_OK$1;
 
 			if (_level == Z_DEFAULT_COMPRESSION) {
 				_level = 6;
 			}
 			if (_level < 0 || _level > 9 || _strategy < 0 || _strategy > Z_HUFFMAN_ONLY) {
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			}
 
 			if (config_table[level].func != config_table[_level].func && strm.total_in !== 0) {
@@ -1721,10 +1721,10 @@
 			let n, index = 0;
 
 			if (!dictionary || status != INIT_STATE)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 
 			if (length < MIN_MATCH)
-				return Z_OK;
+				return Z_OK$1;
 			if (length > w_size - MIN_LOOKAHEAD) {
 				length = w_size - MIN_LOOKAHEAD;
 				index = dictLength - length; // use the tail of the dictionary
@@ -1746,23 +1746,23 @@
 				prev[n & w_mask] = head[ins_h];
 				head[ins_h] = n;
 			}
-			return Z_OK;
+			return Z_OK$1;
 		};
 
 		that.deflate = function (_strm, flush) {
 			let i, header, level_flags, old_flush, bstate;
 
-			if (flush > Z_FINISH || flush < 0) {
-				return Z_STREAM_ERROR;
+			if (flush > Z_FINISH$1 || flush < 0) {
+				return Z_STREAM_ERROR$1;
 			}
 
-			if (!_strm.next_out || (!_strm.next_in && _strm.avail_in !== 0) || (status == FINISH_STATE && flush != Z_FINISH)) {
-				_strm.msg = z_errmsg[Z_NEED_DICT - (Z_STREAM_ERROR)];
-				return Z_STREAM_ERROR;
+			if (!_strm.next_out || (!_strm.next_in && _strm.avail_in !== 0) || (status == FINISH_STATE && flush != Z_FINISH$1)) {
+				_strm.msg = z_errmsg[Z_NEED_DICT$1 - (Z_STREAM_ERROR$1)];
+				return Z_STREAM_ERROR$1;
 			}
 			if (_strm.avail_out === 0) {
-				_strm.msg = z_errmsg[Z_NEED_DICT - (Z_BUF_ERROR)];
-				return Z_BUF_ERROR;
+				_strm.msg = z_errmsg[Z_NEED_DICT$1 - (Z_BUF_ERROR$1)];
+				return Z_BUF_ERROR$1;
 			}
 
 			strm = _strm; // just in case
@@ -1771,14 +1771,14 @@
 
 			// Write the zlib header
 			if (status == INIT_STATE) {
-				header = (Z_DEFLATED + ((w_bits - 8) << 4)) << 8;
+				header = (Z_DEFLATED$1 + ((w_bits - 8) << 4)) << 8;
 				level_flags = ((level - 1) & 0xff) >> 1;
 
 				if (level_flags > 3)
 					level_flags = 3;
 				header |= (level_flags << 6);
 				if (strstart !== 0)
-					header |= PRESET_DICT;
+					header |= PRESET_DICT$1;
 				header += 31 - (header % 31);
 
 				status = BUSY_STATE;
@@ -1796,29 +1796,29 @@
 					// but this is not an error situation so make sure we
 					// return OK instead of BUF_ERROR at next call of deflate:
 					last_flush = -1;
-					return Z_OK;
+					return Z_OK$1;
 				}
 
 				// Make sure there is something to do and avoid duplicate
 				// consecutive
 				// flushes. For repeated and useless calls with Z_FINISH, we keep
 				// returning Z_STREAM_END instead of Z_BUFF_ERROR.
-			} else if (strm.avail_in === 0 && flush <= old_flush && flush != Z_FINISH) {
-				strm.msg = z_errmsg[Z_NEED_DICT - (Z_BUF_ERROR)];
-				return Z_BUF_ERROR;
+			} else if (strm.avail_in === 0 && flush <= old_flush && flush != Z_FINISH$1) {
+				strm.msg = z_errmsg[Z_NEED_DICT$1 - (Z_BUF_ERROR$1)];
+				return Z_BUF_ERROR$1;
 			}
 
 			// User must not provide more input after the first FINISH:
 			if (status == FINISH_STATE && strm.avail_in !== 0) {
-				_strm.msg = z_errmsg[Z_NEED_DICT - (Z_BUF_ERROR)];
-				return Z_BUF_ERROR;
+				_strm.msg = z_errmsg[Z_NEED_DICT$1 - (Z_BUF_ERROR$1)];
+				return Z_BUF_ERROR$1;
 			}
 
 			// Start a new block or continue the current one.
-			if (strm.avail_in !== 0 || lookahead !== 0 || (flush != Z_NO_FLUSH && status != FINISH_STATE)) {
+			if (strm.avail_in !== 0 || lookahead !== 0 || (flush != Z_NO_FLUSH$1 && status != FINISH_STATE)) {
 				bstate = -1;
 				switch (config_table[level].func) {
-					case STORED:
+					case STORED$1:
 						bstate = deflate_stored(flush);
 						break;
 					case FAST:
@@ -1836,7 +1836,7 @@
 					if (strm.avail_out === 0) {
 						last_flush = -1; // avoid BUF_ERROR next call, see above
 					}
-					return Z_OK;
+					return Z_OK$1;
 					// If flush != Z_NO_FLUSH && avail_out === 0, the next call
 					// of deflate should use the same flush parameter to make sure
 					// that the flush is complete. So we don't have to output an
@@ -1862,20 +1862,20 @@
 					strm.flush_pending();
 					if (strm.avail_out === 0) {
 						last_flush = -1; // avoid BUF_ERROR at next call, see above
-						return Z_OK;
+						return Z_OK$1;
 					}
 				}
 			}
 
-			if (flush != Z_FINISH)
-				return Z_OK;
-			return Z_STREAM_END;
+			if (flush != Z_FINISH$1)
+				return Z_OK$1;
+			return Z_STREAM_END$1;
 		};
 	}
 
 	// ZStream
 
-	function ZStream() {
+	function ZStream$1() {
 		const that = this;
 		that.next_in_index = 0;
 		that.next_out_index = 0;
@@ -1889,19 +1889,19 @@
 		// that.dstate;
 	}
 
-	ZStream.prototype = {
+	ZStream$1.prototype = {
 		deflateInit: function (level, bits) {
 			const that = this;
-			that.dstate = new Deflate();
+			that.dstate = new Deflate$1();
 			if (!bits)
-				bits = MAX_BITS;
+				bits = MAX_BITS$1;
 			return that.dstate.deflateInit(that, level, bits);
 		},
 
 		deflate: function (flush) {
 			const that = this;
 			if (!that.dstate) {
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			}
 			return that.dstate.deflate(that, flush);
 		},
@@ -1909,7 +1909,7 @@
 		deflateEnd: function () {
 			const that = this;
 			if (!that.dstate)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			const ret = that.dstate.deflateEnd();
 			that.dstate = null;
 			return ret;
@@ -1918,14 +1918,14 @@
 		deflateParams: function (level, strategy) {
 			const that = this;
 			if (!that.dstate)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			return that.dstate.deflateParams(that, level, strategy);
 		},
 
 		deflateSetDictionary: function (dictionary, dictLength) {
 			const that = this;
 			if (!that.dstate)
-				return Z_STREAM_ERROR;
+				return Z_STREAM_ERROR$1;
 			return that.dstate.deflateSetDictionary(that, dictionary, dictLength);
 		},
 
@@ -1986,9 +1986,9 @@
 
 	function ZipDeflate(options) {
 		const that = this;
-		const z = new ZStream();
-		const bufsize = getMaximumCompressedSize(options && options.chunkSize ? options.chunkSize : 64 * 1024);
-		const flush = Z_NO_FLUSH;
+		const z = new ZStream$1();
+		const bufsize = getMaximumCompressedSize$1(options && options.chunkSize ? options.chunkSize : 64 * 1024);
+		const flush = Z_NO_FLUSH$1;
 		const buf = new Uint8Array(bufsize);
 		let level = options ? options.level : Z_DEFAULT_COMPRESSION;
 		if (typeof level == "undefined")
@@ -2008,7 +2008,7 @@
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
 				err = z.deflate(flush);
-				if (err != Z_OK)
+				if (err != Z_OK$1)
 					throw new Error("deflating: " + z.msg);
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
@@ -2038,8 +2038,8 @@
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
-				err = z.deflate(Z_FINISH);
-				if (err != Z_STREAM_END && err != Z_OK)
+				err = z.deflate(Z_FINISH$1);
+				if (err != Z_STREAM_END$1 && err != Z_OK$1)
 					throw new Error("deflating: " + z.msg);
 				if (bufsize - z.avail_out > 0)
 					buffers.push(buf.slice(0, z.next_out_index));
@@ -2055,7 +2055,7 @@
 		};
 	}
 
-	function getMaximumCompressedSize(uncompressedSize) {
+	function getMaximumCompressedSize$1(uncompressedSize) {
 		return uncompressedSize + (5 * (Math.floor(uncompressedSize / 16383) + 1));
 	}
 
@@ -2088,15 +2088,15 @@
 	 */
 
 	// Global
-	const MAX_BITS$1 = 15;
+	const MAX_BITS = 15;
 
-	const Z_OK$1 = 0;
-	const Z_STREAM_END$1 = 1;
-	const Z_NEED_DICT$1 = 2;
-	const Z_STREAM_ERROR$1 = -2;
-	const Z_DATA_ERROR$1 = -3;
+	const Z_OK = 0;
+	const Z_STREAM_END = 1;
+	const Z_NEED_DICT = 2;
+	const Z_STREAM_ERROR = -2;
+	const Z_DATA_ERROR = -3;
 	const Z_MEM_ERROR = -4;
-	const Z_BUF_ERROR$1 = -5;
+	const Z_BUF_ERROR = -5;
 
 	const inflate_mask = [0x00000000, 0x00000001, 0x00000003, 0x00000007, 0x0000000f, 0x0000001f, 0x0000003f, 0x0000007f, 0x000000ff, 0x000001ff, 0x000003ff,
 		0x000007ff, 0x00000fff, 0x00001fff, 0x00003fff, 0x00007fff, 0x0000ffff];
@@ -2104,8 +2104,8 @@
 	const MANY = 1440;
 
 	// JZlib version : "1.0.2"
-	const Z_NO_FLUSH$1 = 0;
-	const Z_FINISH$1 = 4;
+	const Z_NO_FLUSH = 0;
+	const Z_FINISH = 4;
 
 	// InfTree
 	const fixed_bl = 9;
@@ -2230,7 +2230,7 @@
 			if (c[0] == n) { // null input--all zero length codes
 				t[0] = -1;
 				m[0] = 0;
-				return Z_OK$1;
+				return Z_OK;
 			}
 
 			// Find minimum and maximum length, bound *m by those
@@ -2255,11 +2255,11 @@
 			// Adjust last length count to fill out codes, if needed
 			for (y = 1 << j; j < i; j++, y <<= 1) {
 				if ((y -= c[j]) < 0) {
-					return Z_DATA_ERROR$1;
+					return Z_DATA_ERROR;
 				}
 			}
 			if ((y -= c[i]) < 0) {
-				return Z_DATA_ERROR$1;
+				return Z_DATA_ERROR;
 			}
 			c[i] += y;
 
@@ -2322,7 +2322,7 @@
 
 						// allocate new table
 						if (hn[0] + z > MANY) { // (note: doesn't matter for fixed)
-							return Z_DATA_ERROR$1; // overflow of MANY
+							return Z_DATA_ERROR; // overflow of MANY
 						}
 						u[h] = q = /* hp+ */hn[0]; // DEBUG
 						hn[0] += z;
@@ -2379,7 +2379,7 @@
 				}
 			}
 			// Return Z_BUF_ERROR if we were given an incomplete table
-			return y !== 0 && g != 1 ? Z_BUF_ERROR$1 : Z_OK$1;
+			return y !== 0 && g != 1 ? Z_BUF_ERROR : Z_OK;
 		}
 
 		function initWorkArea(vsize) {
@@ -2421,11 +2421,11 @@
 			hn[0] = 0;
 			result = huft_build(c, 0, 19, 19, null, null, tb, bb, hp, hn, v);
 
-			if (result == Z_DATA_ERROR$1) {
+			if (result == Z_DATA_ERROR) {
 				z.msg = "oversubscribed dynamic bit lengths tree";
-			} else if (result == Z_BUF_ERROR$1 || bb[0] === 0) {
+			} else if (result == Z_BUF_ERROR || bb[0] === 0) {
 				z.msg = "incomplete dynamic bit lengths tree";
-				result = Z_DATA_ERROR$1;
+				result = Z_DATA_ERROR;
 			}
 			return result;
 		};
@@ -2446,12 +2446,12 @@
 			initWorkArea(288);
 			hn[0] = 0;
 			result = huft_build(c, 0, nl, 257, cplens, cplext, tl, bl, hp, hn, v);
-			if (result != Z_OK$1 || bl[0] === 0) {
-				if (result == Z_DATA_ERROR$1) {
+			if (result != Z_OK || bl[0] === 0) {
+				if (result == Z_DATA_ERROR) {
 					z.msg = "oversubscribed literal/length tree";
 				} else if (result != Z_MEM_ERROR) {
 					z.msg = "incomplete literal/length tree";
-					result = Z_DATA_ERROR$1;
+					result = Z_DATA_ERROR;
 				}
 				return result;
 			}
@@ -2460,20 +2460,20 @@
 			initWorkArea(288);
 			result = huft_build(c, nl, nd, 0, cpdist, cpdext, td, bd, hp, hn, v);
 
-			if (result != Z_OK$1 || (bd[0] === 0 && nl > 257)) {
-				if (result == Z_DATA_ERROR$1) {
+			if (result != Z_OK || (bd[0] === 0 && nl > 257)) {
+				if (result == Z_DATA_ERROR) {
 					z.msg = "oversubscribed distance tree";
-				} else if (result == Z_BUF_ERROR$1) {
+				} else if (result == Z_BUF_ERROR) {
 					z.msg = "incomplete distance tree";
-					result = Z_DATA_ERROR$1;
+					result = Z_DATA_ERROR;
 				} else if (result != Z_MEM_ERROR) {
 					z.msg = "empty distance tree with lengths";
-					result = Z_DATA_ERROR$1;
+					result = Z_DATA_ERROR;
 				}
 				return result;
 			}
 
-			return Z_OK$1;
+			return Z_OK;
 		};
 
 	}
@@ -2487,7 +2487,7 @@
 		bd[0] = fixed_bd;
 		tl[0] = fixed_tl;
 		td[0] = fixed_td;
-		return Z_OK$1;
+		return Z_OK;
 	};
 
 	// InfCodes
@@ -2710,7 +2710,7 @@
 								z.next_in_index = p;
 								s.write = q;
 
-								return Z_DATA_ERROR$1;
+								return Z_DATA_ERROR;
 							}
 							// eslint-disable-next-line no-constant-condition
 						} while (true);
@@ -2745,7 +2745,7 @@
 						z.next_in_index = p;
 						s.write = q;
 
-						return Z_STREAM_END$1;
+						return Z_STREAM_END;
 					} else {
 						z.msg = "invalid literal/length code";
 
@@ -2762,7 +2762,7 @@
 						z.next_in_index = p;
 						s.write = q;
 
-						return Z_DATA_ERROR$1;
+						return Z_DATA_ERROR;
 					}
 					// eslint-disable-next-line no-constant-condition
 				} while (true);
@@ -2782,7 +2782,7 @@
 			z.next_in_index = p;
 			s.write = q;
 
-			return Z_OK$1;
+			return Z_OK;
 		}
 
 		that.init = function (bl, bd, tl, tl_index, td, td_index) {
@@ -2839,8 +2839,8 @@
 							q = s.write;
 							m = q < s.read ? s.read - q - 1 : s.end - q;
 
-							if (r != Z_OK$1) {
-								mode = r == Z_STREAM_END$1 ? WASH : BADCODE;
+							if (r != Z_OK) {
+								mode = r == Z_STREAM_END ? WASH : BADCODE;
 								break;
 							}
 						}
@@ -2855,7 +2855,7 @@
 
 						while (k < (j)) {
 							if (n !== 0)
-								r = Z_OK$1;
+								r = Z_OK;
 							else {
 
 								s.bitb = b;
@@ -2900,7 +2900,7 @@
 						}
 						mode = BADCODE; // invalid code
 						z.msg = "invalid literal/length code";
-						r = Z_DATA_ERROR$1;
+						r = Z_DATA_ERROR;
 
 						s.bitb = b;
 						s.bitk = k;
@@ -2915,7 +2915,7 @@
 
 						while (k < (j)) {
 							if (n !== 0)
-								r = Z_OK$1;
+								r = Z_OK;
 							else {
 
 								s.bitb = b;
@@ -2946,7 +2946,7 @@
 
 						while (k < (j)) {
 							if (n !== 0)
-								r = Z_OK$1;
+								r = Z_OK;
 							else {
 
 								s.bitb = b;
@@ -2981,7 +2981,7 @@
 						}
 						mode = BADCODE; // invalid code
 						z.msg = "invalid distance code";
-						r = Z_DATA_ERROR$1;
+						r = Z_DATA_ERROR;
 
 						s.bitb = b;
 						s.bitk = k;
@@ -2996,7 +2996,7 @@
 
 						while (k < (j)) {
 							if (n !== 0)
-								r = Z_OK$1;
+								r = Z_OK;
 							else {
 
 								s.bitb = b;
@@ -3090,7 +3090,7 @@
 								}
 							}
 						}
-						r = Z_OK$1;
+						r = Z_OK;
 
 						s.window[q++] = /* (byte) */lit;
 						m--;
@@ -3121,7 +3121,7 @@
 						mode = END;
 					/* falls through */
 					case END:
-						r = Z_STREAM_END$1;
+						r = Z_STREAM_END;
 						s.bitb = b;
 						s.bitk = k;
 						z.avail_in = n;
@@ -3132,7 +3132,7 @@
 
 					case BADCODE: // x: got error
 
-						r = Z_DATA_ERROR$1;
+						r = Z_DATA_ERROR;
 
 						s.bitb = b;
 						s.bitk = k;
@@ -3143,7 +3143,7 @@
 						return s.inflate_flush(z, r);
 
 					default:
-						r = Z_STREAM_ERROR$1;
+						r = Z_STREAM_ERROR;
 
 						s.bitb = b;
 						s.bitk = k;
@@ -3170,7 +3170,7 @@
 
 	const TYPE = 0; // get type bits (3, including end bit)
 	const LENS = 1; // get lengths for stored
-	const STORED$1 = 2;// processing stored block
+	const STORED = 2;// processing stored block
 	const TABLE = 3; // get table lengths
 	const BTREE = 4; // get bit lengths tree for a dynamic
 	// block
@@ -3239,8 +3239,8 @@
 			n = /* (int) */((q <= that.write ? that.write : that.end) - q);
 			if (n > z.avail_out)
 				n = z.avail_out;
-			if (n !== 0 && r == Z_BUF_ERROR$1)
-				r = Z_OK$1;
+			if (n !== 0 && r == Z_BUF_ERROR)
+				r = Z_OK;
 
 			// update counters
 			z.avail_out -= n;
@@ -3262,8 +3262,8 @@
 				n = that.write - q;
 				if (n > z.avail_out)
 					n = z.avail_out;
-				if (n !== 0 && r == Z_BUF_ERROR$1)
-					r = Z_OK$1;
+				if (n !== 0 && r == Z_BUF_ERROR)
+					r = Z_OK;
 
 				// update counters
 				z.avail_out -= n;
@@ -3316,7 +3316,7 @@
 
 						while (k < (3)) {
 							if (n !== 0) {
-								r = Z_OK$1;
+								r = Z_OK;
 							} else {
 								that.bitb = b;
 								that.bitk = k;
@@ -3382,7 +3382,7 @@
 								// }
 								mode = BADBLOCKS;
 								z.msg = "invalid block type";
-								r = Z_DATA_ERROR$1;
+								r = Z_DATA_ERROR;
 
 								that.bitb = b;
 								that.bitk = k;
@@ -3397,7 +3397,7 @@
 
 						while (k < (32)) {
 							if (n !== 0) {
-								r = Z_OK$1;
+								r = Z_OK;
 							} else {
 								that.bitb = b;
 								that.bitk = k;
@@ -3415,7 +3415,7 @@
 						if ((((~b) >>> 16) & 0xffff) != (b & 0xffff)) {
 							mode = BADBLOCKS;
 							z.msg = "invalid stored block lengths";
-							r = Z_DATA_ERROR$1;
+							r = Z_DATA_ERROR;
 
 							that.bitb = b;
 							that.bitk = k;
@@ -3427,9 +3427,9 @@
 						}
 						left = (b & 0xffff);
 						b = k = 0; // dump bits
-						mode = left !== 0 ? STORED$1 : (last !== 0 ? DRY : TYPE);
+						mode = left !== 0 ? STORED : (last !== 0 ? DRY : TYPE);
 						break;
-					case STORED$1:
+					case STORED:
 						if (n === 0) {
 							that.bitb = b;
 							that.bitk = k;
@@ -3465,7 +3465,7 @@
 								}
 							}
 						}
-						r = Z_OK$1;
+						r = Z_OK;
 
 						t = left;
 						if (t > n)
@@ -3485,7 +3485,7 @@
 
 						while (k < (14)) {
 							if (n !== 0) {
-								r = Z_OK$1;
+								r = Z_OK;
 							} else {
 								that.bitb = b;
 								that.bitk = k;
@@ -3505,7 +3505,7 @@
 						if ((t & 0x1f) > 29 || ((t >> 5) & 0x1f) > 29) {
 							mode = BADBLOCKS;
 							z.msg = "too many length or distance symbols";
-							r = Z_DATA_ERROR$1;
+							r = Z_DATA_ERROR;
 
 							that.bitb = b;
 							that.bitk = k;
@@ -3536,7 +3536,7 @@
 						while (index < 4 + (table >>> 10)) {
 							while (k < (3)) {
 								if (n !== 0) {
-									r = Z_OK$1;
+									r = Z_OK;
 								} else {
 									that.bitb = b;
 									that.bitk = k;
@@ -3565,9 +3565,9 @@
 
 						bb[0] = 7;
 						t = inftree.inflate_trees_bits(blens, bb, tb, hufts, z);
-						if (t != Z_OK$1) {
+						if (t != Z_OK) {
 							r = t;
-							if (r == Z_DATA_ERROR$1) {
+							if (r == Z_DATA_ERROR) {
 								blens = null;
 								mode = BADBLOCKS;
 							}
@@ -3598,7 +3598,7 @@
 
 							while (k < (t)) {
 								if (n !== 0) {
-									r = Z_OK$1;
+									r = Z_OK;
 								} else {
 									that.bitb = b;
 									that.bitk = k;
@@ -3630,7 +3630,7 @@
 
 								while (k < (t + i)) {
 									if (n !== 0) {
-										r = Z_OK$1;
+										r = Z_OK;
 									} else {
 										that.bitb = b;
 										that.bitk = k;
@@ -3659,7 +3659,7 @@
 									blens = null;
 									mode = BADBLOCKS;
 									z.msg = "invalid bit length repeat";
-									r = Z_DATA_ERROR$1;
+									r = Z_DATA_ERROR;
 
 									that.bitb = b;
 									that.bitk = k;
@@ -3690,8 +3690,8 @@
 						t = table;
 						t = inftree.inflate_trees_dynamic(257 + (t & 0x1f), 1 + ((t >> 5) & 0x1f), blens, bl_, bd_, tl_, td_, hufts, z);
 
-						if (t != Z_OK$1) {
-							if (t == Z_DATA_ERROR$1) {
+						if (t != Z_OK) {
+							if (t == Z_DATA_ERROR) {
 								blens = null;
 								mode = BADBLOCKS;
 							}
@@ -3717,10 +3717,10 @@
 						z.next_in_index = p;
 						that.write = q;
 
-						if ((r = codes.proc(that, z, r)) != Z_STREAM_END$1) {
+						if ((r = codes.proc(that, z, r)) != Z_STREAM_END) {
 							return that.inflate_flush(z, r);
 						}
-						r = Z_OK$1;
+						r = Z_OK;
 						codes.free(z);
 
 						p = z.next_in_index;
@@ -3753,7 +3753,7 @@
 						mode = DONELOCKS;
 					/* falls through */
 					case DONELOCKS:
-						r = Z_STREAM_END$1;
+						r = Z_STREAM_END;
 
 						that.bitb = b;
 						that.bitk = k;
@@ -3763,7 +3763,7 @@
 						that.write = q;
 						return that.inflate_flush(z, r);
 					case BADBLOCKS:
-						r = Z_DATA_ERROR$1;
+						r = Z_DATA_ERROR;
 
 						that.bitb = b;
 						that.bitk = k;
@@ -3774,7 +3774,7 @@
 						return that.inflate_flush(z, r);
 
 					default:
-						r = Z_STREAM_ERROR$1;
+						r = Z_STREAM_ERROR;
 
 						that.bitb = b;
 						that.bitk = k;
@@ -3810,9 +3810,9 @@
 	// Inflate
 
 	// preset dictionary flag in zlib header
-	const PRESET_DICT$1 = 0x20;
+	const PRESET_DICT = 0x20;
 
-	const Z_DEFLATED$1 = 8;
+	const Z_DEFLATED = 8;
 
 	const METHOD = 0; // waiting for method byte
 	const FLAG = 1; // waiting for flag byte
@@ -3827,7 +3827,7 @@
 
 	const mark = [0, 0, 0xff, 0xff];
 
-	function Inflate() {
+	function Inflate$1() {
 		const that = this;
 
 		that.mode = 0; // current inflate mode
@@ -3849,13 +3849,13 @@
 
 		function inflateReset(z) {
 			if (!z || !z.istate)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 
 			z.total_in = z.total_out = 0;
 			z.msg = null;
 			z.istate.mode = BLOCKS;
 			z.istate.blocks.reset(z, null);
-			return Z_OK$1;
+			return Z_OK;
 		}
 
 		that.inflateEnd = function (z) {
@@ -3863,7 +3863,7 @@
 				that.blocks.free(z);
 			that.blocks = null;
 			// ZFREE(z, z->state);
-			return Z_OK$1;
+			return Z_OK;
 		};
 
 		that.inflateInit = function (z, w) {
@@ -3873,7 +3873,7 @@
 			// set window size
 			if (w < 8 || w > 15) {
 				that.inflateEnd(z);
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			}
 			that.wbits = w;
 
@@ -3881,7 +3881,7 @@
 
 			// reset state
 			inflateReset(z);
-			return Z_OK$1;
+			return Z_OK;
 		};
 
 		that.inflate = function (z, f) {
@@ -3889,10 +3889,10 @@
 			let b;
 
 			if (!z || !z.istate || !z.next_in)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			const istate = z.istate;
-			f = f == Z_FINISH$1 ? Z_BUF_ERROR$1 : Z_OK$1;
-			r = Z_BUF_ERROR$1;
+			f = f == Z_FINISH ? Z_BUF_ERROR : Z_OK;
+			r = Z_BUF_ERROR;
 			// eslint-disable-next-line no-constant-condition
 			while (true) {
 				switch (istate.mode) {
@@ -3904,7 +3904,7 @@
 
 						z.avail_in--;
 						z.total_in++;
-						if (((istate.method = z.read_byte(z.next_in_index++)) & 0xf) != Z_DEFLATED$1) {
+						if (((istate.method = z.read_byte(z.next_in_index++)) & 0xf) != Z_DEFLATED) {
 							istate.mode = BAD;
 							z.msg = "unknown compression method";
 							istate.marker = 5; // can't try inflateSync
@@ -3935,7 +3935,7 @@
 							break;
 						}
 
-						if ((b & PRESET_DICT$1) === 0) {
+						if ((b & PRESET_DICT) === 0) {
 							istate.mode = BLOCKS;
 							break;
 						}
@@ -3984,24 +3984,24 @@
 						z.total_in++;
 						istate.need += (z.read_byte(z.next_in_index++) & 0xff);
 						istate.mode = DICT0;
-						return Z_NEED_DICT$1;
+						return Z_NEED_DICT;
 					case DICT0:
 						istate.mode = BAD;
 						z.msg = "need dictionary";
 						istate.marker = 0; // can try inflateSync
-						return Z_STREAM_ERROR$1;
+						return Z_STREAM_ERROR;
 					case BLOCKS:
 
 						r = istate.blocks.proc(z, r);
-						if (r == Z_DATA_ERROR$1) {
+						if (r == Z_DATA_ERROR) {
 							istate.mode = BAD;
 							istate.marker = 0; // can try inflateSync
 							break;
 						}
-						if (r == Z_OK$1) {
+						if (r == Z_OK) {
 							r = f;
 						}
-						if (r != Z_STREAM_END$1) {
+						if (r != Z_STREAM_END) {
 							return r;
 						}
 						r = f;
@@ -4009,11 +4009,11 @@
 						istate.mode = DONE;
 					/* falls through */
 					case DONE:
-						return Z_STREAM_END$1;
+						return Z_STREAM_END;
 					case BAD:
-						return Z_DATA_ERROR$1;
+						return Z_DATA_ERROR;
 					default:
-						return Z_STREAM_ERROR$1;
+						return Z_STREAM_ERROR;
 				}
 			}
 		};
@@ -4021,7 +4021,7 @@
 		that.inflateSetDictionary = function (z, dictionary, dictLength) {
 			let index = 0, length = dictLength;
 			if (!z || !z.istate || z.istate.mode != DICT0)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			const istate = z.istate;
 			if (length >= (1 << istate.wbits)) {
 				length = (1 << istate.wbits) - 1;
@@ -4029,7 +4029,7 @@
 			}
 			istate.blocks.set_dictionary(dictionary, index, length);
 			istate.mode = BLOCKS;
-			return Z_OK$1;
+			return Z_OK;
 		};
 
 		that.inflateSync = function (z) {
@@ -4040,14 +4040,14 @@
 
 			// set up
 			if (!z || !z.istate)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			const istate = z.istate;
 			if (istate.mode != BAD) {
 				istate.mode = BAD;
 				istate.marker = 0;
 			}
 			if ((n = z.avail_in) === 0)
-				return Z_BUF_ERROR$1;
+				return Z_BUF_ERROR;
 			p = z.next_in_index;
 			m = istate.marker;
 
@@ -4072,7 +4072,7 @@
 
 			// return no joy or set up to restart on a new block
 			if (m != 4) {
-				return Z_DATA_ERROR$1;
+				return Z_DATA_ERROR;
 			}
 			r = z.total_in;
 			w = z.total_out;
@@ -4080,7 +4080,7 @@
 			z.total_in = r;
 			z.total_out = w;
 			istate.mode = BLOCKS;
-			return Z_OK$1;
+			return Z_OK;
 		};
 
 		// Returns true if inflate is currently at the end of a block generated
@@ -4092,36 +4092,36 @@
 		// waiting for these length bytes.
 		that.inflateSyncPoint = function (z) {
 			if (!z || !z.istate || !z.istate.blocks)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			return z.istate.blocks.sync_point();
 		};
 	}
 
 	// ZStream
 
-	function ZStream$1() {
+	function ZStream() {
 	}
 
-	ZStream$1.prototype = {
+	ZStream.prototype = {
 		inflateInit: function (bits) {
 			const that = this;
-			that.istate = new Inflate();
+			that.istate = new Inflate$1();
 			if (!bits)
-				bits = MAX_BITS$1;
+				bits = MAX_BITS;
 			return that.istate.inflateInit(that, bits);
 		},
 
 		inflate: function (f) {
 			const that = this;
 			if (!that.istate)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			return that.istate.inflate(that, f);
 		},
 
 		inflateEnd: function () {
 			const that = this;
 			if (!that.istate)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			const ret = that.istate.inflateEnd(that);
 			that.istate = null;
 			return ret;
@@ -4130,13 +4130,13 @@
 		inflateSync: function () {
 			const that = this;
 			if (!that.istate)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			return that.istate.inflateSync(that);
 		},
 		inflateSetDictionary: function (dictionary, dictLength) {
 			const that = this;
 			if (!that.istate)
-				return Z_STREAM_ERROR$1;
+				return Z_STREAM_ERROR;
 			return that.istate.inflateSetDictionary(that, dictionary, dictLength);
 		},
 		read_byte: function (start) {
@@ -4153,9 +4153,9 @@
 
 	function ZipInflate(options) {
 		const that = this;
-		const z = new ZStream$1();
+		const z = new ZStream();
 		const bufsize = options && options.chunkSize ? Math.floor(options.chunkSize * 2) : 128 * 1024;
-		const flush = Z_NO_FLUSH$1;
+		const flush = Z_NO_FLUSH;
 		const buf = new Uint8Array(bufsize);
 		let nomoreinput = false;
 
@@ -4178,12 +4178,12 @@
 					nomoreinput = true;
 				}
 				err = z.inflate(flush);
-				if (nomoreinput && (err === Z_BUF_ERROR$1)) {
+				if (nomoreinput && (err === Z_BUF_ERROR)) {
 					if (z.avail_in !== 0)
 						throw new Error("inflating: bad input");
-				} else if (err !== Z_OK$1 && err !== Z_STREAM_END$1)
+				} else if (err !== Z_OK && err !== Z_STREAM_END)
 					throw new Error("inflating: " + z.msg);
-				if ((nomoreinput || err === Z_STREAM_END$1) && (z.avail_in === data.length))
+				if ((nomoreinput || err === Z_STREAM_END) && (z.avail_in === data.length))
 					throw new Error("inflating: bad input");
 				if (z.next_out_index)
 					if (z.next_out_index === bufsize)
@@ -4295,7 +4295,7 @@
 		}
 	}
 
-	var configureWebWorker = ()=>{if("function"==typeof URL.createObjectURL){const e=(()=>{const t=[];for(let e=0;e<256;e++){let n=e;for(let t=0;t<8;t++)1&n?n=n>>>1^3988292384:n>>>=1;t[e]=n;}class e{constructor(t){this.crc=t||-1;}append(e){let n=0|this.crc;for(let i=0,a=0|e.length;i<a;i++)n=n>>>8^t[255&(n^e[i])];this.crc=n;}get(){return ~this.crc}}const n={concat(t,e){if(0===t.length||0===e.length)return t.concat(e);const i=t[t.length-1],a=n.getPartial(i);return 32===a?t.concat(e):n._shiftRight(e,a,0|i,t.slice(0,t.length-1))},bitLength(t){const e=t.length;if(0===e)return 0;const i=t[e-1];return 32*(e-1)+n.getPartial(i)},clamp(t,e){if(32*t.length<e)return t;const i=(t=t.slice(0,Math.ceil(e/32))).length;return e&=31,i>0&&e&&(t[i-1]=n.partial(e,t[i-1]&2147483648>>e-1,1)),t},partial:(t,e,n)=>32===t?e:(n?0|e:e<<32-t)+1099511627776*t,getPartial:t=>Math.round(t/1099511627776)||32,_shiftRight(t,e,i,a){for(void 0===a&&(a=[]);e>=32;e-=32)a.push(i),i=0;if(0===e)return a.concat(t);for(let n=0;n<t.length;n++)a.push(i|t[n]>>>e),i=t[n]<<32-e;const r=t.length?t[t.length-1]:0,s=n.getPartial(r);return a.push(n.partial(e+s&31,e+s>32?i:a.pop(),1)),a}},i={bytes:{fromBits(t){const e=n.bitLength(t)/8,i=new Uint8Array(e);let a;for(let n=0;n<e;n++)0==(3&n)&&(a=t[n/4]),i[n]=a>>>24,a<<=8;return i},toBits(t){const e=[];let i,a=0;for(i=0;i<t.length;i++)a=a<<8|t[i],3==(3&i)&&(e.push(a),a=0);return 3&i&&e.push(n.partial(8*(3&i),a)),e}}},a={sha1:function(t){t?(this._h=t._h.slice(0),this._buffer=t._buffer.slice(0),this._length=t._length):this.reset();}};a.sha1.prototype={blockSize:512,reset:function(){const t=this;return t._h=this._init.slice(0),t._buffer=[],t._length=0,t},update:function(t){const e=this;"string"==typeof t&&(t=i.utf8String.toBits(t));const a=e._buffer=n.concat(e._buffer,t),r=e._length,s=e._length=r+n.bitLength(t);if(s>9007199254740991)throw new Error("Cannot hash more than 2^53 - 1 bits");const o=new Uint32Array(a);let l=0;for(let t=e.blockSize+r-(e.blockSize+r&e.blockSize-1);t<=s;t+=e.blockSize)e._block(o.subarray(16*l,16*(l+1))),l+=1;return a.splice(0,16*l),e},finalize:function(){const t=this;let e=t._buffer;const i=t._h;e=n.concat(e,[n.partial(1,1)]);for(let t=e.length+2;15&t;t++)e.push(0);for(e.push(Math.floor(t._length/4294967296)),e.push(0|t._length);e.length;)t._block(e.splice(0,16));return t.reset(),i},_init:[1732584193,4023233417,2562383102,271733878,3285377520],_key:[1518500249,1859775393,2400959708,3395469782],_f:function(t,e,n,i){return t<=19?e&n|~e&i:t<=39?e^n^i:t<=59?e&n|e&i|n&i:t<=79?e^n^i:void 0},_S:function(t,e){return e<<t|e>>>32-t},_block:function(t){const e=this,n=e._h,i=Array(80);for(let e=0;e<16;e++)i[e]=t[e];let a=n[0],r=n[1],s=n[2],o=n[3],l=n[4];for(let t=0;t<=79;t++){t>=16&&(i[t]=e._S(1,i[t-3]^i[t-8]^i[t-14]^i[t-16]));const n=e._S(5,a)+e._f(t,r,s,o)+l+i[t]+e._key[Math.floor(t/20)]|0;l=o,o=s,s=e._S(30,r),r=a,a=n;}n[0]=n[0]+a|0,n[1]=n[1]+r|0,n[2]=n[2]+s|0,n[3]=n[3]+o|0,n[4]=n[4]+l|0;}};const r=class{constructor(t){const e=this;e._tables=[[[],[],[],[],[]],[[],[],[],[],[]]],e._tables[0][0][0]||e._precompute();const n=e._tables[0][4],i=e._tables[1],a=t.length;let r,s,o,l=1;if(4!==a&&6!==a&&8!==a)throw new Error("invalid aes key size");for(e._key=[s=t.slice(0),o=[]],r=a;r<4*a+28;r++){let t=s[r-1];(r%a==0||8===a&&r%a==4)&&(t=n[t>>>24]<<24^n[t>>16&255]<<16^n[t>>8&255]<<8^n[255&t],r%a==0&&(t=t<<8^t>>>24^l<<24,l=l<<1^283*(l>>7))),s[r]=s[r-a]^t;}for(let t=0;r;t++,r--){const e=s[3&t?r:r-4];o[t]=r<=4||t<4?e:i[0][n[e>>>24]]^i[1][n[e>>16&255]]^i[2][n[e>>8&255]]^i[3][n[255&e]];}}encrypt(t){return this._crypt(t,0)}decrypt(t){return this._crypt(t,1)}_precompute(){const t=this._tables[0],e=this._tables[1],n=t[4],i=e[4],a=[],r=[];let s,o,l,_;for(let t=0;t<256;t++)r[(a[t]=t<<1^283*(t>>7))^t]=t;for(let d=s=0;!n[d];d^=o||1,s=r[s]||1){let r=s^s<<1^s<<2^s<<3^s<<4;r=r>>8^255&r^99,n[d]=r,i[r]=d,_=a[l=a[o=a[d]]];let c=16843009*_^65537*l^257*o^16843008*d,f=257*a[r]^16843008*r;for(let n=0;n<4;n++)t[n][d]=f=f<<24^f>>>8,e[n][r]=c=c<<24^c>>>8;}for(let n=0;n<5;n++)t[n]=t[n].slice(0),e[n]=e[n].slice(0);}_crypt(t,e){if(4!==t.length)throw new Error("invalid aes block size");const n=this._key[e],i=n.length/4-2,a=[0,0,0,0],r=this._tables[e],s=r[0],o=r[1],l=r[2],_=r[3],d=r[4];let c,f,u,h=t[0]^n[0],b=t[e?3:1]^n[1],w=t[2]^n[2],p=t[e?1:3]^n[3],x=4;for(let t=0;t<i;t++)c=s[h>>>24]^o[b>>16&255]^l[w>>8&255]^_[255&p]^n[x],f=s[b>>>24]^o[w>>16&255]^l[p>>8&255]^_[255&h]^n[x+1],u=s[w>>>24]^o[p>>16&255]^l[h>>8&255]^_[255&b]^n[x+2],p=s[p>>>24]^o[h>>16&255]^l[b>>8&255]^_[255&w]^n[x+3],x+=4,h=c,b=f,w=u;for(let t=0;t<4;t++)a[e?3&-t:t]=d[h>>>24]<<24^d[b>>16&255]<<16^d[w>>8&255]<<8^d[255&p]^n[x++],c=h,h=b,b=w,w=p,p=c;return a}},s=class{constructor(t,e){this._prf=t,this._initIv=e,this._iv=e;}reset(){this._iv=this._initIv;}update(t){return this.calculate(this._prf,t,this._iv)}incWord(t){if(255==(t>>24&255)){let e=t>>16&255,n=t>>8&255,i=255&t;255===e?(e=0,255===n?(n=0,255===i?i=0:++i):++n):++e,t=0,t+=e<<16,t+=n<<8,t+=i;}else t+=1<<24;return t}incCounter(t){0===(t[0]=this.incWord(t[0]))&&(t[1]=this.incWord(t[1]));}calculate(t,e,i){let a;if(!(a=e.length))return [];const r=n.bitLength(e);for(let n=0;n<a;n+=4){this.incCounter(i);const a=t.encrypt(i);e[n]^=a[0],e[n+1]^=a[1],e[n+2]^=a[2],e[n+3]^=a[3];}return n.clamp(e,r)}},o=class{constructor(t){const e=this,n=e._hash=a.sha1,i=[[],[]],r=n.prototype.blockSize/32;e._baseHash=[new n,new n],t.length>r&&(t=n.hash(t));for(let e=0;e<r;e++)i[0][e]=909522486^t[e],i[1][e]=1549556828^t[e];e._baseHash[0].update(i[0]),e._baseHash[1].update(i[1]),e._resultHash=new n(e._baseHash[0]);}reset(){const t=this;t._resultHash=new t._hash(t._baseHash[0]),t._updated=!1;}update(t){this._updated=!0,this._resultHash.update(t);}digest(){const t=this,e=t._resultHash.finalize(),n=new t._hash(t._baseHash[1]).update(e).finalize();return t.reset(),n}},l={name:"PBKDF2"},_=Object.assign({hash:{name:"HMAC"}},l),d=Object.assign({iterations:1e3,hash:{name:"SHA-1"}},l),c=["deriveBits"],f=[8,12,16],u=[16,24,32],h=[0,0,0,0],b=crypto.subtle,w=i.bytes,p=r,x=s,g=o;class y{constructor(t,e,n){Object.assign(this,{password:t,signed:e,strength:n-1,pendingInput:new Uint8Array(0)});}async append(t){const e=this;if(e.password){const n=U(t,0,f[e.strength]+2);await async function(t,e,n){await v(t,n,U(e,0,f[t.strength]));const i=U(e,f[t.strength]),a=t.keys.passwordVerification;if(a[0]!=i[0]||a[1]!=i[1])throw new Error("Invalid pasword")}(e,n,e.password),e.password=null,e.aesCtrGladman=new x(new p(e.keys.key),Array.from(h)),e.hmac=new g(e.keys.authentication),t=U(t,f[e.strength]+2);}return k(e,t,new Uint8Array(t.length-10-(t.length-10)%16),0,10,!0)}async flush(){const t=this,e=t.pendingInput,n=U(e,0,e.length-10),i=U(e,e.length-10);let a=new Uint8Array(0);if(n.length){const e=w.toBits(n);t.hmac.update(e);const i=t.aesCtrGladman.update(e);a=w.fromBits(i);}let r=!0;if(t.signed){const e=U(w.fromBits(t.hmac.digest()),0,10);for(let t=0;t<10;t++)e[t]!=i[t]&&(r=!1);}return {valid:r,data:a}}}class m{constructor(t,e){Object.assign(this,{password:t,strength:e-1,pendingInput:new Uint8Array(0)});}async append(t){const e=this;let n=new Uint8Array(0);e.password&&(n=await async function(t,e){const n=crypto.getRandomValues(new Uint8Array(f[t.strength]));return await v(t,e,n),A(n,t.keys.passwordVerification)}(e,e.password),e.password=null,e.aesCtrGladman=new x(new p(e.keys.key),Array.from(h)),e.hmac=new g(e.keys.authentication));const i=new Uint8Array(n.length+t.length-t.length%16);return i.set(n,0),k(e,t,i,n.length,0)}async flush(){const t=this;let e=new Uint8Array(0);if(t.pendingInput.length){const n=t.aesCtrGladman.update(w.toBits(t.pendingInput));t.hmac.update(n),e=w.fromBits(n);}const n=U(w.fromBits(t.hmac.digest()),0,10);return {data:A(e,n),signature:n}}}function k(t,e,n,i,a,r){const s=e.length-a;let o;for(t.pendingInput.length&&(e=A(t.pendingInput,e),n=function(t,e){if(e&&e>t.length){const n=t;(t=new Uint8Array(e)).set(n,0);}return t}(n,s-s%16)),o=0;o<=s-16;o+=16){const a=w.toBits(U(e,o,o+16));r&&t.hmac.update(a);const s=t.aesCtrGladman.update(a);r||t.hmac.update(s),n.set(w.fromBits(s),o+i);}return t.pendingInput=U(e,o),n}async function v(t,e,n){const i=(new TextEncoder).encode(e),a=await b.importKey("raw",i,_,!1,c),r=await b.deriveBits(Object.assign({salt:n},d),a,8*(2*u[t.strength]+2)),s=new Uint8Array(r);t.keys={key:w.toBits(U(s,0,u[t.strength])),authentication:w.toBits(U(s,u[t.strength],2*u[t.strength])),passwordVerification:U(s,2*u[t.strength])};}function A(t,e){let n=t;return t.length+e.length&&(n=new Uint8Array(t.length+e.length),n.set(t,0),n.set(e,t.length)),n}function U(t,e,n){return t.subarray(e,n)}class S{constructor(t,e){Object.assign(this,{password:t,passwordVerification:e}),C(this,t);}async append(t){const e=this;if(e.password){const n=I(e,t.subarray(0,12));if(e.password=null,n[11]!=e.passwordVerification)throw new Error("Invalid pasword");t=t.subarray(12);}return I(e,t)}async flush(){return {valid:!0,data:new Uint8Array(0)}}}class z{constructor(t,e){Object.assign(this,{password:t,passwordVerification:e}),C(this,t);}async append(t){const e=this;let n,i;if(e.password){e.password=null;const a=crypto.getRandomValues(new Uint8Array(12));a[11]=e.passwordVerification,n=new Uint8Array(t.length+a.length),n.set(E(e,a),0),i=12;}else n=new Uint8Array(t.length),i=0;return n.set(E(e,t),i),n}async flush(){return {data:new Uint8Array(0)}}}function I(t,e){const n=new Uint8Array(e.length);for(let i=0;i<e.length;i++)n[i]=B(t)^e[i],M(t,n[i]);return n}function E(t,e){const n=new Uint8Array(e.length);for(let i=0;i<e.length;i++)n[i]=B(t)^e[i],M(t,e[i]);return n}function C(t,n){t.keys=[305419896,591751049,878082192],t.crcKey0=new e(t.keys[0]),t.crcKey2=new e(t.keys[2]);for(let e=0;e<n.length;e++)M(t,n.charCodeAt(e));}function M(t,e){t.crcKey0.append([e]),t.keys[0]=~t.crcKey0.get(),t.keys[1]=H(t.keys[1]+j(t.keys[0])),t.keys[1]=H(Math.imul(t.keys[1],134775813)+1),t.crcKey2.append([t.keys[1]>>>24]),t.keys[2]=~t.crcKey2.get();}function B(t){const e=2|t.keys[2];return j(Math.imul(e,1^e)>>>8)}function j(t){return 255&t}function H(t){return 4294967295&t}class V{constructor(t,{signature:n,password:i,signed:a,compressed:r,zipCrypto:s,passwordVerification:o,encryptionStrength:l},{chunkSize:_}){const d=Boolean(i);Object.assign(this,{signature:n,encrypted:d,signed:a,compressed:r,inflate:r&&new t({chunkSize:_}),crc32:a&&new e,zipCrypto:s,decrypt:d&&s?new S(i,o):new y(i,a,l)});}async append(t){const e=this;return e.encrypted&&t.length&&(t=await e.decrypt.append(t)),e.compressed&&t.length&&(t=await e.inflate.append(t)),(!e.encrypted||e.zipCrypto)&&e.signed&&t.length&&e.crc32.append(t),t}async flush(){const t=this;let e,n=new Uint8Array(0);if(t.encrypted){const e=await t.decrypt.flush();if(!e.valid)throw new Error("Invalid signature");n=e.data;}if((!t.encrypted||t.zipCrypto)&&t.signed){const n=new DataView(new Uint8Array(4).buffer);if(e=t.crc32.get(),n.setUint32(0,e),t.signature!=n.getUint32(0,!1))throw new Error("Invalid signature")}return t.compressed&&(n=await t.inflate.append(n)||new Uint8Array(0),await t.inflate.flush()),{data:n,signature:e}}}class O{constructor(t,{encrypted:n,signed:i,compressed:a,level:r,zipCrypto:s,password:o,passwordVerification:l,encryptionStrength:_},{chunkSize:d}){Object.assign(this,{encrypted:n,signed:i,compressed:a,deflate:a&&new t({level:r||5,chunkSize:d}),crc32:i&&new e,zipCrypto:s,encrypt:n&&s?new z(o,l):new m(o,_)});}async append(t){const e=this;let n=t;return e.compressed&&t.length&&(n=await e.deflate.append(t)),e.encrypted&&n.length&&(n=await e.encrypt.append(n)),(!e.encrypted||e.zipCrypto)&&e.signed&&t.length&&e.crc32.append(t),n}async flush(){const t=this;let e,n=new Uint8Array(0);if(t.compressed&&(n=await t.deflate.flush()||new Uint8Array(0)),t.encrypted){n=await t.encrypt.append(n);const i=await t.encrypt.flush();e=i.signature;const a=new Uint8Array(n.length+i.data.length);a.set(n,0),a.set(i.data,n.length),n=a;}return t.encrypted&&!t.zipCrypto||!t.signed||(e=t.crc32.get()),{data:n,signature:e}}}const D={init(t){t.scripts&&t.scripts.length&&importScripts.apply(void 0,t.scripts);const e=t.options;let n;self.initCodec&&self.initCodec(),e.codecType.startsWith("deflate")?n=self.Deflate:e.codecType.startsWith("inflate")&&(n=self.Inflate),L=function(t,e,n){return e.codecType.startsWith("deflate")?new O(t,e,n):e.codecType.startsWith("inflate")?new V(t,e,n):void 0}(n,e,t.config);},append:async t=>({data:await L.append(t.data)}),flush:()=>L.flush()};let L;function P(t){return t.map((([t,e])=>new Array(t).fill(e,0,t))).flat()}addEventListener("message",(async t=>{const e=t.data,n=e.type,i=D[n];if(i)try{e.data&&(e.data=new Uint8Array(e.data));const t=await i(e)||{};if(t.type=n,t.data)try{t.data=t.data.buffer,postMessage(t,[t.data]);}catch(e){postMessage(t);}else postMessage(t);}catch(t){postMessage({type:n,error:{message:t.message,stack:t.stack}});}}));const K=[0,1,2,3].concat(...P([[2,4],[2,5],[4,6],[4,7],[8,8],[8,9],[16,10],[16,11],[32,12],[32,13],[64,14],[64,15],[2,0],[1,16],[1,17],[2,18],[2,19],[4,20],[4,21],[8,22],[8,23],[16,24],[16,25],[32,26],[32,27],[64,28],[64,29]]));function R(){const t=this;function e(t,e){let n=0;do{n|=1&t,t>>>=1,n<<=1;}while(--e>0);return n>>>1}t.build_tree=function(n){const i=t.dyn_tree,a=t.stat_desc.static_tree,r=t.stat_desc.elems;let s,o,l,_=-1;for(n.heap_len=0,n.heap_max=573,s=0;s<r;s++)0!==i[2*s]?(n.heap[++n.heap_len]=_=s,n.depth[s]=0):i[2*s+1]=0;for(;n.heap_len<2;)l=n.heap[++n.heap_len]=_<2?++_:0,i[2*l]=1,n.depth[l]=0,n.opt_len--,a&&(n.static_len-=a[2*l+1]);for(t.max_code=_,s=Math.floor(n.heap_len/2);s>=1;s--)n.pqdownheap(i,s);l=r;do{s=n.heap[1],n.heap[1]=n.heap[n.heap_len--],n.pqdownheap(i,1),o=n.heap[1],n.heap[--n.heap_max]=s,n.heap[--n.heap_max]=o,i[2*l]=i[2*s]+i[2*o],n.depth[l]=Math.max(n.depth[s],n.depth[o])+1,i[2*s+1]=i[2*o+1]=l,n.heap[1]=l++,n.pqdownheap(i,1);}while(n.heap_len>=2);n.heap[--n.heap_max]=n.heap[1],function(e){const n=t.dyn_tree,i=t.stat_desc.static_tree,a=t.stat_desc.extra_bits,r=t.stat_desc.extra_base,s=t.stat_desc.max_length;let o,l,_,d,c,f,u=0;for(d=0;d<=15;d++)e.bl_count[d]=0;for(n[2*e.heap[e.heap_max]+1]=0,o=e.heap_max+1;o<573;o++)l=e.heap[o],d=n[2*n[2*l+1]+1]+1,d>s&&(d=s,u++),n[2*l+1]=d,l>t.max_code||(e.bl_count[d]++,c=0,l>=r&&(c=a[l-r]),f=n[2*l],e.opt_len+=f*(d+c),i&&(e.static_len+=f*(i[2*l+1]+c)));if(0!==u){do{for(d=s-1;0===e.bl_count[d];)d--;e.bl_count[d]--,e.bl_count[d+1]+=2,e.bl_count[s]--,u-=2;}while(u>0);for(d=s;0!==d;d--)for(l=e.bl_count[d];0!==l;)_=e.heap[--o],_>t.max_code||(n[2*_+1]!=d&&(e.opt_len+=(d-n[2*_+1])*n[2*_],n[2*_+1]=d),l--);}}(n),function(t,n,i){const a=[];let r,s,o,l=0;for(r=1;r<=15;r++)a[r]=l=l+i[r-1]<<1;for(s=0;s<=n;s++)o=t[2*s+1],0!==o&&(t[2*s]=e(a[o]++,o));}(i,t.max_code,n.bl_count);};}function W(t,e,n,i,a){const r=this;r.static_tree=t,r.extra_bits=e,r.extra_base=n,r.elems=i,r.max_length=a;}function G(t,e,n,i,a){const r=this;r.good_length=t,r.max_lazy=e,r.nice_length=n,r.max_chain=i,r.func=a;}R._length_code=[0,1,2,3,4,5,6,7].concat(...P([[2,8],[2,9],[2,10],[2,11],[4,12],[4,13],[4,14],[4,15],[8,16],[8,17],[8,18],[8,19],[16,20],[16,21],[16,22],[16,23],[32,24],[32,25],[32,26],[31,27],[1,28]])),R.base_length=[0,1,2,3,4,5,6,7,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,0],R.base_dist=[0,1,2,3,4,6,8,12,16,24,32,48,64,96,128,192,256,384,512,768,1024,1536,2048,3072,4096,6144,8192,12288,16384,24576],R.d_code=function(t){return t<256?K[t]:K[256+(t>>>7)]},R.extra_lbits=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0],R.extra_dbits=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],R.extra_blbits=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,7],R.bl_order=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15],W.static_ltree=[12,8,140,8,76,8,204,8,44,8,172,8,108,8,236,8,28,8,156,8,92,8,220,8,60,8,188,8,124,8,252,8,2,8,130,8,66,8,194,8,34,8,162,8,98,8,226,8,18,8,146,8,82,8,210,8,50,8,178,8,114,8,242,8,10,8,138,8,74,8,202,8,42,8,170,8,106,8,234,8,26,8,154,8,90,8,218,8,58,8,186,8,122,8,250,8,6,8,134,8,70,8,198,8,38,8,166,8,102,8,230,8,22,8,150,8,86,8,214,8,54,8,182,8,118,8,246,8,14,8,142,8,78,8,206,8,46,8,174,8,110,8,238,8,30,8,158,8,94,8,222,8,62,8,190,8,126,8,254,8,1,8,129,8,65,8,193,8,33,8,161,8,97,8,225,8,17,8,145,8,81,8,209,8,49,8,177,8,113,8,241,8,9,8,137,8,73,8,201,8,41,8,169,8,105,8,233,8,25,8,153,8,89,8,217,8,57,8,185,8,121,8,249,8,5,8,133,8,69,8,197,8,37,8,165,8,101,8,229,8,21,8,149,8,85,8,213,8,53,8,181,8,117,8,245,8,13,8,141,8,77,8,205,8,45,8,173,8,109,8,237,8,29,8,157,8,93,8,221,8,61,8,189,8,125,8,253,8,19,9,275,9,147,9,403,9,83,9,339,9,211,9,467,9,51,9,307,9,179,9,435,9,115,9,371,9,243,9,499,9,11,9,267,9,139,9,395,9,75,9,331,9,203,9,459,9,43,9,299,9,171,9,427,9,107,9,363,9,235,9,491,9,27,9,283,9,155,9,411,9,91,9,347,9,219,9,475,9,59,9,315,9,187,9,443,9,123,9,379,9,251,9,507,9,7,9,263,9,135,9,391,9,71,9,327,9,199,9,455,9,39,9,295,9,167,9,423,9,103,9,359,9,231,9,487,9,23,9,279,9,151,9,407,9,87,9,343,9,215,9,471,9,55,9,311,9,183,9,439,9,119,9,375,9,247,9,503,9,15,9,271,9,143,9,399,9,79,9,335,9,207,9,463,9,47,9,303,9,175,9,431,9,111,9,367,9,239,9,495,9,31,9,287,9,159,9,415,9,95,9,351,9,223,9,479,9,63,9,319,9,191,9,447,9,127,9,383,9,255,9,511,9,0,7,64,7,32,7,96,7,16,7,80,7,48,7,112,7,8,7,72,7,40,7,104,7,24,7,88,7,56,7,120,7,4,7,68,7,36,7,100,7,20,7,84,7,52,7,116,7,3,8,131,8,67,8,195,8,35,8,163,8,99,8,227,8],W.static_dtree=[0,5,16,5,8,5,24,5,4,5,20,5,12,5,28,5,2,5,18,5,10,5,26,5,6,5,22,5,14,5,30,5,1,5,17,5,9,5,25,5,5,5,21,5,13,5,29,5,3,5,19,5,11,5,27,5,7,5,23,5],W.static_l_desc=new W(W.static_ltree,R.extra_lbits,257,286,15),W.static_d_desc=new W(W.static_dtree,R.extra_dbits,0,30,15),W.static_bl_desc=new W(null,R.extra_blbits,0,19,7);const T=[new G(0,0,0,0,0),new G(4,4,8,4,1),new G(4,5,16,8,1),new G(4,6,32,32,1),new G(4,4,16,16,2),new G(8,16,32,32,2),new G(8,16,128,128,2),new G(8,32,128,256,2),new G(32,128,258,1024,2),new G(32,258,258,4096,2)],q=["need dictionary","stream end","","","stream error","data error","","buffer error","",""];function F(t,e,n,i){const a=t[2*e],r=t[2*n];return a<r||a==r&&i[e]<=i[n]}function J(){const t=this;let e,n,i,a,r,s,o,l,_,d,c,f,u,h,b,w,p,x,g,y,m,k,v,A,U,S,z,I,E,C,M,B,j;const H=new R,V=new R,O=new R;let D,L,P,K,G,J,N,Q;function X(){let e;for(e=0;e<286;e++)M[2*e]=0;for(e=0;e<30;e++)B[2*e]=0;for(e=0;e<19;e++)j[2*e]=0;M[512]=1,t.opt_len=t.static_len=0,P=G=0;}function Y(t,e){let n,i=-1,a=t[1],r=0,s=7,o=4;0===a&&(s=138,o=3),t[2*(e+1)+1]=65535;for(let l=0;l<=e;l++)n=a,a=t[2*(l+1)+1],++r<s&&n==a||(r<o?j[2*n]+=r:0!==n?(n!=i&&j[2*n]++,j[32]++):r<=10?j[34]++:j[36]++,r=0,i=n,0===a?(s=138,o=3):n==a?(s=6,o=3):(s=7,o=4));}function Z(e){t.pending_buf[t.pending++]=e;}function $(t){Z(255&t),Z(t>>>8&255);}function tt(t,e){let n;const i=e;Q>16-i?(n=t,N|=n<<Q&65535,$(N),N=n>>>16-Q,Q+=i-16):(N|=t<<Q&65535,Q+=i);}function et(t,e){const n=2*t;tt(65535&e[n],65535&e[n+1]);}function nt(t,e){let n,i,a=-1,r=t[1],s=0,o=7,l=4;for(0===r&&(o=138,l=3),n=0;n<=e;n++)if(i=r,r=t[2*(n+1)+1],!(++s<o&&i==r)){if(s<l)do{et(i,j);}while(0!=--s);else 0!==i?(i!=a&&(et(i,j),s--),et(16,j),tt(s-3,2)):s<=10?(et(17,j),tt(s-3,3)):(et(18,j),tt(s-11,7));s=0,a=i,0===r?(o=138,l=3):i==r?(o=6,l=3):(o=7,l=4);}}function it(){16==Q?($(N),N=0,Q=0):Q>=8&&(Z(255&N),N>>>=8,Q-=8);}function at(e,n){let i,a,r;if(t.pending_buf[K+2*P]=e>>>8&255,t.pending_buf[K+2*P+1]=255&e,t.pending_buf[D+P]=255&n,P++,0===e?M[2*n]++:(G++,e--,M[2*(R._length_code[n]+256+1)]++,B[2*R.d_code(e)]++),0==(8191&P)&&z>2){for(i=8*P,a=m-p,r=0;r<30;r++)i+=B[2*r]*(5+R.extra_dbits[r]);if(i>>>=3,G<Math.floor(P/2)&&i<Math.floor(a/2))return !0}return P==L-1}function rt(e,n){let i,a,r,s,o=0;if(0!==P)do{i=t.pending_buf[K+2*o]<<8&65280|255&t.pending_buf[K+2*o+1],a=255&t.pending_buf[D+o],o++,0===i?et(a,e):(r=R._length_code[a],et(r+256+1,e),s=R.extra_lbits[r],0!==s&&(a-=R.base_length[r],tt(a,s)),i--,r=R.d_code(i),et(r,n),s=R.extra_dbits[r],0!==s&&(i-=R.base_dist[r],tt(i,s)));}while(o<P);et(256,e),J=e[513];}function st(){Q>8?$(N):Q>0&&Z(255&N),N=0,Q=0;}function ot(e,n,i){tt(0+(i?1:0),3),function(e,n,i){st(),J=8,$(n),$(~n),t.pending_buf.set(l.subarray(e,e+n),t.pending),t.pending+=n;}(e,n);}function lt(e,n,i){let a,r,s=0;z>0?(H.build_tree(t),V.build_tree(t),s=function(){let e;for(Y(M,H.max_code),Y(B,V.max_code),O.build_tree(t),e=18;e>=3&&0===j[2*R.bl_order[e]+1];e--);return t.opt_len+=3*(e+1)+5+5+4,e}(),a=t.opt_len+3+7>>>3,r=t.static_len+3+7>>>3,r<=a&&(a=r)):a=r=n+5,n+4<=a&&-1!=e?ot(e,n,i):r==a?(tt(2+(i?1:0),3),rt(W.static_ltree,W.static_dtree)):(tt(4+(i?1:0),3),function(t,e,n){let i;for(tt(t-257,5),tt(e-1,5),tt(n-4,4),i=0;i<n;i++)tt(j[2*R.bl_order[i]+1],3);nt(M,t-1),nt(B,e-1);}(H.max_code+1,V.max_code+1,s+1),rt(M,B)),X(),i&&st();}function _t(t){lt(p>=0?p:-1,m-p,t),p=m,e.flush_pending();}function dt(){let t,n,i,a;do{if(a=_-v-m,0===a&&0===m&&0===v)a=r;else if(-1==a)a--;else if(m>=r+r-262){l.set(l.subarray(r,r+r),0),k-=r,m-=r,p-=r,t=u,i=t;do{n=65535&c[--i],c[i]=n>=r?n-r:0;}while(0!=--t);t=r,i=t;do{n=65535&d[--i],d[i]=n>=r?n-r:0;}while(0!=--t);a+=r;}if(0===e.avail_in)return;t=e.read_buf(l,m+v,a),v+=t,v>=3&&(f=255&l[m],f=(f<<w^255&l[m+1])&b);}while(v<262&&0!==e.avail_in)}function ct(t){let e,n,i=U,a=m,s=A;const _=m>r-262?m-(r-262):0;let c=C;const f=o,u=m+258;let h=l[a+s-1],b=l[a+s];A>=E&&(i>>=2),c>v&&(c=v);do{if(e=t,l[e+s]==b&&l[e+s-1]==h&&l[e]==l[a]&&l[++e]==l[a+1]){a+=2,e++;do{}while(l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&a<u);if(n=258-(u-a),a=u-258,n>s){if(k=t,s=n,n>=c)break;h=l[a+s-1],b=l[a+s];}}}while((t=65535&d[t&f])>_&&0!=--i);return s<=v?s:v}function ft(e){return e.total_in=e.total_out=0,e.msg=null,t.pending=0,t.pending_out=0,n=113,a=0,H.dyn_tree=M,H.stat_desc=W.static_l_desc,V.dyn_tree=B,V.stat_desc=W.static_d_desc,O.dyn_tree=j,O.stat_desc=W.static_bl_desc,N=0,Q=0,J=8,X(),function(){_=2*r,c[u-1]=0;for(let t=0;t<u-1;t++)c[t]=0;S=T[z].max_lazy,E=T[z].good_length,C=T[z].nice_length,U=T[z].max_chain,m=0,p=0,v=0,x=A=2,y=0,f=0;}(),0}t.depth=[],t.bl_count=[],t.heap=[],M=[],B=[],j=[],t.pqdownheap=function(e,n){const i=t.heap,a=i[n];let r=n<<1;for(;r<=t.heap_len&&(r<t.heap_len&&F(e,i[r+1],i[r],t.depth)&&r++,!F(e,a,i[r],t.depth));)i[n]=i[r],n=r,r<<=1;i[n]=a;},t.deflateInit=function(e,n,a,_,f,p){return _||(_=8),f||(f=8),p||(p=0),e.msg=null,-1==n&&(n=6),f<1||f>9||8!=_||a<9||a>15||n<0||n>9||p<0||p>2?-2:(e.dstate=t,s=a,r=1<<s,o=r-1,h=f+7,u=1<<h,b=u-1,w=Math.floor((h+3-1)/3),l=new Uint8Array(2*r),d=[],c=[],L=1<<f+6,t.pending_buf=new Uint8Array(4*L),i=4*L,K=Math.floor(L/2),D=3*L,z=n,I=p,ft(e))},t.deflateEnd=function(){return 42!=n&&113!=n&&666!=n?-2:(t.pending_buf=null,c=null,d=null,l=null,t.dstate=null,113==n?-3:0)},t.deflateParams=function(t,e,n){let i=0;return -1==e&&(e=6),e<0||e>9||n<0||n>2?-2:(T[z].func!=T[e].func&&0!==t.total_in&&(i=t.deflate(1)),z!=e&&(z=e,S=T[z].max_lazy,E=T[z].good_length,C=T[z].nice_length,U=T[z].max_chain),I=n,i)},t.deflateSetDictionary=function(t,e,i){let a,s=i,_=0;if(!e||42!=n)return -2;if(s<3)return 0;for(s>r-262&&(s=r-262,_=i-s),l.set(e.subarray(_,_+s),0),m=s,p=s,f=255&l[0],f=(f<<w^255&l[1])&b,a=0;a<=s-3;a++)f=(f<<w^255&l[a+2])&b,d[a&o]=c[f],c[f]=a;return 0},t.deflate=function(_,h){let U,E,C,M,B;if(h>4||h<0)return -2;if(!_.next_out||!_.next_in&&0!==_.avail_in||666==n&&4!=h)return _.msg=q[4],-2;if(0===_.avail_out)return _.msg=q[7],-5;var j;if(e=_,M=a,a=h,42==n&&(E=8+(s-8<<4)<<8,C=(z-1&255)>>1,C>3&&(C=3),E|=C<<6,0!==m&&(E|=32),E+=31-E%31,n=113,Z((j=E)>>8&255),Z(255&j)),0!==t.pending){if(e.flush_pending(),0===e.avail_out)return a=-1,0}else if(0===e.avail_in&&h<=M&&4!=h)return e.msg=q[7],-5;if(666==n&&0!==e.avail_in)return _.msg=q[7],-5;if(0!==e.avail_in||0!==v||0!=h&&666!=n){switch(B=-1,T[z].func){case 0:B=function(t){let n,a=65535;for(a>i-5&&(a=i-5);;){if(v<=1){if(dt(),0===v&&0==t)return 0;if(0===v)break}if(m+=v,v=0,n=p+a,(0===m||m>=n)&&(v=m-n,m=n,_t(!1),0===e.avail_out))return 0;if(m-p>=r-262&&(_t(!1),0===e.avail_out))return 0}return _t(4==t),0===e.avail_out?4==t?2:0:4==t?3:1}(h);break;case 1:B=function(t){let n,i=0;for(;;){if(v<262){if(dt(),v<262&&0==t)return 0;if(0===v)break}if(v>=3&&(f=(f<<w^255&l[m+2])&b,i=65535&c[f],d[m&o]=c[f],c[f]=m),0!==i&&(m-i&65535)<=r-262&&2!=I&&(x=ct(i)),x>=3)if(n=at(m-k,x-3),v-=x,x<=S&&v>=3){x--;do{m++,f=(f<<w^255&l[m+2])&b,i=65535&c[f],d[m&o]=c[f],c[f]=m;}while(0!=--x);m++;}else m+=x,x=0,f=255&l[m],f=(f<<w^255&l[m+1])&b;else n=at(0,255&l[m]),v--,m++;if(n&&(_t(!1),0===e.avail_out))return 0}return _t(4==t),0===e.avail_out?4==t?2:0:4==t?3:1}(h);break;case 2:B=function(t){let n,i,a=0;for(;;){if(v<262){if(dt(),v<262&&0==t)return 0;if(0===v)break}if(v>=3&&(f=(f<<w^255&l[m+2])&b,a=65535&c[f],d[m&o]=c[f],c[f]=m),A=x,g=k,x=2,0!==a&&A<S&&(m-a&65535)<=r-262&&(2!=I&&(x=ct(a)),x<=5&&(1==I||3==x&&m-k>4096)&&(x=2)),A>=3&&x<=A){i=m+v-3,n=at(m-1-g,A-3),v-=A-1,A-=2;do{++m<=i&&(f=(f<<w^255&l[m+2])&b,a=65535&c[f],d[m&o]=c[f],c[f]=m);}while(0!=--A);if(y=0,x=2,m++,n&&(_t(!1),0===e.avail_out))return 0}else if(0!==y){if(n=at(0,255&l[m-1]),n&&_t(!1),m++,v--,0===e.avail_out)return 0}else y=1,m++,v--;}return 0!==y&&(n=at(0,255&l[m-1]),y=0),_t(4==t),0===e.avail_out?4==t?2:0:4==t?3:1}(h);}if(2!=B&&3!=B||(n=666),0==B||2==B)return 0===e.avail_out&&(a=-1),0;if(1==B){if(1==h)tt(2,3),et(256,W.static_ltree),it(),1+J+10-Q<9&&(tt(2,3),et(256,W.static_ltree),it()),J=7;else if(ot(0,0,!1),3==h)for(U=0;U<u;U++)c[U]=0;if(e.flush_pending(),0===e.avail_out)return a=-1,0}}return 4!=h?0:1};}function N(){const t=this;t.next_in_index=0,t.next_out_index=0,t.avail_in=0,t.total_in=0,t.avail_out=0,t.total_out=0;}function Q(t){const e=new N,n=(i=t&&t.chunkSize?t.chunkSize:65536)+5*(Math.floor(i/16383)+1);var i;const a=new Uint8Array(n);let r=t?t.level:-1;void 0===r&&(r=-1),e.deflateInit(r),e.next_out=a,this.append=function(t,i){let r,s,o=0,l=0,_=0;const d=[];if(t.length){e.next_in_index=0,e.next_in=t,e.avail_in=t.length;do{if(e.next_out_index=0,e.avail_out=n,r=e.deflate(0),0!=r)throw new Error("deflating: "+e.msg);e.next_out_index&&(e.next_out_index==n?d.push(new Uint8Array(a)):d.push(a.slice(0,e.next_out_index))),_+=e.next_out_index,i&&e.next_in_index>0&&e.next_in_index!=o&&(i(e.next_in_index),o=e.next_in_index);}while(e.avail_in>0||0===e.avail_out);return d.length>1?(s=new Uint8Array(_),d.forEach((function(t){s.set(t,l),l+=t.length;}))):s=d[0]||new Uint8Array(0),s}},this.flush=function(){let t,i,r=0,s=0;const o=[];do{if(e.next_out_index=0,e.avail_out=n,t=e.deflate(4),1!=t&&0!=t)throw new Error("deflating: "+e.msg);n-e.avail_out>0&&o.push(a.slice(0,e.next_out_index)),s+=e.next_out_index;}while(e.avail_in>0||0===e.avail_out);return e.deflateEnd(),i=new Uint8Array(s),o.forEach((function(t){i.set(t,r),r+=t.length;})),i};}N.prototype={deflateInit:function(t,e){const n=this;return n.dstate=new J,e||(e=15),n.dstate.deflateInit(n,t,e)},deflate:function(t){const e=this;return e.dstate?e.dstate.deflate(e,t):-2},deflateEnd:function(){const t=this;if(!t.dstate)return -2;const e=t.dstate.deflateEnd();return t.dstate=null,e},deflateParams:function(t,e){const n=this;return n.dstate?n.dstate.deflateParams(n,t,e):-2},deflateSetDictionary:function(t,e){const n=this;return n.dstate?n.dstate.deflateSetDictionary(n,t,e):-2},read_buf:function(t,e,n){const i=this;let a=i.avail_in;return a>n&&(a=n),0===a?0:(i.avail_in-=a,t.set(i.next_in.subarray(i.next_in_index,i.next_in_index+a),e),i.next_in_index+=a,i.total_in+=a,a)},flush_pending:function(){const t=this;let e=t.dstate.pending;e>t.avail_out&&(e=t.avail_out),0!==e&&(t.next_out.set(t.dstate.pending_buf.subarray(t.dstate.pending_out,t.dstate.pending_out+e),t.next_out_index),t.next_out_index+=e,t.dstate.pending_out+=e,t.total_out+=e,t.avail_out-=e,t.dstate.pending-=e,0===t.dstate.pending&&(t.dstate.pending_out=0));}};const X=[0,1,3,7,15,31,63,127,255,511,1023,2047,4095,8191,16383,32767,65535],Y=[96,7,256,0,8,80,0,8,16,84,8,115,82,7,31,0,8,112,0,8,48,0,9,192,80,7,10,0,8,96,0,8,32,0,9,160,0,8,0,0,8,128,0,8,64,0,9,224,80,7,6,0,8,88,0,8,24,0,9,144,83,7,59,0,8,120,0,8,56,0,9,208,81,7,17,0,8,104,0,8,40,0,9,176,0,8,8,0,8,136,0,8,72,0,9,240,80,7,4,0,8,84,0,8,20,85,8,227,83,7,43,0,8,116,0,8,52,0,9,200,81,7,13,0,8,100,0,8,36,0,9,168,0,8,4,0,8,132,0,8,68,0,9,232,80,7,8,0,8,92,0,8,28,0,9,152,84,7,83,0,8,124,0,8,60,0,9,216,82,7,23,0,8,108,0,8,44,0,9,184,0,8,12,0,8,140,0,8,76,0,9,248,80,7,3,0,8,82,0,8,18,85,8,163,83,7,35,0,8,114,0,8,50,0,9,196,81,7,11,0,8,98,0,8,34,0,9,164,0,8,2,0,8,130,0,8,66,0,9,228,80,7,7,0,8,90,0,8,26,0,9,148,84,7,67,0,8,122,0,8,58,0,9,212,82,7,19,0,8,106,0,8,42,0,9,180,0,8,10,0,8,138,0,8,74,0,9,244,80,7,5,0,8,86,0,8,22,192,8,0,83,7,51,0,8,118,0,8,54,0,9,204,81,7,15,0,8,102,0,8,38,0,9,172,0,8,6,0,8,134,0,8,70,0,9,236,80,7,9,0,8,94,0,8,30,0,9,156,84,7,99,0,8,126,0,8,62,0,9,220,82,7,27,0,8,110,0,8,46,0,9,188,0,8,14,0,8,142,0,8,78,0,9,252,96,7,256,0,8,81,0,8,17,85,8,131,82,7,31,0,8,113,0,8,49,0,9,194,80,7,10,0,8,97,0,8,33,0,9,162,0,8,1,0,8,129,0,8,65,0,9,226,80,7,6,0,8,89,0,8,25,0,9,146,83,7,59,0,8,121,0,8,57,0,9,210,81,7,17,0,8,105,0,8,41,0,9,178,0,8,9,0,8,137,0,8,73,0,9,242,80,7,4,0,8,85,0,8,21,80,8,258,83,7,43,0,8,117,0,8,53,0,9,202,81,7,13,0,8,101,0,8,37,0,9,170,0,8,5,0,8,133,0,8,69,0,9,234,80,7,8,0,8,93,0,8,29,0,9,154,84,7,83,0,8,125,0,8,61,0,9,218,82,7,23,0,8,109,0,8,45,0,9,186,0,8,13,0,8,141,0,8,77,0,9,250,80,7,3,0,8,83,0,8,19,85,8,195,83,7,35,0,8,115,0,8,51,0,9,198,81,7,11,0,8,99,0,8,35,0,9,166,0,8,3,0,8,131,0,8,67,0,9,230,80,7,7,0,8,91,0,8,27,0,9,150,84,7,67,0,8,123,0,8,59,0,9,214,82,7,19,0,8,107,0,8,43,0,9,182,0,8,11,0,8,139,0,8,75,0,9,246,80,7,5,0,8,87,0,8,23,192,8,0,83,7,51,0,8,119,0,8,55,0,9,206,81,7,15,0,8,103,0,8,39,0,9,174,0,8,7,0,8,135,0,8,71,0,9,238,80,7,9,0,8,95,0,8,31,0,9,158,84,7,99,0,8,127,0,8,63,0,9,222,82,7,27,0,8,111,0,8,47,0,9,190,0,8,15,0,8,143,0,8,79,0,9,254,96,7,256,0,8,80,0,8,16,84,8,115,82,7,31,0,8,112,0,8,48,0,9,193,80,7,10,0,8,96,0,8,32,0,9,161,0,8,0,0,8,128,0,8,64,0,9,225,80,7,6,0,8,88,0,8,24,0,9,145,83,7,59,0,8,120,0,8,56,0,9,209,81,7,17,0,8,104,0,8,40,0,9,177,0,8,8,0,8,136,0,8,72,0,9,241,80,7,4,0,8,84,0,8,20,85,8,227,83,7,43,0,8,116,0,8,52,0,9,201,81,7,13,0,8,100,0,8,36,0,9,169,0,8,4,0,8,132,0,8,68,0,9,233,80,7,8,0,8,92,0,8,28,0,9,153,84,7,83,0,8,124,0,8,60,0,9,217,82,7,23,0,8,108,0,8,44,0,9,185,0,8,12,0,8,140,0,8,76,0,9,249,80,7,3,0,8,82,0,8,18,85,8,163,83,7,35,0,8,114,0,8,50,0,9,197,81,7,11,0,8,98,0,8,34,0,9,165,0,8,2,0,8,130,0,8,66,0,9,229,80,7,7,0,8,90,0,8,26,0,9,149,84,7,67,0,8,122,0,8,58,0,9,213,82,7,19,0,8,106,0,8,42,0,9,181,0,8,10,0,8,138,0,8,74,0,9,245,80,7,5,0,8,86,0,8,22,192,8,0,83,7,51,0,8,118,0,8,54,0,9,205,81,7,15,0,8,102,0,8,38,0,9,173,0,8,6,0,8,134,0,8,70,0,9,237,80,7,9,0,8,94,0,8,30,0,9,157,84,7,99,0,8,126,0,8,62,0,9,221,82,7,27,0,8,110,0,8,46,0,9,189,0,8,14,0,8,142,0,8,78,0,9,253,96,7,256,0,8,81,0,8,17,85,8,131,82,7,31,0,8,113,0,8,49,0,9,195,80,7,10,0,8,97,0,8,33,0,9,163,0,8,1,0,8,129,0,8,65,0,9,227,80,7,6,0,8,89,0,8,25,0,9,147,83,7,59,0,8,121,0,8,57,0,9,211,81,7,17,0,8,105,0,8,41,0,9,179,0,8,9,0,8,137,0,8,73,0,9,243,80,7,4,0,8,85,0,8,21,80,8,258,83,7,43,0,8,117,0,8,53,0,9,203,81,7,13,0,8,101,0,8,37,0,9,171,0,8,5,0,8,133,0,8,69,0,9,235,80,7,8,0,8,93,0,8,29,0,9,155,84,7,83,0,8,125,0,8,61,0,9,219,82,7,23,0,8,109,0,8,45,0,9,187,0,8,13,0,8,141,0,8,77,0,9,251,80,7,3,0,8,83,0,8,19,85,8,195,83,7,35,0,8,115,0,8,51,0,9,199,81,7,11,0,8,99,0,8,35,0,9,167,0,8,3,0,8,131,0,8,67,0,9,231,80,7,7,0,8,91,0,8,27,0,9,151,84,7,67,0,8,123,0,8,59,0,9,215,82,7,19,0,8,107,0,8,43,0,9,183,0,8,11,0,8,139,0,8,75,0,9,247,80,7,5,0,8,87,0,8,23,192,8,0,83,7,51,0,8,119,0,8,55,0,9,207,81,7,15,0,8,103,0,8,39,0,9,175,0,8,7,0,8,135,0,8,71,0,9,239,80,7,9,0,8,95,0,8,31,0,9,159,84,7,99,0,8,127,0,8,63,0,9,223,82,7,27,0,8,111,0,8,47,0,9,191,0,8,15,0,8,143,0,8,79,0,9,255],Z=[80,5,1,87,5,257,83,5,17,91,5,4097,81,5,5,89,5,1025,85,5,65,93,5,16385,80,5,3,88,5,513,84,5,33,92,5,8193,82,5,9,90,5,2049,86,5,129,192,5,24577,80,5,2,87,5,385,83,5,25,91,5,6145,81,5,7,89,5,1537,85,5,97,93,5,24577,80,5,4,88,5,769,84,5,49,92,5,12289,82,5,13,90,5,3073,86,5,193,192,5,24577],$=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,0,0],tt=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,112,112],et=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577],nt=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];function it(){let t,e,n,i,a,r;function s(t,e,s,o,l,_,d,c,f,u,h){let b,w,p,x,g,y,m,k,v,A,U,S,z,I,E;A=0,g=s;do{n[t[e+A]]++,A++,g--;}while(0!==g);if(n[0]==s)return d[0]=-1,c[0]=0,0;for(k=c[0],y=1;y<=15&&0===n[y];y++);for(m=y,k<y&&(k=y),g=15;0!==g&&0===n[g];g--);for(p=g,k>g&&(k=g),c[0]=k,I=1<<y;y<g;y++,I<<=1)if((I-=n[y])<0)return -3;if((I-=n[g])<0)return -3;for(n[g]+=I,r[1]=y=0,A=1,z=2;0!=--g;)r[z]=y+=n[A],z++,A++;g=0,A=0;do{0!==(y=t[e+A])&&(h[r[y]++]=g),A++;}while(++g<s);for(s=r[p],r[0]=g=0,A=0,x=-1,S=-k,a[0]=0,U=0,E=0;m<=p;m++)for(b=n[m];0!=b--;){for(;m>S+k;){if(x++,S+=k,E=p-S,E=E>k?k:E,(w=1<<(y=m-S))>b+1&&(w-=b+1,z=m,y<E))for(;++y<E&&!((w<<=1)<=n[++z]);)w-=n[z];if(E=1<<y,u[0]+E>1440)return -3;a[x]=U=u[0],u[0]+=E,0!==x?(r[x]=g,i[0]=y,i[1]=k,y=g>>>S-k,i[2]=U-a[x-1]-y,f.set(i,3*(a[x-1]+y))):d[0]=U;}for(i[1]=m-S,A>=s?i[0]=192:h[A]<o?(i[0]=h[A]<256?0:96,i[2]=h[A++]):(i[0]=_[h[A]-o]+16+64,i[2]=l[h[A++]-o]),w=1<<m-S,y=g>>>S;y<E;y+=w)f.set(i,3*(U+y));for(y=1<<m-1;0!=(g&y);y>>>=1)g^=y;for(g^=y,v=(1<<S)-1;(g&v)!=r[x];)x--,S-=k,v=(1<<S)-1;}return 0!==I&&1!=p?-5:0}function o(s){let o;for(t||(t=[],e=[],n=new Int32Array(16),i=[],a=new Int32Array(15),r=new Int32Array(16)),e.length<s&&(e=[]),o=0;o<s;o++)e[o]=0;for(o=0;o<16;o++)n[o]=0;for(o=0;o<3;o++)i[o]=0;a.set(n.subarray(0,15),0),r.set(n.subarray(0,16),0);}this.inflate_trees_bits=function(n,i,a,r,l){let _;return o(19),t[0]=0,_=s(n,0,19,19,null,null,a,i,r,t,e),-3==_?l.msg="oversubscribed dynamic bit lengths tree":-5!=_&&0!==i[0]||(l.msg="incomplete dynamic bit lengths tree",_=-3),_},this.inflate_trees_dynamic=function(n,i,a,r,l,_,d,c,f){let u;return o(288),t[0]=0,u=s(a,0,n,257,$,tt,_,r,c,t,e),0!=u||0===r[0]?(-3==u?f.msg="oversubscribed literal/length tree":-4!=u&&(f.msg="incomplete literal/length tree",u=-3),u):(o(288),u=s(a,n,i,0,et,nt,d,l,c,t,e),0!=u||0===l[0]&&n>257?(-3==u?f.msg="oversubscribed distance tree":-5==u?(f.msg="incomplete distance tree",u=-3):-4!=u&&(f.msg="empty distance tree with lengths",u=-3),u):0)};}function at(){const t=this;let e,n,i,a,r=0,s=0,o=0,l=0,_=0,d=0,c=0,f=0,u=0,h=0;function b(t,e,n,i,a,r,s,o){let l,_,d,c,f,u,h,b,w,p,x,g,y,m,k,v;h=o.next_in_index,b=o.avail_in,f=s.bitb,u=s.bitk,w=s.write,p=w<s.read?s.read-w-1:s.end-w,x=X[t],g=X[e];do{for(;u<20;)b--,f|=(255&o.read_byte(h++))<<u,u+=8;if(l=f&x,_=n,d=i,v=3*(d+l),0!==(c=_[v]))for(;;){if(f>>=_[v+1],u-=_[v+1],0!=(16&c)){for(c&=15,y=_[v+2]+(f&X[c]),f>>=c,u-=c;u<15;)b--,f|=(255&o.read_byte(h++))<<u,u+=8;for(l=f&g,_=a,d=r,v=3*(d+l),c=_[v];;){if(f>>=_[v+1],u-=_[v+1],0!=(16&c)){for(c&=15;u<c;)b--,f|=(255&o.read_byte(h++))<<u,u+=8;if(m=_[v+2]+(f&X[c]),f>>=c,u-=c,p-=y,w>=m)k=w-m,w-k>0&&2>w-k?(s.window[w++]=s.window[k++],s.window[w++]=s.window[k++],y-=2):(s.window.set(s.window.subarray(k,k+2),w),w+=2,k+=2,y-=2);else {k=w-m;do{k+=s.end;}while(k<0);if(c=s.end-k,y>c){if(y-=c,w-k>0&&c>w-k)do{s.window[w++]=s.window[k++];}while(0!=--c);else s.window.set(s.window.subarray(k,k+c),w),w+=c,k+=c,c=0;k=0;}}if(w-k>0&&y>w-k)do{s.window[w++]=s.window[k++];}while(0!=--y);else s.window.set(s.window.subarray(k,k+y),w),w+=y,k+=y,y=0;break}if(0!=(64&c))return o.msg="invalid distance code",y=o.avail_in-b,y=u>>3<y?u>>3:y,b+=y,h-=y,u-=y<<3,s.bitb=f,s.bitk=u,o.avail_in=b,o.total_in+=h-o.next_in_index,o.next_in_index=h,s.write=w,-3;l+=_[v+2],l+=f&X[c],v=3*(d+l),c=_[v];}break}if(0!=(64&c))return 0!=(32&c)?(y=o.avail_in-b,y=u>>3<y?u>>3:y,b+=y,h-=y,u-=y<<3,s.bitb=f,s.bitk=u,o.avail_in=b,o.total_in+=h-o.next_in_index,o.next_in_index=h,s.write=w,1):(o.msg="invalid literal/length code",y=o.avail_in-b,y=u>>3<y?u>>3:y,b+=y,h-=y,u-=y<<3,s.bitb=f,s.bitk=u,o.avail_in=b,o.total_in+=h-o.next_in_index,o.next_in_index=h,s.write=w,-3);if(l+=_[v+2],l+=f&X[c],v=3*(d+l),0===(c=_[v])){f>>=_[v+1],u-=_[v+1],s.window[w++]=_[v+2],p--;break}}else f>>=_[v+1],u-=_[v+1],s.window[w++]=_[v+2],p--;}while(p>=258&&b>=10);return y=o.avail_in-b,y=u>>3<y?u>>3:y,b+=y,h-=y,u-=y<<3,s.bitb=f,s.bitk=u,o.avail_in=b,o.total_in+=h-o.next_in_index,o.next_in_index=h,s.write=w,0}t.init=function(t,r,s,o,l,_){e=0,c=t,f=r,i=s,u=o,a=l,h=_,n=null;},t.proc=function(t,w,p){let x,g,y,m,k,v,A,U=0,S=0,z=0;for(z=w.next_in_index,m=w.avail_in,U=t.bitb,S=t.bitk,k=t.write,v=k<t.read?t.read-k-1:t.end-k;;)switch(e){case 0:if(v>=258&&m>=10&&(t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,p=b(c,f,i,u,a,h,t,w),z=w.next_in_index,m=w.avail_in,U=t.bitb,S=t.bitk,k=t.write,v=k<t.read?t.read-k-1:t.end-k,0!=p)){e=1==p?7:9;break}o=c,n=i,s=u,e=1;case 1:for(x=o;S<x;){if(0===m)return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);p=0,m--,U|=(255&w.read_byte(z++))<<S,S+=8;}if(g=3*(s+(U&X[x])),U>>>=n[g+1],S-=n[g+1],y=n[g],0===y){l=n[g+2],e=6;break}if(0!=(16&y)){_=15&y,r=n[g+2],e=2;break}if(0==(64&y)){o=y,s=g/3+n[g+2];break}if(0!=(32&y)){e=7;break}return e=9,w.msg="invalid literal/length code",p=-3,t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);case 2:for(x=_;S<x;){if(0===m)return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);p=0,m--,U|=(255&w.read_byte(z++))<<S,S+=8;}r+=U&X[x],U>>=x,S-=x,o=f,n=a,s=h,e=3;case 3:for(x=o;S<x;){if(0===m)return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);p=0,m--,U|=(255&w.read_byte(z++))<<S,S+=8;}if(g=3*(s+(U&X[x])),U>>=n[g+1],S-=n[g+1],y=n[g],0!=(16&y)){_=15&y,d=n[g+2],e=4;break}if(0==(64&y)){o=y,s=g/3+n[g+2];break}return e=9,w.msg="invalid distance code",p=-3,t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);case 4:for(x=_;S<x;){if(0===m)return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);p=0,m--,U|=(255&w.read_byte(z++))<<S,S+=8;}d+=U&X[x],U>>=x,S-=x,e=5;case 5:for(A=k-d;A<0;)A+=t.end;for(;0!==r;){if(0===v&&(k==t.end&&0!==t.read&&(k=0,v=k<t.read?t.read-k-1:t.end-k),0===v&&(t.write=k,p=t.inflate_flush(w,p),k=t.write,v=k<t.read?t.read-k-1:t.end-k,k==t.end&&0!==t.read&&(k=0,v=k<t.read?t.read-k-1:t.end-k),0===v)))return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);t.window[k++]=t.window[A++],v--,A==t.end&&(A=0),r--;}e=0;break;case 6:if(0===v&&(k==t.end&&0!==t.read&&(k=0,v=k<t.read?t.read-k-1:t.end-k),0===v&&(t.write=k,p=t.inflate_flush(w,p),k=t.write,v=k<t.read?t.read-k-1:t.end-k,k==t.end&&0!==t.read&&(k=0,v=k<t.read?t.read-k-1:t.end-k),0===v)))return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);p=0,t.window[k++]=l,v--,e=0;break;case 7:if(S>7&&(S-=8,m++,z--),t.write=k,p=t.inflate_flush(w,p),k=t.write,v=k<t.read?t.read-k-1:t.end-k,t.read!=t.write)return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);e=8;case 8:return p=1,t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);case 9:return p=-3,t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);default:return p=-2,t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p)}},t.free=function(){};}it.inflate_trees_fixed=function(t,e,n,i){return t[0]=9,e[0]=5,n[0]=Y,i[0]=Z,0};const rt=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];function st(t,e){const n=this;let i,a=0,r=0,s=0,o=0;const l=[0],_=[0],d=new at;let c=0,f=new Int32Array(4320);const u=new it;n.bitk=0,n.bitb=0,n.window=new Uint8Array(e),n.end=e,n.read=0,n.write=0,n.reset=function(t,e){e&&(e[0]=0),6==a&&d.free(t),a=0,n.bitk=0,n.bitb=0,n.read=n.write=0;},n.reset(t,null),n.inflate_flush=function(t,e){let i,a,r;return a=t.next_out_index,r=n.read,i=(r<=n.write?n.write:n.end)-r,i>t.avail_out&&(i=t.avail_out),0!==i&&-5==e&&(e=0),t.avail_out-=i,t.total_out+=i,t.next_out.set(n.window.subarray(r,r+i),a),a+=i,r+=i,r==n.end&&(r=0,n.write==n.end&&(n.write=0),i=n.write-r,i>t.avail_out&&(i=t.avail_out),0!==i&&-5==e&&(e=0),t.avail_out-=i,t.total_out+=i,t.next_out.set(n.window.subarray(r,r+i),a),a+=i,r+=i),t.next_out_index=a,n.read=r,e},n.proc=function(t,e){let h,b,w,p,x,g,y,m;for(p=t.next_in_index,x=t.avail_in,b=n.bitb,w=n.bitk,g=n.write,y=g<n.read?n.read-g-1:n.end-g;;){let k,v,A,U,S,z,I,E;switch(a){case 0:for(;w<3;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}switch(h=7&b,c=1&h,h>>>1){case 0:b>>>=3,w-=3,h=7&w,b>>>=h,w-=h,a=1;break;case 1:k=[],v=[],A=[[]],U=[[]],it.inflate_trees_fixed(k,v,A,U),d.init(k[0],v[0],A[0],0,U[0],0),b>>>=3,w-=3,a=6;break;case 2:b>>>=3,w-=3,a=3;break;case 3:return b>>>=3,w-=3,a=9,t.msg="invalid block type",e=-3,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e)}break;case 1:for(;w<32;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}if((~b>>>16&65535)!=(65535&b))return a=9,t.msg="invalid stored block lengths",e=-3,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);r=65535&b,b=w=0,a=0!==r?2:0!==c?7:0;break;case 2:if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);if(0===y&&(g==n.end&&0!==n.read&&(g=0,y=g<n.read?n.read-g-1:n.end-g),0===y&&(n.write=g,e=n.inflate_flush(t,e),g=n.write,y=g<n.read?n.read-g-1:n.end-g,g==n.end&&0!==n.read&&(g=0,y=g<n.read?n.read-g-1:n.end-g),0===y)))return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);if(e=0,h=r,h>x&&(h=x),h>y&&(h=y),n.window.set(t.read_buf(p,h),g),p+=h,x-=h,g+=h,y-=h,0!=(r-=h))break;a=0!==c?7:0;break;case 3:for(;w<14;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}if(s=h=16383&b,(31&h)>29||(h>>5&31)>29)return a=9,t.msg="too many length or distance symbols",e=-3,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);if(h=258+(31&h)+(h>>5&31),!i||i.length<h)i=[];else for(m=0;m<h;m++)i[m]=0;b>>>=14,w-=14,o=0,a=4;case 4:for(;o<4+(s>>>10);){for(;w<3;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}i[rt[o++]]=7&b,b>>>=3,w-=3;}for(;o<19;)i[rt[o++]]=0;if(l[0]=7,h=u.inflate_trees_bits(i,l,_,f,t),0!=h)return -3==(e=h)&&(i=null,a=9),n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);o=0,a=5;case 5:for(;h=s,!(o>=258+(31&h)+(h>>5&31));){let r,d;for(h=l[0];w<h;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}if(h=f[3*(_[0]+(b&X[h]))+1],d=f[3*(_[0]+(b&X[h]))+2],d<16)b>>>=h,w-=h,i[o++]=d;else {for(m=18==d?7:d-14,r=18==d?11:3;w<h+m;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}if(b>>>=h,w-=h,r+=b&X[m],b>>>=m,w-=m,m=o,h=s,m+r>258+(31&h)+(h>>5&31)||16==d&&m<1)return i=null,a=9,t.msg="invalid bit length repeat",e=-3,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);d=16==d?i[m-1]:0;do{i[m++]=d;}while(0!=--r);o=m;}}if(_[0]=-1,S=[],z=[],I=[],E=[],S[0]=9,z[0]=6,h=s,h=u.inflate_trees_dynamic(257+(31&h),1+(h>>5&31),i,S,z,I,E,f,t),0!=h)return -3==h&&(i=null,a=9),e=h,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);d.init(S[0],z[0],f,I[0],f,E[0]),a=6;case 6:if(n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,1!=(e=d.proc(n,t,e)))return n.inflate_flush(t,e);if(e=0,d.free(t),p=t.next_in_index,x=t.avail_in,b=n.bitb,w=n.bitk,g=n.write,y=g<n.read?n.read-g-1:n.end-g,0===c){a=0;break}a=7;case 7:if(n.write=g,e=n.inflate_flush(t,e),g=n.write,y=g<n.read?n.read-g-1:n.end-g,n.read!=n.write)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);a=8;case 8:return e=1,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);case 9:return e=-3,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);default:return e=-2,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e)}}},n.free=function(t){n.reset(t,null),n.window=null,f=null;},n.set_dictionary=function(t,e,i){n.window.set(t.subarray(e,e+i),0),n.read=n.write=i;},n.sync_point=function(){return 1==a?1:0};}const ot=[0,0,255,255];function lt(){const t=this;function e(t){return t&&t.istate?(t.total_in=t.total_out=0,t.msg=null,t.istate.mode=7,t.istate.blocks.reset(t,null),0):-2}t.mode=0,t.method=0,t.was=[0],t.need=0,t.marker=0,t.wbits=0,t.inflateEnd=function(e){return t.blocks&&t.blocks.free(e),t.blocks=null,0},t.inflateInit=function(n,i){return n.msg=null,t.blocks=null,i<8||i>15?(t.inflateEnd(n),-2):(t.wbits=i,n.istate.blocks=new st(n,1<<i),e(n),0)},t.inflate=function(t,e){let n,i;if(!t||!t.istate||!t.next_in)return -2;const a=t.istate;for(e=4==e?-5:0,n=-5;;)switch(a.mode){case 0:if(0===t.avail_in)return n;if(n=e,t.avail_in--,t.total_in++,8!=(15&(a.method=t.read_byte(t.next_in_index++)))){a.mode=13,t.msg="unknown compression method",a.marker=5;break}if(8+(a.method>>4)>a.wbits){a.mode=13,t.msg="invalid window size",a.marker=5;break}a.mode=1;case 1:if(0===t.avail_in)return n;if(n=e,t.avail_in--,t.total_in++,i=255&t.read_byte(t.next_in_index++),((a.method<<8)+i)%31!=0){a.mode=13,t.msg="incorrect header check",a.marker=5;break}if(0==(32&i)){a.mode=7;break}a.mode=2;case 2:if(0===t.avail_in)return n;n=e,t.avail_in--,t.total_in++,a.need=(255&t.read_byte(t.next_in_index++))<<24&4278190080,a.mode=3;case 3:if(0===t.avail_in)return n;n=e,t.avail_in--,t.total_in++,a.need+=(255&t.read_byte(t.next_in_index++))<<16&16711680,a.mode=4;case 4:if(0===t.avail_in)return n;n=e,t.avail_in--,t.total_in++,a.need+=(255&t.read_byte(t.next_in_index++))<<8&65280,a.mode=5;case 5:return 0===t.avail_in?n:(n=e,t.avail_in--,t.total_in++,a.need+=255&t.read_byte(t.next_in_index++),a.mode=6,2);case 6:return a.mode=13,t.msg="need dictionary",a.marker=0,-2;case 7:if(n=a.blocks.proc(t,n),-3==n){a.mode=13,a.marker=0;break}if(0==n&&(n=e),1!=n)return n;n=e,a.blocks.reset(t,a.was),a.mode=12;case 12:return 1;case 13:return -3;default:return -2}},t.inflateSetDictionary=function(t,e,n){let i=0,a=n;if(!t||!t.istate||6!=t.istate.mode)return -2;const r=t.istate;return a>=1<<r.wbits&&(a=(1<<r.wbits)-1,i=n-a),r.blocks.set_dictionary(e,i,a),r.mode=7,0},t.inflateSync=function(t){let n,i,a,r,s;if(!t||!t.istate)return -2;const o=t.istate;if(13!=o.mode&&(o.mode=13,o.marker=0),0===(n=t.avail_in))return -5;for(i=t.next_in_index,a=o.marker;0!==n&&a<4;)t.read_byte(i)==ot[a]?a++:a=0!==t.read_byte(i)?0:4-a,i++,n--;return t.total_in+=i-t.next_in_index,t.next_in_index=i,t.avail_in=n,o.marker=a,4!=a?-3:(r=t.total_in,s=t.total_out,e(t),t.total_in=r,t.total_out=s,o.mode=7,0)},t.inflateSyncPoint=function(t){return t&&t.istate&&t.istate.blocks?t.istate.blocks.sync_point():-2};}function _t(){}function dt(t){const e=new _t,n=t&&t.chunkSize?Math.floor(2*t.chunkSize):131072,i=new Uint8Array(n);let a=!1;e.inflateInit(),e.next_out=i,this.append=function(t,r){const s=[];let o,l,_=0,d=0,c=0;if(0!==t.length){e.next_in_index=0,e.next_in=t,e.avail_in=t.length;do{if(e.next_out_index=0,e.avail_out=n,0!==e.avail_in||a||(e.next_in_index=0,a=!0),o=e.inflate(0),a&&-5===o){if(0!==e.avail_in)throw new Error("inflating: bad input")}else if(0!==o&&1!==o)throw new Error("inflating: "+e.msg);if((a||1===o)&&e.avail_in===t.length)throw new Error("inflating: bad input");e.next_out_index&&(e.next_out_index===n?s.push(new Uint8Array(i)):s.push(i.slice(0,e.next_out_index))),c+=e.next_out_index,r&&e.next_in_index>0&&e.next_in_index!=_&&(r(e.next_in_index),_=e.next_in_index);}while(e.avail_in>0||0===e.avail_out);return s.length>1?(l=new Uint8Array(c),s.forEach((function(t){l.set(t,d),d+=t.length;}))):l=s[0]||new Uint8Array(0),l}},this.flush=function(){e.inflateEnd();};}_t.prototype={inflateInit:function(t){const e=this;return e.istate=new lt,t||(t=15),e.istate.inflateInit(e,t)},inflate:function(t){const e=this;return e.istate?e.istate.inflate(e,t):-2},inflateEnd:function(){const t=this;if(!t.istate)return -2;const e=t.istate.inflateEnd(t);return t.istate=null,e},inflateSync:function(){const t=this;return t.istate?t.istate.inflateSync(t):-2},inflateSetDictionary:function(t,e){const n=this;return n.istate?n.istate.inflateSetDictionary(n,t,e):-2},read_byte:function(t){return this.next_in[t]},read_buf:function(t,e){return this.next_in.subarray(t,t+e)}},self.initCodec=()=>{self.Deflate=Q,self.Inflate=dt;};}).toString(),n=URL.createObjectURL(new Blob(["("+e+")()"],{type:"text/javascript"}));configure({workerScripts:{inflate:[n],deflate:[n]}});}};
+	var configureWebWorker = ()=>{if("function"==typeof URL.createObjectURL){const e=(()=>{const t=[];for(let e=0;e<256;e++){let n=e;for(let t=0;t<8;t++)1&n?n=n>>>1^3988292384:n>>>=1;t[e]=n;}class e{constructor(t){this.crc=t||-1;}append(e){let n=0|this.crc;for(let i=0,a=0|e.length;i<a;i++)n=n>>>8^t[255&(n^e[i])];this.crc=n;}get(){return ~this.crc}}const n={concat(t,e){if(0===t.length||0===e.length)return t.concat(e);const i=t[t.length-1],a=n.getPartial(i);return 32===a?t.concat(e):n._shiftRight(e,a,0|i,t.slice(0,t.length-1))},bitLength(t){const e=t.length;if(0===e)return 0;const i=t[e-1];return 32*(e-1)+n.getPartial(i)},clamp(t,e){if(32*t.length<e)return t;const i=(t=t.slice(0,Math.ceil(e/32))).length;return e&=31,i>0&&e&&(t[i-1]=n.partial(e,t[i-1]&2147483648>>e-1,1)),t},partial:(t,e,n)=>32===t?e:(n?0|e:e<<32-t)+1099511627776*t,getPartial:t=>Math.round(t/1099511627776)||32,_shiftRight(t,e,i,a){for(void 0===a&&(a=[]);e>=32;e-=32)a.push(i),i=0;if(0===e)return a.concat(t);for(let n=0;n<t.length;n++)a.push(i|t[n]>>>e),i=t[n]<<32-e;const r=t.length?t[t.length-1]:0,s=n.getPartial(r);return a.push(n.partial(e+s&31,e+s>32?i:a.pop(),1)),a}},i={bytes:{fromBits(t){const e=n.bitLength(t)/8,i=new Uint8Array(e);let a;for(let n=0;n<e;n++)0==(3&n)&&(a=t[n/4]),i[n]=a>>>24,a<<=8;return i},toBits(t){const e=[];let i,a=0;for(i=0;i<t.length;i++)a=a<<8|t[i],3==(3&i)&&(e.push(a),a=0);return 3&i&&e.push(n.partial(8*(3&i),a)),e}}},a={sha1:function(t){t?(this._h=t._h.slice(0),this._buffer=t._buffer.slice(0),this._length=t._length):this.reset();}};a.sha1.prototype={blockSize:512,reset:function(){const t=this;return t._h=this._init.slice(0),t._buffer=[],t._length=0,t},update:function(t){const e=this;"string"==typeof t&&(t=i.utf8String.toBits(t));const a=e._buffer=n.concat(e._buffer,t),r=e._length,s=e._length=r+n.bitLength(t);if(s>9007199254740991)throw new Error("Cannot hash more than 2^53 - 1 bits");const o=new Uint32Array(a);let l=0;for(let t=e.blockSize+r-(e.blockSize+r&e.blockSize-1);t<=s;t+=e.blockSize)e._block(o.subarray(16*l,16*(l+1))),l+=1;return a.splice(0,16*l),e},finalize:function(){const t=this;let e=t._buffer;const i=t._h;e=n.concat(e,[n.partial(1,1)]);for(let t=e.length+2;15&t;t++)e.push(0);for(e.push(Math.floor(t._length/4294967296)),e.push(0|t._length);e.length;)t._block(e.splice(0,16));return t.reset(),i},_init:[1732584193,4023233417,2562383102,271733878,3285377520],_key:[1518500249,1859775393,2400959708,3395469782],_f:function(t,e,n,i){return t<=19?e&n|~e&i:t<=39?e^n^i:t<=59?e&n|e&i|n&i:t<=79?e^n^i:void 0},_S:function(t,e){return e<<t|e>>>32-t},_block:function(t){const e=this,n=e._h,i=Array(80);for(let e=0;e<16;e++)i[e]=t[e];let a=n[0],r=n[1],s=n[2],o=n[3],l=n[4];for(let t=0;t<=79;t++){t>=16&&(i[t]=e._S(1,i[t-3]^i[t-8]^i[t-14]^i[t-16]));const n=e._S(5,a)+e._f(t,r,s,o)+l+i[t]+e._key[Math.floor(t/20)]|0;l=o,o=s,s=e._S(30,r),r=a,a=n;}n[0]=n[0]+a|0,n[1]=n[1]+r|0,n[2]=n[2]+s|0,n[3]=n[3]+o|0,n[4]=n[4]+l|0;}};const r=class{constructor(t){const e=this;e._tables=[[[],[],[],[],[]],[[],[],[],[],[]]],e._tables[0][0][0]||e._precompute();const n=e._tables[0][4],i=e._tables[1],a=t.length;let r,s,o,l=1;if(4!==a&&6!==a&&8!==a)throw new Error("invalid aes key size");for(e._key=[s=t.slice(0),o=[]],r=a;r<4*a+28;r++){let t=s[r-1];(r%a==0||8===a&&r%a==4)&&(t=n[t>>>24]<<24^n[t>>16&255]<<16^n[t>>8&255]<<8^n[255&t],r%a==0&&(t=t<<8^t>>>24^l<<24,l=l<<1^283*(l>>7))),s[r]=s[r-a]^t;}for(let t=0;r;t++,r--){const e=s[3&t?r:r-4];o[t]=r<=4||t<4?e:i[0][n[e>>>24]]^i[1][n[e>>16&255]]^i[2][n[e>>8&255]]^i[3][n[255&e]];}}encrypt(t){return this._crypt(t,0)}decrypt(t){return this._crypt(t,1)}_precompute(){const t=this._tables[0],e=this._tables[1],n=t[4],i=e[4],a=[],r=[];let s,o,l,_;for(let t=0;t<256;t++)r[(a[t]=t<<1^283*(t>>7))^t]=t;for(let d=s=0;!n[d];d^=o||1,s=r[s]||1){let r=s^s<<1^s<<2^s<<3^s<<4;r=r>>8^255&r^99,n[d]=r,i[r]=d,_=a[l=a[o=a[d]]];let c=16843009*_^65537*l^257*o^16843008*d,f=257*a[r]^16843008*r;for(let n=0;n<4;n++)t[n][d]=f=f<<24^f>>>8,e[n][r]=c=c<<24^c>>>8;}for(let n=0;n<5;n++)t[n]=t[n].slice(0),e[n]=e[n].slice(0);}_crypt(t,e){if(4!==t.length)throw new Error("invalid aes block size");const n=this._key[e],i=n.length/4-2,a=[0,0,0,0],r=this._tables[e],s=r[0],o=r[1],l=r[2],_=r[3],d=r[4];let c,f,u,h=t[0]^n[0],b=t[e?3:1]^n[1],w=t[2]^n[2],p=t[e?1:3]^n[3],x=4;for(let t=0;t<i;t++)c=s[h>>>24]^o[b>>16&255]^l[w>>8&255]^_[255&p]^n[x],f=s[b>>>24]^o[w>>16&255]^l[p>>8&255]^_[255&h]^n[x+1],u=s[w>>>24]^o[p>>16&255]^l[h>>8&255]^_[255&b]^n[x+2],p=s[p>>>24]^o[h>>16&255]^l[b>>8&255]^_[255&w]^n[x+3],x+=4,h=c,b=f,w=u;for(let t=0;t<4;t++)a[e?3&-t:t]=d[h>>>24]<<24^d[b>>16&255]<<16^d[w>>8&255]<<8^d[255&p]^n[x++],c=h,h=b,b=w,w=p,p=c;return a}},s=class{constructor(t,e){this._prf=t,this._initIv=e,this._iv=e;}reset(){this._iv=this._initIv;}update(t){return this.calculate(this._prf,t,this._iv)}incWord(t){if(255==(t>>24&255)){let e=t>>16&255,n=t>>8&255,i=255&t;255===e?(e=0,255===n?(n=0,255===i?i=0:++i):++n):++e,t=0,t+=e<<16,t+=n<<8,t+=i;}else t+=1<<24;return t}incCounter(t){0===(t[0]=this.incWord(t[0]))&&(t[1]=this.incWord(t[1]));}calculate(t,e,i){let a;if(!(a=e.length))return [];const r=n.bitLength(e);for(let n=0;n<a;n+=4){this.incCounter(i);const a=t.encrypt(i);e[n]^=a[0],e[n+1]^=a[1],e[n+2]^=a[2],e[n+3]^=a[3];}return n.clamp(e,r)}},o=class{constructor(t){const e=this,n=e._hash=a.sha1,i=[[],[]],r=n.prototype.blockSize/32;e._baseHash=[new n,new n],t.length>r&&(t=n.hash(t));for(let e=0;e<r;e++)i[0][e]=909522486^t[e],i[1][e]=1549556828^t[e];e._baseHash[0].update(i[0]),e._baseHash[1].update(i[1]),e._resultHash=new n(e._baseHash[0]);}reset(){const t=this;t._resultHash=new t._hash(t._baseHash[0]),t._updated=!1;}update(t){this._updated=!0,this._resultHash.update(t);}digest(){const t=this,e=t._resultHash.finalize(),n=new t._hash(t._baseHash[1]).update(e).finalize();return t.reset(),n}},l={name:"PBKDF2"},_=Object.assign({hash:{name:"HMAC"}},l),d=Object.assign({iterations:1e3,hash:{name:"SHA-1"}},l),c=["deriveBits"],f=[8,12,16],u=[16,24,32],h=[0,0,0,0],b=i.bytes,w=r,p=s,x=o;class g{constructor(t,e,n){Object.assign(this,{password:t,signed:e,strength:n-1,pendingInput:new Uint8Array(0)});}async append(t){const e=this;if(e.password){const n=A(t,0,f[e.strength]+2);await async function(t,e,n){await k(t,n,A(e,0,f[t.strength]));const i=A(e,f[t.strength]),a=t.keys.passwordVerification;if(a[0]!=i[0]||a[1]!=i[1])throw new Error("Invalid pasword")}(e,n,e.password),e.password=null,e.aesCtrGladman=new p(new w(e.keys.key),Array.from(h)),e.hmac=new x(e.keys.authentication),t=A(t,f[e.strength]+2);}return m(e,t,new Uint8Array(t.length-10-(t.length-10)%16),0,10,!0)}async flush(){const t=this,e=t.pendingInput,n=A(e,0,e.length-10),i=A(e,e.length-10);let a=new Uint8Array(0);if(n.length){const e=b.toBits(n);t.hmac.update(e);const i=t.aesCtrGladman.update(e);a=b.fromBits(i);}let r=!0;if(t.signed){const e=A(b.fromBits(t.hmac.digest()),0,10);for(let t=0;t<10;t++)e[t]!=i[t]&&(r=!1);}return {valid:r,data:a}}}class y{constructor(t,e){Object.assign(this,{password:t,strength:e-1,pendingInput:new Uint8Array(0)});}async append(t){const e=this;let n=new Uint8Array(0);e.password&&(n=await async function(t,e){const n=crypto.getRandomValues(new Uint8Array(f[t.strength]));return await k(t,e,n),v(n,t.keys.passwordVerification)}(e,e.password),e.password=null,e.aesCtrGladman=new p(new w(e.keys.key),Array.from(h)),e.hmac=new x(e.keys.authentication));const i=new Uint8Array(n.length+t.length-t.length%16);return i.set(n,0),m(e,t,i,n.length,0)}async flush(){const t=this;let e=new Uint8Array(0);if(t.pendingInput.length){const n=t.aesCtrGladman.update(b.toBits(t.pendingInput));t.hmac.update(n),e=b.fromBits(n);}const n=A(b.fromBits(t.hmac.digest()),0,10);return {data:v(e,n),signature:n}}}function m(t,e,n,i,a,r){const s=e.length-a;let o;for(t.pendingInput.length&&(e=v(t.pendingInput,e),n=function(t,e){if(e&&e>t.length){const n=t;(t=new Uint8Array(e)).set(n,0);}return t}(n,s-s%16)),o=0;o<=s-16;o+=16){const a=b.toBits(A(e,o,o+16));r&&t.hmac.update(a);const s=t.aesCtrGladman.update(a);r||t.hmac.update(s),n.set(b.fromBits(s),o+i);}return t.pendingInput=A(e,o),n}async function k(t,e,n){const i=(new TextEncoder).encode(e),a=await crypto.subtle.importKey("raw",i,_,!1,c),r=await crypto.subtle.deriveBits(Object.assign({salt:n},d),a,8*(2*u[t.strength]+2)),s=new Uint8Array(r);t.keys={key:b.toBits(A(s,0,u[t.strength])),authentication:b.toBits(A(s,u[t.strength],2*u[t.strength])),passwordVerification:A(s,2*u[t.strength])};}function v(t,e){let n=t;return t.length+e.length&&(n=new Uint8Array(t.length+e.length),n.set(t,0),n.set(e,t.length)),n}function A(t,e,n){return t.subarray(e,n)}class U{constructor(t,e){Object.assign(this,{password:t,passwordVerification:e}),E(this,t);}async append(t){const e=this;if(e.password){const n=z(e,t.subarray(0,12));if(e.password=null,n[11]!=e.passwordVerification)throw new Error("Invalid pasword");t=t.subarray(12);}return z(e,t)}async flush(){return {valid:!0,data:new Uint8Array(0)}}}class S{constructor(t,e){Object.assign(this,{password:t,passwordVerification:e}),E(this,t);}async append(t){const e=this;let n,i;if(e.password){e.password=null;const a=crypto.getRandomValues(new Uint8Array(12));a[11]=e.passwordVerification,n=new Uint8Array(t.length+a.length),n.set(I(e,a),0),i=12;}else n=new Uint8Array(t.length),i=0;return n.set(I(e,t),i),n}async flush(){return {data:new Uint8Array(0)}}}function z(t,e){const n=new Uint8Array(e.length);for(let i=0;i<e.length;i++)n[i]=M(t)^e[i],C(t,n[i]);return n}function I(t,e){const n=new Uint8Array(e.length);for(let i=0;i<e.length;i++)n[i]=M(t)^e[i],C(t,e[i]);return n}function E(t,n){t.keys=[305419896,591751049,878082192],t.crcKey0=new e(t.keys[0]),t.crcKey2=new e(t.keys[2]);for(let e=0;e<n.length;e++)C(t,n.charCodeAt(e));}function C(t,e){t.crcKey0.append([e]),t.keys[0]=~t.crcKey0.get(),t.keys[1]=j(t.keys[1]+B(t.keys[0])),t.keys[1]=j(Math.imul(t.keys[1],134775813)+1),t.crcKey2.append([t.keys[1]>>>24]),t.keys[2]=~t.crcKey2.get();}function M(t){const e=2|t.keys[2];return B(Math.imul(e,1^e)>>>8)}function B(t){return 255&t}function j(t){return 4294967295&t}class H{constructor(t,{signature:n,password:i,signed:a,compressed:r,zipCrypto:s,passwordVerification:o,encryptionStrength:l},{chunkSize:_}){const d=Boolean(i);Object.assign(this,{signature:n,encrypted:d,signed:a,compressed:r,inflate:r&&new t({chunkSize:_}),crc32:a&&new e,zipCrypto:s,decrypt:d&&s?new U(i,o):new g(i,a,l)});}async append(t){const e=this;return e.encrypted&&t.length&&(t=await e.decrypt.append(t)),e.compressed&&t.length&&(t=await e.inflate.append(t)),(!e.encrypted||e.zipCrypto)&&e.signed&&t.length&&e.crc32.append(t),t}async flush(){const t=this;let e,n=new Uint8Array(0);if(t.encrypted){const e=await t.decrypt.flush();if(!e.valid)throw new Error("Invalid signature");n=e.data;}if((!t.encrypted||t.zipCrypto)&&t.signed){const n=new DataView(new Uint8Array(4).buffer);if(e=t.crc32.get(),n.setUint32(0,e),t.signature!=n.getUint32(0,!1))throw new Error("Invalid signature")}return t.compressed&&(n=await t.inflate.append(n)||new Uint8Array(0),await t.inflate.flush()),{data:n,signature:e}}}class V{constructor(t,{encrypted:n,signed:i,compressed:a,level:r,zipCrypto:s,password:o,passwordVerification:l,encryptionStrength:_},{chunkSize:d}){Object.assign(this,{encrypted:n,signed:i,compressed:a,deflate:a&&new t({level:r||5,chunkSize:d}),crc32:i&&new e,zipCrypto:s,encrypt:n&&s?new S(o,l):new y(o,_)});}async append(t){const e=this;let n=t;return e.compressed&&t.length&&(n=await e.deflate.append(t)),e.encrypted&&n.length&&(n=await e.encrypt.append(n)),(!e.encrypted||e.zipCrypto)&&e.signed&&t.length&&e.crc32.append(t),n}async flush(){const t=this;let e,n=new Uint8Array(0);if(t.compressed&&(n=await t.deflate.flush()||new Uint8Array(0)),t.encrypted){n=await t.encrypt.append(n);const i=await t.encrypt.flush();e=i.signature;const a=new Uint8Array(n.length+i.data.length);a.set(n,0),a.set(i.data,n.length),n=a;}return t.encrypted&&!t.zipCrypto||!t.signed||(e=t.crc32.get()),{data:n,signature:e}}}const O={init(t){t.scripts&&t.scripts.length&&importScripts.apply(void 0,t.scripts);const e=t.options;let n;self.initCodec&&self.initCodec(),e.codecType.startsWith("deflate")?n=self.Deflate:e.codecType.startsWith("inflate")&&(n=self.Inflate),D=function(t,e,n){return e.codecType.startsWith("deflate")?new V(t,e,n):e.codecType.startsWith("inflate")?new H(t,e,n):void 0}(n,e,t.config);},append:async t=>({data:await D.append(t.data)}),flush:()=>D.flush()};let D;function L(t){return t.map((([t,e])=>new Array(t).fill(e,0,t))).flat()}addEventListener("message",(async t=>{const e=t.data,n=e.type,i=O[n];if(i)try{e.data&&(e.data=new Uint8Array(e.data));const t=await i(e)||{};if(t.type=n,t.data)try{t.data=t.data.buffer,postMessage(t,[t.data]);}catch(e){postMessage(t);}else postMessage(t);}catch(t){postMessage({type:n,error:{message:t.message,stack:t.stack}});}}));const P=[0,1,2,3].concat(...L([[2,4],[2,5],[4,6],[4,7],[8,8],[8,9],[16,10],[16,11],[32,12],[32,13],[64,14],[64,15],[2,0],[1,16],[1,17],[2,18],[2,19],[4,20],[4,21],[8,22],[8,23],[16,24],[16,25],[32,26],[32,27],[64,28],[64,29]]));function K(){const t=this;function e(t,e){let n=0;do{n|=1&t,t>>>=1,n<<=1;}while(--e>0);return n>>>1}t.build_tree=function(n){const i=t.dyn_tree,a=t.stat_desc.static_tree,r=t.stat_desc.elems;let s,o,l,_=-1;for(n.heap_len=0,n.heap_max=573,s=0;s<r;s++)0!==i[2*s]?(n.heap[++n.heap_len]=_=s,n.depth[s]=0):i[2*s+1]=0;for(;n.heap_len<2;)l=n.heap[++n.heap_len]=_<2?++_:0,i[2*l]=1,n.depth[l]=0,n.opt_len--,a&&(n.static_len-=a[2*l+1]);for(t.max_code=_,s=Math.floor(n.heap_len/2);s>=1;s--)n.pqdownheap(i,s);l=r;do{s=n.heap[1],n.heap[1]=n.heap[n.heap_len--],n.pqdownheap(i,1),o=n.heap[1],n.heap[--n.heap_max]=s,n.heap[--n.heap_max]=o,i[2*l]=i[2*s]+i[2*o],n.depth[l]=Math.max(n.depth[s],n.depth[o])+1,i[2*s+1]=i[2*o+1]=l,n.heap[1]=l++,n.pqdownheap(i,1);}while(n.heap_len>=2);n.heap[--n.heap_max]=n.heap[1],function(e){const n=t.dyn_tree,i=t.stat_desc.static_tree,a=t.stat_desc.extra_bits,r=t.stat_desc.extra_base,s=t.stat_desc.max_length;let o,l,_,d,c,f,u=0;for(d=0;d<=15;d++)e.bl_count[d]=0;for(n[2*e.heap[e.heap_max]+1]=0,o=e.heap_max+1;o<573;o++)l=e.heap[o],d=n[2*n[2*l+1]+1]+1,d>s&&(d=s,u++),n[2*l+1]=d,l>t.max_code||(e.bl_count[d]++,c=0,l>=r&&(c=a[l-r]),f=n[2*l],e.opt_len+=f*(d+c),i&&(e.static_len+=f*(i[2*l+1]+c)));if(0!==u){do{for(d=s-1;0===e.bl_count[d];)d--;e.bl_count[d]--,e.bl_count[d+1]+=2,e.bl_count[s]--,u-=2;}while(u>0);for(d=s;0!==d;d--)for(l=e.bl_count[d];0!==l;)_=e.heap[--o],_>t.max_code||(n[2*_+1]!=d&&(e.opt_len+=(d-n[2*_+1])*n[2*_],n[2*_+1]=d),l--);}}(n),function(t,n,i){const a=[];let r,s,o,l=0;for(r=1;r<=15;r++)a[r]=l=l+i[r-1]<<1;for(s=0;s<=n;s++)o=t[2*s+1],0!==o&&(t[2*s]=e(a[o]++,o));}(i,t.max_code,n.bl_count);};}function R(t,e,n,i,a){const r=this;r.static_tree=t,r.extra_bits=e,r.extra_base=n,r.elems=i,r.max_length=a;}function W(t,e,n,i,a){const r=this;r.good_length=t,r.max_lazy=e,r.nice_length=n,r.max_chain=i,r.func=a;}K._length_code=[0,1,2,3,4,5,6,7].concat(...L([[2,8],[2,9],[2,10],[2,11],[4,12],[4,13],[4,14],[4,15],[8,16],[8,17],[8,18],[8,19],[16,20],[16,21],[16,22],[16,23],[32,24],[32,25],[32,26],[31,27],[1,28]])),K.base_length=[0,1,2,3,4,5,6,7,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,0],K.base_dist=[0,1,2,3,4,6,8,12,16,24,32,48,64,96,128,192,256,384,512,768,1024,1536,2048,3072,4096,6144,8192,12288,16384,24576],K.d_code=function(t){return t<256?P[t]:P[256+(t>>>7)]},K.extra_lbits=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0],K.extra_dbits=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],K.extra_blbits=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,7],K.bl_order=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15],R.static_ltree=[12,8,140,8,76,8,204,8,44,8,172,8,108,8,236,8,28,8,156,8,92,8,220,8,60,8,188,8,124,8,252,8,2,8,130,8,66,8,194,8,34,8,162,8,98,8,226,8,18,8,146,8,82,8,210,8,50,8,178,8,114,8,242,8,10,8,138,8,74,8,202,8,42,8,170,8,106,8,234,8,26,8,154,8,90,8,218,8,58,8,186,8,122,8,250,8,6,8,134,8,70,8,198,8,38,8,166,8,102,8,230,8,22,8,150,8,86,8,214,8,54,8,182,8,118,8,246,8,14,8,142,8,78,8,206,8,46,8,174,8,110,8,238,8,30,8,158,8,94,8,222,8,62,8,190,8,126,8,254,8,1,8,129,8,65,8,193,8,33,8,161,8,97,8,225,8,17,8,145,8,81,8,209,8,49,8,177,8,113,8,241,8,9,8,137,8,73,8,201,8,41,8,169,8,105,8,233,8,25,8,153,8,89,8,217,8,57,8,185,8,121,8,249,8,5,8,133,8,69,8,197,8,37,8,165,8,101,8,229,8,21,8,149,8,85,8,213,8,53,8,181,8,117,8,245,8,13,8,141,8,77,8,205,8,45,8,173,8,109,8,237,8,29,8,157,8,93,8,221,8,61,8,189,8,125,8,253,8,19,9,275,9,147,9,403,9,83,9,339,9,211,9,467,9,51,9,307,9,179,9,435,9,115,9,371,9,243,9,499,9,11,9,267,9,139,9,395,9,75,9,331,9,203,9,459,9,43,9,299,9,171,9,427,9,107,9,363,9,235,9,491,9,27,9,283,9,155,9,411,9,91,9,347,9,219,9,475,9,59,9,315,9,187,9,443,9,123,9,379,9,251,9,507,9,7,9,263,9,135,9,391,9,71,9,327,9,199,9,455,9,39,9,295,9,167,9,423,9,103,9,359,9,231,9,487,9,23,9,279,9,151,9,407,9,87,9,343,9,215,9,471,9,55,9,311,9,183,9,439,9,119,9,375,9,247,9,503,9,15,9,271,9,143,9,399,9,79,9,335,9,207,9,463,9,47,9,303,9,175,9,431,9,111,9,367,9,239,9,495,9,31,9,287,9,159,9,415,9,95,9,351,9,223,9,479,9,63,9,319,9,191,9,447,9,127,9,383,9,255,9,511,9,0,7,64,7,32,7,96,7,16,7,80,7,48,7,112,7,8,7,72,7,40,7,104,7,24,7,88,7,56,7,120,7,4,7,68,7,36,7,100,7,20,7,84,7,52,7,116,7,3,8,131,8,67,8,195,8,35,8,163,8,99,8,227,8],R.static_dtree=[0,5,16,5,8,5,24,5,4,5,20,5,12,5,28,5,2,5,18,5,10,5,26,5,6,5,22,5,14,5,30,5,1,5,17,5,9,5,25,5,5,5,21,5,13,5,29,5,3,5,19,5,11,5,27,5,7,5,23,5],R.static_l_desc=new R(R.static_ltree,K.extra_lbits,257,286,15),R.static_d_desc=new R(R.static_dtree,K.extra_dbits,0,30,15),R.static_bl_desc=new R(null,K.extra_blbits,0,19,7);const G=[new W(0,0,0,0,0),new W(4,4,8,4,1),new W(4,5,16,8,1),new W(4,6,32,32,1),new W(4,4,16,16,2),new W(8,16,32,32,2),new W(8,16,128,128,2),new W(8,32,128,256,2),new W(32,128,258,1024,2),new W(32,258,258,4096,2)],T=["need dictionary","stream end","","","stream error","data error","","buffer error","",""];function q(t,e,n,i){const a=t[2*e],r=t[2*n];return a<r||a==r&&i[e]<=i[n]}function F(){const t=this;let e,n,i,a,r,s,o,l,_,d,c,f,u,h,b,w,p,x,g,y,m,k,v,A,U,S,z,I,E,C,M,B,j;const H=new K,V=new K,O=new K;let D,L,P,W,F,J,N,Q;function X(){let e;for(e=0;e<286;e++)M[2*e]=0;for(e=0;e<30;e++)B[2*e]=0;for(e=0;e<19;e++)j[2*e]=0;M[512]=1,t.opt_len=t.static_len=0,P=F=0;}function Y(t,e){let n,i=-1,a=t[1],r=0,s=7,o=4;0===a&&(s=138,o=3),t[2*(e+1)+1]=65535;for(let l=0;l<=e;l++)n=a,a=t[2*(l+1)+1],++r<s&&n==a||(r<o?j[2*n]+=r:0!==n?(n!=i&&j[2*n]++,j[32]++):r<=10?j[34]++:j[36]++,r=0,i=n,0===a?(s=138,o=3):n==a?(s=6,o=3):(s=7,o=4));}function Z(e){t.pending_buf[t.pending++]=e;}function $(t){Z(255&t),Z(t>>>8&255);}function tt(t,e){let n;const i=e;Q>16-i?(n=t,N|=n<<Q&65535,$(N),N=n>>>16-Q,Q+=i-16):(N|=t<<Q&65535,Q+=i);}function et(t,e){const n=2*t;tt(65535&e[n],65535&e[n+1]);}function nt(t,e){let n,i,a=-1,r=t[1],s=0,o=7,l=4;for(0===r&&(o=138,l=3),n=0;n<=e;n++)if(i=r,r=t[2*(n+1)+1],!(++s<o&&i==r)){if(s<l)do{et(i,j);}while(0!=--s);else 0!==i?(i!=a&&(et(i,j),s--),et(16,j),tt(s-3,2)):s<=10?(et(17,j),tt(s-3,3)):(et(18,j),tt(s-11,7));s=0,a=i,0===r?(o=138,l=3):i==r?(o=6,l=3):(o=7,l=4);}}function it(){16==Q?($(N),N=0,Q=0):Q>=8&&(Z(255&N),N>>>=8,Q-=8);}function at(e,n){let i,a,r;if(t.pending_buf[W+2*P]=e>>>8&255,t.pending_buf[W+2*P+1]=255&e,t.pending_buf[D+P]=255&n,P++,0===e?M[2*n]++:(F++,e--,M[2*(K._length_code[n]+256+1)]++,B[2*K.d_code(e)]++),0==(8191&P)&&z>2){for(i=8*P,a=m-p,r=0;r<30;r++)i+=B[2*r]*(5+K.extra_dbits[r]);if(i>>>=3,F<Math.floor(P/2)&&i<Math.floor(a/2))return !0}return P==L-1}function rt(e,n){let i,a,r,s,o=0;if(0!==P)do{i=t.pending_buf[W+2*o]<<8&65280|255&t.pending_buf[W+2*o+1],a=255&t.pending_buf[D+o],o++,0===i?et(a,e):(r=K._length_code[a],et(r+256+1,e),s=K.extra_lbits[r],0!==s&&(a-=K.base_length[r],tt(a,s)),i--,r=K.d_code(i),et(r,n),s=K.extra_dbits[r],0!==s&&(i-=K.base_dist[r],tt(i,s)));}while(o<P);et(256,e),J=e[513];}function st(){Q>8?$(N):Q>0&&Z(255&N),N=0,Q=0;}function ot(e,n,i){tt(0+(i?1:0),3),function(e,n,i){st(),J=8,$(n),$(~n),t.pending_buf.set(l.subarray(e,e+n),t.pending),t.pending+=n;}(e,n);}function lt(e,n,i){let a,r,s=0;z>0?(H.build_tree(t),V.build_tree(t),s=function(){let e;for(Y(M,H.max_code),Y(B,V.max_code),O.build_tree(t),e=18;e>=3&&0===j[2*K.bl_order[e]+1];e--);return t.opt_len+=3*(e+1)+5+5+4,e}(),a=t.opt_len+3+7>>>3,r=t.static_len+3+7>>>3,r<=a&&(a=r)):a=r=n+5,n+4<=a&&-1!=e?ot(e,n,i):r==a?(tt(2+(i?1:0),3),rt(R.static_ltree,R.static_dtree)):(tt(4+(i?1:0),3),function(t,e,n){let i;for(tt(t-257,5),tt(e-1,5),tt(n-4,4),i=0;i<n;i++)tt(j[2*K.bl_order[i]+1],3);nt(M,t-1),nt(B,e-1);}(H.max_code+1,V.max_code+1,s+1),rt(M,B)),X(),i&&st();}function _t(t){lt(p>=0?p:-1,m-p,t),p=m,e.flush_pending();}function dt(){let t,n,i,a;do{if(a=_-v-m,0===a&&0===m&&0===v)a=r;else if(-1==a)a--;else if(m>=r+r-262){l.set(l.subarray(r,r+r),0),k-=r,m-=r,p-=r,t=u,i=t;do{n=65535&c[--i],c[i]=n>=r?n-r:0;}while(0!=--t);t=r,i=t;do{n=65535&d[--i],d[i]=n>=r?n-r:0;}while(0!=--t);a+=r;}if(0===e.avail_in)return;t=e.read_buf(l,m+v,a),v+=t,v>=3&&(f=255&l[m],f=(f<<w^255&l[m+1])&b);}while(v<262&&0!==e.avail_in)}function ct(t){let e,n,i=U,a=m,s=A;const _=m>r-262?m-(r-262):0;let c=C;const f=o,u=m+258;let h=l[a+s-1],b=l[a+s];A>=E&&(i>>=2),c>v&&(c=v);do{if(e=t,l[e+s]==b&&l[e+s-1]==h&&l[e]==l[a]&&l[++e]==l[a+1]){a+=2,e++;do{}while(l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&l[++a]==l[++e]&&a<u);if(n=258-(u-a),a=u-258,n>s){if(k=t,s=n,n>=c)break;h=l[a+s-1],b=l[a+s];}}}while((t=65535&d[t&f])>_&&0!=--i);return s<=v?s:v}function ft(e){return e.total_in=e.total_out=0,e.msg=null,t.pending=0,t.pending_out=0,n=113,a=0,H.dyn_tree=M,H.stat_desc=R.static_l_desc,V.dyn_tree=B,V.stat_desc=R.static_d_desc,O.dyn_tree=j,O.stat_desc=R.static_bl_desc,N=0,Q=0,J=8,X(),function(){_=2*r,c[u-1]=0;for(let t=0;t<u-1;t++)c[t]=0;S=G[z].max_lazy,E=G[z].good_length,C=G[z].nice_length,U=G[z].max_chain,m=0,p=0,v=0,x=A=2,y=0,f=0;}(),0}t.depth=[],t.bl_count=[],t.heap=[],M=[],B=[],j=[],t.pqdownheap=function(e,n){const i=t.heap,a=i[n];let r=n<<1;for(;r<=t.heap_len&&(r<t.heap_len&&q(e,i[r+1],i[r],t.depth)&&r++,!q(e,a,i[r],t.depth));)i[n]=i[r],n=r,r<<=1;i[n]=a;},t.deflateInit=function(e,n,a,_,f,p){return _||(_=8),f||(f=8),p||(p=0),e.msg=null,-1==n&&(n=6),f<1||f>9||8!=_||a<9||a>15||n<0||n>9||p<0||p>2?-2:(e.dstate=t,s=a,r=1<<s,o=r-1,h=f+7,u=1<<h,b=u-1,w=Math.floor((h+3-1)/3),l=new Uint8Array(2*r),d=[],c=[],L=1<<f+6,t.pending_buf=new Uint8Array(4*L),i=4*L,W=Math.floor(L/2),D=3*L,z=n,I=p,ft(e))},t.deflateEnd=function(){return 42!=n&&113!=n&&666!=n?-2:(t.pending_buf=null,c=null,d=null,l=null,t.dstate=null,113==n?-3:0)},t.deflateParams=function(t,e,n){let i=0;return -1==e&&(e=6),e<0||e>9||n<0||n>2?-2:(G[z].func!=G[e].func&&0!==t.total_in&&(i=t.deflate(1)),z!=e&&(z=e,S=G[z].max_lazy,E=G[z].good_length,C=G[z].nice_length,U=G[z].max_chain),I=n,i)},t.deflateSetDictionary=function(t,e,i){let a,s=i,_=0;if(!e||42!=n)return -2;if(s<3)return 0;for(s>r-262&&(s=r-262,_=i-s),l.set(e.subarray(_,_+s),0),m=s,p=s,f=255&l[0],f=(f<<w^255&l[1])&b,a=0;a<=s-3;a++)f=(f<<w^255&l[a+2])&b,d[a&o]=c[f],c[f]=a;return 0},t.deflate=function(_,h){let U,E,C,M,B;if(h>4||h<0)return -2;if(!_.next_out||!_.next_in&&0!==_.avail_in||666==n&&4!=h)return _.msg=T[4],-2;if(0===_.avail_out)return _.msg=T[7],-5;var j;if(e=_,M=a,a=h,42==n&&(E=8+(s-8<<4)<<8,C=(z-1&255)>>1,C>3&&(C=3),E|=C<<6,0!==m&&(E|=32),E+=31-E%31,n=113,Z((j=E)>>8&255),Z(255&j)),0!==t.pending){if(e.flush_pending(),0===e.avail_out)return a=-1,0}else if(0===e.avail_in&&h<=M&&4!=h)return e.msg=T[7],-5;if(666==n&&0!==e.avail_in)return _.msg=T[7],-5;if(0!==e.avail_in||0!==v||0!=h&&666!=n){switch(B=-1,G[z].func){case 0:B=function(t){let n,a=65535;for(a>i-5&&(a=i-5);;){if(v<=1){if(dt(),0===v&&0==t)return 0;if(0===v)break}if(m+=v,v=0,n=p+a,(0===m||m>=n)&&(v=m-n,m=n,_t(!1),0===e.avail_out))return 0;if(m-p>=r-262&&(_t(!1),0===e.avail_out))return 0}return _t(4==t),0===e.avail_out?4==t?2:0:4==t?3:1}(h);break;case 1:B=function(t){let n,i=0;for(;;){if(v<262){if(dt(),v<262&&0==t)return 0;if(0===v)break}if(v>=3&&(f=(f<<w^255&l[m+2])&b,i=65535&c[f],d[m&o]=c[f],c[f]=m),0!==i&&(m-i&65535)<=r-262&&2!=I&&(x=ct(i)),x>=3)if(n=at(m-k,x-3),v-=x,x<=S&&v>=3){x--;do{m++,f=(f<<w^255&l[m+2])&b,i=65535&c[f],d[m&o]=c[f],c[f]=m;}while(0!=--x);m++;}else m+=x,x=0,f=255&l[m],f=(f<<w^255&l[m+1])&b;else n=at(0,255&l[m]),v--,m++;if(n&&(_t(!1),0===e.avail_out))return 0}return _t(4==t),0===e.avail_out?4==t?2:0:4==t?3:1}(h);break;case 2:B=function(t){let n,i,a=0;for(;;){if(v<262){if(dt(),v<262&&0==t)return 0;if(0===v)break}if(v>=3&&(f=(f<<w^255&l[m+2])&b,a=65535&c[f],d[m&o]=c[f],c[f]=m),A=x,g=k,x=2,0!==a&&A<S&&(m-a&65535)<=r-262&&(2!=I&&(x=ct(a)),x<=5&&(1==I||3==x&&m-k>4096)&&(x=2)),A>=3&&x<=A){i=m+v-3,n=at(m-1-g,A-3),v-=A-1,A-=2;do{++m<=i&&(f=(f<<w^255&l[m+2])&b,a=65535&c[f],d[m&o]=c[f],c[f]=m);}while(0!=--A);if(y=0,x=2,m++,n&&(_t(!1),0===e.avail_out))return 0}else if(0!==y){if(n=at(0,255&l[m-1]),n&&_t(!1),m++,v--,0===e.avail_out)return 0}else y=1,m++,v--;}return 0!==y&&(n=at(0,255&l[m-1]),y=0),_t(4==t),0===e.avail_out?4==t?2:0:4==t?3:1}(h);}if(2!=B&&3!=B||(n=666),0==B||2==B)return 0===e.avail_out&&(a=-1),0;if(1==B){if(1==h)tt(2,3),et(256,R.static_ltree),it(),1+J+10-Q<9&&(tt(2,3),et(256,R.static_ltree),it()),J=7;else if(ot(0,0,!1),3==h)for(U=0;U<u;U++)c[U]=0;if(e.flush_pending(),0===e.avail_out)return a=-1,0}}return 4!=h?0:1};}function J(){const t=this;t.next_in_index=0,t.next_out_index=0,t.avail_in=0,t.total_in=0,t.avail_out=0,t.total_out=0;}function N(t){const e=new J,n=(i=t&&t.chunkSize?t.chunkSize:65536)+5*(Math.floor(i/16383)+1);var i;const a=new Uint8Array(n);let r=t?t.level:-1;void 0===r&&(r=-1),e.deflateInit(r),e.next_out=a,this.append=function(t,i){let r,s,o=0,l=0,_=0;const d=[];if(t.length){e.next_in_index=0,e.next_in=t,e.avail_in=t.length;do{if(e.next_out_index=0,e.avail_out=n,r=e.deflate(0),0!=r)throw new Error("deflating: "+e.msg);e.next_out_index&&(e.next_out_index==n?d.push(new Uint8Array(a)):d.push(a.slice(0,e.next_out_index))),_+=e.next_out_index,i&&e.next_in_index>0&&e.next_in_index!=o&&(i(e.next_in_index),o=e.next_in_index);}while(e.avail_in>0||0===e.avail_out);return d.length>1?(s=new Uint8Array(_),d.forEach((function(t){s.set(t,l),l+=t.length;}))):s=d[0]||new Uint8Array(0),s}},this.flush=function(){let t,i,r=0,s=0;const o=[];do{if(e.next_out_index=0,e.avail_out=n,t=e.deflate(4),1!=t&&0!=t)throw new Error("deflating: "+e.msg);n-e.avail_out>0&&o.push(a.slice(0,e.next_out_index)),s+=e.next_out_index;}while(e.avail_in>0||0===e.avail_out);return e.deflateEnd(),i=new Uint8Array(s),o.forEach((function(t){i.set(t,r),r+=t.length;})),i};}J.prototype={deflateInit:function(t,e){const n=this;return n.dstate=new F,e||(e=15),n.dstate.deflateInit(n,t,e)},deflate:function(t){const e=this;return e.dstate?e.dstate.deflate(e,t):-2},deflateEnd:function(){const t=this;if(!t.dstate)return -2;const e=t.dstate.deflateEnd();return t.dstate=null,e},deflateParams:function(t,e){const n=this;return n.dstate?n.dstate.deflateParams(n,t,e):-2},deflateSetDictionary:function(t,e){const n=this;return n.dstate?n.dstate.deflateSetDictionary(n,t,e):-2},read_buf:function(t,e,n){const i=this;let a=i.avail_in;return a>n&&(a=n),0===a?0:(i.avail_in-=a,t.set(i.next_in.subarray(i.next_in_index,i.next_in_index+a),e),i.next_in_index+=a,i.total_in+=a,a)},flush_pending:function(){const t=this;let e=t.dstate.pending;e>t.avail_out&&(e=t.avail_out),0!==e&&(t.next_out.set(t.dstate.pending_buf.subarray(t.dstate.pending_out,t.dstate.pending_out+e),t.next_out_index),t.next_out_index+=e,t.dstate.pending_out+=e,t.total_out+=e,t.avail_out-=e,t.dstate.pending-=e,0===t.dstate.pending&&(t.dstate.pending_out=0));}};const Q=[0,1,3,7,15,31,63,127,255,511,1023,2047,4095,8191,16383,32767,65535],X=[96,7,256,0,8,80,0,8,16,84,8,115,82,7,31,0,8,112,0,8,48,0,9,192,80,7,10,0,8,96,0,8,32,0,9,160,0,8,0,0,8,128,0,8,64,0,9,224,80,7,6,0,8,88,0,8,24,0,9,144,83,7,59,0,8,120,0,8,56,0,9,208,81,7,17,0,8,104,0,8,40,0,9,176,0,8,8,0,8,136,0,8,72,0,9,240,80,7,4,0,8,84,0,8,20,85,8,227,83,7,43,0,8,116,0,8,52,0,9,200,81,7,13,0,8,100,0,8,36,0,9,168,0,8,4,0,8,132,0,8,68,0,9,232,80,7,8,0,8,92,0,8,28,0,9,152,84,7,83,0,8,124,0,8,60,0,9,216,82,7,23,0,8,108,0,8,44,0,9,184,0,8,12,0,8,140,0,8,76,0,9,248,80,7,3,0,8,82,0,8,18,85,8,163,83,7,35,0,8,114,0,8,50,0,9,196,81,7,11,0,8,98,0,8,34,0,9,164,0,8,2,0,8,130,0,8,66,0,9,228,80,7,7,0,8,90,0,8,26,0,9,148,84,7,67,0,8,122,0,8,58,0,9,212,82,7,19,0,8,106,0,8,42,0,9,180,0,8,10,0,8,138,0,8,74,0,9,244,80,7,5,0,8,86,0,8,22,192,8,0,83,7,51,0,8,118,0,8,54,0,9,204,81,7,15,0,8,102,0,8,38,0,9,172,0,8,6,0,8,134,0,8,70,0,9,236,80,7,9,0,8,94,0,8,30,0,9,156,84,7,99,0,8,126,0,8,62,0,9,220,82,7,27,0,8,110,0,8,46,0,9,188,0,8,14,0,8,142,0,8,78,0,9,252,96,7,256,0,8,81,0,8,17,85,8,131,82,7,31,0,8,113,0,8,49,0,9,194,80,7,10,0,8,97,0,8,33,0,9,162,0,8,1,0,8,129,0,8,65,0,9,226,80,7,6,0,8,89,0,8,25,0,9,146,83,7,59,0,8,121,0,8,57,0,9,210,81,7,17,0,8,105,0,8,41,0,9,178,0,8,9,0,8,137,0,8,73,0,9,242,80,7,4,0,8,85,0,8,21,80,8,258,83,7,43,0,8,117,0,8,53,0,9,202,81,7,13,0,8,101,0,8,37,0,9,170,0,8,5,0,8,133,0,8,69,0,9,234,80,7,8,0,8,93,0,8,29,0,9,154,84,7,83,0,8,125,0,8,61,0,9,218,82,7,23,0,8,109,0,8,45,0,9,186,0,8,13,0,8,141,0,8,77,0,9,250,80,7,3,0,8,83,0,8,19,85,8,195,83,7,35,0,8,115,0,8,51,0,9,198,81,7,11,0,8,99,0,8,35,0,9,166,0,8,3,0,8,131,0,8,67,0,9,230,80,7,7,0,8,91,0,8,27,0,9,150,84,7,67,0,8,123,0,8,59,0,9,214,82,7,19,0,8,107,0,8,43,0,9,182,0,8,11,0,8,139,0,8,75,0,9,246,80,7,5,0,8,87,0,8,23,192,8,0,83,7,51,0,8,119,0,8,55,0,9,206,81,7,15,0,8,103,0,8,39,0,9,174,0,8,7,0,8,135,0,8,71,0,9,238,80,7,9,0,8,95,0,8,31,0,9,158,84,7,99,0,8,127,0,8,63,0,9,222,82,7,27,0,8,111,0,8,47,0,9,190,0,8,15,0,8,143,0,8,79,0,9,254,96,7,256,0,8,80,0,8,16,84,8,115,82,7,31,0,8,112,0,8,48,0,9,193,80,7,10,0,8,96,0,8,32,0,9,161,0,8,0,0,8,128,0,8,64,0,9,225,80,7,6,0,8,88,0,8,24,0,9,145,83,7,59,0,8,120,0,8,56,0,9,209,81,7,17,0,8,104,0,8,40,0,9,177,0,8,8,0,8,136,0,8,72,0,9,241,80,7,4,0,8,84,0,8,20,85,8,227,83,7,43,0,8,116,0,8,52,0,9,201,81,7,13,0,8,100,0,8,36,0,9,169,0,8,4,0,8,132,0,8,68,0,9,233,80,7,8,0,8,92,0,8,28,0,9,153,84,7,83,0,8,124,0,8,60,0,9,217,82,7,23,0,8,108,0,8,44,0,9,185,0,8,12,0,8,140,0,8,76,0,9,249,80,7,3,0,8,82,0,8,18,85,8,163,83,7,35,0,8,114,0,8,50,0,9,197,81,7,11,0,8,98,0,8,34,0,9,165,0,8,2,0,8,130,0,8,66,0,9,229,80,7,7,0,8,90,0,8,26,0,9,149,84,7,67,0,8,122,0,8,58,0,9,213,82,7,19,0,8,106,0,8,42,0,9,181,0,8,10,0,8,138,0,8,74,0,9,245,80,7,5,0,8,86,0,8,22,192,8,0,83,7,51,0,8,118,0,8,54,0,9,205,81,7,15,0,8,102,0,8,38,0,9,173,0,8,6,0,8,134,0,8,70,0,9,237,80,7,9,0,8,94,0,8,30,0,9,157,84,7,99,0,8,126,0,8,62,0,9,221,82,7,27,0,8,110,0,8,46,0,9,189,0,8,14,0,8,142,0,8,78,0,9,253,96,7,256,0,8,81,0,8,17,85,8,131,82,7,31,0,8,113,0,8,49,0,9,195,80,7,10,0,8,97,0,8,33,0,9,163,0,8,1,0,8,129,0,8,65,0,9,227,80,7,6,0,8,89,0,8,25,0,9,147,83,7,59,0,8,121,0,8,57,0,9,211,81,7,17,0,8,105,0,8,41,0,9,179,0,8,9,0,8,137,0,8,73,0,9,243,80,7,4,0,8,85,0,8,21,80,8,258,83,7,43,0,8,117,0,8,53,0,9,203,81,7,13,0,8,101,0,8,37,0,9,171,0,8,5,0,8,133,0,8,69,0,9,235,80,7,8,0,8,93,0,8,29,0,9,155,84,7,83,0,8,125,0,8,61,0,9,219,82,7,23,0,8,109,0,8,45,0,9,187,0,8,13,0,8,141,0,8,77,0,9,251,80,7,3,0,8,83,0,8,19,85,8,195,83,7,35,0,8,115,0,8,51,0,9,199,81,7,11,0,8,99,0,8,35,0,9,167,0,8,3,0,8,131,0,8,67,0,9,231,80,7,7,0,8,91,0,8,27,0,9,151,84,7,67,0,8,123,0,8,59,0,9,215,82,7,19,0,8,107,0,8,43,0,9,183,0,8,11,0,8,139,0,8,75,0,9,247,80,7,5,0,8,87,0,8,23,192,8,0,83,7,51,0,8,119,0,8,55,0,9,207,81,7,15,0,8,103,0,8,39,0,9,175,0,8,7,0,8,135,0,8,71,0,9,239,80,7,9,0,8,95,0,8,31,0,9,159,84,7,99,0,8,127,0,8,63,0,9,223,82,7,27,0,8,111,0,8,47,0,9,191,0,8,15,0,8,143,0,8,79,0,9,255],Y=[80,5,1,87,5,257,83,5,17,91,5,4097,81,5,5,89,5,1025,85,5,65,93,5,16385,80,5,3,88,5,513,84,5,33,92,5,8193,82,5,9,90,5,2049,86,5,129,192,5,24577,80,5,2,87,5,385,83,5,25,91,5,6145,81,5,7,89,5,1537,85,5,97,93,5,24577,80,5,4,88,5,769,84,5,49,92,5,12289,82,5,13,90,5,3073,86,5,193,192,5,24577],Z=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,0,0],$=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,112,112],tt=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577],et=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];function nt(){let t,e,n,i,a,r;function s(t,e,s,o,l,_,d,c,f,u,h){let b,w,p,x,g,y,m,k,v,A,U,S,z,I,E;A=0,g=s;do{n[t[e+A]]++,A++,g--;}while(0!==g);if(n[0]==s)return d[0]=-1,c[0]=0,0;for(k=c[0],y=1;y<=15&&0===n[y];y++);for(m=y,k<y&&(k=y),g=15;0!==g&&0===n[g];g--);for(p=g,k>g&&(k=g),c[0]=k,I=1<<y;y<g;y++,I<<=1)if((I-=n[y])<0)return -3;if((I-=n[g])<0)return -3;for(n[g]+=I,r[1]=y=0,A=1,z=2;0!=--g;)r[z]=y+=n[A],z++,A++;g=0,A=0;do{0!==(y=t[e+A])&&(h[r[y]++]=g),A++;}while(++g<s);for(s=r[p],r[0]=g=0,A=0,x=-1,S=-k,a[0]=0,U=0,E=0;m<=p;m++)for(b=n[m];0!=b--;){for(;m>S+k;){if(x++,S+=k,E=p-S,E=E>k?k:E,(w=1<<(y=m-S))>b+1&&(w-=b+1,z=m,y<E))for(;++y<E&&!((w<<=1)<=n[++z]);)w-=n[z];if(E=1<<y,u[0]+E>1440)return -3;a[x]=U=u[0],u[0]+=E,0!==x?(r[x]=g,i[0]=y,i[1]=k,y=g>>>S-k,i[2]=U-a[x-1]-y,f.set(i,3*(a[x-1]+y))):d[0]=U;}for(i[1]=m-S,A>=s?i[0]=192:h[A]<o?(i[0]=h[A]<256?0:96,i[2]=h[A++]):(i[0]=_[h[A]-o]+16+64,i[2]=l[h[A++]-o]),w=1<<m-S,y=g>>>S;y<E;y+=w)f.set(i,3*(U+y));for(y=1<<m-1;0!=(g&y);y>>>=1)g^=y;for(g^=y,v=(1<<S)-1;(g&v)!=r[x];)x--,S-=k,v=(1<<S)-1;}return 0!==I&&1!=p?-5:0}function o(s){let o;for(t||(t=[],e=[],n=new Int32Array(16),i=[],a=new Int32Array(15),r=new Int32Array(16)),e.length<s&&(e=[]),o=0;o<s;o++)e[o]=0;for(o=0;o<16;o++)n[o]=0;for(o=0;o<3;o++)i[o]=0;a.set(n.subarray(0,15),0),r.set(n.subarray(0,16),0);}this.inflate_trees_bits=function(n,i,a,r,l){let _;return o(19),t[0]=0,_=s(n,0,19,19,null,null,a,i,r,t,e),-3==_?l.msg="oversubscribed dynamic bit lengths tree":-5!=_&&0!==i[0]||(l.msg="incomplete dynamic bit lengths tree",_=-3),_},this.inflate_trees_dynamic=function(n,i,a,r,l,_,d,c,f){let u;return o(288),t[0]=0,u=s(a,0,n,257,Z,$,_,r,c,t,e),0!=u||0===r[0]?(-3==u?f.msg="oversubscribed literal/length tree":-4!=u&&(f.msg="incomplete literal/length tree",u=-3),u):(o(288),u=s(a,n,i,0,tt,et,d,l,c,t,e),0!=u||0===l[0]&&n>257?(-3==u?f.msg="oversubscribed distance tree":-5==u?(f.msg="incomplete distance tree",u=-3):-4!=u&&(f.msg="empty distance tree with lengths",u=-3),u):0)};}function it(){const t=this;let e,n,i,a,r=0,s=0,o=0,l=0,_=0,d=0,c=0,f=0,u=0,h=0;function b(t,e,n,i,a,r,s,o){let l,_,d,c,f,u,h,b,w,p,x,g,y,m,k,v;h=o.next_in_index,b=o.avail_in,f=s.bitb,u=s.bitk,w=s.write,p=w<s.read?s.read-w-1:s.end-w,x=Q[t],g=Q[e];do{for(;u<20;)b--,f|=(255&o.read_byte(h++))<<u,u+=8;if(l=f&x,_=n,d=i,v=3*(d+l),0!==(c=_[v]))for(;;){if(f>>=_[v+1],u-=_[v+1],0!=(16&c)){for(c&=15,y=_[v+2]+(f&Q[c]),f>>=c,u-=c;u<15;)b--,f|=(255&o.read_byte(h++))<<u,u+=8;for(l=f&g,_=a,d=r,v=3*(d+l),c=_[v];;){if(f>>=_[v+1],u-=_[v+1],0!=(16&c)){for(c&=15;u<c;)b--,f|=(255&o.read_byte(h++))<<u,u+=8;if(m=_[v+2]+(f&Q[c]),f>>=c,u-=c,p-=y,w>=m)k=w-m,w-k>0&&2>w-k?(s.window[w++]=s.window[k++],s.window[w++]=s.window[k++],y-=2):(s.window.set(s.window.subarray(k,k+2),w),w+=2,k+=2,y-=2);else {k=w-m;do{k+=s.end;}while(k<0);if(c=s.end-k,y>c){if(y-=c,w-k>0&&c>w-k)do{s.window[w++]=s.window[k++];}while(0!=--c);else s.window.set(s.window.subarray(k,k+c),w),w+=c,k+=c,c=0;k=0;}}if(w-k>0&&y>w-k)do{s.window[w++]=s.window[k++];}while(0!=--y);else s.window.set(s.window.subarray(k,k+y),w),w+=y,k+=y,y=0;break}if(0!=(64&c))return o.msg="invalid distance code",y=o.avail_in-b,y=u>>3<y?u>>3:y,b+=y,h-=y,u-=y<<3,s.bitb=f,s.bitk=u,o.avail_in=b,o.total_in+=h-o.next_in_index,o.next_in_index=h,s.write=w,-3;l+=_[v+2],l+=f&Q[c],v=3*(d+l),c=_[v];}break}if(0!=(64&c))return 0!=(32&c)?(y=o.avail_in-b,y=u>>3<y?u>>3:y,b+=y,h-=y,u-=y<<3,s.bitb=f,s.bitk=u,o.avail_in=b,o.total_in+=h-o.next_in_index,o.next_in_index=h,s.write=w,1):(o.msg="invalid literal/length code",y=o.avail_in-b,y=u>>3<y?u>>3:y,b+=y,h-=y,u-=y<<3,s.bitb=f,s.bitk=u,o.avail_in=b,o.total_in+=h-o.next_in_index,o.next_in_index=h,s.write=w,-3);if(l+=_[v+2],l+=f&Q[c],v=3*(d+l),0===(c=_[v])){f>>=_[v+1],u-=_[v+1],s.window[w++]=_[v+2],p--;break}}else f>>=_[v+1],u-=_[v+1],s.window[w++]=_[v+2],p--;}while(p>=258&&b>=10);return y=o.avail_in-b,y=u>>3<y?u>>3:y,b+=y,h-=y,u-=y<<3,s.bitb=f,s.bitk=u,o.avail_in=b,o.total_in+=h-o.next_in_index,o.next_in_index=h,s.write=w,0}t.init=function(t,r,s,o,l,_){e=0,c=t,f=r,i=s,u=o,a=l,h=_,n=null;},t.proc=function(t,w,p){let x,g,y,m,k,v,A,U=0,S=0,z=0;for(z=w.next_in_index,m=w.avail_in,U=t.bitb,S=t.bitk,k=t.write,v=k<t.read?t.read-k-1:t.end-k;;)switch(e){case 0:if(v>=258&&m>=10&&(t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,p=b(c,f,i,u,a,h,t,w),z=w.next_in_index,m=w.avail_in,U=t.bitb,S=t.bitk,k=t.write,v=k<t.read?t.read-k-1:t.end-k,0!=p)){e=1==p?7:9;break}o=c,n=i,s=u,e=1;case 1:for(x=o;S<x;){if(0===m)return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);p=0,m--,U|=(255&w.read_byte(z++))<<S,S+=8;}if(g=3*(s+(U&Q[x])),U>>>=n[g+1],S-=n[g+1],y=n[g],0===y){l=n[g+2],e=6;break}if(0!=(16&y)){_=15&y,r=n[g+2],e=2;break}if(0==(64&y)){o=y,s=g/3+n[g+2];break}if(0!=(32&y)){e=7;break}return e=9,w.msg="invalid literal/length code",p=-3,t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);case 2:for(x=_;S<x;){if(0===m)return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);p=0,m--,U|=(255&w.read_byte(z++))<<S,S+=8;}r+=U&Q[x],U>>=x,S-=x,o=f,n=a,s=h,e=3;case 3:for(x=o;S<x;){if(0===m)return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);p=0,m--,U|=(255&w.read_byte(z++))<<S,S+=8;}if(g=3*(s+(U&Q[x])),U>>=n[g+1],S-=n[g+1],y=n[g],0!=(16&y)){_=15&y,d=n[g+2],e=4;break}if(0==(64&y)){o=y,s=g/3+n[g+2];break}return e=9,w.msg="invalid distance code",p=-3,t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);case 4:for(x=_;S<x;){if(0===m)return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);p=0,m--,U|=(255&w.read_byte(z++))<<S,S+=8;}d+=U&Q[x],U>>=x,S-=x,e=5;case 5:for(A=k-d;A<0;)A+=t.end;for(;0!==r;){if(0===v&&(k==t.end&&0!==t.read&&(k=0,v=k<t.read?t.read-k-1:t.end-k),0===v&&(t.write=k,p=t.inflate_flush(w,p),k=t.write,v=k<t.read?t.read-k-1:t.end-k,k==t.end&&0!==t.read&&(k=0,v=k<t.read?t.read-k-1:t.end-k),0===v)))return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);t.window[k++]=t.window[A++],v--,A==t.end&&(A=0),r--;}e=0;break;case 6:if(0===v&&(k==t.end&&0!==t.read&&(k=0,v=k<t.read?t.read-k-1:t.end-k),0===v&&(t.write=k,p=t.inflate_flush(w,p),k=t.write,v=k<t.read?t.read-k-1:t.end-k,k==t.end&&0!==t.read&&(k=0,v=k<t.read?t.read-k-1:t.end-k),0===v)))return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);p=0,t.window[k++]=l,v--,e=0;break;case 7:if(S>7&&(S-=8,m++,z--),t.write=k,p=t.inflate_flush(w,p),k=t.write,v=k<t.read?t.read-k-1:t.end-k,t.read!=t.write)return t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);e=8;case 8:return p=1,t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);case 9:return p=-3,t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p);default:return p=-2,t.bitb=U,t.bitk=S,w.avail_in=m,w.total_in+=z-w.next_in_index,w.next_in_index=z,t.write=k,t.inflate_flush(w,p)}},t.free=function(){};}nt.inflate_trees_fixed=function(t,e,n,i){return t[0]=9,e[0]=5,n[0]=X,i[0]=Y,0};const at=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];function rt(t,e){const n=this;let i,a=0,r=0,s=0,o=0;const l=[0],_=[0],d=new it;let c=0,f=new Int32Array(4320);const u=new nt;n.bitk=0,n.bitb=0,n.window=new Uint8Array(e),n.end=e,n.read=0,n.write=0,n.reset=function(t,e){e&&(e[0]=0),6==a&&d.free(t),a=0,n.bitk=0,n.bitb=0,n.read=n.write=0;},n.reset(t,null),n.inflate_flush=function(t,e){let i,a,r;return a=t.next_out_index,r=n.read,i=(r<=n.write?n.write:n.end)-r,i>t.avail_out&&(i=t.avail_out),0!==i&&-5==e&&(e=0),t.avail_out-=i,t.total_out+=i,t.next_out.set(n.window.subarray(r,r+i),a),a+=i,r+=i,r==n.end&&(r=0,n.write==n.end&&(n.write=0),i=n.write-r,i>t.avail_out&&(i=t.avail_out),0!==i&&-5==e&&(e=0),t.avail_out-=i,t.total_out+=i,t.next_out.set(n.window.subarray(r,r+i),a),a+=i,r+=i),t.next_out_index=a,n.read=r,e},n.proc=function(t,e){let h,b,w,p,x,g,y,m;for(p=t.next_in_index,x=t.avail_in,b=n.bitb,w=n.bitk,g=n.write,y=g<n.read?n.read-g-1:n.end-g;;){let k,v,A,U,S,z,I,E;switch(a){case 0:for(;w<3;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}switch(h=7&b,c=1&h,h>>>1){case 0:b>>>=3,w-=3,h=7&w,b>>>=h,w-=h,a=1;break;case 1:k=[],v=[],A=[[]],U=[[]],nt.inflate_trees_fixed(k,v,A,U),d.init(k[0],v[0],A[0],0,U[0],0),b>>>=3,w-=3,a=6;break;case 2:b>>>=3,w-=3,a=3;break;case 3:return b>>>=3,w-=3,a=9,t.msg="invalid block type",e=-3,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e)}break;case 1:for(;w<32;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}if((~b>>>16&65535)!=(65535&b))return a=9,t.msg="invalid stored block lengths",e=-3,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);r=65535&b,b=w=0,a=0!==r?2:0!==c?7:0;break;case 2:if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);if(0===y&&(g==n.end&&0!==n.read&&(g=0,y=g<n.read?n.read-g-1:n.end-g),0===y&&(n.write=g,e=n.inflate_flush(t,e),g=n.write,y=g<n.read?n.read-g-1:n.end-g,g==n.end&&0!==n.read&&(g=0,y=g<n.read?n.read-g-1:n.end-g),0===y)))return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);if(e=0,h=r,h>x&&(h=x),h>y&&(h=y),n.window.set(t.read_buf(p,h),g),p+=h,x-=h,g+=h,y-=h,0!=(r-=h))break;a=0!==c?7:0;break;case 3:for(;w<14;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}if(s=h=16383&b,(31&h)>29||(h>>5&31)>29)return a=9,t.msg="too many length or distance symbols",e=-3,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);if(h=258+(31&h)+(h>>5&31),!i||i.length<h)i=[];else for(m=0;m<h;m++)i[m]=0;b>>>=14,w-=14,o=0,a=4;case 4:for(;o<4+(s>>>10);){for(;w<3;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}i[at[o++]]=7&b,b>>>=3,w-=3;}for(;o<19;)i[at[o++]]=0;if(l[0]=7,h=u.inflate_trees_bits(i,l,_,f,t),0!=h)return -3==(e=h)&&(i=null,a=9),n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);o=0,a=5;case 5:for(;h=s,!(o>=258+(31&h)+(h>>5&31));){let r,d;for(h=l[0];w<h;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}if(h=f[3*(_[0]+(b&Q[h]))+1],d=f[3*(_[0]+(b&Q[h]))+2],d<16)b>>>=h,w-=h,i[o++]=d;else {for(m=18==d?7:d-14,r=18==d?11:3;w<h+m;){if(0===x)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);e=0,x--,b|=(255&t.read_byte(p++))<<w,w+=8;}if(b>>>=h,w-=h,r+=b&Q[m],b>>>=m,w-=m,m=o,h=s,m+r>258+(31&h)+(h>>5&31)||16==d&&m<1)return i=null,a=9,t.msg="invalid bit length repeat",e=-3,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);d=16==d?i[m-1]:0;do{i[m++]=d;}while(0!=--r);o=m;}}if(_[0]=-1,S=[],z=[],I=[],E=[],S[0]=9,z[0]=6,h=s,h=u.inflate_trees_dynamic(257+(31&h),1+(h>>5&31),i,S,z,I,E,f,t),0!=h)return -3==h&&(i=null,a=9),e=h,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);d.init(S[0],z[0],f,I[0],f,E[0]),a=6;case 6:if(n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,1!=(e=d.proc(n,t,e)))return n.inflate_flush(t,e);if(e=0,d.free(t),p=t.next_in_index,x=t.avail_in,b=n.bitb,w=n.bitk,g=n.write,y=g<n.read?n.read-g-1:n.end-g,0===c){a=0;break}a=7;case 7:if(n.write=g,e=n.inflate_flush(t,e),g=n.write,y=g<n.read?n.read-g-1:n.end-g,n.read!=n.write)return n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);a=8;case 8:return e=1,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);case 9:return e=-3,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e);default:return e=-2,n.bitb=b,n.bitk=w,t.avail_in=x,t.total_in+=p-t.next_in_index,t.next_in_index=p,n.write=g,n.inflate_flush(t,e)}}},n.free=function(t){n.reset(t,null),n.window=null,f=null;},n.set_dictionary=function(t,e,i){n.window.set(t.subarray(e,e+i),0),n.read=n.write=i;},n.sync_point=function(){return 1==a?1:0};}const st=[0,0,255,255];function ot(){const t=this;function e(t){return t&&t.istate?(t.total_in=t.total_out=0,t.msg=null,t.istate.mode=7,t.istate.blocks.reset(t,null),0):-2}t.mode=0,t.method=0,t.was=[0],t.need=0,t.marker=0,t.wbits=0,t.inflateEnd=function(e){return t.blocks&&t.blocks.free(e),t.blocks=null,0},t.inflateInit=function(n,i){return n.msg=null,t.blocks=null,i<8||i>15?(t.inflateEnd(n),-2):(t.wbits=i,n.istate.blocks=new rt(n,1<<i),e(n),0)},t.inflate=function(t,e){let n,i;if(!t||!t.istate||!t.next_in)return -2;const a=t.istate;for(e=4==e?-5:0,n=-5;;)switch(a.mode){case 0:if(0===t.avail_in)return n;if(n=e,t.avail_in--,t.total_in++,8!=(15&(a.method=t.read_byte(t.next_in_index++)))){a.mode=13,t.msg="unknown compression method",a.marker=5;break}if(8+(a.method>>4)>a.wbits){a.mode=13,t.msg="invalid window size",a.marker=5;break}a.mode=1;case 1:if(0===t.avail_in)return n;if(n=e,t.avail_in--,t.total_in++,i=255&t.read_byte(t.next_in_index++),((a.method<<8)+i)%31!=0){a.mode=13,t.msg="incorrect header check",a.marker=5;break}if(0==(32&i)){a.mode=7;break}a.mode=2;case 2:if(0===t.avail_in)return n;n=e,t.avail_in--,t.total_in++,a.need=(255&t.read_byte(t.next_in_index++))<<24&4278190080,a.mode=3;case 3:if(0===t.avail_in)return n;n=e,t.avail_in--,t.total_in++,a.need+=(255&t.read_byte(t.next_in_index++))<<16&16711680,a.mode=4;case 4:if(0===t.avail_in)return n;n=e,t.avail_in--,t.total_in++,a.need+=(255&t.read_byte(t.next_in_index++))<<8&65280,a.mode=5;case 5:return 0===t.avail_in?n:(n=e,t.avail_in--,t.total_in++,a.need+=255&t.read_byte(t.next_in_index++),a.mode=6,2);case 6:return a.mode=13,t.msg="need dictionary",a.marker=0,-2;case 7:if(n=a.blocks.proc(t,n),-3==n){a.mode=13,a.marker=0;break}if(0==n&&(n=e),1!=n)return n;n=e,a.blocks.reset(t,a.was),a.mode=12;case 12:return 1;case 13:return -3;default:return -2}},t.inflateSetDictionary=function(t,e,n){let i=0,a=n;if(!t||!t.istate||6!=t.istate.mode)return -2;const r=t.istate;return a>=1<<r.wbits&&(a=(1<<r.wbits)-1,i=n-a),r.blocks.set_dictionary(e,i,a),r.mode=7,0},t.inflateSync=function(t){let n,i,a,r,s;if(!t||!t.istate)return -2;const o=t.istate;if(13!=o.mode&&(o.mode=13,o.marker=0),0===(n=t.avail_in))return -5;for(i=t.next_in_index,a=o.marker;0!==n&&a<4;)t.read_byte(i)==st[a]?a++:a=0!==t.read_byte(i)?0:4-a,i++,n--;return t.total_in+=i-t.next_in_index,t.next_in_index=i,t.avail_in=n,o.marker=a,4!=a?-3:(r=t.total_in,s=t.total_out,e(t),t.total_in=r,t.total_out=s,o.mode=7,0)},t.inflateSyncPoint=function(t){return t&&t.istate&&t.istate.blocks?t.istate.blocks.sync_point():-2};}function lt(){}function _t(t){const e=new lt,n=t&&t.chunkSize?Math.floor(2*t.chunkSize):131072,i=new Uint8Array(n);let a=!1;e.inflateInit(),e.next_out=i,this.append=function(t,r){const s=[];let o,l,_=0,d=0,c=0;if(0!==t.length){e.next_in_index=0,e.next_in=t,e.avail_in=t.length;do{if(e.next_out_index=0,e.avail_out=n,0!==e.avail_in||a||(e.next_in_index=0,a=!0),o=e.inflate(0),a&&-5===o){if(0!==e.avail_in)throw new Error("inflating: bad input")}else if(0!==o&&1!==o)throw new Error("inflating: "+e.msg);if((a||1===o)&&e.avail_in===t.length)throw new Error("inflating: bad input");e.next_out_index&&(e.next_out_index===n?s.push(new Uint8Array(i)):s.push(i.slice(0,e.next_out_index))),c+=e.next_out_index,r&&e.next_in_index>0&&e.next_in_index!=_&&(r(e.next_in_index),_=e.next_in_index);}while(e.avail_in>0||0===e.avail_out);return s.length>1?(l=new Uint8Array(c),s.forEach((function(t){l.set(t,d),d+=t.length;}))):l=s[0]||new Uint8Array(0),l}},this.flush=function(){e.inflateEnd();};}lt.prototype={inflateInit:function(t){const e=this;return e.istate=new ot,t||(t=15),e.istate.inflateInit(e,t)},inflate:function(t){const e=this;return e.istate?e.istate.inflate(e,t):-2},inflateEnd:function(){const t=this;if(!t.istate)return -2;const e=t.istate.inflateEnd(t);return t.istate=null,e},inflateSync:function(){const t=this;return t.istate?t.istate.inflateSync(t):-2},inflateSetDictionary:function(t,e){const n=this;return n.istate?n.istate.inflateSetDictionary(n,t,e):-2},read_byte:function(t){return this.next_in[t]},read_buf:function(t,e){return this.next_in.subarray(t,t+e)}},self.initCodec=()=>{self.Deflate=N,self.Inflate=_t;};}).toString(),n=URL.createObjectURL(new Blob(["("+e+")()"],{type:"text/javascript"}));configure({workerScripts:{inflate:[n],deflate:[n]}});}};
 
 	/*
 	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
@@ -5210,7 +5210,6 @@
 	const KEY_LENGTH = [16, 24, 32];
 	const SIGNATURE_LENGTH = 10;
 	const COUNTER_DEFAULT_VALUE = [0, 0, 0, 0];
-	const subtle = crypto.subtle;
 	const codecBytes = codec.bytes;
 	const Aes = cipher.aes;
 	const CtrGladman = mode.ctrGladman;
@@ -5331,7 +5330,7 @@
 	}
 
 	async function createDecryptionKeys(decrypt, preambleArray, password) {
-		await createKeys(decrypt, password, subarray(preambleArray, 0, SALT_LENGTH[decrypt.strength]));
+		await createKeys$1(decrypt, password, subarray(preambleArray, 0, SALT_LENGTH[decrypt.strength]));
 		const passwordVerification = subarray(preambleArray, SALT_LENGTH[decrypt.strength]);
 		const passwordVerificationKey = decrypt.keys.passwordVerification;
 		if (passwordVerificationKey[0] != passwordVerification[0] || passwordVerificationKey[1] != passwordVerification[1]) {
@@ -5341,14 +5340,14 @@
 
 	async function createEncryptionKeys(encrypt, password) {
 		const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH[encrypt.strength]));
-		await createKeys(encrypt, password, salt);
+		await createKeys$1(encrypt, password, salt);
 		return concat(salt, encrypt.keys.passwordVerification);
 	}
 
-	async function createKeys(target, password, salt) {
+	async function createKeys$1(target, password, salt) {
 		const encodedPassword = (new TextEncoder()).encode(password);
-		const basekey = await subtle.importKey(RAW_FORMAT, encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
-		const derivedBits = await subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), basekey, 8 * ((KEY_LENGTH[target.strength] * 2) + 2));
+		const basekey = await crypto.subtle.importKey(RAW_FORMAT, encodedPassword, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
+		const derivedBits = await crypto.subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), basekey, 8 * ((KEY_LENGTH[target.strength] * 2) + 2));
 		const compositeKey = new Uint8Array(derivedBits);
 		target.keys = {
 			key: codecBytes.toBits(subarray(compositeKey, 0, KEY_LENGTH[target.strength])),
@@ -5418,7 +5417,7 @@
 				password,
 				passwordVerification
 			});
-			createKeys$1(zipCrypto, password);
+			createKeys(zipCrypto, password);
 		}
 
 		async append(input) {
@@ -5450,7 +5449,7 @@
 				password,
 				passwordVerification
 			});
-			createKeys$1(zipCrypto, password);
+			createKeys(zipCrypto, password);
 		}
 
 		async append(input) {
@@ -5497,7 +5496,7 @@
 		return output;
 	}
 
-	function createKeys$1(target, password) {
+	function createKeys(target, password) {
 		target.keys = [0x12345678, 0x23456789, 0x34567890];
 		target.crcKey0 = new Crc32(target.keys[0]);
 		target.crcKey2 = new Crc32(target.keys[2]);
@@ -5560,7 +5559,7 @@
 	const CODEC_INFLATE = "inflate";
 	const ERR_INVALID_SIGNATURE = "Invalid signature";
 
-	class Inflate$1 {
+	class Inflate {
 
 		constructor(codecConstructor, {
 			signature,
@@ -5627,7 +5626,7 @@
 		}
 	}
 
-	class Deflate$1 {
+	class Deflate {
 
 		constructor(codecConstructor, {
 			encrypted,
@@ -5690,11 +5689,11 @@
 		}
 	}
 
-	function createCodec(codecConstructor, options, config) {
+	function createCodec$1(codecConstructor, options, config) {
 		if (options.codecType.startsWith(CODEC_DEFLATE)) {
-			return new Deflate$1(codecConstructor, options, config);
+			return new Deflate(codecConstructor, options, config);
 		} else if (options.codecType.startsWith(CODEC_INFLATE)) {
-			return new Inflate$1(codecConstructor, options, config);
+			return new Inflate(codecConstructor, options, config);
 		}
 	}
 
@@ -5752,7 +5751,7 @@
 	};
 
 	function createWorkerInterface(workerData, config) {
-		const interfaceCodec = createCodec(workerData.codecConstructor, workerData.options, config);
+		const interfaceCodec = createCodec$1(workerData.codecConstructor, workerData.options, config);
 		return {
 			async append(data) {
 				try {
@@ -5875,7 +5874,7 @@
 	let pool = [];
 	let pendingRequests = [];
 
-	function createCodec$1(codecConstructor, options, config) {
+	function createCodec(codecConstructor, options, config) {
 		const streamCopy = !options.compressed && !options.signed && !options.encrypted;
 		const webWorker = !streamCopy && (options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers));
 		const scripts = webWorker && config.workerScripts ? config.workerScripts[options.codecType] : [];
@@ -6631,27 +6630,27 @@
 			if (!endOfDirectoryInfo) {
 				throw new Error(ERR_EOCDR_NOT_FOUND);
 			}
-			const endOfDirectoryView = getDataView(endOfDirectoryInfo);
+			const endOfDirectoryView = getDataView$1(endOfDirectoryInfo);
 			let directoryDataLength = getUint32(endOfDirectoryView, 12);
 			let directoryDataOffset = getUint32(endOfDirectoryView, 16);
 			let filesLength = getUint16(endOfDirectoryView, 8);
 			let prependedDataLength = 0;
 			if (directoryDataOffset == MAX_32_BITS || filesLength == MAX_16_BITS) {
 				const endOfDirectoryLocatorArray = await readUint8Array(reader, endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH);
-				const endOfDirectoryLocatorView = getDataView(endOfDirectoryLocatorArray);
+				const endOfDirectoryLocatorView = getDataView$1(endOfDirectoryLocatorArray);
 				if (getUint32(endOfDirectoryLocatorView, 0) != ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_ZIP64_NOT_FOUND);
 				}
 				directoryDataOffset = getBigUint64(endOfDirectoryLocatorView, 8);
 				let endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
-				let endOfDirectoryView = getDataView(endOfDirectoryArray);
+				let endOfDirectoryView = getDataView$1(endOfDirectoryArray);
 				const expectedDirectoryDataOffset = endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH - ZIP64_END_OF_CENTRAL_DIR_LENGTH;
 				if (getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE && directoryDataOffset != expectedDirectoryDataOffset) {
 					const originalDirectoryDataOffset = directoryDataOffset;
 					directoryDataOffset = expectedDirectoryDataOffset;
 					prependedDataLength = directoryDataOffset - originalDirectoryDataOffset;
 					endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
-					endOfDirectoryView = getDataView(endOfDirectoryArray);
+					endOfDirectoryView = getDataView$1(endOfDirectoryArray);
 				}
 				if (getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
@@ -6665,14 +6664,14 @@
 			}
 			let offset = 0;
 			let directoryArray = await readUint8Array(reader, directoryDataOffset, reader.size - directoryDataOffset);
-			let directoryView = getDataView(directoryArray);
+			let directoryView = getDataView$1(directoryArray);
 			const expectedDirectoryDataOffset = endOfDirectoryInfo.offset - directoryDataLength;
 			if (getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE && directoryDataOffset != expectedDirectoryDataOffset) {
 				const originalDirectoryDataOffset = directoryDataOffset;
 				directoryDataOffset = expectedDirectoryDataOffset;
 				prependedDataLength = directoryDataOffset - originalDirectoryDataOffset;
 				directoryArray = await readUint8Array(reader, directoryDataOffset, reader.size - directoryDataOffset);
-				directoryView = getDataView(directoryArray);
+				directoryView = getDataView$1(directoryArray);
 			}
 			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
 				throw new Error(ERR_BAD_FORMAT);
@@ -6707,8 +6706,8 @@
 				});
 				const endOffset = commentOffset + fileEntry.commentLength;
 				fileEntry.rawComment = directoryArray.subarray(commentOffset, endOffset);
-				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.filenameUTF8 ? CHARSET_UTF8 : getOptionValue(zipReader, options, "filenameEncoding"));
-				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.commentUTF8 ? CHARSET_UTF8 : getOptionValue(zipReader, options, "commentEncoding"));
+				fileEntry.filename = decodeString(fileEntry.rawFilename, fileEntry.filenameUTF8 ? CHARSET_UTF8 : getOptionValue$1(zipReader, options, "filenameEncoding"));
+				fileEntry.comment = decodeString(fileEntry.rawComment, fileEntry.commentUTF8 ? CHARSET_UTF8 : getOptionValue$1(zipReader, options, "commentEncoding"));
 				if (!fileEntry.directory && fileEntry.filename.endsWith(DIRECTORY_SIGNATURE)) {
 					fileEntry.directory = true;
 				}
@@ -6760,8 +6759,8 @@
 				await reader.init();
 			}
 			let dataArray = await readUint8Array(reader, offset, 30);
-			const dataView = getDataView(dataArray);
-			let password = getOptionValue(zipEntry, options, "password");
+			const dataView = getDataView$1(dataArray);
+			let password = getOptionValue$1(zipEntry, options, "password");
 			password = password && password.length && password;
 			if (extraFieldAES) {
 				if (extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
@@ -6789,22 +6788,22 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const codec = await createCodec$1(config.Inflate, {
+			const codec = await createCodec(config.Inflate, {
 				codecType: CODEC_INFLATE,
 				password,
 				zipCrypto,
 				encryptionStrength: extraFieldAES && extraFieldAES.strength,
-				signed: getOptionValue(zipEntry, options, "checkSignature"),
+				signed: getOptionValue$1(zipEntry, options, "checkSignature"),
 				passwordVerification: zipCrypto && (bitFlag.dataDescriptor ? ((rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
 				signature,
 				compressed: compressionMethod != 0,
 				encrypted,
-				useWebWorkers: getOptionValue(zipEntry, options, "useWebWorkers")
+				useWebWorkers: getOptionValue$1(zipEntry, options, "useWebWorkers")
 			}, config);
 			if (!writer.initialized) {
 				await writer.init();
 			}
-			const signal = getOptionValue(zipEntry, options, "signal");
+			const signal = getOptionValue$1(zipEntry, options, "signal");
 			const dataOffset = offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
 			await processData(codec, reader, writer, dataOffset, compressedSize, config, { onprogress: options.onprogress, signal });
 			return writer.getData();
@@ -6833,7 +6832,7 @@
 	function readCommonFooter(fileEntry, directory, dataView, offset) {
 		const rawExtraField = directory.rawExtraField;
 		const extraField = directory.extraField = new Map();
-		const rawExtraFieldView = getDataView(new Uint8Array(rawExtraField));
+		const rawExtraFieldView = getDataView$1(new Uint8Array(rawExtraField));
 		let offsetExtraField = 0;
 		try {
 			while (offsetExtraField < rawExtraField.length) {
@@ -6888,7 +6887,7 @@
 
 	function readExtraFieldZip64(extraFieldZip64, directory) {
 		directory.zip64 = true;
-		const extraFieldView = getDataView(extraFieldZip64.data);
+		const extraFieldView = getDataView$1(extraFieldZip64.data);
 		extraFieldZip64.values = [];
 		for (let indexValue = 0; indexValue < Math.floor(extraFieldZip64.data.length / 8); indexValue++) {
 			extraFieldZip64.values.push(getBigUint64(extraFieldView, 0 + indexValue * 8));
@@ -6909,12 +6908,12 @@
 	}
 
 	function readExtraFieldUnicode(extraFieldUnicode, propertyName, rawPropertyName, directory, fileEntry) {
-		const extraFieldView = getDataView(extraFieldUnicode.data);
+		const extraFieldView = getDataView$1(extraFieldUnicode.data);
 		extraFieldUnicode.version = getUint8(extraFieldView, 0);
 		extraFieldUnicode.signature = getUint32(extraFieldView, 1);
 		const crc32 = new Crc32();
 		crc32.append(fileEntry[rawPropertyName]);
-		const dataViewSignature = getDataView(new Uint8Array(4));
+		const dataViewSignature = getDataView$1(new Uint8Array(4));
 		dataViewSignature.setUint32(0, crc32.get(), true);
 		extraFieldUnicode[propertyName] = (new TextDecoder()).decode(extraFieldUnicode.data.subarray(5));
 		extraFieldUnicode.valid = !fileEntry.bitFlag.languageEncodingFlag && extraFieldUnicode.signature == getUint32(dataViewSignature, 0);
@@ -6925,7 +6924,7 @@
 	}
 
 	function readExtraFieldAES(extraFieldAES, directory, compressionMethod) {
-		const extraFieldView = getDataView(extraFieldAES.data);
+		const extraFieldView = getDataView$1(extraFieldAES.data);
 		extraFieldAES.vendorVersion = getUint8(extraFieldView, 0);
 		extraFieldAES.vendorId = getUint8(extraFieldView, 2);
 		const strength = getUint8(extraFieldView, 4);
@@ -6935,7 +6934,7 @@
 	}
 
 	function readExtraFieldNTFS(extraFieldNTFS, directory) {
-		const extraFieldView = getDataView(extraFieldNTFS.data);
+		const extraFieldView = getDataView$1(extraFieldNTFS.data);
 		let offsetExtraField = 4;
 		let tag1Data;
 		try {
@@ -6952,7 +6951,7 @@
 		}
 		try {
 			if (tag1Data && tag1Data.length == 24) {
-				const tag1View = getDataView(tag1Data);
+				const tag1View = getDataView$1(tag1Data);
 				const rawLastModDate = tag1View.getBigUint64(0, true);
 				const rawLastAccessDate = tag1View.getBigUint64(8, true);
 				const rawCreationDate = tag1View.getBigUint64(16, true);
@@ -6974,7 +6973,7 @@
 	}
 
 	function readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory) {
-		const extraFieldView = getDataView(extraFieldExtendedTimestamp.data);
+		const extraFieldView = getDataView$1(extraFieldExtendedTimestamp.data);
 		const flags = getUint8(extraFieldView, 0);
 		const timeProperties = [];
 		const timeRawProperties = [];
@@ -7004,8 +7003,8 @@
 
 	async function seekSignature(reader, signature, startOffset, minimumBytes, maximumLength) {
 		const signatureArray = new Uint8Array(4);
-		const signatureView = getDataView(signatureArray);
-		setUint32(signatureView, 0, signature);
+		const signatureView = getDataView$1(signatureArray);
+		setUint32$1(signatureView, 0, signature);
 		const maximumBytes = minimumBytes + maximumLength;
 		return (await seek(minimumBytes)) || await seek(Math.min(maximumBytes, startOffset));
 
@@ -7024,7 +7023,7 @@
 		}
 	}
 
-	function getOptionValue(zipReader, options, name) {
+	function getOptionValue$1(zipReader, options, name) {
 		return options[name] === undefined ? zipReader.options[name] : options[name];
 	}
 
@@ -7046,7 +7045,7 @@
 	}
 
 	function getDateNTFS(timeRaw) {
-		return new Date((Number((timeRaw / 10000n) - 11644473600000n)));
+		return new Date((Number((timeRaw / BigInt(10000)) - BigInt(11644473600000))));
 	}
 
 	function getUint8(view, offset) {
@@ -7065,11 +7064,11 @@
 		return Number(view.getBigUint64(offset, true));
 	}
 
-	function setUint32(view, offset, value) {
+	function setUint32$1(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
-	function getDataView(array) {
+	function getDataView$1(array) {
 		return new DataView(array.buffer);
 	}
 
@@ -7187,12 +7186,12 @@
 		if (versionMadeBy > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_VERSION);
 		}
-		const lastModDate = getOptionValue$1(zipWriter, options, "lastModDate") || new Date();
-		const lastAccessDate = getOptionValue$1(zipWriter, options, "lastAccessDate");
-		const creationDate = getOptionValue$1(zipWriter, options, "creationDate");
-		const password = getOptionValue$1(zipWriter, options, "password");
-		const encryptionStrength = getOptionValue$1(zipWriter, options, "encryptionStrength") || 3;
-		const zipCrypto = getOptionValue$1(zipWriter, options, "zipCrypto");
+		const lastModDate = getOptionValue(zipWriter, options, "lastModDate") || new Date();
+		const lastAccessDate = getOptionValue(zipWriter, options, "lastAccessDate");
+		const creationDate = getOptionValue(zipWriter, options, "creationDate");
+		const password = getOptionValue(zipWriter, options, "password");
+		const encryptionStrength = getOptionValue(zipWriter, options, "encryptionStrength") || 3;
+		const zipCrypto = getOptionValue(zipWriter, options, "zipCrypto");
 		if (password !== undefined && encryptionStrength !== undefined && (encryptionStrength < 1 || encryptionStrength > 3)) {
 			throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
 		}
@@ -7216,28 +7215,28 @@
 				offset += 4 + data.length;
 			});
 		}
-		let extendedTimestamp = getOptionValue$1(zipWriter, options, "extendedTimestamp");
+		let extendedTimestamp = getOptionValue(zipWriter, options, "extendedTimestamp");
 		if (extendedTimestamp === undefined) {
 			extendedTimestamp = true;
 		}
 		let maximumCompressedSize = 0;
-		let keepOrder = getOptionValue$1(zipWriter, options, "keepOrder");
+		let keepOrder = getOptionValue(zipWriter, options, "keepOrder");
 		if (keepOrder === undefined) {
 			keepOrder = true;
 		}
 		let uncompressedSize = 0;
-		let msDosCompatible = getOptionValue$1(zipWriter, options, "msDosCompatible");
+		let msDosCompatible = getOptionValue(zipWriter, options, "msDosCompatible");
 		if (msDosCompatible === undefined) {
 			msDosCompatible = true;
 		}
-		const internalFileAttribute = getOptionValue$1(zipWriter, options, "internalFileAttribute") || 0;
-		const externalFileAttribute = getOptionValue$1(zipWriter, options, "externalFileAttribute") || 0;
+		const internalFileAttribute = getOptionValue(zipWriter, options, "internalFileAttribute") || 0;
+		const externalFileAttribute = getOptionValue(zipWriter, options, "externalFileAttribute") || 0;
 		if (reader) {
 			if (!reader.initialized) {
 				await reader.init();
 			}
 			uncompressedSize = reader.size;
-			maximumCompressedSize = getMaximumCompressedSize$1(uncompressedSize);
+			maximumCompressedSize = getMaximumCompressedSize(uncompressedSize);
 		}
 		let zip64 = options.zip64 || zipWriter.options.zip64 || false;
 		if (zipWriter.offset + zipWriter.pendingCompressedSize >= MAX_32_BITS ||
@@ -7251,11 +7250,11 @@
 		}
 		zipWriter.pendingCompressedSize += maximumCompressedSize;
 		await Promise.resolve();
-		const level = getOptionValue$1(zipWriter, options, "level");
-		const useWebWorkers = getOptionValue$1(zipWriter, options, "useWebWorkers");
-		const bufferedWrite = getOptionValue$1(zipWriter, options, "bufferedWrite");
-		let dataDescriptor = getOptionValue$1(zipWriter, options, "dataDescriptor");
-		const signal = getOptionValue$1(zipWriter, options, "signal");
+		const level = getOptionValue(zipWriter, options, "level");
+		const useWebWorkers = getOptionValue(zipWriter, options, "useWebWorkers");
+		const bufferedWrite = getOptionValue(zipWriter, options, "bufferedWrite");
+		let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor");
+		const signal = getOptionValue(zipWriter, options, "signal");
 		if (dataDescriptor === undefined) {
 			dataDescriptor = true;
 		}
@@ -7339,14 +7338,14 @@
 					const arrayBuffer = await sliceAsArrayBuffer(blob, 0, headerLength);
 					const arrayBufferView = new DataView(arrayBuffer);
 					if (!fileEntry.encrypted || options.zipCrypto) {
-						setUint32$1(arrayBufferView, 14, fileEntry.signature);
+						setUint32(arrayBufferView, 14, fileEntry.signature);
 					}
 					if (fileEntry.zip64) {
-						setUint32$1(arrayBufferView, 18, MAX_32_BITS);
-						setUint32$1(arrayBufferView, 22, MAX_32_BITS);
+						setUint32(arrayBufferView, 18, MAX_32_BITS);
+						setUint32(arrayBufferView, 22, MAX_32_BITS);
 					} else {
-						setUint32$1(arrayBufferView, 18, fileEntry.compressedSize);
-						setUint32$1(arrayBufferView, 22, fileEntry.uncompressedSize);
+						setUint32(arrayBufferView, 18, fileEntry.compressedSize);
+						setUint32(arrayBufferView, 22, fileEntry.uncompressedSize);
 					}
 					await writer.writeUint8Array(new Uint8Array(arrayBuffer));
 					indexWrittenData = headerLength;
@@ -7356,7 +7355,7 @@
 			}
 			fileEntry.offset = zipWriter.offset;
 			if (fileEntry.zip64) {
-				const rawExtraFieldZip64View = getDataView$1(fileEntry.rawExtraFieldZip64);
+				const rawExtraFieldZip64View = getDataView(fileEntry.rawExtraFieldZip64);
 				setBigUint64(rawExtraFieldZip64View, 20, BigInt(fileEntry.offset));
 			} else if (fileEntry.offset >= MAX_32_BITS) {
 				throw new Error(ERR_UNSUPPORTED_FORMAT);
@@ -7409,7 +7408,7 @@
 		let rawExtraFieldAES;
 		if (encrypted && !zipCrypto) {
 			rawExtraFieldAES = new Uint8Array(EXTRAFIELD_DATA_AES.length + 2);
-			const extraFieldAESView = getDataView$1(rawExtraFieldAES);
+			const extraFieldAESView = getDataView(rawExtraFieldAES);
 			setUint16(extraFieldAESView, 0, EXTRAFIELD_TYPE_AES);
 			arraySet(rawExtraFieldAES, EXTRAFIELD_DATA_AES, 2);
 			setUint8(extraFieldAESView, 8, encryptionStrength);
@@ -7420,21 +7419,21 @@
 		let rawExtraFieldExtendedTimestamp;
 		if (extendedTimestamp) {
 			rawExtraFieldExtendedTimestamp = new Uint8Array(9 + (lastAccessDate ? 4 : 0) + (creationDate ? 4 : 0));
-			const extraFieldExtendedTimestampView = getDataView$1(rawExtraFieldExtendedTimestamp);
+			const extraFieldExtendedTimestampView = getDataView(rawExtraFieldExtendedTimestamp);
 			setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 			setUint16(extraFieldExtendedTimestampView, 2, rawExtraFieldExtendedTimestamp.length - 4);
 			const extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0);
 			setUint8(extraFieldExtendedTimestampView, 4, extraFieldExtendedTimestampFlag);
-			setUint32$1(extraFieldExtendedTimestampView, 5, Math.floor(options.lastModDate.getTime() / 1000));
+			setUint32(extraFieldExtendedTimestampView, 5, Math.floor(options.lastModDate.getTime() / 1000));
 			if (lastAccessDate) {
-				setUint32$1(extraFieldExtendedTimestampView, 9, Math.floor(lastAccessDate.getTime() / 1000));
+				setUint32(extraFieldExtendedTimestampView, 9, Math.floor(lastAccessDate.getTime() / 1000));
 			}
 			if (creationDate) {
-				setUint32$1(extraFieldExtendedTimestampView, 13, Math.floor(creationDate.getTime() / 1000));
+				setUint32(extraFieldExtendedTimestampView, 13, Math.floor(creationDate.getTime() / 1000));
 			}
 			try {
 				rawExtraFieldNTFS = new Uint8Array(36);
-				const extraFieldNTFSView = getDataView$1(rawExtraFieldNTFS);
+				const extraFieldNTFSView = getDataView(rawExtraFieldNTFS);
 				const lastModTimeNTFS = getTimeNTFS(options.lastModDate);
 				setUint16(extraFieldNTFSView, 0, EXTRAFIELD_TYPE_NTFS);
 				setUint16(extraFieldNTFSView, 2, 32);
@@ -7492,12 +7491,12 @@
 		}
 		fileEntry.compressionMethod = compressionMethod;
 		const headerArray = fileEntry.headerArray = new Uint8Array(26);
-		const headerView = getDataView$1(headerArray);
+		const headerView = getDataView(headerArray);
 		setUint16(headerView, 0, fileEntry.version);
 		setUint16(headerView, 2, bitFlag);
 		setUint16(headerView, 4, compressionMethod);
 		const dateArray = new Uint32Array(1);
-		const dateView = getDataView$1(dateArray);
+		const dateView = getDataView(dateArray);
 		let lastModDate;
 		if (options.lastModDate < MIN_DATE) {
 			lastModDate = MIN_DATE;
@@ -7509,13 +7508,13 @@
 		setUint16(dateView, 0, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
 		setUint16(dateView, 2, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
 		const rawLastModDate = dateArray[0];
-		setUint32$1(headerView, 6, rawLastModDate);
+		setUint32(headerView, 6, rawLastModDate);
 		setUint16(headerView, 22, rawFilename.length);
 		const extraFieldLength = rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length + fileEntry.rawExtraField.length;
 		setUint16(headerView, 24, extraFieldLength);
 		const localHeaderArray = new Uint8Array(30 + rawFilename.length + extraFieldLength);
-		const localHeaderView = getDataView$1(localHeaderArray);
-		setUint32$1(localHeaderView, 0, LOCAL_FILE_HEADER_SIGNATURE);
+		const localHeaderView = getDataView(localHeaderArray);
+		setUint32(localHeaderView, 0, LOCAL_FILE_HEADER_SIGNATURE);
 		arraySet(localHeaderArray, headerArray, 4);
 		arraySet(localHeaderArray, rawFilename, 30);
 		arraySet(localHeaderArray, rawExtraFieldAES, 30 + rawFilename.length);
@@ -7526,7 +7525,7 @@
 		let compressedSize = 0;
 		if (reader) {
 			uncompressedSize = fileEntry.uncompressedSize = reader.size;
-			const codec = await createCodec$1(config.Deflate, {
+			const codec = await createCodec(config.Deflate, {
 				codecType: CODEC_DEFLATE,
 				level,
 				password,
@@ -7550,36 +7549,36 @@
 		let dataDescriptorView;
 		if (dataDescriptor) {
 			dataDescriptorArray = new Uint8Array(zip64 ? 24 : 16);
-			dataDescriptorView = getDataView$1(dataDescriptorArray);
-			setUint32$1(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
+			dataDescriptorView = getDataView(dataDescriptorArray);
+			setUint32(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
 		}
 		if (reader) {
 			const signature = result.signature;
 			if ((!encrypted || zipCrypto) && signature !== undefined) {
-				setUint32$1(headerView, 10, signature);
+				setUint32(headerView, 10, signature);
 				fileEntry.signature = signature;
 				if (dataDescriptor) {
-					setUint32$1(dataDescriptorView, 4, signature);
+					setUint32(dataDescriptorView, 4, signature);
 				}
 			}
 			if (zip64) {
-				const rawExtraFieldZip64View = getDataView$1(fileEntry.rawExtraFieldZip64);
+				const rawExtraFieldZip64View = getDataView(fileEntry.rawExtraFieldZip64);
 				setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
 				setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
-				setUint32$1(headerView, 14, MAX_32_BITS);
+				setUint32(headerView, 14, MAX_32_BITS);
 				setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
-				setUint32$1(headerView, 18, MAX_32_BITS);
+				setUint32(headerView, 18, MAX_32_BITS);
 				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
 				if (dataDescriptor) {
 					setBigUint64(dataDescriptorView, 8, BigInt(compressedSize));
 					setBigUint64(dataDescriptorView, 16, BigInt(uncompressedSize));
 				}
 			} else {
-				setUint32$1(headerView, 14, compressedSize);
-				setUint32$1(headerView, 18, uncompressedSize);
+				setUint32(headerView, 14, compressedSize);
+				setUint32(headerView, 18, uncompressedSize);
 				if (dataDescriptor) {
-					setUint32$1(dataDescriptorView, 8, compressedSize);
-					setUint32$1(dataDescriptorView, 12, uncompressedSize);
+					setUint32(dataDescriptorView, 8, compressedSize);
+					setUint32(dataDescriptorView, 12, uncompressedSize);
 				}
 			}
 		}
@@ -7617,7 +7616,7 @@
 			}
 		}
 		const directoryArray = new Uint8Array(directoryDataLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH));
-		const directoryView = getDataView$1(directoryArray);
+		const directoryView = getDataView(directoryArray);
 		if (comment && comment.length) {
 			if (comment.length <= MAX_16_BITS) {
 				setUint16(directoryView, offset + 20, comment.length);
@@ -7645,30 +7644,30 @@
 			if (fileEntry.extendedTimestamp) {
 				rawExtraFieldNTFS = fileEntry.rawExtraFieldNTFS;
 				rawExtraFieldExtendedTimestamp = new Uint8Array(9);
-				const extraFieldExtendedTimestampView = getDataView$1(rawExtraFieldExtendedTimestamp);
+				const extraFieldExtendedTimestampView = getDataView(rawExtraFieldExtendedTimestamp);
 				setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 				setUint16(extraFieldExtendedTimestampView, 2, rawExtraFieldExtendedTimestamp.length - 4);
 				setUint8(extraFieldExtendedTimestampView, 4, 0x1);
-				setUint32$1(extraFieldExtendedTimestampView, 5, Math.floor(fileEntry.lastModDate.getTime() / 1000));
+				setUint32(extraFieldExtendedTimestampView, 5, Math.floor(fileEntry.lastModDate.getTime() / 1000));
 			} else {
 				rawExtraFieldNTFS = rawExtraFieldExtendedTimestamp = new Uint8Array(0);
 			}
 			const extraFieldLength = rawExtraFieldZip64.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length + rawExtraField.length;
-			setUint32$1(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
+			setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 			setUint16(directoryView, offset + 4, versionMadeBy);
 			arraySet(directoryArray, headerArray, offset + 6);
 			setUint16(directoryView, offset + 30, extraFieldLength);
 			setUint16(directoryView, offset + 32, rawComment.length);
-			setUint32$1(directoryView, offset + 34, internalFileAttribute);
+			setUint32(directoryView, offset + 34, internalFileAttribute);
 			if (externalFileAttribute) {
-				setUint32$1(directoryView, offset + 38, externalFileAttribute);
+				setUint32(directoryView, offset + 38, externalFileAttribute);
 			} else if (directory && msDosCompatible) {
 				setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 			}
 			if (zip64) {
-				setUint32$1(directoryView, offset + 42, MAX_32_BITS);
+				setUint32(directoryView, offset + 42, MAX_32_BITS);
 			} else {
-				setUint32$1(directoryView, offset + 42, fileEntry.offset);
+				setUint32(directoryView, offset + 42, fileEntry.offset);
 			}
 			arraySet(directoryArray, rawFilename, offset + 46);
 			arraySet(directoryArray, rawExtraFieldZip64, offset + 46 + rawFilename.length);
@@ -7687,7 +7686,7 @@
 			}
 		}
 		if (zip64) {
-			setUint32$1(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
+			setUint32(directoryView, offset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
 			setBigUint64(directoryView, offset + 4, BigInt(44));
 			setUint16(directoryView, offset + 12, 45);
 			setUint16(directoryView, offset + 14, 45);
@@ -7695,19 +7694,19 @@
 			setBigUint64(directoryView, offset + 32, BigInt(filesLength));
 			setBigUint64(directoryView, offset + 40, BigInt(directoryDataLength));
 			setBigUint64(directoryView, offset + 48, BigInt(directoryOffset));
-			setUint32$1(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
+			setUint32(directoryView, offset + 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
 			setBigUint64(directoryView, offset + 64, BigInt(directoryOffset) + BigInt(directoryDataLength));
-			setUint32$1(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
+			setUint32(directoryView, offset + 72, ZIP64_TOTAL_NUMBER_OF_DISKS);
 			filesLength = MAX_16_BITS;
 			directoryOffset = MAX_32_BITS;
 			directoryDataLength = MAX_32_BITS;
 			offset += 76;
 		}
-		setUint32$1(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
+		setUint32(directoryView, offset, END_OF_CENTRAL_DIR_SIGNATURE);
 		setUint16(directoryView, offset + 8, filesLength);
 		setUint16(directoryView, offset + 10, filesLength);
-		setUint32$1(directoryView, offset + 12, directoryDataLength);
-		setUint32$1(directoryView, offset + 16, directoryOffset);
+		setUint32(directoryView, offset + 12, directoryDataLength);
+		setUint32(directoryView, offset + 16, directoryOffset);
 		await writer.writeUint8Array(directoryArray);
 		if (comment && comment.length) {
 			await writer.writeUint8Array(comment);
@@ -7739,15 +7738,15 @@
 
 	function getTimeNTFS(date) {
 		if (date) {
-			return ((BigInt(date.getTime()) + 11644473600000n) * 10000n);
+			return ((BigInt(date.getTime()) + BigInt(11644473600000)) * BigInt(10000));
 		}
 	}
 
-	function getOptionValue$1(zipWriter, options, name) {
+	function getOptionValue(zipWriter, options, name) {
 		return options[name] === undefined ? zipWriter.options[name] : options[name];
 	}
 
-	function getMaximumCompressedSize$1(uncompressedSize) {
+	function getMaximumCompressedSize(uncompressedSize) {
 		return uncompressedSize + (5 * (Math.floor(uncompressedSize / 16383) + 1));
 	}
 
@@ -7759,7 +7758,7 @@
 		view.setUint16(offset, value, true);
 	}
 
-	function setUint32$1(view, offset, value) {
+	function setUint32(view, offset, value) {
 		view.setUint32(offset, value, true);
 	}
 
@@ -7771,7 +7770,7 @@
 		array.set(typedArray, offset);
 	}
 
-	function getDataView$1(array) {
+	function getDataView(array) {
 		return new DataView(array.buffer);
 	}
 
