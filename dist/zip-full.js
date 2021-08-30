@@ -5778,7 +5778,11 @@
 	function createWebWorkerInterface(workerData, config) {
 		let messageTask;
 		if (!workerData.interface) {
-			workerData.worker = new Worker(new URL(workerData.scripts[0], (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('zip-full.js', document.baseURI).href))));
+			try {
+				workerData.worker = new Worker(new URL(workerData.scripts[0], (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('zip-full.js', document.baseURI).href))));
+			} catch (error) {
+				workerData.worker = new Worker(new URL(workerData.scripts[0], (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('zip-full.js', document.baseURI).href))), { type: "module" });
+			}
 			workerData.worker.addEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
 			workerData.interface = {
 				append(data) {
