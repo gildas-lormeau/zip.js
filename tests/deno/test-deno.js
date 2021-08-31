@@ -12,7 +12,7 @@ const BLOB = new Blob([TEXT_CONTENT], { type: TEXT_PLAIN_MIMETYPE });
 
 test().catch(error => console.error(error));
 
-async function test() {	
+async function test() {
 	const blobWriter = new BlobWriter("application/zip");
 	const zipWriter = new ZipWriter(blobWriter);
 	const entry = await zipWriter.add(FILENAME, new BlobReader(BLOB));
