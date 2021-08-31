@@ -1714,7 +1714,10 @@
 	}
 
 	function terminateWorkers() {
-		pool.forEach(workerData => workerData.terminate());
+		pool.forEach(workerData => {
+			clearTerminateTimeout(workerData);
+			workerData.terminate();
+		});
 	}
 
 	/*
