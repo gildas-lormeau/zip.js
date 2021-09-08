@@ -18,7 +18,8 @@
         "zip64",
         "stream",
         "web-crypto",
-        "web-workers"
+        "web-workers",
+        "deno"
     ],
     "scripts": {
         "build": "./build.sh"
