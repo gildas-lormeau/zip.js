@@ -35,8 +35,8 @@
     },
     "homepage": "https://gildas-lormeau.github.io/zip.js",
     "devDependencies": {
-        "@rollup/plugin-node-resolve": "^11.2.0",
-        "rollup": "^2.40.0",
+        "@rollup/plugin-node-resolve": "^13.0.4",
+        "rollup": "^2.56.3",
         "rollup-plugin-terser": "^7.0.2"
     }
 }
