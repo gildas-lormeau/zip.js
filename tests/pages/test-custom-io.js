@@ -7,6 +7,7 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 const FILENAME = "lorem.txt";
 
 class BinaryStringReader extends zip.Reader {
+
 	constructor(binaryString) {
 		super();
 		this.binaryString = binaryString;
