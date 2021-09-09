@@ -6248,7 +6248,7 @@
 		async readUint8Array(index, length) {
 			if (this.useRangeHeader) {
 				const response = await sendFetchRequest(HTTP_METHOD_GET, this.url, this.options, Object.assign({}, this.options.headers,
-					{ HEADER_RANGE: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) }));
+					{ [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) }));
 				if (response.status != 206) {
 					throw new Error(ERR_HTTP_RANGE);
 				}
