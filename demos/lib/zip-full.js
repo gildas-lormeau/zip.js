@@ -6248,7 +6248,7 @@
 		async readUint8Array(index, length) {
 			if (this.useRangeHeader) {
 				const response = await sendFetchRequest(HTTP_METHOD_GET, this.url, this.options, Object.assign({}, this.options.headers,
-					{ HEADER_RANGE: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) }));
+					{ [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) }));
 				if (response.status != 206) {
 					throw new Error(ERR_HTTP_RANGE);
 				}
@@ -6314,11 +6314,12 @@
 
 		async readUint8Array(index, length) {
 			if (this.useRangeHeader) {
-				const request = await new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, this.url, request => resolve(new Uint8Array(request.response)), reject,
+				const request = await new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, this.url, request => resolve(request), reject,
 					[[HTTP_HEADER_RANGE, HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1)]]));
 				if (request.status != 206) {
 					throw new Error(ERR_HTTP_RANGE);
 				}
+				return new Uint8Array(request.response);
 			} else {
 				if (!this.data) {
 					await getXHRData(this, this.url);
