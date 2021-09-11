@@ -2447,7 +2447,7 @@
 			let directoryDataOffset = getUint32(endOfDirectoryView, 16);
 			let filesLength = getUint16(endOfDirectoryView, 8);
 			let prependedDataLength = 0;
-			if (directoryDataOffset == MAX_32_BITS || filesLength == MAX_16_BITS) {
+			if (directoryDataOffset == MAX_32_BITS || directoryDataLength == MAX_32_BITS || filesLength == MAX_16_BITS) {
 				const endOfDirectoryLocatorArray = await readUint8Array(reader, endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH);
 				const endOfDirectoryLocatorView = getDataView$1(endOfDirectoryLocatorArray);
 				if (getUint32(endOfDirectoryLocatorView, 0) != ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE) {
@@ -2467,22 +2467,22 @@
 				if (getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
 				}
-				filesLength = getBigUint64(endOfDirectoryView, 24);
-				directoryDataLength = getUint32(endOfDirectoryLocatorView, 4);
-				directoryDataOffset -= getBigUint64(endOfDirectoryView, 40);
+				filesLength = getBigUint64(endOfDirectoryView, 32);
+				directoryDataLength = getBigUint64(endOfDirectoryView, 40);
+				directoryDataOffset -= directoryDataLength;
 			}
 			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
 			let offset = 0;
-			let directoryArray = await readUint8Array(reader, directoryDataOffset, reader.size - directoryDataOffset);
+			let directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
 			let directoryView = getDataView$1(directoryArray);
 			const expectedDirectoryDataOffset = endOfDirectoryInfo.offset - directoryDataLength;
 			if (getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE && directoryDataOffset != expectedDirectoryDataOffset) {
 				const originalDirectoryDataOffset = directoryDataOffset;
 				directoryDataOffset = expectedDirectoryDataOffset;
 				prependedDataLength = directoryDataOffset - originalDirectoryDataOffset;
-				directoryArray = await readUint8Array(reader, directoryDataOffset, reader.size - directoryDataOffset);
+				directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
 				directoryView = getDataView$1(directoryArray);
 			}
 			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
