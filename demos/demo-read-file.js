@@ -42,15 +42,17 @@
 
 		async function downloadFile(event) {
 			const target = event.target;
-			if (target.dataset.entryIndex !== undefined && !target.download && !target.getAttribute("href")) {
+			let href = target.getAttribute("href");
+			if (target.dataset.entryIndex !== undefined && !target.download && !href) {
 				target.removeAttribute("href");
 				event.preventDefault();
 				try {
 					await download(entries[Number(target.dataset.entryIndex)], target.parentElement.parentElement, target);
+					href = target.getAttribute("href");
 				} catch (error) {
 					alert(error);
 				}
-				target.setAttribute("href", "");
+				target.setAttribute("href", href);
 			}
 		}
 
