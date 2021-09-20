@@ -30,11 +30,6 @@ async function test() {
 }
 
 // eslint-disable-next-line no-unused-vars
-function getLinkBlobLink(blob) {
-	return "download".link(URL.createObjectURL(blob));
-}
-
-// eslint-disable-next-line no-unused-vars
 async function logBlobText(blob) {
 	console.log(await getBlobText(blob));
 	console.log("--------------");
