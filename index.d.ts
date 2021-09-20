@@ -163,6 +163,7 @@ declare module "@zip.js/zip.js" {
         zipCrypto?: boolean;
         useWebWorkers?: boolean;
         dataDescriptor?: boolean;
+        dataDescriptorSignature?: boolean;
         signal?: AbortSignal;
         lastModDate?: Date;
         lastAccessDate?: Date;
