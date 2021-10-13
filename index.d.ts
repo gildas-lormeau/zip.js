@@ -252,7 +252,7 @@ declare module "@zip.js/zip.js" {
 
     export type ZipDirectoryEntryHttpImportOptions = ZipDirectoryEntryImportOptions & HttpOptions;
 
-    export type ZipDirectoryEntryExportOptions = ZipWriterOptions & ExportOptions;
+    export type ZipDirectoryEntryExportOptions = ZipWriterOptions & ExportOptions & OnprogressEntryDataOption;
 
     export interface FS extends ZipDirectoryEntry {
         root: ZipDirectoryEntry;
