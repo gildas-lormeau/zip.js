@@ -103,7 +103,7 @@ declare module "@zip.js/zip.js" {
         close(): Promise<any>;
     }
 
-    type ZipReaderGetEntriesOptions = OnprogressEntryOption & GetEntriesOptions;
+    export type ZipReaderGetEntriesOptions = OnprogressEntryOption & GetEntriesOptions;
 
     export interface ZipReaderOptions {
         checkSignature?: boolean;
@@ -147,7 +147,7 @@ declare module "@zip.js/zip.js" {
         getData?(writer: Writer, options?: GetDataOptions): Promise<any>;
     }
 
-    type GetDataOptions = OnprogressEntryDataOption & ZipReaderOptions;
+    export type GetDataOptions = OnprogressEntryDataOption & ZipReaderOptions;
 
     export class ZipWriter {
         readonly hasCorruptedEntries?: boolean;
@@ -156,9 +156,9 @@ declare module "@zip.js/zip.js" {
         public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<any>;
     }
 
-    type ZipWriterAddDataOptions = OnprogressEntryDataOption & AddDataOptions & ZipWriterOptions;
+    export type ZipWriterAddDataOptions = OnprogressEntryDataOption & AddDataOptions & ZipWriterOptions;
 
-    type ZipWriterCloseOptions = OnprogressEntryOption & CloseOptions;
+    export type ZipWriterCloseOptions = OnprogressEntryOption & CloseOptions;
 
     export interface ZipWriterOptions {
         zip64?: boolean;
@@ -248,11 +248,11 @@ declare module "@zip.js/zip.js" {
         exportUint8Array(options?: ZipDirectoryEntryExportOptions): Promise<Uint8Array>;
     }
 
-    type ZipDirectoryEntryImportOptions = ZipReaderOptions & GetEntriesOptions;
+    export type ZipDirectoryEntryImportOptions = ZipReaderOptions & GetEntriesOptions;
 
-    type ZipDirectoryEntryHttpImportOptions = ZipDirectoryEntryImportOptions & HttpOptions;
+    export type ZipDirectoryEntryHttpImportOptions = ZipDirectoryEntryImportOptions & HttpOptions;
 
-    type ZipDirectoryEntryExportOptions = ZipWriterOptions & ExportOptions;
+    export type ZipDirectoryEntryExportOptions = ZipWriterOptions & ExportOptions;
 
     export interface FS extends ZipDirectoryEntry {
         root: ZipDirectoryEntry;
