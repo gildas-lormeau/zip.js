@@ -103,7 +103,7 @@ declare module "@zip.js/zip.js" {
         close(): Promise<any>;
     }
 
-    export type ZipReaderGetEntriesOptions = OnprogressEntryOption & GetEntriesOptions;
+    export type ZipReaderGetEntriesOptions = EntryOnprogressOption & GetEntriesOptions;
 
     export interface ZipReaderOptions {
         checkSignature?: boolean;
@@ -147,7 +147,7 @@ declare module "@zip.js/zip.js" {
         getData?(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
     }
 
-    export type EntryGetDataOptions = OnprogressEntryDataOption & ZipReaderOptions;
+    export type EntryGetDataOptions = EntryOnprogressDataOption & ZipReaderOptions;
 
     export class ZipWriter {
         readonly hasCorruptedEntries?: boolean;
@@ -156,9 +156,9 @@ declare module "@zip.js/zip.js" {
         public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<any>;
     }
 
-    export type ZipWriterAddDataOptions = OnprogressEntryDataOption & AddDataOptions & ZipWriterOptions;
+    export type ZipWriterAddDataOptions = EntryOnprogressDataOption & AddDataOptions & ZipWriterOptions;
 
-    export type ZipWriterCloseOptions = OnprogressEntryOption & CloseOptions;
+    export type ZipWriterCloseOptions = EntryOnprogressOption & CloseOptions;
 
     export interface ZipWriterOptions {
         zip64?: boolean;
@@ -192,11 +192,11 @@ declare module "@zip.js/zip.js" {
         zip64?: boolean;
     }
 
-    export interface OnprogressEntryDataOption {
+    export interface EntryOnprogressDataOption {
         onprogress?: (progress: number, total: number) => void;
     }
 
-    export interface OnprogressEntryOption {
+    export interface EntryOnprogressOption {
         onprogress?: (progress: number, total: number, entry: Entry) => void;
     }
 
@@ -252,7 +252,7 @@ declare module "@zip.js/zip.js" {
 
     export type ZipDirectoryEntryHttpImportOptions = ZipDirectoryEntryImportOptions & HttpOptions;
 
-    export type ZipDirectoryEntryExportOptions = ZipWriterOptions & ExportOptions & OnprogressEntryDataOption;
+    export type ZipDirectoryEntryExportOptions = ZipWriterOptions & ExportOptions & EntryOnprogressDataOption;
 
     export interface FS extends ZipDirectoryEntry {
         root: ZipDirectoryEntry;
