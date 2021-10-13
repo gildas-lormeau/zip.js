@@ -98,10 +98,12 @@ declare module "@zip.js/zip.js" {
     }
 
     export class ZipReader {
-        constructor(reader: Reader, options?: ZipReaderOptions & GetEntriesOptions);
-        getEntries(options?: OnprogressEntryOption & GetEntriesOptions): Promise<Entry[]>;
+        constructor(reader: Reader, options?: ZipDirectoryEntryImportOptions);
+        getEntries(options?: ZipReaderGetEntriesOptions): Promise<Entry[]>;
         close(): Promise<any>;
     }
+
+    type ZipReaderGetEntriesOptions = OnprogressEntryOption & GetEntriesOptions;
 
     export interface ZipReaderOptions {
         checkSignature?: boolean;
@@ -142,15 +144,21 @@ declare module "@zip.js/zip.js" {
         msDosCompatible: boolean;
         internalFileAttribute: number;
         externalFileAttribute: number;
-        getData?(writer: Writer, options?: OnprogressEntryDataOption & ZipReaderOptions): Promise<any>;
+        getData?(writer: Writer, options?: GetDataOptions): Promise<any>;
     }
+
+    type GetDataOptions = OnprogressEntryDataOption & ZipReaderOptions;
 
     export class ZipWriter {
         readonly hasCorruptedEntries?: boolean;
         constructor(writer: Writer, options?: ZipWriterOptions);
-        public add(name: string, reader: Reader, options?: OnprogressEntryDataOption & AddDataOptions & ZipWriterOptions): Promise<Entry>;
-        public close(comment?: Uint8Array, options?: OnprogressEntryOption & CloseOptions): Promise<any>;
+        public add(name: string, reader: Reader, options?: ZipWriterAddDataOptions): Promise<Entry>;
+        public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<any>;
     }
+
+    type ZipWriterAddDataOptions = OnprogressEntryDataOption & AddDataOptions & ZipWriterOptions;
+
+    type ZipWriterCloseOptions = OnprogressEntryOption & CloseOptions;
 
     export interface ZipWriterOptions {
         zip64?: boolean;
@@ -207,11 +215,11 @@ declare module "@zip.js/zip.js" {
     export interface ZipFileEntry extends ZipEntry {
         reader: Reader;
         writer: Writer;
-        getText(encoding?: string, options?: OnprogressEntryDataOption & ZipReaderOptions): Promise<string>;
-        getBlob(mimeType?: string, options?: OnprogressEntryDataOption & ZipReaderOptions): Promise<Blob>;
-        getData64URI(mimeType?: string, options?: OnprogressEntryDataOption & ZipReaderOptions): Promise<string>;
-        getUint8Array(options?: OnprogressEntryDataOption & ZipReaderOptions): Promise<Uint8Array>;
-        getData(writer: Writer, options?: OnprogressEntryDataOption & ZipReaderOptions): Promise<any>;
+        getText(encoding?: string, options?: GetDataOptions): Promise<string>;
+        getBlob(mimeType?: string, options?: GetDataOptions): Promise<Blob>;
+        getData64URI(mimeType?: string, options?: GetDataOptions): Promise<string>;
+        getUint8Array(options?: GetDataOptions): Promise<Uint8Array>;
+        getData(writer: Writer, options?: GetDataOptions): Promise<any>;
         replaceBlob(blob: Blob): void;
         replaceText(text: String): void;
         replaceData64URI(dataURI: String): void;
@@ -231,14 +239,21 @@ declare module "@zip.js/zip.js" {
         addUint8Array(name: string, array: Uint8Array): ZipFileEntry;
         addHttpContent(name: string, url: string, options?: HttpOptions): ZipFileEntry;
         addFileSystemEntry(fileSystemEntry: FileSystemEntry): Promise<ZipEntry>;
-        importBlob(blob: Blob, options?: ZipReaderOptions & GetEntriesOptions): Promise<void>;
-        importData64URI(dataURI: string, options?: ZipReaderOptions & GetEntriesOptions): Promise<void>;
-        importUint8Array(array: Uint8Array, options?: ZipReaderOptions & GetEntriesOptions): Promise<void>;
-        importHttpContent(url: string, options?: ZipReaderOptions & GetEntriesOptions & HttpOptions): Promise<void>;
-        exportBlob(options?: ZipWriterOptions & ExportOptions): Promise<Blob>;
-        exportData64URI(options?: ZipWriterOptions & ExportOptions): Promise<string>;
-        exportUint8Array(options?: ZipWriterOptions & ExportOptions): Promise<Uint8Array>;
+        importBlob(blob: Blob, options?: ZipDirectoryEntryImportOptions): Promise<void>;
+        importData64URI(dataURI: string, options?: ZipDirectoryEntryImportOptions): Promise<void>;
+        importUint8Array(array: Uint8Array, options?: ZipDirectoryEntryImportOptions): Promise<void>;
+        importHttpContent(url: string, options?: ZipDirectoryEntryHttpImportOptions): Promise<void>;
+        exportBlob(options?: ZipDirectoryEntryExportOptions): Promise<Blob>;
+        exportData64URI(options?: ZipDirectoryEntryExportOptions): Promise<string>;
+        exportUint8Array(options?: ZipDirectoryEntryExportOptions): Promise<Uint8Array>;
     }
+
+    type ZipDirectoryEntryImportOptions = ZipReaderOptions & GetEntriesOptions;
+
+    type ZipDirectoryEntryHttpImportOptions = ZipDirectoryEntryImportOptions & HttpOptions;
+
+    type ZipDirectoryEntryExportOptions = ZipWriterOptions & ExportOptions;
+
     export interface FS extends ZipDirectoryEntry {
         root: ZipDirectoryEntry;
         remove(entry: ZipEntry): void;
