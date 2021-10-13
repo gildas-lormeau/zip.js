@@ -144,10 +144,10 @@ declare module "@zip.js/zip.js" {
         msDosCompatible: boolean;
         internalFileAttribute: number;
         externalFileAttribute: number;
-        getData?(writer: Writer, options?: GetDataOptions): Promise<any>;
+        getData?(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
     }
 
-    export type GetDataOptions = OnprogressEntryDataOption & ZipReaderOptions;
+    export type EntryGetDataOptions = OnprogressEntryDataOption & ZipReaderOptions;
 
     export class ZipWriter {
         readonly hasCorruptedEntries?: boolean;
@@ -215,11 +215,11 @@ declare module "@zip.js/zip.js" {
     export interface ZipFileEntry extends ZipEntry {
         reader: Reader;
         writer: Writer;
-        getText(encoding?: string, options?: GetDataOptions): Promise<string>;
-        getBlob(mimeType?: string, options?: GetDataOptions): Promise<Blob>;
-        getData64URI(mimeType?: string, options?: GetDataOptions): Promise<string>;
-        getUint8Array(options?: GetDataOptions): Promise<Uint8Array>;
-        getData(writer: Writer, options?: GetDataOptions): Promise<any>;
+        getText(encoding?: string, options?: EntryGetDataOptions): Promise<string>;
+        getBlob(mimeType?: string, options?: EntryGetDataOptions): Promise<Blob>;
+        getData64URI(mimeType?: string, options?: EntryGetDataOptions): Promise<string>;
+        getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
+        getData(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
         replaceBlob(blob: Blob): void;
         replaceText(text: String): void;
         replaceData64URI(dataURI: String): void;
