@@ -147,7 +147,7 @@ declare module "@zip.js/zip.js" {
         getData?(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
     }
 
-    export type EntryGetDataOptions = EntryOnprogressDataOption & ZipReaderOptions;
+    export type EntryGetDataOptions = EntryDataOnprogressOption & ZipReaderOptions;
 
     export class ZipWriter {
         readonly hasCorruptedEntries?: boolean;
@@ -156,7 +156,7 @@ declare module "@zip.js/zip.js" {
         public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<any>;
     }
 
-    export type ZipWriterAddDataOptions = EntryOnprogressDataOption & AddDataOptions & ZipWriterOptions;
+    export type ZipWriterAddDataOptions = EntryDataOnprogressOption & AddDataOptions & ZipWriterOptions;
 
     export type ZipWriterCloseOptions = EntryOnprogressOption & CloseOptions;
 
@@ -192,7 +192,7 @@ declare module "@zip.js/zip.js" {
         zip64?: boolean;
     }
 
-    export interface EntryOnprogressDataOption {
+    export interface EntryDataOnprogressOption {
         onprogress?: (progress: number, total: number) => void;
     }
 
@@ -252,7 +252,7 @@ declare module "@zip.js/zip.js" {
 
     export type ZipDirectoryEntryHttpImportOptions = ZipDirectoryEntryImportOptions & HttpOptions;
 
-    export type ZipDirectoryEntryExportOptions = ZipWriterOptions & ExportOptions & EntryOnprogressDataOption;
+    export type ZipDirectoryEntryExportOptions = ZipWriterOptions & ExportOptions & EntryDataOnprogressOption;
 
     export interface FS extends ZipDirectoryEntry {
         root: ZipDirectoryEntry;
