@@ -3067,9 +3067,13 @@
 		const useWebWorkers = getOptionValue(zipWriter, options, "useWebWorkers");
 		const bufferedWrite = getOptionValue(zipWriter, options, "bufferedWrite");
 		let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor");
+		let dataDescriptorSignature = getOptionValue(zipWriter, options, "dataDescriptorSignature");
 		const signal = getOptionValue(zipWriter, options, "signal");
 		if (dataDescriptor === undefined) {
 			dataDescriptor = true;
+		}
+		if (dataDescriptor && dataDescriptorSignature === undefined) {
+			dataDescriptorSignature = true;
 		}
 		const fileEntry = await getFileEntry(zipWriter, name, reader, Object.assign({}, options, {
 			rawFilename,
@@ -3090,6 +3094,7 @@
 			bufferedWrite,
 			keepOrder,
 			dataDescriptor,
+			dataDescriptorSignature,
 			signal,
 			msDosCompatible,
 			internalFileAttribute,
@@ -3202,6 +3207,7 @@
 			zip64,
 			zipCrypto,
 			dataDescriptor,
+			dataDescriptorSignature,
 			directory,
 			version,
 			versionMadeBy,
@@ -3359,11 +3365,14 @@
 			fileEntry.dataWritten = true;
 		}
 		let dataDescriptorArray = new Uint8Array(0);
-		let dataDescriptorView;
+		let dataDescriptorView, dataDescriptorOffset = 0;
 		if (dataDescriptor) {
-			dataDescriptorArray = new Uint8Array(zip64 ? 24 : 16);
+			dataDescriptorArray = new Uint8Array(zip64 ? (dataDescriptorSignature ? 24 : 20) : (dataDescriptorSignature ? 16 : 12));
 			dataDescriptorView = getDataView(dataDescriptorArray);
-			setUint32(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
+			if (dataDescriptorSignature) {
+				dataDescriptorOffset = 4;
+				setUint32(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
+			}
 		}
 		if (reader) {
 			const signature = result.signature;
@@ -3371,7 +3380,7 @@
 				setUint32(headerView, 10, signature);
 				fileEntry.signature = signature;
 				if (dataDescriptor) {
-					setUint32(dataDescriptorView, 4, signature);
+					setUint32(dataDescriptorView, dataDescriptorOffset, signature);
 				}
 			}
 			if (zip64) {
@@ -3383,15 +3392,15 @@
 				setUint32(headerView, 18, MAX_32_BITS);
 				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
 				if (dataDescriptor) {
-					setBigUint64(dataDescriptorView, 8, BigInt(compressedSize));
-					setBigUint64(dataDescriptorView, 16, BigInt(uncompressedSize));
+					setBigUint64(dataDescriptorView, dataDescriptorOffset + 4, BigInt(compressedSize));
+					setBigUint64(dataDescriptorView, dataDescriptorOffset + 12, BigInt(uncompressedSize));
 				}
 			} else {
 				setUint32(headerView, 14, compressedSize);
 				setUint32(headerView, 18, uncompressedSize);
 				if (dataDescriptor) {
-					setUint32(dataDescriptorView, 8, compressedSize);
-					setUint32(dataDescriptorView, 12, uncompressedSize);
+					setUint32(dataDescriptorView, dataDescriptorOffset + 4, compressedSize);
+					setUint32(dataDescriptorView, dataDescriptorOffset + 8, uncompressedSize);
 				}
 			}
 		}
