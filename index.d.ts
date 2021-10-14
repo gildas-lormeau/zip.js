@@ -98,10 +98,12 @@ declare module "@zip.js/zip.js" {
     }
 
     export class ZipReader {
-        constructor(reader: Reader, options?: ZipDirectoryEntryImportOptions);
+        constructor(reader: Reader, options?: ZipReaderConstructorOptions);
         getEntries(options?: ZipReaderGetEntriesOptions): Promise<Entry[]>;
         close(): Promise<any>;
     }
+
+    export type ZipReaderConstructorOptions = ZipReaderOptions & GetEntriesOptions;
 
     export type ZipReaderGetEntriesOptions = EntryOnprogressOption & GetEntriesOptions;
 
@@ -239,18 +241,16 @@ declare module "@zip.js/zip.js" {
         addUint8Array(name: string, array: Uint8Array): ZipFileEntry;
         addHttpContent(name: string, url: string, options?: HttpOptions): ZipFileEntry;
         addFileSystemEntry(fileSystemEntry: FileSystemEntry): Promise<ZipEntry>;
-        importBlob(blob: Blob, options?: ZipDirectoryEntryImportOptions): Promise<void>;
-        importData64URI(dataURI: string, options?: ZipDirectoryEntryImportOptions): Promise<void>;
-        importUint8Array(array: Uint8Array, options?: ZipDirectoryEntryImportOptions): Promise<void>;
-        importHttpContent(url: string, options?: ZipDirectoryEntryHttpImportOptions): Promise<void>;
+        importBlob(blob: Blob, options?: ZipReaderConstructorOptions): Promise<void>;
+        importData64URI(dataURI: string, options?: ZipReaderConstructorOptions): Promise<void>;
+        importUint8Array(array: Uint8Array, options?: ZipReaderConstructorOptions): Promise<void>;
+        importHttpContent(url: string, options?: ZipDirectoryEntryImportHttpOptions): Promise<void>;
         exportBlob(options?: ZipDirectoryEntryExportOptions): Promise<Blob>;
         exportData64URI(options?: ZipDirectoryEntryExportOptions): Promise<string>;
         exportUint8Array(options?: ZipDirectoryEntryExportOptions): Promise<Uint8Array>;
     }
 
-    export type ZipDirectoryEntryImportOptions = ZipReaderOptions & GetEntriesOptions;
-
-    export type ZipDirectoryEntryHttpImportOptions = ZipDirectoryEntryImportOptions & HttpOptions;
+    export type ZipDirectoryEntryImportHttpOptions = ZipReaderConstructorOptions & HttpOptions;
 
     export type ZipDirectoryEntryExportOptions = ZipWriterOptions & ExportOptions & EntryDataOnprogressOption;
 
