@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.zip = {}));
-}(this, (function (exports) { 'use strict';
+})(this, (function (exports) { 'use strict';
 
 	/*
 	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
@@ -9481,4 +9481,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
