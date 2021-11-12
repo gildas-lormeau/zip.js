@@ -1,7 +1,5 @@
 /* eslint-disable no-console */
 
-"use strict";
-
 import Worker from "web-worker";
 import { Blob } from "blob-polyfill";
 globalThis.Blob = Blob;
