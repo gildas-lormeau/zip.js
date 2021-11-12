@@ -1,0 +1,9 @@
+{
+    "name": "test-node-zipjs",
+    "version": "1.0.0",
+    "type": "module",
+    "dependencies": {
+        "blob-polyfill": "^6.0.20211015",
+        "web-worker": "^1.2.0"
+    }
+}
