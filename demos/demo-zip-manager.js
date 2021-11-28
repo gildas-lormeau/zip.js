@@ -293,7 +293,14 @@
 		}
 
 		function onnewDirectory() {
-			const name = prompt("Directory name");
+			let name = ("New Folder");
+			if (getFileNode(selectedDirectory).getChildByName(name)) {
+				let index = 2;
+				while (getFileNode(selectedDirectory).getChildByName(name + " (" + index + ")")) {
+					index++;
+				}
+				name += " (" + index + ")";
+			}
 			if (name) {
 				try {
 					const entry = model.addDirectory(name, getFileNode(selectedDirectory));
