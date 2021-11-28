@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.zip = {}));
-}(this, (function (exports) { 'use strict';
+})(this, (function (exports) { 'use strict';
 
 	/*
 	 Copyright (c) 2021 Gildas Lormeau. All rights reserved.
@@ -1824,12 +1824,16 @@
 		}
 
 		getData() {
-			const reader = new FileReader();
-			return new Promise((resolve, reject) => {
-				reader.onload = event => resolve(event.target.result);
-				reader.onerror = () => reject(reader.error);
-				reader.readAsText(this.blob, this.encoding);
-			});
+			if (this.blob.text) {
+				return this.blob.text();
+			} else {
+				const reader = new FileReader();
+				return new Promise((resolve, reject) => {
+					reader.onload = event => resolve(event.target.result);
+					reader.onerror = () => reject(reader.error);
+					reader.readAsText(this.blob, this.encoding);
+				});
+			}
 		}
 	}
 
@@ -1899,12 +1903,16 @@
 		}
 
 		async readUint8Array(offset, length) {
-			const reader = new FileReader();
-			return new Promise((resolve, reject) => {
-				reader.onload = event => resolve(new Uint8Array(event.target.result));
-				reader.onerror = () => reject(reader.error);
-				reader.readAsArrayBuffer(this.blob.slice(offset, offset + length));
-			});
+			if (this.blob.arrayBuffer) {
+				return new Uint8Array(await this.blob.slice(offset, offset + length).arrayBuffer());
+			} else {
+				const reader = new FileReader();
+				return new Promise((resolve, reject) => {
+					reader.onload = event => resolve(new Uint8Array(event.target.result));
+					reader.onerror = () => reject(reader.error);
+					reader.readAsArrayBuffer(this.blob.slice(offset, offset + length));
+				});
+			}
 		}
 	}
 
@@ -3536,12 +3544,20 @@
 	}
 
 	function sliceAsArrayBuffer(blob, start, end) {
-		const fileReader = new FileReader();
-		return new Promise((resolve, reject) => {
-			fileReader.onload = event => resolve(event.target.result);
-			fileReader.onerror = () => reject(fileReader.error);
-			fileReader.readAsArrayBuffer(start || end ? blob.slice(start, end) : blob);
-		});
+		if (blob.arrayBuffer) {
+			if (start || end) {
+				return blob.slice(start, end).arrayBuffer();
+			} else {
+				return blob.arrayBuffer();
+			}		
+		} else {
+			const fileReader = new FileReader();
+			return new Promise((resolve, reject) => {
+				fileReader.onload = event => resolve(event.target.result);
+				fileReader.onerror = () => reject(fileReader.error);
+				fileReader.readAsArrayBuffer(start || end ? blob.slice(start, end) : blob);
+			});
+		}
 	}
 
 	async function writeBlob(writer, blob, start = 0) {
@@ -4253,4 +4269,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
