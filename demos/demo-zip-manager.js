@@ -118,9 +118,6 @@
 						resetSelectedDir();
 					}
 				}
-			} else {
-				refreshTree();
-				refreshListing();
 			}
 		}, false);
 
