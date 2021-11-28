@@ -48,6 +48,7 @@ summary {
 	border-width: 1px;
 	border-color: transparent;
 	border-style: dashed;
+	cursor: pointer;
 }
 
 .drag-over>summary {
