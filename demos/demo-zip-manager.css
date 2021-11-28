@@ -32,6 +32,7 @@ details>details {
 	border-radius: 1px;
 	white-space: nowrap;
 	overflow: hidden;
+	cursor: pointer;
 }
 
 .dir-label:not([contenteditable=true]), .file-label:not([contenteditable=true]) {
@@ -55,6 +56,7 @@ summary {
 
 .dir-label[contenteditable=true], .file-label[contenteditable=true] {
 	background-color: #ddd;
+	cursor: auto;
 }
 
 .selected>summary .dir-label[contenteditable=true], .selected>.file-label[contenteditable=true] {
