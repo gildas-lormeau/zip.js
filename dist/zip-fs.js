@@ -2104,7 +2104,7 @@
 			request.addEventListener("error", event => reject(event.detail.error), false);
 			request.open(method, url);
 			if (headers) {
-				for (const entry of headers) {
+				for (const entry of Object.entries(headers)) {
 					request.setRequestHeader(entry[0], entry[1]);
 				}
 			}
