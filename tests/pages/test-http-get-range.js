@@ -12,7 +12,7 @@ async function test() {
 	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
 
-	const zipReader = new zip.ZipReader(new zip.HttpRangeReader("../data/lorem.zip", { useXHR: false }));
+	const zipReader = new zip.ZipReader(new zip.HttpRangeReader("../data/lorem.zip", { useXHR: false, useGetForRange: true}));
 	const entries = await zipReader.getEntries();
 	const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
 	let data = await entries[0].getData(dataBlobWriter);

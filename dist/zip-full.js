@@ -6052,6 +6052,7 @@
 
 	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
+	const HTTP_HEADER_CONTENT_RANGE = "Content-Range";
 	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
 	const HTTP_HEADER_RANGE = "Range";
 	const HTTP_METHOD_HEAD = "HEAD";
@@ -6232,22 +6233,35 @@
 			this.preventHeadRequest = options.preventHeadRequest;
 			this.useRangeHeader = options.useRangeHeader;
 			this.forceRangeRequests = options.forceRangeRequests;
+			this.useGetForRange = options.useGetForRange;
 			this.options = Object.assign({}, options);
 			delete this.options.preventHeadRequest;
 			delete this.options.useRangeHeader;
 			delete this.options.forceRangeRequests;
+			delete this.options.getForRange;
 			delete this.options.useXHR;
 		}
 
 		async init() {
 			super.init();
-			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
-				const response = await sendFetchRequest(HTTP_METHOD_HEAD, this.url, this.options);
-				this.size = Number(response.headers.get(HTTP_HEADER_CONTENT_LENGTH));
-				if (!this.forceRangeRequests && this.useRangeHeader && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
-					throw new Error(ERR_HTTP_RANGE);
-				} else if (this.size === undefined) {
-					await getFetchData(this, this.options);
+			if (isHttpFamily(this.url) && (!this.preventHeadRequest || this.useGetForRange)) {
+				if (this.useGetForRange) {
+					const response = await sendFetchRequest(HTTP_METHOD_GET, this.url, this.options, { range: "bytes=0-0"});
+					this.size = Number(response.headers.get(HTTP_HEADER_CONTENT_RANGE)?.split('/')?.[1]);
+
+					if (!this.forceRangeRequests && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
+						throw new Error(ERR_HTTP_RANGE);
+					} else if (this.size === undefined) {
+						await getFetchData(this, this.options);
+					}
+				} else {
+					const response = await sendFetchRequest(HTTP_METHOD_HEAD, this.url, this.options);
+					this.size = Number(response.headers.get(HTTP_HEADER_CONTENT_LENGTH));
+					if (!this.forceRangeRequests && this.useRangeHeader && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
+						throw new Error(ERR_HTTP_RANGE);
+					} else if (this.size === undefined) {
+						await getFetchData(this, this.options);
+					}
 				}
 			} else {
 				await getFetchData(this, this.options);
@@ -6297,13 +6311,22 @@
 			this.preventHeadRequest = options.preventHeadRequest;
 			this.useRangeHeader = options.useRangeHeader;
 			this.forceRangeRequests = options.forceRangeRequests;
+			this.useGetForRange = options.useGetForRange;
 		}
 
 		async init() {
 			super.init();
-			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
+			if (isHttpFamily(this.url) && (!this.preventHeadRequest || this.useGetForRange)) {
+				let getRangeFromRequest;
+
+				if (this.useGetForRange) {
+					getRangeFromRequest = (request) => Number(request.getResponseHeader(HTTP_HEADER_CONTENT_RANGE)?.split('/')?.[1]);
+				} else {
+					getRangeFromRequest = (request) => Number(request.getResponseHeader(HTTP_HEADER_CONTENT_LENGTH));
+				}
+
 				return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_HEAD, this.url, request => {
-					this.size = Number(request.getResponseHeader(HTTP_HEADER_CONTENT_LENGTH));
+					this.size = getRangeFromRequest(request);
 					if (this.useRangeHeader) {
 						if (this.forceRangeRequests || request.getResponseHeader(HTTP_HEADER_ACCEPT_RANGES) == HTTP_RANGE_UNIT) {
 							resolve();
@@ -6315,7 +6338,7 @@
 					} else {
 						resolve();
 					}
-				}, reject));
+				}, reject, this.useGetForRange ? [[HTTP_HEADER_RANGE, HTTP_RANGE_UNIT + "=0-0"]] : []));
 			} else {
 				await getXHRData(this, this.url);
 			}
