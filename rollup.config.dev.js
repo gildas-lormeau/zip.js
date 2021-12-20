@@ -2,7 +2,7 @@ export default [{
 	input: "lib/z-worker.js",
 	output: [{
 		file: "lib/z-worker-inline.js",
-		format: "es"
+		format: "umd"
 	}]
 }, {
 	input: "lib/z-worker-inline.js",
