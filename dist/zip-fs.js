@@ -1765,6 +1765,7 @@
 
 	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
+	const HTTP_HEADER_CONTENT_RANGE = "Content-Range";
 	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
 	const HTTP_HEADER_RANGE = "Range";
 	const HTTP_METHOD_HEAD = "HEAD";
@@ -1954,51 +1955,11 @@
 
 		async init() {
 			super.init();
-			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
-				const response = await sendFetchRequest(HTTP_METHOD_HEAD, this.url, this.options);
-				this.size = Number(response.headers.get(HTTP_HEADER_CONTENT_LENGTH));
-				if (!this.forceRangeRequests && this.useRangeHeader && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
-					throw new Error(ERR_HTTP_RANGE);
-				} else if (this.size === undefined) {
-					await getFetchData(this, this.options);
-				}
-			} else {
-				await getFetchData(this, this.options);
-			}
+			await initHttpReader(this, sendFetchRequest, getFetchRequestData);
 		}
 
 		async readUint8Array(index, length) {
-			if (this.useRangeHeader) {
-				const response = await sendFetchRequest(HTTP_METHOD_GET, this.url, this.options, Object.assign({}, this.options.headers,
-					{ [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) }));
-				if (response.status != 206) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-				return new Uint8Array(await response.arrayBuffer());
-			} else {
-				if (!this.data) {
-					await getFetchData(this, this.options);
-				}
-				return new Uint8Array(this.data.subarray(index, index + length));
-			}
-		}
-	}
-
-	async function getFetchData(httpReader, options) {
-		const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader.url, options);
-		httpReader.data = new Uint8Array(await response.arrayBuffer());
-		if (!httpReader.size) {
-			httpReader.size = httpReader.data.length;
-		}
-	}
-
-	async function sendFetchRequest(method, url, options, headers) {
-		headers = Object.assign({}, options.headers, headers);
-		const response = await fetch(url, Object.assign({}, options, { method, headers }));
-		if (response.status < 400) {
-			return response;
-		} else {
-			throw new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
+			return readUint8ArrayHttpReader(this, index, length, sendFetchRequest, getFetchRequestData);
 		}
 	}
 
@@ -2010,72 +1971,144 @@
 			this.preventHeadRequest = options.preventHeadRequest;
 			this.useRangeHeader = options.useRangeHeader;
 			this.forceRangeRequests = options.forceRangeRequests;
+			this.options = options;
 		}
 
 		async init() {
 			super.init();
-			if (isHttpFamily(this.url) && !this.preventHeadRequest) {
-				return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_HEAD, this.url, request => {
-					this.size = Number(request.getResponseHeader(HTTP_HEADER_CONTENT_LENGTH));
-					if (this.useRangeHeader) {
-						if (this.forceRangeRequests || request.getResponseHeader(HTTP_HEADER_ACCEPT_RANGES) == HTTP_RANGE_UNIT) {
-							resolve();
-						} else {
-							reject(new Error(ERR_HTTP_RANGE));
-						}
-					} else if (this.size === undefined) {
-						getXHRData(this, this.url).then(() => resolve()).catch(reject);
-					} else {
-						resolve();
-					}
-				}, reject));
-			} else {
-				await getXHRData(this, this.url);
-			}
+			await initHttpReader(this, sendXMLHttpRequest, getXMLHttpRequestData);
 		}
 
 		async readUint8Array(index, length) {
-			if (this.useRangeHeader) {
-				const request = await new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, this.url, request => resolve(request), reject,
-					[[HTTP_HEADER_RANGE, HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1)]]));
-				if (request.status != 206) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-				return new Uint8Array(request.response);
+			return readUint8ArrayHttpReader(this, index, length, sendXMLHttpRequest, getXMLHttpRequestData);
+		}
+	}
+
+	async function initHttpReader(httpReader, sendRequest, getRequestData) {
+		if (isHttpFamily(httpReader.url) && (httpReader.useRangeHeader || httpReader.forceRangeRequests)) {
+			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader));
+			if (!httpReader.forceRangeRequests && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
+				throw new Error(ERR_HTTP_RANGE);
 			} else {
-				if (!this.data) {
-					await getXHRData(this, this.url);
+				let contentSize;
+				const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
+				if (contentRangeHeader) {
+					const splitHeader = contentRangeHeader.trim().split(/\s*\/\s*/);
+					if (splitHeader.length) {
+						const headerValue = splitHeader[1];
+						if (headerValue) {
+							contentSize = Number(headerValue);
+						}
+					}
 				}
-				return new Uint8Array(this.data.subarray(index, index + length));
+				if (contentSize === undefined) {
+					await getContentLength(httpReader, sendRequest, getRequestData);
+				} else {
+					httpReader.size = contentSize;
+				}
+			}
+		} else {
+			await getContentLength(httpReader, sendRequest, getRequestData);
+		}
+	}
+
+	async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, getRequestData) {
+		if (httpReader.useRangeHeader || httpReader.forceRangeRequests) {
+			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
+			if (response.status != 206) {
+				throw new Error(ERR_HTTP_RANGE);
+			}
+			return new Uint8Array(await response.arrayBuffer());
+		} else {
+			if (!httpReader.data) {
+				await getRequestData(httpReader, httpReader.options);
+			}
+			return new Uint8Array(httpReader.data.subarray(index, index + length));
+		}
+	}
+
+	function getRangeHeaders(httpReader, index = 0, length = 1) {
+		return Object.assign({}, getHeaders(httpReader), { [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) });
+	}
+
+	function getHeaders(httpReader) {
+		let headers = httpReader.options.headers;
+		if (headers) {
+			if (Symbol.iterator in headers) {
+				return Object.fromEntries(headers);
+			} else {
+				return headers;
 			}
 		}
 	}
 
-	function getXHRData(httpReader, url) {
-		return new Promise((resolve, reject) => sendXHR(HTTP_METHOD_GET, url, request => {
-			httpReader.data = new Uint8Array(request.response);
-			if (!httpReader.size) {
-				httpReader.size = httpReader.data.length;
-			}
-			resolve();
-		}, reject));
+	async function getFetchRequestData(httpReader) {
+		await getRequestData(httpReader, sendFetchRequest);
 	}
 
-	function sendXHR(method, url, onload, onerror, headers = []) {
-		const request = new XMLHttpRequest();
-		request.addEventListener("load", () => {
-			if (request.status < 400) {
-				onload(request);
+	async function getXMLHttpRequestData(httpReader) {
+		await getRequestData(httpReader, sendXMLHttpRequest);
+	}
+
+	async function getRequestData(httpReader, sendRequest) {
+		const response = await sendRequest(HTTP_METHOD_GET, httpReader, getHeaders(httpReader));
+		httpReader.data = new Uint8Array(await response.arrayBuffer());
+		if (!httpReader.size) {
+			httpReader.size = httpReader.data.length;
+		}
+	}
+
+	async function getContentLength(httpReader, sendRequest, getRequestData) {
+		if (httpReader.preventHeadRequest) {
+			await getRequestData(httpReader, httpReader.options);
+		} else {
+			const response = await sendRequest(HTTP_METHOD_HEAD, httpReader, getHeaders(httpReader));
+			const contentLength = response.headers.get(HTTP_HEADER_CONTENT_LENGTH);
+			if (contentLength) {
+				httpReader.size = Number(contentLength);
 			} else {
-				onerror(ERR_HTTP_STATUS + (request.statusText || request.status));
+				await getRequestData(httpReader, httpReader.options);
 			}
-		}, false);
-		request.addEventListener("error", onerror, false);
-		request.open(method, url);
-		headers.forEach(header => request.setRequestHeader(header[0], header[1]));
-		request.responseType = "arraybuffer";
-		request.send();
-		return request;
+		}
+	}
+
+	async function sendFetchRequest(method, { options, url }, headers) {
+		const response = await fetch(url, Object.assign({}, options, { method, headers }));
+		if (response.status < 400) {
+			return response;
+		} else {
+			throw new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
+		}
+	}
+
+	function sendXMLHttpRequest(method, { url }, headers) {
+		return new Promise((resolve, reject) => {
+			const request = new XMLHttpRequest();
+			request.addEventListener("load", () => {
+				if (request.status < 400) {
+					const headers = [];
+					request.getAllResponseHeaders().trim().split(/[\r\n]+/).forEach(header => {
+						const splitHeader = header.trim().split(/\s*:\s*/);
+						splitHeader[0] = splitHeader[0].trim().replace(/^[a-z]|-[a-z]/g, value => value.toUpperCase());
+						headers.push(splitHeader);
+					});
+					resolve({
+						status: request.status,
+						arrayBuffer: () => request.response,
+						headers: new Map(headers)
+					});
+				} else {
+					reject(new Error(ERR_HTTP_STATUS + (request.statusText || request.status)));
+				}
+			}, false);
+			request.addEventListener("error", event => reject(event.detail.error), false);
+			request.open(method, url);
+			for (const entry of Object.entries(headers)) {
+				request.setRequestHeader(entry[0], entry[1]);
+			}
+			request.responseType = "arraybuffer";
+			request.send();
+		});
 	}
 
 	class HttpReader extends Reader {
