@@ -7285,8 +7285,10 @@
 			}, false);
 			request.addEventListener("error", event => reject(event.detail.error), false);
 			request.open(method, url);
-			for (const entry of Object.entries(headers)) {
-				request.setRequestHeader(entry[0], entry[1]);
+			if (headers) {
+				for (const entry of headers) {
+					request.setRequestHeader(entry[0], entry[1]);
+				}
 			}
 			request.responseType = "arraybuffer";
 			request.send();
