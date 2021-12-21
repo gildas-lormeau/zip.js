@@ -6283,7 +6283,7 @@
 					const splitHeader = contentRangeHeader.trim().split(/\s*\/\s*/);
 					if (splitHeader.length) {
 						const headerValue = splitHeader[1];
-						if (headerValue) {
+						if (headerValue && headerValue != "*") {
 							contentSize = Number(headerValue);
 						}
 					}
