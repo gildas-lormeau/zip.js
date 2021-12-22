@@ -71,7 +71,7 @@ declare module "@zip.js/zip.js" {
     interface HttpRangeOptions {
         forceRangeRequests?: boolean;
         useXHR?: boolean;
-        headers?: Iterable | Object[];
+        headers?: Iterable<[string, string]> | Object;
     }
 
     export class Writer extends Stream {
