@@ -80,7 +80,7 @@ declare module "@zip.js/zip.js" {
 
     export class TextWriter extends Writer {
         constructor(encoding?: string);
-        public getData(): string;
+        public getData(): Promise<string>;
     }
 
     export class BlobWriter extends Writer {
