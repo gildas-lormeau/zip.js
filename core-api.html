@@ -773,7 +773,7 @@ await writer.add("filename.txt", new zip.TextReader("test!"));
 await writer.close();
 
 // get the zip file as a Blob
-const blob = await blobWriter.getData();</code></pre>
+const blob = blobWriter.getData();</code></pre>
 		<h2 id="full-example">Full example</h2>
 		<pre><code class="prettyprint">// - create the inputBlob object storing the data to compress
 const inputBlob = new Blob(
