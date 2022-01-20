@@ -36,8 +36,7 @@ export default [{
 	}, {
 		file: "dist/zip.js",
 		format: "umd",
-		name: "zip",
-		plugins: []
+		name: "zip"
 	}]
 }, {
 	input: ["lib/zip-full.js"],
@@ -49,8 +48,7 @@ export default [{
 	}, {
 		file: "dist/zip-full.js",
 		format: "umd",
-		name: "zip",
-		plugins: []
+		name: "zip"
 	}]
 }, {
 	input: "lib/zip-no-worker.js",
@@ -86,16 +84,14 @@ export default [{
 	}, {
 		file: "dist/zip-fs.js",
 		format: "umd",
-		name: "zip",
-		plugins: []
+		name: "zip"
 	}]
 }, {
 	input: "index.js",
 	output: [{
 		file: "dist/zip-fs-full.js",
 		format: "umd",
-		name: "zip",
-		plugins: []
+		name: "zip"
 	}, {
 		file: "dist/zip-fs-full.min.js",
 		format: "umd",
