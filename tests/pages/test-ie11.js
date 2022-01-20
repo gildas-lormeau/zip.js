@@ -7,7 +7,9 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 const FILENAME = "lorem.txt";
 const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 
-test();
+test().catch(function (error) {
+	console.error(error);
+});
 
 function test() {
 	document.body.innerHTML = "...";
@@ -16,7 +18,7 @@ function test() {
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	const entryPromise = zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	let zipReader, zipReaderEntries;
-	entryPromise.then(function (entry) {
+	return entryPromise.then(function (entry) {
 		if (entry.compressionMethod == 0x08) {
 			return zipWriter.close();
 		}
