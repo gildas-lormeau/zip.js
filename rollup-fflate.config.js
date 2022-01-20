@@ -13,8 +13,7 @@ export default [{
 	output: [{
 		intro:
 			`
-			import { configure } from "./core/configuration.js"; 
-			export default () => { 
+			export default (configure) => { 
 				if (typeof URL.createObjectURL == "function") {
 					const code = \`
 			`,
