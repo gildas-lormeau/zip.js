@@ -4,9 +4,9 @@ export default [{
 	input: "lib/z-worker.js",
 	output: [{
 		file: "lib/z-worker-inline.js",
-		format: "es"
-	}],
-	plugins: [terser()]
+		format: "es",
+		plugins: [terser()]
+	}]
 }, {
 	input: "lib/z-worker-inline.js",
 	output: [{
@@ -23,9 +23,9 @@ export default [{
 					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
 				}
 			};`,
-		format: "esm"
-	}],
-	plugins: [terser()]
+		format: "esm",
+		plugins: [terser()]
+	}]
 }, {
 	input: ["lib/zip.js"],
 	output: [{
@@ -89,14 +89,14 @@ export default [{
 }, {
 	input: "index.js",
 	output: [{
-		file: "dist/zip-fs-full.js",
-		format: "umd",
-		name: "zip"
-	}, {
 		file: "dist/zip-fs-full.min.js",
 		format: "umd",
 		name: "zip",
 		plugins: [terser()]
+	}, {
+		file: "dist/zip-fs-full.js",
+		format: "umd",
+		name: "zip"
 	}]
 }, {
 	input: "lib/z-worker-bootstrap-pako.js",

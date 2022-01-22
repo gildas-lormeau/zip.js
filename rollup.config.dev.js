@@ -27,8 +27,7 @@ export default [{
 	output: [{
 		file: "dist/zip.min.js",
 		format: "umd",
-		name: "zip",
-		plugins: []
+		name: "zip"
 	}, {
 		file: "dist/zip.js",
 		format: "umd",
@@ -39,8 +38,7 @@ export default [{
 	output: [{
 		file: "dist/zip-full.min.js",
 		format: "umd",
-		name: "zip",
-		plugins: []
+		name: "zip"
 	}, {
 		file: "dist/zip-full.js",
 		format: "umd",
@@ -81,11 +79,11 @@ export default [{
 }, {
 	input: "index.js",
 	output: [{
-		file: "dist/zip-fs-full.js",
+		file: "dist/zip-fs-full.min.js",
 		format: "umd",
 		name: "zip"
 	}, {
-		file: "dist/zip-fs-full.min.js",
+		file: "dist/zip-fs-full.js",
 		format: "umd",
 		name: "zip"
 	}]

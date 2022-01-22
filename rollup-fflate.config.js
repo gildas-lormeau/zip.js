@@ -5,9 +5,10 @@ export default [{
 	input: "lib/z-worker-fflate.js",
 	output: [{
 		file: "lib/z-worker-inline.js",
-		format: "es"
+		format: "es",
+		plugins: [terser()]
 	}],
-	plugins: [nodeResolve(), terser()]
+	plugins: [nodeResolve()]
 }, {
 	input: "lib/z-worker-inline.js",
 	output: [{
@@ -24,9 +25,9 @@ export default [{
 					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
 				}
 			};`,
-		format: "esm"
-	}],
-	plugins: [terser()]
+		format: "esm",
+		plugins: [terser()]
+	}]
 }, {
 	input: ["lib/zip.js"],
 	output: [{
@@ -37,9 +38,9 @@ export default [{
 	}, {
 		file: "dist/zip.js",
 		format: "umd",
-		name: "zip",
-		plugins: []
-	}]
+		name: "zip"
+	}],
+	plugins: [nodeResolve()]
 }, {
 	input: ["lib/zip-full-fflate.js"],
 	output: [{
@@ -50,8 +51,7 @@ export default [{
 	}, {
 		file: "dist/zip-full.js",
 		format: "umd",
-		name: "zip",
-		plugins: []
+		name: "zip"
 	}],
 	plugins: [nodeResolve()]
 }, {
@@ -59,25 +59,28 @@ export default [{
 	output: [{
 		file: "dist/zip-no-worker.min.js",
 		format: "umd",
-		name: "zip"
+		name: "zip",
+		plugins: [terser()]
 	}],
-	plugins: [nodeResolve(), terser()]
+	plugins: [nodeResolve()]
 }, {
 	input: "lib/zip-no-worker-fflate-deflate.js",
 	output: [{
 		file: "dist/zip-no-worker-deflate.min.js",
 		format: "umd",
-		name: "zip"
+		name: "zip",
+		plugins: [terser()]
 	}],
-	plugins: [nodeResolve(), terser()]
+	plugins: [nodeResolve()]
 }, {
 	input: "lib/zip-no-worker-fflate-inflate.js",
 	output: [{
 		file: "dist/zip-no-worker-inflate.min.js",
 		format: "umd",
-		name: "zip"
+		name: "zip",
+		plugins: [terser()]
 	}],
-	plugins: [nodeResolve(), terser()]
+	plugins: [nodeResolve()]
 }, {
 	input: "lib/zip-fs.js",
 	output: [{
@@ -88,21 +91,20 @@ export default [{
 	}, {
 		file: "dist/zip-fs.js",
 		format: "umd",
-		name: "zip",
-		plugins: []
-	}]
+		name: "zip"
+	}],
+	plugins: [nodeResolve()]
 }, {
 	input: "index-fflate.js",
 	output: [{
-		file: "dist/zip-fs-full.js",
-		format: "umd",
-		name: "zip",
-		plugins: []
-	}, {
 		file: "dist/zip-fs-full.min.js",
 		format: "umd",
 		name: "zip",
 		plugins: [terser()]
+	}, {
+		file: "dist/zip-fs-full.js",
+		format: "umd",
+		name: "zip"
 	}],
 	plugins: [nodeResolve()]
 }, {
@@ -111,5 +113,6 @@ export default [{
 		file: "dist/z-worker.js",
 		format: "iife",
 		plugins: [terser()]
-	}]
+	}],
+	plugins: [nodeResolve()]
 }];

@@ -4,7 +4,7 @@ export default [{
 	input: "lib/z-worker-fflate.js",
 	output: [{
 		file: "lib/z-worker-inline.js",
-		format: "es"
+		format: "umd"
 	}],
 	plugins: [nodeResolve()]
 }, {
@@ -19,7 +19,7 @@ export default [{
 		file: "lib/z-worker-inline.js",
 		outro:
 			`		\`;
-					const uri = URL.createObjectURL(new Blob(["(" + code + ")()"], { type : "text/javascript" })); 
+					const uri = URL.createObjectURL(new Blob([code], { type : "text/javascript" })); 
 					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
 				}
 			};`,
@@ -35,7 +35,8 @@ export default [{
 		file: "dist/zip.js",
 		format: "umd",
 		name: "zip"
-	}]
+	}],
+	plugins: [nodeResolve()]
 }, {
 	input: ["lib/zip-full-fflate.js"],
 	output: [{
@@ -82,15 +83,16 @@ export default [{
 		file: "dist/zip-fs.js",
 		format: "umd",
 		name: "zip"
-	}]
+	}],
+	plugins: [nodeResolve()]
 }, {
 	input: "index-fflate.js",
 	output: [{
-		file: "dist/zip-fs-full.js",
+		file: "dist/zip-fs-full.min.js",
 		format: "umd",
 		name: "zip"
 	}, {
-		file: "dist/zip-fs-full.min.js",
+		file: "dist/zip-fs-full.js",
 		format: "umd",
 		name: "zip"
 	}],
@@ -100,5 +102,6 @@ export default [{
 	output: [{
 		file: "dist/z-worker.js",
 		format: "iife"
-	}]
+	}],
+	plugins: [nodeResolve()]
 }];
