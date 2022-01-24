@@ -56,15 +56,15 @@ export default [{
 	input: "lib/z-worker-inline-template-base64.js",
 	output: [{
 		file: "lib/z-worker-inline.js",
-		format: "esm",
-		plugins: [
-			replace({
-				preventAssignment: true,
-				"__workerCode__": () => JSON.stringify(fs.readFileSync("lib/z-worker-inline.js", { encoding: "base64" }))
-			}),
-			terser()
-		]
-	}]
+		format: "esm"
+	}],
+	plugins: [
+		replace({
+			preventAssignment: true,
+			"__workerCode__": () => JSON.stringify(fs.readFileSync("lib/z-worker-inline.js", { encoding: "base64" }))
+		}),
+		terser()
+	]
 }, {
 	input: ["lib/zip.js"],
 	output: [{
