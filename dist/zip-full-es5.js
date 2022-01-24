@@ -3968,7 +3968,7 @@
   });
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -5936,7 +5936,7 @@
   });
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -8303,7 +8303,7 @@
   });
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -8343,6 +8343,10 @@
   }
 
   function configure(configuration) {
+    if (configuration.baseURL !== undefined) {
+      config.baseURL = configuration.baseURL;
+    }
+
     if (configuration.chunkSize !== undefined) {
       config.chunkSize = configuration.chunkSize;
     }
@@ -10306,7 +10310,7 @@
   };
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -11096,7 +11100,7 @@
   }(runtime));
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -12349,7 +12353,7 @@
   });
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -12435,7 +12439,7 @@
   });
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -13250,7 +13254,7 @@
   }();
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -13663,7 +13667,7 @@
   });
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -13835,7 +13839,7 @@
   }
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -14216,7 +14220,7 @@
   }
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -14329,19 +14333,19 @@
 
   function createWebWorkerInterface(workerData, config) {
     var messageTask;
-    var moduleType = {
+    var workerOptions = {
       type: "module"
     };
 
     if (!workerData.interface) {
       if (!classicWorkersSupported) {
-        workerData.worker = getWorker(moduleType);
+        workerData.worker = getWorker(workerOptions, config.baseURL);
       } else {
         try {
-          workerData.worker = getWorker();
+          workerData.worker = getWorker({}, config.baseURL);
         } catch (error) {
           classicWorkersSupported = false;
-          workerData.worker = getWorker(moduleType);
+          workerData.worker = getWorker(workerOptions, config.baseURL);
         }
       }
 
@@ -14363,12 +14367,11 @@
 
     return workerData.interface;
 
-    function getWorker() {
-      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    function getWorker(options, baseURL) {
       var url;
 
       try {
-        url = new URL(workerData.scripts[0], (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('zip-full-es5.js', document.baseURI).href)));
+        url = new URL(workerData.scripts[0], baseURL);
       } catch (error) {
         url = workerData.scripts[0];
       }
@@ -14478,7 +14481,7 @@
   }
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -14583,7 +14586,7 @@
   }
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -16370,7 +16373,7 @@
   });
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -17651,7 +17654,7 @@
   });
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -17714,7 +17717,7 @@
   var MIN_DATE = new Date(1980, 0, 1);
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -17802,7 +17805,7 @@
   }
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -17841,7 +17844,7 @@
   });
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -18852,7 +18855,7 @@
   });
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -20031,7 +20034,7 @@
   }
 
   /*
-   Copyright (c) 2021 Gildas Lormeau. All rights reserved.
+   Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -20057,10 +20060,18 @@
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
    EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    */
+  var baseURL;
+
+  try {
+    baseURL = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('zip-full-es5.js', document.baseURI).href));
+  } catch (error) {// ignored
+  }
+
   d(configure);
   configure({
     Deflate: ZipDeflate,
-    Inflate: ZipInflate
+    Inflate: ZipInflate,
+    baseURL: baseURL
   });
 
   exports.BlobReader = BlobReader;
