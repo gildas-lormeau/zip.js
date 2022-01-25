@@ -24,9 +24,7 @@ function test() {
 		zipReader = new zip.ZipReader(new zip.BlobReader(compressedData));
 		return zipReader.getEntries();
 	}).then(function (entries) {
-		return entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
-	}).then(function (data) {
-		return getBlobText(data);
+		return entries[0].getData(new zip.TextWriter());
 	}).then(function (textData) {
 		zipReaderData = textData;
 		return zipReader.close();
