@@ -22586,15 +22586,15 @@
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
    EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    */
-  var baseURL$1;
+  var baseURL;
 
   try {
-    baseURL$1 = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('zip-fs-full-es5.js', document.baseURI).href));
+    baseURL = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('zip-fs-full-es5.js', document.baseURI).href));
   } catch (error) {// ignored
   }
 
   configure({
-    baseURL: baseURL$1
+    baseURL: baseURL
   });
   d(configure);
 
@@ -22625,17 +22625,9 @@
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
    EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    */
-  var baseURL;
-
-  try {
-    baseURL = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('zip-fs-full-es5.js', document.baseURI).href));
-  } catch (error) {// ignored
-  }
-
   configure({
     Deflate: ZipDeflate,
-    Inflate: ZipInflate,
-    baseURL: baseURL
+    Inflate: ZipInflate
   });
 
   exports.BlobReader = BlobReader;

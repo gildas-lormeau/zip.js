@@ -9531,13 +9531,13 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	let baseURL$1;
+	let baseURL;
 	try {
-		baseURL$1 = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('zip-fs-full.js', document.baseURI).href));
+		baseURL = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('zip-fs-full.js', document.baseURI).href));
 	} catch (error) {
 		// ignored
 	}
-	configure({ baseURL: baseURL$1 });
+	configure({ baseURL });
 	configureWebWorker(configure);
 
 	/*
@@ -9568,13 +9568,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	let baseURL;
-	try {
-		baseURL = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('zip-fs-full.js', document.baseURI).href));
-	} catch (error) {
-		// ignored
-	}
-	configure({ Deflate: ZipDeflate, Inflate: ZipInflate, baseURL });
+	configure({ Deflate: ZipDeflate, Inflate: ZipInflate });
 
 	exports.BlobReader = BlobReader;
 	exports.BlobWriter = BlobWriter;
