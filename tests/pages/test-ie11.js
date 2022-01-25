@@ -17,7 +17,7 @@ function test() {
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	const entryPromise = zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
-	let zipReader, zipReaderEntries;
+	let zipReader, zipReaderEntries, zipReaderData;
 	return entryPromise.then(function (entry) {
 		if (entry.compressionMethod == 0x08) {
 			return zipWriter.close();
@@ -31,10 +31,12 @@ function test() {
 			return entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 		}
 	}).then(function (data) {
-		return Promise.all([getBlobText(data), zipReader.close()]);
-	}).then(function (result) {
-		const data = result[0];
-		if (TEXT_CONTENT == data && zipReaderEntries[0].filename == FILENAME && zipReaderEntries[0].uncompressedSize == TEXT_CONTENT.length) {
+		return getBlobText(data);
+	}).then(function (textData) {
+		zipReaderData = textData;
+		return zipReader.close();
+	}).then(function () {
+		if (TEXT_CONTENT == zipReaderData && zipReaderEntries[0].filename == FILENAME && zipReaderEntries[0].uncompressedSize == TEXT_CONTENT.length) {
 			document.body.innerHTML = "ok";
 		}
 	});
