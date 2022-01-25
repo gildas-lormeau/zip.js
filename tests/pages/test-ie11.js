@@ -22,8 +22,8 @@ function test() {
 		if (entry.compressionMethod == 0x08) {
 			return zipWriter.close();
 		}
-	}).then(function () {
-		zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
+	}).then(function (compressedData) {
+		zipReader = new zip.ZipReader(new zip.BlobReader(compressedData));
 		return zipReader.getEntries();
 	}).then(function (entries) {
 		zipReaderEntries = entries;
