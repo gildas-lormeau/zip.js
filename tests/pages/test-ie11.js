@@ -18,10 +18,8 @@ function test() {
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	const entryPromise = zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	let zipReader, zipReaderEntries, zipReaderData;
-	return entryPromise.then(function (entry) {
-		if (entry.compressionMethod == 0x08) {
-			return zipWriter.close();
-		}
+	return entryPromise.then(function () {
+		return zipWriter.close();
 	}).then(function (compressedData) {
 		zipReader = new zip.ZipReader(new zip.BlobReader(compressedData));
 		return zipReader.getEntries();
