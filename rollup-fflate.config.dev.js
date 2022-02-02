@@ -14,11 +14,10 @@ export default [{
 			`
 			export default (configure) => { 
 				if (typeof URL.createObjectURL == "function") {
-					const code = \`
-			`,
+					const code = \``,
 		file: "lib/z-worker-inline.js",
 		outro:
-			`		\`;
+			`\`;
 					const uri = URL.createObjectURL(new Blob([code], { type : "text/javascript" })); 
 					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
 				}

@@ -20,27 +20,28 @@ const babelPresets = [
 ];
 
 const bundledPlugins = [
+	commonjs(),
+	resolve(),
 	babel({
 		babelHelpers: "bundled",
 		babelrc: false,
 		exclude: "node_modules/**",
 		presets: babelPresets,
-		compact: false
-	}),
-	resolve(),
-	commonjs()
+		compact: false,
+		plugins: [["babel-plugin-transform-async-to-promises", { externalHelpers: true }]]
+	})
 ];
 
 const inlinePlugins = [
+	commonjs(),
+	resolve(),
 	babel({
 		babelHelpers: "inline",
 		babelrc: false,
 		exclude: "node_modules/**",
 		presets: babelPresets,
 		compact: false
-	}),
-	resolve(),
-	commonjs()
+	})
 ];
 
 export default [{
