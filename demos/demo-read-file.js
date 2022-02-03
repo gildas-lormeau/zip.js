@@ -3,9 +3,9 @@
 (() => {
 
 	const INFLATE_IMPLEMENTATIONS = {
-		"zip.js": ["lib/z-worker.js"],
-		"fflate": ["lib/z-worker-fflate.js", "fflate.min.js"],
-		"pako": ["lib/z-worker-pako.js", "pako_inflate.min.js"]
+		"zip.js": ["z-worker.js"],
+		"fflate": ["z-worker-fflate.js", "fflate.min.js"],
+		"pako": ["z-worker-pako.js", "pako_inflate.min.js"]
 	};
 
 	const model = (() => {

@@ -4,8 +4,8 @@
 
 	zip.configure({
 		workerScripts: {
-			deflate: ["lib/z-worker-pako.js", "pako_deflate.min.js"],
-			inflate: ["lib/z-worker-pako.js", "pako_inflate.min.js"]
+			deflate: ["z-worker-pako.js", "pako_deflate.min.js"],
+			inflate: ["z-worker-pako.js", "pako_inflate.min.js"]
 		}
 	});
 
