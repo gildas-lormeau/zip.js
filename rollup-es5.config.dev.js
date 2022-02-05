@@ -55,7 +55,7 @@ export default [{
 	input: "lib/z-worker-inline-template-base64.js",
 	output: [{
 		file: "lib/z-worker-inline.js",
-		format: "esm"
+		format: "es"
 	}],
 	plugins: [replace({
 		preventAssignment: true,
