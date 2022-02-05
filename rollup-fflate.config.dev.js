@@ -1,4 +1,6 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve";
+import replace from "@rollup/plugin-replace";
+import fs from "fs";
 
 export default [{
 	input: "lib/z-worker-fflate.js",
@@ -8,22 +10,17 @@ export default [{
 	}],
 	plugins: [nodeResolve()]
 }, {
-	input: "lib/z-worker-inline.js",
+	input: "lib/z-worker-inline-template.js",
 	output: [{
-		intro:
-			`
-			export default (configure) => { 
-				if (typeof URL.createObjectURL == "function") {
-					const code = \``,
 		file: "lib/z-worker-inline.js",
-		outro:
-			`\`;
-					const uri = URL.createObjectURL(new Blob([code], { type : "text/javascript" })); 
-					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
-				}
-			};`,
-		format: "esm"
-	}]
+		format: "es"
+	}],
+	plugins: [
+		replace({
+			preventAssignment: true,
+			"__workerCode__": () => fs.readFileSync("lib/z-worker-inline.js").toString()
+		})
+	]
 }, {
 	input: ["lib/zip.js"],
 	output: [{
