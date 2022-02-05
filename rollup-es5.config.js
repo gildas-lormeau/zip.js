@@ -5,13 +5,34 @@ import replace from "@rollup/plugin-replace";
 import { terser } from "rollup-plugin-terser";
 import fs from "fs";
 
-const terserOptions = {
+const bundledTerserOptions = {
 	compress: {
 		unsafe: true,
 		unsafe_comps: true,
+		unsafe_math: true,
+		unsafe_symbols: true,
+		unsafe_proto: true,
 		keep_fargs: false,
 		passes: 3,
 		ecma: "5"
+	}
+};
+
+const inlineTerserOptions = {
+	compress: {
+		unsafe: true,
+		unsafe_comps: true,
+		unsafe_math: true,
+		unsafe_symbols: true,
+		unsafe_proto: true,
+		keep_fargs: false,
+		passes: 3,
+		ecma: "5"
+	},
+	mangle: {
+		properties: {
+			reserved: ["codecType", "config", "salt", "iterations", "keys", "password", "encryptionStrength", "encrypted", "signed", "compressed", "level", "zipCrypto", "passwordVerification"],
+		}
 	}
 };
 
@@ -60,7 +81,7 @@ export default [{
 	output: [{
 		file: "lib/z-worker-inline.js",
 		format: "es",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(inlineTerserOptions)]
 	}],
 	plugins: inlinePlugins
 }, {
@@ -74,7 +95,7 @@ export default [{
 			preventAssignment: true,
 			"__workerCode__": () => JSON.stringify(fs.readFileSync("lib/z-worker-inline.js", { encoding: "base64" }))
 		}),
-		terser(terserOptions)
+		terser(bundledTerserOptions)
 	]
 }, {
 	input: ["lib/zip.js"],
@@ -82,7 +103,7 @@ export default [{
 		file: "dist/zip-es5.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(bundledTerserOptions)]
 	}, {
 		file: "dist/zip-es5.js",
 		format: "umd",
@@ -95,7 +116,7 @@ export default [{
 		file: "dist/zip-full-es5.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(bundledTerserOptions)]
 	}, {
 		file: "dist/zip-full-es5.js",
 		format: "umd",
@@ -108,7 +129,7 @@ export default [{
 		file: "dist/zip-no-worker-es5.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: bundledPlugins
 }, {
@@ -117,7 +138,7 @@ export default [{
 		file: "dist/zip-no-worker-deflate-es5.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: bundledPlugins
 }, {
@@ -126,7 +147,7 @@ export default [{
 		file: "dist/zip-no-worker-inflate-es5.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: bundledPlugins
 }, {
@@ -135,7 +156,7 @@ export default [{
 		file: "dist/zip-fs-es5.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(bundledTerserOptions)]
 	}, {
 		file: "dist/zip-fs-es5.js",
 		format: "umd",
@@ -148,7 +169,7 @@ export default [{
 		file: "dist/zip-fs-full-es5.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(bundledTerserOptions)]
 	}, {
 		file: "dist/zip-fs-full-es5.js",
 		format: "umd",
@@ -160,7 +181,7 @@ export default [{
 	output: [{
 		file: "dist/z-worker-pako-es5.js",
 		format: "iife",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: inlinePlugins
 }, {
@@ -168,7 +189,7 @@ export default [{
 	output: [{
 		file: "dist/z-worker-fflate-es5.js",
 		format: "iife",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: inlinePlugins
 }, {
@@ -176,7 +197,7 @@ export default [{
 	output: [{
 		file: "dist/z-worker-es5.js",
 		format: "iife",
-		plugins: [terser(terserOptions)]
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: inlinePlugins
 }];

@@ -1,39 +1,69 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve";
+import replace from "@rollup/plugin-replace";
 import { terser } from "rollup-plugin-terser";
+import fs from "fs";
+
+const bundledTerserOptions = {
+	compress: {
+		unsafe: true,
+		unsafe_arrows: true,
+		unsafe_comps: true,
+		unsafe_math: true,
+		unsafe_symbols: true,
+		unsafe_proto: true,
+		keep_fargs: false,
+		passes: 3,
+		ecma: "2020"
+	}
+};
+
+const inlineTerserOptions = {
+	compress: {
+		unsafe: true,
+		unsafe_arrows: true,
+		unsafe_comps: true,
+		unsafe_math: true,
+		unsafe_symbols: true,
+		unsafe_proto: true,
+		keep_fargs: false,
+		passes: 3,
+		ecma: "2020"
+	},
+	mangle: {
+		properties: {
+			reserved: ["codecType", "config", "salt", "iterations", "keys", "password", "encryptionStrength", "encrypted", "signed", "compressed", "level", "zipCrypto", "passwordVerification"],
+		}
+	}
+};
 
 export default [{
 	input: "lib/z-worker-fflate.js",
 	output: [{
 		file: "lib/z-worker-inline.js",
 		format: "es",
-		plugins: [terser()]
+		plugins: [terser(inlineTerserOptions)]
 	}],
 	plugins: [nodeResolve()]
 }, {
-	input: "lib/z-worker-inline.js",
+	input: "lib/z-worker-inline-template.js",
 	output: [{
-		intro:
-			`
-			export default (configure) => { 
-				if (typeof URL.createObjectURL == "function") {
-					const code = \``,
 		file: "lib/z-worker-inline.js",
-		outro:
-			`\`;
-					const uri = URL.createObjectURL(new Blob([code], { type : "text/javascript" })); 
-					configure({ workerScripts: { inflate: [uri], deflate: [uri] } });
-				}
-			};`,
-		format: "esm",
-		plugins: [terser()]
-	}]
+		format: "es"
+	}],
+	plugins: [
+		replace({
+			preventAssignment: true,
+			"__workerCode__": () => fs.readFileSync("lib/z-worker-inline.js").toString()
+		}),
+		terser(bundledTerserOptions)
+	]
 }, {
 	input: ["lib/zip.js"],
 	output: [{
 		file: "dist/zip.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser()]
+		plugins: [terser(bundledTerserOptions)]
 	}, {
 		file: "dist/zip.js",
 		format: "umd",
@@ -46,7 +76,7 @@ export default [{
 		file: "dist/zip-full.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser()]
+		plugins: [terser(bundledTerserOptions)]
 	}, {
 		file: "dist/zip-full.js",
 		format: "umd",
@@ -59,7 +89,7 @@ export default [{
 		file: "dist/zip-no-worker.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser()]
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: [nodeResolve()]
 }, {
@@ -68,7 +98,7 @@ export default [{
 		file: "dist/zip-no-worker-deflate.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser()]
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: [nodeResolve()]
 }, {
@@ -77,7 +107,7 @@ export default [{
 		file: "dist/zip-no-worker-inflate.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser()]
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: [nodeResolve()]
 }, {
@@ -86,7 +116,7 @@ export default [{
 		file: "dist/zip-fs.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser()]
+		plugins: [terser(bundledTerserOptions)]
 	}, {
 		file: "dist/zip-fs.js",
 		format: "umd",
@@ -99,7 +129,7 @@ export default [{
 		file: "dist/zip-fs-full.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser()]
+		plugins: [terser(bundledTerserOptions)]
 	}, {
 		file: "dist/zip-fs-full.js",
 		format: "umd",
@@ -111,7 +141,7 @@ export default [{
 	output: [{
 		file: "dist/z-worker.js",
 		format: "iife",
-		plugins: [terser()]
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: [nodeResolve()]
 }];
