@@ -27,7 +27,5 @@ async function test() {
 			throw error;
 		}
 	}
-	if (!(text == TEXT_CONTENT && firstEntry.uncompressedSize == TEXT_CONTENT.length)) {
-		throw new Error();
-	}
+	return text == TEXT_CONTENT && firstEntry.uncompressedSize == TEXT_CONTENT.length;
 }

@@ -21,14 +21,8 @@ async function test() {
 			const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 			await zipReader.close();
 			zip.terminateWorkers();
-			if (!(TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length)) {
-				throw new Error();
-			}
-		} else {
-			throw new Error();
+			return TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
 		}
-	} else {
-		throw new Error();
 	}
 }
 

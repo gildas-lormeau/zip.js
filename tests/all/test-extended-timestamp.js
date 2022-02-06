@@ -11,14 +11,7 @@ export { test };
 async function test() {
 	const lastModDate = new Date(2021, 0, 1, 0, 0, 1);
 	const testDisabled = await testLastModDate(false, lastModDate);
-	if (!testDisabled) {
-		const testEnabled = await testLastModDate(true, lastModDate);
-		if (!testEnabled) {
-			throw new Error();
-		}
-	} else {
-		throw new Error();
-	}
+	return !testDisabled && (await testLastModDate(true, lastModDate));
 }
 
 async function testLastModDate(extendedTimestamp, lastModDate) {

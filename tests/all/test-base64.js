@@ -18,7 +18,5 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new zip.Data64URIWriter("text/plain"));
 	await zipReader.close();
-	if (!(data == DATA_URI && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length)) {
-		throw new Error();
-	}
+	return data == DATA_URI && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
 }

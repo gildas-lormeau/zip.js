@@ -22,9 +22,7 @@ async function test() {
 		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
 		return compareResult(blob, indexEntry);
 	}));
-	if (results.includes(false)) {
-		throw new Error();
-	}
+	return !results.includes(false);
 }
 
 function compareResult(result, index) {

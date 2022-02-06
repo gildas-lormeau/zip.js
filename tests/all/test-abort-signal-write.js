@@ -8,25 +8,22 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 
 export { test };
 
-function test() {
-	// eslint-disable-next-line no-async-promise-executor
-	return new Promise(async (resolve, reject) => {
-		try {
-			zip.configure({ chunkSize: 128 });
-			const blobWriter = new zip.BlobWriter("application/zip");
-			const zipWriter = new zip.ZipWriter(blobWriter);
-			const controller = new AbortController();
-			const signal = controller.signal;
-			const promiseFileEntry = zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { signal });
-			controller.abort();
-			await zipWriter.close();
-			await promiseFileEntry;
-		} catch (error) {
-			if (error.message == zip.ERR_ABORT) {
-				resolve();
-			} else {
-				reject(error);
-			}
+async function test() {
+	try {
+		zip.configure({ chunkSize: 128 });
+		const blobWriter = new zip.BlobWriter("application/zip");
+		const zipWriter = new zip.ZipWriter(blobWriter);
+		const controller = new AbortController();
+		const signal = controller.signal;
+		const promiseFileEntry = zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { signal });
+		controller.abort();
+		await zipWriter.close();
+		await promiseFileEntry;
+	} catch (error) {
+		if (error.message == zip.ERR_ABORT) {
+			return true;
+		} else {
+			throw error;
 		}
-	});
+	}
 }

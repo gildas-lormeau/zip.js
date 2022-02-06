@@ -15,7 +15,5 @@ async function test() {
 	await zipFs.importBlob(blob);
 	const firstEntry = zipFs.children[0];
 	const text = await firstEntry.getText("text/plain");
-	if (!(text == TEXT_CONTENT && firstEntry.name == FILENAME && firstEntry.uncompressedSize == TEXT_CONTENT.length)) {
-		throw new Error();
-	}
+	return text == TEXT_CONTENT && firstEntry.name == FILENAME && firstEntry.uncompressedSize == TEXT_CONTENT.length;
 }

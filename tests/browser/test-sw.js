@@ -8,7 +8,6 @@ async function test() {
 	if (!location.search) {
 		await registerServiceWorker();
 		location.search = "?service-worker-registered";
-		throw new Error("pending test");
 	} else if (location.search == "?service-worker-registered") {
 		let result;
 		try {
@@ -21,13 +20,13 @@ async function test() {
 		}
 		if (TEXT_CONTENT == result) {
 			location.search = "?test-ok";
-			throw new Error("pending test");
 		} else {
 			resetSearch();
 			throw new Error();
 		}
 	} else if (location.search == "?test-ok") {
 		resetSearch();
+		return true;
 	}
 }
 

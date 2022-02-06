@@ -33,9 +33,7 @@ async function test() {
 		throw new Error();
 	}
 	await zipReader.close();
-	if (!(TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length)) {
-		throw new Error();
-	}
+	return TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
 }
 
 async function getBlobText(blob) {
