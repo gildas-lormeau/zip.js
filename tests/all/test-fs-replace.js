@@ -1,7 +1,9 @@
+/* global URL */
+
 import * as zip from "../../index.js";
 
 const NEW_TEXT_CONTENT = "This is not the same text";
-const url = "../data/lorem.zip";
+const url = new URL("./../data/lorem.zip", import.meta.url).href;
 
 export { test };
 
@@ -9,7 +11,7 @@ async function test() {
 	zip.configure({ chunkSize: 128 });
 	let zipFs = new zip.fs.FS();
 	let directory = zipFs.addDirectory("import");
-	await directory.importHttpContent(url);
+	await directory.importHttpContent(url, { preventHeadRequest: true });
 	let firstEntry = directory.children[0];
 	firstEntry.replaceText(NEW_TEXT_CONTENT);
 	const blob = await zipFs.exportBlob();
