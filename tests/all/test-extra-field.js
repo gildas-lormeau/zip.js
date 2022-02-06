@@ -1,38 +1,37 @@
-/* eslint-disable no-console */
+/* global Blob, FileReader */
 
-import Worker from "web-worker";
-import { Blob } from "blob-polyfill";
-globalThis.Blob = Blob;
-globalThis.Worker = Worker;
+"use strict";
 
-const { BlobWriter, BlobReader, ZipWriter, ZipReader, terminateWorkers } = await import("../../index.js"); // the import is async to make sure globalThis.Blob is defined
+import * as zip from "../../index.js";
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam; est usus legentis in iis qui facit eorum claritatem. Investigationes demonstraverunt lectores legere me lius quod ii legunt saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium lectorum. Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.";
 const FILENAME = "lorem.txt";
-const TEXT_PLAIN_MIMETYPE = "text/plain";
-const BLOB = new Blob([TEXT_CONTENT], { type: TEXT_PLAIN_MIMETYPE });
+const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 
 export { test };
 
 async function test() {
-	const blobWriter = new BlobWriter("application/zip");
-	const zipWriter = new ZipWriter(blobWriter);
-	const entry = await zipWriter.add(FILENAME, new BlobReader(BLOB));
-	if (entry.compressionMethod == 0x08) {
-		await zipWriter.close();
-		const zipReader = new ZipReader(new BlobReader(blobWriter.getData()));
-		const entries = await zipReader.getEntries();
-		if (entries[0].compressionMethod == 0x08) {
-			const data = await entries[0].getData(new BlobWriter(TEXT_PLAIN_MIMETYPE));
-			await zipReader.close();
-			terminateWorkers();
-			if (TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
-				console.log("ok");
-			}
-		}
+	zip.configure({ chunkSize: 128 });
+	const blobWriter = new zip.BlobWriter("application/zip");
+	const extraFieldvalue = [[42, new Uint8Array(42)], [43, new Uint8Array(43)], [44, new Uint8Array(44)]];
+	const extraField = new Map(extraFieldvalue);
+	const zipWriter = new zip.ZipWriter(blobWriter);
+	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { extraField });
+	await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
+	const entries = await zipReader.getEntries();
+	const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
+	await zipReader.close();
+	if (!(TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length && entries[0].extraField.get(42).data.length == 42)) {
+		throw new Error();
 	}
 }
 
 async function getBlobText(blob) {
-	return blob.text();
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = event => resolve(event.target.result);
+		reader.onerror = () => reject(reader.error);
+		reader.readAsText(blob);
+	});
 }
