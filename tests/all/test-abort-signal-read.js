@@ -9,19 +9,19 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 export { test };
 
 async function test() {
+	zip.configure({ chunkSize: 128 });
+	const blobWriter = new zip.BlobWriter("application/zip");
+	const zipWriter = new zip.ZipWriter(blobWriter);
+	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
+	await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
+	const entries = await zipReader.getEntries();
+	const controller = new AbortController();
+	const signal = controller.signal;
+	const promiseData = entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { signal });
+	controller.abort();
+	await zipReader.close();
 	try {
-		zip.configure({ chunkSize: 128 });
-		const blobWriter = new zip.BlobWriter("application/zip");
-		const zipWriter = new zip.ZipWriter(blobWriter);
-		await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
-		await zipWriter.close();
-		const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
-		const entries = await zipReader.getEntries();
-		const controller = new AbortController();
-		const signal = controller.signal;
-		const promiseData = entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { signal });
-		controller.abort();
-		await zipReader.close();
 		await promiseData;
 	} catch (error) {
 		if (error.message == zip.ERR_ABORT) {
