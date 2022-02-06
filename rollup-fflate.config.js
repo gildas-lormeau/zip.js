@@ -28,11 +28,6 @@ const inlineTerserOptions = {
 		keep_fargs: false,
 		passes: 3,
 		ecma: "2020"
-	},
-	mangle: {
-		properties: {
-			reserved: ["codecType", "config", "salt", "iterations", "keys", "password", "encryptionStrength", "encrypted", "signed", "compressed", "level", "zipCrypto", "passwordVerification"]
-		}
 	}
 };
 
