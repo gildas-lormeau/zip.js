@@ -12,7 +12,6 @@ test().catch(function (error) {
 });
 
 function test() {
-	document.body.innerHTML = "...";
 	zip.configure({ chunkSize: 128 });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
