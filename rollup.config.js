@@ -30,7 +30,7 @@ const inlineTerserOptions = {
 	},
 	mangle: {
 		properties: {
-			reserved: ["codecType", "config", "salt", "iterations", "keys", "password", "encryptionStrength", "encrypted", "signed", "compressed", "level", "zipCrypto", "passwordVerification"],
+			reserved: ["codecType", "config", "salt", "iterations", "keys", "password", "encryptionStrength", "encrypted", "signed", "compressed", "level", "zipCrypto", "passwordVerification"]
 		}
 	}
 };
