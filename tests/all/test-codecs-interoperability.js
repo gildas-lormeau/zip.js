@@ -1,7 +1,5 @@
 /* global Blob, FileReader */
 
-"use strict";
-
 import * as zip from "../../index.js";
 
 const FILENAME = "lorem.txt";

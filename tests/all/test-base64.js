@@ -1,7 +1,4 @@
-/* eslint-disable no-console */
 /* global btoa */
-
-"use strict";
 
 import * as zip from "../../index.js";
 

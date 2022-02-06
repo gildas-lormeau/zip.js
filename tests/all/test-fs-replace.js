@@ -1,5 +1,3 @@
-"use strict";
-
 import * as zip from "../../index.js";
 
 const NEW_TEXT_CONTENT = "This is not the same text";

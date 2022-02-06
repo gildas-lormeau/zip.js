@@ -1,7 +1,5 @@
 /* global pako, Blob, FileReader */
 
-"use strict";
-
 import "../vendor/pako.min.js";
 import * as zip from "../../index.js";
 

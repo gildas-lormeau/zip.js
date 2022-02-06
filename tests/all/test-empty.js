@@ -1,5 +1,3 @@
-"use strict";
-
 import * as zip from "../../index.js";
 
 export { test };

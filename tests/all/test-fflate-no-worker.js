@@ -1,7 +1,5 @@
 /* global fflate, Blob, FileReader */
 
-"use strict";
-
 import "../vendor/fflate.min.js";
 import * as zip from "../../index.js";
 

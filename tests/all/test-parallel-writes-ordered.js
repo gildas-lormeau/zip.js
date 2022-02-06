@@ -2,8 +2,6 @@
 
 import * as zip from "../../index.js";
 
-"use strict";
-
 const KB = 1024;
 const ENTRIES_DATA = [
 	{ name: "entry #1", blob: getBlob(8.5 * KB) }, { name: "entry #2", blob: getBlob(10.2 * KB) }, { name: "entry #3", blob: getBlob(64.7 * KB) },
