@@ -7,7 +7,11 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 const FILENAME = "lorem.txt";
 const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 
-test().catch(function (error) {
+test().then(function (result) {
+	if (result) {
+		document.body.innerHTML = "ok";
+	}
+}).catch(function (error) {
 	console.error(error);
 });
 
@@ -28,8 +32,6 @@ function test() {
 		zipReaderData = textData;
 		return zipReader.close();
 	}).then(function () {
-		if (TEXT_CONTENT == zipReaderData) {
-			document.body.innerHTML = "ok";
-		}
+		return TEXT_CONTENT == zipReaderData;
 	});
 }
