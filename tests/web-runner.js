@@ -12,7 +12,7 @@ tests.forEach(test => {
 	link.textContent = test.title;
 	link.target = test.script;
 	iframe.dataset.script = test.script;
-	link.href = iframe.src = (test.path || "all") + "/loader.html#" + encodeURIComponent(JSON.stringify({ script: test.script }));
+	link.href = iframe.src = (test.env || "all") + "/loader.html#" + encodeURIComponent(JSON.stringify({ script: test.script }));
 	cellTest.appendChild(iframe);
 	cellLink.appendChild(link);
 	row.appendChild(cellLink);

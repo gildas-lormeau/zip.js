@@ -6,8 +6,8 @@ test().catch(error => console.error(error));
 
 async function test() {
 	for (const test of tests) {
-		if (test.path != "browser") {
-			const Module = await import("./" + (test.path || "all") + "/" + test.script);
+		if (test.env != "browser") {
+			const Module = await import("./" + (test.env || "all") + "/" + test.script);
 			const result = await Module.test();
 			console.log(test.title, result ? "ok" : "...");
 		}
