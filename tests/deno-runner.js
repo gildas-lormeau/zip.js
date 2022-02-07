@@ -1,5 +1,7 @@
 /* eslint-disable no-console */
 
+// Install Deno from https://deno.land and run `deno run --allow-read deno-runner.js`
+
 import tests from "./tests-data.js";
 
 test().catch(error => console.error(error));
