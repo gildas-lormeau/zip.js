@@ -4,7 +4,9 @@
 
 import tests from "./tests-data.js";
 
-test().catch(error => console.error(error));
+test()
+	.then(() => console.log("\nok"))
+	.catch(error => console.error(error));
 
 async function test() {
 	for (const test of tests) {
