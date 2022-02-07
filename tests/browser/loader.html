@@ -20,10 +20,10 @@
                 const result = await Module.test();
                 if (result) {
                     document.body.innerHTML = "ok";
-                    parent.postMessage(JSON.stringify({ script }));
+                    parent.postMessage(JSON.stringify({ script }), "*");
                 }
             } catch (error) {
-                parent.postMessage(JSON.stringify({ script, error: { message: error.message, stack: error.stack } }));
+                parent.postMessage(JSON.stringify({ script, error: { message: error.message, stack: error.stack } }), "*");
                 throw error;
             }
         })

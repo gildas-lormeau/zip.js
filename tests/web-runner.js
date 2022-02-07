@@ -1,4 +1,4 @@
-/* global document */
+/* global document, location, addEventListener */
 
 import tests from "./tests-data.js";
 
@@ -11,7 +11,7 @@ tests.forEach(test => {
 	const link = document.createElement("a");
 	link.textContent = test.title;
 	link.target = test.script;
-	iframe.dataset.script = test.script;
+	row.dataset.script = test.script;
 	link.href = iframe.src = (test.env || "all") + "/loader.html#" + encodeURIComponent(JSON.stringify({ script: test.script }));
 	cellTest.appendChild(iframe);
 	cellLink.appendChild(link);
@@ -20,3 +20,14 @@ tests.forEach(test => {
 	table.appendChild(row);
 });
 document.body.appendChild(table);
+if (!location.search.startsWith("?keepTests")) {
+	addEventListener("message", event => {
+		const result = JSON.parse(event.data);
+		if (!result.error) {
+			Array.from(document.querySelectorAll("tr")).find(row => row.dataset.script == result.script).remove();
+		}
+		if (!document.querySelectorAll("tr").length) {
+			document.body.innerHTML = "ok";
+		}
+	}, false);
+}
