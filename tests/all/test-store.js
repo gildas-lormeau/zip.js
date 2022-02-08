@@ -1,4 +1,4 @@
-/* global Blob, FileReader */
+/* global Blob */
 
 import * as zip from "../../index.js";
 
@@ -16,23 +16,14 @@ async function test() {
 	if (entry.compressionMethod === 0x00) {
 		await zipWriter.close();
 		const compressedData = blobWriter.getData();
-		if ((await getBlobText(compressedData)).includes(TEXT_CONTENT)) {
+		if ((await compressedData.text()).includes(TEXT_CONTENT)) {
 			const zipReader = new zip.ZipReader(new zip.BlobReader(compressedData));
 			const entries = await zipReader.getEntries();
 			if (entries[0].compressionMethod === 0x00) {
 				const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 				await zipReader.close();
-				return TEXT_CONTENT == (await getBlobText(data)) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
+				return TEXT_CONTENT == (await data.text()) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
 			}
 		}
 	}
-}
-
-async function getBlobText(blob) {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader();
-		reader.onload = event => resolve(event.target.result);
-		reader.onerror = () => reject(reader.error);
-		reader.readAsText(blob);
-	});
 }
