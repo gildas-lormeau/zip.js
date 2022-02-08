@@ -1,5 +1,7 @@
 /* global document, location, addEventListener */
 
+// Open `index.html` in a browser to run this file
+
 import tests from "./tests-data.js";
 
 const table = document.createElement("table");
