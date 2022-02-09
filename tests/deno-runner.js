@@ -1,19 +1,15 @@
-/* eslint-disable no-console */
+/* global Deno */
 
-// Install Deno from https://deno.land and run `deno run --allow-read deno-runner.js`
+// Install Deno from https://deno.land and run `deno test --allow-read ./deno-runner.js`
 
 import tests from "./tests-data.js";
 
-test()
-	.then(() => console.log("\nok"))
-	.catch(error => console.error(error));
-
-async function test() {
-	for (const test of tests) {
-		if (test.env != "browser") {
-			const Module = await import("./" + (test.env || "all") + "/" + test.script);
-			const result = await Module.test();
-			console.log(test.title, result ? "ok" : "...");
-		}
+for (const test of tests) {
+	if (test.env != "browser") {
+		Deno.test({
+			name: test.title,
+			fn: async () => (await import("./" + (test.env || "all") + "/" + test.script)).test(),
+			sanitizeResources: test.sanitizeResources === undefined || test.sanitizeResources === true
+		});
 	}
 }

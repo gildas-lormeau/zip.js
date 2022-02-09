@@ -17,5 +17,6 @@ async function test() {
 	await zipFs.importData64URI(data);
 	const firstEntry = zipFs.children[0];
 	const dataURI = await firstEntry.getData64URI("text/plain");
+	zip.terminateWorkers();
 	return dataURI == DATA_URI && firstEntry.name == FILENAME && firstEntry.uncompressedSize == TEXT_CONTENT.length;
 }

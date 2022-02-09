@@ -22,6 +22,7 @@ async function test() {
 			if (entries[0].compressionMethod === 0x00) {
 				const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 				await zipReader.close();
+				zip.terminateWorkers();
 				return TEXT_CONTENT == (await data.text()) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
 			}
 		}

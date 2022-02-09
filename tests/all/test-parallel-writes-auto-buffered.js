@@ -42,6 +42,7 @@ async function test() {
 		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
 		return compareResult(blob, ENTRIES_DATA_PASS2.find(otherEntry => otherEntry.name == entry.filename).blob);
 	}));
+	zip.terminateWorkers();
 	return !results.includes(false) && !results2.includes(false);
 }
 

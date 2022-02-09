@@ -18,5 +18,6 @@ async function test() {
 	directory = zipFs.getChildByName("import");
 	const firstEntry = directory.children[0];
 	const text = await firstEntry.getText();
+	zip.terminateWorkers();
 	return text == TEXT_CONTENT && firstEntry.uncompressedSize == TEXT_CONTENT.length;
 }

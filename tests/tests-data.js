@@ -13,7 +13,7 @@ export default ([
 	{ title: "Extended timestamp", script: "./test-extended-timestamp.js" },
 	{ title: "Extra field", script: "./test-extra-field.js" },
 	{ title: "Fflate", script: "./test-fflate.js", env: "browser" },
-	{ title: "Fflate (no worker)", script: "./test-fflate-no-worker.js" },
+	{ title: "Fflate (no worker)", script: "./test-fflate-no-worker.js", sanitizeResources: false },
 	{ title: "Filesystem base 64", script: "./test-fs-base64.js" },
 	{ title: "Filesystem export", script: "./test-fs-export-options.js" },
 	{ title: "Filesystem HTTP import", script: "./test-fs-http-import.js" },

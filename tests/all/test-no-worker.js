@@ -18,5 +18,6 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 	await zipReader.close();
+	zip.terminateWorkers();
 	return TEXT_CONTENT == (await data.text()) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
 }

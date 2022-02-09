@@ -27,5 +27,6 @@ async function test() {
 			throw error;
 		}
 	}
+	zip.terminateWorkers();
 	return text == TEXT_CONTENT && firstEntry.uncompressedSize == TEXT_CONTENT.length;
 }
