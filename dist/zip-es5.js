@@ -9291,6 +9291,9 @@
 	      } catch (e) {
 	        return Promise.reject(e);
 	      }
+	    },
+	    abort: function abort() {
+	      workerData.onTaskFinished();
 	    }
 	  };
 	}
@@ -9344,6 +9347,9 @@
 	        return initAndSendMessage({
 	          type: MESSAGE_FLUSH
 	        });
+	      },
+	      abort: function abort() {
+	        workerData.onTaskFinished();
 	      }
 	    };
 	  }
@@ -9614,7 +9620,7 @@
 
 	function testAborted(signal, codec) {
 	  if (signal && signal.aborted) {
-	    codec.flush();
+	    codec.abort();
 	    throw new Error(ERR_ABORT);
 	  }
 	}

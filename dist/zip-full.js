@@ -5810,6 +5810,9 @@
 				} finally {
 					workerData.onTaskFinished();
 				}
+			},
+			abort() {
+				workerData.onTaskFinished();
 			}
 		};
 	}
@@ -5835,6 +5838,9 @@
 				},
 				flush() {
 					return initAndSendMessage({ type: MESSAGE_FLUSH });
+				},
+				abort() {
+					workerData.onTaskFinished();
 				}
 			};
 		}
@@ -6050,7 +6056,7 @@
 
 	function testAborted(signal, codec) {
 		if (signal && signal.aborted) {
-			codec.flush();
+			codec.abort();
 			throw new Error(ERR_ABORT);
 		}
 	}
