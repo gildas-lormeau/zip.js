@@ -13,12 +13,9 @@ const BLOB = new Blob([TEXT_CONTENT], { type: TEXT_PLAIN_MIMETYPE });
 
 // the import is async to make sure globalThis.Blob is defined
 import("../../index.js")
-	.then(zip => test(zip))
-	.then(result => {
-		if (result) {
-			console.error("ok");
-		}
-	}).catch(error => console.error(error));
+	.then(test)
+	.then(result => result && console.error("ok"))
+	.catch(error => console.error(error));
 
 async function test({ BlobWriter, BlobReader, ZipWriter, ZipReader, terminateWorkers }) {
 	const blobWriter = new BlobWriter("application/zip");
