@@ -17,7 +17,7 @@ import("../../index.js")
 	.then(result => result && console.log("ok"))
 	.catch(error => console.error(error));
 
-async function test({ BlobWriter, BlobReader, ZipWriter, ZipReader, terminateWorkers }) {
+async function test({ BlobWriter, BlobReader, TextWriter, ZipWriter, ZipReader, terminateWorkers }) {
 	const blobWriter = new BlobWriter("application/zip");
 	const zipWriter = new ZipWriter(blobWriter);
 	const entry = await zipWriter.add(FILENAME, new BlobReader(BLOB));
@@ -26,10 +26,10 @@ async function test({ BlobWriter, BlobReader, ZipWriter, ZipReader, terminateWor
 		const zipReader = new ZipReader(new BlobReader(blobWriter.getData()));
 		const entries = await zipReader.getEntries();
 		if (entries[0].compressionMethod == 0x08) {
-			const data = await entries[0].getData(new BlobWriter(TEXT_PLAIN_MIMETYPE));
+			const data = await entries[0].getData(new TextWriter());
 			await zipReader.close();
 			terminateWorkers();
-			return TEXT_CONTENT == (await data.text()) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
+			return TEXT_CONTENT == data && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
 		}
 	}
 } 
