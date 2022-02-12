@@ -14,7 +14,7 @@ const BLOB = new Blob([TEXT_CONTENT], { type: TEXT_PLAIN_MIMETYPE });
 // the import is async to make sure globalThis.Blob is defined
 import("../../index.js")
 	.then(test)
-	.then(result => result && console.error("ok"))
+	.then(result => result && console.log("ok"))
 	.catch(error => console.error(error));
 
 async function test({ BlobWriter, BlobReader, ZipWriter, ZipReader, terminateWorkers }) {
