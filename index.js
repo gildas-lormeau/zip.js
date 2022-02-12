@@ -26,8 +26,6 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-"use strict";
-
 import Deflate from "./lib/core/codecs/deflate.js";
 import Inflate from "./lib/core/codecs/inflate.js";
 import { configure } from "./lib/core/configuration.js";

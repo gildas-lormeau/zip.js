@@ -26,8 +26,6 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-"use strict";
-
 import { Deflate, Inflate } from "./lib/zip-fflate-shim.js";
 import { configure } from "./lib/core/configuration.js";
 import getMimeType from "./lib/core/util/mime-type.js";
