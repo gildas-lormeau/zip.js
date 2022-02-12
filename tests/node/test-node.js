@@ -29,9 +29,7 @@ async function test({ BlobWriter, BlobReader, ZipWriter, ZipReader, terminateWor
 			const data = await entries[0].getData(new BlobWriter(TEXT_PLAIN_MIMETYPE));
 			await zipReader.close();
 			terminateWorkers();
-			if (TEXT_CONTENT == (await data.text()) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length) {
-				console.log("ok");
-			}
+			return TEXT_CONTENT == (await data.text()) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
 		}
 	}
 } 
