@@ -12,7 +12,13 @@ const FILENAME = "lorem.txt";
 const TEXT_PLAIN_MIMETYPE = "text/plain";
 const BLOB = new Blob([TEXT_CONTENT], { type: TEXT_PLAIN_MIMETYPE });
 
-export { test };
+test().then(function (result) {
+	if (result) {
+		console.error("ok");
+	}
+}).catch(function (error) {
+	console.error(error);
+});
 
 async function test() {
 	const blobWriter = new BlobWriter("application/zip");
