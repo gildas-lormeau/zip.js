@@ -22,7 +22,8 @@
         "deno"
     ],
     "scripts": {
-        "build": "./build.sh"
+        "build": "./build.sh",
+        "tests": "cd ./tests && \"./run-tests.sh\""
     },
     "main": "index.js",
     "types": "index.d.ts",
