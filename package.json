@@ -23,7 +23,7 @@
     ],
     "scripts": {
         "build": "./build.sh",
-        "tests": "cd ./tests && \"./run-tests.sh\""
+        "test": "cd ./tests && \"./run-tests.sh\""
     },
     "main": "index.js",
     "types": "index.d.ts",
