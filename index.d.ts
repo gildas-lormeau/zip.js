@@ -98,6 +98,11 @@ declare module "@zip.js/zip.js" {
         public getData(): Uint8Array;
     }
 
+    export class WritableStreamWriter extends Writer {
+        constructor(writableStream: WritableStream<Uint8Array>);
+        public getData(): Promise<WritableStream<Uint8Array>>;
+    }
+
     export class ZipReader {
         constructor(reader: Reader, options?: ZipReaderConstructorOptions);
         getEntries(options?: ZipReaderGetEntriesOptions): Promise<Entry[]>;
