@@ -9,7 +9,6 @@ const bundledTerserOptions = {
 	compress: {
 		unsafe: true,
 		unsafe_comps: true,
-		unsafe_math: true,
 		unsafe_symbols: true,
 		unsafe_proto: true,
 		keep_fargs: false,

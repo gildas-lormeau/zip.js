@@ -7,7 +7,6 @@ const bundledTerserOptions = {
 		unsafe: true,
 		unsafe_arrows: true,
 		unsafe_comps: true,
-		unsafe_math: true,
 		unsafe_symbols: true,
 		unsafe_proto: true,
 		keep_fargs: false,
