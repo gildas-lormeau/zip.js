@@ -3924,8 +3924,20 @@
 	  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
 	}
 
+	function _toConsumableArray(arr) {
+	  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+	}
+
+	function _arrayWithoutHoles(arr) {
+	  if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+	}
+
 	function _arrayWithHoles(arr) {
 	  if (Array.isArray(arr)) return arr;
+	}
+
+	function _iterableToArray(iter) {
+	  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
 	}
 
 	function _iterableToArrayLimit(arr, i) {
@@ -3973,6 +3985,10 @@
 	  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
 
 	  return arr2;
+	}
+
+	function _nonIterableSpread() {
+	  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 	}
 
 	function _nonIterableRest() {
@@ -7705,7 +7721,12 @@
 
 	setSpecies$1(ARRAY_BUFFER);
 
-	// Derived from https://github.com/xqdoo00o/jszip/blob/master/lib/sjcl.js
+	// Derived from https://github.com/xqdoo00o/jszip/blob/master/lib/sjcl.js and https://github.com/bitwiseshiftleft/sjcl
+
+	/*
+	 * SJCL is open. You can use, modify and redistribute it under a BSD
+	 * license or under the GNU GPL, version 2.0.
+	 */
 
 	/** @fileOverview Javascript cryptography implementation.
 	 *
@@ -11733,7 +11754,8 @@
 
 	    _this19 = _super8.call(this);
 	    _this19.contentType = contentType;
-	    _this19.arrayBuffers = [];
+	    _this19.arrayBuffersMaxlength = 8;
+	    initArrayBuffers(_assertThisInitialized(_this19));
 	    return _this19;
 	  }
 
@@ -11744,6 +11766,10 @@
 	        var _this21 = this;
 
 	        _get(_getPrototypeOf(BlobWriter.prototype), "writeUint8Array", _this21).call(_this21, array);
+
+	        if (_this21.arrayBuffers.length == _this21.arrayBuffersMaxlength) {
+	          flushArrayBuffers(_this21);
+	        }
 
 	        _this21.arrayBuffers.push(array.buffer);
 
@@ -11756,9 +11782,12 @@
 	    key: "getData",
 	    value: function getData() {
 	      if (!this.blob) {
-	        this.blob = new Blob(this.arrayBuffers, {
-	          type: this.contentType
-	        });
+	        if (this.arrayBuffers.length) {
+	          flushArrayBuffers(this);
+	        }
+
+	        this.blob = this.pendingBlob;
+	        initArrayBuffers(this);
 	      }
 
 	      return this.blob;
@@ -11767,6 +11796,20 @@
 
 	  return BlobWriter;
 	}(Writer);
+
+	function initArrayBuffers(blobWriter) {
+	  blobWriter.pendingBlob = new Blob([], {
+	    type: blobWriter.contentType
+	  });
+	  blobWriter.arrayBuffers = [];
+	}
+
+	function flushArrayBuffers(blobWriter) {
+	  blobWriter.pendingBlob = new Blob([blobWriter.pendingBlob].concat(_toConsumableArray(blobWriter.arrayBuffers)), {
+	    type: blobWriter.contentType
+	  });
+	  blobWriter.arrayBuffers = [];
+	}
 
 	var WritableStreamWriter = /*#__PURE__*/function (_Writer4) {
 	  _inherits(WritableStreamWriter, _Writer4);

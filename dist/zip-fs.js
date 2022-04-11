@@ -303,7 +303,12 @@
 		}
 	}
 
-	// Derived from https://github.com/xqdoo00o/jszip/blob/master/lib/sjcl.js
+	// Derived from https://github.com/xqdoo00o/jszip/blob/master/lib/sjcl.js and https://github.com/bitwiseshiftleft/sjcl
+
+	/*
+	 * SJCL is open. You can use, modify and redistribute it under a BSD
+	 * license or under the GNU GPL, version 2.0.
+	 */
 
 	/** @fileOverview Javascript cryptography implementation.
 	 *
@@ -2123,20 +2128,38 @@
 		constructor(contentType) {
 			super();
 			this.contentType = contentType;
-			this.arrayBuffers = [];
+			this.arrayBuffersMaxlength = 8;
+			initArrayBuffers(this);
 		}
 
 		async writeUint8Array(array) {
 			super.writeUint8Array(array);
+			if (this.arrayBuffers.length == this.arrayBuffersMaxlength) {
+				flushArrayBuffers(this);
+			}
 			this.arrayBuffers.push(array.buffer);
 		}
 
 		getData() {
 			if (!this.blob) {
-				this.blob = new Blob(this.arrayBuffers, { type: this.contentType });
+				if (this.arrayBuffers.length) {
+					flushArrayBuffers(this);
+				}
+				this.blob = this.pendingBlob;
+				initArrayBuffers(this);
 			}
 			return this.blob;
 		}
+	}
+
+	function initArrayBuffers(blobWriter) {
+		blobWriter.pendingBlob = new Blob([], { type: blobWriter.contentType });
+		blobWriter.arrayBuffers = [];
+	}
+
+	function flushArrayBuffers(blobWriter) {
+		blobWriter.pendingBlob = new Blob([blobWriter.pendingBlob, ...blobWriter.arrayBuffers], { type: blobWriter.contentType });
+		blobWriter.arrayBuffers = [];
 	}
 
 	class WritableStreamWriter extends Writer {
