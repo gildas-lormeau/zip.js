@@ -208,7 +208,12 @@ declare module "@zip.js/zip.js" {
         onprogress?: (progress: number, total: number, entry: Entry) => void;
     }
 
-    export interface ZipEntry {
+    interface ZipEntryConstructorParams {
+        data: Entry;
+    }
+
+    export class ZipEntry {
+        constructor(fs: FS, name: string, params: ZipEntryConstructorParams, parent: ZipDirectoryEntry);
         name: string;
         data?: Entry;
         id: number;
@@ -220,7 +225,14 @@ declare module "@zip.js/zip.js" {
         isDescendantOf(ancestor: ZipDirectoryEntry): boolean;
     }
 
-    export interface ZipFileEntry extends ZipEntry {
+    interface ZipFileEntryConstructorParams extends ZipEntryConstructorParams {
+        reader: Reader;
+        writer: Writer;
+        getData?(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
+    }
+
+    export class ZipFileEntry extends ZipEntry {
+        constructor(fs: FS, name: string, params: ZipFileEntryConstructorParams, parent: ZipDirectoryEntry);
         reader: Reader;
         writer: Writer;
         getText(encoding?: string, options?: EntryGetDataOptions): Promise<string>;
@@ -238,7 +250,8 @@ declare module "@zip.js/zip.js" {
         relativePath?: boolean;
     }
 
-    export interface ZipDirectoryEntry extends ZipEntry {
+    export class ZipDirectoryEntry extends ZipEntry {
+        constructor(fs: FS, name: string, params: ZipEntryConstructorParams, parent: ZipDirectoryEntry);
         getChildByName(name: string): ZipEntry;
         addDirectory(name: string): ZipDirectoryEntry;
         addText(name: string, text: string): ZipFileEntry;
@@ -260,7 +273,8 @@ declare module "@zip.js/zip.js" {
 
     type ZipDirectoryEntryExportOptions = EntryDataOnprogressOption & ExportOptions & ZipWriterConstructorOptions;
 
-    export interface FS extends ZipDirectoryEntry {
+    export class FS extends ZipDirectoryEntry {
+        constructor();
         root: ZipDirectoryEntry;
         remove(entry: ZipEntry): void;
         move(entry: ZipEntry, destination: ZipDirectoryEntry): void;
@@ -268,7 +282,7 @@ declare module "@zip.js/zip.js" {
         getById(id: number): ZipEntry;
     }
 
-    export const fs: { FS: FS, ZipDirectoryEntry: ZipDirectoryEntry, ZipFileEntry: ZipFileEntry };
+    export const fs: { FS: typeof FS, ZipDirectoryEntry: typeof ZipDirectoryEntry, ZipFileEntry: typeof ZipFileEntry };
     export const ERR_HTTP_RANGE: string;
     export const ERR_BAD_FORMAT: string;
     export const ERR_EOCDR_NOT_FOUND: string;
