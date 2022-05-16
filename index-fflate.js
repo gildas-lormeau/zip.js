@@ -28,7 +28,7 @@
 
 import { Deflate, Inflate } from "./lib/zip-fflate-shim.js";
 import { configure } from "./lib/core/configuration.js";
-import getMimeType from "./lib/core/util/mime-type.js";
+import { getMimeType } from "./lib/core/util/mime-type.js";
 import { terminateWorkers } from "./lib/core/codecs/codec-pool.js";
 
 configure({ Deflate, Inflate });
