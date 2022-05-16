@@ -8936,6 +8936,11 @@
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
    EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    */
+
+  function getMimeType$1() {
+    return "application/octet-stream";
+  }
+
   var table$1 = {
     "application": {
       "andrew-inset": "ez",
@@ -9909,8 +9914,7 @@
   }();
 
   function getMimeType(filename) {
-    var defaultValue = "application/octet-stream";
-    return filename && mimeTypes[filename.split(".").pop().toLowerCase()] || defaultValue;
+    return filename && mimeTypes[filename.split(".").pop().toLowerCase()] || getMimeType$1();
   }
 
   var $$i = _export;
