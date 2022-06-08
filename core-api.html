@@ -454,6 +454,33 @@
 			<dt><code>Promise</code></dt>
 			<dd>A promise with the Array of <code><a href="#zip-entry">Entry</a></code> objects as resolved value</dd>
 		</dl>
+		<pre><code class="prettyprint">zip.ZipReader#getEntriesGenerator([options])</code></pre>
+		<p>
+			Get all entries from a zip via an asynchronous generator.
+		</p>
+		<p>Parameters:</p>
+		<dl>
+			<dt><code>options (Object)</code></dt>
+			<dd>Optional properties:
+				<dl>
+					<dt><code>onprogress (Function)</code></dt>
+					<dd>function tracking the task progress and having as parameters an <code>index (number)</code>
+						value, a <code>max (number)</code> value (<code>undefined</code> by default) and the file entry
+					</dd>
+					<dt><code>filenameEncoding (string)</code></dt>
+					<dd>encoding of filenames stored in another encoding than UTF-8 (<code>cp437</code> by
+						default)</dd>
+					<dt><code>commentEncoding (string)</code></dt>
+					<dd>encoding of comments stored in another encoding than UTF-8 (<code>cp437</code> by
+						default)</dd>
+				</dl>
+			</dd>
+		</dl>
+		<p>Returns:</p>
+		<dl>
+			<dt><code>Generator</code></dt>
+			<dd>An asynchronous generator iterating on <code><a href="#zip-entry">Entry</a></code> objects</dd>
+		</dl>
 		<br>
 		<pre><code class="prettyprint">zip.ZipReader#close()</code></pre>
 		<p>
