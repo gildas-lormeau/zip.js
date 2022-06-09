@@ -106,7 +106,7 @@ declare module "@zip.js/zip.js" {
     export class ZipReader {
         constructor(reader: Reader, options?: ZipReaderConstructorOptions);
         getEntries(options?: ZipReaderGetEntriesOptions): Promise<Entry[]>;
-        *getEntriesGenerator(options?: ZipReaderGetEntriesOptions): AsyncGenerator<Entry, boolean>;
+        getEntriesGenerator(options?: ZipReaderGetEntriesOptions): AsyncGenerator<Entry, boolean>;
         close(): Promise<any>;
     }
 
