@@ -1,9 +1,5 @@
 export function configure(configuration: ConfigurationOptions): void;
 
-global {
-    interface FileSystemEntry { }
-}
-
 interface ConfigurationOptions {
     useWebWorkers?: boolean;
     maxWorkers?: number;
