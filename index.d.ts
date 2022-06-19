@@ -1,5 +1,10 @@
 export function configure(configuration: ConfigurationOptions): void;
 
+declare global {
+    // deno-lint-ignore no-empty-interface
+    interface FileSystemEntry { }
+}
+
 interface ConfigurationOptions {
     useWebWorkers?: boolean;
     maxWorkers?: number;
