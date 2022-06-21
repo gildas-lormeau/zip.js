@@ -18,9 +18,29 @@ interface ConfigurationOptions {
     Inflate?: Codec;
 }
 
-export function initShimAsyncCodec(constructor: object, constructorOptions?: any): { Deflate: Codec, Inflate: Codec };
+export function initShimAsyncCodec(library: ZipLibrary, constructorOptions?: ConstructorOptions): { Deflate: Codec, Inflate: Codec };
 
 export function terminateWorkers(): void;
+
+interface ZipLibrary {
+    Deflate: ZipDeflate,
+    Inflate: ZipInflate
+}
+
+interface ZipDeflate {
+    append(): Uint8Array,
+    flush(): Uint8Array
+}
+
+interface ZipInflate {
+    append(): Uint8Array,
+    flush(): void
+}
+
+interface ConstructorOptions {
+    chunkSize?: number,
+    level?: number
+}
 
 export interface Codec {
     append(data: Uint8Array): Promise<Uint8Array>;
@@ -70,7 +90,7 @@ interface HttpOptions extends HttpRangeOptions {
 interface HttpRangeOptions {
     forceRangeRequests?: boolean;
     useXHR?: boolean;
-    headers?: Iterable<[string, string]> | Object;
+    headers?: Iterable<[string, string]> | Map<string, string>;
 }
 
 export class Writer extends Stream {
@@ -106,6 +126,7 @@ export class ZipReader {
     constructor(reader: Reader, options?: ZipReaderConstructorOptions);
     getEntries(options?: ZipReaderGetEntriesOptions): Promise<Entry[]>;
     getEntriesGenerator(options?: ZipReaderGetEntriesOptions): AsyncGenerator<Entry, boolean>;
+    // deno-lint-ignore no-explicit-any
     close(): Promise<any>;
 }
 
@@ -152,6 +173,7 @@ export interface Entry {
     msDosCompatible: boolean;
     internalFileAttribute: number;
     externalFileAttribute: number;
+    // deno-lint-ignore no-explicit-any
     getData?(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
 }
 
@@ -161,6 +183,7 @@ export class ZipWriter {
     readonly hasCorruptedEntries?: boolean;
     constructor(writer: Writer, options?: ZipWriterConstructorOptions);
     public add(name: string, reader: Reader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
+    // deno-lint-ignore no-explicit-any
     public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<any>;
 }
 
@@ -228,6 +251,7 @@ export class ZipEntry {
 interface ZipFileEntryConstructorParams extends ZipEntryConstructorParams {
     reader: Reader;
     writer: Writer;
+    // deno-lint-ignore no-explicit-any
     getData?(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
 }
 
@@ -239,10 +263,11 @@ export class ZipFileEntry extends ZipEntry {
     getBlob(mimeType?: string, options?: EntryGetDataOptions): Promise<Blob>;
     getData64URI(mimeType?: string, options?: EntryGetDataOptions): Promise<string>;
     getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
+    // deno-lint-ignore no-explicit-any
     getData(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
     replaceBlob(blob: Blob): void;
-    replaceText(text: String): void;
-    replaceData64URI(dataURI: String): void;
+    replaceText(text: string): void;
+    replaceData64URI(dataURI: string): void;
     replaceUint8Array(array: Uint8Array): void;
 }
 
