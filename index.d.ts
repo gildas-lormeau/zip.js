@@ -23,8 +23,8 @@ export function initShimAsyncCodec(library: ZipLibrary, constructorOptions?: Con
 export function terminateWorkers(): void;
 
 interface ZipLibrary {
-    Deflate: ZipDeflate,
-    Inflate: ZipInflate
+    Deflate: ZipDeflate["constructor"],
+    Inflate: ZipInflate["constructor"]
 }
 
 interface ZipDeflate {
