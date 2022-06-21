@@ -10,12 +10,12 @@ class BinaryStringReader extends zip.Reader {
 		this.binaryString = binaryString;
 	}
 
-	async init() {
+	init() {
 		super.init();
 		this.size = this.binaryString.length;
 	}
 
-	async readUint8Array(offset, length) {
+	readUint8Array(offset, length) {
 		const result = new Uint8Array(length);
 		for (let indexCharacter = 0; indexCharacter < length; indexCharacter++) {
 			result[indexCharacter] = this.binaryString.charCodeAt(indexCharacter + offset) & 0xFF;
@@ -31,7 +31,7 @@ class BinaryStringWriter extends zip.Writer {
 		this.binaryString = "";
 	}
 
-	async writeUint8Array(array) {
+	writeUint8Array(array) {
 		super.writeUint8Array(array);
 		for (let indexCharacter = 0; indexCharacter < array.length; indexCharacter++) {
 			this.binaryString += String.fromCharCode(array[indexCharacter]);

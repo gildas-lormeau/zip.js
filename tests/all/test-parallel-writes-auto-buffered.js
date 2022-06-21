@@ -20,7 +20,7 @@ async function test() {
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await Promise.all(ENTRIES_DATA.map(entryData => zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob), { level: Math.random() > .5 ? 5 : 0 })));
-	await Promise.all(ENTRIES_DATA_PASS2.map(async (entryData, indexEntry) =>
+	await Promise.all(ENTRIES_DATA_PASS2.map((entryData, indexEntry) =>
 		new Promise((resolve, reject) => {
 			setTimeout(async () => {
 				try {

@@ -11,7 +11,7 @@ export { test };
 async function test() {
 	zip.configure({ useWebWorkers: false });
 	const blobWriter = new zip.BlobWriter("application/zip");
-	let zipWriter = new zip.ZipWriter(blobWriter);
+	const zipWriter = new zip.ZipWriter(blobWriter);
 	const entry = await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { level: 0 });
 	if (entry.compressionMethod === 0x00) {
 		await zipWriter.close();

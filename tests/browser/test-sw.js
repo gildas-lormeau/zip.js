@@ -14,7 +14,7 @@ async function test() {
 			const response = await fetch("../data/lorem.zip#lorem.txt");
 			result = await response.text();
 			await unregisterServiceWorker();
-		} catch (error) {
+		} catch (_error) {
 			resetSearch();
 			throw new Error();
 		}

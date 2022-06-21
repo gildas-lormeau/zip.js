@@ -18,7 +18,7 @@ async function test() {
 		const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
 		const entries = await zipReader.getEntries();
 		if (entries[0].compressionMethod == 0x08) {
-			let data = new Uint8Array(entries[0].uncompressedSize);
+			const data = new Uint8Array(entries[0].uncompressedSize);
 			let dataOffset = 0;
 			await entries[0].getData(new zip.WritableStreamWriter(new WritableStream({
 				write(chunk) {

@@ -4,7 +4,7 @@
 
 importScripts("./../../dist/zip-full.js");
 zip.configure({ useWebWorkers: false });
-self.addEventListener("fetch", async (event) => {
+self.addEventListener("fetch", event => {
 	const matchZipEntry = event.request.url.match(/.zip#(.+)$/i);
 	if (matchZipEntry) {
 		event.respondWith(getFileEntry(event.request.url, matchZipEntry[1])
@@ -25,7 +25,7 @@ async function getFileEntry(url, filenameEntry) {
 			throw error;
 		}
 	}
-	const fileEntry = entries.find(entry => entry.filename == filenameEntry);	
+	const fileEntry = entries.find(entry => entry.filename == filenameEntry);
 	const data = await fileEntry.getData(new zip.BlobWriter());
 	await zipReader.close();
 	return data;
