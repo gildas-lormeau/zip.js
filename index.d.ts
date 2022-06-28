@@ -120,7 +120,7 @@ export class ZipReader<Type> {
     constructor(reader: Reader<Type>, options?: ZipReaderConstructorOptions);
     getEntries(options?: ZipReaderGetEntriesOptions): Promise<Entry[]>;
     getEntriesGenerator(options?: ZipReaderGetEntriesOptions): AsyncGenerator<Entry, boolean>;
-    close(): Promise<undefined>;
+    close(): Promise<void>;
 }
 
 type ZipReaderConstructorOptions = ZipReaderOptions & GetEntriesOptions;
