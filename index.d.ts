@@ -59,16 +59,16 @@ export class Reader<Type> extends Stream {
     public readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
-export class TextReader<Type extends string> extends Reader<Type> {
+export class TextReader extends Reader<string> {
 }
 
-export class BlobReader<Type extends Blob> extends Reader<Type> {
+export class BlobReader extends Reader<Blob> {
 }
 
-export class Data64URIReader<Type extends string> extends Reader<Type> {
+export class Data64URIReader extends Reader<string> {
 }
 
-export class Uint8ArrayReader<Type extends Uint8Array> extends Reader<Type> {
+export class Uint8ArrayReader extends Reader<Uint8Array> {
 }
 
 export class HttpReader<Type extends string> extends Reader<Type> {
@@ -95,19 +95,19 @@ export class Writer<Type> extends Stream {
     public getData(): Promise<Type>;
 }
 
-export class TextWriter<Type extends string> extends Writer<Type> {
+export class TextWriter extends Writer<string> {
     constructor(encoding?: string);
 }
 
-export class BlobWriter<Type extends Blob> extends Writer<Type> {
+export class BlobWriter extends Writer<Blob> {
     constructor(mimeString?: string);
 }
 
-export class Data64URIWriter<Type extends string> extends Writer<Type> {
+export class Data64URIWriter extends Writer<string> {
     constructor(mimeString?: string);
 }
 
-export class Uint8ArrayWriter<Type extends Uint8Array> extends Writer<Type> {
+export class Uint8ArrayWriter extends Writer<Uint8Array> {
     constructor();
 }
 
