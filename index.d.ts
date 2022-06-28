@@ -54,32 +54,29 @@ export class Stream {
     public init(): Promise<void>;
 }
 
-export class Reader extends Stream {
+export class Reader<Type> extends Stream {
+    constructor(value: Type);
     public readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
-export class TextReader extends Reader {
-    constructor(text: string);
+export class TextReader<Type extends string> extends Reader<Type> {
 }
 
-export class BlobReader extends Reader {
-    constructor(blob: Blob);
+export class BlobReader<Type extends Blob> extends Reader<Type> {
 }
 
-export class Data64URIReader extends Reader {
-    constructor(dataURI: string);
+export class Data64URIReader<Type extends string> extends Reader<Type> {
 }
 
-export class Uint8ArrayReader extends Reader {
-    constructor(array: Uint8Array);
+export class Uint8ArrayReader<Type extends Uint8Array> extends Reader<Type> {
 }
 
-export class HttpReader extends Reader {
-    constructor(url: string, options?: HttpOptions);
+export class HttpReader<Type extends string> extends Reader<Type> {
+    constructor(url: Type, options?: HttpOptions);
 }
 
-export class HttpRangeReader extends Reader {
-    constructor(url: string, options?: HttpRangeOptions);
+export class HttpRangeReader<Type extends string> extends Reader<Type> {
+    constructor(url: Type, options?: HttpRangeOptions);
 }
 
 interface HttpOptions extends HttpRangeOptions {
@@ -93,41 +90,37 @@ interface HttpRangeOptions {
     headers?: Iterable<[string, string]> | Map<string, string>;
 }
 
-export class Writer extends Stream {
+export class Writer<Type> extends Stream {
     public writeUint8Array(array: Uint8Array): Promise<void>;
+    public getData(): Promise<Type>;
 }
 
-export class TextWriter extends Writer {
+export class TextWriter<Type extends string> extends Writer<Type> {
     constructor(encoding?: string);
-    public getData(): Promise<string>;
 }
 
-export class BlobWriter extends Writer {
+export class BlobWriter<Type extends Blob> extends Writer<Type> {
     constructor(mimeString?: string);
-    public getData(): Blob;
 }
 
-export class Data64URIWriter extends Writer {
+export class Data64URIWriter<Type extends string> extends Writer<Type> {
     constructor(mimeString?: string);
-    public getData(): string;
 }
 
-export class Uint8ArrayWriter extends Writer {
+export class Uint8ArrayWriter<Type extends Uint8Array> extends Writer<Type> {
     constructor();
-    public getData(): Uint8Array;
 }
 
-export class WritableStreamWriter extends Writer {
-    constructor(writableStream: WritableStream<Uint8Array>);
-    public getData(): Promise<WritableStream<Uint8Array>>;
+export class WritableStreamWriter<Type extends WritableStream> extends Writer<Type> {
+    constructor(writableStream: Type);
+    public getData(): Promise<Type>;
 }
 
-export class ZipReader {
-    constructor(reader: Reader, options?: ZipReaderConstructorOptions);
+export class ZipReader<Type> {
+    constructor(reader: Reader<Type>, options?: ZipReaderConstructorOptions);
     getEntries(options?: ZipReaderGetEntriesOptions): Promise<Entry[]>;
     getEntriesGenerator(options?: ZipReaderGetEntriesOptions): AsyncGenerator<Entry, boolean>;
-    // deno-lint-ignore no-explicit-any
-    close(): Promise<any>;
+    close(): Promise<undefined>;
 }
 
 type ZipReaderConstructorOptions = ZipReaderOptions & GetEntriesOptions;
@@ -173,18 +166,16 @@ export interface Entry {
     msDosCompatible: boolean;
     internalFileAttribute: number;
     externalFileAttribute: number;
-    // deno-lint-ignore no-explicit-any
-    getData?(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
+    getData?<Type>(writer: Writer<Type>, options?: EntryGetDataOptions): Promise<Type>;
 }
 
 type EntryGetDataOptions = EntryDataOnprogressOption & ZipReaderOptions;
 
-export class ZipWriter {
+export class ZipWriter<Type> {
     readonly hasCorruptedEntries?: boolean;
-    constructor(writer: Writer, options?: ZipWriterConstructorOptions);
-    public add(name: string, reader: Reader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
-    // deno-lint-ignore no-explicit-any
-    public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<any>;
+    constructor(writer: Writer<Type>, options?: ZipWriterConstructorOptions);
+    public add<ReaderType>(name: string, reader: Reader<ReaderType> | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
+    public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
 }
 
 type ZipWriterAddDataOptions = EntryDataOnprogressOption & AddDataOptions & ZipWriterConstructorOptions;
@@ -248,23 +239,21 @@ export class ZipEntry {
     isDescendantOf(ancestor: ZipDirectoryEntry): boolean;
 }
 
-interface ZipFileEntryConstructorParams extends ZipEntryConstructorParams {
-    reader: Reader;
-    writer: Writer;
-    // deno-lint-ignore no-explicit-any
-    getData?(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
+interface ZipFileEntryConstructorParams<ReaderType, WriterType> extends ZipEntryConstructorParams {
+    reader: Reader<ReaderType>;
+    writer: Writer<WriterType>;
+    getData?(writer: Writer<WriterType>, options?: EntryGetDataOptions): Promise<WriterType>;
 }
 
-export class ZipFileEntry extends ZipEntry {
-    constructor(fs: FS, name: string, params: ZipFileEntryConstructorParams, parent: ZipDirectoryEntry);
-    reader: Reader;
-    writer: Writer;
+export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
+    constructor(fs: FS, name: string, params: ZipFileEntryConstructorParams<ReaderType, WriterType>, parent: ZipDirectoryEntry);
+    reader: Reader<ReaderType>;
+    writer: Writer<WriterType>;
     getText(encoding?: string, options?: EntryGetDataOptions): Promise<string>;
     getBlob(mimeType?: string, options?: EntryGetDataOptions): Promise<Blob>;
     getData64URI(mimeType?: string, options?: EntryGetDataOptions): Promise<string>;
     getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
-    // deno-lint-ignore no-explicit-any
-    getData(writer: Writer, options?: EntryGetDataOptions): Promise<any>;
+    getData(writer: Writer<WriterType>, options?: EntryGetDataOptions): Promise<WriterType>;
     replaceBlob(blob: Blob): void;
     replaceText(text: string): void;
     replaceData64URI(dataURI: string): void;
@@ -279,11 +268,11 @@ export class ZipDirectoryEntry extends ZipEntry {
     constructor(fs: FS, name: string, params: ZipEntryConstructorParams, parent: ZipDirectoryEntry);
     getChildByName(name: string): ZipEntry;
     addDirectory(name: string): ZipDirectoryEntry;
-    addText(name: string, text: string): ZipFileEntry;
-    addBlob(name: string, blob: Blob): ZipFileEntry;
-    addData64URI(name: string, dataURI: string): ZipFileEntry;
-    addUint8Array(name: string, array: Uint8Array): ZipFileEntry;
-    addHttpContent(name: string, url: string, options?: HttpOptions): ZipFileEntry;
+    addText(name: string, text: string): ZipFileEntry<string, string>;
+    addBlob(name: string, blob: Blob): ZipFileEntry<Blob, Blob>;
+    addData64URI(name: string, dataURI: string): ZipFileEntry<string, string>;
+    addUint8Array(name: string, array: Uint8Array): ZipFileEntry<Uint8Array, Uint8Array>;
+    addHttpContent(name: string, url: string, options?: HttpOptions): ZipFileEntry<string, string>;
     addFileSystemEntry(fileSystemEntry: FileSystemEntry): Promise<ZipEntry>;
     importBlob(blob: Blob, options?: ZipReaderConstructorOptions): Promise<void>;
     importData64URI(dataURI: string, options?: ZipReaderConstructorOptions): Promise<void>;
