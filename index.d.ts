@@ -113,7 +113,6 @@ export class Uint8ArrayWriter<Type extends Uint8Array> extends Writer<Type> {
 
 export class WritableStreamWriter<Type extends WritableStream> extends Writer<Type> {
     constructor(writableStream: Type);
-    public getData(): Promise<Type>;
 }
 
 export class ZipReader<Type> {
