@@ -7193,6 +7193,7 @@
 
 	const ERR_HTTP_STATUS = "HTTP error ";
 	const ERR_HTTP_RANGE = "HTTP Range not supported";
+	const ERR_NOT_SEEKABLE_READER = "Reader is not seekable";
 
 	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
@@ -7385,6 +7386,62 @@
 	function flushArrayBuffers(blobWriter) {
 		blobWriter.pendingBlob = new Blob([blobWriter.pendingBlob, ...blobWriter.arrayBuffers], { type: blobWriter.contentType });
 		blobWriter.arrayBuffers = [];
+	}
+
+	class ReadableStreamReader {
+
+		constructor(readableStream) {
+			this.readableStream = readableStream;
+			this.reader = readableStream.getReader();
+			this.size = Infinity;
+			this.index = 0;
+			this.currentSize = 0;
+			this.pendingValue = new Uint8Array();
+		}
+
+		init() {
+			this.initialized = true;
+		}
+
+		async readUint8Array(index, length) {
+			if (this.index != index) {
+				throw new Error(ERR_NOT_SEEKABLE_READER);
+			}
+			const data = new Uint8Array(length);
+			let size = 0, done;
+			do {
+				const result = await this.reader.read();
+				let { value } = result;
+				done = result.done;
+				if (value) {
+					this.currentSize += value.length;
+				} else {
+					value = this.pendingValue;
+					this.pendingValue = new Uint8Array();
+				}
+				if (this.pendingValue.length) {
+					const newValue = new Uint8Array(this.pendingValue.length + value.length);
+					newValue.set(this.pendingValue);
+					newValue.set(value, this.pendingValue.length);
+					this.pendingValue = new Uint8Array();
+					value = newValue;
+				}
+				if (size + value.length > length) {
+					data.set(value.subarray(0, length), size);
+					this.pendingValue = value.subarray(length);
+					size += length;
+				} else {
+					data.set(value, size);
+					size += value.length;
+				}
+			} while (size < length && !done);
+			if (done && this.currentSize) {
+				this.size = this.currentSize;
+				this.currentSize = 0;
+			}
+			this.index += length;
+			return data;
+		}
 	}
 
 	class WritableStreamWriter extends Writer {
@@ -7845,12 +7902,13 @@
 	const MINIMUM_CHUNK_SIZE = 64;
 	const ERR_ABORT = "Abort error";
 
-	async function processData(codec, reader, writer, offset, inputLength, config, options) {
+	async function processData(codec, reader, writer, offset, inputLengthGetter, config, options) {
 		const chunkSize = Math.max(config.chunkSize, MINIMUM_CHUNK_SIZE);
 		return processChunk();
 
 		async function processChunk(chunkOffset = 0, outputLength = 0) {
 			const signal = options.signal;
+			const inputLength = inputLengthGetter();
 			if (chunkOffset < inputLength) {
 				testAborted(signal, codec);
 				const inputData = await reader.readUint8Array(chunkOffset + offset, Math.min(chunkSize, inputLength - chunkOffset));
@@ -8191,7 +8249,7 @@
 			}
 			const signal = getOptionValue$1(zipEntry, options, "signal");
 			const dataOffset = offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
-			await processData(codec, reader, writer, dataOffset, compressedSize, config, { onprogress: options.onprogress, signal });
+			await processData(codec, reader, writer, dataOffset, () => compressedSize, config, { onprogress: options.onprogress, signal });
 			return writer.getData();
 		}
 	}
@@ -8638,7 +8696,7 @@
 			dataDescriptor = true;
 		}
 		if (dataDescriptor && dataDescriptorSignature === undefined) {
-			dataDescriptorSignature = true;
+			dataDescriptorSignature = false;
 		}
 		const fileEntry = await getFileEntry(zipWriter, name, reader, Object.assign({}, options, {
 			rawFilename,
@@ -8908,7 +8966,6 @@
 		let result;
 		let compressedSize = 0;
 		if (reader) {
-			uncompressedSize = fileEntry.uncompressedSize = reader.size;
 			const codec = await createCodec(config.Deflate, {
 				codecType: CODEC_DEFLATE,
 				level,
@@ -8923,7 +8980,8 @@
 			}, config);
 			await writer.writeUint8Array(localHeaderArray);
 			fileEntry.dataWritten = true;
-			result = await processData(codec, reader, writer, 0, uncompressedSize, config, { onprogress, signal });
+			result = await processData(codec, reader, writer, 0, () => reader.size, config, { onprogress, signal });
+			uncompressedSize = fileEntry.uncompressedSize = reader.size;
 			compressedSize = result.length;
 		} else {
 			await writer.writeUint8Array(localHeaderArray);
@@ -9816,11 +9874,13 @@
 	exports.ERR_INVALID_SIGNATURE = ERR_INVALID_SIGNATURE;
 	exports.ERR_INVALID_VERSION = ERR_INVALID_VERSION;
 	exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
+	exports.ERR_NOT_SEEKABLE_READER = ERR_NOT_SEEKABLE_READER;
 	exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION;
 	exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
 	exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
 	exports.HttpRangeReader = HttpRangeReader;
 	exports.HttpReader = HttpReader;
+	exports.ReadableStreamReader = ReadableStreamReader;
 	exports.Reader = Reader;
 	exports.TextReader = TextReader;
 	exports.TextWriter = TextWriter;

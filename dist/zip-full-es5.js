@@ -14472,11 +14472,12 @@
     });
   });
 
-  var processData = _async(function (codec, reader, writer, offset, inputLength, config, options) {
+  var processData = _async(function (codec, reader, writer, offset, inputLengthGetter, config, options) {
     var processChunk = _async(function () {
       var chunkOffset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       var outputLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
       var signal = options.signal;
+      var inputLength = inputLengthGetter();
 
       if (chunkOffset < inputLength) {
         testAborted(signal, codec);
@@ -16396,6 +16397,7 @@
   /* global Blob, FileReader, atob, btoa, XMLHttpRequest, document, fetch */
   var ERR_HTTP_STATUS = "HTTP error ";
   var ERR_HTTP_RANGE = "HTTP Range not supported";
+  var ERR_NOT_SEEKABLE_READER = "Reader is not seekable";
   var CONTENT_TYPE_TEXT_PLAIN = "text/plain";
   var HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
   var HTTP_HEADER_CONTENT_RANGE = "Content-Range";
@@ -16748,30 +16750,109 @@
     blobWriter.arrayBuffers = [];
   }
 
+  var ReadableStreamReader = /*#__PURE__*/function () {
+    function ReadableStreamReader(readableStream) {
+      _classCallCheck(this, ReadableStreamReader);
+
+      this.readableStream = readableStream;
+      this.reader = readableStream.getReader();
+      this.size = Infinity;
+      this.index = 0;
+      this.currentSize = 0;
+      this.pendingValue = new Uint8Array();
+    }
+
+    _createClass(ReadableStreamReader, [{
+      key: "init",
+      value: function init() {
+        this.initialized = true;
+      }
+    }, {
+      key: "readUint8Array",
+      value: function readUint8Array(index, length) {
+        try {
+          var _this11 = this;
+
+          if (_this11.index != index) {
+            throw new Error(ERR_NOT_SEEKABLE_READER);
+          }
+
+          var data = new Uint8Array(length);
+          var size = 0,
+              done;
+          return _await(_continue(_do(function () {
+            return _await(_this11.reader.read(), function (result) {
+              var value = result.value;
+              done = result.done;
+
+              if (value) {
+                _this11.currentSize += value.length;
+              } else {
+                value = _this11.pendingValue;
+                _this11.pendingValue = new Uint8Array();
+              }
+
+              if (_this11.pendingValue.length) {
+                var newValue = new Uint8Array(_this11.pendingValue.length + value.length);
+                newValue.set(_this11.pendingValue);
+                newValue.set(value, _this11.pendingValue.length);
+                _this11.pendingValue = new Uint8Array();
+                value = newValue;
+              }
+
+              if (size + value.length > length) {
+                data.set(value.subarray(0, length), size);
+                _this11.pendingValue = value.subarray(length);
+                size += length;
+              } else {
+                data.set(value, size);
+                size += value.length;
+              }
+            });
+          }, function () {
+            return size < length && !done;
+          }), function () {
+            if (done && _this11.currentSize) {
+              _this11.size = _this11.currentSize;
+              _this11.currentSize = 0;
+            }
+
+            _this11.index += length;
+            return data;
+          }));
+        } catch (e) {
+          return Promise.reject(e);
+        }
+      }
+    }]);
+
+    return ReadableStreamReader;
+  }();
+
   var WritableStreamWriter = /*#__PURE__*/function (_Writer4) {
     _inherits(WritableStreamWriter, _Writer4);
 
     var _super9 = _createSuper(WritableStreamWriter);
 
     function WritableStreamWriter(writableStream) {
-      var _this10;
+      var _this12;
 
       _classCallCheck(this, WritableStreamWriter);
 
-      _this10 = _super9.call(this);
-      _this10.writableStream = writableStream;
-      _this10.writer = writableStream.getWriter();
-      return _this10;
+      _this12 = _super9.call(this);
+      _this12.writableStream = writableStream;
+      _this12.writer = writableStream.getWriter();
+      return _this12;
     }
 
     _createClass(WritableStreamWriter, [{
       key: "writeUint8Array",
       value: function writeUint8Array(array) {
         try {
-          var _this12 = this;
+          var _this14 = this;
 
-          return _await(_this12.writer.ready, function () {
-            return _this12.writer.write(array);
+          return _await(_this14.writer.ready, function () {
+            return _this14.writer.write(array);
           });
         } catch (e) {
           return Promise.reject(e);
@@ -16781,11 +16862,11 @@
       key: "getData",
       value: function getData() {
         try {
-          var _this14 = this;
+          var _this16 = this;
 
-          return _await(_this14.writer.ready, function () {
-            return _await(_this14.writer.close(), function () {
-              return _this14.writableStream;
+          return _await(_this16.writer.ready, function () {
+            return _await(_this16.writer.close(), function () {
+              return _this16.writableStream;
             });
           });
         } catch (e) {
@@ -16803,32 +16884,32 @@
     var _super10 = _createSuper(FetchReader);
 
     function FetchReader(url, options) {
-      var _this15;
+      var _this17;
 
       _classCallCheck(this, FetchReader);
 
-      _this15 = _super10.call(this);
-      _this15.url = url;
-      _this15.preventHeadRequest = options.preventHeadRequest;
-      _this15.useRangeHeader = options.useRangeHeader;
-      _this15.forceRangeRequests = options.forceRangeRequests;
-      _this15.options = Object.assign({}, options);
-      delete _this15.options.preventHeadRequest;
-      delete _this15.options.useRangeHeader;
-      delete _this15.options.forceRangeRequests;
-      delete _this15.options.useXHR;
-      return _this15;
+      _this17 = _super10.call(this);
+      _this17.url = url;
+      _this17.preventHeadRequest = options.preventHeadRequest;
+      _this17.useRangeHeader = options.useRangeHeader;
+      _this17.forceRangeRequests = options.forceRangeRequests;
+      _this17.options = Object.assign({}, options);
+      delete _this17.options.preventHeadRequest;
+      delete _this17.options.useRangeHeader;
+      delete _this17.options.forceRangeRequests;
+      delete _this17.options.useXHR;
+      return _this17;
     }
 
     _createClass(FetchReader, [{
       key: "init",
       value: function init() {
         try {
-          var _this17 = this;
+          var _this19 = this;
 
-          _get(_getPrototypeOf(FetchReader.prototype), "init", _this17).call(_this17);
+          _get(_getPrototypeOf(FetchReader.prototype), "init", _this19).call(_this19);
 
-          return _await(_awaitIgnored(initHttpReader(_this17, sendFetchRequest, getFetchRequestData)));
+          return _await(_awaitIgnored(initHttpReader(_this19, sendFetchRequest, getFetchRequestData)));
         } catch (e) {
           return Promise.reject(e);
         }
@@ -16849,28 +16930,28 @@
     var _super11 = _createSuper(XHRReader);
 
     function XHRReader(url, options) {
-      var _this18;
+      var _this20;
 
       _classCallCheck(this, XHRReader);
 
-      _this18 = _super11.call(this);
-      _this18.url = url;
-      _this18.preventHeadRequest = options.preventHeadRequest;
-      _this18.useRangeHeader = options.useRangeHeader;
-      _this18.forceRangeRequests = options.forceRangeRequests;
-      _this18.options = options;
-      return _this18;
+      _this20 = _super11.call(this);
+      _this20.url = url;
+      _this20.preventHeadRequest = options.preventHeadRequest;
+      _this20.useRangeHeader = options.useRangeHeader;
+      _this20.forceRangeRequests = options.forceRangeRequests;
+      _this20.options = options;
+      return _this20;
     }
 
     _createClass(XHRReader, [{
       key: "init",
       value: function init() {
         try {
-          var _this20 = this;
+          var _this22 = this;
 
-          _get(_getPrototypeOf(XHRReader.prototype), "init", _this20).call(_this20);
+          _get(_getPrototypeOf(XHRReader.prototype), "init", _this22).call(_this22);
 
-          return _await(_awaitIgnored(initHttpReader(_this20, sendXMLHttpRequest, getXMLHttpRequestData)));
+          return _await(_awaitIgnored(initHttpReader(_this22, sendXMLHttpRequest, getXMLHttpRequestData)));
         } catch (e) {
           return Promise.reject(e);
         }
@@ -16952,22 +17033,22 @@
     var _super12 = _createSuper(HttpReader);
 
     function HttpReader(url) {
-      var _this21;
+      var _this23;
 
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       _classCallCheck(this, HttpReader);
 
-      _this21 = _super12.call(this);
-      _this21.url = url;
+      _this23 = _super12.call(this);
+      _this23.url = url;
 
       if (options.useXHR) {
-        _this21.reader = new XHRReader(url, options);
+        _this23.reader = new XHRReader(url, options);
       } else {
-        _this21.reader = new FetchReader(url, options);
+        _this23.reader = new FetchReader(url, options);
       }
 
-      return _this21;
+      return _this23;
     }
 
     _createClass(HttpReader, [{
@@ -16981,11 +17062,11 @@
       key: "init",
       value: function init() {
         try {
-          var _this23 = this;
+          var _this25 = this;
 
-          _get(_getPrototypeOf(HttpReader.prototype), "init", _this23).call(_this23);
+          _get(_getPrototypeOf(HttpReader.prototype), "init", _this25).call(_this25);
 
-          return _await(_awaitIgnored(_this23.reader.init()));
+          return _await(_awaitIgnored(_this25.reader.init()));
         } catch (e) {
           return Promise.reject(e);
         }
@@ -17023,14 +17104,14 @@
     var _super14 = _createSuper(Uint8ArrayReader);
 
     function Uint8ArrayReader(array) {
-      var _this24;
+      var _this26;
 
       _classCallCheck(this, Uint8ArrayReader);
 
-      _this24 = _super14.call(this);
-      _this24.array = array;
-      _this24.size = array.length;
-      return _this24;
+      _this26 = _super14.call(this);
+      _this26.array = array;
+      _this26.size = array.length;
+      return _this26;
     }
 
     _createClass(Uint8ArrayReader, [{
@@ -17049,13 +17130,13 @@
     var _super15 = _createSuper(Uint8ArrayWriter);
 
     function Uint8ArrayWriter() {
-      var _this25;
+      var _this27;
 
       _classCallCheck(this, Uint8ArrayWriter);
 
-      _this25 = _super15.call(this);
-      _this25.array = new Uint8Array(0);
-      return _this25;
+      _this27 = _super15.call(this);
+      _this27.array = new Uint8Array(0);
+      return _this27;
     }
 
     _createClass(Uint8ArrayWriter, [{
@@ -17830,7 +17911,9 @@
                     }, function () {
                       var signal = getOptionValue$1(zipEntry, options, "signal");
                       var dataOffset = offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
-                      return _await(processData(codec, reader, writer, dataOffset, compressedSize, config, {
+                      return _await(processData(codec, reader, writer, dataOffset, function () {
+                        return compressedSize;
+                      }, config, {
                         onprogress: options.onprogress,
                         signal: signal
                       }), function () {
@@ -18395,7 +18478,6 @@
     var compressedSize = 0;
     return _invoke(function () {
       if (reader) {
-        uncompressedSize = fileEntry.uncompressedSize = reader.size;
         return _await(createCodec(config.Deflate, {
           codecType: CODEC_DEFLATE,
           level: level,
@@ -18410,11 +18492,14 @@
         }, config), function (codec) {
           return _await(writer.writeUint8Array(localHeaderArray), function () {
             fileEntry.dataWritten = true;
-            return _await(processData(codec, reader, writer, 0, uncompressedSize, config, {
+            return _await(processData(codec, reader, writer, 0, function () {
+              return reader.size;
+            }, config, {
               onprogress: onprogress,
               signal: signal
             }), function (_processData) {
               result = _processData;
+              uncompressedSize = fileEntry.uncompressedSize = reader.size;
               compressedSize = result.length;
             });
           });
@@ -18761,7 +18846,7 @@
         }
 
         if (dataDescriptor && dataDescriptorSignature === undefined) {
-          dataDescriptorSignature = true;
+          dataDescriptorSignature = false;
         }
 
         return _await(getFileEntry(zipWriter, name, reader, Object.assign({}, options, {
@@ -19023,11 +19108,13 @@
   exports.ERR_INVALID_SIGNATURE = ERR_INVALID_SIGNATURE;
   exports.ERR_INVALID_VERSION = ERR_INVALID_VERSION;
   exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
+  exports.ERR_NOT_SEEKABLE_READER = ERR_NOT_SEEKABLE_READER;
   exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION;
   exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
   exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
   exports.HttpRangeReader = HttpRangeReader;
   exports.HttpReader = HttpReader;
+  exports.ReadableStreamReader = ReadableStreamReader;
   exports.Reader = Reader;
   exports.TextReader = TextReader;
   exports.TextWriter = TextWriter;
