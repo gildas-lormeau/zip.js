@@ -20,17 +20,7 @@ async function test() {
 			const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 			await zipReader.close();
 			zip.terminateWorkers();
-			if (TEXT_CONTENT == (await data.text())) {
-				const url = new URL("./../data/lorem.zip", import.meta.url).href;
-				const zipReader = new zip.ZipReader(new zip.ReadableStreamReader((await fetch(url)).body));
-				try {
-					await zipReader.getEntries();
-				} catch (error) {
-					if (error.message == zip.ERR_NOT_SEEKABLE_READER) {
-						return true;
-					}
-				}
-			}
+			return TEXT_CONTENT == (await data.text());
 		}
 	}
 }
