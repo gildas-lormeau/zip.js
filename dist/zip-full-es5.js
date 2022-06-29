@@ -16817,6 +16817,11 @@
               _this11.currentSize = 0;
             }
 
+            if (_this11.size < length) {
+              data = data.slice(0, _this11.size);
+              length = _this11.size;
+            }
+
             _this11.index += length;
             return data;
           }));

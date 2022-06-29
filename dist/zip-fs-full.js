@@ -7407,7 +7407,7 @@
 			if (this.index != index) {
 				throw new Error(ERR_NOT_SEEKABLE_READER);
 			}
-			const data = new Uint8Array(length);
+			let data = new Uint8Array(length);
 			let size = 0, done;
 			do {
 				const result = await this.reader.read();
@@ -7438,6 +7438,10 @@
 			if (done && this.currentSize) {
 				this.size = this.currentSize;
 				this.currentSize = 0;
+			}
+			if (this.size < length) {
+				data = data.slice(0, this.size);
+				length = this.size;
 			}
 			this.index += length;
 			return data;
