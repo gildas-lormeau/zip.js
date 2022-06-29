@@ -37,6 +37,7 @@ export default ([
 	{ title: "Store", script: "./test-store.js" },
 	{ title: "Worker timeout", script: "./test-worker-timeout.js" },
 	{ title: "Wrapped zip file", script: "./test-wrapped.js" },
+	{ title: "Writable Stream", script: "./test-writable-stream.js" },
 	{ title: "Zip64 (auto)", script: "./test-zip64-auto.js" },
 	{ title: "Zip64 crypto", script: "./test-zip64-crypto.js" },
 	{ title: "Zip64", script: "./test-zip64.js" },
