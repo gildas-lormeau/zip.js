@@ -1,4 +1,4 @@
-/* global Response, URL, fetch */
+/* global Response */
 
 import * as zip from "../../index.js";
 
