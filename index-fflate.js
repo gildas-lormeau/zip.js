@@ -47,6 +47,7 @@ export {
 	Data64URIWriter,
 	BlobReader,
 	BlobWriter,
+	WritableStreamWriter,
 	HttpReader,
 	HttpRangeReader,
 	Uint8ArrayWriter,
