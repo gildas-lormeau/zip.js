@@ -90,8 +90,8 @@ interface HttpRangeOptions {
     headers?: Iterable<[string, string]> | Map<string, string>;
 }
 
-export class ReadableStreamReader<Type extends ReadableStream> {
-    constructor(readableStream: Type);
+export class ReadableStreamReader {
+    constructor(readableStream: ReadableStream);
     public readUint8Array(_index: number, length: number): Promise<Uint8Array>;
 }
 
@@ -178,7 +178,7 @@ type EntryGetDataOptions = EntryDataOnprogressOption & ZipReaderOptions;
 export class ZipWriter<Type> {
     readonly hasCorruptedEntries?: boolean;
     constructor(writer: Writer<Type>, options?: ZipWriterConstructorOptions);
-    public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableStreamReader<ReadableStream> | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
+    public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableStreamReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
     public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
 }
 
