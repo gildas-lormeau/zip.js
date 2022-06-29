@@ -90,6 +90,11 @@ interface HttpRangeOptions {
     headers?: Iterable<[string, string]> | Map<string, string>;
 }
 
+export class ReadableStreamReader<Type extends ReadableStream> {
+    constructor(readableStream: Type);
+    public readUint8Array(_index: number, length: number): Promise<Uint8Array>;
+}
+
 export class Writer<Type> extends Stream {
     public writeUint8Array(array: Uint8Array): Promise<void>;
     public getData(): Promise<Type>;
@@ -173,7 +178,7 @@ type EntryGetDataOptions = EntryDataOnprogressOption & ZipReaderOptions;
 export class ZipWriter<Type> {
     readonly hasCorruptedEntries?: boolean;
     constructor(writer: Writer<Type>, options?: ZipWriterConstructorOptions);
-    public add<ReaderType>(name: string, reader: Reader<ReaderType> | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
+    public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableStreamReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
     public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
 }
 
@@ -319,3 +324,4 @@ export const ERR_INVALID_EXTRAFIELD_DATA: string;
 export const ERR_INVALID_ENCRYPTION_STRENGTH: string;
 export const ERR_UNSUPPORTED_FORMAT: string;
 export const ERR_ABORT: string;
+export const ERR_NOT_SEEKABLE_READER: string

@@ -50,6 +50,7 @@ export {
 	Data64URIWriter,
 	BlobReader,
 	BlobWriter,
+	ReadableStreamReader,
 	WritableStreamWriter,
 	HttpReader,
 	HttpRangeReader,
@@ -77,6 +78,7 @@ export {
 	ERR_INVALID_EXTRAFIELD_DATA,
 	ERR_INVALID_ENCRYPTION_STRENGTH,
 	ERR_UNSUPPORTED_FORMAT,
-	ERR_ABORT
+	ERR_ABORT,
+	ERR_NOT_SEEKABLE_READER
 } from "./lib/zip-fs.js";
 export { getMimeType, terminateWorkers };
