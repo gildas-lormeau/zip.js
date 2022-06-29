@@ -2288,7 +2288,7 @@
 					size += value.length;
 				}
 			} while (size < length && !done);
-			if (done && this.currentSize) {
+			if (done && this.size == Infinity) {
 				this.size = this.currentSize;
 				this.currentSize = 0;
 			}

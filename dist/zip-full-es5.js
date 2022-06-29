@@ -16812,7 +16812,7 @@
           }, function () {
             return size < length && !done;
           }), function () {
-            if (done && _this11.currentSize) {
+            if (done && _this11.size == Infinity) {
               _this11.size = _this11.currentSize;
               _this11.currentSize = 0;
             }
