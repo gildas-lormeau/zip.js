@@ -178,7 +178,7 @@ type EntryGetDataOptions = EntryDataOnprogressOption & ZipReaderOptions;
 export class ZipWriter<Type> {
     readonly hasCorruptedEntries?: boolean;
     constructor(writer: Writer<Type>, options?: ZipWriterConstructorOptions);
-    public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableStreamReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
+    public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableStreamReader<ReadableStream> | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
     public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
 }
 
