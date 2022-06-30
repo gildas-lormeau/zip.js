@@ -3,7 +3,7 @@
     "description": "A JavaScript library to zip and unzip files in the browser and Deno",
     "author": "Gildas Lormeau",
     "license": "BSD-3-Clause",
-    "version": "2.4.25",
+    "version": "2.4.26",
     "type": "module",
     "keywords": [
         "zip",

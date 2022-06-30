@@ -11572,7 +11572,7 @@
 	var setToStringTag = setToStringTag$8;
 	var inheritIfRequired = inheritIfRequired$3;
 
-	var collection$1 = function (CONSTRUCTOR_NAME, wrapper, common) {
+	var collection$2 = function (CONSTRUCTOR_NAME, wrapper, common) {
 	  var IS_MAP = CONSTRUCTOR_NAME.indexOf('Map') !== -1;
 	  var IS_WEAK = CONSTRUCTOR_NAME.indexOf('Weak') !== -1;
 	  var ADDER = IS_MAP ? 'set' : 'add';
@@ -11677,7 +11677,7 @@
 	var setInternalState = InternalStateModule.set;
 	var internalStateGetterFor = InternalStateModule.getterFor;
 
-	var collectionStrong$1 = {
+	var collectionStrong$2 = {
 	  getConstructor: function (wrapper, CONSTRUCTOR_NAME, IS_MAP, ADDER) {
 	    var Constructor = wrapper(function (that, iterable) {
 	      anInstance(that, Prototype);
@@ -11866,14 +11866,14 @@
 	  }
 	};
 
-	var collection = collection$1;
-	var collectionStrong = collectionStrong$1;
+	var collection$1 = collection$2;
+	var collectionStrong$1 = collectionStrong$2;
 
 	// `Map` constructor
 	// https://tc39.es/ecma262/#sec-map-objects
-	collection('Map', function (init) {
+	collection$1('Map', function (init) {
 	  return function Map() { return init(this, arguments.length ? arguments[0] : undefined); };
-	}, collectionStrong);
+	}, collectionStrong$1);
 
 	var DESCRIPTORS$1 = descriptors;
 	var uncurryThis$2 = functionUncurryThis;
@@ -12486,7 +12486,6 @@
 	        }), function () {
 	          if (done && _this11.size == Infinity) {
 	            _this11.size = _this11.currentSize;
-	            _this11.currentSize = 0;
 	          }
 
 	          if (_this11.size < length) {
@@ -13793,6 +13792,15 @@
 	  return reader.readUint8Array(offset, size);
 	}
 
+	var collection = collection$2;
+	var collectionStrong = collectionStrong$2;
+
+	// `Set` constructor
+	// https://tc39.es/ecma262/#sec-set-objects
+	collection('Set', function (init) {
+	  return function Set() { return init(this, arguments.length ? arguments[0] : undefined); };
+	}, collectionStrong);
+
 	var DESCRIPTORS = descriptors;
 	var FUNCTION_NAME_EXISTS = functionName.EXISTS;
 	var uncurryThis = functionUncurryThis;
@@ -14602,7 +14610,8 @@
 	      files: new Map(),
 	      offset: writer.size,
 	      pendingCompressedSize: 0,
-	      pendingEntries: []
+	      pendingEntries: [],
+	      pendingAddFileCalls: new Set()
 	    });
 	  }
 
@@ -14620,9 +14629,16 @@
 	        return _await(function () {
 	          if (workers < zipWriter.config.maxWorkers) {
 	            workers++;
+	            var promiseAddFile;
 	            return _finallyRethrows(function () {
-	              return _await(addFile(zipWriter, name, reader, options));
+	              promiseAddFile = addFile(zipWriter, name, reader, options);
+
+	              _this2.pendingAddFileCalls.add(promiseAddFile);
+
+	              return _await(promiseAddFile);
 	            }, function (_wasThrown, _result) {
+	              _this2.pendingAddFileCalls.delete(promiseAddFile);
+
 	              workers--;
 	              var pendingEntry = zipWriter.pendingEntries.shift();
 
@@ -14657,9 +14673,15 @@
 	        var _this4 = this;
 
 	        if (comment === undefined) comment = new Uint8Array(0);
-	        return _await(closeFile(_this4, comment, options), function () {
-	          return _this4.writer.getData();
-	        });
+	        return _await(_continue(_for(function () {
+	          return !!_this4.pendingAddFileCalls.size;
+	        }, void 0, function () {
+	          return _awaitIgnored(Promise.all(Array.from(_this4.pendingAddFileCalls)));
+	        }), function () {
+	          return _await(closeFile(_this4, comment, options), function () {
+	            return _this4.writer.getData();
+	          });
+	        }));
 	      } catch (e) {
 	        return Promise.reject(e);
 	      }

@@ -2290,7 +2290,6 @@
 			} while (size < length && !done);
 			if (done && this.size == Infinity) {
 				this.size = this.currentSize;
-				this.currentSize = 0;
 			}
 			if (this.size < length) {
 				data = data.slice(0, this.size);
@@ -2302,6 +2301,7 @@
 	}
 
 	class WritableStreamWriter extends Writer {
+
 		constructor(writableStream) {
 			super();
 			this.writableStream = writableStream;
@@ -3346,7 +3346,8 @@
 				files: new Map(),
 				offset: writer.size,
 				pendingCompressedSize: 0,
-				pendingEntries: []
+				pendingEntries: [],
+				pendingAddFileCalls: new Set()
 			});
 		}
 
@@ -3354,9 +3355,13 @@
 			const zipWriter = this;
 			if (workers < zipWriter.config.maxWorkers) {
 				workers++;
+				let promiseAddFile;
 				try {
-					return await addFile(zipWriter, name, reader, options);
+					promiseAddFile = addFile(zipWriter, name, reader, options);
+					this.pendingAddFileCalls.add(promiseAddFile);
+					return await promiseAddFile;
 				} finally {
+					this.pendingAddFileCalls.delete(promiseAddFile);
 					workers--;
 					const pendingEntry = zipWriter.pendingEntries.shift();
 					if (pendingEntry) {
@@ -3371,6 +3376,9 @@
 		}
 
 		async close(comment = new Uint8Array(0), options = {}) {
+			while (this.pendingAddFileCalls.size) {
+				await Promise.all(Array.from(this.pendingAddFileCalls));
+			}
 			await closeFile(this, comment, options);
 			return this.writer.getData();
 		}

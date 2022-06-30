@@ -33,6 +33,7 @@ export default ([
 	{ title: "Parallel writes (ordered)", script: "./test-parallel-writes-ordered.js" },
 	{ title: "Parallel writes", script: "./test-parallel-writes.js" },
 	{ title: "Readable Stream", script: "./test-readable-stream.js" },
+	{ title: "Safe closing", script: "./test-safe-closing.js" },
 	{ title: "Service worker", script: "./test-sw.js", env: "browser" },
 	{ title: "Store", script: "./test-store.js" },
 	{ title: "Worker timeout", script: "./test-worker-timeout.js" },
