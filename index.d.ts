@@ -7,7 +7,6 @@ declare global {
 
 interface ConfigurationOptions {
     useWebWorkers?: boolean;
-    useCompressionStream: boolean;
     maxWorkers?: number;
     terminateWorkerTimeout?: number;
     workerScripts?: {
@@ -137,7 +136,6 @@ interface ZipReaderOptions {
     password?: string;
     useWebWorkers?: boolean;
     signal?: AbortSignal;
-    useCompressionStream?: boolean;
 }
 
 interface GetEntriesOptions {
@@ -208,7 +206,6 @@ interface ZipWriterConstructorOptions {
     msDosCompatible?: boolean;
     internalFileAttribute?: number;
     externalFileAttribute?: number;
-    useCompressionStream?: boolean;
 }
 
 interface AddDataOptions {

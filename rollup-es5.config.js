@@ -1,3 +1,6 @@
+import { babel } from "@rollup/plugin-babel";
+import resolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import { terser } from "rollup-plugin-terser";
 import fs from "fs";
@@ -5,27 +8,25 @@ import fs from "fs";
 const bundledTerserOptions = {
 	compress: {
 		unsafe: true,
-		unsafe_arrows: true,
 		unsafe_comps: true,
 		unsafe_symbols: true,
 		unsafe_proto: true,
 		keep_fargs: false,
 		passes: 3,
-		ecma: "2020"
+		ecma: "5"
 	}
 };
 
 const inlineTerserOptions = {
 	compress: {
 		unsafe: true,
-		unsafe_arrows: true,
 		unsafe_comps: true,
 		unsafe_math: true,
 		unsafe_symbols: true,
 		unsafe_proto: true,
 		keep_fargs: false,
 		passes: 3,
-		ecma: "2020"
+		ecma: "5"
 	},
 	mangle: {
 		properties: {
@@ -34,19 +35,56 @@ const inlineTerserOptions = {
 	}
 };
 
-const GLOBALS = "const { Array, Object, String, BigInt, Math, Date, Map, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, FileReader, document, crypto, btoa } = globalThis;";
-const GLOBALS_WORKER = "const { Array, Object, Math, Error, Uint8Array, Uint16Array, Uint32Array, Int32Array, DataView, TextEncoder, crypto, postMessage } = globalThis;";
+const babelPresets = [
+	[
+		"@babel/preset-env",
+		{
+			corejs: 3,
+			modules: false,
+			useBuiltIns: "usage",
+			targets: {
+				ie: "11",
+				safari: "10"
+			}
+		}
+	]
+];
+
+const bundledPlugins = [
+	commonjs(),
+	resolve(),
+	babel({
+		babelHelpers: "bundled",
+		babelrc: false,
+		exclude: "node_modules/**",
+		presets: babelPresets,
+		compact: false,
+		plugins: [["babel-plugin-transform-async-to-promises", { externalHelpers: true }]]
+	})
+];
+
+const inlinePlugins = [
+	commonjs(),
+	resolve(),
+	babel({
+		babelHelpers: "inline",
+		babelrc: false,
+		exclude: "node_modules/**",
+		presets: babelPresets,
+		compact: false
+	})
+];
 
 export default [{
 	input: "lib/z-worker.js",
 	output: [{
-		intro: GLOBALS_WORKER,
 		file: "lib/z-worker-inline.js",
 		format: "es",
 		plugins: [terser(inlineTerserOptions)]
-	}]
+	}],
+	plugins: inlinePlugins
 }, {
-	input: "lib/z-worker-inline-template.js",
+	input: "lib/z-worker-inline-template-base64.js",
 	output: [{
 		file: "lib/z-worker-inline.js",
 		format: "es"
@@ -54,115 +92,111 @@ export default [{
 	plugins: [
 		replace({
 			preventAssignment: true,
-			"__workerCode__": () => fs.readFileSync("lib/z-worker-inline.js").toString()
+			"__workerCode__": () => JSON.stringify(fs.readFileSync("lib/z-worker-inline.js", { encoding: "base64" }))
 		}),
 		terser(bundledTerserOptions)
 	]
 }, {
 	input: ["lib/zip.js"],
 	output: [{
-		intro: GLOBALS,
-		file: "dist/zip.min.js",
+		file: "dist/zip-es5.min.js",
 		format: "umd",
 		name: "zip",
 		plugins: [terser(bundledTerserOptions)]
 	}, {
-		intro: GLOBALS,
-		file: "dist/zip.js",
+		file: "dist/zip-es5.js",
 		format: "umd",
 		name: "zip"
-	}]
+	}],
+	plugins: bundledPlugins
 }, {
 	input: ["lib/zip-full.js"],
 	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-full.min.js",
+		file: "dist/zip-full-es5.min.js",
 		format: "umd",
 		name: "zip",
 		plugins: [terser(bundledTerserOptions)]
 	}, {
-		intro: GLOBALS,
-		file: "dist/zip-full.js",
+		file: "dist/zip-full-es5.js",
 		format: "umd",
 		name: "zip"
-	}]
+	}],
+	plugins: bundledPlugins
 }, {
 	input: "lib/zip-no-worker.js",
 	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-no-worker.min.js",
+		file: "dist/zip-no-worker-es5.min.js",
 		format: "umd",
 		name: "zip",
 		plugins: [terser(bundledTerserOptions)]
-	}]
+	}],
+	plugins: bundledPlugins
 }, {
 	input: "lib/zip-no-worker-deflate.js",
 	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-no-worker-deflate.min.js",
+		file: "dist/zip-no-worker-deflate-es5.min.js",
 		format: "umd",
 		name: "zip",
 		plugins: [terser(bundledTerserOptions)]
-	}]
+	}],
+	plugins: bundledPlugins
 }, {
 	input: "lib/zip-no-worker-inflate.js",
 	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-no-worker-inflate.min.js",
+		file: "dist/zip-no-worker-inflate-es5.min.js",
 		format: "umd",
 		name: "zip",
 		plugins: [terser(bundledTerserOptions)]
-	}]
+	}],
+	plugins: bundledPlugins
 }, {
 	input: "lib/zip-fs.js",
 	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-fs.min.js",
+		file: "dist/zip-fs-es5.min.js",
 		format: "umd",
 		name: "zip",
 		plugins: [terser(bundledTerserOptions)]
 	}, {
-		intro: GLOBALS,
-		file: "dist/zip-fs.js",
+		file: "dist/zip-fs-es5.js",
 		format: "umd",
 		name: "zip"
-	}]
+	}],
+	plugins: bundledPlugins
 }, {
 	input: "index.js",
 	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-fs-full.min.js",
+		file: "dist/zip-fs-full-es5.min.js",
 		format: "umd",
 		name: "zip",
 		plugins: [terser(bundledTerserOptions)]
 	}, {
-		intro: GLOBALS,
-		file: "dist/zip-fs-full.js",
+		file: "dist/zip-fs-full-es5.js",
 		format: "umd",
 		name: "zip"
-	}]
+	}],
+	plugins: bundledPlugins
 }, {
 	input: "lib/z-worker-bootstrap-pako.js",
 	output: [{
-		intro: GLOBALS_WORKER,
-		file: "dist/z-worker-pako.js",
+		file: "dist/z-worker-pako-es5.js",
 		format: "iife",
 		plugins: [terser(bundledTerserOptions)]
-	}]
+	}],
+	plugins: inlinePlugins
 }, {
 	input: "lib/z-worker-bootstrap-fflate.js",
 	output: [{
-		intro: GLOBALS_WORKER,
-		file: "dist/z-worker-fflate.js",
+		file: "dist/z-worker-fflate-es5.js",
 		format: "iife",
 		plugins: [terser(bundledTerserOptions)]
-	}]
+	}],
+	plugins: inlinePlugins
 }, {
 	input: "lib/z-worker.js",
 	output: [{
-		intro: GLOBALS_WORKER,
-		file: "dist/z-worker.js",
+		file: "dist/z-worker-es5.js",
 		format: "iife",
 		plugins: [terser(bundledTerserOptions)]
-	}]
+	}],
+	plugins: inlinePlugins
 }];
