@@ -8,7 +8,7 @@ const FILENAME = "lorem.txt";
 export { test };
 
 async function test() {
-	zip.configure({ chunkSize: 128 });
+	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	const entry = await zipWriter.add(FILENAME, new zip.ReadableStreamReader(new Response(TEXT_CONTENT).body));

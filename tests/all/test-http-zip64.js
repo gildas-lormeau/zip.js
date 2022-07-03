@@ -9,7 +9,7 @@ const url = new URL("./../data/lorem-zip64.zip", import.meta.url).href;
 export { test };
 
 async function test() {
-	zip.configure({ chunkSize: 128 });
+	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const zipReader = new zip.ZipReader(new zip.HttpReader(url, { preventHeadRequest: true }));
 	const entries = await zipReader.getEntries();
 	const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));

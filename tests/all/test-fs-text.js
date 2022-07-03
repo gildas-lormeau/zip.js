@@ -6,7 +6,7 @@ const FILENAME = "lorem.txt";
 export { test };
 
 async function test() {
-	zip.configure({ chunkSize: 128 });
+	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	let zipFs = new zip.fs.FS();
 	zipFs.addText(FILENAME, TEXT_CONTENT);
 	const data = await zipFs.exportBlob();

@@ -6,7 +6,7 @@ const FILENAME = "lorem.txt";
 export { test };
 
 async function test() {
-	zip.configure({ chunkSize: 128 });
+	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const zipReader = new zip.ZipReader(new zip.HttpRangeReader("../data/lorem.zip", { useXHR: false }));
 	const entries = await zipReader.getEntries();
 	const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));

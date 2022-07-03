@@ -8,9 +8,7 @@ const url = new URL("./../data/lorem.zip", import.meta.url).href;
 export { test };
 
 async function test() {
-	zip.configure({
-		chunkSize: 128
-	});
+	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	let zipFs = new zip.fs.FS();
 	let directory = zipFs.addDirectory("import");
 	await directory.importHttpContent(url, { preventHeadRequest: true });

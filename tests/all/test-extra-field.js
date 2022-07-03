@@ -9,7 +9,7 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 export { test };
 
 async function test() {
-	zip.configure({ chunkSize: 128 });
+	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const extraFieldvalue = [[42, new Uint8Array(42)], [43, new Uint8Array(43)], [44, new Uint8Array(44)]];
 	const extraField = new Map(extraFieldvalue);

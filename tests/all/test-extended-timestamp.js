@@ -9,6 +9,7 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 export { test };
 
 async function test() {
+	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const lastModDate = new Date(2021, 0, 1, 0, 0, 1);
 	const testDisabled = await testLastModDate(false, lastModDate);
 	return !testDisabled && (await testLastModDate(true, lastModDate));

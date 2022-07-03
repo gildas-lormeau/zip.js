@@ -7,7 +7,7 @@ const ARRAY = new Uint8Array(Array.from(TEXT_CONTENT).map(character => character
 export { test };
 
 async function test() {
-	zip.configure({ chunkSize: 128 });
+	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const arrayWriter = new zip.Uint8ArrayWriter();
 	const zipWriter = new zip.ZipWriter(arrayWriter);
 	await zipWriter.add(FILENAME, new zip.Uint8ArrayReader(ARRAY));
