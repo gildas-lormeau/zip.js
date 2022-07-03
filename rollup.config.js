@@ -29,13 +29,13 @@ const inlineTerserOptions = {
 	},
 	mangle: {
 		properties: {
-			reserved: ["codecType", "config", "salt", "iterations", "keys", "password", "encryptionStrength", "encrypted", "signed", "compressed", "level", "zipCrypto", "passwordVerification"]
+			reserved: ["codecType", "config", "salt", "iterations", "keys", "password", "encryptionStrength", "encrypted", "signed", "compressed", "level", "zipCrypto", "passwordVerification", "enqueue", "close"]
 		}
 	}
 };
 
-const GLOBALS = "const { Array, Object, String, BigInt, Math, Date, Map, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, FileReader, document, crypto, btoa } = globalThis;";
-const GLOBALS_WORKER = "const { Array, Object, Math, Error, Uint8Array, Uint16Array, Uint32Array, Int32Array, DataView, TextEncoder, crypto, postMessage } = globalThis;";
+const GLOBALS = "const { Array, Object, String, BigInt, Math, Date, Map, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, FileReader, document, crypto, btoa, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream } = globalThis;";
+const GLOBALS_WORKER = "const { Array, Object, Math, Error, Uint8Array, Uint16Array, Uint32Array, Int32Array, DataView, TextEncoder, crypto, postMessage, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream } = globalThis;";
 
 export default [{
 	input: "lib/z-worker.js",
