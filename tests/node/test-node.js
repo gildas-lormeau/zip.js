@@ -12,7 +12,7 @@ test()
 	.catch(error => console.error(error));
 
 async function test() {
-	configure({ useWebWorkers: false, useCompressionStream: false });
+	configure({ useWebWorkers: false });
 	const blobWriter = new Uint8ArrayWriter(UINT8_ARRAY);
 	const zipWriter = new ZipWriter(blobWriter);
 	const entry = await zipWriter.add(FILENAME, new Uint8ArrayReader(UINT8_ARRAY));
