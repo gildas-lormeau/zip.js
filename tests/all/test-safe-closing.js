@@ -14,7 +14,7 @@ async function test() {
 	zip.configure({ chunkSize: 512, maxWorkers: 4, useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
-	ENTRIES_DATA.map(entryData => zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob))); // missing await when calling zipWriter.add
+	ENTRIES_DATA.map(entryData => zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob))); // missing call to `Promise.all`
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
 	const entries = await zipReader.getEntries();
