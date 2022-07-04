@@ -109,6 +109,10 @@
 			<dd>Enables the use of <a href="https://www.w3.org/TR/workers/">Web workers</a> to compress and uncompress
 				data in non-blocking background processes. The default value is <code>true</code>.
 			</dd>
+			<dt><code>useCompressionStream (boolean)</code></dt>
+			<dd>Enables the use of <a href="https://wicg.github.io/compression/">Compression stream</a> to compress and
+				uncompress data if available. The default value is <code>true</code>.
+			</dd>
 		</dl>
 		<dl>
 			<dt><code>terminateWorkerTimeout (number)</code></dt>
@@ -446,6 +450,10 @@
 						default)</dd>
 					<dt><code>useWebWorkers (boolean)</code></dt>
 					<dd>boolean value specifying if web workers should be used (<code>undefined</code> by default)</dd>
+					<dt><code>useCompressionStream (boolean)</code></dt>
+					<dd>boolean value specifying if <a href="https://wicg.github.io/compression/">Compression stream</a>
+						should be used to uncompress data (<code>true</code> by default).
+					</dd>
 					<dt><code>signal (<a href="https://dom.spec.whatwg.org/#interface-AbortSignal">AbortSignal</a>)</code>
 					</dt>
 					<dd>signal object created with an <a
@@ -593,6 +601,10 @@
 					</dd>
 					<dt><code>useWebWorkers (boolean)</code></dt>
 					<dd>boolean value specifying if web workers should be used (<code>undefined</code> by default)</dd>
+					<dt><code>useCompressionStream (boolean)</code></dt>
+					<dd>boolean value specifying if <a href="https://wicg.github.io/compression/">Compression stream</a>
+						should be used to uncompress data (<code>true</code> by default).
+					</dd>
 				</dl>
 			</dd>
 		</dl>
@@ -680,6 +692,10 @@ await reader.close();</code></pre>
 					</dd>
 					<dt><code>useWebWorkers (boolean)</code></dt>
 					<dd>boolean value specifying if web workers should be used (<code>undefined</code> by default)</dd>
+					<dt><code>useCompressionStream (boolean)</code></dt>
+					<dd>boolean value specifying if <a href="https://wicg.github.io/compression/">Compression stream</a>
+						should be used to compress data (<code>true</code> by default).
+					</dd>
 					<dt><code>dataDescriptor (boolean)</code></dt>
 					<dd>boolean value specifying if the data descriptor should be included (<code>true</code> by
 						default)
@@ -763,6 +779,10 @@ await reader.close();</code></pre>
 						the value is a <code>UInt8Array</code> (<code>undefined</code> by default)</dd>
 					<dt><code>useWebWorkers (boolean)</code></dt>
 					<dd>boolean value specifying if web workers should be used (<code>undefined</code> by default)</dd>
+					<dt><code>useCompressionStream (boolean)</code></dt>
+					<dd>boolean value specifying if <a href="https://wicg.github.io/compression/">Compression stream</a>
+						should be used to compress data (<code>true</code> by default).
+					</dd>
 					<dt><code>dataDescriptor (boolean)</code></dt>
 					<dd>boolean value specifying if the data descriptor should be included (<code>true</code> by
 						default)
