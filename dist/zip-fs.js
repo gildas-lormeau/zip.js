@@ -39,7 +39,7 @@
 	const DEFAULT_CONFIGURATION = {
 		chunkSize: 512 * 1024,
 		maxWorkers: (typeof navigator != "undefined" && navigator.hardwareConcurrency) || 2,
-		terminateWorkerTimeout: 50000,
+		terminateWorkerTimeout: 5000,
 		useWebWorkers: true,
 		workerScripts: undefined
 	};
@@ -65,9 +65,6 @@
 		}
 		if (configuration.useWebWorkers !== undefined) {
 			config.useWebWorkers = configuration.useWebWorkers;
-		}
-		if (configuration.useCompressionStream !== undefined) {
-			config.useCompressionStream = configuration.useCompressionStream;
 		}
 		if (configuration.Deflate !== undefined) {
 			config.Deflate = configuration.Deflate;
@@ -1910,7 +1907,7 @@
 				return interfaceCodec.start();
 			}
 		};
-		interfaceCodec.pull = () => pull(workerData, codec);
+		interfaceCodec.pull = () => codec.pull();
 		interfaceCodec.ondata = data => ondata(workerData, codec, data);
 		return codec;
 	}
@@ -1988,7 +1985,7 @@
 					workerData.onTaskFinished();
 				} else {
 					if (message.type == MESSAGE_PULL) {
-						const { value, done } = await pull(workerData, codec);
+						const { value, done } = await codec.pull();
 						sendMessage({ type: MESSAGE_DATA, data: value, done, messageId: message.messageId });
 					}
 					if (message.type == MESSAGE_DATA) {
@@ -2004,11 +2001,6 @@
 				workerData.onTaskFinished();
 			}
 		}
-	}
-
-	async function pull(workerData, codec) {
-		const { value, done } = await codec.pull();
-		return { value, done };
 	}
 
 	async function ondata(workerData, codec, data) {
