@@ -24,4 +24,3 @@
 - `z-worker.js` can be used as a web worker script if the [CSP](https://developer.mozilla.org/docs/Web/HTTP/CSP) does not allow to load it with a Blob URI
 - `z-worker-fflate.js` is the web worker script for using [fflate](https://gildas-lormeau.github.io/zip.js/core-api.html#alternative-codec-fflate)
 - `z-worker-pako.js` is the web worker script for using [pako](https://gildas-lormeau.github.io/zip.js/core-api.html#alternative-codec-pako)
-- The same files are available for older browsers supporting only ECMAScript 5, the name of these files are suffixed with `-es5` (e.g. `zip-es5.js`)
