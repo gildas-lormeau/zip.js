@@ -98,26 +98,16 @@
 			<dd>Enables the use of <a href="https://www.w3.org/TR/workers/">Web workers</a> to compress and uncompress
 				data in non-blocking background processes. The default value is <code>true</code>.
 			</dd>
-			<dt><code>useCompressionStream (boolean)</code></dt>
-			<dd>Enables the use of <a href="https://wicg.github.io/compression/">Compression stream</a> to compress and
-				uncompress data if available. The default value is <code>true</code>.
-			</dd>
-		</dl>
-		<dl>
 			<dt><code>terminateWorkerTimeout (number)</code></dt>
 			<dd>Delay before terminating a web worker in ms. The default value is <code>5000</code>. You can call
 				<code>zip.terminateWorkers()</code> to terminate idle workers.
 			</dd>
-		</dl>
-		<dl>
 			<dt><code>maxWorkers (number)</code></dt>
 			<dd>Number of workers used simultaneously to process data. The default value is the number of logical
 				cores returned by the attribute
 				<code><a href="https://html.spec.whatwg.org/multipage/workers.html#navigator.hardwareconcurrency">navigator.hardwareConcurrency</a></code>
 				or <code>2</code> if <code>navigator</code> is <code>undefined</code>.
 			</dd>
-		</dl>
-		<dl>
 			<dt><code>workerScripts (Object)</code></dt>
 			<dd>Advanced option to explicitly control which scripts are loaded in the web worker. It allows using
 				alternative deflate implementations or specifying a URL to the worker script if the CSP of the page
