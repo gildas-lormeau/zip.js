@@ -7,7 +7,7 @@ declare global {
 
 interface ConfigurationOptions {
     useWebWorkers?: boolean;
-    useCompressionStream: boolean;
+    useCompressionStream?: boolean;
     maxWorkers?: number;
     terminateWorkerTimeout?: number;
     workerScripts?: {
