@@ -15,7 +15,7 @@ async function test() {
 	for (let index = 0; index < 64; index++) {
 		await blobWriter.writeUint8Array(array);
 	}
-	const zipWriter = new zip.ZipWriter(blobWriter);
+	const zipWriter = new zip.ZipWriter(blobWriter, { keepOrder: true });
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
