@@ -2,6 +2,12 @@
 
 (() => {
 
+	if (typeof TransformStream == "undefined") {
+		const script = document.createElement("script");
+		script.src = "lib/web-streams-polyfill.min.js";
+		document.body.appendChild(script);
+	}
+
 	const DEFLATE_IMPLEMENTATIONS = {
 		"zip.js": ["z-worker.js"],
 		"fflate": ["z-worker-fflate.js", "fflate.min.js"],

@@ -2,6 +2,12 @@
 
 (() => {
 
+	if (typeof TransformStream == "undefined") {
+		const script = document.createElement("script");
+		script.src = "lib/web-streams-polyfill.min.js";
+		document.body.appendChild(script);
+	}
+
 	zip.configure({
 		workerScripts: {
 			deflate: ["z-worker-pako.js", "pako_deflate.min.js"],
