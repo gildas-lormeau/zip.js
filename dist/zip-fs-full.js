@@ -7280,7 +7280,7 @@
 		try {
 			return await codec.run(signal);
 		} catch (error) {
-			if (signal && signal.aborted && signal.reason == error) {
+			if (signal && signal.aborted && (signal.reason == error || error.name == ERR_ABORT)) {
 				codec.abort();
 				throw new Error(ERR_ABORT);
 			} else {
@@ -8837,9 +8837,6 @@
 		}
 		let maximumCompressedSize = 0;
 		let keepOrder = getOptionValue(zipWriter, options, "keepOrder");
-		if (keepOrder === undefined) {
-			keepOrder = true;
-		}
 		let uncompressedSize = 0;
 		let msDosCompatible = getOptionValue(zipWriter, options, "msDosCompatible");
 		if (msDosCompatible === undefined) {
