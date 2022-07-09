@@ -4302,6 +4302,9 @@
 		if (configuration.terminateWorkerTimeout !== undefined) {
 			config.terminateWorkerTimeout = configuration.terminateWorkerTimeout;
 		}
+		if (configuration.useCompressionStream !== undefined) {
+			config.useCompressionStream = configuration.useCompressionStream;
+		}
 		if (configuration.useWebWorkers !== undefined) {
 			config.useWebWorkers = configuration.useWebWorkers;
 		}
@@ -5455,15 +5458,14 @@
 	 */
 
 	class Crc32Stream extends TransformStream {
+
 		constructor() {
 			super({
 				start() {
 					this.crc32 = new Crc32();
 				},
 				transform(chunk) {
-					if (chunk && chunk.length) {
-						this.crc32.append(chunk);
-					}
+					this.crc32.append(chunk);
 				},
 				flush(controller) {
 					const value = new Uint8Array(4);
@@ -6406,23 +6408,21 @@
 					});
 				},
 				async transform(chunk, controller) {
-					if (chunk && chunk.length) {
-						const aesCrypto = this;
-						if (aesCrypto.password) {
-							const password = aesCrypto.password;
-							aesCrypto.password = null;
-							const preamble = subarray(chunk, 0, SALT_LENGTH[aesCrypto.strength] + 2);
-							await createDecryptionKeys(aesCrypto, preamble, password);
-							aesCrypto.ctr = new CtrGladman(new Aes(aesCrypto.keys.key), Array.from(COUNTER_DEFAULT_VALUE));
-							aesCrypto.hmac = new HmacSha1(aesCrypto.keys.authentication);
-							chunk = subarray(chunk, SALT_LENGTH[aesCrypto.strength] + 2);
-							aesCrypto.resolveReady();
-						} else {
-							await aesCrypto.ready;
-						}
-						const output = new Uint8Array(chunk.length - SIGNATURE_LENGTH - ((chunk.length - SIGNATURE_LENGTH) % BLOCK_LENGTH));
-						controller.enqueue(append(aesCrypto, chunk, output, 0, SIGNATURE_LENGTH, true));
+					const aesCrypto = this;
+					if (aesCrypto.password) {
+						const password = aesCrypto.password;
+						aesCrypto.password = null;
+						const preamble = subarray(chunk, 0, SALT_LENGTH[aesCrypto.strength] + 2);
+						await createDecryptionKeys(aesCrypto, preamble, password);
+						aesCrypto.ctr = new CtrGladman(new Aes(aesCrypto.keys.key), Array.from(COUNTER_DEFAULT_VALUE));
+						aesCrypto.hmac = new HmacSha1(aesCrypto.keys.authentication);
+						chunk = subarray(chunk, SALT_LENGTH[aesCrypto.strength] + 2);
+						aesCrypto.resolveReady();
+					} else {
+						await aesCrypto.ready;
 					}
+					const output = new Uint8Array(chunk.length - SIGNATURE_LENGTH - ((chunk.length - SIGNATURE_LENGTH) % BLOCK_LENGTH));
+					controller.enqueue(append(aesCrypto, chunk, output, 0, SIGNATURE_LENGTH, true));
 				},
 				async flush(controller) {
 					const aesCrypto = this;
@@ -6467,23 +6467,21 @@
 					});
 				},
 				async transform(chunk, controller) {
-					if (chunk && chunk.length) {
-						const aesCrypto = this;
-						let preamble = new Uint8Array(0);
-						if (aesCrypto.password) {
-							const password = aesCrypto.password;
-							aesCrypto.password = null;
-							preamble = await createEncryptionKeys(aesCrypto, password);
-							aesCrypto.ctr = new CtrGladman(new Aes(aesCrypto.keys.key), Array.from(COUNTER_DEFAULT_VALUE));
-							aesCrypto.hmac = new HmacSha1(aesCrypto.keys.authentication);
-							aesCrypto.resolveReady();
-						} else {
-							await aesCrypto.ready;
-						}
-						const output = new Uint8Array(preamble.length + chunk.length - (chunk.length % BLOCK_LENGTH));
-						output.set(preamble, 0);
-						controller.enqueue(append(aesCrypto, chunk, output, preamble.length, 0));
+					const aesCrypto = this;
+					let preamble = new Uint8Array(0);
+					if (aesCrypto.password) {
+						const password = aesCrypto.password;
+						aesCrypto.password = null;
+						preamble = await createEncryptionKeys(aesCrypto, password);
+						aesCrypto.ctr = new CtrGladman(new Aes(aesCrypto.keys.key), Array.from(COUNTER_DEFAULT_VALUE));
+						aesCrypto.hmac = new HmacSha1(aesCrypto.keys.authentication);
+						aesCrypto.resolveReady();
+					} else {
+						await aesCrypto.ready;
 					}
+					const output = new Uint8Array(preamble.length + chunk.length - (chunk.length % BLOCK_LENGTH));
+					output.set(preamble, 0);
+					controller.enqueue(append(aesCrypto, chunk, output, preamble.length, 0));
 				},
 				async flush(controller) {
 					const aesCrypto = this;
@@ -6648,18 +6646,16 @@
 					createKeys(this, password);
 				},
 				transform(chunk, controller) {
-					if (chunk && chunk.length) {
-						const zipCrypto = this;
-						if (zipCrypto.password) {
-							const decryptedHeader = decrypt(zipCrypto, chunk.subarray(0, HEADER_LENGTH));
-							zipCrypto.password = null;
-							if (decryptedHeader[HEADER_LENGTH - 1] != zipCrypto.passwordVerification) {
-								throw new Error(ERR_INVALID_PASSWORD);
-							}
-							chunk = chunk.subarray(HEADER_LENGTH);
+					const zipCrypto = this;
+					if (zipCrypto.password) {
+						const decryptedHeader = decrypt(zipCrypto, chunk.subarray(0, HEADER_LENGTH));
+						zipCrypto.password = null;
+						if (decryptedHeader[HEADER_LENGTH - 1] != zipCrypto.passwordVerification) {
+							throw new Error(ERR_INVALID_PASSWORD);
 						}
-						controller.enqueue(decrypt(zipCrypto, chunk));
+						chunk = chunk.subarray(HEADER_LENGTH);
 					}
+					controller.enqueue(decrypt(zipCrypto, chunk));
 				},
 				flush() {
 					stream.valid = true;
@@ -6681,24 +6677,22 @@
 					createKeys(this, password);
 				},
 				transform(chunk, controller) {
-					if (chunk && chunk.length) {
-						const zipCrypto = this;
-						let output;
-						let offset;
-						if (zipCrypto.password) {
-							zipCrypto.password = null;
-							const header = crypto.getRandomValues(new Uint8Array(HEADER_LENGTH));
-							header[HEADER_LENGTH - 1] = zipCrypto.passwordVerification;
-							output = new Uint8Array(chunk.length + header.length);
-							output.set(encrypt(zipCrypto, header), 0);
-							offset = HEADER_LENGTH;
-						} else {
-							output = new Uint8Array(chunk.length);
-							offset = 0;
-						}
-						output.set(encrypt(zipCrypto, chunk), offset);
-						controller.enqueue(output);
+					const zipCrypto = this;
+					let output;
+					let offset;
+					if (zipCrypto.password) {
+						zipCrypto.password = null;
+						const header = crypto.getRandomValues(new Uint8Array(HEADER_LENGTH));
+						header[HEADER_LENGTH - 1] = zipCrypto.passwordVerification;
+						output = new Uint8Array(chunk.length + header.length);
+						output.set(encrypt(zipCrypto, header), 0);
+						offset = HEADER_LENGTH;
+					} else {
+						output = new Uint8Array(chunk.length);
+						offset = 0;
 					}
+					output.set(encrypt(zipCrypto, chunk), offset);
+					controller.enqueue(output);
 				},
 				flush() {
 				}
@@ -6793,6 +6787,7 @@
 	/* global TransformStream */
 
 	class CodecStream extends TransformStream {
+
 		constructor(Codec, options) {
 			super({
 				start() {
@@ -6800,15 +6795,11 @@
 				},
 				transform(chunk, controller) {
 					chunk = this.codec.append(chunk);
-					if (chunk && chunk.length) {
-						controller.enqueue(chunk);
-					}
+					controller.enqueue(chunk);
 				},
 				flush(controller) {
 					const chunk = this.codec.flush();
-					if (chunk && chunk.length) {
-						controller.enqueue(chunk);
-					}
+					controller.enqueue(chunk);
 				}
 			});
 		}
@@ -6842,198 +6833,132 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const CODEC_DEFLATE = "deflate";
-	const CODEC_INFLATE = "inflate";
 	const ERR_INVALID_SIGNATURE = "Invalid signature";
-	const MESSAGE_EVENT_TYPE = "message";
-	const MESSAGE_START = "start";
-	const MESSAGE_PULL = "pull";
-	const MESSAGE_DATA = "data";
-	const MESSAGE_ABORT = "abort";
 	const COMPRESSION_FORMAT = "deflate-raw";
 	const UNDEFINED_TYPE = "undefined";
 
-	class Inflate {
+	class DeflateStream extends TransformStream {
 
-		constructor(codecConstructor, {
-			signature,
-			password,
-			signed,
-			compressed,
-			zipCrypto,
-			passwordVerification,
-			encryptionStrength,
-			useCompressionStream
-		}, { chunkSize }) {
-			const codec = this;
-			codec.start = async () => {
-				const encrypted = Boolean(password);
-				Object.assign(codec, {
-					signature,
-					encrypted,
-					signed,
-					compressed,
-					zipCrypto,
-					stream: createReadableStream(codec)
-				});
-				if (encrypted) {
-					if (zipCrypto) {
-						codec.stream = codec.stream.pipeThrough(new ZipCryptoDecryptionStream(password, passwordVerification));
-					} else {
-						codec.decryptStream = new AESDecryptionStream(password, signed, encryptionStrength);
-						codec.stream = codec.stream.pipeThrough(codec.decryptStream);
+		constructor(codecConstructor, { compressed, useCompressionStream, password, passwordVerification, encryptionStrength, zipCrypto, signed }, { chunkSize }, ...strategies) {
+			super({}, ...strategies);
+			const stream = this;
+			let crc32Stream, encryptionStream;
+			let readable = filterEmptyChunks(super.readable);
+			const encrypted = Boolean(password);
+			if ((!encrypted || zipCrypto) && signed) {
+				[readable, crc32Stream] = readable.tee();
+				crc32Stream = crc32Stream.pipeThrough(new Crc32Stream());
+			}
+			if (compressed) {
+				if ((useCompressionStream !== undefined && !useCompressionStream) || typeof CompressionStream == UNDEFINED_TYPE) {
+					readable = pipeCodecStream(codecConstructor, readable, chunkSize);
+				} else {
+					try {
+						const compressionStream = new CompressionStream(COMPRESSION_FORMAT);
+						readable = readable.pipeThrough(compressionStream);
+					} catch (_error) {
+						readable = pipeCodecStream(codecConstructor, readable, chunkSize);
 					}
 				}
-				if (compressed) {
-					if ((useCompressionStream !== undefined && !useCompressionStream) || typeof DecompressionStream == UNDEFINED_TYPE) {
-						pipeCodecStream();
-					} else {
-						try {
-							codec.stream = codec.stream.pipeThrough(new DecompressionStream(COMPRESSION_FORMAT));
-						} catch (_error) {
-							pipeCodecStream();
-						}
-					}
+			}
+			if (encrypted) {
+				if (zipCrypto) {
+					readable = readable.pipeThrough(new ZipCryptoEncryptionStream(password, passwordVerification));
+				} else {
+					encryptionStream = new AESEncryptionStream(password, encryptionStrength);
+					readable = readable.pipeThrough(encryptionStream);
+				}
+			}
+			setReadable(stream, readable, async () => {
+				let signature;
+				if (encrypted && !zipCrypto) {
+					signature = encryptionStream.signature;
 				}
 				if ((!encrypted || zipCrypto) && signed) {
-					const tee = codec.stream.tee();
-					codec.stream = tee[0];
-					codec.crc32Stream = tee[1].pipeThrough(new Crc32Stream());
-				}
-				codec.reader = codec.stream.getReader();
-				await codec.read();
-			};
-			codec.abort = () => codec.aborted = true;
-
-			function pipeCodecStream() {
-				codec.stream = codec.stream.pipeThrough(new CodecStream(codecConstructor, { chunkSize }));
-			}
-		}
-
-		async read() {
-			const codec = this;
-			const { value, done } = await codec.reader.read();
-			if (value && value.length) {
-				codec.ondata({ value: { data: new Uint8Array(value) } });
-			}
-			if (done) {
-				let signature;
-				if (codec.encrypted && !codec.zipCrypto) {
-					if (!codec.decryptStream.valid) {
-						throw new Error(ERR_INVALID_SIGNATURE);
-					}
-				}
-				if ((!codec.encrypted || codec.zipCrypto) && codec.signed) {
-					signature = await codec.crc32Stream.getReader().read();
-					const dataViewSignature = new DataView(signature.value.buffer);
-					if (codec.signature != dataViewSignature.getUint32(0, false)) {
-						throw new Error(ERR_INVALID_SIGNATURE);
-					}
-				}
-				codec.ondata({ value: { signature }, done });
-			} else {
-				await codec.read();
-			}
-		}
-	}
-
-	class Deflate {
-
-		constructor(codecConstructor, {
-			encrypted,
-			signed,
-			compressed,
-			level,
-			zipCrypto,
-			password,
-			passwordVerification,
-			encryptionStrength,
-			useCompressionStream
-		}, { chunkSize }) {
-			const codec = this;
-			codec.start = async () => {
-				Object.assign(this, {
-					encrypted,
-					signed,
-					compressed,
-					zipCrypto,
-					stream: createReadableStream(codec)
-				});
-				if ((!encrypted || zipCrypto) && signed) {
-					const tee = codec.stream.tee();
-					codec.stream = tee[0];
-					codec.crc32Stream = tee[1].pipeThrough(new Crc32Stream({ chunkSize }));
-				}
-				if (compressed) {
-					if ((useCompressionStream !== undefined && !useCompressionStream) || typeof CompressionStream == UNDEFINED_TYPE) {
-						pipeCodecStream();
-					} else {
-						try {
-							codec.stream = codec.stream.pipeThrough(new CompressionStream(COMPRESSION_FORMAT));
-						} catch (_error) {
-							pipeCodecStream();
-						}
-					}
-				}
-				if (encrypted) {
-					if (zipCrypto) {
-						codec.stream = codec.stream.pipeThrough(new ZipCryptoEncryptionStream(password, passwordVerification));
-					} else {
-						codec.encryptStream = new AESEncryptionStream(password, encryptionStrength);
-						codec.stream = codec.stream.pipeThrough(codec.encryptStream);
-					}
-				}
-				codec.reader = codec.stream.getReader();
-				await codec.read();
-			};
-			codec.abort = () => codec.aborted = true;
-
-			function pipeCodecStream() {
-				codec.stream = codec.stream.pipeThrough(new CodecStream(codecConstructor, { chunkSize, level }));
-			}
-		}
-
-		async read() {
-			const codec = this;
-			const { value, done } = await codec.reader.read();
-			if (value && value.length) {
-				codec.ondata({ value: { data: value } });
-			}
-			if (done) {
-				let signature;
-				if (codec.encrypted && !codec.zipCrypto) {
-					signature = codec.encryptStream.signature;
-				}
-				if ((!codec.encrypted || codec.zipCrypto) && codec.signed) {
-					signature = await codec.crc32Stream.getReader().read();
+					signature = await crc32Stream.getReader().read();
 					signature = new DataView(signature.value.buffer).getUint32(0);
 				}
-				codec.ondata({ value: { signature }, done });
-			} else {
-				await codec.read();
+				stream.signature = signature;
+			});
+		}
+	}
+
+	class InflateStream extends TransformStream {
+
+		constructor(codecConstructor, { zipCrypto, password, passwordVerification, signed, encryptionStrength, compressed, useCompressionStream }, { chunkSize }, ...strategies) {
+			super({}, ...strategies);
+			const stream = this;
+			let crc32Stream, decryptionStream;
+			let readable = filterEmptyChunks(super.readable);
+			const encrypted = Boolean(password);
+			if (encrypted) {
+				if (zipCrypto) {
+					readable = readable.pipeThrough(new ZipCryptoDecryptionStream(password, passwordVerification));
+				} else {
+					decryptionStream = new AESDecryptionStream(password, signed, encryptionStrength);
+					readable = readable.pipeThrough(decryptionStream);
+				}
 			}
+			if (compressed) {
+				if ((useCompressionStream !== undefined && !useCompressionStream) || typeof DecompressionStream == UNDEFINED_TYPE) {
+					readable = pipeCodecStream(codecConstructor, readable, chunkSize);
+				} else {
+					try {
+						readable = readable.pipeThrough(new DecompressionStream(COMPRESSION_FORMAT));
+					} catch (_error) {
+						readable = pipeCodecStream(codecConstructor, readable, chunkSize);
+					}
+				}
+			}
+			if ((!encrypted || zipCrypto) && signed) {
+				[readable, crc32Stream] = readable.tee();
+				crc32Stream = crc32Stream.pipeThrough(new Crc32Stream());
+			}
+			setReadable(stream, readable, async () => {
+				let signature;
+				if (encrypted && !zipCrypto) {
+					if (!decryptionStream.valid) {
+						throw new Error(ERR_INVALID_SIGNATURE);
+					}
+				}
+				if ((!encrypted || zipCrypto) && signed) {
+					signature = await crc32Stream.getReader().read();
+					const dataViewSignature = new DataView(signature.value.buffer);
+					if (signature != dataViewSignature.getUint32(0, false)) {
+						throw new Error(ERR_INVALID_SIGNATURE);
+					}
+				}
+			});
 		}
-
 	}
 
-	function createCodec$1(codecConstructor, options, config) {
-		if (options.codecType.startsWith(CODEC_DEFLATE)) {
-			return new Deflate(codecConstructor, options, config);
-		} else if (options.codecType.startsWith(CODEC_INFLATE)) {
-			return new Inflate(codecConstructor, options, config);
-		}
+	function pipeCodecStream(codecConstructor, stream, chunkSize) {
+		return stream.pipeThrough(new CodecStream(codecConstructor, { chunkSize }));
 	}
 
-	function createReadableStream(codec) {
-		return new ReadableStream({
-			async pull(controller) {
-				const { value, done } = await codec.pull();
-				if (value) {
-					controller.enqueue(value);
+	function filterEmptyChunks(readable) {
+		return readable.pipeThrough(new TransformStream({
+			transform(chunk, controller) {
+				if (chunk && chunk.length) {
+					controller.enqueue(chunk);
 				}
-				if (done || codec.aborted) {
-					controller.close();
+			}
+		}));
+	}
+
+	function setReadable(stream, readable, flush) {
+		stream.length = 0;
+		readable = readable.pipeThrough(new TransformStream({
+			transform(chunk, controller) {
+				if (chunk && chunk.length) {
+					stream.length += chunk.length;
+					controller.enqueue(chunk);
 				}
+			}, flush
+		}));
+		Object.defineProperty(stream, "readable", {
+			get() {
+				return readable;
 			}
 		});
 	}
@@ -7066,12 +6991,79 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	const CODEC_DEFLATE = "deflate";
+	const CODEC_INFLATE = "inflate";
+	const MESSAGE_EVENT_TYPE = "message";
+	const MESSAGE_START = "start";
+	const MESSAGE_PULL = "pull";
+	const MESSAGE_DATA = "data";
+	const MESSAGE_ABORT = "abort";
+	const MESSAGE_CLOSE = "close";
+	const ERR_ABORT = "AbortError";
+
+	function createCodec(codecConstructor, readable, writable, options, config) {
+		const controller = new AbortController();
+		const { signal } = controller;
+		if (options.codecType.startsWith(CODEC_DEFLATE)) {
+			return {
+				run: () => run(DeflateStream),
+				abort
+			};
+		} else if (options.codecType.startsWith(CODEC_INFLATE)) {
+			return {
+				run: () => run(InflateStream),
+				AbortController
+			};
+		}
+
+		async function run(StreamConstructor) {
+			const stream = new StreamConstructor(codecConstructor, options, config);
+			await readable.pipeThrough(stream, { signal }).pipeTo(writable);
+			const { length, signature } = stream;
+			return { length, signature };
+		}
+
+		function abort() {
+			controller.abort();
+		}
+	}
+
+	/*
+	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
 	let classicWorkersSupported = true;
 
-	function getWorker(workerData, codecConstructor, options, config, onTaskFinished, webWorker, scripts) {
+	function getWorker(workerData, codecConstructor, readable, writable, options, config, streamOptions, onTaskFinished, webWorker, scripts) {
 		Object.assign(workerData, {
 			busy: true,
 			codecConstructor,
+			readable,
+			writable,
 			options: Object.assign({}, options),
 			scripts,
 			terminate() {
@@ -7085,27 +7077,50 @@
 				onTaskFinished(workerData);
 			}
 		});
+		const { signal, onprogress, size } = streamOptions;
+		if (signal || onprogress) {
+			let chunkOffset = 0;
+			const transformer = {};
+			if (onprogress) {
+				transformer.transform = (chunk, controller) => {
+					chunkOffset += chunk.length;
+					try {
+						onprogress(chunkOffset, size());
+					} catch (_error) {
+						// ignored
+					}
+					controller.enqueue(chunk);
+				};
+			}
+			workerData.readable = readable.pipeThrough(new TransformStream(transformer), { signal });
+		}
 		return webWorker ? createWebWorkerInterface(workerData, config) : createWorkerInterface(workerData, config);
 	}
 
 	function createWorkerInterface(workerData, config) {
-		const interfaceCodec = createCodec$1(workerData.codecConstructor, workerData.options, config);
+		const interfaceCodec = createCodec(workerData.codecConstructor, workerData.readable, workerData.writable, workerData.options, config);
 		const codec = {
 			abort() {
 				interfaceCodec.abort();
 				workerData.onTaskFinished();
 			},
-			start() {
-				return interfaceCodec.start();
+			run() {
+				const result = interfaceCodec.run();
+				workerData.onTaskFinished();
+				return result;
 			}
 		};
-		interfaceCodec.pull = () => codec.pull();
-		interfaceCodec.ondata = data => ondata(workerData, codec, data);
 		return codec;
 	}
 
 	function createWebWorkerInterface(workerData, { baseURL, chunkSize }) {
 		const workerOptions = { type: "module" };
+		workerData.reader = workerData.readable.getReader();
+		workerData.writer = workerData.writable.getWriter();
+		workerData.result = new Promise((resolve, reject) => {
+			workerData.resolveResult = resolve;
+			workerData.rejectResult = reject;
+		});
 		if (!workerData.interface) {
 			if (!classicWorkersSupported) {
 				workerData.worker = getWorker(workerOptions);
@@ -7123,10 +7138,11 @@
 					sendMessage({ type: MESSAGE_ABORT });
 					workerData.onTaskFinished();
 				},
-				start() {
+				run() {
 					const options = workerData.options;
 					const scripts = workerData.scripts.slice(1);
 					sendMessage({ type: MESSAGE_START, scripts, options, config: { chunkSize } });
+					return workerData.result;
 				}
 			};
 		}
@@ -7168,40 +7184,32 @@
 		async function onMessage(event) {
 			const message = event.data;
 			const reponseError = message.error;
-			const codec = workerData.interface;
 			try {
 				if (reponseError) {
 					const error = new Error(reponseError.message);
 					error.stack = reponseError.stack;
-					codec.onerror(error);
+					workerData.rejectResult(error);
 					workerData.onTaskFinished();
 				} else {
 					if (message.type == MESSAGE_PULL) {
-						const { value, done } = await codec.pull();
+						const { value, done } = await workerData.reader.read();
 						sendMessage({ type: MESSAGE_DATA, data: value, done, messageId: message.messageId });
 					}
 					if (message.type == MESSAGE_DATA) {
-						const { value } = message.data;
-						if (value && value.data) {
-							value.data = new Uint8Array(value.data);
-						}
-						await ondata(workerData, codec, message.data);
+						let { data } = message;
+						data = new Uint8Array(data);
+						await workerData.writer.ready;
+						workerData.writer.write(data);
+					}
+					if (message.type == MESSAGE_CLOSE) {
+						workerData.resolveResult(message.result);
+						workerData.onTaskFinished();
 					}
 				}
 			} catch (error) {
-				codec.onerror(error);
+				workerData.rejectResult(error);
 				workerData.onTaskFinished();
 			}
-		}
-	}
-
-	async function ondata(workerData, codec, data) {
-		let { value, done } = data;
-		if (done) {
-			await codec.ondata({ value: { data: value.data, signature: value.signature }, done });
-			workerData.onTaskFinished();
-		} else if (value.data) {
-			await codec.ondata({ value: { data: value.data } });
 		}
 	}
 
@@ -7238,30 +7246,42 @@
 
 	let indexWorker = 0;
 
-	function createCodec(codecConstructor, options, config) {
+	async function runCodec(codecConstructor, readable, writable, options, config, streamOptions) {
 		const streamCopy = !options.compressed && !options.signed && !options.encrypted;
 		const webWorker = !streamCopy && (options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers));
 		const scripts = webWorker && config.workerScripts ? config.workerScripts[options.codecType] : [];
 		options.useCompressionStream = options.useCompressionStream === undefined ? config.useCompressionStream : options.useCompressionStream;
+		let codec;
 		if (pool.length < config.maxWorkers) {
 			const workerData = { indexWorker };
 			indexWorker++;
 			pool.push(workerData);
-			return getWorker(workerData, codecConstructor, options, config, onTaskFinished, webWorker, scripts);
+			codec = getWorker(workerData, codecConstructor, readable, writable, options, config, streamOptions, onTaskFinished, webWorker, scripts);
 		} else {
 			const workerData = pool.find(workerData => !workerData.busy);
 			if (workerData) {
 				clearTerminateTimeout(workerData);
-				return getWorker(workerData, codecConstructor, options, config, onTaskFinished, webWorker, scripts);
+				codec = getWorker(workerData, codecConstructor, readable, writable, options, config, streamOptions, onTaskFinished, webWorker, scripts);
 			} else {
-				return new Promise(resolve => pendingRequests.push({ resolve, codecConstructor, options, webWorker, scripts }));
+				codec = await new Promise(resolve => pendingRequests.push({ resolve, codecConstructor, readable, writable, options, webWorker, scripts }));
+			}
+		}
+		const { signal } = streamOptions;
+		try {
+			return await codec.run(signal);
+		} catch (error) {
+			if (signal && signal.aborted && signal.reason == error) {
+				codec.abort();
+				throw new Error(ERR_ABORT);
+			} else {
+				throw error;
 			}
 		}
 
 		function onTaskFinished(workerData) {
 			if (pendingRequests.length) {
-				const [{ resolve, codecConstructor, options, webWorker, scripts }] = pendingRequests.splice(0, 1);
-				resolve(getWorker(workerData, codecConstructor, options, config, onTaskFinished, webWorker, scripts));
+				const [{ resolve, codecConstructor, readable, writable, options, webWorker, scripts }] = pendingRequests.splice(0, 1);
+				resolve(getWorker(workerData, codecConstructor, readable, writable, options, config, streamOptions, onTaskFinished, webWorker, scripts));
 			} else if (workerData.worker) {
 				clearTerminateTimeout(workerData);
 				if (Number.isFinite(config.terminateWorkerTimeout) && config.terminateWorkerTimeout >= 0) {
@@ -7290,7 +7310,7 @@
 		});
 	}
 
-	var e=e=>{if("function"==typeof URL.createObjectURL){const t=()=>URL.createObjectURL(new Blob(['const{Array:t,Object:e,Math:n,Error:r,Uint8Array:i,Uint16Array:s,Uint32Array:o,Int32Array:f,DataView:c,TextEncoder:a,crypto:l,postMessage:u,TransformStream:w,ReadableStream:h,WritableStream:d,CompressionStream:p,DecompressionStream:y}=globalThis,b=[];for(let t=0;256>t;t++){let e=t;for(let t=0;8>t;t++)1&e?e=e>>>1^3988292384:e>>>=1;b[t]=e}class m{constructor(t){this.t=t||-1}append(t){let e=0|this.t;for(let n=0,r=0|t.length;r>n;n++)e=e>>>8^b[255&(e^t[n])];this.t=e}get(){return~this.t}}class k extends w{constructor(){super({start(){this.i=new m},transform(t){t&&t.length&&this.i.append(t)},flush(t){const e=new i(4);new c(e.buffer).setUint32(0,this.i.get()),t.enqueue(e)}})}}const g={concat(t,e){if(0===t.length||0===e.length)return t.concat(e);const n=t[t.length-1],r=g.o(n);return 32===r?t.concat(e):g.l(e,r,0|n,t.slice(0,t.length-1))},u(t){const e=t.length;if(0===e)return 0;const n=t[e-1];return 32*(e-1)+g.o(n)},h(t,e){if(32*t.length<e)return t;const r=(t=t.slice(0,n.ceil(e/32))).length;return e&=31,r>0&&e&&(t[r-1]=g.p(e,t[r-1]&2147483648>>e-1,1)),t},p:(t,e,n)=>32===t?e:(n?0|e:e<<32-t)+1099511627776*t,o:t=>n.round(t/1099511627776)||32,l(t,e,n,r){for(void 0===r&&(r=[]);e>=32;e-=32)r.push(n),n=0;if(0===e)return r.concat(t);for(let i=0;i<t.length;i++)r.push(n|t[i]>>>e),n=t[i]<<32-e;const i=t.length?t[t.length-1]:0,s=g.o(i);return r.push(g.p(e+s&31,e+s>32?n:r.pop(),1)),r}},v={m:{k(t){const e=g.u(t)/8,n=new i(e);let r;for(let i=0;e>i;i++)0==(3&i)&&(r=t[i/4]),n[i]=r>>>24,r<<=8;return n},g(t){const e=[];let n,r=0;for(n=0;n<t.length;n++)r=r<<8|t[n],3==(3&n)&&(e.push(r),r=0);return 3&n&&e.push(g.p(8*(3&n),r)),e}}},S={v:function(t){t?(this.S=t.S.slice(0),this._=t._.slice(0),this.C=t.C):this.reset()}};S.v.prototype={blockSize:512,reset:function(){const t=this;return t.S=this.I.slice(0),t._=[],t.C=0,t},update:function(t){const e=this;"string"==typeof t&&(t=v.A.g(t));const n=e._=g.concat(e._,t),i=e.C,s=e.C=i+g.u(t);if(s>9007199254740991)throw new r("Cannot hash more than 2^53 - 1 bits");const f=new o(n);let c=0;for(let t=e.blockSize+i-(e.blockSize+i&e.blockSize-1);s>=t;t+=e.blockSize)e.V(f.subarray(16*c,16*(c+1))),c+=1;return n.splice(0,16*c),e},P:function(){const t=this;let e=t._;const r=t.S;e=g.concat(e,[g.p(1,1)]);for(let t=e.length+2;15&t;t++)e.push(0);for(e.push(n.floor(t.C/4294967296)),e.push(0|t.C);e.length;)t.V(e.splice(0,16));return t.reset(),r},I:[1732584193,4023233417,2562383102,271733878,3285377520],B:[1518500249,1859775393,2400959708,3395469782],D:(t,e,n,r)=>t>19?t>39?t>59?t>79?void 0:e^n^r:e&n|e&r|n&r:e^n^r:e&n|~e&r,M:(t,e)=>e<<t|e>>>32-t,V:function(e){const r=this,i=r.S,s=t(80);for(let t=0;16>t;t++)s[t]=e[t];let o=i[0],f=i[1],c=i[2],a=i[3],l=i[4];for(let t=0;79>=t;t++){16>t||(s[t]=r.M(1,s[t-3]^s[t-8]^s[t-14]^s[t-16]));const e=r.M(5,o)+r.D(t,f,c,a)+l+s[t]+r.B[n.floor(t/20)]|0;l=a,a=c,c=r.M(30,f),f=o,o=e}i[0]=i[0]+o|0,i[1]=i[1]+f|0,i[2]=i[2]+c|0,i[3]=i[3]+a|0,i[4]=i[4]+l|0}};const z={getRandomValues(t){const e=new o(t.buffer),r=t=>{let e=987654321;const r=4294967295;return()=>(e=36969*(65535&e)+(e>>16)&r,(((e<<16)+(t=18e3*(65535&t)+(t>>16)&r)&r)/4294967296+.5)*(n.random()>.5?1:-1))};for(let i,s=0;s<t.length;s+=4){const t=r(4294967296*(i||n.random()));i=987654071*t(),e[s/4]=4294967296*t()|0}return t}},_={importKey:t=>new _.R(v.m.g(t)),U(t,e,n,i){if(n=n||1e4,0>i||0>n)throw new r("invalid params to pbkdf2");const s=1+(i>>5)<<2;let o,f,a,l,u;const w=new ArrayBuffer(s),h=new c(w);let d=0;const p=g;for(e=v.m.g(e),u=1;(s||1)>d;u++){for(o=f=t.encrypt(p.concat(e,[u])),a=1;n>a;a++)for(f=t.encrypt(f),l=0;l<f.length;l++)o[l]^=f[l];for(a=0;(s||1)>d&&a<o.length;a++)h.setInt32(d,o[a]),d+=4}return w.slice(0,i/8)},R:class{constructor(t){const e=this,n=e.T=S.v,r=[[],[]],i=n.prototype.blockSize/32;e.j=[new n,new n],t.length>i&&(t=n.hash(t));for(let e=0;i>e;e++)r[0][e]=909522486^t[e],r[1][e]=1549556828^t[e];e.j[0].update(r[0]),e.j[1].update(r[1]),e.H=new n(e.j[0])}reset(){const t=this;t.H=new t.T(t.j[0]),t.K=!1}update(t){this.K=!0,this.H.update(t)}digest(){const t=this,e=t.H.P(),n=new t.T(t.j[1]).update(e).P();return t.reset(),n}encrypt(t){if(this.K)throw new r("encrypt on already updated hmac called!");return this.update(t),this.digest(t)}}},C={name:"PBKDF2"},I=e.assign({hash:{name:"HMAC"}},C),A=e.assign({iterations:1e3,hash:{name:"SHA-1"}},C),x=["deriveBits"],V=[8,12,16],P=[16,24,32],B=[0,0,0,0],D=void 0!==l,E=D&&void 0!==l.subtle,M=D&&"function"==typeof l.getRandomValues,R=D&&E&&"function"==typeof l.subtle.importKey,U=D&&E&&"function"==typeof l.subtle.deriveBits,T=v.m,j=class{constructor(t){const e=this;e.L=[[[],[],[],[],[]],[[],[],[],[],[]]],e.L[0][0][0]||e.W();const n=e.L[0][4],i=e.L[1],s=t.length;let o,f,c,a=1;if(4!==s&&6!==s&&8!==s)throw new r("invalid aes key size");for(e.B=[f=t.slice(0),c=[]],o=s;4*s+28>o;o++){let t=f[o-1];(o%s==0||8===s&&o%s==4)&&(t=n[t>>>24]<<24^n[t>>16&255]<<16^n[t>>8&255]<<8^n[255&t],o%s==0&&(t=t<<8^t>>>24^a<<24,a=a<<1^283*(a>>7))),f[o]=f[o-s]^t}for(let t=0;o;t++,o--){const e=f[3&t?o:o-4];c[t]=4>=o||4>t?e:i[0][n[e>>>24]]^i[1][n[e>>16&255]]^i[2][n[e>>8&255]]^i[3][n[255&e]]}}encrypt(t){return this.F(t,0)}decrypt(t){return this.F(t,1)}W(){const t=this.L[0],e=this.L[1],n=t[4],r=e[4],i=[],s=[];let o,f,c,a;for(let t=0;256>t;t++)s[(i[t]=t<<1^283*(t>>7))^t]=t;for(let l=o=0;!n[l];l^=f||1,o=s[o]||1){let s=o^o<<1^o<<2^o<<3^o<<4;s=s>>8^255&s^99,n[l]=s,r[s]=l,a=i[c=i[f=i[l]]];let u=16843009*a^65537*c^257*f^16843008*l,w=257*i[s]^16843008*s;for(let n=0;4>n;n++)t[n][l]=w=w<<24^w>>>8,e[n][s]=u=u<<24^u>>>8}for(let n=0;5>n;n++)t[n]=t[n].slice(0),e[n]=e[n].slice(0)}F(t,e){if(4!==t.length)throw new r("invalid aes block size");const n=this.B[e],i=n.length/4-2,s=[0,0,0,0],o=this.L[e],f=o[0],c=o[1],a=o[2],l=o[3],u=o[4];let w,h,d,p=t[0]^n[0],y=t[e?3:1]^n[1],b=t[2]^n[2],m=t[e?1:3]^n[3],k=4;for(let t=0;i>t;t++)w=f[p>>>24]^c[y>>16&255]^a[b>>8&255]^l[255&m]^n[k],h=f[y>>>24]^c[b>>16&255]^a[m>>8&255]^l[255&p]^n[k+1],d=f[b>>>24]^c[m>>16&255]^a[p>>8&255]^l[255&y]^n[k+2],m=f[m>>>24]^c[p>>16&255]^a[y>>8&255]^l[255&b]^n[k+3],k+=4,p=w,y=h,b=d;for(let t=0;4>t;t++)s[e?3&-t:t]=u[p>>>24]<<24^u[y>>16&255]<<16^u[b>>8&255]<<8^u[255&m]^n[k++],w=p,p=y,y=b,b=m,m=w;return s}},H=class{constructor(t,e){this.O=t,this.q=e,this.G=e}reset(){this.G=this.q}update(t){return this.J(this.O,t,this.G)}N(t){if(255==(t>>24&255)){let e=t>>16&255,n=t>>8&255,r=255&t;255===e?(e=0,255===n?(n=0,255===r?r=0:++r):++n):++e,t=0,t+=e<<16,t+=n<<8,t+=r}else t+=1<<24;return t}X(t){0===(t[0]=this.N(t[0]))&&(t[1]=this.N(t[1]))}J(t,e,n){let r;if(!(r=e.length))return[];const i=g.u(e);for(let i=0;r>i;i+=4){this.X(n);const r=t.encrypt(n);e[i]^=r[0],e[i+1]^=r[1],e[i+2]^=r[2],e[i+3]^=r[3]}return g.h(e,i)}},K=_.R;class L extends w{constructor(n,s,o){let f;super({start(){e.assign(this,{ready:new Promise((t=>this.Y=t)),password:n,signed:s,Z:o-1,pending:new i(0)})},async transform(e,n){if(e&&e.length){const s=this;if(s.password){const n=s.password;s.password=null;const i=G(e,0,V[s.Z]+2);await(async(t,e,n)=>{await O(t,n,G(e,0,V[t.Z]));const i=G(e,V[t.Z]),s=t.keys.passwordVerification;if(s[0]!=i[0]||s[1]!=i[1])throw new r("Invalid pasword")})(s,i,n),s.$=new H(new j(s.keys.key),t.from(B)),s.tt=new K(s.keys.et),e=G(e,V[s.Z]+2),s.Y()}else await s.ready;const o=new i(e.length-10-(e.length-10)%16);n.enqueue(F(s,e,o,0,10,!0))}},async flush(t){const e=this;await e.ready;const n=e.pending,r=G(n,0,n.length-10),s=G(n,n.length-10);let o=new i(0);if(r.length){const t=N(T,r);e.tt.update(t);const n=e.$.update(t);o=J(T,n)}if(f.valid=!0,e.signed){const t=G(J(T,e.tt.digest()),0,10);for(let e=0;10>e;e++)t[e]!=s[e]&&(f.valid=!1)}t.enqueue(o)}}),f=this}}class W extends w{constructor(n,r){let s;super({start(){e.assign(this,{ready:new Promise((t=>this.Y=t)),password:n,Z:r-1,pending:new i(0)})},async transform(e,n){if(e&&e.length){const r=this;let s=new i(0);if(r.password){const e=r.password;r.password=null,s=await(async(t,e)=>{const n=(r=new i(V[t.Z]),M?l.getRandomValues(r):z.getRandomValues(r));var r;return await O(t,e,n),q(n,t.keys.passwordVerification)})(r,e),r.$=new H(new j(r.keys.key),t.from(B)),r.tt=new K(r.keys.et),r.Y()}else await r.ready;const o=new i(s.length+e.length-e.length%16);o.set(s,0),n.enqueue(F(r,e,o,s.length,0))}},async flush(t){const e=this;await e.ready;let n=new i(0);if(e.pending.length){const t=e.$.update(N(T,e.pending));e.tt.update(t),n=J(T,t)}s.signature=J(T,e.tt.digest()).slice(0,10),t.enqueue(q(n,s.signature))}}),s=this}}function F(t,e,n,r,s,o){const f=e.length-s;let c;for(t.pending.length&&(e=q(t.pending,e),n=((t,e)=>{if(e&&e>t.length){const n=t;(t=new i(e)).set(n,0)}return t})(n,f-f%16)),c=0;f-16>=c;c+=16){const i=N(T,G(e,c,c+16));o&&t.tt.update(i);const s=t.$.update(i);o||t.tt.update(s),n.set(J(T,s),c+r)}return t.pending=G(e,c),n}async function O(t,n,r){const s=(t=>{if(void 0===a){const e=new i((t=unescape(encodeURIComponent(t))).length);for(let n=0;n<e.length;n++)e[n]=t.charCodeAt(n);return e}return(new a).encode(t)})(n),o=await((t,e,n,r,i)=>R?l.subtle.importKey("raw",e,n,!1,i):_.importKey(e))(0,s,I,0,x),f=await(async(t,e,n)=>U?await l.subtle.deriveBits(t,e,n):_.U(e,t.salt,A.iterations,n))(e.assign({salt:r},A),o,8*(2*P[t.Z]+2)),c=new i(f);t.keys={key:N(T,G(c,0,P[t.Z])),et:N(T,G(c,P[t.Z],2*P[t.Z])),passwordVerification:G(c,2*P[t.Z])}}function q(t,e){let n=t;return t.length+e.length&&(n=new i(t.length+e.length),n.set(t,0),n.set(e,t.length)),n}function G(t,e,n){return t.subarray(e,n)}function J(t,e){return t.k(e)}function N(t,e){return t.g(e)}class Q extends w{constructor(t,n){let i;super({start(){e.assign(this,{password:t,passwordVerification:n}),$(this,t)},transform(t,e){if(t&&t.length){const n=this;if(n.password){const e=Y(n,t.subarray(0,12));if(n.password=null,e[11]!=n.passwordVerification)throw new r("Invalid pasword");t=t.subarray(12)}e.enqueue(Y(n,t))}},flush(){i.valid=!0}}),i=this}}class X extends w{constructor(t,n){super({start(){e.assign(this,{password:t,passwordVerification:n}),$(this,t)},transform(t,e){if(t&&t.length){const n=this;let r,s;if(n.password){n.password=null;const e=l.getRandomValues(new i(12));e[11]=n.passwordVerification,r=new i(t.length+e.length),r.set(Z(n,e),0),s=12}else r=new i(t.length),s=0;r.set(Z(n,t),s),e.enqueue(r)}},flush(){}})}}function Y(t,e){const n=new i(e.length);for(let r=0;r<e.length;r++)n[r]=et(t)^e[r],tt(t,n[r]);return n}function Z(t,e){const n=new i(e.length);for(let r=0;r<e.length;r++)n[r]=et(t)^e[r],tt(t,e[r]);return n}function $(t,e){t.keys=[305419896,591751049,878082192],t.nt=new m(t.keys[0]),t.rt=new m(t.keys[2]);for(let n=0;n<e.length;n++)tt(t,e.charCodeAt(n))}function tt(t,e){t.nt.append([e]),t.keys[0]=~t.nt.get(),t.keys[1]=rt(t.keys[1]+nt(t.keys[0])),t.keys[1]=rt(n.imul(t.keys[1],134775813)+1),t.rt.append([t.keys[1]>>>24]),t.keys[2]=~t.rt.get()}function et(t){const e=2|t.keys[2];return nt(n.imul(e,1^e)>>>8)}function nt(t){return 255&t}function rt(t){return 4294967295&t}class it extends w{constructor(t,e){super({start(){this.it=new t(e)},transform(t,e){(t=this.it.append(t))&&t.length&&e.enqueue(t)},flush(t){const e=this.it.flush();e&&e.length&&t.enqueue(e)}})}}class st{constructor(t,{signature:n,password:r,signed:i,compressed:s,zipCrypto:o,passwordVerification:f,encryptionStrength:c,st:a},{ot:l}){const u=this;function w(){u.stream=u.stream.pipeThrough(new it(t,{ot:l}))}u.start=async()=>{const t=!!r;if(e.assign(u,{signature:n,encrypted:t,signed:i,compressed:s,zipCrypto:o,stream:ft(u)}),t&&(o?u.stream=u.stream.pipeThrough(new Q(r,f)):(u.ft=new L(r,i,c),u.stream=u.stream.pipeThrough(u.ft))),s)if(void 0!==a&&!a||void 0===y)w();else try{u.stream=u.stream.pipeThrough(new y("deflate-raw"))}catch(t){w()}if((!t||o)&&i){const t=u.stream.tee();u.stream=t[0],u.ct=t[1].pipeThrough(new k)}u.lt=u.stream.getReader(),await u.read()},u.abort=()=>u.aborted=!0}async read(){const t=this,{value:e,done:n}=await t.lt.read();if(e&&e.length&&t.ut({value:{data:new i(e)}}),n){let e;if(t.encrypted&&!t.zipCrypto&&!t.ft.valid)throw new r("Invalid signature");if((!t.encrypted||t.zipCrypto)&&t.signed){e=await t.ct.getReader().read();const n=new c(e.value.buffer);if(t.signature!=n.getUint32(0,!1))throw new r("Invalid signature")}t.ut({value:{signature:e},done:n})}else await t.read()}}class ot{constructor(t,{encrypted:n,signed:r,compressed:i,level:s,zipCrypto:o,password:f,passwordVerification:c,encryptionStrength:a,st:l},{ot:u}){const w=this;function h(){w.stream=w.stream.pipeThrough(new it(t,{ot:u,level:s}))}w.start=async()=>{if(e.assign(this,{encrypted:n,signed:r,compressed:i,zipCrypto:o,stream:ft(w)}),(!n||o)&&r){const t=w.stream.tee();w.stream=t[0],w.ct=t[1].pipeThrough(new k({ot:u}))}if(i)if(void 0!==l&&!l||void 0===p)h();else try{w.stream=w.stream.pipeThrough(new p("deflate-raw"))}catch(t){h()}n&&(o?w.stream=w.stream.pipeThrough(new X(f,c)):(w.wt=new W(f,a),w.stream=w.stream.pipeThrough(w.wt))),w.lt=w.stream.getReader(),await w.read()},w.abort=()=>w.aborted=!0}async read(){const t=this,{value:e,done:n}=await t.lt.read();if(e&&e.length&&t.ut({value:{data:e}}),n){let e;t.encrypted&&!t.zipCrypto&&(e=t.wt.signature),t.encrypted&&!t.zipCrypto||!t.signed||(e=await t.ct.getReader().read(),e=new c(e.value.buffer).getUint32(0)),t.ut({value:{signature:e},done:n})}else await t.read()}}function ft(t){return new h({async pull(e){const{value:n,done:r}=await t.pull();n&&e.enqueue(n),(r||t.aborted)&&e.close()}})}const ct=new Map;let at,lt=0;function ut(t){if(t.data){const e=t.data.value.data;if(e&&e.length)try{t.data.value.data=e.buffer,u(t,[t.data.value.data])}catch(e){u(t)}else u(t)}else u(t)}addEventListener("message",(async t=>{const e=t.data,n=e.type;try{if("start"==n&&(async t=>{try{t.scripts&&t.scripts.length&&importScripts.apply(void 0,t.scripts);const e=t.options;let n;self.initCodec&&self.initCodec(),e.codecType.startsWith("deflate")?n=self.Deflate:e.codecType.startsWith("inflate")&&(n=self.Inflate),at=((t,e,n)=>e.codecType.startsWith("deflate")?new ot(t,e,n):e.codecType.startsWith("inflate")?new st(t,e,n):void 0)(n,e,t.config),at.ut=t=>ut({type:"data",data:t}),at.onerror=t=>u({error:{message:t.message,stack:t.stack}}),at.pull=()=>{const t=new Promise(((t,e)=>ct.set(lt,{resolve:t,reject:e})));return ut({type:"pull",messageId:lt}),lt++,t},await at.start()}catch(t){u({error:{message:t.message,stack:t.stack}})}})(e),"data"==n){const{resolve:t}=ct.get(e.messageId);ct.delete(e.messageId),t({value:new i(e.data),done:e.done})}"abort"==n&&at.abort()}catch(t){u({error:{message:t.message,stack:t.stack}})}}));const wt=(()=>{const e=-2;function o(e){return f(e.map((([e,n])=>new t(e).fill(n,0,e))))}function f(e){return e.reduce(((e,n)=>e.concat(t.isArray(n)?f(n):n)),[])}const c=[0,1,2,3].concat(...o([[2,4],[2,5],[4,6],[4,7],[8,8],[8,9],[16,10],[16,11],[32,12],[32,13],[64,14],[64,15],[2,0],[1,16],[1,17],[2,18],[2,19],[4,20],[4,21],[8,22],[8,23],[16,24],[16,25],[32,26],[32,27],[64,28],[64,29]]));function a(){const t=this;function e(t,e){let n=0;do{n|=1&t,t>>>=1,n<<=1}while(--e>0);return n>>>1}t.ht=r=>{const i=t.dt,s=t.bt.yt,o=t.bt.kt;let f,c,a,l=-1;for(r.gt=0,r.vt=573,f=0;o>f;f++)0!==i[2*f]?(r.St[++r.gt]=l=f,r.zt[f]=0):i[2*f+1]=0;for(;2>r.gt;)a=r.St[++r.gt]=2>l?++l:0,i[2*a]=1,r.zt[a]=0,r._t--,s&&(r.Ct-=s[2*a+1]);for(t.It=l,f=n.floor(r.gt/2);f>=1;f--)r.At(i,f);a=o;do{f=r.St[1],r.St[1]=r.St[r.gt--],r.At(i,1),c=r.St[1],r.St[--r.vt]=f,r.St[--r.vt]=c,i[2*a]=i[2*f]+i[2*c],r.zt[a]=n.max(r.zt[f],r.zt[c])+1,i[2*f+1]=i[2*c+1]=a,r.St[1]=a++,r.At(i,1)}while(r.gt>=2);r.St[--r.vt]=r.St[1],(e=>{const n=t.dt,r=t.bt.yt,i=t.bt.xt,s=t.bt.Vt,o=t.bt.Pt;let f,c,a,l,u,w,h=0;for(l=0;15>=l;l++)e.Bt[l]=0;for(n[2*e.St[e.vt]+1]=0,f=e.vt+1;573>f;f++)c=e.St[f],l=n[2*n[2*c+1]+1]+1,l>o&&(l=o,h++),n[2*c+1]=l,c>t.It||(e.Bt[l]++,u=0,s>c||(u=i[c-s]),w=n[2*c],e._t+=w*(l+u),r&&(e.Ct+=w*(r[2*c+1]+u)));if(0!==h){do{for(l=o-1;0===e.Bt[l];)l--;e.Bt[l]--,e.Bt[l+1]+=2,e.Bt[o]--,h-=2}while(h>0);for(l=o;0!==l;l--)for(c=e.Bt[l];0!==c;)a=e.St[--f],a>t.It||(n[2*a+1]!=l&&(e._t+=(l-n[2*a+1])*n[2*a],n[2*a+1]=l),c--)}})(r),((t,n,r)=>{const i=[];let s,o,f,c=0;for(s=1;15>=s;s++)i[s]=c=c+r[s-1]<<1;for(o=0;n>=o;o++)f=t[2*o+1],0!==f&&(t[2*o]=e(i[f]++,f))})(i,t.It,r.Bt)}}function l(t,e,n,r,i){const s=this;s.yt=t,s.xt=e,s.Vt=n,s.kt=r,s.Pt=i}a.Dt=[0,1,2,3,4,5,6,7].concat(...o([[2,8],[2,9],[2,10],[2,11],[4,12],[4,13],[4,14],[4,15],[8,16],[8,17],[8,18],[8,19],[16,20],[16,21],[16,22],[16,23],[32,24],[32,25],[32,26],[31,27],[1,28]])),a.Et=[0,1,2,3,4,5,6,7,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,0],a.Mt=[0,1,2,3,4,6,8,12,16,24,32,48,64,96,128,192,256,384,512,768,1024,1536,2048,3072,4096,6144,8192,12288,16384,24576],a.Rt=t=>256>t?c[t]:c[256+(t>>>7)],a.Ut=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0],a.Tt=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],a.jt=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,7],a.Ht=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];const u=o([[144,8],[112,9],[24,7],[8,8]]);l.Kt=f([12,140,76,204,44,172,108,236,28,156,92,220,60,188,124,252,2,130,66,194,34,162,98,226,18,146,82,210,50,178,114,242,10,138,74,202,42,170,106,234,26,154,90,218,58,186,122,250,6,134,70,198,38,166,102,230,22,150,86,214,54,182,118,246,14,142,78,206,46,174,110,238,30,158,94,222,62,190,126,254,1,129,65,193,33,161,97,225,17,145,81,209,49,177,113,241,9,137,73,201,41,169,105,233,25,153,89,217,57,185,121,249,5,133,69,197,37,165,101,229,21,149,85,213,53,181,117,245,13,141,77,205,45,173,109,237,29,157,93,221,61,189,125,253,19,275,147,403,83,339,211,467,51,307,179,435,115,371,243,499,11,267,139,395,75,331,203,459,43,299,171,427,107,363,235,491,27,283,155,411,91,347,219,475,59,315,187,443,123,379,251,507,7,263,135,391,71,327,199,455,39,295,167,423,103,359,231,487,23,279,151,407,87,343,215,471,55,311,183,439,119,375,247,503,15,271,143,399,79,335,207,463,47,303,175,431,111,367,239,495,31,287,159,415,95,351,223,479,63,319,191,447,127,383,255,511,0,64,32,96,16,80,48,112,8,72,40,104,24,88,56,120,4,68,36,100,20,84,52,116,3,131,67,195,35,163,99,227].map(((t,e)=>[t,u[e]])));const w=o([[30,5]]);function h(t,e,n,r,i){const s=this;s.Lt=t,s.Wt=e,s.Ft=n,s.Ot=r,s.qt=i}l.Gt=f([0,16,8,24,4,20,12,28,2,18,10,26,6,22,14,30,1,17,9,25,5,21,13,29,3,19,11,27,7,23].map(((t,e)=>[t,w[e]]))),l.Jt=new l(l.Kt,a.Ut,257,286,15),l.Nt=new l(l.Gt,a.Tt,0,30,15),l.Qt=new l(null,a.jt,0,19,7);const d=[new h(0,0,0,0,0),new h(4,4,8,4,1),new h(4,5,16,8,1),new h(4,6,32,32,1),new h(4,4,16,16,2),new h(8,16,32,32,2),new h(8,16,128,128,2),new h(8,32,128,256,2),new h(32,128,258,1024,2),new h(32,258,258,4096,2)],p=["need dictionary","stream end","","","stream error","data error","","buffer error","",""],y=113,b=666,m=262;function k(t,e,n,r){const i=t[2*e],s=t[2*n];return s>i||i==s&&r[e]<=r[n]}function g(){const t=this;let r,o,f,c,u,w,h,g,v,S,z,_,C,I,A,x,V,P,B,D,E,M,R,U,T,j,H,K,L,W,F,O,q;const G=new a,J=new a,N=new a;let Q,X,Y,Z,$,tt;function et(){let e;for(e=0;286>e;e++)F[2*e]=0;for(e=0;30>e;e++)O[2*e]=0;for(e=0;19>e;e++)q[2*e]=0;F[512]=1,t._t=t.Ct=0,X=Y=0}function nt(t,e){let n,r=-1,i=t[1],s=0,o=7,f=4;0===i&&(o=138,f=3),t[2*(e+1)+1]=65535;for(let c=0;e>=c;c++)n=i,i=t[2*(c+1)+1],++s<o&&n==i||(f>s?q[2*n]+=s:0!==n?(n!=r&&q[2*n]++,q[32]++):s>10?q[36]++:q[34]++,s=0,r=n,0===i?(o=138,f=3):n==i?(o=6,f=3):(o=7,f=4))}function rt(e){t.Xt[t.pending++]=e}function it(t){rt(255&t),rt(t>>>8&255)}function st(t,e){let n;const r=e;tt>16-r?(n=t,$|=n<<tt&65535,it($),$=n>>>16-tt,tt+=r-16):($|=t<<tt&65535,tt+=r)}function ot(t,e){const n=2*t;st(65535&e[n],65535&e[n+1])}function ft(t,e){let n,r,i=-1,s=t[1],o=0,f=7,c=4;for(0===s&&(f=138,c=3),n=0;e>=n;n++)if(r=s,s=t[2*(n+1)+1],++o>=f||r!=s){if(c>o)do{ot(r,q)}while(0!=--o);else 0!==r?(r!=i&&(ot(r,q),o--),ot(16,q),st(o-3,2)):o>10?(ot(18,q),st(o-11,7)):(ot(17,q),st(o-3,3));o=0,i=r,0===s?(f=138,c=3):r==s?(f=6,c=3):(f=7,c=4)}}function ct(){16==tt?(it($),$=0,tt=0):8>tt||(rt(255&$),$>>>=8,tt-=8)}function at(e,r){let i,s,o;if(t.Yt[X]=e,t.Zt[X]=255&r,X++,0===e?F[2*r]++:(Y++,e--,F[2*(a.Dt[r]+256+1)]++,O[2*a.Rt(e)]++),0==(8191&X)&&H>2){for(i=8*X,s=E-V,o=0;30>o;o++)i+=O[2*o]*(5+a.Tt[o]);if(i>>>=3,Y<n.floor(X/2)&&i<n.floor(s/2))return!0}return X==Q-1}function lt(e,n){let r,i,s,o,f=0;if(0!==X)do{r=t.Yt[f],i=t.Zt[f],f++,0===r?ot(i,e):(s=a.Dt[i],ot(s+256+1,e),o=a.Ut[s],0!==o&&(i-=a.Et[s],st(i,o)),r--,s=a.Rt(r),ot(s,n),o=a.Tt[s],0!==o&&(r-=a.Mt[s],st(r,o)))}while(X>f);ot(256,e),Z=e[513]}function ut(){tt>8?it($):tt>0&&rt(255&$),$=0,tt=0}function wt(e,n,r){st(0+(r?1:0),3),((e,n)=>{ut(),Z=8,it(n),it(~n),t.Xt.set(g.subarray(e,e+n),t.pending),t.pending+=n})(e,n)}function ht(e){((e,n,r)=>{let i,s,o=0;H>0?(G.ht(t),J.ht(t),o=(()=>{let e;for(nt(F,G.It),nt(O,J.It),N.ht(t),e=18;e>=3&&0===q[2*a.Ht[e]+1];e--);return t._t+=14+3*(e+1),e})(),i=t._t+3+7>>>3,s=t.Ct+3+7>>>3,s>i||(i=s)):i=s=n+5,n+4>i||-1==e?s==i?(st(2+(r?1:0),3),lt(l.Kt,l.Gt)):(st(4+(r?1:0),3),((t,e,n)=>{let r;for(st(t-257,5),st(e-1,5),st(n-4,4),r=0;n>r;r++)st(q[2*a.Ht[r]+1],3);ft(F,t-1),ft(O,e-1)})(G.It+1,J.It+1,o+1),lt(F,O)):wt(e,n,r),et(),r&&ut()})(0>V?-1:V,E-V,e),V=E,r.$t()}function dt(){let t,e,n,i;do{if(i=v-R-E,0===i&&0===E&&0===R)i=u;else if(-1==i)i--;else if(E>=u+u-m){g.set(g.subarray(u,u+u),0),M-=u,E-=u,V-=u,t=C,n=t;do{e=65535&z[--n],z[n]=u>e?0:e-u}while(0!=--t);t=u,n=t;do{e=65535&S[--n],S[n]=u>e?0:e-u}while(0!=--t);i+=u}if(0===r.te)return;t=r.ee(g,E+R,i),R+=t,3>R||(_=255&g[E],_=(_<<x^255&g[E+1])&A)}while(m>R&&0!==r.te)}function pt(t){let e,n,r=T,i=E,s=U;const o=E>u-m?E-(u-m):0;let f=W;const c=h,a=E+258;let l=g[i+s-1],w=g[i+s];L>U||(r>>=2),f>R&&(f=R);do{if(e=t,g[e+s]==w&&g[e+s-1]==l&&g[e]==g[i]&&g[++e]==g[i+1]){i+=2,e++;do{}while(g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&a>i);if(n=258-(a-i),i=a-258,n>s){if(M=t,s=n,n>=f)break;l=g[i+s-1],w=g[i+s]}}}while((t=65535&S[t&c])>o&&0!=--r);return s>R?R:s}t.zt=[],t.Bt=[],t.St=[],F=[],O=[],q=[],t.At=(e,n)=>{const r=t.St,i=r[n];let s=n<<1;for(;s<=t.gt&&(s<t.gt&&k(e,r[s+1],r[s],t.zt)&&s++,!k(e,i,r[s],t.zt));)r[n]=r[s],n=s,s<<=1;r[n]=i},t.ne=(r,a,p,b,m,k)=>(b||(b=8),m||(m=8),k||(k=0),r.re=null,-1==a&&(a=6),1>m||m>9||8!=b||9>p||p>15||0>a||a>9||0>k||k>2?e:(r.ie=t,w=p,u=1<<w,h=u-1,I=m+7,C=1<<I,A=C-1,x=n.floor((I+3-1)/3),g=new i(2*u),S=[],z=[],Q=1<<m+6,t.Xt=new i(4*Q),f=4*Q,t.Yt=new s(Q),t.Zt=new i(Q),H=a,K=k,(e=>(e.se=e.oe=0,e.re=null,t.pending=0,t.fe=0,o=y,c=0,G.dt=F,G.bt=l.Jt,J.dt=O,J.bt=l.Nt,N.dt=q,N.bt=l.Qt,$=0,tt=0,Z=8,et(),(()=>{v=2*u,z[C-1]=0;for(let t=0;C-1>t;t++)z[t]=0;j=d[H].Wt,L=d[H].Lt,W=d[H].Ft,T=d[H].Ot,E=0,V=0,R=0,P=U=2,D=0,_=0})(),0))(r))),t.ce=()=>42!=o&&o!=y&&o!=b?e:(t.Zt=null,t.Yt=null,t.Xt=null,z=null,S=null,g=null,t.ie=null,o==y?-3:0),t.ae=(t,n,r)=>{let i=0;return-1==n&&(n=6),0>n||n>9||0>r||r>2?e:(d[H].qt!=d[n].qt&&0!==t.se&&(i=t.le(1)),H!=n&&(H=n,j=d[H].Wt,L=d[H].Lt,W=d[H].Ft,T=d[H].Ot),K=r,i)},t.ue=(t,n,r)=>{let i,s=r,f=0;if(!n||42!=o)return e;if(3>s)return 0;for(s>u-m&&(s=u-m,f=r-s),g.set(n.subarray(f,f+s),0),E=s,V=s,_=255&g[0],_=(_<<x^255&g[1])&A,i=0;s-3>=i;i++)_=(_<<x^255&g[i+2])&A,S[i&h]=z[_],z[_]=i;return 0},t.le=(n,i)=>{let s,a,k,v,I;if(i>4||0>i)return e;if(!n.we||!n.he&&0!==n.te||o==b&&4!=i)return n.re=p[4],e;if(0===n.de)return n.re=p[7],-5;var T;if(r=n,v=c,c=i,42==o&&(a=8+(w-8<<4)<<8,k=(H-1&255)>>1,k>3&&(k=3),a|=k<<6,0!==E&&(a|=32),a+=31-a%31,o=y,rt((T=a)>>8&255),rt(255&T)),0!==t.pending){if(r.$t(),0===r.de)return c=-1,0}else if(0===r.te&&v>=i&&4!=i)return r.re=p[7],-5;if(o==b&&0!==r.te)return n.re=p[7],-5;if(0!==r.te||0!==R||0!=i&&o!=b){switch(I=-1,d[H].qt){case 0:I=(t=>{let e,n=65535;for(n>f-5&&(n=f-5);;){if(1>=R){if(dt(),0===R&&0==t)return 0;if(0===R)break}if(E+=R,R=0,e=V+n,(0===E||E>=e)&&(R=E-e,E=e,ht(!1),0===r.de))return 0;if(E-V>=u-m&&(ht(!1),0===r.de))return 0}return ht(4==t),0===r.de?4==t?2:0:4==t?3:1})(i);break;case 1:I=(t=>{let e,n=0;for(;;){if(m>R){if(dt(),m>R&&0==t)return 0;if(0===R)break}if(3>R||(_=(_<<x^255&g[E+2])&A,n=65535&z[_],S[E&h]=z[_],z[_]=E),0===n||(E-n&65535)>u-m||2!=K&&(P=pt(n)),3>P)e=at(0,255&g[E]),R--,E++;else if(e=at(E-M,P-3),R-=P,P>j||3>R)E+=P,P=0,_=255&g[E],_=(_<<x^255&g[E+1])&A;else{P--;do{E++,_=(_<<x^255&g[E+2])&A,n=65535&z[_],S[E&h]=z[_],z[_]=E}while(0!=--P);E++}if(e&&(ht(!1),0===r.de))return 0}return ht(4==t),0===r.de?4==t?2:0:4==t?3:1})(i);break;case 2:I=(t=>{let e,n,i=0;for(;;){if(m>R){if(dt(),m>R&&0==t)return 0;if(0===R)break}if(3>R||(_=(_<<x^255&g[E+2])&A,i=65535&z[_],S[E&h]=z[_],z[_]=E),U=P,B=M,P=2,0!==i&&j>U&&u-m>=(E-i&65535)&&(2!=K&&(P=pt(i)),5>=P&&(1==K||3==P&&E-M>4096)&&(P=2)),3>U||P>U)if(0!==D){if(e=at(0,255&g[E-1]),e&&ht(!1),E++,R--,0===r.de)return 0}else D=1,E++,R--;else{n=E+R-3,e=at(E-1-B,U-3),R-=U-1,U-=2;do{++E>n||(_=(_<<x^255&g[E+2])&A,i=65535&z[_],S[E&h]=z[_],z[_]=E)}while(0!=--U);if(D=0,P=2,E++,e&&(ht(!1),0===r.de))return 0}}return 0!==D&&(e=at(0,255&g[E-1]),D=0),ht(4==t),0===r.de?4==t?2:0:4==t?3:1})(i)}if(2!=I&&3!=I||(o=b),0==I||2==I)return 0===r.de&&(c=-1),0;if(1==I){if(1==i)st(2,3),ot(256,l.Kt),ct(),9>1+Z+10-tt&&(st(2,3),ot(256,l.Kt),ct()),Z=7;else if(wt(0,0,!1),3==i)for(s=0;C>s;s++)z[s]=0;if(r.$t(),0===r.de)return c=-1,0}}return 4!=i?0:1}}function v(){const t=this;t.pe=0,t.ye=0,t.te=0,t.se=0,t.de=0,t.oe=0}return v.prototype={ne:function(t,e){const n=this;return n.ie=new g,e||(e=15),n.ie.ne(n,t,e)},le:function(t){const n=this;return n.ie?n.ie.le(n,t):e},ce:function(){const t=this;if(!t.ie)return e;const n=t.ie.ce();return t.ie=null,n},ae:function(t,n){const r=this;return r.ie?r.ie.ae(r,t,n):e},ue:function(t,n){const r=this;return r.ie?r.ie.ue(r,t,n):e},ee:function(t,e,n){const r=this;let i=r.te;return i>n&&(i=n),0===i?0:(r.te-=i,t.set(r.he.subarray(r.pe,r.pe+i),e),r.pe+=i,r.se+=i,i)},$t:function(){const t=this;let e=t.ie.pending;e>t.de&&(e=t.de),0!==e&&(t.we.set(t.ie.Xt.subarray(t.ie.fe,t.ie.fe+e),t.ye),t.ye+=e,t.ie.fe+=e,t.oe+=e,t.de-=e,t.ie.pending-=e,0===t.ie.pending&&(t.ie.fe=0))}},function(t){const e=new v,s=(o=t&&t.ot?t.ot:65536)+5*(n.floor(o/16383)+1);var o;const f=new i(s);let c=t?t.level:-1;void 0===c&&(c=-1),e.ne(c),e.we=f,this.append=(t,n)=>{let o,c,a=0,l=0,u=0;const w=[];if(t.length){e.pe=0,e.he=t,e.te=t.length;do{if(e.ye=0,e.de=s,o=e.le(0),0!=o)throw new r("deflating: "+e.re);e.ye&&(e.ye==s?w.push(new i(f)):w.push(f.slice(0,e.ye))),u+=e.ye,n&&e.pe>0&&e.pe!=a&&(n(e.pe),a=e.pe)}while(e.te>0||0===e.de);return w.length>1?(c=new i(u),w.forEach((t=>{c.set(t,l),l+=t.length}))):c=w[0]||new i(0),c}},this.flush=()=>{let t,n,o=0,c=0;const a=[];do{if(e.ye=0,e.de=s,t=e.le(4),1!=t&&0!=t)throw new r("deflating: "+e.re);s-e.de>0&&a.push(f.slice(0,e.ye)),c+=e.ye}while(e.te>0||0===e.de);return e.ce(),n=new i(c),a.forEach((t=>{n.set(t,o),o+=t.length})),n}}})(),ht=(()=>{const t=-2,e=-3,s=-5,o=[0,1,3,7,15,31,63,127,255,511,1023,2047,4095,8191,16383,32767,65535],c=[96,7,256,0,8,80,0,8,16,84,8,115,82,7,31,0,8,112,0,8,48,0,9,192,80,7,10,0,8,96,0,8,32,0,9,160,0,8,0,0,8,128,0,8,64,0,9,224,80,7,6,0,8,88,0,8,24,0,9,144,83,7,59,0,8,120,0,8,56,0,9,208,81,7,17,0,8,104,0,8,40,0,9,176,0,8,8,0,8,136,0,8,72,0,9,240,80,7,4,0,8,84,0,8,20,85,8,227,83,7,43,0,8,116,0,8,52,0,9,200,81,7,13,0,8,100,0,8,36,0,9,168,0,8,4,0,8,132,0,8,68,0,9,232,80,7,8,0,8,92,0,8,28,0,9,152,84,7,83,0,8,124,0,8,60,0,9,216,82,7,23,0,8,108,0,8,44,0,9,184,0,8,12,0,8,140,0,8,76,0,9,248,80,7,3,0,8,82,0,8,18,85,8,163,83,7,35,0,8,114,0,8,50,0,9,196,81,7,11,0,8,98,0,8,34,0,9,164,0,8,2,0,8,130,0,8,66,0,9,228,80,7,7,0,8,90,0,8,26,0,9,148,84,7,67,0,8,122,0,8,58,0,9,212,82,7,19,0,8,106,0,8,42,0,9,180,0,8,10,0,8,138,0,8,74,0,9,244,80,7,5,0,8,86,0,8,22,192,8,0,83,7,51,0,8,118,0,8,54,0,9,204,81,7,15,0,8,102,0,8,38,0,9,172,0,8,6,0,8,134,0,8,70,0,9,236,80,7,9,0,8,94,0,8,30,0,9,156,84,7,99,0,8,126,0,8,62,0,9,220,82,7,27,0,8,110,0,8,46,0,9,188,0,8,14,0,8,142,0,8,78,0,9,252,96,7,256,0,8,81,0,8,17,85,8,131,82,7,31,0,8,113,0,8,49,0,9,194,80,7,10,0,8,97,0,8,33,0,9,162,0,8,1,0,8,129,0,8,65,0,9,226,80,7,6,0,8,89,0,8,25,0,9,146,83,7,59,0,8,121,0,8,57,0,9,210,81,7,17,0,8,105,0,8,41,0,9,178,0,8,9,0,8,137,0,8,73,0,9,242,80,7,4,0,8,85,0,8,21,80,8,258,83,7,43,0,8,117,0,8,53,0,9,202,81,7,13,0,8,101,0,8,37,0,9,170,0,8,5,0,8,133,0,8,69,0,9,234,80,7,8,0,8,93,0,8,29,0,9,154,84,7,83,0,8,125,0,8,61,0,9,218,82,7,23,0,8,109,0,8,45,0,9,186,0,8,13,0,8,141,0,8,77,0,9,250,80,7,3,0,8,83,0,8,19,85,8,195,83,7,35,0,8,115,0,8,51,0,9,198,81,7,11,0,8,99,0,8,35,0,9,166,0,8,3,0,8,131,0,8,67,0,9,230,80,7,7,0,8,91,0,8,27,0,9,150,84,7,67,0,8,123,0,8,59,0,9,214,82,7,19,0,8,107,0,8,43,0,9,182,0,8,11,0,8,139,0,8,75,0,9,246,80,7,5,0,8,87,0,8,23,192,8,0,83,7,51,0,8,119,0,8,55,0,9,206,81,7,15,0,8,103,0,8,39,0,9,174,0,8,7,0,8,135,0,8,71,0,9,238,80,7,9,0,8,95,0,8,31,0,9,158,84,7,99,0,8,127,0,8,63,0,9,222,82,7,27,0,8,111,0,8,47,0,9,190,0,8,15,0,8,143,0,8,79,0,9,254,96,7,256,0,8,80,0,8,16,84,8,115,82,7,31,0,8,112,0,8,48,0,9,193,80,7,10,0,8,96,0,8,32,0,9,161,0,8,0,0,8,128,0,8,64,0,9,225,80,7,6,0,8,88,0,8,24,0,9,145,83,7,59,0,8,120,0,8,56,0,9,209,81,7,17,0,8,104,0,8,40,0,9,177,0,8,8,0,8,136,0,8,72,0,9,241,80,7,4,0,8,84,0,8,20,85,8,227,83,7,43,0,8,116,0,8,52,0,9,201,81,7,13,0,8,100,0,8,36,0,9,169,0,8,4,0,8,132,0,8,68,0,9,233,80,7,8,0,8,92,0,8,28,0,9,153,84,7,83,0,8,124,0,8,60,0,9,217,82,7,23,0,8,108,0,8,44,0,9,185,0,8,12,0,8,140,0,8,76,0,9,249,80,7,3,0,8,82,0,8,18,85,8,163,83,7,35,0,8,114,0,8,50,0,9,197,81,7,11,0,8,98,0,8,34,0,9,165,0,8,2,0,8,130,0,8,66,0,9,229,80,7,7,0,8,90,0,8,26,0,9,149,84,7,67,0,8,122,0,8,58,0,9,213,82,7,19,0,8,106,0,8,42,0,9,181,0,8,10,0,8,138,0,8,74,0,9,245,80,7,5,0,8,86,0,8,22,192,8,0,83,7,51,0,8,118,0,8,54,0,9,205,81,7,15,0,8,102,0,8,38,0,9,173,0,8,6,0,8,134,0,8,70,0,9,237,80,7,9,0,8,94,0,8,30,0,9,157,84,7,99,0,8,126,0,8,62,0,9,221,82,7,27,0,8,110,0,8,46,0,9,189,0,8,14,0,8,142,0,8,78,0,9,253,96,7,256,0,8,81,0,8,17,85,8,131,82,7,31,0,8,113,0,8,49,0,9,195,80,7,10,0,8,97,0,8,33,0,9,163,0,8,1,0,8,129,0,8,65,0,9,227,80,7,6,0,8,89,0,8,25,0,9,147,83,7,59,0,8,121,0,8,57,0,9,211,81,7,17,0,8,105,0,8,41,0,9,179,0,8,9,0,8,137,0,8,73,0,9,243,80,7,4,0,8,85,0,8,21,80,8,258,83,7,43,0,8,117,0,8,53,0,9,203,81,7,13,0,8,101,0,8,37,0,9,171,0,8,5,0,8,133,0,8,69,0,9,235,80,7,8,0,8,93,0,8,29,0,9,155,84,7,83,0,8,125,0,8,61,0,9,219,82,7,23,0,8,109,0,8,45,0,9,187,0,8,13,0,8,141,0,8,77,0,9,251,80,7,3,0,8,83,0,8,19,85,8,195,83,7,35,0,8,115,0,8,51,0,9,199,81,7,11,0,8,99,0,8,35,0,9,167,0,8,3,0,8,131,0,8,67,0,9,231,80,7,7,0,8,91,0,8,27,0,9,151,84,7,67,0,8,123,0,8,59,0,9,215,82,7,19,0,8,107,0,8,43,0,9,183,0,8,11,0,8,139,0,8,75,0,9,247,80,7,5,0,8,87,0,8,23,192,8,0,83,7,51,0,8,119,0,8,55,0,9,207,81,7,15,0,8,103,0,8,39,0,9,175,0,8,7,0,8,135,0,8,71,0,9,239,80,7,9,0,8,95,0,8,31,0,9,159,84,7,99,0,8,127,0,8,63,0,9,223,82,7,27,0,8,111,0,8,47,0,9,191,0,8,15,0,8,143,0,8,79,0,9,255],a=[80,5,1,87,5,257,83,5,17,91,5,4097,81,5,5,89,5,1025,85,5,65,93,5,16385,80,5,3,88,5,513,84,5,33,92,5,8193,82,5,9,90,5,2049,86,5,129,192,5,24577,80,5,2,87,5,385,83,5,25,91,5,6145,81,5,7,89,5,1537,85,5,97,93,5,24577,80,5,4,88,5,769,84,5,49,92,5,12289,82,5,13,90,5,3073,86,5,193,192,5,24577],l=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,0,0],u=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,112,112],w=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577],h=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];function d(){let t,n,r,i,o,c;function a(t,n,f,a,l,u,w,h,d,p,y){let b,m,k,g,v,S,z,_,C,I,A,x,V,P,B;I=0,v=f;do{r[t[n+I]]++,I++,v--}while(0!==v);if(r[0]==f)return w[0]=-1,h[0]=0,0;for(_=h[0],S=1;15>=S&&0===r[S];S++);for(z=S,S>_&&(_=S),v=15;0!==v&&0===r[v];v--);for(k=v,_>v&&(_=v),h[0]=_,P=1<<S;v>S;S++,P<<=1)if(0>(P-=r[S]))return e;if(0>(P-=r[v]))return e;for(r[v]+=P,c[1]=S=0,I=1,V=2;0!=--v;)c[V]=S+=r[I],V++,I++;v=0,I=0;do{0!==(S=t[n+I])&&(y[c[S]++]=v),I++}while(++v<f);for(f=c[k],c[0]=v=0,I=0,g=-1,x=-_,o[0]=0,A=0,B=0;k>=z;z++)for(b=r[z];0!=b--;){for(;z>x+_;){if(g++,x+=_,B=k-x,B=B>_?_:B,(m=1<<(S=z-x))>b+1&&(m-=b+1,V=z,B>S))for(;++S<B&&(m<<=1)>r[++V];)m-=r[V];if(B=1<<S,p[0]+B>1440)return e;o[g]=A=p[0],p[0]+=B,0!==g?(c[g]=v,i[0]=S,i[1]=_,S=v>>>x-_,i[2]=A-o[g-1]-S,d.set(i,3*(o[g-1]+S))):w[0]=A}for(i[1]=z-x,f>I?y[I]<a?(i[0]=256>y[I]?0:96,i[2]=y[I++]):(i[0]=u[y[I]-a]+16+64,i[2]=l[y[I++]-a]):i[0]=192,m=1<<z-x,S=v>>>x;B>S;S+=m)d.set(i,3*(A+S));for(S=1<<z-1;0!=(v&S);S>>>=1)v^=S;for(v^=S,C=(1<<x)-1;(v&C)!=c[g];)g--,x-=_,C=(1<<x)-1}return 0!==P&&1!=k?s:0}function d(e){let s;for(t||(t=[],n=[],r=new f(16),i=[],o=new f(15),c=new f(16)),n.length<e&&(n=[]),s=0;e>s;s++)n[s]=0;for(s=0;16>s;s++)r[s]=0;for(s=0;3>s;s++)i[s]=0;o.set(r.subarray(0,15),0),c.set(r.subarray(0,16),0)}this.be=(r,i,o,f,c)=>{let l;return d(19),t[0]=0,l=a(r,0,19,19,null,null,o,i,f,t,n),l==e?c.re="oversubscribed dynamic bit lengths tree":l!=s&&0!==i[0]||(c.re="incomplete dynamic bit lengths tree",l=e),l},this.me=(r,i,o,f,c,p,y,b,m)=>{let k;return d(288),t[0]=0,k=a(o,0,r,257,l,u,p,f,b,t,n),0!=k||0===f[0]?(k==e?m.re="oversubscribed literal/length tree":-4!=k&&(m.re="incomplete literal/length tree",k=e),k):(d(288),k=a(o,r,i,0,w,h,y,c,b,t,n),0!=k||0===c[0]&&r>257?(k==e?m.re="oversubscribed distance tree":k==s?(m.re="incomplete distance tree",k=e):-4!=k&&(m.re="empty distance tree with lengths",k=e),k):0)}}function p(){const n=this;let r,i,s,f,c=0,a=0,l=0,u=0,w=0,h=0,d=0,p=0,y=0,b=0;function m(t,n,r,i,s,f,c,a){let l,u,w,h,d,p,y,b,m,k,g,v,S,z,_,C;y=a.pe,b=a.te,d=c.ke,p=c.ge,m=c.write,k=m<c.read?c.read-m-1:c.end-m,g=o[t],v=o[n];do{for(;20>p;)b--,d|=(255&a.ve(y++))<<p,p+=8;if(l=d&g,u=r,w=i,C=3*(w+l),0!==(h=u[C]))for(;;){if(d>>=u[C+1],p-=u[C+1],0!=(16&h)){for(h&=15,S=u[C+2]+(d&o[h]),d>>=h,p-=h;15>p;)b--,d|=(255&a.ve(y++))<<p,p+=8;for(l=d&v,u=s,w=f,C=3*(w+l),h=u[C];;){if(d>>=u[C+1],p-=u[C+1],0!=(16&h)){for(h&=15;h>p;)b--,d|=(255&a.ve(y++))<<p,p+=8;if(z=u[C+2]+(d&o[h]),d>>=h,p-=h,k-=S,z>m){_=m-z;do{_+=c.end}while(0>_);if(h=c.end-_,S>h){if(S-=h,m-_>0&&h>m-_)do{c.Se[m++]=c.Se[_++]}while(0!=--h);else c.Se.set(c.Se.subarray(_,_+h),m),m+=h,_+=h,h=0;_=0}}else _=m-z,m-_>0&&2>m-_?(c.Se[m++]=c.Se[_++],c.Se[m++]=c.Se[_++],S-=2):(c.Se.set(c.Se.subarray(_,_+2),m),m+=2,_+=2,S-=2);if(m-_>0&&S>m-_)do{c.Se[m++]=c.Se[_++]}while(0!=--S);else c.Se.set(c.Se.subarray(_,_+S),m),m+=S,_+=S,S=0;break}if(0!=(64&h))return a.re="invalid distance code",S=a.te-b,S=S>p>>3?p>>3:S,b+=S,y-=S,p-=S<<3,c.ke=d,c.ge=p,a.te=b,a.se+=y-a.pe,a.pe=y,c.write=m,e;l+=u[C+2],l+=d&o[h],C=3*(w+l),h=u[C]}break}if(0!=(64&h))return 0!=(32&h)?(S=a.te-b,S=S>p>>3?p>>3:S,b+=S,y-=S,p-=S<<3,c.ke=d,c.ge=p,a.te=b,a.se+=y-a.pe,a.pe=y,c.write=m,1):(a.re="invalid literal/length code",S=a.te-b,S=S>p>>3?p>>3:S,b+=S,y-=S,p-=S<<3,c.ke=d,c.ge=p,a.te=b,a.se+=y-a.pe,a.pe=y,c.write=m,e);if(l+=u[C+2],l+=d&o[h],C=3*(w+l),0===(h=u[C])){d>>=u[C+1],p-=u[C+1],c.Se[m++]=u[C+2],k--;break}}else d>>=u[C+1],p-=u[C+1],c.Se[m++]=u[C+2],k--}while(k>=258&&b>=10);return S=a.te-b,S=S>p>>3?p>>3:S,b+=S,y-=S,p-=S<<3,c.ke=d,c.ge=p,a.te=b,a.se+=y-a.pe,a.pe=y,c.write=m,0}n.init=(t,e,n,o,c,a)=>{r=0,d=t,p=e,s=n,y=o,f=c,b=a,i=null},n.ze=(n,k,g)=>{let v,S,z,_,C,I,A,x=0,V=0,P=0;for(P=k.pe,_=k.te,x=n.ke,V=n.ge,C=n.write,I=C<n.read?n.read-C-1:n.end-C;;)switch(r){case 0:if(I>=258&&_>=10&&(n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,g=m(d,p,s,y,f,b,n,k),P=k.pe,_=k.te,x=n.ke,V=n.ge,C=n.write,I=C<n.read?n.read-C-1:n.end-C,0!=g)){r=1==g?7:9;break}l=d,i=s,a=y,r=1;case 1:for(v=l;v>V;){if(0===_)return n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);g=0,_--,x|=(255&k.ve(P++))<<V,V+=8}if(S=3*(a+(x&o[v])),x>>>=i[S+1],V-=i[S+1],z=i[S],0===z){u=i[S+2],r=6;break}if(0!=(16&z)){w=15&z,c=i[S+2],r=2;break}if(0==(64&z)){l=z,a=S/3+i[S+2];break}if(0!=(32&z)){r=7;break}return r=9,k.re="invalid literal/length code",g=e,n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);case 2:for(v=w;v>V;){if(0===_)return n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);g=0,_--,x|=(255&k.ve(P++))<<V,V+=8}c+=x&o[v],x>>=v,V-=v,l=p,i=f,a=b,r=3;case 3:for(v=l;v>V;){if(0===_)return n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);g=0,_--,x|=(255&k.ve(P++))<<V,V+=8}if(S=3*(a+(x&o[v])),x>>=i[S+1],V-=i[S+1],z=i[S],0!=(16&z)){w=15&z,h=i[S+2],r=4;break}if(0==(64&z)){l=z,a=S/3+i[S+2];break}return r=9,k.re="invalid distance code",g=e,n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);case 4:for(v=w;v>V;){if(0===_)return n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);g=0,_--,x|=(255&k.ve(P++))<<V,V+=8}h+=x&o[v],x>>=v,V-=v,r=5;case 5:for(A=C-h;0>A;)A+=n.end;for(;0!==c;){if(0===I&&(C==n.end&&0!==n.read&&(C=0,I=C<n.read?n.read-C-1:n.end-C),0===I&&(n.write=C,g=n._e(k,g),C=n.write,I=C<n.read?n.read-C-1:n.end-C,C==n.end&&0!==n.read&&(C=0,I=C<n.read?n.read-C-1:n.end-C),0===I)))return n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);n.Se[C++]=n.Se[A++],I--,A==n.end&&(A=0),c--}r=0;break;case 6:if(0===I&&(C==n.end&&0!==n.read&&(C=0,I=C<n.read?n.read-C-1:n.end-C),0===I&&(n.write=C,g=n._e(k,g),C=n.write,I=C<n.read?n.read-C-1:n.end-C,C==n.end&&0!==n.read&&(C=0,I=C<n.read?n.read-C-1:n.end-C),0===I)))return n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);g=0,n.Se[C++]=u,I--,r=0;break;case 7:if(V>7&&(V-=8,_++,P--),n.write=C,g=n._e(k,g),C=n.write,I=C<n.read?n.read-C-1:n.end-C,n.read!=n.write)return n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);r=8;case 8:return g=1,n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);case 9:return g=e,n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g);default:return g=t,n.ke=x,n.ge=V,k.te=_,k.se+=P-k.pe,k.pe=P,n.write=C,n._e(k,g)}},n.Ce=()=>{}}d.Ie=(t,e,n,r)=>(t[0]=9,e[0]=5,n[0]=c,r[0]=a,0);const y=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];function b(n,r){const c=this;let a,l=0,u=0,w=0,h=0;const b=[0],m=[0],k=new p;let g=0,v=new f(4320);const S=new d;c.ge=0,c.ke=0,c.Se=new i(r),c.end=r,c.read=0,c.write=0,c.reset=(t,e)=>{e&&(e[0]=0),6==l&&k.Ce(t),l=0,c.ge=0,c.ke=0,c.read=c.write=0},c.reset(n,null),c._e=(t,e)=>{let n,r,i;return r=t.ye,i=c.read,n=(i>c.write?c.end:c.write)-i,n>t.de&&(n=t.de),0!==n&&e==s&&(e=0),t.de-=n,t.oe+=n,t.we.set(c.Se.subarray(i,i+n),r),r+=n,i+=n,i==c.end&&(i=0,c.write==c.end&&(c.write=0),n=c.write-i,n>t.de&&(n=t.de),0!==n&&e==s&&(e=0),t.de-=n,t.oe+=n,t.we.set(c.Se.subarray(i,i+n),r),r+=n,i+=n),t.ye=r,c.read=i,e},c.ze=(n,r)=>{let i,s,f,p,z,_,C,I;for(p=n.pe,z=n.te,s=c.ke,f=c.ge,_=c.write,C=_<c.read?c.read-_-1:c.end-_;;){let A,x,V,P,B,D,E,M;switch(l){case 0:for(;3>f;){if(0===z)return c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);r=0,z--,s|=(255&n.ve(p++))<<f,f+=8}switch(i=7&s,g=1&i,i>>>1){case 0:s>>>=3,f-=3,i=7&f,s>>>=i,f-=i,l=1;break;case 1:A=[],x=[],V=[[]],P=[[]],d.Ie(A,x,V,P),k.init(A[0],x[0],V[0],0,P[0],0),s>>>=3,f-=3,l=6;break;case 2:s>>>=3,f-=3,l=3;break;case 3:return s>>>=3,f-=3,l=9,n.re="invalid block type",r=e,c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r)}break;case 1:for(;32>f;){if(0===z)return c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);r=0,z--,s|=(255&n.ve(p++))<<f,f+=8}if((~s>>>16&65535)!=(65535&s))return l=9,n.re="invalid stored block lengths",r=e,c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);u=65535&s,s=f=0,l=0!==u?2:0!==g?7:0;break;case 2:if(0===z)return c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);if(0===C&&(_==c.end&&0!==c.read&&(_=0,C=_<c.read?c.read-_-1:c.end-_),0===C&&(c.write=_,r=c._e(n,r),_=c.write,C=_<c.read?c.read-_-1:c.end-_,_==c.end&&0!==c.read&&(_=0,C=_<c.read?c.read-_-1:c.end-_),0===C)))return c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);if(r=0,i=u,i>z&&(i=z),i>C&&(i=C),c.Se.set(n.ee(p,i),_),p+=i,z-=i,_+=i,C-=i,0!=(u-=i))break;l=0!==g?7:0;break;case 3:for(;14>f;){if(0===z)return c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);r=0,z--,s|=(255&n.ve(p++))<<f,f+=8}if(w=i=16383&s,(31&i)>29||(i>>5&31)>29)return l=9,n.re="too many length or distance symbols",r=e,c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);if(i=258+(31&i)+(i>>5&31),!a||a.length<i)a=[];else for(I=0;i>I;I++)a[I]=0;s>>>=14,f-=14,h=0,l=4;case 4:for(;4+(w>>>10)>h;){for(;3>f;){if(0===z)return c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);r=0,z--,s|=(255&n.ve(p++))<<f,f+=8}a[y[h++]]=7&s,s>>>=3,f-=3}for(;19>h;)a[y[h++]]=0;if(b[0]=7,i=S.be(a,b,m,v,n),0!=i)return(r=i)==e&&(a=null,l=9),c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);h=0,l=5;case 5:for(;i=w,258+(31&i)+(i>>5&31)>h;){let t,u;for(i=b[0];i>f;){if(0===z)return c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);r=0,z--,s|=(255&n.ve(p++))<<f,f+=8}if(i=v[3*(m[0]+(s&o[i]))+1],u=v[3*(m[0]+(s&o[i]))+2],16>u)s>>>=i,f-=i,a[h++]=u;else{for(I=18==u?7:u-14,t=18==u?11:3;i+I>f;){if(0===z)return c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);r=0,z--,s|=(255&n.ve(p++))<<f,f+=8}if(s>>>=i,f-=i,t+=s&o[I],s>>>=I,f-=I,I=h,i=w,I+t>258+(31&i)+(i>>5&31)||16==u&&1>I)return a=null,l=9,n.re="invalid bit length repeat",r=e,c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);u=16==u?a[I-1]:0;do{a[I++]=u}while(0!=--t);h=I}}if(m[0]=-1,B=[],D=[],E=[],M=[],B[0]=9,D[0]=6,i=w,i=S.me(257+(31&i),1+(i>>5&31),a,B,D,E,M,v,n),0!=i)return i==e&&(a=null,l=9),r=i,c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);k.init(B[0],D[0],v,E[0],v,M[0]),l=6;case 6:if(c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,1!=(r=k.ze(c,n,r)))return c._e(n,r);if(r=0,k.Ce(n),p=n.pe,z=n.te,s=c.ke,f=c.ge,_=c.write,C=_<c.read?c.read-_-1:c.end-_,0===g){l=0;break}l=7;case 7:if(c.write=_,r=c._e(n,r),_=c.write,C=_<c.read?c.read-_-1:c.end-_,c.read!=c.write)return c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);l=8;case 8:return r=1,c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);case 9:return r=e,c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r);default:return r=t,c.ke=s,c.ge=f,n.te=z,n.se+=p-n.pe,n.pe=p,c.write=_,c._e(n,r)}}},c.Ce=t=>{c.reset(t,null),c.Se=null,v=null},c.Ae=(t,e,n)=>{c.Se.set(t.subarray(e,e+n),0),c.read=c.write=n},c.xe=()=>1==l?1:0}const m=13,k=[0,0,255,255];function g(){const n=this;function r(e){return e&&e.Ve?(e.se=e.oe=0,e.re=null,e.Ve.mode=7,e.Ve.Pe.reset(e,null),0):t}n.mode=0,n.method=0,n.Be=[0],n.De=0,n.marker=0,n.Ee=0,n.Me=t=>(n.Pe&&n.Pe.Ce(t),n.Pe=null,0),n.Re=(e,i)=>(e.re=null,n.Pe=null,8>i||i>15?(n.Me(e),t):(n.Ee=i,e.Ve.Pe=new b(e,1<<i),r(e),0)),n.Ue=(n,r)=>{let i,o;if(!n||!n.Ve||!n.he)return t;const f=n.Ve;for(r=4==r?s:0,i=s;;)switch(f.mode){case 0:if(0===n.te)return i;if(i=r,n.te--,n.se++,8!=(15&(f.method=n.ve(n.pe++)))){f.mode=m,n.re="unknown compression method",f.marker=5;break}if(8+(f.method>>4)>f.Ee){f.mode=m,n.re="invalid win size",f.marker=5;break}f.mode=1;case 1:if(0===n.te)return i;if(i=r,n.te--,n.se++,o=255&n.ve(n.pe++),((f.method<<8)+o)%31!=0){f.mode=m,n.re="incorrect header check",f.marker=5;break}if(0==(32&o)){f.mode=7;break}f.mode=2;case 2:if(0===n.te)return i;i=r,n.te--,n.se++,f.De=(255&n.ve(n.pe++))<<24&4278190080,f.mode=3;case 3:if(0===n.te)return i;i=r,n.te--,n.se++,f.De+=(255&n.ve(n.pe++))<<16&16711680,f.mode=4;case 4:if(0===n.te)return i;i=r,n.te--,n.se++,f.De+=(255&n.ve(n.pe++))<<8&65280,f.mode=5;case 5:return 0===n.te?i:(i=r,n.te--,n.se++,f.De+=255&n.ve(n.pe++),f.mode=6,2);case 6:return f.mode=m,n.re="need dictionary",f.marker=0,t;case 7:if(i=f.Pe.ze(n,i),i==e){f.mode=m,f.marker=0;break}if(0==i&&(i=r),1!=i)return i;i=r,f.Pe.reset(n,f.Be),f.mode=12;case 12:return n.te=0,1;case m:return e;default:return t}},n.Te=(e,n,r)=>{let i=0,s=r;if(!e||!e.Ve||6!=e.Ve.mode)return t;const o=e.Ve;return s<1<<o.Ee||(s=(1<<o.Ee)-1,i=r-s),o.Pe.Ae(n,i,s),o.mode=7,0},n.je=n=>{let i,o,f,c,a;if(!n||!n.Ve)return t;const l=n.Ve;if(l.mode!=m&&(l.mode=m,l.marker=0),0===(i=n.te))return s;for(o=n.pe,f=l.marker;0!==i&&4>f;)n.ve(o)==k[f]?f++:f=0!==n.ve(o)?0:4-f,o++,i--;return n.se+=o-n.pe,n.pe=o,n.te=i,l.marker=f,4!=f?e:(c=n.se,a=n.oe,r(n),n.se=c,n.oe=a,l.mode=7,0)},n.He=e=>e&&e.Ve&&e.Ve.Pe?e.Ve.Pe.xe():t}function v(){}return v.prototype={Re:function(t){const e=this;return e.Ve=new g,t||(t=15),e.Ve.Re(e,t)},Ue:function(e){const n=this;return n.Ve?n.Ve.Ue(n,e):t},Me:function(){const e=this;if(!e.Ve)return t;const n=e.Ve.Me(e);return e.Ve=null,n},je:function(){const e=this;return e.Ve?e.Ve.je(e):t},Te:function(e,n){const r=this;return r.Ve?r.Ve.Te(r,e,n):t},ve:function(t){return this.he[t]},ee:function(t,e){return this.he.subarray(t,t+e)}},function(t){const e=new v,o=t&&t.ot?n.floor(2*t.ot):131072,f=new i(o);let c=!1;e.Re(),e.we=f,this.append=(t,n)=>{const a=[];let l,u,w=0,h=0,d=0;if(0!==t.length){e.pe=0,e.he=t,e.te=t.length;do{if(e.ye=0,e.de=o,0!==e.te||c||(e.pe=0,c=!0),l=e.Ue(0),c&&l===s){if(0!==e.te)throw new r("inflating: bad input")}else if(0!==l&&1!==l)throw new r("inflating: "+e.re);if((c||1===l)&&e.te===t.length)throw new r("inflating: bad input");e.ye&&(e.ye===o?a.push(new i(f)):a.push(f.slice(0,e.ye))),d+=e.ye,n&&e.pe>0&&e.pe!=w&&(n(e.pe),w=e.pe)}while(e.te>0||0===e.de);return a.length>1?(u=new i(d),a.forEach((t=>{u.set(t,h),h+=t.length}))):u=a[0]||new i(0),u}},this.flush=()=>{e.Me()}}})();self.initCodec=()=>{self.Deflate=wt,self.Inflate=ht};\n'],{type:"text/javascript"}));e({workerScripts:{inflate:[t],deflate:[t]}});}};
+	var e=e=>{if("function"==typeof URL.createObjectURL){const t=()=>URL.createObjectURL(new Blob(['const{Array:t,Object:e,Math:n,Error:r,Uint8Array:i,Uint16Array:s,Uint32Array:o,Int32Array:f,DataView:c,TextEncoder:l,crypto:u,postMessage:a,TransformStream:w,ReadableStream:h,WritableStream:d,CompressionStream:p,DecompressionStream:b}=globalThis,y=[];for(let t=0;256>t;t++){let e=t;for(let t=0;8>t;t++)1&e?e=e>>>1^3988292384:e>>>=1;y[t]=e}class m{constructor(t){this.t=t||-1}append(t){let e=0|this.t;for(let n=0,r=0|t.length;r>n;n++)e=e>>>8^y[255&(e^t[n])];this.t=e}get(){return~this.t}}class k extends w{constructor(){super({start(){this.i=new m},transform(t){this.i.append(t)},flush(t){const e=new i(4);new c(e.buffer).setUint32(0,this.i.get()),t.enqueue(e)}})}}const g={concat(t,e){if(0===t.length||0===e.length)return t.concat(e);const n=t[t.length-1],r=g.o(n);return 32===r?t.concat(e):g.l(e,r,0|n,t.slice(0,t.length-1))},u(t){const e=t.length;if(0===e)return 0;const n=t[e-1];return 32*(e-1)+g.o(n)},h(t,e){if(32*t.length<e)return t;const r=(t=t.slice(0,n.ceil(e/32))).length;return e&=31,r>0&&e&&(t[r-1]=g.p(e,t[r-1]&2147483648>>e-1,1)),t},p:(t,e,n)=>32===t?e:(n?0|e:e<<32-t)+1099511627776*t,o:t=>n.round(t/1099511627776)||32,l(t,e,n,r){for(void 0===r&&(r=[]);e>=32;e-=32)r.push(n),n=0;if(0===e)return r.concat(t);for(let i=0;i<t.length;i++)r.push(n|t[i]>>>e),n=t[i]<<32-e;const i=t.length?t[t.length-1]:0,s=g.o(i);return r.push(g.p(e+s&31,e+s>32?n:r.pop(),1)),r}},v={m:{k(t){const e=g.u(t)/8,n=new i(e);let r;for(let i=0;e>i;i++)0==(3&i)&&(r=t[i/4]),n[i]=r>>>24,r<<=8;return n},g(t){const e=[];let n,r=0;for(n=0;n<t.length;n++)r=r<<8|t[n],3==(3&n)&&(e.push(r),r=0);return 3&n&&e.push(g.p(8*(3&n),r)),e}}},S={v:function(t){t?(this.S=t.S.slice(0),this.C=t.C.slice(0),this._=t._):this.reset()}};S.v.prototype={blockSize:512,reset:function(){const t=this;return t.S=this.A.slice(0),t.C=[],t._=0,t},update:function(t){const e=this;"string"==typeof t&&(t=v.I.g(t));const n=e.C=g.concat(e.C,t),i=e._,s=e._=i+g.u(t);if(s>9007199254740991)throw new r("Cannot hash more than 2^53 - 1 bits");const f=new o(n);let c=0;for(let t=e.blockSize+i-(e.blockSize+i&e.blockSize-1);s>=t;t+=e.blockSize)e.V(f.subarray(16*c,16*(c+1))),c+=1;return n.splice(0,16*c),e},P:function(){const t=this;let e=t.C;const r=t.S;e=g.concat(e,[g.p(1,1)]);for(let t=e.length+2;15&t;t++)e.push(0);for(e.push(n.floor(t._/4294967296)),e.push(0|t._);e.length;)t.V(e.splice(0,16));return t.reset(),r},A:[1732584193,4023233417,2562383102,271733878,3285377520],B:[1518500249,1859775393,2400959708,3395469782],D:(t,e,n,r)=>t>19?t>39?t>59?t>79?void 0:e^n^r:e&n|e&r|n&r:e^n^r:e&n|~e&r,M:(t,e)=>e<<t|e>>>32-t,V:function(e){const r=this,i=r.S,s=t(80);for(let t=0;16>t;t++)s[t]=e[t];let o=i[0],f=i[1],c=i[2],l=i[3],u=i[4];for(let t=0;79>=t;t++){16>t||(s[t]=r.M(1,s[t-3]^s[t-8]^s[t-14]^s[t-16]));const e=r.M(5,o)+r.D(t,f,c,l)+u+s[t]+r.B[n.floor(t/20)]|0;u=l,l=c,c=r.M(30,f),f=o,o=e}i[0]=i[0]+o|0,i[1]=i[1]+f|0,i[2]=i[2]+c|0,i[3]=i[3]+l|0,i[4]=i[4]+u|0}};const C={getRandomValues(t){const e=new o(t.buffer),r=t=>{let e=987654321;const r=4294967295;return()=>(e=36969*(65535&e)+(e>>16)&r,(((e<<16)+(t=18e3*(65535&t)+(t>>16)&r)&r)/4294967296+.5)*(n.random()>.5?1:-1))};for(let i,s=0;s<t.length;s+=4){const t=r(4294967296*(i||n.random()));i=987654071*t(),e[s/4]=4294967296*t()|0}return t}},_={importKey:t=>new _.R(v.m.g(t)),U(t,e,n,i){if(n=n||1e4,0>i||0>n)throw new r("invalid params to pbkdf2");const s=1+(i>>5)<<2;let o,f,l,u,a;const w=new ArrayBuffer(s),h=new c(w);let d=0;const p=g;for(e=v.m.g(e),a=1;(s||1)>d;a++){for(o=f=t.encrypt(p.concat(e,[a])),l=1;n>l;l++)for(f=t.encrypt(f),u=0;u<f.length;u++)o[u]^=f[u];for(l=0;(s||1)>d&&l<o.length;l++)h.setInt32(d,o[l]),d+=4}return w.slice(0,i/8)},R:class{constructor(t){const e=this,n=e.T=S.v,r=[[],[]],i=n.prototype.blockSize/32;e.W=[new n,new n],t.length>i&&(t=n.hash(t));for(let e=0;i>e;e++)r[0][e]=909522486^t[e],r[1][e]=1549556828^t[e];e.W[0].update(r[0]),e.W[1].update(r[1]),e.j=new n(e.W[0])}reset(){const t=this;t.j=new t.T(t.W[0]),t.H=!1}update(t){this.H=!0,this.j.update(t)}digest(){const t=this,e=t.j.P(),n=new t.T(t.W[1]).update(e).P();return t.reset(),n}encrypt(t){if(this.H)throw new r("encrypt on already updated hmac called!");return this.update(t),this.digest(t)}}},A={name:"PBKDF2"},z=e.assign({hash:{name:"HMAC"}},A),x=e.assign({iterations:1e3,hash:{name:"SHA-1"}},A),I=["deriveBits"],V=[8,12,16],P=[16,24,32],B=[0,0,0,0],D=void 0!==u,E=D&&void 0!==u.subtle,M=D&&"function"==typeof u.getRandomValues,R=D&&E&&"function"==typeof u.subtle.importKey,U=D&&E&&"function"==typeof u.subtle.deriveBits,T=v.m,W=class{constructor(t){const e=this;e.K=[[[],[],[],[],[]],[[],[],[],[],[]]],e.K[0][0][0]||e.L();const n=e.K[0][4],i=e.K[1],s=t.length;let o,f,c,l=1;if(4!==s&&6!==s&&8!==s)throw new r("invalid aes key size");for(e.B=[f=t.slice(0),c=[]],o=s;4*s+28>o;o++){let t=f[o-1];(o%s==0||8===s&&o%s==4)&&(t=n[t>>>24]<<24^n[t>>16&255]<<16^n[t>>8&255]<<8^n[255&t],o%s==0&&(t=t<<8^t>>>24^l<<24,l=l<<1^283*(l>>7))),f[o]=f[o-s]^t}for(let t=0;o;t++,o--){const e=f[3&t?o:o-4];c[t]=4>=o||4>t?e:i[0][n[e>>>24]]^i[1][n[e>>16&255]]^i[2][n[e>>8&255]]^i[3][n[255&e]]}}encrypt(t){return this.F(t,0)}decrypt(t){return this.F(t,1)}L(){const t=this.K[0],e=this.K[1],n=t[4],r=e[4],i=[],s=[];let o,f,c,l;for(let t=0;256>t;t++)s[(i[t]=t<<1^283*(t>>7))^t]=t;for(let u=o=0;!n[u];u^=f||1,o=s[o]||1){let s=o^o<<1^o<<2^o<<3^o<<4;s=s>>8^255&s^99,n[u]=s,r[s]=u,l=i[c=i[f=i[u]]];let a=16843009*l^65537*c^257*f^16843008*u,w=257*i[s]^16843008*s;for(let n=0;4>n;n++)t[n][u]=w=w<<24^w>>>8,e[n][s]=a=a<<24^a>>>8}for(let n=0;5>n;n++)t[n]=t[n].slice(0),e[n]=e[n].slice(0)}F(t,e){if(4!==t.length)throw new r("invalid aes block size");const n=this.B[e],i=n.length/4-2,s=[0,0,0,0],o=this.K[e],f=o[0],c=o[1],l=o[2],u=o[3],a=o[4];let w,h,d,p=t[0]^n[0],b=t[e?3:1]^n[1],y=t[2]^n[2],m=t[e?1:3]^n[3],k=4;for(let t=0;i>t;t++)w=f[p>>>24]^c[b>>16&255]^l[y>>8&255]^u[255&m]^n[k],h=f[b>>>24]^c[y>>16&255]^l[m>>8&255]^u[255&p]^n[k+1],d=f[y>>>24]^c[m>>16&255]^l[p>>8&255]^u[255&b]^n[k+2],m=f[m>>>24]^c[p>>16&255]^l[b>>8&255]^u[255&y]^n[k+3],k+=4,p=w,b=h,y=d;for(let t=0;4>t;t++)s[e?3&-t:t]=a[p>>>24]<<24^a[b>>16&255]<<16^a[y>>8&255]<<8^a[255&m]^n[k++],w=p,p=b,b=y,y=m,m=w;return s}},j=class{constructor(t,e){this.O=t,this.q=e,this.G=e}reset(){this.G=this.q}update(t){return this.J(this.O,t,this.G)}N(t){if(255==(t>>24&255)){let e=t>>16&255,n=t>>8&255,r=255&t;255===e?(e=0,255===n?(n=0,255===r?r=0:++r):++n):++e,t=0,t+=e<<16,t+=n<<8,t+=r}else t+=1<<24;return t}X(t){0===(t[0]=this.N(t[0]))&&(t[1]=this.N(t[1]))}J(t,e,n){let r;if(!(r=e.length))return[];const i=g.u(e);for(let i=0;r>i;i+=4){this.X(n);const r=t.encrypt(n);e[i]^=r[0],e[i+1]^=r[1],e[i+2]^=r[2],e[i+3]^=r[3]}return g.h(e,i)}},H=_.R;class K extends w{constructor(n,s,o){let f;super({start(){e.assign(this,{ready:new Promise((t=>this.Y=t)),password:n,signed:s,Z:o-1,pending:new i(0)})},async transform(e,n){const s=this;if(s.password){const n=s.password;s.password=null;const i=G(e,0,V[s.Z]+2);await(async(t,e,n)=>{await O(t,n,G(e,0,V[t.Z]));const i=G(e,V[t.Z]),s=t.keys.passwordVerification;if(s[0]!=i[0]||s[1]!=i[1])throw new r("Invalid pasword")})(s,i,n),s.$=new j(new W(s.keys.key),t.from(B)),s.tt=new H(s.keys.et),e=G(e,V[s.Z]+2),s.Y()}else await s.ready;const o=new i(e.length-10-(e.length-10)%16);n.enqueue(F(s,e,o,0,10,!0))},async flush(t){const e=this;await e.ready;const n=e.pending,r=G(n,0,n.length-10),s=G(n,n.length-10);let o=new i(0);if(r.length){const t=N(T,r);e.tt.update(t);const n=e.$.update(t);o=J(T,n)}if(f.valid=!0,e.signed){const t=G(J(T,e.tt.digest()),0,10);for(let e=0;10>e;e++)t[e]!=s[e]&&(f.valid=!1)}t.enqueue(o)}}),f=this}}class L extends w{constructor(n,r){let s;super({start(){e.assign(this,{ready:new Promise((t=>this.Y=t)),password:n,Z:r-1,pending:new i(0)})},async transform(e,n){const r=this;let s=new i(0);if(r.password){const e=r.password;r.password=null,s=await(async(t,e)=>{const n=(r=new i(V[t.Z]),M?u.getRandomValues(r):C.getRandomValues(r));var r;return await O(t,e,n),q(n,t.keys.passwordVerification)})(r,e),r.$=new j(new W(r.keys.key),t.from(B)),r.tt=new H(r.keys.et),r.Y()}else await r.ready;const o=new i(s.length+e.length-e.length%16);o.set(s,0),n.enqueue(F(r,e,o,s.length,0))},async flush(t){const e=this;await e.ready;let n=new i(0);if(e.pending.length){const t=e.$.update(N(T,e.pending));e.tt.update(t),n=J(T,t)}s.signature=J(T,e.tt.digest()).slice(0,10),t.enqueue(q(n,s.signature))}}),s=this}}function F(t,e,n,r,s,o){const f=e.length-s;let c;for(t.pending.length&&(e=q(t.pending,e),n=((t,e)=>{if(e&&e>t.length){const n=t;(t=new i(e)).set(n,0)}return t})(n,f-f%16)),c=0;f-16>=c;c+=16){const i=N(T,G(e,c,c+16));o&&t.tt.update(i);const s=t.$.update(i);o||t.tt.update(s),n.set(J(T,s),c+r)}return t.pending=G(e,c),n}async function O(t,n,r){const s=(t=>{if(void 0===l){const e=new i((t=unescape(encodeURIComponent(t))).length);for(let n=0;n<e.length;n++)e[n]=t.charCodeAt(n);return e}return(new l).encode(t)})(n),o=await((t,e,n,r,i)=>R?u.subtle.importKey("raw",e,n,!1,i):_.importKey(e))(0,s,z,0,I),f=await(async(t,e,n)=>U?await u.subtle.deriveBits(t,e,n):_.U(e,t.salt,x.iterations,n))(e.assign({salt:r},x),o,8*(2*P[t.Z]+2)),c=new i(f);t.keys={key:N(T,G(c,0,P[t.Z])),et:N(T,G(c,P[t.Z],2*P[t.Z])),passwordVerification:G(c,2*P[t.Z])}}function q(t,e){let n=t;return t.length+e.length&&(n=new i(t.length+e.length),n.set(t,0),n.set(e,t.length)),n}function G(t,e,n){return t.subarray(e,n)}function J(t,e){return t.k(e)}function N(t,e){return t.g(e)}class Q extends w{constructor(t,n){let i;super({start(){e.assign(this,{password:t,passwordVerification:n}),$(this,t)},transform(t,e){const n=this;if(n.password){const e=Y(n,t.subarray(0,12));if(n.password=null,e[11]!=n.passwordVerification)throw new r("Invalid pasword");t=t.subarray(12)}e.enqueue(Y(n,t))},flush(){i.valid=!0}}),i=this}}class X extends w{constructor(t,n){super({start(){e.assign(this,{password:t,passwordVerification:n}),$(this,t)},transform(t,e){const n=this;let r,s;if(n.password){n.password=null;const e=u.getRandomValues(new i(12));e[11]=n.passwordVerification,r=new i(t.length+e.length),r.set(Z(n,e),0),s=12}else r=new i(t.length),s=0;r.set(Z(n,t),s),e.enqueue(r)},flush(){}})}}function Y(t,e){const n=new i(e.length);for(let r=0;r<e.length;r++)n[r]=et(t)^e[r],tt(t,n[r]);return n}function Z(t,e){const n=new i(e.length);for(let r=0;r<e.length;r++)n[r]=et(t)^e[r],tt(t,e[r]);return n}function $(t,e){t.keys=[305419896,591751049,878082192],t.nt=new m(t.keys[0]),t.rt=new m(t.keys[2]);for(let n=0;n<e.length;n++)tt(t,e.charCodeAt(n))}function tt(t,e){t.nt.append([e]),t.keys[0]=~t.nt.get(),t.keys[1]=rt(t.keys[1]+nt(t.keys[0])),t.keys[1]=rt(n.imul(t.keys[1],134775813)+1),t.rt.append([t.keys[1]>>>24]),t.keys[2]=~t.rt.get()}function et(t){const e=2|t.keys[2];return nt(n.imul(e,1^e)>>>8)}function nt(t){return 255&t}function rt(t){return 4294967295&t}class it extends w{constructor(t,e){super({start(){this.it=new t(e)},transform(t,e){t=this.it.append(t),e.enqueue(t)},flush(t){const e=this.it.flush();t.enqueue(e)}})}}class st extends w{constructor(t,{compressed:e,st:n,password:r,passwordVerification:i,encryptionStrength:s,zipCrypto:o,signed:f},{ot:l},...u){super({},...u);const a=this;let w,h,d=ct(super.readable);const b=!!r;if(b&&!o||!f||([d,w]=d.tee(),w=w.pipeThrough(new k)),e)if(void 0!==n&&!n||void 0===p)d=ft(t,d,l);else try{const t=new p("deflate-raw");d=d.pipeThrough(t)}catch(e){d=ft(t,d,l)}b&&(o?d=d.pipeThrough(new X(r,i)):(h=new L(r,s),d=d.pipeThrough(h))),lt(a,d,(async()=>{let t;b&&!o&&(t=h.signature),b&&!o||!f||(t=await w.getReader().read(),t=new c(t.value.buffer).getUint32(0)),a.signature=t}))}}class ot extends w{constructor(t,{zipCrypto:e,password:n,passwordVerification:i,signed:s,encryptionStrength:o,compressed:f,st:l},{ot:u},...a){super({},...a);let w,h,d=ct(super.readable);const p=!!n;if(p&&(e?d=d.pipeThrough(new Q(n,i)):(h=new K(n,s,o),d=d.pipeThrough(h))),f)if(void 0!==l&&!l||void 0===b)d=ft(t,d,u);else try{d=d.pipeThrough(new b("deflate-raw"))}catch(e){d=ft(t,d,u)}p&&!e||!s||([d,w]=d.tee(),w=w.pipeThrough(new k)),lt(this,d,(async()=>{let t;if(p&&!e&&!h.valid)throw new r("Invalid signature");if((!p||e)&&s&&(t=await w.getReader().read(),t!=new c(t.value.buffer).getUint32(0,!1)))throw new r("Invalid signature")}))}}function ft(t,e,n){return e.pipeThrough(new it(t,{ot:n}))}function ct(t){return t.pipeThrough(new w({transform(t,e){t&&t.length&&e.enqueue(t)}}))}function lt(t,n,r){t.length=0,n=n.pipeThrough(new w({transform(e,n){e&&e.length&&(t.length+=e.length,n.enqueue(e))},flush:r})),e.defineProperty(t,"readable",{get:()=>n})}const ut=new Map;let at,wt=0;function ht(t){if(t.data){const e=t.data;if(e&&e.length)try{t.data=e.buffer,a(t,[t.data])}catch(e){a(t)}else a(t)}else a(t)}addEventListener("message",(async t=>{const e=t.data,n=e.type;try{if("start"==n&&(async t=>{try{t.scripts&&t.scripts.length&&importScripts.apply(void 0,t.scripts);const e=t.options;let n;self.initCodec&&self.initCodec(),e.codecType.startsWith("deflate")?n=self.Deflate:e.codecType.startsWith("inflate")&&(n=self.Inflate);const r=new h({async pull(t){let e=new Promise(((t,e)=>ut.set(wt,{resolve:t,reject:e})));ht({type:"pull",messageId:wt}),wt++;const{value:n,done:r}=await e;t.enqueue(n),r&&t.close()}},{highWaterMark:1}),i=new d({write(t){ht({type:"data",data:t})}});at=((t,e,n,r,i)=>{const s=new AbortController,{signal:o}=s;if(r.codecType.startsWith("deflate"))return{ft:()=>f(st),abort:()=>{s.abort()}};if(r.codecType.startsWith("inflate"))return{ft:()=>f(ot),AbortController:AbortController};async function f(s){const f=new s(t,r,i);await e.pipeThrough(f,{signal:o}).pipeTo(n);const{length:c,signature:l}=f;return{length:c,signature:l}}})(n,r,i,e,t.config),ht({type:"close",result:await at.ft()})}catch(t){a({error:{message:t.message,stack:t.stack}})}})(e),"data"==n){const{resolve:t}=ut.get(e.messageId);ut.delete(e.messageId),t({value:new i(e.data),done:e.done})}"abort"==n&&at.abort()}catch(t){a({error:{message:t.message,stack:t.stack}})}}));const dt=(()=>{const e=-2;function o(e){return f(e.map((([e,n])=>new t(e).fill(n,0,e))))}function f(e){return e.reduce(((e,n)=>e.concat(t.isArray(n)?f(n):n)),[])}const c=[0,1,2,3].concat(...o([[2,4],[2,5],[4,6],[4,7],[8,8],[8,9],[16,10],[16,11],[32,12],[32,13],[64,14],[64,15],[2,0],[1,16],[1,17],[2,18],[2,19],[4,20],[4,21],[8,22],[8,23],[16,24],[16,25],[32,26],[32,27],[64,28],[64,29]]));function l(){const t=this;function e(t,e){let n=0;do{n|=1&t,t>>>=1,n<<=1}while(--e>0);return n>>>1}t.ct=r=>{const i=t.lt,s=t.wt.ut,o=t.wt.ht;let f,c,l,u=-1;for(r.dt=0,r.bt=573,f=0;o>f;f++)0!==i[2*f]?(r.yt[++r.dt]=u=f,r.kt[f]=0):i[2*f+1]=0;for(;2>r.dt;)l=r.yt[++r.dt]=2>u?++u:0,i[2*l]=1,r.kt[l]=0,r.gt--,s&&(r.vt-=s[2*l+1]);for(t.St=u,f=n.floor(r.dt/2);f>=1;f--)r.Ct(i,f);l=o;do{f=r.yt[1],r.yt[1]=r.yt[r.dt--],r.Ct(i,1),c=r.yt[1],r.yt[--r.bt]=f,r.yt[--r.bt]=c,i[2*l]=i[2*f]+i[2*c],r.kt[l]=n.max(r.kt[f],r.kt[c])+1,i[2*f+1]=i[2*c+1]=l,r.yt[1]=l++,r.Ct(i,1)}while(r.dt>=2);r.yt[--r.bt]=r.yt[1],(e=>{const n=t.lt,r=t.wt.ut,i=t.wt._t,s=t.wt.At,o=t.wt.zt;let f,c,l,u,a,w,h=0;for(u=0;15>=u;u++)e.xt[u]=0;for(n[2*e.yt[e.bt]+1]=0,f=e.bt+1;573>f;f++)c=e.yt[f],u=n[2*n[2*c+1]+1]+1,u>o&&(u=o,h++),n[2*c+1]=u,c>t.St||(e.xt[u]++,a=0,s>c||(a=i[c-s]),w=n[2*c],e.gt+=w*(u+a),r&&(e.vt+=w*(r[2*c+1]+a)));if(0!==h){do{for(u=o-1;0===e.xt[u];)u--;e.xt[u]--,e.xt[u+1]+=2,e.xt[o]--,h-=2}while(h>0);for(u=o;0!==u;u--)for(c=e.xt[u];0!==c;)l=e.yt[--f],l>t.St||(n[2*l+1]!=u&&(e.gt+=(u-n[2*l+1])*n[2*l],n[2*l+1]=u),c--)}})(r),((t,n,r)=>{const i=[];let s,o,f,c=0;for(s=1;15>=s;s++)i[s]=c=c+r[s-1]<<1;for(o=0;n>=o;o++)f=t[2*o+1],0!==f&&(t[2*o]=e(i[f]++,f))})(i,t.St,r.xt)}}function u(t,e,n,r,i){const s=this;s.ut=t,s._t=e,s.At=n,s.ht=r,s.zt=i}l.It=[0,1,2,3,4,5,6,7].concat(...o([[2,8],[2,9],[2,10],[2,11],[4,12],[4,13],[4,14],[4,15],[8,16],[8,17],[8,18],[8,19],[16,20],[16,21],[16,22],[16,23],[32,24],[32,25],[32,26],[31,27],[1,28]])),l.Vt=[0,1,2,3,4,5,6,7,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,0],l.Pt=[0,1,2,3,4,6,8,12,16,24,32,48,64,96,128,192,256,384,512,768,1024,1536,2048,3072,4096,6144,8192,12288,16384,24576],l.Bt=t=>256>t?c[t]:c[256+(t>>>7)],l.Dt=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0],l.Et=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],l.Mt=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,7],l.Rt=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];const a=o([[144,8],[112,9],[24,7],[8,8]]);u.Ut=f([12,140,76,204,44,172,108,236,28,156,92,220,60,188,124,252,2,130,66,194,34,162,98,226,18,146,82,210,50,178,114,242,10,138,74,202,42,170,106,234,26,154,90,218,58,186,122,250,6,134,70,198,38,166,102,230,22,150,86,214,54,182,118,246,14,142,78,206,46,174,110,238,30,158,94,222,62,190,126,254,1,129,65,193,33,161,97,225,17,145,81,209,49,177,113,241,9,137,73,201,41,169,105,233,25,153,89,217,57,185,121,249,5,133,69,197,37,165,101,229,21,149,85,213,53,181,117,245,13,141,77,205,45,173,109,237,29,157,93,221,61,189,125,253,19,275,147,403,83,339,211,467,51,307,179,435,115,371,243,499,11,267,139,395,75,331,203,459,43,299,171,427,107,363,235,491,27,283,155,411,91,347,219,475,59,315,187,443,123,379,251,507,7,263,135,391,71,327,199,455,39,295,167,423,103,359,231,487,23,279,151,407,87,343,215,471,55,311,183,439,119,375,247,503,15,271,143,399,79,335,207,463,47,303,175,431,111,367,239,495,31,287,159,415,95,351,223,479,63,319,191,447,127,383,255,511,0,64,32,96,16,80,48,112,8,72,40,104,24,88,56,120,4,68,36,100,20,84,52,116,3,131,67,195,35,163,99,227].map(((t,e)=>[t,a[e]])));const w=o([[30,5]]);function h(t,e,n,r,i){const s=this;s.Tt=t,s.Wt=e,s.jt=n,s.Ht=r,s.Kt=i}u.Lt=f([0,16,8,24,4,20,12,28,2,18,10,26,6,22,14,30,1,17,9,25,5,21,13,29,3,19,11,27,7,23].map(((t,e)=>[t,w[e]]))),u.Ft=new u(u.Ut,l.Dt,257,286,15),u.Ot=new u(u.Lt,l.Et,0,30,15),u.qt=new u(null,l.Mt,0,19,7);const d=[new h(0,0,0,0,0),new h(4,4,8,4,1),new h(4,5,16,8,1),new h(4,6,32,32,1),new h(4,4,16,16,2),new h(8,16,32,32,2),new h(8,16,128,128,2),new h(8,32,128,256,2),new h(32,128,258,1024,2),new h(32,258,258,4096,2)],p=["need dictionary","stream end","","","stream error","data error","","buffer error","",""],b=113,y=666,m=262;function k(t,e,n,r){const i=t[2*e],s=t[2*n];return s>i||i==s&&r[e]<=r[n]}function g(){const t=this;let r,o,f,c,a,w,h,g,v,S,C,_,A,z,x,I,V,P,B,D,E,M,R,U,T,W,j,H,K,L,F,O,q;const G=new l,J=new l,N=new l;let Q,X,Y,Z,$,tt;function et(){let e;for(e=0;286>e;e++)F[2*e]=0;for(e=0;30>e;e++)O[2*e]=0;for(e=0;19>e;e++)q[2*e]=0;F[512]=1,t.gt=t.vt=0,X=Y=0}function nt(t,e){let n,r=-1,i=t[1],s=0,o=7,f=4;0===i&&(o=138,f=3),t[2*(e+1)+1]=65535;for(let c=0;e>=c;c++)n=i,i=t[2*(c+1)+1],++s<o&&n==i||(f>s?q[2*n]+=s:0!==n?(n!=r&&q[2*n]++,q[32]++):s>10?q[36]++:q[34]++,s=0,r=n,0===i?(o=138,f=3):n==i?(o=6,f=3):(o=7,f=4))}function rt(e){t.Gt[t.pending++]=e}function it(t){rt(255&t),rt(t>>>8&255)}function st(t,e){let n;const r=e;tt>16-r?(n=t,$|=n<<tt&65535,it($),$=n>>>16-tt,tt+=r-16):($|=t<<tt&65535,tt+=r)}function ot(t,e){const n=2*t;st(65535&e[n],65535&e[n+1])}function ft(t,e){let n,r,i=-1,s=t[1],o=0,f=7,c=4;for(0===s&&(f=138,c=3),n=0;e>=n;n++)if(r=s,s=t[2*(n+1)+1],++o>=f||r!=s){if(c>o)do{ot(r,q)}while(0!=--o);else 0!==r?(r!=i&&(ot(r,q),o--),ot(16,q),st(o-3,2)):o>10?(ot(18,q),st(o-11,7)):(ot(17,q),st(o-3,3));o=0,i=r,0===s?(f=138,c=3):r==s?(f=6,c=3):(f=7,c=4)}}function ct(){16==tt?(it($),$=0,tt=0):8>tt||(rt(255&$),$>>>=8,tt-=8)}function lt(e,r){let i,s,o;if(t.Jt[X]=e,t.Nt[X]=255&r,X++,0===e?F[2*r]++:(Y++,e--,F[2*(l.It[r]+256+1)]++,O[2*l.Bt(e)]++),0==(8191&X)&&j>2){for(i=8*X,s=E-V,o=0;30>o;o++)i+=O[2*o]*(5+l.Et[o]);if(i>>>=3,Y<n.floor(X/2)&&i<n.floor(s/2))return!0}return X==Q-1}function ut(e,n){let r,i,s,o,f=0;if(0!==X)do{r=t.Jt[f],i=t.Nt[f],f++,0===r?ot(i,e):(s=l.It[i],ot(s+256+1,e),o=l.Dt[s],0!==o&&(i-=l.Vt[s],st(i,o)),r--,s=l.Bt(r),ot(s,n),o=l.Et[s],0!==o&&(r-=l.Pt[s],st(r,o)))}while(X>f);ot(256,e),Z=e[513]}function at(){tt>8?it($):tt>0&&rt(255&$),$=0,tt=0}function wt(e,n,r){st(0+(r?1:0),3),((e,n)=>{at(),Z=8,it(n),it(~n),t.Gt.set(g.subarray(e,e+n),t.pending),t.pending+=n})(e,n)}function ht(e){((e,n,r)=>{let i,s,o=0;j>0?(G.ct(t),J.ct(t),o=(()=>{let e;for(nt(F,G.St),nt(O,J.St),N.ct(t),e=18;e>=3&&0===q[2*l.Rt[e]+1];e--);return t.gt+=14+3*(e+1),e})(),i=t.gt+3+7>>>3,s=t.vt+3+7>>>3,s>i||(i=s)):i=s=n+5,n+4>i||-1==e?s==i?(st(2+(r?1:0),3),ut(u.Ut,u.Lt)):(st(4+(r?1:0),3),((t,e,n)=>{let r;for(st(t-257,5),st(e-1,5),st(n-4,4),r=0;n>r;r++)st(q[2*l.Rt[r]+1],3);ft(F,t-1),ft(O,e-1)})(G.St+1,J.St+1,o+1),ut(F,O)):wt(e,n,r),et(),r&&at()})(0>V?-1:V,E-V,e),V=E,r.Qt()}function dt(){let t,e,n,i;do{if(i=v-R-E,0===i&&0===E&&0===R)i=a;else if(-1==i)i--;else if(E>=a+a-m){g.set(g.subarray(a,a+a),0),M-=a,E-=a,V-=a,t=A,n=t;do{e=65535&C[--n],C[n]=a>e?0:e-a}while(0!=--t);t=a,n=t;do{e=65535&S[--n],S[n]=a>e?0:e-a}while(0!=--t);i+=a}if(0===r.Xt)return;t=r.Yt(g,E+R,i),R+=t,3>R||(_=255&g[E],_=(_<<I^255&g[E+1])&x)}while(m>R&&0!==r.Xt)}function pt(t){let e,n,r=T,i=E,s=U;const o=E>a-m?E-(a-m):0;let f=L;const c=h,l=E+258;let u=g[i+s-1],w=g[i+s];K>U||(r>>=2),f>R&&(f=R);do{if(e=t,g[e+s]==w&&g[e+s-1]==u&&g[e]==g[i]&&g[++e]==g[i+1]){i+=2,e++;do{}while(g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&g[++i]==g[++e]&&l>i);if(n=258-(l-i),i=l-258,n>s){if(M=t,s=n,n>=f)break;u=g[i+s-1],w=g[i+s]}}}while((t=65535&S[t&c])>o&&0!=--r);return s>R?R:s}t.kt=[],t.xt=[],t.yt=[],F=[],O=[],q=[],t.Ct=(e,n)=>{const r=t.yt,i=r[n];let s=n<<1;for(;s<=t.dt&&(s<t.dt&&k(e,r[s+1],r[s],t.kt)&&s++,!k(e,i,r[s],t.kt));)r[n]=r[s],n=s,s<<=1;r[n]=i},t.Zt=(r,l,p,y,m,k)=>(y||(y=8),m||(m=8),k||(k=0),r.$t=null,-1==l&&(l=6),1>m||m>9||8!=y||9>p||p>15||0>l||l>9||0>k||k>2?e:(r.te=t,w=p,a=1<<w,h=a-1,z=m+7,A=1<<z,x=A-1,I=n.floor((z+3-1)/3),g=new i(2*a),S=[],C=[],Q=1<<m+6,t.Gt=new i(4*Q),f=4*Q,t.Jt=new s(Q),t.Nt=new i(Q),j=l,H=k,(e=>(e.ee=e.ne=0,e.$t=null,t.pending=0,t.re=0,o=b,c=0,G.lt=F,G.wt=u.Ft,J.lt=O,J.wt=u.Ot,N.lt=q,N.wt=u.qt,$=0,tt=0,Z=8,et(),(()=>{v=2*a,C[A-1]=0;for(let t=0;A-1>t;t++)C[t]=0;W=d[j].Wt,K=d[j].Tt,L=d[j].jt,T=d[j].Ht,E=0,V=0,R=0,P=U=2,D=0,_=0})(),0))(r))),t.ie=()=>42!=o&&o!=b&&o!=y?e:(t.Nt=null,t.Jt=null,t.Gt=null,C=null,S=null,g=null,t.te=null,o==b?-3:0),t.se=(t,n,r)=>{let i=0;return-1==n&&(n=6),0>n||n>9||0>r||r>2?e:(d[j].Kt!=d[n].Kt&&0!==t.ee&&(i=t.oe(1)),j!=n&&(j=n,W=d[j].Wt,K=d[j].Tt,L=d[j].jt,T=d[j].Ht),H=r,i)},t.fe=(t,n,r)=>{let i,s=r,f=0;if(!n||42!=o)return e;if(3>s)return 0;for(s>a-m&&(s=a-m,f=r-s),g.set(n.subarray(f,f+s),0),E=s,V=s,_=255&g[0],_=(_<<I^255&g[1])&x,i=0;s-3>=i;i++)_=(_<<I^255&g[i+2])&x,S[i&h]=C[_],C[_]=i;return 0},t.oe=(n,i)=>{let s,l,k,v,z;if(i>4||0>i)return e;if(!n.ce||!n.le&&0!==n.Xt||o==y&&4!=i)return n.$t=p[4],e;if(0===n.ue)return n.$t=p[7],-5;var T;if(r=n,v=c,c=i,42==o&&(l=8+(w-8<<4)<<8,k=(j-1&255)>>1,k>3&&(k=3),l|=k<<6,0!==E&&(l|=32),l+=31-l%31,o=b,rt((T=l)>>8&255),rt(255&T)),0!==t.pending){if(r.Qt(),0===r.ue)return c=-1,0}else if(0===r.Xt&&v>=i&&4!=i)return r.$t=p[7],-5;if(o==y&&0!==r.Xt)return n.$t=p[7],-5;if(0!==r.Xt||0!==R||0!=i&&o!=y){switch(z=-1,d[j].Kt){case 0:z=(t=>{let e,n=65535;for(n>f-5&&(n=f-5);;){if(1>=R){if(dt(),0===R&&0==t)return 0;if(0===R)break}if(E+=R,R=0,e=V+n,(0===E||E>=e)&&(R=E-e,E=e,ht(!1),0===r.ue))return 0;if(E-V>=a-m&&(ht(!1),0===r.ue))return 0}return ht(4==t),0===r.ue?4==t?2:0:4==t?3:1})(i);break;case 1:z=(t=>{let e,n=0;for(;;){if(m>R){if(dt(),m>R&&0==t)return 0;if(0===R)break}if(3>R||(_=(_<<I^255&g[E+2])&x,n=65535&C[_],S[E&h]=C[_],C[_]=E),0===n||(E-n&65535)>a-m||2!=H&&(P=pt(n)),3>P)e=lt(0,255&g[E]),R--,E++;else if(e=lt(E-M,P-3),R-=P,P>W||3>R)E+=P,P=0,_=255&g[E],_=(_<<I^255&g[E+1])&x;else{P--;do{E++,_=(_<<I^255&g[E+2])&x,n=65535&C[_],S[E&h]=C[_],C[_]=E}while(0!=--P);E++}if(e&&(ht(!1),0===r.ue))return 0}return ht(4==t),0===r.ue?4==t?2:0:4==t?3:1})(i);break;case 2:z=(t=>{let e,n,i=0;for(;;){if(m>R){if(dt(),m>R&&0==t)return 0;if(0===R)break}if(3>R||(_=(_<<I^255&g[E+2])&x,i=65535&C[_],S[E&h]=C[_],C[_]=E),U=P,B=M,P=2,0!==i&&W>U&&a-m>=(E-i&65535)&&(2!=H&&(P=pt(i)),5>=P&&(1==H||3==P&&E-M>4096)&&(P=2)),3>U||P>U)if(0!==D){if(e=lt(0,255&g[E-1]),e&&ht(!1),E++,R--,0===r.ue)return 0}else D=1,E++,R--;else{n=E+R-3,e=lt(E-1-B,U-3),R-=U-1,U-=2;do{++E>n||(_=(_<<I^255&g[E+2])&x,i=65535&C[_],S[E&h]=C[_],C[_]=E)}while(0!=--U);if(D=0,P=2,E++,e&&(ht(!1),0===r.ue))return 0}}return 0!==D&&(e=lt(0,255&g[E-1]),D=0),ht(4==t),0===r.ue?4==t?2:0:4==t?3:1})(i)}if(2!=z&&3!=z||(o=y),0==z||2==z)return 0===r.ue&&(c=-1),0;if(1==z){if(1==i)st(2,3),ot(256,u.Ut),ct(),9>1+Z+10-tt&&(st(2,3),ot(256,u.Ut),ct()),Z=7;else if(wt(0,0,!1),3==i)for(s=0;A>s;s++)C[s]=0;if(r.Qt(),0===r.ue)return c=-1,0}}return 4!=i?0:1}}function v(){const t=this;t.ae=0,t.we=0,t.Xt=0,t.ee=0,t.ue=0,t.ne=0}return v.prototype={Zt:function(t,e){const n=this;return n.te=new g,e||(e=15),n.te.Zt(n,t,e)},oe:function(t){const n=this;return n.te?n.te.oe(n,t):e},ie:function(){const t=this;if(!t.te)return e;const n=t.te.ie();return t.te=null,n},se:function(t,n){const r=this;return r.te?r.te.se(r,t,n):e},fe:function(t,n){const r=this;return r.te?r.te.fe(r,t,n):e},Yt:function(t,e,n){const r=this;let i=r.Xt;return i>n&&(i=n),0===i?0:(r.Xt-=i,t.set(r.le.subarray(r.ae,r.ae+i),e),r.ae+=i,r.ee+=i,i)},Qt:function(){const t=this;let e=t.te.pending;e>t.ue&&(e=t.ue),0!==e&&(t.ce.set(t.te.Gt.subarray(t.te.re,t.te.re+e),t.we),t.we+=e,t.te.re+=e,t.ne+=e,t.ue-=e,t.te.pending-=e,0===t.te.pending&&(t.te.re=0))}},function(t){const e=new v,s=(o=t&&t.ot?t.ot:65536)+5*(n.floor(o/16383)+1);var o;const f=new i(s);let c=t?t.level:-1;void 0===c&&(c=-1),e.Zt(c),e.ce=f,this.append=(t,n)=>{let o,c,l=0,u=0,a=0;const w=[];if(t.length){e.ae=0,e.le=t,e.Xt=t.length;do{if(e.we=0,e.ue=s,o=e.oe(0),0!=o)throw new r("deflating: "+e.$t);e.we&&(e.we==s?w.push(new i(f)):w.push(f.slice(0,e.we))),a+=e.we,n&&e.ae>0&&e.ae!=l&&(n(e.ae),l=e.ae)}while(e.Xt>0||0===e.ue);return w.length>1?(c=new i(a),w.forEach((t=>{c.set(t,u),u+=t.length}))):c=w[0]||new i(0),c}},this.flush=()=>{let t,n,o=0,c=0;const l=[];do{if(e.we=0,e.ue=s,t=e.oe(4),1!=t&&0!=t)throw new r("deflating: "+e.$t);s-e.ue>0&&l.push(f.slice(0,e.we)),c+=e.we}while(e.Xt>0||0===e.ue);return e.ie(),n=new i(c),l.forEach((t=>{n.set(t,o),o+=t.length})),n}}})(),pt=(()=>{const t=-2,e=-3,s=-5,o=[0,1,3,7,15,31,63,127,255,511,1023,2047,4095,8191,16383,32767,65535],c=[96,7,256,0,8,80,0,8,16,84,8,115,82,7,31,0,8,112,0,8,48,0,9,192,80,7,10,0,8,96,0,8,32,0,9,160,0,8,0,0,8,128,0,8,64,0,9,224,80,7,6,0,8,88,0,8,24,0,9,144,83,7,59,0,8,120,0,8,56,0,9,208,81,7,17,0,8,104,0,8,40,0,9,176,0,8,8,0,8,136,0,8,72,0,9,240,80,7,4,0,8,84,0,8,20,85,8,227,83,7,43,0,8,116,0,8,52,0,9,200,81,7,13,0,8,100,0,8,36,0,9,168,0,8,4,0,8,132,0,8,68,0,9,232,80,7,8,0,8,92,0,8,28,0,9,152,84,7,83,0,8,124,0,8,60,0,9,216,82,7,23,0,8,108,0,8,44,0,9,184,0,8,12,0,8,140,0,8,76,0,9,248,80,7,3,0,8,82,0,8,18,85,8,163,83,7,35,0,8,114,0,8,50,0,9,196,81,7,11,0,8,98,0,8,34,0,9,164,0,8,2,0,8,130,0,8,66,0,9,228,80,7,7,0,8,90,0,8,26,0,9,148,84,7,67,0,8,122,0,8,58,0,9,212,82,7,19,0,8,106,0,8,42,0,9,180,0,8,10,0,8,138,0,8,74,0,9,244,80,7,5,0,8,86,0,8,22,192,8,0,83,7,51,0,8,118,0,8,54,0,9,204,81,7,15,0,8,102,0,8,38,0,9,172,0,8,6,0,8,134,0,8,70,0,9,236,80,7,9,0,8,94,0,8,30,0,9,156,84,7,99,0,8,126,0,8,62,0,9,220,82,7,27,0,8,110,0,8,46,0,9,188,0,8,14,0,8,142,0,8,78,0,9,252,96,7,256,0,8,81,0,8,17,85,8,131,82,7,31,0,8,113,0,8,49,0,9,194,80,7,10,0,8,97,0,8,33,0,9,162,0,8,1,0,8,129,0,8,65,0,9,226,80,7,6,0,8,89,0,8,25,0,9,146,83,7,59,0,8,121,0,8,57,0,9,210,81,7,17,0,8,105,0,8,41,0,9,178,0,8,9,0,8,137,0,8,73,0,9,242,80,7,4,0,8,85,0,8,21,80,8,258,83,7,43,0,8,117,0,8,53,0,9,202,81,7,13,0,8,101,0,8,37,0,9,170,0,8,5,0,8,133,0,8,69,0,9,234,80,7,8,0,8,93,0,8,29,0,9,154,84,7,83,0,8,125,0,8,61,0,9,218,82,7,23,0,8,109,0,8,45,0,9,186,0,8,13,0,8,141,0,8,77,0,9,250,80,7,3,0,8,83,0,8,19,85,8,195,83,7,35,0,8,115,0,8,51,0,9,198,81,7,11,0,8,99,0,8,35,0,9,166,0,8,3,0,8,131,0,8,67,0,9,230,80,7,7,0,8,91,0,8,27,0,9,150,84,7,67,0,8,123,0,8,59,0,9,214,82,7,19,0,8,107,0,8,43,0,9,182,0,8,11,0,8,139,0,8,75,0,9,246,80,7,5,0,8,87,0,8,23,192,8,0,83,7,51,0,8,119,0,8,55,0,9,206,81,7,15,0,8,103,0,8,39,0,9,174,0,8,7,0,8,135,0,8,71,0,9,238,80,7,9,0,8,95,0,8,31,0,9,158,84,7,99,0,8,127,0,8,63,0,9,222,82,7,27,0,8,111,0,8,47,0,9,190,0,8,15,0,8,143,0,8,79,0,9,254,96,7,256,0,8,80,0,8,16,84,8,115,82,7,31,0,8,112,0,8,48,0,9,193,80,7,10,0,8,96,0,8,32,0,9,161,0,8,0,0,8,128,0,8,64,0,9,225,80,7,6,0,8,88,0,8,24,0,9,145,83,7,59,0,8,120,0,8,56,0,9,209,81,7,17,0,8,104,0,8,40,0,9,177,0,8,8,0,8,136,0,8,72,0,9,241,80,7,4,0,8,84,0,8,20,85,8,227,83,7,43,0,8,116,0,8,52,0,9,201,81,7,13,0,8,100,0,8,36,0,9,169,0,8,4,0,8,132,0,8,68,0,9,233,80,7,8,0,8,92,0,8,28,0,9,153,84,7,83,0,8,124,0,8,60,0,9,217,82,7,23,0,8,108,0,8,44,0,9,185,0,8,12,0,8,140,0,8,76,0,9,249,80,7,3,0,8,82,0,8,18,85,8,163,83,7,35,0,8,114,0,8,50,0,9,197,81,7,11,0,8,98,0,8,34,0,9,165,0,8,2,0,8,130,0,8,66,0,9,229,80,7,7,0,8,90,0,8,26,0,9,149,84,7,67,0,8,122,0,8,58,0,9,213,82,7,19,0,8,106,0,8,42,0,9,181,0,8,10,0,8,138,0,8,74,0,9,245,80,7,5,0,8,86,0,8,22,192,8,0,83,7,51,0,8,118,0,8,54,0,9,205,81,7,15,0,8,102,0,8,38,0,9,173,0,8,6,0,8,134,0,8,70,0,9,237,80,7,9,0,8,94,0,8,30,0,9,157,84,7,99,0,8,126,0,8,62,0,9,221,82,7,27,0,8,110,0,8,46,0,9,189,0,8,14,0,8,142,0,8,78,0,9,253,96,7,256,0,8,81,0,8,17,85,8,131,82,7,31,0,8,113,0,8,49,0,9,195,80,7,10,0,8,97,0,8,33,0,9,163,0,8,1,0,8,129,0,8,65,0,9,227,80,7,6,0,8,89,0,8,25,0,9,147,83,7,59,0,8,121,0,8,57,0,9,211,81,7,17,0,8,105,0,8,41,0,9,179,0,8,9,0,8,137,0,8,73,0,9,243,80,7,4,0,8,85,0,8,21,80,8,258,83,7,43,0,8,117,0,8,53,0,9,203,81,7,13,0,8,101,0,8,37,0,9,171,0,8,5,0,8,133,0,8,69,0,9,235,80,7,8,0,8,93,0,8,29,0,9,155,84,7,83,0,8,125,0,8,61,0,9,219,82,7,23,0,8,109,0,8,45,0,9,187,0,8,13,0,8,141,0,8,77,0,9,251,80,7,3,0,8,83,0,8,19,85,8,195,83,7,35,0,8,115,0,8,51,0,9,199,81,7,11,0,8,99,0,8,35,0,9,167,0,8,3,0,8,131,0,8,67,0,9,231,80,7,7,0,8,91,0,8,27,0,9,151,84,7,67,0,8,123,0,8,59,0,9,215,82,7,19,0,8,107,0,8,43,0,9,183,0,8,11,0,8,139,0,8,75,0,9,247,80,7,5,0,8,87,0,8,23,192,8,0,83,7,51,0,8,119,0,8,55,0,9,207,81,7,15,0,8,103,0,8,39,0,9,175,0,8,7,0,8,135,0,8,71,0,9,239,80,7,9,0,8,95,0,8,31,0,9,159,84,7,99,0,8,127,0,8,63,0,9,223,82,7,27,0,8,111,0,8,47,0,9,191,0,8,15,0,8,143,0,8,79,0,9,255],l=[80,5,1,87,5,257,83,5,17,91,5,4097,81,5,5,89,5,1025,85,5,65,93,5,16385,80,5,3,88,5,513,84,5,33,92,5,8193,82,5,9,90,5,2049,86,5,129,192,5,24577,80,5,2,87,5,385,83,5,25,91,5,6145,81,5,7,89,5,1537,85,5,97,93,5,24577,80,5,4,88,5,769,84,5,49,92,5,12289,82,5,13,90,5,3073,86,5,193,192,5,24577],u=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,0,0],a=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,112,112],w=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577],h=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];function d(){let t,n,r,i,o,c;function l(t,n,f,l,u,a,w,h,d,p,b){let y,m,k,g,v,S,C,_,A,z,x,I,V,P,B;z=0,v=f;do{r[t[n+z]]++,z++,v--}while(0!==v);if(r[0]==f)return w[0]=-1,h[0]=0,0;for(_=h[0],S=1;15>=S&&0===r[S];S++);for(C=S,S>_&&(_=S),v=15;0!==v&&0===r[v];v--);for(k=v,_>v&&(_=v),h[0]=_,P=1<<S;v>S;S++,P<<=1)if(0>(P-=r[S]))return e;if(0>(P-=r[v]))return e;for(r[v]+=P,c[1]=S=0,z=1,V=2;0!=--v;)c[V]=S+=r[z],V++,z++;v=0,z=0;do{0!==(S=t[n+z])&&(b[c[S]++]=v),z++}while(++v<f);for(f=c[k],c[0]=v=0,z=0,g=-1,I=-_,o[0]=0,x=0,B=0;k>=C;C++)for(y=r[C];0!=y--;){for(;C>I+_;){if(g++,I+=_,B=k-I,B=B>_?_:B,(m=1<<(S=C-I))>y+1&&(m-=y+1,V=C,B>S))for(;++S<B&&(m<<=1)>r[++V];)m-=r[V];if(B=1<<S,p[0]+B>1440)return e;o[g]=x=p[0],p[0]+=B,0!==g?(c[g]=v,i[0]=S,i[1]=_,S=v>>>I-_,i[2]=x-o[g-1]-S,d.set(i,3*(o[g-1]+S))):w[0]=x}for(i[1]=C-I,f>z?b[z]<l?(i[0]=256>b[z]?0:96,i[2]=b[z++]):(i[0]=a[b[z]-l]+16+64,i[2]=u[b[z++]-l]):i[0]=192,m=1<<C-I,S=v>>>I;B>S;S+=m)d.set(i,3*(x+S));for(S=1<<C-1;0!=(v&S);S>>>=1)v^=S;for(v^=S,A=(1<<I)-1;(v&A)!=c[g];)g--,I-=_,A=(1<<I)-1}return 0!==P&&1!=k?s:0}function d(e){let s;for(t||(t=[],n=[],r=new f(16),i=[],o=new f(15),c=new f(16)),n.length<e&&(n=[]),s=0;e>s;s++)n[s]=0;for(s=0;16>s;s++)r[s]=0;for(s=0;3>s;s++)i[s]=0;o.set(r.subarray(0,15),0),c.set(r.subarray(0,16),0)}this.he=(r,i,o,f,c)=>{let u;return d(19),t[0]=0,u=l(r,0,19,19,null,null,o,i,f,t,n),u==e?c.$t="oversubscribed dynamic bit lengths tree":u!=s&&0!==i[0]||(c.$t="incomplete dynamic bit lengths tree",u=e),u},this.de=(r,i,o,f,c,p,b,y,m)=>{let k;return d(288),t[0]=0,k=l(o,0,r,257,u,a,p,f,y,t,n),0!=k||0===f[0]?(k==e?m.$t="oversubscribed literal/length tree":-4!=k&&(m.$t="incomplete literal/length tree",k=e),k):(d(288),k=l(o,r,i,0,w,h,b,c,y,t,n),0!=k||0===c[0]&&r>257?(k==e?m.$t="oversubscribed distance tree":k==s?(m.$t="incomplete distance tree",k=e):-4!=k&&(m.$t="empty distance tree with lengths",k=e),k):0)}}function p(){const n=this;let r,i,s,f,c=0,l=0,u=0,a=0,w=0,h=0,d=0,p=0,b=0,y=0;function m(t,n,r,i,s,f,c,l){let u,a,w,h,d,p,b,y,m,k,g,v,S,C,_,A;b=l.ae,y=l.Xt,d=c.pe,p=c.be,m=c.write,k=m<c.read?c.read-m-1:c.end-m,g=o[t],v=o[n];do{for(;20>p;)y--,d|=(255&l.ye(b++))<<p,p+=8;if(u=d&g,a=r,w=i,A=3*(w+u),0!==(h=a[A]))for(;;){if(d>>=a[A+1],p-=a[A+1],0!=(16&h)){for(h&=15,S=a[A+2]+(d&o[h]),d>>=h,p-=h;15>p;)y--,d|=(255&l.ye(b++))<<p,p+=8;for(u=d&v,a=s,w=f,A=3*(w+u),h=a[A];;){if(d>>=a[A+1],p-=a[A+1],0!=(16&h)){for(h&=15;h>p;)y--,d|=(255&l.ye(b++))<<p,p+=8;if(C=a[A+2]+(d&o[h]),d>>=h,p-=h,k-=S,C>m){_=m-C;do{_+=c.end}while(0>_);if(h=c.end-_,S>h){if(S-=h,m-_>0&&h>m-_)do{c.me[m++]=c.me[_++]}while(0!=--h);else c.me.set(c.me.subarray(_,_+h),m),m+=h,_+=h,h=0;_=0}}else _=m-C,m-_>0&&2>m-_?(c.me[m++]=c.me[_++],c.me[m++]=c.me[_++],S-=2):(c.me.set(c.me.subarray(_,_+2),m),m+=2,_+=2,S-=2);if(m-_>0&&S>m-_)do{c.me[m++]=c.me[_++]}while(0!=--S);else c.me.set(c.me.subarray(_,_+S),m),m+=S,_+=S,S=0;break}if(0!=(64&h))return l.$t="invalid distance code",S=l.Xt-y,S=S>p>>3?p>>3:S,y+=S,b-=S,p-=S<<3,c.pe=d,c.be=p,l.Xt=y,l.ee+=b-l.ae,l.ae=b,c.write=m,e;u+=a[A+2],u+=d&o[h],A=3*(w+u),h=a[A]}break}if(0!=(64&h))return 0!=(32&h)?(S=l.Xt-y,S=S>p>>3?p>>3:S,y+=S,b-=S,p-=S<<3,c.pe=d,c.be=p,l.Xt=y,l.ee+=b-l.ae,l.ae=b,c.write=m,1):(l.$t="invalid literal/length code",S=l.Xt-y,S=S>p>>3?p>>3:S,y+=S,b-=S,p-=S<<3,c.pe=d,c.be=p,l.Xt=y,l.ee+=b-l.ae,l.ae=b,c.write=m,e);if(u+=a[A+2],u+=d&o[h],A=3*(w+u),0===(h=a[A])){d>>=a[A+1],p-=a[A+1],c.me[m++]=a[A+2],k--;break}}else d>>=a[A+1],p-=a[A+1],c.me[m++]=a[A+2],k--}while(k>=258&&y>=10);return S=l.Xt-y,S=S>p>>3?p>>3:S,y+=S,b-=S,p-=S<<3,c.pe=d,c.be=p,l.Xt=y,l.ee+=b-l.ae,l.ae=b,c.write=m,0}n.init=(t,e,n,o,c,l)=>{r=0,d=t,p=e,s=n,b=o,f=c,y=l,i=null},n.ke=(n,k,g)=>{let v,S,C,_,A,z,x,I=0,V=0,P=0;for(P=k.ae,_=k.Xt,I=n.pe,V=n.be,A=n.write,z=A<n.read?n.read-A-1:n.end-A;;)switch(r){case 0:if(z>=258&&_>=10&&(n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,g=m(d,p,s,b,f,y,n,k),P=k.ae,_=k.Xt,I=n.pe,V=n.be,A=n.write,z=A<n.read?n.read-A-1:n.end-A,0!=g)){r=1==g?7:9;break}u=d,i=s,l=b,r=1;case 1:for(v=u;v>V;){if(0===_)return n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);g=0,_--,I|=(255&k.ye(P++))<<V,V+=8}if(S=3*(l+(I&o[v])),I>>>=i[S+1],V-=i[S+1],C=i[S],0===C){a=i[S+2],r=6;break}if(0!=(16&C)){w=15&C,c=i[S+2],r=2;break}if(0==(64&C)){u=C,l=S/3+i[S+2];break}if(0!=(32&C)){r=7;break}return r=9,k.$t="invalid literal/length code",g=e,n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);case 2:for(v=w;v>V;){if(0===_)return n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);g=0,_--,I|=(255&k.ye(P++))<<V,V+=8}c+=I&o[v],I>>=v,V-=v,u=p,i=f,l=y,r=3;case 3:for(v=u;v>V;){if(0===_)return n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);g=0,_--,I|=(255&k.ye(P++))<<V,V+=8}if(S=3*(l+(I&o[v])),I>>=i[S+1],V-=i[S+1],C=i[S],0!=(16&C)){w=15&C,h=i[S+2],r=4;break}if(0==(64&C)){u=C,l=S/3+i[S+2];break}return r=9,k.$t="invalid distance code",g=e,n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);case 4:for(v=w;v>V;){if(0===_)return n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);g=0,_--,I|=(255&k.ye(P++))<<V,V+=8}h+=I&o[v],I>>=v,V-=v,r=5;case 5:for(x=A-h;0>x;)x+=n.end;for(;0!==c;){if(0===z&&(A==n.end&&0!==n.read&&(A=0,z=A<n.read?n.read-A-1:n.end-A),0===z&&(n.write=A,g=n.ge(k,g),A=n.write,z=A<n.read?n.read-A-1:n.end-A,A==n.end&&0!==n.read&&(A=0,z=A<n.read?n.read-A-1:n.end-A),0===z)))return n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);n.me[A++]=n.me[x++],z--,x==n.end&&(x=0),c--}r=0;break;case 6:if(0===z&&(A==n.end&&0!==n.read&&(A=0,z=A<n.read?n.read-A-1:n.end-A),0===z&&(n.write=A,g=n.ge(k,g),A=n.write,z=A<n.read?n.read-A-1:n.end-A,A==n.end&&0!==n.read&&(A=0,z=A<n.read?n.read-A-1:n.end-A),0===z)))return n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);g=0,n.me[A++]=a,z--,r=0;break;case 7:if(V>7&&(V-=8,_++,P--),n.write=A,g=n.ge(k,g),A=n.write,z=A<n.read?n.read-A-1:n.end-A,n.read!=n.write)return n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);r=8;case 8:return g=1,n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);case 9:return g=e,n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g);default:return g=t,n.pe=I,n.be=V,k.Xt=_,k.ee+=P-k.ae,k.ae=P,n.write=A,n.ge(k,g)}},n.ve=()=>{}}d.Se=(t,e,n,r)=>(t[0]=9,e[0]=5,n[0]=c,r[0]=l,0);const b=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];function y(n,r){const c=this;let l,u=0,a=0,w=0,h=0;const y=[0],m=[0],k=new p;let g=0,v=new f(4320);const S=new d;c.be=0,c.pe=0,c.me=new i(r),c.end=r,c.read=0,c.write=0,c.reset=(t,e)=>{e&&(e[0]=0),6==u&&k.ve(t),u=0,c.be=0,c.pe=0,c.read=c.write=0},c.reset(n,null),c.ge=(t,e)=>{let n,r,i;return r=t.we,i=c.read,n=(i>c.write?c.end:c.write)-i,n>t.ue&&(n=t.ue),0!==n&&e==s&&(e=0),t.ue-=n,t.ne+=n,t.ce.set(c.me.subarray(i,i+n),r),r+=n,i+=n,i==c.end&&(i=0,c.write==c.end&&(c.write=0),n=c.write-i,n>t.ue&&(n=t.ue),0!==n&&e==s&&(e=0),t.ue-=n,t.ne+=n,t.ce.set(c.me.subarray(i,i+n),r),r+=n,i+=n),t.we=r,c.read=i,e},c.ke=(n,r)=>{let i,s,f,p,C,_,A,z;for(p=n.ae,C=n.Xt,s=c.pe,f=c.be,_=c.write,A=_<c.read?c.read-_-1:c.end-_;;){let x,I,V,P,B,D,E,M;switch(u){case 0:for(;3>f;){if(0===C)return c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);r=0,C--,s|=(255&n.ye(p++))<<f,f+=8}switch(i=7&s,g=1&i,i>>>1){case 0:s>>>=3,f-=3,i=7&f,s>>>=i,f-=i,u=1;break;case 1:x=[],I=[],V=[[]],P=[[]],d.Se(x,I,V,P),k.init(x[0],I[0],V[0],0,P[0],0),s>>>=3,f-=3,u=6;break;case 2:s>>>=3,f-=3,u=3;break;case 3:return s>>>=3,f-=3,u=9,n.$t="invalid block type",r=e,c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r)}break;case 1:for(;32>f;){if(0===C)return c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);r=0,C--,s|=(255&n.ye(p++))<<f,f+=8}if((~s>>>16&65535)!=(65535&s))return u=9,n.$t="invalid stored block lengths",r=e,c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);a=65535&s,s=f=0,u=0!==a?2:0!==g?7:0;break;case 2:if(0===C)return c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);if(0===A&&(_==c.end&&0!==c.read&&(_=0,A=_<c.read?c.read-_-1:c.end-_),0===A&&(c.write=_,r=c.ge(n,r),_=c.write,A=_<c.read?c.read-_-1:c.end-_,_==c.end&&0!==c.read&&(_=0,A=_<c.read?c.read-_-1:c.end-_),0===A)))return c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);if(r=0,i=a,i>C&&(i=C),i>A&&(i=A),c.me.set(n.Yt(p,i),_),p+=i,C-=i,_+=i,A-=i,0!=(a-=i))break;u=0!==g?7:0;break;case 3:for(;14>f;){if(0===C)return c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);r=0,C--,s|=(255&n.ye(p++))<<f,f+=8}if(w=i=16383&s,(31&i)>29||(i>>5&31)>29)return u=9,n.$t="too many length or distance symbols",r=e,c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);if(i=258+(31&i)+(i>>5&31),!l||l.length<i)l=[];else for(z=0;i>z;z++)l[z]=0;s>>>=14,f-=14,h=0,u=4;case 4:for(;4+(w>>>10)>h;){for(;3>f;){if(0===C)return c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);r=0,C--,s|=(255&n.ye(p++))<<f,f+=8}l[b[h++]]=7&s,s>>>=3,f-=3}for(;19>h;)l[b[h++]]=0;if(y[0]=7,i=S.he(l,y,m,v,n),0!=i)return(r=i)==e&&(l=null,u=9),c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);h=0,u=5;case 5:for(;i=w,258+(31&i)+(i>>5&31)>h;){let t,a;for(i=y[0];i>f;){if(0===C)return c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);r=0,C--,s|=(255&n.ye(p++))<<f,f+=8}if(i=v[3*(m[0]+(s&o[i]))+1],a=v[3*(m[0]+(s&o[i]))+2],16>a)s>>>=i,f-=i,l[h++]=a;else{for(z=18==a?7:a-14,t=18==a?11:3;i+z>f;){if(0===C)return c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);r=0,C--,s|=(255&n.ye(p++))<<f,f+=8}if(s>>>=i,f-=i,t+=s&o[z],s>>>=z,f-=z,z=h,i=w,z+t>258+(31&i)+(i>>5&31)||16==a&&1>z)return l=null,u=9,n.$t="invalid bit length repeat",r=e,c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);a=16==a?l[z-1]:0;do{l[z++]=a}while(0!=--t);h=z}}if(m[0]=-1,B=[],D=[],E=[],M=[],B[0]=9,D[0]=6,i=w,i=S.de(257+(31&i),1+(i>>5&31),l,B,D,E,M,v,n),0!=i)return i==e&&(l=null,u=9),r=i,c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);k.init(B[0],D[0],v,E[0],v,M[0]),u=6;case 6:if(c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,1!=(r=k.ke(c,n,r)))return c.ge(n,r);if(r=0,k.ve(n),p=n.ae,C=n.Xt,s=c.pe,f=c.be,_=c.write,A=_<c.read?c.read-_-1:c.end-_,0===g){u=0;break}u=7;case 7:if(c.write=_,r=c.ge(n,r),_=c.write,A=_<c.read?c.read-_-1:c.end-_,c.read!=c.write)return c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);u=8;case 8:return r=1,c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);case 9:return r=e,c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r);default:return r=t,c.pe=s,c.be=f,n.Xt=C,n.ee+=p-n.ae,n.ae=p,c.write=_,c.ge(n,r)}}},c.ve=t=>{c.reset(t,null),c.me=null,v=null},c.Ce=(t,e,n)=>{c.me.set(t.subarray(e,e+n),0),c.read=c.write=n},c._e=()=>1==u?1:0}const m=13,k=[0,0,255,255];function g(){const n=this;function r(e){return e&&e.Ae?(e.ee=e.ne=0,e.$t=null,e.Ae.mode=7,e.Ae.ze.reset(e,null),0):t}n.mode=0,n.method=0,n.xe=[0],n.Ie=0,n.marker=0,n.Ve=0,n.Pe=t=>(n.ze&&n.ze.ve(t),n.ze=null,0),n.Be=(e,i)=>(e.$t=null,n.ze=null,8>i||i>15?(n.Pe(e),t):(n.Ve=i,e.Ae.ze=new y(e,1<<i),r(e),0)),n.De=(n,r)=>{let i,o;if(!n||!n.Ae||!n.le)return t;const f=n.Ae;for(r=4==r?s:0,i=s;;)switch(f.mode){case 0:if(0===n.Xt)return i;if(i=r,n.Xt--,n.ee++,8!=(15&(f.method=n.ye(n.ae++)))){f.mode=m,n.$t="unknown compression method",f.marker=5;break}if(8+(f.method>>4)>f.Ve){f.mode=m,n.$t="invalid win size",f.marker=5;break}f.mode=1;case 1:if(0===n.Xt)return i;if(i=r,n.Xt--,n.ee++,o=255&n.ye(n.ae++),((f.method<<8)+o)%31!=0){f.mode=m,n.$t="incorrect header check",f.marker=5;break}if(0==(32&o)){f.mode=7;break}f.mode=2;case 2:if(0===n.Xt)return i;i=r,n.Xt--,n.ee++,f.Ie=(255&n.ye(n.ae++))<<24&4278190080,f.mode=3;case 3:if(0===n.Xt)return i;i=r,n.Xt--,n.ee++,f.Ie+=(255&n.ye(n.ae++))<<16&16711680,f.mode=4;case 4:if(0===n.Xt)return i;i=r,n.Xt--,n.ee++,f.Ie+=(255&n.ye(n.ae++))<<8&65280,f.mode=5;case 5:return 0===n.Xt?i:(i=r,n.Xt--,n.ee++,f.Ie+=255&n.ye(n.ae++),f.mode=6,2);case 6:return f.mode=m,n.$t="need dictionary",f.marker=0,t;case 7:if(i=f.ze.ke(n,i),i==e){f.mode=m,f.marker=0;break}if(0==i&&(i=r),1!=i)return i;i=r,f.ze.reset(n,f.xe),f.mode=12;case 12:return n.Xt=0,1;case m:return e;default:return t}},n.Ee=(e,n,r)=>{let i=0,s=r;if(!e||!e.Ae||6!=e.Ae.mode)return t;const o=e.Ae;return s<1<<o.Ve||(s=(1<<o.Ve)-1,i=r-s),o.ze.Ce(n,i,s),o.mode=7,0},n.Me=n=>{let i,o,f,c,l;if(!n||!n.Ae)return t;const u=n.Ae;if(u.mode!=m&&(u.mode=m,u.marker=0),0===(i=n.Xt))return s;for(o=n.ae,f=u.marker;0!==i&&4>f;)n.ye(o)==k[f]?f++:f=0!==n.ye(o)?0:4-f,o++,i--;return n.ee+=o-n.ae,n.ae=o,n.Xt=i,u.marker=f,4!=f?e:(c=n.ee,l=n.ne,r(n),n.ee=c,n.ne=l,u.mode=7,0)},n.Re=e=>e&&e.Ae&&e.Ae.ze?e.Ae.ze._e():t}function v(){}return v.prototype={Be:function(t){const e=this;return e.Ae=new g,t||(t=15),e.Ae.Be(e,t)},De:function(e){const n=this;return n.Ae?n.Ae.De(n,e):t},Pe:function(){const e=this;if(!e.Ae)return t;const n=e.Ae.Pe(e);return e.Ae=null,n},Me:function(){const e=this;return e.Ae?e.Ae.Me(e):t},Ee:function(e,n){const r=this;return r.Ae?r.Ae.Ee(r,e,n):t},ye:function(t){return this.le[t]},Yt:function(t,e){return this.le.subarray(t,t+e)}},function(t){const e=new v,o=t&&t.ot?n.floor(2*t.ot):131072,f=new i(o);let c=!1;e.Be(),e.ce=f,this.append=(t,n)=>{const l=[];let u,a,w=0,h=0,d=0;if(0!==t.length){e.ae=0,e.le=t,e.Xt=t.length;do{if(e.we=0,e.ue=o,0!==e.Xt||c||(e.ae=0,c=!0),u=e.De(0),c&&u===s){if(0!==e.Xt)throw new r("inflating: bad input")}else if(0!==u&&1!==u)throw new r("inflating: "+e.$t);if((c||1===u)&&e.Xt===t.length)throw new r("inflating: bad input");e.we&&(e.we===o?l.push(new i(f)):l.push(f.slice(0,e.we))),d+=e.we,n&&e.ae>0&&e.ae!=w&&(n(e.ae),w=e.ae)}while(e.Xt>0||0===e.ue);return l.length>1?(a=new i(d),l.forEach((t=>{a.set(t,h),h+=t.length}))):a=l[0]||new i(0),a}},this.flush=()=>{e.Pe()}}})();self.initCodec=()=>{self.Deflate=dt,self.Inflate=pt};\n'],{type:"text/javascript"}));e({workerScripts:{inflate:[t],deflate:[t]}});}};
 
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
@@ -7447,23 +7467,14 @@
 	}
 
 	class WriterStream extends Stream {
+
 		getStream() {
 			const writer = this;
 			return new WritableStream({
 				write(chunk) {
-					if (chunk && chunk.length) {
-						return writer.writeUint8Array(chunk);
-					}
+					return writer.writeUint8Array(chunk);
 				}
 			});
-		}
-
-		getStreamWriter() {
-			const writer = this;
-			if (!writer.streamWriter) {
-				writer.streamWriter = writer.getStream().getWriter();
-			}
-			return writer.streamWriter;
 		}
 	}
 
@@ -7664,27 +7675,23 @@
 
 	class WritableStreamWriter extends Writer {
 
-		constructor(writableStream) {
+		constructor(writable) {
 			super();
 			const writer = this;
-			writer.writableStream = writableStream;
-			writer.writer = writer.getStreamWriter();
+			writer.writable = writable;
 		}
 
 		async writeUint8Array(array) {
 			await this.writer.ready;
-			return this.writer.write(array);
+			return this.writable.getWriter().write(array);
 		}
 
 		getStream() {
-			return this.writableStream;
+			return this.writable;
 		}
 
 		async getData() {
-			const writer = this;
-			await writer.writer.ready;
-			await writer.writer.close();
-			return writer.writableStream;
+			return this.writable;
 		}
 	}
 
@@ -8127,85 +8134,6 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	// const MINIMUM_CHUNK_SIZE = 64;
-	const ERR_ABORT = "Abort error";
-
-	async function processData(codec, reader, writer, size, { signal, onprogress }) {
-		let length = 0;
-		let chunkOffset = 0;
-
-		const result = new Promise((resolve, reject) => {
-			codec.pull = async () => {
-				testAborted(signal, codec);
-				const result = await reader.read();
-				chunkOffset += result.length;
-				return result;
-			};
-			codec.ondata = async ({ value, done }) => {
-				try {
-					testAborted(signal, codec);
-					const { data, signature } = value;
-					if (data && data.length) {
-						length += data.length;
-						await writer.ready;
-						await writer.write(data);
-					}
-					if (onprogress) {
-						try {
-							onprogress(chunkOffset, size());
-						} catch (error) {
-							// ignored
-						}
-					}
-					if (done) {
-						await writer.ready;
-						resolve({ signature, length });
-					}
-				} catch (error) {
-					reject(error);
-				}
-			};
-			codec.onerror = reject;
-		});
-		await codec.start();
-		return result;
-	}
-
-	function testAborted(signal, codec) {
-		if (signal && signal.aborted) {
-			codec.abort();
-			throw new Error(ERR_ABORT);
-		}
-	}
-
-	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
 	const PROPERTY_NAMES = [
 		"filename", "rawFilename", "directory", "encrypted", "compressedSize", "uncompressedSize",
 		"lastModDate", "rawLastModDate", "comment", "rawComment", "signature", "extraField",
@@ -8463,7 +8391,15 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const codec = await createCodec(config.Inflate, {
+			const dataOffset = offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
+			const size = () => compressedSize;
+			const readable = reader.getStream({ offset: dataOffset, size, chunkSize: getChunkSize(config) });
+			const writable = writer.getStream();
+			const signal = getOptionValue$1(zipEntry, options, "signal");
+			if (!writer.initialized) {
+				await writer.init();
+			}
+			await runCodec(config.Inflate, readable, writable, {
 				codecType: CODEC_INFLATE,
 				password,
 				zipCrypto,
@@ -8475,19 +8411,7 @@
 				encrypted,
 				useWebWorkers: getOptionValue$1(zipEntry, options, "useWebWorkers"),
 				useCompressionStream: getOptionValue$1(zipEntry, options, "useCompressionStream")
-			}, config);
-			if (!writer.initialized) {
-				await writer.init();
-			}
-			const signal = getOptionValue$1(zipEntry, options, "signal");
-			const dataOffset = offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
-			const size = () => compressedSize;
-			await processData(
-				codec,
-				reader.getStream({ offset: dataOffset, size, chunkSize: getChunkSize(config) }).getReader(),
-				writer.getStreamWriter(),
-				size,
-				{ onprogress: options.onprogress, signal });
+			}, config, { signal, onprogress: options.onprogress, size });
 			return writer.getData();
 		}
 	}
@@ -8980,7 +8904,7 @@
 
 	async function getFileEntry(zipWriter, name, reader, options) {
 		const { files, writer } = zipWriter;
-		const streamWriter = writer.getStreamWriter();
+		const streamWriter = writer.getStream().getWriter();
 		const previousFileEntry = Array.from(files.values()).pop();
 		let fileEntry = {};
 		let bufferedWrite;
@@ -9006,7 +8930,7 @@
 				}
 				fileWriter = writer;
 			}
-			fileEntry = await createFileEntry(reader, fileWriter.getStreamWriter(), zipWriter.config, options);
+			fileEntry = await createFileEntry(reader, fileWriter.getStream(), fileWriter.getStream().getWriter(), zipWriter.config, options);
 			fileEntry.lock = lockCurrentFileEntry;
 			files.set(name, fileEntry);
 			fileEntry.filename = name;
@@ -9068,7 +8992,7 @@
 		}
 	}
 
-	async function createFileEntry(reader, streamWriter, config, options) {
+	async function createFileEntry(reader, writable, streamWriter, config, options) {
 		const {
 			rawFilename,
 			lastAccessDate,
@@ -9215,7 +9139,11 @@
 		let result;
 		let compressedSize = 0;
 		if (reader) {
-			const codec = await createCodec(config.Deflate, {
+			await writeUint8Array(streamWriter, localHeaderArray);
+			fileEntry.dataWritten = true;
+			const size = () => reader.size;
+			const readable = reader.getStream({ offset: 0, size, chunkSize: getChunkSize(config) });
+			result = await runCodec(config.Deflate, readable, writable, {
 				codecType: CODEC_DEFLATE,
 				level,
 				password,
@@ -9227,16 +9155,7 @@
 				encrypted,
 				useWebWorkers,
 				useCompressionStream
-			}, config);
-			await writeUint8Array(streamWriter, localHeaderArray);
-			fileEntry.dataWritten = true;
-			const size = () => reader.size;
-			result = await processData(
-				codec,
-				reader.getStream({ offset: 0, size, chunkSize: getChunkSize(config) }).getReader(),
-				streamWriter,
-				() => reader.size,
-				{ onprogress, signal });
+			}, config, { signal, onprogress, size });
 			uncompressedSize = fileEntry.uncompressedSize = reader.size;
 			compressedSize = result.length;
 		} else {
@@ -9293,7 +9212,7 @@
 
 	async function closeFile(zipWriter, comment, options) {
 		const { files } = zipWriter;
-		const streamWriter = zipWriter.writer.getStreamWriter();
+		const streamWriter = zipWriter.writer.getStream().getWriter();
 		let offset = 0;
 		let directoryDataLength = 0;
 		let directoryOffset = zipWriter.offset;
