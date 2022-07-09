@@ -28,11 +28,11 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import Deflate from "./lib/core/codecs/deflate.js";
-import Inflate from "./lib/core/codecs/inflate.js";
+import Deflate from "./lib/core/streams/codecs/deflate.js";
+import Inflate from "./lib/core/streams/codecs/inflate.js";
 import { configure } from "./lib/core/configuration.js";
 import { getMimeType } from "./lib/core/util/mime-type.js";
-import { terminateWorkers } from "./lib/core/codecs/codec-pool.js";
+import { terminateWorkers } from "./lib/core/codec-pool.js";
 
 configure({ Deflate, Inflate });
 
