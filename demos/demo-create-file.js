@@ -8,12 +8,6 @@
 		document.body.appendChild(script);
 	}
 
-	const DEFLATE_IMPLEMENTATIONS = {
-		"zip.js": ["z-worker.js"],
-		"fflate": ["z-worker-fflate.js", "fflate.min.js"],
-		"pako": ["z-worker-pako.js", "pako_deflate.min.js"],
-	};
-
 	const model = (() => {
 
 		let zipWriter;
@@ -46,12 +40,9 @@
 		const fileList = document.getElementById("file-list");
 		const filenameInput = document.getElementById("filename-input");
 		const passwordInput = document.getElementById("password-input");
-		const deflateImplementationInput = document.getElementById("deflate-implementation-input");
 		fileInputButton.addEventListener("click", () => fileInput.dispatchEvent(new MouseEvent("click")), false);
 		downloadButton.addEventListener("click", onDownloadButtonClick, false);
 		fileInput.onchange = selectFiles;
-		deflateImplementationInput.onchange = selectDeflateImplementation;
-		selectDeflateImplementation();
 
 		async function selectFiles() {
 			try {
@@ -63,11 +54,6 @@
 			} finally {
 				zipProgress.remove();
 			}
-		}
-
-		function selectDeflateImplementation() {
-			const deflateImplementation = DEFLATE_IMPLEMENTATIONS[deflateImplementationInput.value];
-			zip.configure({ workerScripts: { deflate: deflateImplementation } });
 		}
 
 		async function addFiles() {
@@ -98,7 +84,6 @@
 				filenameContainer.appendChild(abortButton);
 				try {
 					const entry = await model.addFile(file, {
-						bufferedWrite: true,
 						password: passwordInput.value,
 						signal,
 						onprogress: (index, max) => {

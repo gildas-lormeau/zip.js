@@ -8,12 +8,6 @@
 		document.body.appendChild(script);
 	}
 
-	const INFLATE_IMPLEMENTATIONS = {
-		"zip.js": ["z-worker.js"],
-		"fflate": ["z-worker-fflate.js", "fflate.min.js"],
-		"pako": ["z-worker-pako.js", "pako_inflate.min.js"]
-	};
-
 	const model = (() => {
 
 		return {
@@ -34,17 +28,14 @@
 		const encodingInput = document.getElementById("encoding-input");
 		const fileInputButton = document.getElementById("file-input-button");
 		const passwordInput = document.getElementById("password-input");
-		const inflateImplementationInput = document.getElementById("inflate-implementation-input");
 		let fileList = document.getElementById("file-list");
 		let entries;
 		let selectedFile;
 		passwordInput.onchange = async () => fileList.querySelectorAll("a[download]").forEach(anchor => anchor.download = "");
 		fileInput.onchange = selectFile;
 		encodingInput.onchange = selectEncoding;
-		inflateImplementationInput.onchange = selectInflateImplementation;
 		appContainer.onclick = downloadFile;
 		fileInputButton.onclick = () => fileInput.dispatchEvent(new MouseEvent("click"));
-		selectInflateImplementation();
 
 		async function downloadFile(event) {
 			const target = event.target;
@@ -86,11 +77,6 @@
 			} finally {
 				fileInputButton.disabled = false;
 			}
-		}
-
-		function selectInflateImplementation() {
-			const inflateImplementation = INFLATE_IMPLEMENTATIONS[inflateImplementationInput.value];
-			zip.configure({ workerScripts: { inflate: inflateImplementation } });
 		}
 
 		async function loadFiles(filenameEncoding) {
