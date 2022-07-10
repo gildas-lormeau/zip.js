@@ -8,13 +8,6 @@
 		document.body.appendChild(script);
 	}
 
-	zip.configure({
-		workerScripts: {
-			deflate: ["z-worker-pako.js", "pako_deflate.min.js"],
-			inflate: ["z-worker-pako.js", "pako_inflate.min.js"]
-		}
-	});
-
 	const model = (() => {
 
 		const fs = new zip.fs.FS();
