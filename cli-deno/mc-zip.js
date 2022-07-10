@@ -65,7 +65,7 @@ async function runCommand(zipfile, list, options) {
 			try {
 				const readable = await getReadable(file);
 				if (readable) {
-					const result = await zipWriter.add(file.name, new ReadableStreamReader(readable), {
+					await zipWriter.add(file.name, new ReadableStreamReader(readable), {
 						onprogress: async () => {
 							if (!file.processing) {
 								file.processing = true;
@@ -73,7 +73,6 @@ async function runCommand(zipfile, list, options) {
 							}
 						}
 					});
-					return result;
 				}
 			} catch (error) {
 				await stdout.write("  error: " + error.message + ", file: " + file.url + "\n");
