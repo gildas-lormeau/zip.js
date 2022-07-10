@@ -143,11 +143,9 @@ details[open]>.dir-summary::marker {
 
 .button {
 	cursor: pointer;
-	align-self: center;
 	opacity: 0;
 	margin-left: 7px;
 	width: 0px;
-	height: 16px;
 	background-size: contain;
 	transition: opacity .2s ease-in;
 }
@@ -163,14 +161,6 @@ details[open]>.dir-summary::marker {
 
 .selected>summary .button:hover, .selected>.button:hover {
 	opacity: 1;
-}
-
-.save-button {
-	background-image: url(resources/save.svg);
-}
-
-.newdir-button {
-	background-image: url(resources/new-directory.svg);
 }
 
 @media (max-width: 680px) {

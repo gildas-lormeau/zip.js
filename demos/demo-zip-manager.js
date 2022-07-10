@@ -420,9 +420,11 @@
 				label.className = "dir-label";
 				newDirectory.className = "newdir-button button";
 				newDirectory.title = "Create a new folder";
+				newDirectory.textContent = "🗀";
 				newDirectory.addEventListener("click", onnewDirectory, false);
 				exportDirectory.className = "save-button button";
 				exportDirectory.title = "Export folder content into a zip file";
+				exportDirectory.textContent = "⇩";
 				exportDirectory.addEventListener("click", onexport(false), false);
 				summary.appendChild(summaryContent);
 				summaryContent.appendChild(label);
