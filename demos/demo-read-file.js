@@ -128,6 +128,7 @@
 				abortButton.title = "Abort";
 				li.querySelector(".filename-container").appendChild(abortButton);
 				li.classList.add("busy");
+				li.onclick = event => event.preventDefault();
 				try {
 					const blobURL = await model.getURL(entry, {
 						password: passwordInput.value,

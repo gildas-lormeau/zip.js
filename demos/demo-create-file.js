@@ -75,6 +75,7 @@
 				fileList.appendChild(li);
 				li.title = file.name;
 				li.classList.add("pending");
+				li.onclick = event => event.preventDefault();
 				const controller = new AbortController();
 				const signal = controller.signal;
 				const abortButton = document.createElement("button");
