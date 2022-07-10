@@ -11,7 +11,7 @@ async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
-	const entry = await zipWriter.add(FILENAME, new zip.ReadableStreamReader(new Response(TEXT_CONTENT).body));
+	const entry = await zipWriter.add(FILENAME, new zip.ReadableStreamReader(new Response(TEXT_CONTENT).body, TEXT_CONTENT.length));
 	if (entry.compressionMethod == 0x08) {
 		await zipWriter.close();
 		const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
@@ -20,7 +20,7 @@ async function test() {
 			const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 			await zipReader.close();
 			zip.terminateWorkers();
-			return TEXT_CONTENT == (await data.text());
+			return TEXT_CONTENT == (await data.text()) && entries[0].uncompressedSize == TEXT_CONTENT.length;
 		}
 	}
 }
