@@ -11,7 +11,7 @@ async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
-	const entry = await zipWriter.add(FILENAME, new zip.ReadableStreamReader(new Response(TEXT_CONTENT).body, TEXT_CONTENT.length));
+	const entry = await zipWriter.add(FILENAME, new zip.ReadableStreamReader(new Response(TEXT_CONTENT).body));
 	if (entry.compressionMethod == 0x08) {
 		await zipWriter.close();
 		const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
