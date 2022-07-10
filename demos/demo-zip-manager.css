@@ -152,11 +152,11 @@ details[open]>.dir-summary::marker {
 
 .selected>summary .button, .selected>.button {
 	min-width: 16px;
-	opacity: .25;
+	opacity: .55;
 }
 
 .selected>summary:hover .button, .selected:hover>.button {
-	opacity: .5;
+	opacity: .75;
 }
 
 .selected>summary .button:hover, .selected>.button:hover {
