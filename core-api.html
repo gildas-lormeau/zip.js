@@ -266,12 +266,15 @@
 			<code><a href="https://streams.spec.whatwg.org/#rs-class">ReadableStream</a></code> object reader
 			constructor (can only be used with <code>ZipWriter#add</code>)
 		</p>
-		<pre><code class="prettyprint">zip.ReadableStreamReader(readableStream)</code></pre>
+		<pre><code class="prettyprint">zip.ReadableStreamReader(readableStream, size)</code></pre>
 		<p>Parameters:</p>
 		<dl>
 			<dt><code>readableStream (<a href="https://streams.spec.whatwg.org/#rs-class">ReadableStream</a>)</code>
 			</dt>
 			<dd>The ReadableStream instance</dd>
+			<dt><code>size</code>
+			</dt>
+			<dd>The size of the data in bytes</dd>
 		</dl>
 
 		<h3>Reader members (used internally)</h3>
