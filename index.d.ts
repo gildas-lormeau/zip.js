@@ -92,7 +92,7 @@ interface HttpRangeOptions {
 }
 
 export class ReadableStreamReader {
-    constructor(readableStream: ReadableStream);
+    constructor(readableStream: ReadableStream, size: number);
     public readUint8Array(_index: number, length: number): Promise<Uint8Array>;
 }
 
