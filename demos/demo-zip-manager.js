@@ -464,6 +464,7 @@
 						label.textContent = child.name;
 						exportFile.className = "save-button button";
 						exportFile.title = "Export this file";
+						exportFile.textContent = "⇩";
 						exportFile.addEventListener("click", onexport(true), false);
 						li.appendChild(label);
 						li.appendChild(exportFile);
