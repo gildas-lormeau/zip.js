@@ -92,7 +92,7 @@ function getStdout(stdout) {
 }
 
 async function getFileInfo(file) {
-	let name, isFile, isDirectory, local, resolvedName;
+	let name, isFile, isDirectory, resolvedName;
 	const remote = isRemote(file);
 	if (remote) {
 		const url = new URL(file, import.meta.url);
@@ -104,11 +104,10 @@ async function getFileInfo(file) {
 		name = fromFileUrl(file);
 	} else {
 		name = file;
-		local = true;
 		resolvedName = resolvePath(name);
 	}
 	name = normalizePath(trimSlashes(name));
-	if (local) {
+	if (resolvedName) {
 		const stat = await Deno.stat(resolvedName);
 		isFile = stat.isFile;
 		isDirectory = stat.isDirectory;
