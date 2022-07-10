@@ -7433,7 +7433,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	/* global Blob, FileReader, atob, btoa, XMLHttpRequest, document, fetch, ReadableStream, WritableStream */
+	/* global Blob, FileReader, atob, btoa, XMLHttpRequest, document, fetch, ReadableStream, WritableStream, TransformStream */
 
 	const ERR_HTTP_STATUS = "HTTP error ";
 	const ERR_HTTP_RANGE = "HTTP Range not supported";
@@ -7673,9 +7673,15 @@
 
 	class ReadableStreamReader {
 
-		constructor(readableStream, size = Infinity) {
-			this.readableStream = readableStream;
-			this.size = size;
+		constructor(readableStream) {
+			const reader = this;
+			reader.readableStream = readableStream.pipeThrough(new TransformStream({
+				transform(chunk, controller) {
+					reader.size += chunk.length;
+					controller.enqueue(chunk);
+				}
+			}));
+			reader.size = 0;
 		}
 
 		init() {
