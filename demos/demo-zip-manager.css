@@ -17,7 +17,6 @@
 	background-color: white;
 	font-family: 'Droid Sans Mono', courier;
 	border-radius: 2.5px;
-	box-shadow: 1px 1px 1px #d8d8d8;
 	flex: 1;
 	max-width: calc(50% - 4px);
 	min-width: 200px;
