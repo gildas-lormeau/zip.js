@@ -20,6 +20,7 @@
 	flex: 1;
 	max-width: calc(50% - 4px);
 	min-width: 200px;
+	border: #cecece 1px solid;
 }
 
 details>details {
