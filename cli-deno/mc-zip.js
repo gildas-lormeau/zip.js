@@ -63,12 +63,7 @@ async function runCommand(zipfile, list, options) {
 	try {
 		await Promise.all(list.map(async file => {
 			try {
-				const readable = await getReadable(file);
-				if (readable) {
-					await zipWriter.add(file.name, new ReadableStreamReader(readable), {
-						onstart: () => stdout.write("  adding: " + file.name + "\n")
-					});
-				}
+				await addFile(zipWriter, file);
 			} catch (error) {
 				await stdout.write("  error: " + error.message + ", file: " + file.url + "\n");
 			}
@@ -76,6 +71,15 @@ async function runCommand(zipfile, list, options) {
 		await zipWriter.close();
 	} finally {
 		terminateWorkers();
+	}
+}
+
+async function addFile(zipWriter, file) {
+	const readable = await getReadable(file);
+	if (readable) {
+		await zipWriter.add(file.name, new ReadableStreamReader(readable), {
+			onstart: () => stdout.write("  adding: " + file.name + "\n")
+		});
 	}
 }
 
