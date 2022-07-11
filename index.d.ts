@@ -222,11 +222,11 @@ interface CloseOptions {
 }
 
 interface EntryDataOnprogressOption {
-    onprogress?: (progress: number, total: number) => void;
+    onprogress?: (progress: number, total: number) => Promise<void>;
 }
 
 interface EntryOnprogressOption {
-    onprogress?: (progress: number, total: number, entry: Entry) => void;
+    onprogress?: (progress: number, total: number, entry: Entry) => Promise<void>;
 }
 
 interface ZipEntryConstructorParams {
