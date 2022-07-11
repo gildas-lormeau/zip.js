@@ -4,7 +4,7 @@
 
 import { parse as parseArgs } from "https://deno.land/std@0.147.0/flags/mod.ts";
 import { fromFileUrl, normalize as normalizePath, resolve as resolvePath, extname } from "https://deno.land/std@0.147.0/path/mod.ts";
-import { configure, ZipWriter, ReadableStreamReader, WritableStreamWriter, terminateWorkers } from "https://deno.land/x/zipjs@v2.5.11/index.js";
+import { configure, ZipWriter, ReadableStreamReader, WritableStreamWriter, terminateWorkers } from "../index.js";
 
 const args = parseArgs(Deno.args);
 const stdout = getStdout(Deno.stdout);
@@ -66,12 +66,7 @@ async function runCommand(zipfile, list, options) {
 				const readable = await getReadable(file);
 				if (readable) {
 					await zipWriter.add(file.name, new ReadableStreamReader(readable), {
-						onprogress: async () => {
-							if (!file.processing) {
-								file.processing = true;
-								await stdout.write("  adding: " + file.name + "\n");
-							}
-						}
+						onstart: () => stdout.write("  adding: " + file.name + "\n")
 					});
 				}
 			} catch (error) {

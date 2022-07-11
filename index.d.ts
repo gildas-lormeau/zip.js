@@ -222,7 +222,9 @@ interface CloseOptions {
 }
 
 interface EntryDataOnprogressOption {
+    onstart?: (total: number) => Promise<void>;
     onprogress?: (progress: number, total: number) => Promise<void>;
+    onend?: () => Promise<void>;
 }
 
 interface EntryOnprogressOption {
