@@ -18,8 +18,10 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	const controller = new AbortController();
 	const signal = controller.signal;
-	const promiseData = entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { signal });
-	controller.abort();
+	const promiseData = entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), {
+		onstart: () => controller.abort(),
+		signal
+	});
 	await zipReader.close();
 	try {
 		await promiseData;
