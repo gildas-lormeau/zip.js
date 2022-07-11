@@ -57,9 +57,9 @@ async function runCommand(zipfile, list, options) {
 	list = await Promise.all(list.map(getFileInfo));
 	list = await Promise.all(list.map(file => addDirectories(file)));
 	list = list.flat();
+	zipfile = await Deno.open(zipfile, { create: true, write: true });
 	configure(options);
-	const targetFile = await Deno.open(zipfile, { create: true, write: true });
-	const zipWriter = new ZipWriter(new WritableStreamWriter(targetFile.writable), options);
+	const zipWriter = new ZipWriter(new WritableStreamWriter(zipfile.writable), options);
 	try {
 		await Promise.all(list.map(file => addFile(zipWriter, file)));
 		await zipWriter.close();
