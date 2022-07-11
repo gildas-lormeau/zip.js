@@ -118,7 +118,11 @@ export class Uint8ArrayWriter extends Writer<Uint8Array> {
 }
 
 export class WritableStreamWriter<Type extends WritableStream> extends Writer<Type> {
-    constructor(writable?: Type);
+    constructor(writable?: Type, options?: WritableStreamWriterConstructorOptions);
+}
+
+interface WritableStreamWriterConstructorOptions {
+    preventClose?: boolean
 }
 
 export class ZipReader<Type> {
