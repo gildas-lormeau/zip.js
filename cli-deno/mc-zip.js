@@ -61,13 +61,7 @@ async function runCommand(zipfile, list, options) {
 	const targetFile = await Deno.open(zipfile, { create: true, write: true });
 	const zipWriter = new ZipWriter(new WritableStreamWriter(targetFile.writable), options);
 	try {
-		await Promise.all(list.map(async file => {
-			try {
-				await addFile(zipWriter, file);
-			} catch (error) {
-				await stdout.write("  error: " + error.message + ", file: " + file.url + "\n");
-			}
-		}));
+		await Promise.all(list.map(file => addFile(zipWriter, file)));
 		await zipWriter.close();
 	} finally {
 		terminateWorkers();
@@ -75,11 +69,15 @@ async function runCommand(zipfile, list, options) {
 }
 
 async function addFile(zipWriter, file) {
-	const readable = await getReadable(file);
-	if (readable) {
-		await zipWriter.add(file.name, new ReadableStreamReader(readable), {
-			onstart: () => stdout.write("  adding: " + file.name + "\n")
-		});
+	try {
+		const readable = await getReadable(file);
+		if (readable) {
+			await zipWriter.add(file.name, new ReadableStreamReader(readable), {
+				onstart: () => stdout.write("  adding: " + file.name + "\n")
+			});
+		}
+	} catch (error) {
+		await stdout.write("  error: " + error.message + ", file: " + file.url + "\n");
 	}
 }
 
