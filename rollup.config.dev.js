@@ -1,7 +1,7 @@
 import replace from "@rollup/plugin-replace";
 import fs from "fs";
 
-const GLOBALS = "const { Array, Object, String, BigInt, Math, Date, Map, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, FileReader, document, crypto, btoa } = globalThis;";
+const GLOBALS = "const { Array, Object, String, BigInt, Math, Date, Map, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, document, crypto, btoa } = globalThis;";
 const GLOBALS_WORKER = "const { Array, Object, Math, Error, Uint8Array, Uint16Array, Uint32Array, Int32Array, DataView, TextEncoder, crypto, postMessage } = globalThis;";
 
 export default [{
