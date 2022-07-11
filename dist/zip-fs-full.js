@@ -7067,7 +7067,9 @@
 
 	let classicWorkersSupported = true;
 
-	function getWorker(workerData, codecConstructor, readable, writable, options, config, streamOptions, onTaskFinished, webWorker, scripts) {
+	function getWorker(workerData, codecConstructor, stream, workerOptions, onTaskFinished) {
+		const { readable, writable } = stream;
+		const { options, config, streamOptions, webWorker, scripts } = workerOptions;
 		Object.assign(workerData, {
 			busy: true,
 			codecConstructor,
@@ -7086,24 +7088,34 @@
 				onTaskFinished(workerData);
 			}
 		});
-		const { signal, onprogress, size } = streamOptions;
-		if (signal || onprogress) {
+		const { signal, size, onstart, onprogress, onend } = streamOptions;
+		if (signal || onstart || onprogress || onend) {
 			let chunkOffset = 0;
 			const transformer = {};
+			if (onstart) {
+				transformer.start = () => callHandler(onstart, size());
+			}
 			if (onprogress) {
-				transformer.transform = (chunk, controller) => {
+				transformer.transform = async (chunk, controller) => {
 					chunkOffset += chunk.length;
-					try {
-						onprogress(chunkOffset, size());
-					} catch (_error) {
-						// ignored
-					}
+					await callHandler(onprogress, chunkOffset, size());
 					controller.enqueue(chunk);
 				};
+			}
+			if (onend) {
+				transformer.flush = () => callHandler(onend);
 			}
 			workerData.readable = readable.pipeThrough(new TransformStream(transformer), { signal });
 		}
 		return webWorker ? createWebWorkerInterface(workerData, config) : createWorkerInterface(workerData, config);
+	}
+
+	async function callHandler(handler, ...parameters) {
+		try {
+			await handler(...parameters);
+		} catch (_error) {
+			// ignored
+		}
 	}
 
 	function createWorkerInterface(workerData, config) {
@@ -7264,24 +7276,26 @@
 
 	let indexWorker = 0;
 
-	async function runCodec(codecConstructor, readable, writable, options, config, streamOptions) {
+	async function runCodec(codecConstructor, stream, codecOptions) {
+		const { options, config, streamOptions } = codecOptions;
 		const streamCopy = !options.compressed && !options.signed && !options.encrypted;
-		const webWorker = !streamCopy && (options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers));
-		const scripts = webWorker && config.workerScripts ? config.workerScripts[options.codecType] : [];
+		codecOptions.webWorker = !streamCopy && (options.useWebWorkers || (options.useWebWorkers === undefined && config.useWebWorkers));
+		codecOptions.scripts = codecOptions.webWorker && config.workerScripts ? config.workerScripts[options.codecType] : [];
 		options.useCompressionStream = options.useCompressionStream === undefined ? config.useCompressionStream : options.useCompressionStream;
 		let codec;
+
 		if (pool.length < config.maxWorkers) {
 			const workerData = { indexWorker };
 			indexWorker++;
 			pool.push(workerData);
-			codec = getWorker(workerData, codecConstructor, readable, writable, options, config, streamOptions, onTaskFinished, webWorker, scripts);
+			codec = getWorker(workerData, codecConstructor, stream, codecOptions, onTaskFinished);
 		} else {
 			const workerData = pool.find(workerData => !workerData.busy);
 			if (workerData) {
 				clearTerminateTimeout(workerData);
-				codec = getWorker(workerData, codecConstructor, readable, writable, options, config, streamOptions, onTaskFinished, webWorker, scripts);
+				codec = getWorker(workerData, codecConstructor, stream, codecOptions, onTaskFinished);
 			} else {
-				codec = await new Promise(resolve => pendingRequests.push({ resolve, codecConstructor, readable, writable, options, webWorker, scripts }));
+				codec = await new Promise(resolve => pendingRequests.push({ resolve, codecConstructor, stream, codecOptions }));
 			}
 		}
 		const { signal } = streamOptions;
@@ -7298,8 +7312,8 @@
 
 		function onTaskFinished(workerData) {
 			if (pendingRequests.length) {
-				const [{ resolve, codecConstructor, readable, writable, options, webWorker, scripts }] = pendingRequests.splice(0, 1);
-				resolve(getWorker(workerData, codecConstructor, readable, writable, options, config, streamOptions, onTaskFinished, webWorker, scripts));
+				const [{ resolve, codecConstructor, stream, codecOptions }] = pendingRequests.splice(0, 1);
+				resolve(getWorker(workerData, codecConstructor, stream, codecOptions, onTaskFinished));
 			} else if (workerData.worker) {
 				clearTerminateTimeout(workerData);
 				if (Number.isFinite(config.terminateWorkerTimeout) && config.terminateWorkerTimeout >= 0) {
@@ -8334,7 +8348,7 @@
 				offset = endOffset;
 				if (options.onprogress) {
 					try {
-						options.onprogress(indexFile + 1, filesLength, new Entry(fileEntry));
+						await options.onprogress(indexFile + 1, filesLength, new Entry(fileEntry));
 					} catch (_error) {
 						// ignored
 					}
@@ -8424,19 +8438,25 @@
 			if (!writer.initialized) {
 				await writer.init();
 			}
-			await runCodec(config.Inflate, readable, writable, {
-				codecType: CODEC_INFLATE,
-				password,
-				zipCrypto,
-				encryptionStrength: extraFieldAES && extraFieldAES.strength,
-				signed: getOptionValue$1(zipEntry, options, "checkSignature"),
-				passwordVerification: zipCrypto && (bitFlag.dataDescriptor ? ((rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
-				signature,
-				compressed: compressionMethod != 0,
-				encrypted,
-				useWebWorkers: getOptionValue$1(zipEntry, options, "useWebWorkers"),
-				useCompressionStream: getOptionValue$1(zipEntry, options, "useCompressionStream")
-			}, config, { signal, onprogress: options.onprogress, size });
+			const { onstart, onprogress, onend } = options;
+			const codecOptions = {
+				options: {
+					codecType: CODEC_INFLATE,
+					password,
+					zipCrypto,
+					encryptionStrength: extraFieldAES && extraFieldAES.strength,
+					signed: getOptionValue$1(zipEntry, options, "checkSignature"),
+					passwordVerification: zipCrypto && (bitFlag.dataDescriptor ? ((rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
+					signature,
+					compressed: compressionMethod != 0,
+					encrypted,
+					useWebWorkers: getOptionValue$1(zipEntry, options, "useWebWorkers"),
+					useCompressionStream: getOptionValue$1(zipEntry, options, "useCompressionStream")
+				},
+				config,
+				streamOptions: { signal, size, onstart, onprogress, onend }
+			};
+			await runCodec(config.Inflate, { readable, writable }, codecOptions);
 			return writer.getData();
 		}
 	}
@@ -9032,7 +9052,9 @@
 			rawComment,
 			rawExtraField,
 			useWebWorkers,
+			onstart,
 			onprogress,
+			onend,
 			signal,
 			encryptionStrength,
 			extendedTimestamp,
@@ -9166,19 +9188,24 @@
 			fileEntry.dataWritten = true;
 			const size = () => reader.size;
 			const readable = reader.getReadable({ offset: 0, size, chunkSize: getChunkSize(config) });
-			result = await runCodec(config.Deflate, readable, writable, {
-				codecType: CODEC_DEFLATE,
-				level,
-				password,
-				encryptionStrength,
-				zipCrypto: encrypted && zipCrypto,
-				passwordVerification: encrypted && zipCrypto && (rawLastModDate >> 8) & 0xFF,
-				signed: true,
-				compressed,
-				encrypted,
-				useWebWorkers,
-				useCompressionStream
-			}, config, { signal, onprogress, size });
+			const codecOptions = {
+				options: {
+					codecType: CODEC_DEFLATE,
+					level,
+					password,
+					encryptionStrength,
+					zipCrypto: encrypted && zipCrypto,
+					passwordVerification: encrypted && zipCrypto && (rawLastModDate >> 8) & 0xFF,
+					signed: true,
+					compressed,
+					encrypted,
+					useWebWorkers,
+					useCompressionStream
+				},
+				config,
+				streamOptions: { signal, size, onstart, onprogress, onend }
+			};
+			result = await runCodec(config.Deflate, { readable, writable }, codecOptions);
 			uncompressedSize = fileEntry.uncompressedSize = reader.size;
 			compressedSize = result.length;
 		} else {
@@ -9321,7 +9348,7 @@
 			offset += 46 + rawFilename.length + extraFieldLength + rawComment.length;
 			if (options.onprogress) {
 				try {
-					options.onprogress(indexFileEntry + 1, files.size, new Entry(fileEntry));
+					await options.onprogress(indexFileEntry + 1, files.size, new Entry(fileEntry));
 				} catch (_error) {
 					// ignored
 				}
@@ -9920,11 +9947,11 @@
 				await zipWriter.add(name, child.reader, Object.assign({
 					directory: child.directory
 				}, Object.assign({}, options, {
-					onprogress: indexProgress => {
+					onprogress: async indexProgress => {
 						if (options.onprogress) {
 							entryOffsets.set(name, indexProgress);
 							try {
-								options.onprogress(Array.from(entryOffsets.values()).reduce((previousValue, currentValue) => previousValue + currentValue), totalSize);
+								await options.onprogress(Array.from(entryOffsets.values()).reduce((previousValue, currentValue) => previousValue + currentValue), totalSize);
 							} catch (_error) {
 								// ignored
 							}
