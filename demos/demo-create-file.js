@@ -87,12 +87,15 @@
 					const entry = await model.addFile(file, {
 						password: passwordInput.value,
 						signal,
-						onprogress: (index, max) => {
+						onstart: (max) => {
 							li.classList.remove("pending");
 							li.classList.add("busy");
-							zipProgress.value = index;
 							zipProgress.max = max;
 						},
+						onprogress: (index, max) => {
+							zipProgress.value = index;
+							zipProgress.max = max;
+						}
 					});
 					li.title += `\n  Last modification date: ${entry.lastModDate.toLocaleString()}\n  Compressed size: ${entry.compressedSize.toLocaleString()} bytes`;
 				} catch (error) {
