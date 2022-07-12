@@ -87,12 +87,12 @@
 					const entry = await model.addFile(file, {
 						password: passwordInput.value,
 						signal,
-						onstart: (max) => {
+						onstart(max) {
 							li.classList.remove("pending");
 							li.classList.add("busy");
 							zipProgress.max = max;
 						},
-						onprogress: (index, max) => {
+						onprogress(index, max) {
 							zipProgress.value = index;
 							zipProgress.max = max;
 						}
