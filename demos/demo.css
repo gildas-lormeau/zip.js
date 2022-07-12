@@ -27,6 +27,10 @@ input[type=text], input[type=password], button, select, #file-list {
 	color: #444444;
 }
 
+#download-button[disabled] {
+	cursor: not-allowed;
+}
+
 #file-list.empty {
 	min-height: 25px;
 }
@@ -118,7 +122,7 @@ input[type=text][disabled], input[type=password][disabled], button[disabled], se
 	background-color: transparent;
 }
 
-input[type=text]:not([disabled]):hover, input[type=password]:not([disabled]):hover, button:not([disabled]):hover, select:not([disabled]):hover {
+button:not([disabled]), select:not([disabled]) {
 	cursor: pointer;
 }
 
