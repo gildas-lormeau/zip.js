@@ -5,7 +5,29 @@
 import tests from "./tests-data.js";
 
 const table = document.createElement("table");
-tests.forEach(test => {
+const MAX_TESTS = 16;
+let indexTest;
+for (indexTest = 0; indexTest < MAX_TESTS; indexTest++) {
+	addTest(tests[indexTest]);
+}
+document.body.appendChild(table);
+if (!location.search.startsWith("?keepTests")) {
+	addEventListener("message", event => {
+		const result = JSON.parse(event.data);
+		if (!result.error) {
+			Array.from(document.querySelectorAll("tr")).find(row => row.dataset.script == result.script).remove();
+		}
+		indexTest++;
+		const test = tests[indexTest];
+		if (test) {
+			addTest(test);
+		} else if (!document.querySelectorAll("tr").length) {
+			document.body.innerHTML = "ok";
+		}
+	}, false);
+}
+
+function addTest(test) {
 	const row = document.createElement("tr");
 	const cellTest = document.createElement("td");
 	const cellLink = document.createElement("td");
@@ -20,16 +42,4 @@ tests.forEach(test => {
 	row.appendChild(cellLink);
 	row.appendChild(cellTest);
 	table.appendChild(row);
-});
-document.body.appendChild(table);
-if (!location.search.startsWith("?keepTests")) {
-	addEventListener("message", event => {
-		const result = JSON.parse(event.data);
-		if (!result.error) {
-			Array.from(document.querySelectorAll("tr")).find(row => row.dataset.script == result.script).remove();
-		}
-		if (!document.querySelectorAll("tr").length) {
-			document.body.innerHTML = "ok";
-		}
-	}, false);
 }
