@@ -7156,7 +7156,8 @@
 			result: new Promise((resolve, reject) => {
 				workerData.resolveResult = resolve;
 				workerData.rejectResult = reject;
-			})
+			}),
+			aborted: false
 		});
 		if (!workerData.interface) {
 			if (!classicWorkersSupported) {
@@ -7172,7 +7173,7 @@
 			workerData.worker.addEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
 			workerData.interface = {
 				abort() {
-					workerData.interface.aborted = true;
+					workerData.aborted = true;
 					sendMessage({ type: MESSAGE_ABORT });
 					workerData.writer.releaseLock();
 					workerData.onTaskFinished();
@@ -7255,7 +7256,7 @@
 			}
 
 			function close(error, result) {
-				if (error && !workerData.interface.aborted) {
+				if (error && !workerData.aborted) {
 					rejectResult(error);
 				} else {
 					resolveResult(result);
