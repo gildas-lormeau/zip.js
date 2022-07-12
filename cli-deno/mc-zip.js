@@ -7,7 +7,7 @@ import { fromFileUrl, normalize as normalizePath, resolve as resolvePath, extnam
 import { configure, ZipWriter, ReadableStreamReader, WritableStreamWriter, terminateWorkers } from "../index.js";
 
 const args = parseArgs(Deno.args);
-const stdout = getStdout(Deno.stdout);
+const stdout = getTextWriter(Deno.stdout);
 main();
 
 async function main() {
@@ -81,12 +81,6 @@ async function addFile(zipWriter, file) {
 	}
 }
 
-function getStdout(stdout) {
-	const textEncoderStream = new TextEncoderStream();
-	textEncoderStream.readable.pipeTo(stdout.writable);
-	return textEncoderStream.writable.getWriter();
-}
-
 async function getFileInfo(file) {
 	let name, isFile, isDirectory, resolvedName;
 	const remote = isRemote(file);
@@ -140,6 +134,12 @@ async function getReadable(file) {
 
 function isRemote(path) {
 	return path.startsWith("http:") || path.startsWith("https:");
+}
+
+function getTextWriter(stdout) {
+	const textEncoderStream = new TextEncoderStream();
+	textEncoderStream.readable.pipeTo(stdout.writable);
+	return textEncoderStream.writable.getWriter();
 }
 
 function trimSlashes(url) {
