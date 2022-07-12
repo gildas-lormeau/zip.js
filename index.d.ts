@@ -91,9 +91,8 @@ interface HttpRangeOptions {
     headers?: Iterable<[string, string]> | Map<string, string>;
 }
 
-export class ReadableStreamReader {
+export class ReadableStreamReader extends Stream {
     constructor(readable?: ReadableStream);
-    public readUint8Array(_index: number, length: number): Promise<Uint8Array>;
 }
 
 export class Writer<Type> extends Stream {
