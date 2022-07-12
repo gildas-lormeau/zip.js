@@ -2017,6 +2017,7 @@
 			workerData.worker.addEventListener(MESSAGE_EVENT_TYPE, onMessage, false);
 			workerData.interface = {
 				abort() {
+					workerData.interface.aborted = true;
 					sendMessage({ type: MESSAGE_ABORT });
 					workerData.writer.releaseLock();
 					workerData.onTaskFinished();
@@ -2099,7 +2100,7 @@
 			}
 
 			function close(error, result) {
-				if (error) {
+				if (error && !workerData.interface.aborted) {
 					rejectResult(error);
 				} else {
 					resolveResult(result);
