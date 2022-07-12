@@ -14,10 +14,11 @@ async function test() {
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	const controller = new AbortController();
 	const signal = controller.signal;
-	const promiseFileEntry = zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { signal });
-	controller.abort();
 	try {
-		await promiseFileEntry;
+		await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), {
+			onprogress: () => controller.abort(),
+			signal
+		});
 		await zipWriter.close();
 	} catch (error) {
 		if (error.message == zip.ERR_ABORT) {
