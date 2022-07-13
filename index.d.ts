@@ -56,7 +56,6 @@ interface Stream {
 }
 
 interface SeekableStream extends Stream {
-    init(): Promise<void>;
     readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
