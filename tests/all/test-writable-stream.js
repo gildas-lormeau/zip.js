@@ -21,7 +21,7 @@ async function test() {
 			const data = new Uint8Array(entries[0].uncompressedSize);
 			let dataOffset = 0;
 			let writerClosed;
-			await entries[0].getData({
+			const writer = {
 				writable: new WritableStream({
 					write(chunk) {
 						data.set(chunk, dataOffset);
@@ -31,7 +31,8 @@ async function test() {
 						writerClosed = true;
 					}
 				})
-			});
+			}
+			await entries[0].getData(writer);
 			await zipReader.close();
 			zip.terminateWorkers();
 			return TEXT_CONTENT == (await new Blob([data]).text()) && writerClosed;
