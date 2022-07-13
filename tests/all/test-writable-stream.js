@@ -31,7 +31,7 @@ async function test() {
 						writerClosed = true;
 					}
 				})
-			}
+			};
 			await entries[0].getData(writer);
 			await zipReader.close();
 			zip.terminateWorkers();
