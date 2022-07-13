@@ -4,7 +4,7 @@
 
 import { parse as parseArgs } from "https://deno.land/std@0.147.0/flags/mod.ts";
 import { fromFileUrl, normalize as normalizePath, resolve as resolvePath, extname } from "https://deno.land/std@0.147.0/path/mod.ts";
-import { configure, ZipWriter, WritableStreamWriter, terminateWorkers } from "../index.js";
+import { configure, ZipWriter, terminateWorkers } from "../index.js";
 
 const args = parseArgs(Deno.args);
 const stdout = getTextWriter(Deno.stdout);
@@ -59,7 +59,7 @@ async function runCommand(zipfile, list, options) {
 	list = list.flat();
 	zipfile = await Deno.open(zipfile, { create: true, write: true });
 	configure(options);
-	const zipWriter = new ZipWriter(new WritableStreamWriter(zipfile.writable), options);
+	const zipWriter = new ZipWriter(zipfile, options);
 	try {
 		await Promise.all(list.map(file => addFile(zipWriter, file)));
 		await zipWriter.close();
