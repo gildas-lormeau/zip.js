@@ -50,23 +50,26 @@ export interface Codec {
 
 export function getMimeType(fileExtension: string): string;
 
-export class Stream {
-    public init?(): Promise<void>;
-    public size: number;
+interface Stream {
+    init?(): Promise<void>;
+    size: number;
 }
 
-export class SeekableStream extends Stream {
-    public init(): Promise<void>;
-    public readUint8Array(index: number, length: number): Promise<Uint8Array>;
+interface SeekableStream extends Stream {
+    init(): Promise<void>;
+    readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
 interface ReadableReader {
     readable: ReadableStream<any>;
 }
 
-export class Reader<Type> extends SeekableStream implements ReadableReader {
+export class Reader<Type> implements SeekableStream, ReadableReader {
     readable: ReadableStream<any>;
+    size: number;
     constructor(value: Type);
+    init(): Promise<void>;
+    readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
 export class TextReader extends Reader<string> {
@@ -100,8 +103,9 @@ interface HttpRangeOptions {
     headers?: Iterable<[string, string]> | Map<string, string>;
 }
 
-export class ReadableStreamReader<Type extends ReadableStream<any>> extends Stream implements ReadableReader {
+export class ReadableStreamReader<Type extends ReadableStream<any>> implements Stream, ReadableReader {
     readable: Type;
+    size: number;
     constructor(readable?: Type);
 }
 
@@ -109,8 +113,9 @@ interface WritableWriter {
     writable: WritableStream<any>;
 }
 
-export class Writer<Type> extends Stream implements WritableWriter {
+export class Writer<Type> implements Stream, WritableWriter {
     writable: WritableStream<any>;
+    size: number;
     public writeUint8Array(array: Uint8Array): Promise<void>;
     public getData(): Promise<Type>;
 }
