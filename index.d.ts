@@ -60,7 +60,12 @@ export class SeekableStream extends Stream {
     public readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
-export class Reader<Type> extends SeekableStream {
+interface ReadableReader {
+    readable: ReadableStream<any>;
+}
+
+export class Reader<Type> extends SeekableStream implements ReadableReader {
+    readable: ReadableStream<any>;
     constructor(value: Type);
 }
 
@@ -95,11 +100,17 @@ interface HttpRangeOptions {
     headers?: Iterable<[string, string]> | Map<string, string>;
 }
 
-export class ReadableStreamReader extends Stream {
-    constructor(readable?: ReadableStream);
+export class ReadableStreamReader<Type extends ReadableStream<any>> extends Stream implements ReadableReader {
+    readable: Type;
+    constructor(readable?: Type);
 }
 
-export class Writer<Type> extends Stream {
+interface WritableWriter {
+    writable: WritableStream<any>;
+}
+
+export class Writer<Type> extends Stream implements WritableWriter {
+    writable: WritableStream<any>;
     public writeUint8Array(array: Uint8Array): Promise<void>;
     public getData(): Promise<Type>;
 }
@@ -120,7 +131,7 @@ export class Uint8ArrayWriter extends Writer<Uint8Array> {
     constructor();
 }
 
-export class WritableStreamWriter<Type extends WritableStream> extends Writer<Type> {
+export class WritableStreamWriter<Type extends WritableStream> extends Writer<Type> implements WritableWriter {
     constructor(writable?: Type, options?: WritableStreamWriterConstructorOptions);
 }
 
@@ -179,15 +190,15 @@ export interface Entry {
     msDosCompatible: boolean;
     internalFileAttribute: number;
     externalFileAttribute: number;
-    getData?<Type>(writer: Writer<Type>, options?: EntryGetDataOptions): Promise<Type>;
+    getData?<Type>(writer: Writer<Type> | WritableWriter, options?: EntryGetDataOptions): Promise<Type>;
 }
 
 type EntryGetDataOptions = EntryDataOnprogressOption & ZipReaderOptions;
 
 export class ZipWriter<Type> {
     readonly hasCorruptedEntries?: boolean;
-    constructor(writer: Writer<Type>, options?: ZipWriterConstructorOptions);
-    public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableStreamReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
+    constructor(writer: Writer<Type> | WritableWriter, options?: ZipWriterConstructorOptions);
+    public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableStreamReader<ReadableStream> | ReadableReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
     public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
 }
 
@@ -257,19 +268,19 @@ export class ZipEntry {
 
 interface ZipFileEntryConstructorParams<ReaderType, WriterType> extends ZipEntryConstructorParams {
     reader: Reader<ReaderType>;
-    writer: Writer<WriterType>;
-    getData?(writer: Writer<WriterType>, options?: EntryGetDataOptions): Promise<WriterType>;
+    writer: Writer<WriterType> | WritableWriter;
+    getData?(writer: Writer<WriterType> | WritableWriter, options?: EntryGetDataOptions): Promise<WriterType>;
 }
 
 export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
     constructor(fs: FS, name: string, params: ZipFileEntryConstructorParams<ReaderType, WriterType>, parent: ZipDirectoryEntry);
     reader: Reader<ReaderType>;
-    writer: Writer<WriterType>;
+    writer: Writer<WriterType> | WritableWriter;
     getText(encoding?: string, options?: EntryGetDataOptions): Promise<string>;
     getBlob(mimeType?: string, options?: EntryGetDataOptions): Promise<Blob>;
     getData64URI(mimeType?: string, options?: EntryGetDataOptions): Promise<string>;
     getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
-    getData(writer: Writer<WriterType>, options?: EntryGetDataOptions): Promise<WriterType>;
+    getData(writer: Writer<WriterType> | WritableWriter, options?: EntryGetDataOptions): Promise<WriterType>;
     replaceBlob(blob: Blob): void;
     replaceText(text: string): void;
     replaceData64URI(dataURI: string): void;
