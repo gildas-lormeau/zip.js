@@ -4,7 +4,7 @@
 
 import { parse as parseArgs } from "https://deno.land/std@0.147.0/flags/mod.ts";
 import { fromFileUrl, normalize as normalizePath, resolve as resolvePath, extname } from "https://deno.land/std@0.147.0/path/mod.ts";
-import { configure, ZipWriter, ReadableStreamReader, WritableStreamWriter, terminateWorkers } from "../index.js";
+import { configure, ZipWriter, WritableStreamWriter, terminateWorkers } from "../index.js";
 
 const args = parseArgs(Deno.args);
 const stdout = getTextWriter(Deno.stdout);
@@ -72,7 +72,7 @@ async function addFile(zipWriter, file) {
 	try {
 		const readable = await getReadable(file);
 		if (readable) {
-			await zipWriter.add(file.name, new ReadableStreamReader(readable), {
+			await zipWriter.add(file.name, { readable }, {
 				onstart: () => stdout.write("  adding: " + file.name + "\n")
 			});
 		}
