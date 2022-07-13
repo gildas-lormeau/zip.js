@@ -69,12 +69,13 @@ async function runCommand(zipfile, list, options) {
 }
 
 async function addFile(zipWriter, file) {
+	const options = {
+		onstart: () => stdout.write("  adding: " + file.name + "\n")
+	};
 	try {
 		const readable = await getReadable(file);
 		if (readable) {
-			await zipWriter.add(file.name, { readable }, {
-				onstart: () => stdout.write("  adding: " + file.name + "\n")
-			});
+			await zipWriter.add(file.name, { readable }, options);
 		}
 	} catch (error) {
 		await stdout.write("  error: " + error.message + ", file: " + file.url + "\n");
