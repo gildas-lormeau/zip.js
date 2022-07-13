@@ -28,12 +28,12 @@ interface ZipLibrary {
     Inflate: typeof ZipInflate
 }
 
-interface ZipDeflate {
+class ZipDeflate {
     append(): Uint8Array,
     flush(): Uint8Array
 }
 
-interface ZipInflate {
+class ZipInflate {
     append(): Uint8Array,
     flush(): void
 }
