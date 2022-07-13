@@ -64,9 +64,9 @@ interface ReadableReader {
 }
 
 export class Reader<Type> implements SeekableStream, ReadableReader {
+    constructor(value: Type);
     readable: ReadableStream<any>;
     size: number;
-    constructor(value: Type);
     init(): Promise<void>;
     readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
@@ -103,9 +103,9 @@ interface HttpRangeOptions {
 }
 
 export class ReadableStreamReader<Type extends ReadableStream<any>> implements Stream, ReadableReader {
+    constructor(readable?: Type);
     readable: Type;
     size: number;
-    constructor(readable?: Type);
 }
 
 interface WritableWriter {
@@ -200,8 +200,8 @@ export interface Entry {
 type EntryGetDataOptions = EntryDataOnprogressOption & ZipReaderOptions;
 
 export class ZipWriter<Type> {
-    readonly hasCorruptedEntries?: boolean;
     constructor(writer: Writer<Type> | WritableWriter, options?: ZipWriterConstructorOptions);
+    readonly hasCorruptedEntries?: boolean;
     public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableStreamReader<ReadableStream> | ReadableReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
     public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
 }
