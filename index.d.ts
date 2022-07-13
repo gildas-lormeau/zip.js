@@ -122,7 +122,6 @@ export class Uint8ArrayWriter extends Writer<Uint8Array> {
 
 export class WritableStreamWriter<Type extends WritableStream> extends Writer<Type> {
     constructor(writable?: Type, options?: WritableStreamWriterConstructorOptions);
-    public getData?(): Promise<Type>;
 }
 
 interface WritableStreamWriterConstructorOptions {
