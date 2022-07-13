@@ -563,7 +563,7 @@
 		</p>
 		<p>Parameters:</p>
 		<dl>
-			<dt><code>writer (<a href="#zip-writer">zip.Writer</a>)</code></dt>
+			<dt><code>writer (<a href="#zip-writer">zip.Writer</a> or objects with a writable property)</code></dt>
 			<dd>The <code><a href="#zip-writer">zip.Writer</a></code> object used to write output data</dd>
 			<dt><code>options (Object)</code></dt>
 			<dd>Optional properties:
@@ -707,8 +707,8 @@ await reader.close();</code></pre>
 			<dt><code>name (string)</code></dt>
 			<dd>Entry file name</dd>
 			<dt><code>reader (<a href="#zip-reading">zip.Reader</a>)</code></dt>
-			<dd>The <code><a href="#zip-reading">zip.Reader</a></code> object used to read entry data to add -
-				null for directory entry</dd>
+			<dd>The <code><a href="#zip-reading">zip.Reader</a></code> object (or with a <code>readable</code>
+				property) used to read entry data to add - null for directory entry</dd>
 			<dt><code>options (Object)</code></dt>
 			<dd>Optional properties:
 				<dl>
