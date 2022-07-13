@@ -51,13 +51,17 @@ export interface Codec {
 export function getMimeType(fileExtension: string): string;
 
 export class Stream {
+    public init?(): Promise<void>;
     public size: number;
-    public init(): Promise<void>;
 }
 
-export class Reader<Type> extends Stream {
-    constructor(value: Type);
+export class SeekableStream extends Stream {
+    public init(): Promise<void>;
     public readUint8Array(index: number, length: number): Promise<Uint8Array>;
+}
+
+export class Reader<Type> extends SeekableStream {
+    constructor(value: Type);
 }
 
 export class TextReader extends Reader<string> {
