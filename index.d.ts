@@ -55,7 +55,7 @@ interface Stream {
     size: number;
 }
 
-interface SeekableStream extends Stream {
+interface RandomAccessReader extends Stream {
     readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
@@ -63,7 +63,7 @@ interface ReadableReader {
     readable: ReadableStream<any>;
 }
 
-export class Reader<Type> implements SeekableStream, ReadableReader {
+export class Reader<Type> implements RandomAccessReader, ReadableReader {
     constructor(value: Type);
     readable: ReadableStream<any>;
     size: number;
