@@ -21,15 +21,17 @@ async function test() {
 			const data = new Uint8Array(entries[0].uncompressedSize);
 			let dataOffset = 0;
 			let writerClosed;
-			await entries[0].getData(new zip.WritableStreamWriter(new WritableStream({
-				write(chunk) {
-					data.set(chunk, dataOffset);
-					dataOffset += chunk.length;
-				},
-				close() {
-					writerClosed = true;
-				}
-			})));
+			await entries[0].getData({
+				writable: new WritableStream({
+					write(chunk) {
+						data.set(chunk, dataOffset);
+						dataOffset += chunk.length;
+					},
+					close() {
+						writerClosed = true;
+					}
+				})
+			});
 			await zipReader.close();
 			zip.terminateWorkers();
 			return TEXT_CONTENT == (await new Blob([data]).text()) && writerClosed;
