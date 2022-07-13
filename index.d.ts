@@ -50,12 +50,12 @@ export interface Codec {
 
 export function getMimeType(fileExtension: string): string;
 
-interface Stream {
+interface DataProcessor {
     init?(): Promise<void>;
     size: number;
 }
 
-interface RandomAccessReader extends Stream {
+interface RandomAccessReader extends DataProcessor {
     readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
@@ -102,7 +102,7 @@ interface HttpRangeOptions {
     headers?: Iterable<[string, string]> | Map<string, string>;
 }
 
-export class ReadableStreamReader<Type extends ReadableStream<any>> implements Stream, ReadableReader {
+export class ReadableStreamReader<Type extends ReadableStream<any>> implements DataProcessor, ReadableReader {
     constructor(readable?: Type);
     readable: Type;
     size: number;
@@ -112,7 +112,7 @@ interface WritableWriter {
     writable: WritableStream<any>;
 }
 
-export class Writer<Type> implements Stream, WritableWriter {
+export class Writer<Type> implements DataProcessor, WritableWriter {
     writable: WritableStream<any>;
     size: number;
     public writeUint8Array(array: Uint8Array): Promise<void>;
