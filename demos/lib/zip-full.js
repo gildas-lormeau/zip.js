@@ -6173,23 +6173,22 @@
 				}
 			});
 			const { signal, onstart, onprogress, size, onend } = streamOptions;
-			let chunkOffset = 0, computedSize = 0;
+			let chunkOffset = 0;
 			const transformer = {};
 			if (onstart) {
 				transformer.start = () => callHandler(onstart, size());
 			}
 			transformer.transform = async (chunk, controller) => {
 				chunkOffset += chunk.length;
-				computedSize += chunk.length;
 				if (onprogress) {
 					await callHandler(onprogress, chunkOffset, size());
 				}
 				controller.enqueue(chunk);
 			};
 			transformer.flush = () => {
-				readable.size = () => computedSize;
+				readable.size = () => chunkOffset;
 				if (onend) {
-					callHandler(onend, computedSize);
+					callHandler(onend, chunkOffset);
 				}
 			};
 			workerData.readable = readable.pipeThrough(new TransformStream(transformer, { highWaterMark: 1, size: () => config.chunkSize }), { signal });
@@ -6689,18 +6688,9 @@
 
 		constructor(readable) {
 			super();
-			const reader = this;
 			if (!readable) {
-				readable = new ReadableStream({});
+				this.readable = new ReadableStream({});
 			}
-			reader.readable = readable.pipeThrough(new TransformStream({
-				transform(chunk, controller) {
-					if (chunk) {
-						reader.size += chunk.length;
-						controller.enqueue(chunk);
-					}
-				}
-			}));
 		}
 	}
 
@@ -6717,15 +6707,6 @@
 					return writable;
 				}
 			});
-		}
-
-		async getData() {
-			const writer = this;
-			const { writable } = writer;
-			if (!writer.preventClose) {
-				await writable.getWriter().close();
-			}
-			return writable;
 		}
 	}
 
@@ -7443,7 +7424,10 @@
 				codecConstructor: config.Inflate
 			};
 			await runWorker({ readable, writable }, workerOptions);
-			return writer.getData();
+			if (!writer.preventClose) {
+				await writable.getWriter().close();
+			}
+			return writer.getData ? writer.getData() : writable;
 		}
 	}
 
@@ -7788,11 +7772,16 @@
 		}
 
 		async close(comment = new Uint8Array(), options = {}) {
-			while (this.pendingAddFileCalls.size) {
-				await Promise.all(Array.from(this.pendingAddFileCalls));
+			const { pendingAddFileCalls, writer } = this;
+			const { writable } = writer;
+			while (pendingAddFileCalls.size) {
+				await Promise.all(Array.from(pendingAddFileCalls));
 			}
 			await closeFile(this, comment, options);
-			return this.writer.getData();
+			if (!writer.preventClose) {
+				await writable.getWriter().close();
+			}
+			return writer.getData ? writer.getData() : writable;
 		}
 	}
 
@@ -8199,7 +8188,7 @@
 				codecConstructor: config.Deflate
 			};
 			result = await runWorker({ readable, writable }, workerOptions);
-			uncompressedSize = fileEntry.uncompressedSize = reader.size = reader.readable.size();
+			uncompressedSize = fileEntry.uncompressedSize = reader.size = readable.size();
 			compressedSize = result.length;
 		} else {
 			await writeUint8Array(writable, localHeaderArray);
