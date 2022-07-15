@@ -25,6 +25,8 @@ async function displayUsage() {
 	await stdout.write("mc-zip 1.0. Usage:\n");
 	await stdout.write("mc-zip [options] zipfile list\n");
 	await stdout.write("  The default action is to create or overwrite zipfile entries from list of file names and URLs. Options:\n");
+	await stdout.write("  --include-directories         include directories in the zip file  (default: true)\n");
+	await stdout.write("  --include-sub-directories     include sub-directories in the zip file (default: true)\n");
 	await stdout.write("  --max-workers                 number of workers (default: number of logical cores)\n");
 	await stdout.write("  --buffered-write              compress entries in parallel with workers (default: true)\n");
 	await stdout.write("  --password                    password (default: empty string)\n");
@@ -43,7 +45,9 @@ function getOptions() {
 		bufferedWrite: true,
 		encryptionStrength: 3,
 		dataDescriptor: true,
-		keepOrder: true
+		keepOrder: true,
+		includeDirectories: true,
+		includeSubDirectories: true
 	};
 	for (const option of Object.getOwnPropertyNames(args)) {
 		if (option != "_") {
@@ -55,7 +59,9 @@ function getOptions() {
 
 async function runCommand(zipfile, list, options) {
 	list = await Promise.all(list.map(getFileInfo));
-	list = await Promise.all(list.map(file => addDirectories(file)));
+	if (options.includeDirectories) {
+		list = await Promise.all(list.map(file => addDirectories(file, options.includeSubDirectories)));
+	}
 	list = list.flat();
 	zipfile = await Deno.open(zipfile, { create: true, write: true });
 	configure(options);
@@ -115,7 +121,7 @@ async function addDirectories(file, recursive) {
 			const fileInfo = await getFileInfo(file.url + "/" + entry.name);
 			if (entry.isFile) {
 				result.push(fileInfo);
-			} else if (entry.isDirectory) {
+			} else if (entry.isDirectory && recursive) {
 				result.push(await addDirectories(fileInfo, recursive));
 			}
 		}
