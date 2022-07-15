@@ -145,6 +145,9 @@ interface WritableStreamWriterConstructorOptions {
 
 export class ZipReader<Type> {
     constructor(reader: Reader<Type>, options?: ZipReaderConstructorOptions);
+    comment: Uint8Array;
+    prependedData?: Uint8Array;
+    appendedData?: Uint8Array;
     getEntries(options?: ZipReaderGetEntriesOptions): Promise<Entry[]>;
     getEntriesGenerator(options?: ZipReaderGetEntriesOptions): AsyncGenerator<Entry, boolean>;
     close(): Promise<void>;
@@ -160,6 +163,8 @@ interface ZipReaderOptions {
     useWebWorkers?: boolean;
     signal?: AbortSignal;
     useCompressionStream?: boolean;
+    extractPrependedData?: boolean;
+    extractAppendedData?: boolean;
 }
 
 interface GetEntriesOptions {
