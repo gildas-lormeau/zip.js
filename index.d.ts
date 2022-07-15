@@ -246,6 +246,7 @@ interface AddDataOptions {
 
 interface CloseOptions {
     zip64?: boolean;
+    preventClose?: boolean;
 }
 
 interface EntryDataOnprogressOption {
