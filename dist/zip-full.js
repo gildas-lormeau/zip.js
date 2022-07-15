@@ -7945,10 +7945,10 @@
 		let releaseLockWriter;
 		let resolveLockCurrentFileEntry;
 		let writingBufferedData;
+		let fileWriter;
 		files.set(name, fileEntry);
 		try {
 			let lockPreviousFileEntry;
-			let fileWriter;
 			if (options.keepOrder) {
 				lockPreviousFileEntry = previousFileEntry && previousFileEntry.lock;
 			}
@@ -7964,7 +7964,7 @@
 				}
 				fileWriter = writer;
 			}
-			fileEntry = await createFileEntry(reader, fileWriter.writable, zipWriter.config, options);
+			fileEntry = await createFileEntry(reader, fileEntry, fileWriter.writable, zipWriter.config, options);
 			files.set(name, fileEntry);
 			fileEntry.filename = name;
 			if (bufferedWrite) {
@@ -8005,9 +8005,7 @@
 		} catch (error) {
 			if ((bufferedWrite && writingBufferedData) || (!bufferedWrite && fileEntry.dataWritten)) {
 				error.corruptedEntry = zipWriter.hasCorruptedEntries = true;
-				if (fileEntry.uncompressedSize) {
-					zipWriter.offset += fileEntry.uncompressedSize;
-				}
+				zipWriter.offset += fileWriter.size;
 			}
 			files.delete(name);
 			throw error;
@@ -8028,7 +8026,7 @@
 		}
 	}
 
-	async function createFileEntry(reader, writable, config, options) {
+	async function createFileEntry(reader, pendingFileEntry, writable, config, options) {
 		const {
 			rawFilename,
 			lastAccessDate,
@@ -8178,7 +8176,7 @@
 		let compressedSize = 0;
 		if (reader) {
 			await writeUint8Array(writable, localHeaderArray);
-			fileEntry.dataWritten = true;
+			fileEntry.dataWritten = pendingFileEntry.dataWritten = true;
 			const size = () => reader.size;
 			const readable = reader.readable;
 			readable.size = size;
@@ -8206,7 +8204,7 @@
 			compressedSize = result.length;
 		} else {
 			await writeUint8Array(writable, localHeaderArray);
-			fileEntry.dataWritten = true;
+			fileEntry.dataWritten = pendingFileEntry.dataWritten = true;
 		}
 		let dataDescriptorArray = new Uint8Array();
 		let dataDescriptorView, dataDescriptorOffset = 0;
