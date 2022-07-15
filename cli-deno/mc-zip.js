@@ -36,6 +36,7 @@ async function displayUsage() {
 	await stdout.write("  --data-descriptor-signature   add data descriptor signatures (default: false)\n");
 	await stdout.write("  --keep-order                  keep entries order (default: true)\n");
 	await stdout.write("  --zip64                       use Zip64 format (default: false)\n");
+	await stdout.write("  --prevent-parent-directories  remove occurences of \"../\" in filenames\n");
 	await stdout.write("\n");
 	Deno.exit(-1);
 }
@@ -47,7 +48,8 @@ function getOptions() {
 		dataDescriptor: true,
 		keepOrder: true,
 		includeDirectories: true,
-		includeSubDirectories: true
+		includeSubDirectories: true,
+		preventParentDirectories: true
 	};
 	for (const option of Object.getOwnPropertyNames(args)) {
 		if (option != "_") {
@@ -58,9 +60,9 @@ function getOptions() {
 }
 
 async function runCommand(zipfile, list, options) {
-	list = await Promise.all(list.map(getFileInfo));
+	list = await Promise.all(list.map(file => getFileInfo(file, options)));
 	if (options.includeDirectories) {
-		list = await Promise.all(list.map(file => addDirectories(file, options.includeSubDirectories)));
+		list = await Promise.all(list.map(file => addDirectories(file, options)));
 	}
 	list = list.flat();
 	zipfile = await Deno.open(zipfile, { create: true, write: true });
@@ -88,7 +90,7 @@ async function addFile(zipWriter, file) {
 	}
 }
 
-async function getFileInfo(file) {
+async function getFileInfo(file, options) {
 	let name, isFile, isDirectory, resolvedName;
 	const remote = isRemote(file);
 	if (remote) {
@@ -105,6 +107,9 @@ async function getFileInfo(file) {
 	}
 	name = normalizePath(trimSlashes(name));
 	if (resolvedName) {
+		if (options.preventParentDirectories) {
+			name = cleanFilename(name);
+		}
 		const stat = await Deno.stat(resolvedName);
 		isFile = stat.isFile;
 		isDirectory = stat.isDirectory;
@@ -114,15 +119,15 @@ async function getFileInfo(file) {
 	};
 }
 
-async function addDirectories(file, recursive) {
+async function addDirectories(file, options) {
 	if (file.isDirectory) {
 		const result = [];
 		for await (const entry of Deno.readDir(resolvePath(file.url))) {
-			const fileInfo = await getFileInfo(file.url + "/" + entry.name);
+			const fileInfo = await getFileInfo(file.url + "/" + entry.name, options);
 			if (entry.isFile) {
 				result.push(fileInfo);
-			} else if (entry.isDirectory && recursive) {
-				result.push(await addDirectories(fileInfo, recursive));
+			} else if (entry.isDirectory && options.includeSubDirectories) {
+				result.push(await addDirectories(fileInfo, options));
 			}
 		}
 		return result.flat();
@@ -156,6 +161,10 @@ function trimSlashes(url) {
 	} else {
 		return url;
 	}
+}
+
+function cleanFilename(name) {
+	return name.replace(/(\.+)(\/|\\)+/g, "");
 }
 
 function toCamelCase(kebabCase) {
