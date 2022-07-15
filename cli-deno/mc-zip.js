@@ -105,7 +105,7 @@ async function getFileInfo(file, options) {
 		name = file;
 		resolvedName = resolvePath(name);
 	}
-	name = normalizePath(trimSlashes(name));
+	name = normalizePath(replaceSlashes(name));
 	if (resolvedName) {
 		if (options.preventParentDirectories) {
 			name = cleanFilename(name);
@@ -154,8 +154,9 @@ function getTextWriter(stdout) {
 	return textEncoderStream.writable.getWriter();
 }
 
-function trimSlashes(url) {
-	const match = url.match(/^(?:\/|\\)?(.*?)(?:\/|\\)?$/);
+function replaceSlashes(url) {
+	url = url.replace(/\\/g, "/");
+	const match = url.match(/^(?:\/)?(.*?)(?:\/)?$/);
 	if (match) {
 		return match[1];
 	} else {
@@ -164,7 +165,12 @@ function trimSlashes(url) {
 }
 
 function cleanFilename(name) {
-	return name.replace(/(\.+)(\/|\\)+/g, "");
+	const result = replaceSlashes(("/" + name + "/").replace(/(\/|\\)+(\.+)(\/|\\)+/g, "/"));
+	if (result == name) {
+		return result;
+	} else {
+		return cleanFilename(result);
+	}
 }
 
 function toCamelCase(kebabCase) {
