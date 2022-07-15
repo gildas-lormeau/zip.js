@@ -2989,8 +2989,12 @@
 			const endOfDirectoryView = getDataView$1(endOfDirectoryInfo);
 			let directoryDataLength = getUint32(endOfDirectoryView, 12);
 			let directoryDataOffset = getUint32(endOfDirectoryView, 16);
+			const commentOffset = endOfDirectoryInfo.offset;
+			const commentLength = getUint16(endOfDirectoryView, 20);
+			const appendedDataOffset = commentOffset + END_OF_CENTRAL_DIR_LENGTH + commentLength;
 			let filesLength = getUint16(endOfDirectoryView, 8);
 			let prependedDataLength = 0;
+			let startOffset = 0;
 			if (directoryDataOffset == MAX_32_BITS || directoryDataLength == MAX_32_BITS || filesLength == MAX_16_BITS) {
 				const endOfDirectoryLocatorArray = await readUint8Array(reader, endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH);
 				const endOfDirectoryLocatorView = getDataView$1(endOfDirectoryLocatorArray);
@@ -3061,6 +3065,7 @@
 					commentUTF8: languageEncodingFlag,
 					rawExtraField: directoryArray.subarray(extraFieldOffset, commentOffset)
 				});
+				startOffset = Math.max(fileEntry.offset, startOffset);
 				const endOffset = commentOffset + fileEntry.commentLength;
 				fileEntry.rawComment = directoryArray.subarray(commentOffset, endOffset);
 				const filenameEncoding = getOptionValue$1(zipReader, options, "filenameEncoding");
@@ -3087,16 +3092,22 @@
 				}
 				yield entry;
 			}
+			const extractPrependedData = getOptionValue$1(zipReader, options, "extractPrependedData");
+			const extractAppendedData = getOptionValue$1(zipReader, options, "extractAppendedData");
+			if (extractPrependedData) {
+				zipReader.prependedData = await readUint8Array(reader, 0, startOffset);
+			}
+			zipReader.comment = await readUint8Array(reader, commentOffset + END_OF_CENTRAL_DIR_LENGTH, commentLength);
+			if (extractAppendedData) {
+				zipReader.appendedData = appendedDataOffset < reader.size ? await readUint8Array(reader, appendedDataOffset, reader.size - appendedDataOffset) : new Uint8Array();
+			}
 			return true;
 		}
 
 		async getEntries(options = {}) {
 			const entries = [];
-			const iterator = this.getEntriesGenerator(options);
-			let result = iterator.next();
-			while (!(await result).done) {
-				entries.push((await result).value);
-				result = iterator.next();
+			for await (const entry of this.getEntriesGenerator(options)) {
+				entries.push(entry);
 			}
 			return entries;
 		}
@@ -3544,7 +3555,7 @@
 				await Promise.all(Array.from(pendingAddFileCalls));
 			}
 			await closeFile(this, comment, options);
-			if (!writer.preventClose) {
+			if (!writer.preventClose && !options.preventClose) {
 				await writable.getWriter().close();
 			}
 			return writer.getData ? writer.getData() : writable;
@@ -3697,8 +3708,9 @@
 		const previousFileEntry = Array.from(files.values()).pop();
 		let fileEntry = {};
 		let bufferedWrite;
-		let resolveLockUnbufferedWrite;
+		let releaseLockWriter;
 		let resolveLockCurrentFileEntry;
+		let writingBufferedData;
 		files.set(name, fileEntry);
 		try {
 			let lockPreviousFileEntry;
@@ -3707,12 +3719,12 @@
 				lockPreviousFileEntry = previousFileEntry && previousFileEntry.lock;
 			}
 			fileEntry.lock = new Promise(resolve => resolveLockCurrentFileEntry = resolve);
-			if (options.bufferedWrite || zipWriter.lockWrite || !options.dataDescriptor) {
+			if (options.bufferedWrite || zipWriter.lockWriter || !options.dataDescriptor) {
 				fileWriter = new BlobWriter();
 				fileWriter.init();
 				bufferedWrite = true;
 			} else {
-				zipWriter.lockWrite = Promise.resolve();
+				zipWriter.lockWriter = Promise.resolve();
 				if (writer.init && !writer.initialized) {
 					await writer.init();
 				}
@@ -3722,11 +3734,10 @@
 			files.set(name, fileEntry);
 			fileEntry.filename = name;
 			if (bufferedWrite) {
-				let indexWrittenData = 0;
-				const blob = fileWriter.getData();
+				let blob = fileWriter.getData();
 				await lockPreviousFileEntry;
-				await lockWriterAccess();
-				fileEntry.writingBufferedData = true;
+				await lockWriter();
+				writingBufferedData = true;
 				const { writable } = writer;
 				if (!options.dataDescriptor) {
 					const headerLength = 26;
@@ -3743,10 +3754,10 @@
 						setUint32(arrayBufferView, 22, fileEntry.uncompressedSize);
 					}
 					await writeUint8Array(writable, new Uint8Array(arrayBuffer));
-					indexWrittenData = headerLength;
+					blob = blob.slice(headerLength);
 				}
-				await writeBlob(writable, blob, indexWrittenData);
-				delete fileEntry.writingBufferedData;
+				await blob.stream().pipeTo(writable, { preventClose: true });
+				writingBufferedData = false;
 			}
 			fileEntry.offset = zipWriter.offset;
 			if (fileEntry.zip64) {
@@ -3758,7 +3769,7 @@
 			zipWriter.offset += fileEntry.length;
 			return fileEntry;
 		} catch (error) {
-			if ((bufferedWrite && fileEntry.writingBufferedData) || (!bufferedWrite && fileEntry.dataWritten)) {
+			if ((bufferedWrite && writingBufferedData) || (!bufferedWrite && fileEntry.dataWritten)) {
 				error.corruptedEntry = zipWriter.hasCorruptedEntries = true;
 				if (fileEntry.uncompressedSize) {
 					zipWriter.offset += fileEntry.uncompressedSize;
@@ -3768,17 +3779,17 @@
 			throw error;
 		} finally {
 			resolveLockCurrentFileEntry();
-			if (resolveLockUnbufferedWrite) {
-				resolveLockUnbufferedWrite();
+			if (releaseLockWriter) {
+				releaseLockWriter();
 			}
 		}
 
-		async function lockWriterAccess() {
-			if (zipWriter.lockWrite) {
-				await zipWriter.lockWrite.then(() => delete zipWriter.lockWrite);
-				await lockWriterAccess();
+		async function lockWriter() {
+			if (zipWriter.lockWriter) {
+				await zipWriter.lockWriter.then(() => delete zipWriter.lockWriter);
+				await lockWriter();
 			} else {
-				zipWriter.lockWrite = new Promise(resolve => resolveLockUnbufferedWrite = resolve);
+				zipWriter.lockWriter = new Promise(resolve => releaseLockWriter = resolve);
 			}
 		}
 	}
@@ -4037,13 +4048,6 @@
 		}
 		const directoryArray = new Uint8Array(directoryDataLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH));
 		const directoryView = getDataView(directoryArray);
-		if (comment && comment.length) {
-			if (comment.length <= MAX_16_BITS) {
-				setUint16(directoryView, offset + 20, comment.length);
-			} else {
-				throw new Error(ERR_INVALID_COMMENT);
-			}
-		}
 		for (const [indexFileEntry, fileEntry] of Array.from(files.values()).entries()) {
 			const {
 				rawFilename,
@@ -4127,6 +4131,13 @@
 		setUint16(directoryView, offset + 10, filesLength);
 		setUint32(directoryView, offset + 12, directoryDataLength);
 		setUint32(directoryView, offset + 16, directoryOffset);
+		if (comment && comment.length) {
+			if (comment.length <= MAX_16_BITS) {
+				setUint16(directoryView, offset + 20, comment.length);
+			} else {
+				throw new Error(ERR_INVALID_COMMENT);
+			}
+		}
 		const { writable } = zipWriter.writer;
 		await writeUint8Array(writable, directoryArray);
 		if (comment && comment.length) {
@@ -4139,20 +4150,6 @@
 			return blob.slice(start, end).arrayBuffer();
 		} else {
 			return blob.arrayBuffer();
-		}
-	}
-
-	async function writeBlob(writable, blob, start = 0) {
-		const blockSize = 512 * 1024 * 1024;
-		await writeSlice();
-
-		async function writeSlice() {
-			if (start < blob.size) {
-				const arrayBuffer = await sliceAsArrayBuffer(blob, start, start + blockSize);
-				await writeUint8Array(writable, new Uint8Array(arrayBuffer));
-				start += blockSize;
-				await writeSlice();
-			}
 		}
 	}
 
