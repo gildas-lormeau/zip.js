@@ -192,14 +192,13 @@
 					if (codecAdapter.pendingData) {
 						const { pendingData } = codecAdapter;
 						codecAdapter.pendingData = new Uint8Array(pendingData.length + data.length);
-						codecAdapter.pendingData.set(pendingData, 0);
-						codecAdapter.pendingData.set(data, pendingData.length);
+						pendingData.set(pendingData, 0);
+						pendingData.set(data, pendingData.length);
 					} else {
 						codecAdapter.pendingData = new Uint8Array(data);
 					}
 				};
-				// eslint-disable-next-line no-prototype-builtins
-				if (options.hasOwnProperty("level") && options.level === undefined) {
+				if (Object.hasOwn(options, "level") && options.level === undefined) {
 					delete options.level;
 				}
 				codecAdapter.codec = new constructor(Object.assign({}, constructorOptions, options));
@@ -2256,12 +2255,13 @@
 
 		get readable() {
 			const reader = this;
+			const { chunkSize = DEFAULT_CHUNK_SIZE } = reader;
 			const readable = new ReadableStream({
 				start() {
 					this.chunkOffset = 0;
 				},
 				async pull(controller) {
-					const { offset = 0, chunkSize = DEFAULT_CHUNK_SIZE, size } = readable;
+					const { offset = 0, size } = readable;
 					const { chunkOffset } = this;
 					controller.enqueue(await reader.readUint8Array(offset + chunkOffset, Math.min(chunkSize, size() - chunkOffset)));
 					if (chunkOffset + chunkSize > size()) {
@@ -2621,7 +2621,7 @@
 		if (response.status < 400) {
 			return response;
 		} else {
-			throw new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
+			throw response.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
 		}
 	}
 
@@ -2642,7 +2642,7 @@
 						headers: new Map(headers)
 					});
 				} else {
-					reject(new Error(ERR_HTTP_STATUS + (request.statusText || request.status)));
+					reject(request.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (request.statusText || request.status)));
 				}
 			}, false);
 			request.addEventListener("error", event => reject(event.detail.error), false);
@@ -2979,6 +2979,7 @@
 			if (!reader.initialized) {
 				await reader.init();
 			}
+			reader.chunkSize = getChunkSize(config);
 			if (reader.size < END_OF_CENTRAL_DIR_LENGTH) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
@@ -3097,7 +3098,7 @@
 			if (extractPrependedData) {
 				zipReader.prependedData = await readUint8Array(reader, 0, startOffset);
 			}
-			zipReader.comment = await readUint8Array(reader, commentOffset + END_OF_CENTRAL_DIR_LENGTH, commentLength);
+			zipReader.comment = commentLength ? await readUint8Array(reader, commentOffset + END_OF_CENTRAL_DIR_LENGTH, commentLength) : new Uint8Array();
 			if (extractAppendedData) {
 				zipReader.appendedData = appendedDataOffset < reader.size ? await readUint8Array(reader, appendedDataOffset, reader.size - appendedDataOffset) : new Uint8Array();
 			}
@@ -3175,7 +3176,6 @@
 			const readable = reader.readable;
 			readable.offset = dataOffset;
 			readable.size = size;
-			readable.chunkSize = getChunkSize(config);
 			const { writable } = writer;
 			const signal = getOptionValue$1(zipEntry, options, "signal");
 			if (writer.init && !writer.initialized) {
@@ -3526,17 +3526,22 @@
 
 		async add(name = "", reader, options = {}) {
 			const zipWriter = this;
-			if (workers < zipWriter.config.maxWorkers) {
+			const {
+				pendingAddFileCalls,
+				pendingEntries,
+				config
+			} = zipWriter;
+			if (workers < config.maxWorkers) {
 				workers++;
 				let promiseAddFile;
 				try {
 					promiseAddFile = addFile(zipWriter, name, reader, options);
-					this.pendingAddFileCalls.add(promiseAddFile);
+					pendingAddFileCalls.add(promiseAddFile);
 					return await promiseAddFile;
 				} finally {
-					this.pendingAddFileCalls.delete(promiseAddFile);
+					pendingAddFileCalls.delete(promiseAddFile);
 					workers--;
-					const pendingEntry = zipWriter.pendingEntries.shift();
+					const pendingEntry = pendingEntries.shift();
 					if (pendingEntry) {
 						zipWriter.add(pendingEntry.name, pendingEntry.reader, pendingEntry.options)
 							.then(pendingEntry.resolve)
@@ -3544,7 +3549,7 @@
 					}
 				}
 			} else {
-				return new Promise((resolve, reject) => zipWriter.pendingEntries.push({ name, reader, options, resolve, reject }));
+				return new Promise((resolve, reject) => pendingEntries.push({ name, reader, options, resolve, reject }));
 			}
 		}
 
@@ -3704,22 +3709,31 @@
 	}
 
 	async function getFileEntry(zipWriter, name, reader, options) {
-		const { files, writer } = zipWriter;
+		const {
+			files,
+			writer
+		} = zipWriter;
+		const {
+			keepOrder,
+			dataDescriptor,
+			zipCrypto,
+			signal
+		} = options;
 		const previousFileEntry = Array.from(files.values()).pop();
 		let fileEntry = {};
 		let bufferedWrite;
 		let releaseLockWriter;
-		let resolveLockCurrentFileEntry;
-		let writingBufferedData;
+		let releaseLockCurrentFileEntry;
+		let bufferedDataWritten;
 		let fileWriter;
 		files.set(name, fileEntry);
 		try {
 			let lockPreviousFileEntry;
-			if (options.keepOrder) {
+			if (keepOrder) {
 				lockPreviousFileEntry = previousFileEntry && previousFileEntry.lock;
+				requestLockCurrentFileEntry();
 			}
-			fileEntry.lock = new Promise(resolve => resolveLockCurrentFileEntry = resolve);
-			if (options.bufferedWrite || zipWriter.lockWriter || !options.dataDescriptor) {
+			if (options.bufferedWrite || zipWriter.lockWriter || !dataDescriptor) {
 				fileWriter = new BlobWriter();
 				fileWriter.init();
 				bufferedWrite = true;
@@ -3736,14 +3750,14 @@
 			if (bufferedWrite) {
 				let blob = fileWriter.getData();
 				await lockPreviousFileEntry;
-				await lockWriter();
-				writingBufferedData = true;
+				await requestLockWriter();
+				bufferedDataWritten = true;
 				const { writable } = writer;
-				if (!options.dataDescriptor) {
+				if (!dataDescriptor) {
 					const headerLength = 26;
 					const arrayBuffer = await sliceAsArrayBuffer(blob, 0, headerLength);
 					const arrayBufferView = new DataView(arrayBuffer);
-					if (!fileEntry.encrypted || options.zipCrypto) {
+					if (!fileEntry.encrypted || zipCrypto) {
 						setUint32(arrayBufferView, 14, fileEntry.signature);
 					}
 					if (fileEntry.zip64) {
@@ -3756,8 +3770,8 @@
 					await writeUint8Array(writable, new Uint8Array(arrayBuffer));
 					blob = blob.slice(headerLength);
 				}
-				await blob.stream().pipeTo(writable, { preventClose: true });
-				writingBufferedData = false;
+				await blob.stream().pipeTo(writable, { preventClose: true, signal });
+				bufferedDataWritten = false;
 			}
 			fileEntry.offset = zipWriter.offset;
 			if (fileEntry.zip64) {
@@ -3769,23 +3783,30 @@
 			zipWriter.offset += fileEntry.length;
 			return fileEntry;
 		} catch (error) {
-			if ((bufferedWrite && writingBufferedData) || (!bufferedWrite && fileEntry.dataWritten)) {
+			if ((bufferedWrite && bufferedDataWritten) || (!bufferedWrite && fileEntry.dataWritten)) {
 				error.corruptedEntry = zipWriter.hasCorruptedEntries = true;
 				zipWriter.offset += fileWriter.size;
 			}
 			files.delete(name);
 			throw error;
 		} finally {
-			resolveLockCurrentFileEntry();
+			if (releaseLockCurrentFileEntry) {
+				releaseLockCurrentFileEntry();
+			}
 			if (releaseLockWriter) {
 				releaseLockWriter();
 			}
 		}
 
-		async function lockWriter() {
-			if (zipWriter.lockWriter) {
-				await zipWriter.lockWriter.then(() => delete zipWriter.lockWriter);
-				await lockWriter();
+		function requestLockCurrentFileEntry() {
+			fileEntry.lock = new Promise(resolve => releaseLockCurrentFileEntry = resolve);
+		}
+
+		async function requestLockWriter() {
+			const { lockWriter } = zipWriter;
+			if (lockWriter) {
+				await lockWriter.then(() => delete zipWriter.lockWriter);
+				return requestLockWriter();
 			} else {
 				zipWriter.lockWriter = new Promise(resolve => releaseLockWriter = resolve);
 			}
@@ -3927,7 +3948,7 @@
 		const rawLastModDate = dateArray[0];
 		setUint32(headerView, 6, rawLastModDate);
 		setUint16(headerView, 22, rawFilename.length);
-		const extraFieldLength = rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length + fileEntry.rawExtraField.length;
+		const extraFieldLength = rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length + rawExtraField.length;
 		setUint16(headerView, 24, extraFieldLength);
 		const localHeaderArray = new Uint8Array(30 + rawFilename.length + extraFieldLength);
 		const localHeaderView = getDataView(localHeaderArray);
@@ -3937,16 +3958,16 @@
 		arraySet(localHeaderArray, rawExtraFieldAES, 30 + rawFilename.length);
 		arraySet(localHeaderArray, rawExtraFieldExtendedTimestamp, 30 + rawFilename.length + rawExtraFieldAES.length);
 		arraySet(localHeaderArray, rawExtraFieldNTFS, 30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length);
-		arraySet(localHeaderArray, fileEntry.rawExtraField, 30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length);
+		arraySet(localHeaderArray, rawExtraField, 30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length);
 		let result;
 		let compressedSize = 0;
 		if (reader) {
+			reader.chunkSize = getChunkSize(config);
 			await writeUint8Array(writable, localHeaderArray);
 			fileEntry.dataWritten = pendingFileEntry.dataWritten = true;
 			const size = () => reader.size;
 			const readable = reader.readable;
 			readable.size = size;
-			readable.chunkSize = getChunkSize(config);
 			const workerOptions = {
 				options: {
 					codecType: CODEC_DEFLATE,
@@ -4016,7 +4037,15 @@
 			await writeUint8Array(writable, dataDescriptorArray);
 		}
 		const length = localHeaderArray.length + compressedSize + dataDescriptorArray.length;
-		Object.assign(fileEntry, { compressedSize, lastModDate, rawLastModDate, creationDate, lastAccessDate, encrypted, length });
+		Object.assign(fileEntry, {
+			compressedSize,
+			lastModDate,
+			rawLastModDate,
+			creationDate,
+			lastAccessDate,
+			encrypted,
+			length
+		});
 		return fileEntry;
 	}
 
