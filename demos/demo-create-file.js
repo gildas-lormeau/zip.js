@@ -14,7 +14,7 @@
 		return {
 			addFile(file, options) {
 				if (!zipWriter) {
-					zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
+					zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"), { bufferedWrite: true });
 				}
 				return zipWriter.add(file.name, new zip.BlobReader(file), options);
 			},
