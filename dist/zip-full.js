@@ -7330,7 +7330,7 @@
 			const extractPrependedData = getOptionValue$1(zipReader, options, "extractPrependedData");
 			const extractAppendedData = getOptionValue$1(zipReader, options, "extractAppendedData");
 			if (extractPrependedData) {
-				zipReader.prependedData = await readUint8Array(reader, 0, startOffset);
+				zipReader.prependedData = startOffset > 0 ? await readUint8Array(reader, 0, startOffset) : new Uint8Array();
 			}
 			zipReader.comment = commentLength ? await readUint8Array(reader, commentOffset + END_OF_CENTRAL_DIR_LENGTH, commentLength) : new Uint8Array();
 			if (extractAppendedData) {
