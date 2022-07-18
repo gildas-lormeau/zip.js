@@ -109,7 +109,7 @@ export default [{
 	}],
 	plugins: [nodeResolve()]
 }, {
-	input: "lib/z-worker.js",
+	input: "lib/z-worker-fflate.js",
 	output: [{
 		intro: GLOBALS_WORKER,
 		file: "dist/z-worker.js",
