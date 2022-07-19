@@ -3,7 +3,7 @@
 /* global Deno, fetch, URL, TextEncoderStream */
 
 import { parse as parseArgs } from "https://deno.land/std@0.147.0/flags/mod.ts";
-import { fromFileUrl, normalize as normalizePath, resolve as resolvePath, extname } from "https://deno.land/std@0.147.0/path/mod.ts";
+import { normalize as normalizePath, resolve as resolvePath, extname } from "https://deno.land/std@0.147.0/path/mod.ts";
 import { configure, ZipWriter, terminateWorkers } from "../index.js";
 
 const args = parseArgs(Deno.args);
