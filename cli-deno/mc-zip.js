@@ -99,8 +99,6 @@ async function getFileInfo(file, options) {
 		if (!extname(name)) {
 			name += ".html";
 		}
-	} else if (file.startsWith("file:")) {
-		name = fromFileUrl(file);
 	} else {
 		name = file;
 		resolvedName = resolvePath(name);
