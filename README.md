@@ -27,7 +27,7 @@ const zipBlob = await promiseZipBlob;
 // Reads the Blob object with a BlobReader object
 const zipReader = new ZipReader(new BlobReader(zipBlob));
 // Retrieves metadata of the first entry in the zip file
-const firstEntry = (await zipReader.getEntries())[0];
+const firstEntry = (await zipReader.getEntries()).shift();
 // Creates a TransformStream object where the entry content will be written
 const dataStream = new TransformStream();
 // Creates a promise resolved to the entry content as text 
