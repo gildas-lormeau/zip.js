@@ -17,7 +17,7 @@ const helloWorldReadable = new Blob(["Hello world!"], { type: "text/plain" }).st
 
 // Creates a ZipWriter object writing data into zipStream
 const zipWriter = new ZipWriter(zipStream);
-// Adds the file "hello.txt" in the zip and close the writer
+// Adds the file "hello.txt" in the zip and closes the writer
 await zipWriter.add("hello.txt", { readable: helloWorldReadable });
 await zipWriter.close();
 
@@ -33,7 +33,7 @@ const dataStream = new TransformStream();
 // Creates a promise resolved to the entry content as text 
 const promiseTextData = new Response(dataStream.readable).text();
 
-// Retrieves the entry content and close the reader
+// Retrieves the entry content and closes the reader
 await firstEntry.getData(dataStream);
 await zipReader.close();
 
