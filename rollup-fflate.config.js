@@ -1,3 +1,5 @@
+// You must install fflate (e.g. npm i fflate) before running this script
+
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import replace from "@rollup/plugin-replace";
 import { terser } from "rollup-plugin-terser";
