@@ -33,6 +33,7 @@ await firstEntry.getData(dataStream);
 console.log(await new Response(dataStream.readable).text());
 
 function createTransformStream() {
+    // For testing purposes, the stream must read as much data as possible 
     return new TransformStream({}, null, { highWaterMark: Infinity });
 }
 ```
