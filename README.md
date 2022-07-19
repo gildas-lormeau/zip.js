@@ -18,7 +18,7 @@ const zipWriter = new ZipWriter(zipStream);
 await zipWriter.add("hello.txt", { readable: helloWorldReadable });
 await zipWriter.close();
 
-// Retrieves the content of the zip as a Blob object
+// Retrieves the zip as a Blob object
 const zipBlob = await new Response(zipStream.readable).blob();
 
 // Reads the Blob object with a BlobReader object
