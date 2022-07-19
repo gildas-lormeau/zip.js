@@ -7459,7 +7459,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	/* global Blob, atob, btoa, XMLHttpRequest, URL, fetch, ReadableStream, WritableStream */
+	/* global Blob, atob, btoa, XMLHttpRequest, URL, fetch, ReadableStream, WritableStream, FileReader */
 
 	const ERR_HTTP_STATUS = "HTTP error ";
 	const ERR_HTTP_RANGE = "HTTP Range not supported";
@@ -7569,7 +7569,16 @@
 
 		getData() {
 			const writer = this;
-			return writer.blob.text();
+			if (writer.blob.text && (writer.encoding === undefined || (writer.encoding && writer.encoding.toLowerCase() == "utf-8"))) {
+				return writer.blob.text();
+			} else {
+				const reader = new FileReader();
+				return new Promise((resolve, reject) => {
+					reader.onload = event => resolve(event.target.result);
+					reader.onerror = () => reject(reader.error);
+					reader.readAsText(writer.blob, writer.encoding);
+				});
+			}
 		}
 	}
 
