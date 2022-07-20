@@ -1861,7 +1861,6 @@
 	const MESSAGE_PULL = "pull";
 	const MESSAGE_DATA = "data";
 	const MESSAGE_CLOSE = "close";
-	const ERR_ABORT = "AbortError";
 
 	class Codec {
 
@@ -2129,7 +2128,7 @@
 	let indexWorker = 0;
 
 	async function runWorker(stream, workerOptions) {
-		const { options, config, streamOptions } = workerOptions;
+		const { options, config } = workerOptions;
 		const streamCopy = !options.compressed && !options.signed && !options.encrypted;
 		const { useWebWorkers, useCompressionStream, codecType } = options;
 		const { workerScripts } = config;
@@ -2151,16 +2150,7 @@
 				worker = await new Promise(resolve => pendingRequests.push({ resolve, stream, workerOptions }));
 			}
 		}
-		try {
-			return await worker.run();
-		} catch (error) {
-			const { signal } = streamOptions;
-			if (signal && signal.aborted && (signal.reason == error || error.name == ERR_ABORT)) {
-				throw new Error(ERR_ABORT);
-			} else {
-				throw error;
-			}
-		}
+		return worker.run();
 
 		function onTaskFinished(workerData) {
 			if (pendingRequests.length) {
@@ -2228,7 +2218,6 @@
 
 	const ERR_HTTP_STATUS = "HTTP error ";
 	const ERR_HTTP_RANGE = "HTTP Range not supported";
-	const ERR_NOT_SEEKABLE_READER = "Reader is not seekable";
 
 	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
@@ -2461,32 +2450,6 @@
 	function flushArrayBuffers(blobWriter) {
 		blobWriter.pendingBlob = new Blob([blobWriter.pendingBlob, ...blobWriter.arrayBuffers], { type: blobWriter.contentType });
 		blobWriter.arrayBuffers = [];
-	}
-
-	class ReadableStreamReader extends Stream {
-
-		constructor(readable) {
-			super();
-			if (!readable) {
-				this.readable = new ReadableStream({});
-			}
-		}
-	}
-
-	class WritableStreamWriter extends Writer {
-
-		constructor(writable, { preventClose } = {}) {
-			super();
-			this.preventClose = preventClose;
-			if (!writable) {
-				writable = new WritableStream({});
-			}
-			Object.defineProperty(this, "writable", {
-				get() {
-					return writable;
-				}
-			});
-		}
 	}
 
 	class FetchReader extends Reader {
@@ -4275,7 +4238,6 @@
 	exports.BlobWriter = BlobWriter;
 	exports.Data64URIReader = Data64URIReader;
 	exports.Data64URIWriter = Data64URIWriter;
-	exports.ERR_ABORT = ERR_ABORT;
 	exports.ERR_BAD_FORMAT = ERR_BAD_FORMAT;
 	exports.ERR_CENTRAL_DIRECTORY_NOT_FOUND = ERR_CENTRAL_DIRECTORY_NOT_FOUND;
 	exports.ERR_DUPLICATED_NAME = ERR_DUPLICATED_NAME;
@@ -4295,19 +4257,16 @@
 	exports.ERR_INVALID_SIGNATURE = ERR_INVALID_SIGNATURE;
 	exports.ERR_INVALID_VERSION = ERR_INVALID_VERSION;
 	exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
-	exports.ERR_NOT_SEEKABLE_READER = ERR_NOT_SEEKABLE_READER;
 	exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION;
 	exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
 	exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
 	exports.HttpRangeReader = HttpRangeReader;
 	exports.HttpReader = HttpReader;
-	exports.ReadableStreamReader = ReadableStreamReader;
 	exports.Reader = Reader;
 	exports.TextReader = TextReader;
 	exports.TextWriter = TextWriter;
 	exports.Uint8ArrayReader = Uint8ArrayReader;
 	exports.Uint8ArrayWriter = Uint8ArrayWriter;
-	exports.WritableStreamWriter = WritableStreamWriter;
 	exports.Writer = Writer;
 	exports.ZipReader = ZipReader;
 	exports.ZipWriter = ZipWriter;
