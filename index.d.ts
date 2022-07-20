@@ -269,7 +269,7 @@ export class ZipEntry {
 interface ZipFileEntryConstructorParams<ReaderType, WriterType> extends ZipEntryConstructorParams {
     reader: Reader<ReaderType>;
     writer: Writer<WriterType> | WritableWriter;
-    getData?(writer: Writer<WriterType> | WritableWriter, options?: EntryGetDataOptions): Promise<WriterType>;
+    getData?(writer: Writer<WriterType> | WritableWriter, options?: EntryGetDataOptions): Promise<WriterType> | WritableStream;
 }
 
 export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
@@ -280,7 +280,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
     getBlob(mimeType?: string, options?: EntryGetDataOptions): Promise<Blob>;
     getData64URI(mimeType?: string, options?: EntryGetDataOptions): Promise<string>;
     getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
-    getData(writer: Writer<WriterType> | WritableWriter, options?: EntryGetDataOptions): Promise<WriterType>;
+    getData(writer: Writer<WriterType> | WritableWriter, options?: EntryGetDataOptions): Promise<WriterType> | WritableStream;
     replaceBlob(blob: Blob): void;
     replaceText(text: string): void;
     replaceData64URI(dataURI: string): void;
