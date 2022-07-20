@@ -15,7 +15,7 @@ import { ZipWriter, ZipReader, BlobReader } from "https://deno.land/x/zipjs/inde
 // Creates a TransformStream object where the zip content will be written.
 const zipStream = new TransformStream();
 // Creates a Promise object resolved to the zip content returned as a Blob object.
-const promiseZipBlob = new Response(zipStream.readable).blob();
+const zipBlobPromise = new Response(zipStream.readable).blob();
 // Creates a ReadableStream object containing the text of the entry to add in the zip.
 const helloWorldReadable = new Blob(["Hello world!"], { type: "text/plain" }).stream();
 
@@ -26,7 +26,7 @@ await zipWriter.add("hello.txt", { readable: helloWorldReadable });
 await zipWriter.close();
 
 // Retrieves the Blob object containing the zip content.
-const zipBlob = await promiseZipBlob;
+const zipBlob = await zipBlobPromise;
 
 // ----
 // Read the zip file
@@ -35,7 +35,7 @@ const zipBlob = await promiseZipBlob;
 // Creates a TransformStream object where the content of the first entry in the zip will be written.
 const dataStream = new TransformStream();
 // Creates a Promise object resolved to the first entry content returned as text.
-const promiseTextData = new Response(dataStream.readable).text();
+const textDataPromise = new Response(dataStream.readable).text();
 
 // Reads zipBlob via a BlobReader object, retrieves metadata (name, date, etc.) of the first entry, 
 // retrieves its content via dataStream, and closes the reader.
@@ -47,6 +47,6 @@ await firstEntry.getData(dataStream);
 await zipReader.close();
 
 // Displays "Hello world!".
-console.log(await promiseTextData);
+console.log(await textDataPromise);
 ```
 See here for more examples: https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
