@@ -32,7 +32,7 @@ const zipBlob = await promiseZipBlob;
 // Read the zip file
 // ----
 
-// Creates a TransformStream object where the content of teh first entry will be written.
+// Creates a TransformStream object where the content of the first entry will be written.
 const dataStream = new TransformStream();
 // Creates a Promise object resolved to the first entry content returned as text.
 const promiseTextData = new Response(dataStream.readable).text();
