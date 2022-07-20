@@ -25,8 +25,8 @@ await zipWriter.close();
 const zipBlob = await promiseZipBlob;
 
 // Reads zipBlob with a BlobReader object
-// Note: it is not possible to use a ReadableStream object to read a zip because random access 
-// to data is required
+// Note: it is *not* possible to use a ReadableStream object to read a zip because random access 
+// to data is required to fetch entries reliably
 const zipReader = new ZipReader(new BlobReader(zipBlob));
 
 // Retrieves metadata of the first entry in the zip file
