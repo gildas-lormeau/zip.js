@@ -102,12 +102,6 @@ interface HttpRangeOptions {
     headers?: Iterable<[string, string]> | Map<string, string>;
 }
 
-export class ReadableStreamReader<Type extends ReadableStream<any>> implements DataProcessor, ReadableReader {
-    constructor(readable?: Type);
-    readable: Type;
-    size: number;
-}
-
 interface WritableWriter {
     writable: WritableStream<any>;
 }
@@ -133,10 +127,6 @@ export class Data64URIWriter extends Writer<string> {
 
 export class Uint8ArrayWriter extends Writer<Uint8Array> {
     constructor();
-}
-
-export class WritableStreamWriter<Type extends WritableStream> extends Writer<Type> implements WritableWriter {
-    constructor(writable?: Type, options?: WritableStreamWriterConstructorOptions);
 }
 
 interface WritableStreamWriterConstructorOptions {
@@ -207,7 +197,7 @@ type EntryGetDataOptions = EntryDataOnprogressOption & ZipReaderOptions;
 export class ZipWriter<Type> {
     constructor(writer: Writer<Type> | WritableWriter, options?: ZipWriterConstructorOptions);
     readonly hasCorruptedEntries?: boolean;
-    public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableStreamReader<ReadableStream> | ReadableReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
+    public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
     public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
 }
 
