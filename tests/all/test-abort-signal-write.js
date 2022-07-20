@@ -21,7 +21,7 @@ async function test() {
 		});
 		await zipWriter.close();
 	} catch (error) {
-		if (error.message == zip.ERR_ABORT) {
+		if (signal.reason == error) {
 			zip.terminateWorkers();
 			return true;
 		} else {
