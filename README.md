@@ -46,6 +46,6 @@ const firstEntry = (await zipReader.getEntries()).shift();
 await firstEntry.getData(dataStream);
 await zipReader.close();
 
-// Displays "Hello world!"
+// Displays "Hello world!".
 console.log(await promiseTextData);
 ```
