@@ -49,3 +49,4 @@ await zipReader.close();
 // Displays "Hello world!".
 console.log(await promiseTextData);
 ```
+See here for more examples: https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
