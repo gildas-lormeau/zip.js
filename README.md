@@ -10,7 +10,7 @@ import { ZipWriter, ZipReader, BlobReader } from "https://deno.land/x/zipjs/inde
 
 // Creates a TransformStream object where the zip file will be written
 const zipStream = new TransformStream();
-// Creates a Promise object resolved to a Blob object containing the zip file 
+// Creates a Promise object resolved to the zip file returned as a Blob object 
 const promiseZipBlob = new Response(zipStream.readable).blob();
 // Creates a ReadableStream object containing the text of the file to compress
 const helloWorldReadable = new Blob(["Hello world!"], { type: "text/plain" }).stream();
