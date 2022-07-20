@@ -19,11 +19,13 @@ const zipBlobPromise = new Response(zipStream.readable).blob();
 // Creates a ReadableStream object containing the text of the entry to add in the zip.
 const helloWorldReadable = new Blob(["Hello world!"], { type: "text/plain" }).stream();
 
+
 // Creates a ZipWriter object writing data via zipStream, adds the file "hello.txt" containing
 // the text "Hello world!" via helloWorldReadable in the zip, and closes the writer.
 const zipWriter = new ZipWriter(zipStream);
 await zipWriter.add("hello.txt", { readable: helloWorldReadable });
 await zipWriter.close();
+
 
 // Retrieves the Blob object containing the zip content.
 const zipBlob = await zipBlobPromise;
@@ -37,6 +39,7 @@ const dataStream = new TransformStream();
 // Creates a Promise object resolved to the first entry content returned as text.
 const textDataPromise = new Response(dataStream.readable).text();
 
+
 // Reads zipBlob via a BlobReader object, retrieves metadata (name, date, etc.) of the first entry, 
 // retrieves its content via dataStream, and closes the reader.
 // Note: it is *not* possible to use a ReadableStream object to read a zip because random access 
@@ -45,6 +48,7 @@ const zipReader = new ZipReader(new BlobReader(zipBlob));
 const firstEntry = (await zipReader.getEntries()).shift();
 await firstEntry.getData(dataStream);
 await zipReader.close();
+
 
 // Displays "Hello world!".
 const textData = await textDataPromise;
