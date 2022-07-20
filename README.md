@@ -9,7 +9,7 @@ https://gildas-lormeau.github.io/zip.js/
 import { ZipWriter, ZipReader, BlobReader } from "https://deno.land/x/zipjs/index.js";
 
 // ----
-// Writes the zip file
+// Write the zip file
 // ----
 
 // Creates a TransformStream object where the zip content will be written.
@@ -25,11 +25,11 @@ const zipWriter = new ZipWriter(zipStream);
 await zipWriter.add("hello.txt", { readable: helloWorldReadable });
 await zipWriter.close();
 
-// Retrieves the Blob object containing the zip file
+// Retrieves the Blob object containing the zip file.
 const zipBlob = await promiseZipBlob;
 
 // ----
-// Reads the zip file
+// Read the zip file
 // ----
 
 // Creates a TransformStream object where the content of teh first entry will be written.
