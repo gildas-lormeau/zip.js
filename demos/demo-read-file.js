@@ -143,7 +143,7 @@
 					const clickEvent = new MouseEvent("click");
 					a.dispatchEvent(clickEvent);
 				} catch (error) {
-					if (error.message != zip.ERR_ABORT) {
+					if (signal.reason != error) {
 						throw error;
 					}
 				} finally {
