@@ -40,7 +40,7 @@ const textDataPromise = new Response(dataStream.readable).text();
 // Reads zipBlob via a BlobReader object, retrieves metadata (name, date, etc.) of the first entry, 
 // retrieves its content via dataStream, and closes the reader.
 // Note: it is *not* possible to use a ReadableStream object to read a zip because random access 
-// to data is required to fetch entries reliably.
+// to data is required to fetch entries reliably and efficiently.
 const zipReader = new ZipReader(new BlobReader(zipBlob));
 const firstEntry = (await zipReader.getEntries()).shift();
 await firstEntry.getData(dataStream);
