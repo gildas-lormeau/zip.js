@@ -44,23 +44,23 @@ const zipBlob = await zipBlobPromise;
 // ----
 
 // Creates a TransformStream object where the content of the first entry in the zip will be written.
-const dataStream = new TransformStream();
+const contentStream = new TransformStream();
 // Creates a Promise object resolved to the first entry content returned as text.
-const textDataPromise = new Response(dataStream.readable).text();
+const contentTextPromise = new Response(contentStream.readable).text();
 
 
 // Reads zipBlob via a BlobReader object, retrieves metadata (name, date, etc.) of the first entry, 
-// retrieves its content via dataStream, and closes the reader.
+// retrieves its content via contentStream, and closes the reader.
 // Note: it is *not* possible to use a ReadableStream object to read a zip because random access 
 // to data is required to fetch entries reliably and efficiently.
 const zipReader = new ZipReader(new BlobReader(zipBlob));
 const firstEntry = (await zipReader.getEntries()).shift();
-await firstEntry.getData(dataStream);
+await firstEntry.getData(contentStream);
 await zipReader.close();
 
 
 // Displays "Hello world!".
-const textData = await textDataPromise;
-console.log(textData);
+const contentText = await contentTextPromise;
+console.log(contentText);
 ```
 See here for more examples: https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
