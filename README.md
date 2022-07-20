@@ -49,7 +49,7 @@ const contentStream = new TransformStream();
 const contentTextPromise = new Response(contentStream.readable).text();
 
 
-// Reads zipBlob via a BlobReader object, retrieves metadata (name, date, etc.) of the first entry, 
+// Reads zipBlob via a BlobReader object, retrieves metadata (name, dates, etc.) of the first entry, 
 // retrieves its content via contentStream, and closes the reader.
 // Note: it is *not* possible to use a ReadableStream object to read a zip because random access 
 // to data is required to fetch entries reliably and efficiently.
