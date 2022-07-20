@@ -30,6 +30,7 @@ await zipWriter.close();
 // Retrieves the Blob object containing the zip content.
 const zipBlob = await zipBlobPromise;
 
+
 // ----
 // Read the zip file
 // ----
