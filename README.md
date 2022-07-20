@@ -30,6 +30,12 @@ await zipWriter.close();
 // Retrieves the Blob object containing the zip content.
 const zipBlob = await zipBlobPromise;
 
+// Uncomment the following code if you run to donwload the zip file (in a browser)
+// const anchorElement = document.createElement("a");
+// anchorElement.href = URL.createObjectURL(zipBlob);
+// anchorElement.download = "hello.zip";
+// anchorElement.click();
+
 
 // ----
 // Read the zip file
