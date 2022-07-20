@@ -4,7 +4,7 @@ See here for more info:
 https://gildas-lormeau.github.io/zip.js/
 
 ```js
-// Hello world with zip.js (and Streams).
+// Hello world with zip.js (and Streams)
 
 import { ZipWriter, ZipReader, BlobReader } from "https://deno.land/x/zipjs/index.js";
 
@@ -34,7 +34,7 @@ const firstEntry = (await zipReader.getEntries()).shift();
 
 // Creates a TransformStream object where the entry content will be written
 const dataStream = new TransformStream();
-// Creates a Promise object resolved to the entry content as text 
+// Creates a Promise object resolved to the entry content returned as text 
 const promiseTextData = new Response(dataStream.readable).text();
 
 // Retrieves the entry content and closes the reader
