@@ -47,6 +47,7 @@ await firstEntry.getData(dataStream);
 await zipReader.close();
 
 // Displays "Hello world!".
-console.log(await textDataPromise);
+const textData = await textDataPromise;
+console.log(textData);
 ```
 See here for more examples: https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
