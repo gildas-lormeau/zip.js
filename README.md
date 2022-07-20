@@ -15,7 +15,7 @@ const promiseZipBlob = new Response(zipStream.readable).blob();
 // Creates a ReadableStream object containing the text of the file to compress
 const helloWorldReadable = new Blob(["Hello world!"], { type: "text/plain" }).stream();
 
-// Creates a ZipWriter object writing data into zipStream
+// Creates a ZipWriter object writing data via zipStream
 const zipWriter = new ZipWriter(zipStream);
 // Adds the file "hello.txt" in the zip and closes the writer
 await zipWriter.add("hello.txt", { readable: helloWorldReadable });
@@ -37,7 +37,7 @@ const dataStream = new TransformStream();
 // Creates a Promise object resolved to the entry content returned as text 
 const promiseTextData = new Response(dataStream.readable).text();
 
-// Retrieves the entry content and closes the reader
+// Retrieves the entry content via dataStream and closes the reader
 await firstEntry.getData(dataStream);
 await zipReader.close();
 
