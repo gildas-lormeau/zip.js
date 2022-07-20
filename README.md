@@ -25,14 +25,14 @@ const zipWriter = new ZipWriter(zipStream);
 await zipWriter.add("hello.txt", { readable: helloWorldReadable });
 await zipWriter.close();
 
-// Retrieves the Blob object containing the zip file.
+// Retrieves the Blob object containing the zip content.
 const zipBlob = await promiseZipBlob;
 
 // ----
 // Read the zip file
 // ----
 
-// Creates a TransformStream object where the content of the first entry will be written.
+// Creates a TransformStream object where the content of the first entry in the zip will be written.
 const dataStream = new TransformStream();
 // Creates a Promise object resolved to the first entry content returned as text.
 const promiseTextData = new Response(dataStream.readable).text();
