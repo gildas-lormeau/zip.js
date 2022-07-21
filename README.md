@@ -51,7 +51,7 @@ const contentTextPromise = new Response(contentStream.readable).text();
 
 // Reads zipBlob via a BlobReader object, retrieves metadata (name, dates, etc.) of the first entry, 
 // retrieves its content via contentStream, and closes the reader.
-const zipReader = new ZipReader({ readabable: zipStream.readable }));
+const zipReader = new ZipReader(new BlobReader(zipBlob));
 const firstEntry = (await zipReader.getEntries()).shift();
 await firstEntry.getData(contentStream);
 await zipReader.close();
