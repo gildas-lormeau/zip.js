@@ -12,7 +12,7 @@ async function test() {
 	const readable = (await fetch(new URL("../data/lorem.zip", import.meta.url))).body;
 	const zipReader = new zip.ZipReader({ readable });
 	const entries = await zipReader.getEntries();
-	const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
+	const data = await entries[0].getData(new zip.BlobWriter());
 	await zipReader.close();
 	zip.terminateWorkers();
 	return TEXT_CONTENT == (await data.text()) && entries[0].uncompressedSize == TEXT_CONTENT.length && entries[0].filename == FILENAME;
