@@ -134,7 +134,7 @@ interface WritableStreamWriterConstructorOptions {
 }
 
 export class ZipReader<Type> {
-    constructor(reader: Reader<Type>, options?: ZipReaderConstructorOptions);
+    constructor(reader: Reader<Type> | ReadableReader, options?: ZipReaderConstructorOptions);
     comment: Uint8Array;
     prependedData?: Uint8Array;
     appendedData?: Uint8Array;
@@ -267,14 +267,14 @@ export class ZipEntry {
 }
 
 interface ZipFileEntryConstructorParams<ReaderType, WriterType> extends ZipEntryConstructorParams {
-    reader: Reader<ReaderType>;
+    reader: Reader<ReaderType> | ReadableReader;
     writer: Writer<WriterType> | WritableWriter;
     getData?(writer: Writer<WriterType> | WritableWriter, options?: EntryGetDataOptions): Promise<WriterType> | WritableStream;
 }
 
 export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
     constructor(fs: FS, name: string, params: ZipFileEntryConstructorParams<ReaderType, WriterType>, parent: ZipDirectoryEntry);
-    reader: Reader<ReaderType>;
+    reader: Reader<ReaderType> | ReadableReader;
     writer: Writer<WriterType> | WritableWriter;
     getText(encoding?: string, options?: EntryGetDataOptions): Promise<string>;
     getBlob(mimeType?: string, options?: EntryGetDataOptions): Promise<Blob>;
