@@ -8182,14 +8182,19 @@
 
 		async* getEntriesGenerator(options = {}) {
 			const zipReader = this;
-			const { reader, config } = zipReader;
-			if (!reader.initialized) {
+			let { reader } = zipReader;
+			const { config } = zipReader;
+			if (!reader.initialized && reader.init) {
 				await reader.init();
 			}
-			reader.chunkSize = getChunkSize(config);
+			if (reader.size === undefined || !reader.readUint8Array) {
+				const blob = await new Response(reader.readable).blob();
+				reader = new BlobReader(blob);
+			}
 			if (reader.size < END_OF_CENTRAL_DIR_LENGTH) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
+			reader.chunkSize = getChunkSize(config);
 			const endOfDirectoryInfo = await seekSignature(reader, END_OF_CENTRAL_DIR_SIGNATURE, reader.size, END_OF_CENTRAL_DIR_LENGTH, MAX_16_BITS * 16);
 			if (!endOfDirectoryInfo) {
 				throw new Error(ERR_EOCDR_NOT_FOUND);
