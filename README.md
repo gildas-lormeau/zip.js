@@ -12,29 +12,30 @@ import { ZipWriter, ZipReader, BlobReader } from "https://deno.land/x/zipjs/inde
 // Write the zip file
 // ----
 
-// Creates a TransformStream object where the zip content will be written.
-const zipBlobWriter = new TransformStream();
-// Creates a Promise object resolved to the zip content returned as a Blob object.
-const zipBlobPromise = new Response(zipBlobWriter.readable).blob();
-// Creates a Reader object containing a readable property. This property is a ReadableStream object 
-// storing the text of the entry to add in the zip (i.e. "Hello world!").
+// Creates a TransformStream object where the zip content will be written in the writable property.
+const zipFileWriter = new TransformStream();
+// Creates a Promise object resolved to the zip content returned as a Blob object via the readable
+// property of zipFileWriter.
+const zipFileBlobPromise = new Response(zipFileWriter.readable).blob();
+// Creates a Reader object containing a readable property. This property is set to a ReadableStream 
+// object  storing the text of the entry to add in the zip (i.e. "Hello world!").
 const helloWorldReader = { readable: new Blob(["Hello world!"]).stream() };
 
 
-// Creates a ZipWriter object writing data via zipBlobWriter, adds the file "hello.txt" containing
+// Creates a ZipWriter object writing data via zipFileWriter, adds the file "hello.txt" containing
 // the text "Hello world!" via helloWorldReader in the zip, and closes the writer.
-const zipWriter = new ZipWriter(zipBlobWriter);
+const zipWriter = new ZipWriter(zipFileWriter);
 await zipWriter.add("hello.txt", helloWorldReader);
 await zipWriter.close();
 
 
 // Retrieves the Blob object containing the zip content.
-const zipBlob = await zipBlobPromise;
+const zipFileBlob = await zipFileBlobPromise;
 
 // Uncomment the following code to download the zip file (in a browser)
 // 
 // const anchorElement = document.createElement("a");
-// anchorElement.href = URL.createObjectURL(zipBlob);
+// anchorElement.href = URL.createObjectURL(zipFileBlob);
 // anchorElement.download = "hello.zip";
 // anchorElement.click();
 // 
@@ -44,17 +45,20 @@ const zipBlob = await zipBlobPromise;
 // Read the zip file
 // ----
 
-// Creates a BlobReader object used to read zipBlob.
-const zipBlobReader = new BlobReader(zipBlob);
-// Creates a TransformStream object where the content of the first entry in the zip will be written.
+// Creates a BlobReader object used to read zipFileBlob.
+const zipFileReader = new BlobReader(zipFileBlob);
+// Creates a TransformStream object where the content of the first entry in the zip will be written
+// in the writable property.
 const helloWorldWriter = new TransformStream();
-// Creates a Promise object resolved to the first entry content returned as text.
+// Creates a Promise object resolved to the first entry content returned as text via the readable
+// property of helloWorldWriter.
 const helloWorldTextPromise = new Response(helloWorldWriter.readable).text();
 
 
-// Reads zipBlob via zipBlobReader, retrieves metadata (name, dates, etc.) of the first entry, 
-// retrieves its content via helloWorldWriter, and closes the reader.
-const zipReader = new ZipReader(zipBlobReader);
+// Reads a ZipReader object reading the zip content via zipFileReader, retrieves metadata (name, 
+// dates, etc.) of the first entry, retrieves its content via helloWorldWriter, and closes the 
+// reader.
+const zipReader = new ZipReader(zipFileReader);
 const firstEntry = (await zipReader.getEntries()).shift();
 await firstEntry.getData(helloWorldWriter);
 await zipReader.close();
