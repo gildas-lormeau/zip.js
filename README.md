@@ -55,7 +55,7 @@ const helloWorldWriter = new TransformStream();
 const helloWorldTextPromise = new Response(helloWorldWriter.readable).text();
 
 
-// Reads a ZipReader object reading the zip content via zipFileReader, retrieves metadata (name, 
+// Creates a ZipReader object reading the zip content via zipFileReader, retrieves metadata (name, 
 // dates, etc.) of the first entry, retrieves its content via helloWorldWriter, and closes the 
 // reader.
 const zipReader = new ZipReader(zipFileReader);
