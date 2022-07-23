@@ -22,7 +22,7 @@ const zipFileBlobPromise = new Response(zipFileWriter.readable).blob();
 const helloWorldReader = { readable: new Blob(["Hello world!"]).stream() };
 
 
-// Creates a ZipWriter object writing data via zipFileWriter, adds the file "hello.txt" containing
+// Creates a ZipWriter object writing data via zipFileWriter, adds the entry "hello.txt" containing
 // the text "Hello world!" via helloWorldReader in the zip, and closes the writer.
 const zipWriter = new ZipWriter(zipFileWriter);
 await zipWriter.add("hello.txt", helloWorldReader);
