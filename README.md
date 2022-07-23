@@ -51,6 +51,7 @@ const contentStream = new TransformStream();
 // Creates a Promise object resolved to the first entry content returned as text.
 const contentTextPromise = new Response(contentStream.readable).text();
 
+
 // Reads zipBlob via zipBlobReader, retrieves metadata (name, dates, etc.) of the first entry, 
 // retrieves its content via contentStream, and closes the reader.
 const zipReader = new ZipReader(zipBlobReader);
