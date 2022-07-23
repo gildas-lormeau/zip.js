@@ -18,7 +18,7 @@ const zipFileWriter = new TransformStream();
 // property of zipFileWriter.
 const zipFileBlobPromise = new Response(zipFileWriter.readable).blob();
 // Creates a Reader object containing a readable property. This property is set to a ReadableStream 
-// object  storing the text of the entry to add in the zip (i.e. "Hello world!").
+// object storing the text of the entry to add in the zip (i.e. "Hello world!").
 const helloWorldReader = { readable: new Blob(["Hello world!"]).stream() };
 
 
