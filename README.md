@@ -16,14 +16,15 @@ import { ZipWriter, ZipReader, BlobReader } from "https://deno.land/x/zipjs/inde
 const zipStream = new TransformStream();
 // Creates a Promise object resolved to the zip content returned as a Blob object.
 const zipBlobPromise = new Response(zipStream.readable).blob();
-// Creates a ReadableStream object containing the text of the entry to add in the zip.
-const helloWorldReadable = new Blob(["Hello world!"], { type: "text/plain" }).stream();
+// Creates a Reader object containing a readable property. This property is a ReadableStream object 
+// storing the text of the entry to add in the zip (i.e. "Hello world!").
+const helloWorldReader = { readable: new Blob(["Hello world!"]).stream() }
 
 
 // Creates a ZipWriter object writing data via zipStream, adds the file "hello.txt" containing
-// the text "Hello world!" via helloWorldReadable in the zip, and closes the writer.
+// the text "Hello world!" via helloWorldReader in the zip, and closes the writer.
 const zipWriter = new ZipWriter(zipStream);
-await zipWriter.add("hello.txt", { readable: helloWorldReadable });
+await zipWriter.add("hello.txt", helloWorldReader);
 await zipWriter.close();
 
 
@@ -47,11 +48,12 @@ const zipBlob = await zipBlobPromise;
 const contentStream = new TransformStream();
 // Creates a Promise object resolved to the first entry content returned as text.
 const contentTextPromise = new Response(contentStream.readable).text();
+// Creates a BlobReader object used to read zipBlob.
+const zipBlobReader = new BlobReader(zipBlob);
 
-
-// Reads zipBlob via a BlobReader object, retrieves metadata (name, dates, etc.) of the first entry, 
+// Reads zipBlob via zipBlobReader, retrieves metadata (name, dates, etc.) of the first entry, 
 // retrieves its content via contentStream, and closes the reader.
-const zipReader = new ZipReader(new BlobReader(zipBlob));
+const zipReader = new ZipReader(zipBlobReader);
 const firstEntry = (await zipReader.getEntries()).shift();
 await firstEntry.getData(contentStream);
 await zipReader.close();
