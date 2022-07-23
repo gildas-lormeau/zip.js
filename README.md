@@ -13,17 +13,17 @@ import { ZipWriter, ZipReader, BlobReader } from "https://deno.land/x/zipjs/inde
 // ----
 
 // Creates a TransformStream object where the zip content will be written.
-const zipStream = new TransformStream();
+const zipBlobWriter = new TransformStream();
 // Creates a Promise object resolved to the zip content returned as a Blob object.
-const zipBlobPromise = new Response(zipStream.readable).blob();
+const zipBlobPromise = new Response(zipBlobWriter.readable).blob();
 // Creates a Reader object containing a readable property. This property is a ReadableStream object 
 // storing the text of the entry to add in the zip (i.e. "Hello world!").
 const helloWorldReader = { readable: new Blob(["Hello world!"]).stream() };
 
 
-// Creates a ZipWriter object writing data via zipStream, adds the file "hello.txt" containing
+// Creates a ZipWriter object writing data via zipBlobWriter, adds the file "hello.txt" containing
 // the text "Hello world!" via helloWorldReader in the zip, and closes the writer.
-const zipWriter = new ZipWriter(zipStream);
+const zipWriter = new ZipWriter(zipBlobWriter);
 await zipWriter.add("hello.txt", helloWorldReader);
 await zipWriter.close();
 
@@ -47,16 +47,16 @@ const zipBlob = await zipBlobPromise;
 // Creates a BlobReader object used to read zipBlob.
 const zipBlobReader = new BlobReader(zipBlob);
 // Creates a TransformStream object where the content of the first entry in the zip will be written.
-const helloWorldStream = new TransformStream();
+const helloWorldWriter = new TransformStream();
 // Creates a Promise object resolved to the first entry content returned as text.
-const helloWorldTextPromise = new Response(helloWorldStream.readable).text();
+const helloWorldTextPromise = new Response(helloWorldWriter.readable).text();
 
 
 // Reads zipBlob via zipBlobReader, retrieves metadata (name, dates, etc.) of the first entry, 
-// retrieves its content via helloWorldStream, and closes the reader.
+// retrieves its content via helloWorldWriter, and closes the reader.
 const zipReader = new ZipReader(zipBlobReader);
 const firstEntry = (await zipReader.getEntries()).shift();
-await firstEntry.getData(helloWorldStream);
+await firstEntry.getData(helloWorldWriter);
 await zipReader.close();
 
 
