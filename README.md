@@ -44,12 +44,12 @@ const zipBlob = await zipBlobPromise;
 // Read the zip file
 // ----
 
+// Creates a BlobReader object used to read zipBlob.
+const zipBlobReader = new BlobReader(zipBlob);
 // Creates a TransformStream object where the content of the first entry in the zip will be written.
 const contentStream = new TransformStream();
 // Creates a Promise object resolved to the first entry content returned as text.
 const contentTextPromise = new Response(contentStream.readable).text();
-// Creates a BlobReader object used to read zipBlob.
-const zipBlobReader = new BlobReader(zipBlob);
 
 // Reads zipBlob via zipBlobReader, retrieves metadata (name, dates, etc.) of the first entry, 
 // retrieves its content via contentStream, and closes the reader.
