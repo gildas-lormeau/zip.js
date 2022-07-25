@@ -56,12 +56,12 @@ interface DataProcessor {
 }
 
 interface ReadableReader {
-    readable: ReadableStream<any>;
+    readable: ReadableStream;
 }
 
 export class Reader<Type> implements ReadableReader, DataProcessor {
     constructor(value: Type);
-    readable: ReadableStream<any>;
+    readable: ReadableStream;
     size: number;
     init?(): Promise<void>;
     readUint8Array(index: number, length: number): Promise<Uint8Array>;
@@ -99,11 +99,11 @@ interface HttpRangeOptions {
 }
 
 interface WritableWriter {
-    writable: WritableStream<any>;
+    writable: WritableStream;
 }
 
 export class Writer<Type> implements DataProcessor, WritableWriter {
-    writable: WritableStream<any>;
+    writable: WritableStream;
     size: number;
     init?(): Promise<void>;
     writeUint8Array(array: Uint8Array): Promise<void>;
