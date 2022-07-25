@@ -67,7 +67,7 @@ export class Reader<Type> implements RandomAccessReader, ReadableReader {
     constructor(value: Type);
     readable: ReadableStream<any>;
     size: number;
-    init(): Promise<void>;
+    init?(): Promise<void>;
     readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
