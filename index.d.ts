@@ -51,16 +51,19 @@ export interface Codec {
 export function getMimeType(fileExtension: string): string;
 
 interface DataProcessor {
-    init?(): Promise<void>;
     size: number;
+    init?(): Promise<void>;
 }
 
 interface ReadableReader {
     readable: ReadableStream<any>;
 }
 
-export class Reader<Type> implements ReadableReader {
+export class Reader<Type> implements ReadableReader, DataProcessor {
     constructor(value: Type);
+    readable: ReadableStream<any>;
+    size: number;
+    init?(): Promise<void>;
     readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
@@ -100,8 +103,11 @@ interface WritableWriter {
 }
 
 export class Writer<Type> implements DataProcessor, WritableWriter {
-    public writeUint8Array(array: Uint8Array): Promise<void>;
-    public getData(): Promise<Type>;
+    writable: WritableStream<any>;
+    size: number;
+    init?(): Promise<void>;
+    writeUint8Array(array: Uint8Array): Promise<void>;
+    getData(): Promise<Type>;
 }
 
 export class TextWriter extends Writer<string> {
@@ -188,8 +194,8 @@ type EntryGetDataOptions = EntryDataOnprogressOption & ZipReaderOptions;
 export class ZipWriter<Type> {
     constructor(writer: Writer<Type> | WritableWriter, options?: ZipWriterConstructorOptions);
     readonly hasCorruptedEntries?: boolean;
-    public add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
-    public close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
+    add<ReaderType>(name: string, reader: Reader<ReaderType> | ReadableReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>;
+    close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
 }
 
 type ZipWriterAddDataOptions = EntryDataOnprogressOption & AddDataOptions & ZipWriterConstructorOptions;
