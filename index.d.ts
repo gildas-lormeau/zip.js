@@ -59,7 +59,7 @@ interface ReadableReader {
     readable: ReadableStream<any>;
 }
 
-export class Reader<Type> implements RandomAccessReader, ReadableReader {
+export class Reader<Type> implements ReadableReader {
     constructor(value: Type);
     readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
