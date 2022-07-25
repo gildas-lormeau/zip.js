@@ -65,10 +65,6 @@ interface ReadableReader {
 
 export class Reader<Type> implements RandomAccessReader, ReadableReader {
     constructor(value: Type);
-    readable: ReadableStream<any>;
-    size: number;
-    init?(): Promise<void>;
-    readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
 export class TextReader extends Reader<string> {
@@ -107,8 +103,6 @@ interface WritableWriter {
 }
 
 export class Writer<Type> implements DataProcessor, WritableWriter {
-    writable: WritableStream<any>;
-    size: number;
     public writeUint8Array(array: Uint8Array): Promise<void>;
     public getData(): Promise<Type>;
 }
