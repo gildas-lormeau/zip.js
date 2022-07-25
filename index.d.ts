@@ -55,16 +55,13 @@ interface DataProcessor {
     size: number;
 }
 
-interface RandomAccessReader extends DataProcessor {
-    readUint8Array(index: number, length: number): Promise<Uint8Array>;
-}
-
 interface ReadableReader {
     readable: ReadableStream<any>;
 }
 
 export class Reader<Type> implements RandomAccessReader, ReadableReader {
     constructor(value: Type);
+    readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
 export class TextReader extends Reader<string> {
