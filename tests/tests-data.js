@@ -36,6 +36,7 @@ export default ([
 	{ title: "Readable Zip Stream", script: "./test-readable-zip-stream.js" },
 	{ title: "Safe closing", script: "./test-safe-closing.js" },
 	{ title: "Service worker", script: "./test-sw.js", env: "browser" },
+	{ title: "Signature CRC32", script: "./test-crc.js" },
 	{ title: "Store", script: "./test-store.js" },
 	{ title: "Worker timeout", script: "./test-worker-timeout.js" },
 	{ title: "Wrapped zip file", script: "./test-wrapped.js" },
