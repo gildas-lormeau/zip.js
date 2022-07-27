@@ -283,7 +283,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
     replaceText(text: string): void;
     replaceData64URI(dataURI: string): void;
     replaceUint8Array(array: Uint8Array): void;
-    replaceStream(writable: WritableStream, readable: ReadableStream): void
+    replaceReadable(readable: ReadableStream): void
 }
 
 interface ExportOptions {
