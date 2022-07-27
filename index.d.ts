@@ -277,11 +277,13 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
     getBlob(mimeType?: string, options?: EntryGetDataOptions): Promise<Blob>;
     getData64URI(mimeType?: string, options?: EntryGetDataOptions): Promise<string>;
     getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
+    getWritable(writable?: WritableStream, options?: EntryGetDataOptions): Promise<WritableStream>;
     getData(writer: Writer<WriterType> | WritableWriter, options?: EntryGetDataOptions): Promise<WriterType> | WritableStream;
     replaceBlob(blob: Blob): void;
     replaceText(text: string): void;
     replaceData64URI(dataURI: string): void;
     replaceUint8Array(array: Uint8Array): void;
+    replaceStream(writable: WritableStream, readable: ReadableStream): void
 }
 
 interface ExportOptions {
@@ -297,14 +299,17 @@ export class ZipDirectoryEntry extends ZipEntry {
     addData64URI(name: string, dataURI: string): ZipFileEntry<string, string>;
     addUint8Array(name: string, array: Uint8Array): ZipFileEntry<Uint8Array, Uint8Array>;
     addHttpContent(name: string, url: string, options?: HttpOptions): ZipFileEntry<string, string>;
+    addReadable(name: string, readable: ReadableStream): ZipFileEntry<ReadableStream, WritableStream>;
     addFileSystemEntry(fileSystemEntry: FileSystemEntry): Promise<ZipEntry>;
     importBlob(blob: Blob, options?: ZipReaderConstructorOptions): Promise<void>;
     importData64URI(dataURI: string, options?: ZipReaderConstructorOptions): Promise<void>;
     importUint8Array(array: Uint8Array, options?: ZipReaderConstructorOptions): Promise<void>;
     importHttpContent(url: string, options?: ZipDirectoryEntryImportHttpOptions): Promise<void>;
+    importReadable(readable: ReadableStream, options?: ZipDirectoryEntryImportHttpOptions): Promise<void>;
     exportBlob(options?: ZipDirectoryEntryExportOptions): Promise<Blob>;
     exportData64URI(options?: ZipDirectoryEntryExportOptions): Promise<string>;
     exportUint8Array(options?: ZipDirectoryEntryExportOptions): Promise<Uint8Array>;
+    exportWritable(writable?: WritableStream, options?: ZipDirectoryEntryExportOptions): Promise<Uint8Array>;
 }
 
 type ZipDirectoryEntryImportHttpOptions = ZipReaderConstructorOptions & HttpOptions;
