@@ -24,6 +24,7 @@
     ],
     "scripts": {
         "build": "./build.sh",
+        "dev": "npx rollup -c rollup.config.dev.js",
         "test": "cd ./tests && \"./run-tests.sh\""
     },
     "main": "index.js",
