@@ -17,6 +17,7 @@
         "encryption",
         "zip64",
         "web-streams",
+        "compression-streams",
         "web-crypto",
         "web-workers",
         "deno"
