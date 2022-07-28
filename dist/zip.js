@@ -2705,6 +2705,12 @@
 		return protocol == "http:" || protocol == "https:";
 	}
 
+	async function initStream(stream) {
+		if (stream.init && !stream.initialized) {
+			await stream.init();
+		}
+	}
+
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
@@ -2949,9 +2955,7 @@
 			const zipReader = this;
 			let { reader } = zipReader;
 			const { config } = zipReader;
-			if (!reader.initialized && reader.init) {
-				await reader.init();
-			}
+			await initStream(reader);
 			if (reader.size === undefined || !reader.readUint8Array) {
 				const blob = await new Response(reader.readable).blob();
 				reader = new BlobReader(blob);
@@ -3017,7 +3021,7 @@
 				throw new Error(ERR_BAD_FORMAT);
 			}
 			const filenameEncoding = getOptionValue$1(zipReader, options, "filenameEncoding");
-			const commentEncoding = getOptionValue$1(zipReader, options, "commentEncoding");	
+			const commentEncoding = getOptionValue$1(zipReader, options, "commentEncoding");
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
 				const fileEntry = new ZipEntry(reader, config, zipReader.options);
 				if (getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE) {
@@ -3155,9 +3159,7 @@
 			readable.size = size;
 			const { writable } = writer;
 			const signal = getOptionValue$1(zipEntry, options, "signal");
-			if (writer.init && !writer.initialized) {
-				await writer.init();
-			}
+			await initStream(writer);
 			const { onstart, onprogress, onend } = options;
 			const workerOptions = {
 				options: {
@@ -3617,9 +3619,7 @@
 		const internalFileAttribute = getOptionValue(zipWriter, options, "internalFileAttribute") || 0;
 		const externalFileAttribute = getOptionValue(zipWriter, options, "externalFileAttribute") || 0;
 		if (reader) {
-			if (reader.init && !reader.initialized) {
-				await reader.init();
-			}
+			await initStream(reader);
 			if (reader.size === undefined) {
 				options.dataDescriptor = true;
 			} else {
@@ -3716,9 +3716,7 @@
 				bufferedWrite = true;
 			} else {
 				zipWriter.lockWriter = Promise.resolve();
-				if (writer.init && !writer.initialized) {
-					await writer.init();
-				}
+				await initStream(writer);
 				fileWriter = writer;
 			}
 			fileEntry = await createFileEntry(reader, fileEntry, fileWriter.writable, zipWriter.config, options);
@@ -3744,7 +3742,7 @@
 						setUint32(arrayBufferView, 18, fileEntry.compressedSize);
 						setUint32(arrayBufferView, 22, fileEntry.uncompressedSize);
 					}
-					await writeUint8Array(writable, new Uint8Array(arrayBuffer));
+					await writeData(writable, new Uint8Array(arrayBuffer));
 					blob = blob.slice(headerLength);
 				}
 				await blob.stream().pipeTo(writable, { preventClose: true, signal });
@@ -3940,7 +3938,7 @@
 		let compressedSize = 0;
 		if (reader) {
 			reader.chunkSize = getChunkSize(config);
-			await writeUint8Array(writable, localHeaderArray);
+			await writeData(writable, localHeaderArray);
 			fileEntry.dataWritten = pendingFileEntry.dataWritten = true;
 			const size = () => reader.size;
 			const readable = reader.readable;
@@ -3967,7 +3965,7 @@
 			uncompressedSize = fileEntry.uncompressedSize = reader.size = readable.size();
 			compressedSize = result.size;
 		} else {
-			await writeUint8Array(writable, localHeaderArray);
+			await writeData(writable, localHeaderArray);
 			fileEntry.dataWritten = pendingFileEntry.dataWritten = true;
 		}
 		let dataDescriptorArray = new Uint8Array();
@@ -4011,7 +4009,7 @@
 			}
 		}
 		if (dataDescriptor) {
-			await writeUint8Array(writable, dataDescriptorArray);
+			await writeData(writable, dataDescriptorArray);
 		}
 		const length = localHeaderArray.length + compressedSize + dataDescriptorArray.length;
 		Object.assign(fileEntry, {
@@ -4143,9 +4141,9 @@
 			}
 		}
 		const { writable } = zipWriter.writer;
-		await writeUint8Array(writable, directoryArray);
+		await writeData(writable, directoryArray);
 		if (comment && comment.length) {
-			await writeUint8Array(writable, comment);
+			await writeData(writable, comment);
 		}
 	}
 
@@ -4157,7 +4155,7 @@
 		}
 	}
 
-	async function writeUint8Array(writable, array) {
+	async function writeData(writable, array) {
 		const streamWriter = writable.getWriter();
 		await streamWriter.ready;
 		await streamWriter.write(array);
@@ -4278,6 +4276,7 @@
 	exports.configure = configure;
 	exports.getMimeType = getMimeType;
 	exports.initShimAsyncCodec = streamCodecShim;
+	exports.initStream = initStream;
 	exports.terminateWorkers = terminateWorkers;
 
 	Object.defineProperty(exports, '__esModule', { value: true });

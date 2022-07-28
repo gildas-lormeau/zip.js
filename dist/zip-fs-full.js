@@ -7940,6 +7940,12 @@
 		return protocol == "http:" || protocol == "https:";
 	}
 
+	async function initStream(stream) {
+		if (stream.init && !stream.initialized) {
+			await stream.init();
+		}
+	}
+
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
@@ -8184,9 +8190,7 @@
 			const zipReader = this;
 			let { reader } = zipReader;
 			const { config } = zipReader;
-			if (!reader.initialized && reader.init) {
-				await reader.init();
-			}
+			await initStream(reader);
 			if (reader.size === undefined || !reader.readUint8Array) {
 				const blob = await new Response(reader.readable).blob();
 				reader = new BlobReader(blob);
@@ -8252,7 +8256,7 @@
 				throw new Error(ERR_BAD_FORMAT);
 			}
 			const filenameEncoding = getOptionValue$1(zipReader, options, "filenameEncoding");
-			const commentEncoding = getOptionValue$1(zipReader, options, "commentEncoding");	
+			const commentEncoding = getOptionValue$1(zipReader, options, "commentEncoding");
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
 				const fileEntry = new ZipEntry$1(reader, config, zipReader.options);
 				if (getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE) {
@@ -8390,9 +8394,7 @@
 			readable.size = size;
 			const { writable } = writer;
 			const signal = getOptionValue$1(zipEntry, options, "signal");
-			if (writer.init && !writer.initialized) {
-				await writer.init();
-			}
+			await initStream(writer);
 			const { onstart, onprogress, onend } = options;
 			const workerOptions = {
 				options: {
@@ -8852,9 +8854,7 @@
 		const internalFileAttribute = getOptionValue(zipWriter, options, "internalFileAttribute") || 0;
 		const externalFileAttribute = getOptionValue(zipWriter, options, "externalFileAttribute") || 0;
 		if (reader) {
-			if (reader.init && !reader.initialized) {
-				await reader.init();
-			}
+			await initStream(reader);
 			if (reader.size === undefined) {
 				options.dataDescriptor = true;
 			} else {
@@ -8951,9 +8951,7 @@
 				bufferedWrite = true;
 			} else {
 				zipWriter.lockWriter = Promise.resolve();
-				if (writer.init && !writer.initialized) {
-					await writer.init();
-				}
+				await initStream(writer);
 				fileWriter = writer;
 			}
 			fileEntry = await createFileEntry(reader, fileEntry, fileWriter.writable, zipWriter.config, options);
@@ -8979,7 +8977,7 @@
 						setUint32(arrayBufferView, 18, fileEntry.compressedSize);
 						setUint32(arrayBufferView, 22, fileEntry.uncompressedSize);
 					}
-					await writeUint8Array(writable, new Uint8Array(arrayBuffer));
+					await writeData(writable, new Uint8Array(arrayBuffer));
 					blob = blob.slice(headerLength);
 				}
 				await blob.stream().pipeTo(writable, { preventClose: true, signal });
@@ -9175,7 +9173,7 @@
 		let compressedSize = 0;
 		if (reader) {
 			reader.chunkSize = getChunkSize(config);
-			await writeUint8Array(writable, localHeaderArray);
+			await writeData(writable, localHeaderArray);
 			fileEntry.dataWritten = pendingFileEntry.dataWritten = true;
 			const size = () => reader.size;
 			const readable = reader.readable;
@@ -9202,7 +9200,7 @@
 			uncompressedSize = fileEntry.uncompressedSize = reader.size = readable.size();
 			compressedSize = result.size;
 		} else {
-			await writeUint8Array(writable, localHeaderArray);
+			await writeData(writable, localHeaderArray);
 			fileEntry.dataWritten = pendingFileEntry.dataWritten = true;
 		}
 		let dataDescriptorArray = new Uint8Array();
@@ -9246,7 +9244,7 @@
 			}
 		}
 		if (dataDescriptor) {
-			await writeUint8Array(writable, dataDescriptorArray);
+			await writeData(writable, dataDescriptorArray);
 		}
 		const length = localHeaderArray.length + compressedSize + dataDescriptorArray.length;
 		Object.assign(fileEntry, {
@@ -9378,9 +9376,9 @@
 			}
 		}
 		const { writable } = zipWriter.writer;
-		await writeUint8Array(writable, directoryArray);
+		await writeData(writable, directoryArray);
 		if (comment && comment.length) {
-			await writeUint8Array(writable, comment);
+			await writeData(writable, comment);
 		}
 	}
 
@@ -9392,7 +9390,7 @@
 		}
 	}
 
-	async function writeUint8Array(writable, array) {
+	async function writeData(writable, array) {
 		const streamWriter = writable.getWriter();
 		await streamWriter.ready;
 		await streamWriter.write(array);
@@ -9464,8 +9462,6 @@
 	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
-
-	const CHUNK_SIZE = 512 * 1024;
 
 	class ZipEntry {
 
@@ -9539,13 +9535,13 @@
 			if (!writer || (writer.constructor == zipEntry.Writer && zipEntry.data)) {
 				return zipEntry.data;
 			} else {
-				zipEntry.reader = new zipEntry.Reader(zipEntry.data, options);
-				await zipEntry.reader.init();
-				if (writer.init && !writer.initialized) {
-					await writer.init();
-				}
-				zipEntry.uncompressedSize = zipEntry.reader.size;
-				return pipe(zipEntry.reader, writer);
+				const reader = zipEntry.reader = new zipEntry.Reader(zipEntry.data, options);
+				await Promise.all([initStream(reader), initStream(writer)]);
+				zipEntry.uncompressedSize = reader.size;
+				const readable = reader.readable;
+				readable.size = () => reader.size;
+				await readable.pipeTo(writer.writable);
+				return writer.getData ? writer.getData() : writer.writable;
 			}
 		}
 
@@ -9563,6 +9559,10 @@
 
 		getUint8Array(options) {
 			return this.getData(new Uint8ArrayWriter(), options);
+		}
+
+		getWritable(writable = new WritableStream(), options) {
+			return this.getData({ writable }, options);
 		}
 
 		replaceBlob(blob) {
@@ -9597,6 +9597,15 @@
 				data: array,
 				Reader: Uint8ArrayReader,
 				Writer: Uint8ArrayWriter,
+				reader: null
+			});
+		}
+
+		replaceReadable(readable) {
+			Object.assign(this, {
+				data: null,
+				Reader: function () { return { readable }; },
+				Writer: null,
 				reader: null
 			});
 		}
@@ -9656,6 +9665,12 @@
 			});
 		}
 
+		addReadable(name, readable) {
+			return addChild(this, name, {
+				Reader: function () { return { readable }; }
+			});
+		}
+
 		addFileSystemEntry(fileSystemEntry) {
 			return addFileSystemEntry(this, fileSystemEntry);
 		}
@@ -9680,6 +9695,10 @@
 			await this.importZip(new HttpReader(url, options), options);
 		}
 
+		async importReadable(readable, options = {}) {
+			await this.importZip({ readable }, options);
+		}
+
 		exportBlob(options = {}) {
 			return this.exportZip(new BlobWriter("application/zip"), options);
 		}
@@ -9692,10 +9711,13 @@
 			return this.exportZip(new Uint8ArrayWriter(), options);
 		}
 
+		async exportWritable(writable = new WritableStream(), options = {}) {
+			await this.exportZip({ writable }, options);
+			return writable;
+		}
+
 		async importZip(reader, options) {
-			if (!reader.initialized) {
-				await reader.init();
-			}
+			await initStream(reader);
 			const zipReader = new ZipReader(reader, options);
 			const entries = await zipReader.getEntries();
 			entries.forEach((entry) => {
@@ -9714,12 +9736,11 @@
 
 		async exportZip(writer, options) {
 			const zipEntry = this;
-			await initReaders(zipEntry);
-			await writer.init();
+			await Promise.all([initReaders(zipEntry), initStream(writer)]);
 			const zipWriter = new ZipWriter(writer, options);
 			await exportZip(zipWriter, zipEntry, getTotalSize([zipEntry], "uncompressedSize"), options);
 			await zipWriter.close();
-			return writer.getData();
+			return writer.getData ? writer.getData() : writer.writable;
 		}
 
 		getChildByName(name) {
@@ -9809,6 +9830,10 @@
 			return this.root.addHttpContent(name, url, options);
 		}
 
+		addReadable(name, readable) {
+			return this.root.addReadable(name, readable);
+		}
+
 		addFileSystemEntry(fileSystemEntry) {
 			return this.root.addFileSystemEntry(fileSystemEntry);
 		}
@@ -9832,12 +9857,25 @@
 			await this.root.importHttpContent(url, options);
 		}
 
+		async importReadable(readable, options) {
+			resetFS(this);
+			await this.root.importReadable(readable, options);
+		}
+
 		exportBlob(options) {
 			return this.root.exportBlob(options);
 		}
 
 		exportData64URI(options) {
 			return this.root.exportData64URI(options);
+		}
+
+		exportUint8Array(options) {
+			return this.root.exportUint8Array(options);
+		}
+
+		exportWritable(writable, options) {
+			return this.root.exportWritable(writable, options);
 		}
 	}
 
@@ -9866,6 +9904,7 @@
 			}
 
 			async init() {
+				super.init();
 				const zipBlobReader = this;
 				zipBlobReader.size = zipBlobReader.entry.uncompressedSize;
 				const data = await zipBlobReader.entry.getData(new BlobWriter(), Object.assign({}, zipBlobReader.options, options));
@@ -9885,9 +9924,9 @@
 				if (child.directory) {
 					await initReaders(child);
 				} else {
-					child.reader = new child.Reader(child.data);
-					await child.reader.init();
-					child.uncompressedSize = child.reader.size;
+					const reader = child.reader = new child.Reader(child.data);
+					await initStream(reader);
+					child.uncompressedSize = reader.size;
 				}
 			}
 		}
@@ -9994,21 +10033,6 @@
 	function resetFS(fs) {
 		fs.entries = [];
 		fs.root = new ZipDirectoryEntry(fs);
-	}
-
-	function pipe(reader, writer) {
-		return copyChunk();
-
-		async function copyChunk(chunkIndex = 0) {
-			const index = chunkIndex * CHUNK_SIZE;
-			if (index < reader.size) {
-				const array = await reader.readUint8Array(index, Math.min(CHUNK_SIZE, reader.size - index));
-				await writer.writeUint8Array(array);
-				return copyChunk(chunkIndex + 1);
-			} else {
-				return writer.getData();
-			}
-		}
 	}
 
 	function addChild(parent, name, params, directory) {
