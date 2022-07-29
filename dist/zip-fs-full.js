@@ -9097,6 +9097,7 @@
 			rawExtraFieldNTFS = rawExtraFieldExtendedTimestamp = new Uint8Array();
 		}
 		const fileEntry = {
+			lock: pendingFileEntry.lock,
 			version: version || VERSION_DEFLATE,
 			versionMadeBy,
 			zip64,
