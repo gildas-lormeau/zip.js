@@ -17,8 +17,8 @@ if (!location.search.startsWith("?keepTests")) {
 		if (!result.error) {
 			Array.from(document.querySelectorAll("tr")).find(row => row.dataset.script == result.script).remove();
 		}
-		indexTest++;
 		const test = tests[indexTest];
+		indexTest++;
 		if (test) {
 			addTest(test);
 		} else if (!document.querySelectorAll("tr").length) {
