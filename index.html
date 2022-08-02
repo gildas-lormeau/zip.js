@@ -84,6 +84,25 @@
 				<pre><code class="prettyprint">import * as zip from "https://deno.land/x/zipjs/index.js"</code></pre>
 			</li>
 		</ul>
+		<p>You can also install manually the library by adding <code>zip.min.js</code> from the
+			<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
+			directory in your project. If you don't want to use web workers, add <code>zip-full.min.js</code> instead.
+			Then, include <code>zip.min.js</code> (or <code>zip-full.min.js</code>) in your HTML page:
+		<ul>
+			<li>as a regular script
+				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/library_path/zip.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+// the zip API is in window.zip
+// ...
+&lt;/script&gt;</code></pre>
+			</li>
+			<li>or as an AMD module
+				<pre><code class="prettyprint">require(["/library_path/zip.min.js"], zip => {
+// ...
+});</code></pre>
+
+			</li>
+		</ul>
 		<div class="footer">
 			get the source code on GitHub : <a href="https://github.com/gildas-lormeau/zip.js">gildas-lormeau/zip.js</a>
 			- contact: gildas.lormeau &lt;at&gt; gmail.com
