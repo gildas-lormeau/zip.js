@@ -3042,7 +3042,7 @@
 					commentLength: getUint16(directoryView, offset + 32),
 					directory: msDosCompatible && ((getUint8(directoryView, offset + 38) & FILE_ATTR_MSDOS_DIR_MASK) == FILE_ATTR_MSDOS_DIR_MASK),
 					offset: getUint32(directoryView, offset + 42) + prependedDataLength,
-					internalFileAttribute: getUint32(directoryView, offset + 34),
+					internalFileAttribute: getUint16(directoryView, offset + 36),
 					externalFileAttribute: getUint32(directoryView, offset + 38),
 					rawFilename: directoryArray.subarray(filenameOffset, extraFieldOffset),
 					filenameUTF8: languageEncodingFlag,
@@ -4085,7 +4085,7 @@
 			arraySet(directoryArray, headerArray, offset + 6);
 			setUint16(directoryView, offset + 30, extraFieldLength);
 			setUint16(directoryView, offset + 32, rawComment.length);
-			setUint32(directoryView, offset + 34, internalFileAttribute);
+			setUint16(directoryView, offset + 36, internalFileAttribute);
 			if (externalFileAttribute) {
 				setUint32(directoryView, offset + 38, externalFileAttribute);
 			} else if (directory && msDosCompatible) {
