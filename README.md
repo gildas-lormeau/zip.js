@@ -1,15 +1,15 @@
-zip.js is an open-source library (BSD-3-Clause license) for zipping and unzipping files in the browser and Deno.
+zip.js is an open-source library (BSD-3-Clause license) for zipping and
+unzipping files in the browser and Deno .
 
-See here for more info:
-https://gildas-lormeau.github.io/zip.js/
+See here for more info: https://gildas-lormeau.github.io/zip.js/
 
 ```js
 // Hello world with zip.js (and Streams)
 
-import { 
-  ZipWriter, 
-  ZipReader, 
-  BlobReader
+import {
+  BlobReader,
+  ZipReader,
+  ZipWriter,
 } from "https://deno.land/x/zipjs/index.js";
 
 // ----
@@ -27,7 +27,6 @@ const zipFileBlobPromise = new Response(zipFileWriter.readable).blob();
 // zip (i.e. "Hello world!").
 const helloWorldReader = { readable: new Blob(["Hello world!"]).stream() };
 
-
 // Creates a ZipWriter object writing data via `zipFileWriter`, adds the entry
 // "hello.txt" containing the text "Hello world!" via `helloWorldReader` in the
 // zip, and closes the writer.
@@ -35,18 +34,16 @@ const zipWriter = new ZipWriter(zipFileWriter);
 await zipWriter.add("hello.txt", helloWorldReader);
 await zipWriter.close();
 
-
 // Retrieves the Blob object containing the zip content into `zipFileBlob`.
 const zipFileBlob = await zipFileBlobPromise;
 
 // Uncomment the following code to download the zip file (in a browser)
-// 
+//
 // const anchorElement = document.createElement("a");
 // anchorElement.href = URL.createObjectURL(zipFileBlob);
 // anchorElement.download = "hello.zip";
 // anchorElement.click();
-// 
-
+//
 
 // ----
 // Read the zip file
@@ -61,7 +58,6 @@ const helloWorldWriter = new TransformStream();
 // as text via the `readable` property of `helloWorldWriter`.
 const helloWorldTextPromise = new Response(helloWorldWriter.readable).text();
 
-
 // Creates a ZipReader object reading the zip content via `zipFileReader`,
 // retrieves metadata (name, dates, etc.) of the first entry, retrieves its
 // content via `helloWorldWriter`, and closes the reader.
@@ -70,9 +66,10 @@ const firstEntry = (await zipReader.getEntries()).shift();
 await firstEntry.getData(helloWorldWriter);
 await zipReader.close();
 
-
 // Displays "Hello world!".
 const helloWorldText = await helloWorldTextPromise;
 console.log(helloWorldText);
 ```
-See here for more examples: https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
+
+See here for more examples:
+https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
