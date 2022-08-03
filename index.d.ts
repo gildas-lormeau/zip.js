@@ -990,7 +990,7 @@ declare class ZipEntry {
 /**
  * Represents a file entry in the zip (Filesystem API).
  */
-export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
+declare class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
     /**
      * `void` for `ZipFileEntry` instances.
      */
@@ -1085,7 +1085,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
 /**
  * Represents a directory entry in the zip (Filesystem API).
  */
-export class ZipDirectoryEntry extends ZipEntry {
+declare class ZipDirectoryEntry extends ZipEntry {
     /**
      * `true` for `ZipDirectoryEntry` instances.
      */
@@ -1244,7 +1244,7 @@ interface ZipDirectoryEntryExportOptions extends ZipWriterConstructorOptions, En
 /**
  * Represents a Filesystem instance.
  */
-export class FS extends ZipDirectoryEntry {
+declare class FS extends ZipDirectoryEntry {
     /**
      * The root directory.
      */
