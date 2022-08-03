@@ -1,6 +1,5 @@
 zip.js is an open-source library (BSD-3-Clause license) to zip and unzip files
-in the browser and Deno supporting multi-core compression, compression streams,
-Zip64 and encryption.
+supporting multi-core compression, compression streams, Zip64 and encryption.
 
 See here for more info: https://gildas-lormeau.github.io/zip.js/
 
