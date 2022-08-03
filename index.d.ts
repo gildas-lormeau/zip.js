@@ -1243,6 +1243,20 @@ interface ZipDirectoryEntryExportOptions extends ZipWriterConstructorOptions, En
 
 /**
  * Represents a Filesystem instance.
+ * 
+ * Example:
+ * ```
+ * const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.";
+ * const FILENAME = "lorem.txt";
+ * const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
+ * let zipFs = new zip.fs.FS();
+ * zipFs.addBlob("lorem.txt", BLOB);
+ * const zippedBlob = await zipFs.exportBlob();
+ * zipFs = new zip.fs.FS();
+ * await zipFs.importBlob(zippedBlob);
+ * const firstEntry = zipFs.children[0];
+ * const unzippedBlob = await firstEntry.getBlob(zip.getMimeType(firstEntry.name));
+ * ```
  */
 declare class FS extends ZipDirectoryEntry {
     /**
