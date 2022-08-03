@@ -4,7 +4,9 @@ supporting multi-core compression, compression streams, Zip64 and encryption.
 See here for more info: https://gildas-lormeau.github.io/zip.js/
 
 ```js
+// ----
 // Hello world with zip.js (and Streams)
+// ----
 
 import {
   BlobReader,
