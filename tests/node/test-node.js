@@ -1,11 +1,11 @@
-/* global TextEncoder */
+/* global Blob */
 /* eslint-disable no-console */
 
-import { configure, Uint8ArrayWriter, Uint8ArrayReader, TextWriter, ZipWriter, ZipReader, terminateWorkers } from "../../index.js";
+import { configure, BlobReader, BlobWriter, TextWriter, ZipWriter, ZipReader, terminateWorkers } from "../../index.js";
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam; est usus legentis in iis qui facit eorum claritatem. Investigationes demonstraverunt lectores legere me lius quod ii legunt saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium lectorum. Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.";
 const FILENAME = "lorem.txt";
-const UINT8_ARRAY = (new TextEncoder()).encode(TEXT_CONTENT);
+const BLOB = new Blob([TEXT_CONTENT]);
 
 test()
 	.then(result => result && console.log("ok"))
@@ -13,12 +13,12 @@ test()
 
 async function test() {
 	configure({ useWebWorkers: false });
-	const blobWriter = new Uint8ArrayWriter(UINT8_ARRAY);
+	const blobWriter = new BlobWriter();
 	const zipWriter = new ZipWriter(blobWriter);
-	const entry = await zipWriter.add(FILENAME, new Uint8ArrayReader(UINT8_ARRAY));
+	const entry = await zipWriter.add(FILENAME, new BlobReader(BLOB));
 	if (entry.compressionMethod == 0x08) {
 		await zipWriter.close();
-		const zipReader = new ZipReader(new Uint8ArrayReader(blobWriter.getData()));
+		const zipReader = new ZipReader(new BlobReader(blobWriter.getData()));
 		const entries = await zipReader.getEntries();
 		if (entries[0].compressionMethod == 0x08) {
 			const data = await entries[0].getData(new TextWriter());
