@@ -22,6 +22,10 @@
         "web-workers",
         "deno"
     ],
+    "engines": {
+        "deno": ">=1.0.0",
+        "node": ">=16.5.0"
+    },
     "scripts": {
         "build": "./build.sh",
         "dev": "npx rollup -c rollup.config.dev.js",
