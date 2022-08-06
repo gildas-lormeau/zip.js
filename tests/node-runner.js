@@ -21,8 +21,10 @@ async function runTests() {
 	console.log("");
 	if (passed) {
 		console.log("ok");
+		console.log("");
 	} else {
 		console.error("error: Test failed");
+		console.log("");
 		process.exit(-1);
 	}
 }
