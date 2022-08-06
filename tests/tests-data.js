@@ -5,7 +5,7 @@ export default ([
 	{ title: "Base 64", script: "./test-base64.js" },
 	{ title: "Blob", script: "./test-blob.js" },
 	{ title: "Codecs interoperability", script: "./test-codecs-interoperability.js", env: ["browser"] },
-	{ title: "Crypto", script: "./test-crypto.js" },
+	{ title: "Crypto", script: "./test-crypto.js", env: ["deno", "browser"] },
 	{ title: "Custom IO classes", script: "./test-custom-io.js" },
 	{ title: "Data descriptor signature", script: "./test-data-descriptor-signature.js" },
 	{ title: "Data descriptor", script: "./test-data-descriptor.js" },
