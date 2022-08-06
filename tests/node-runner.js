@@ -1,23 +1,23 @@
 /* global process */
 /* eslint-disable no-console */
 
-import tests from "./tests-data.js";
+import data from "./tests-data.js";
 runTests();
 
 async function runTests() {
 	let passed = true;
 	let passedCount = 0;
+	const tests = data.filter(test => !test.env || test.env.includes("node"));
+	console.log("running", tests.length, "tests from ./node-runner.js");
 	for (const test of tests) {
-		if (!test.env || test.env.includes("node")) {
-			const fn = async () => (await import("./all/" + test.script)).test();
-			try {
-				console.log(test.title + "...", await fn() && "ok");
-				passedCount++;
-			} catch (error) {
-				passed = false;
-				console.error(test.title + "...", "FAILED");
-				console.error(error);
-			}
+		const fn = async () => (await import("./all/" + test.script)).test();
+		try {
+			console.log(test.title + "...", await fn() && "ok");
+			passedCount++;
+		} catch (error) {
+			passed = false;
+			console.error(test.title + "...", "FAILED");
+			console.error(error);
 		}
 	}
 	console.log("");
