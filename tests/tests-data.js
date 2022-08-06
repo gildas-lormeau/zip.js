@@ -1,6 +1,6 @@
 export default ([
-	{ title: "Abort signal (read)", script: "./test-abort-signal-read.js", env: ["deno", "browser"] },
-	{ title: "Abort signal (write)", script: "./test-abort-signal-write.js", env: ["deno", "browser"] },
+	{ title: "Abort signal (read)", script: "./test-abort-signal-read.js" },
+	{ title: "Abort signal (write)", script: "./test-abort-signal-write.js" },
 	{ title: "Uint8Array", script: "./test-array.js" },
 	{ title: "Base 64", script: "./test-base64.js" },
 	{ title: "Blob", script: "./test-blob.js" },
