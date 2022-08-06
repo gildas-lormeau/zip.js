@@ -1,4 +1,5 @@
-/* global */
+/* global process */
+/* eslint-disable no-console */
 
 import tests from "./tests-data.js";
 runTests();
@@ -7,7 +8,6 @@ async function runTests() {
 	let passed = true;
 	for (const test of tests) {
 		if (!test.env || test.env.includes("node")) {
-			// console.log(test.script)
 			const fn = async () => (await import("./all/" + test.script)).test();
 			try {
 				console.log(test.title + "...", await fn() && "ok");
