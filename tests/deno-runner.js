@@ -5,10 +5,10 @@
 import tests from "./tests-data.js";
 
 for (const test of tests) {
-	if (test.env != "browser") {
+	if (!test.env || test.env.includes("deno")) {
 		Deno.test({
 			name: test.title,
-			fn: async () => (await import("./" + (test.env || "all") + "/" + test.script)).test(),
+			fn: async () => (await import("./all/" + test.script)).test(),
 			sanitizeResources: test.sanitizeResources === undefined || test.sanitizeResources === true
 		});
 	}

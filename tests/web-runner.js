@@ -20,7 +20,9 @@ if (!location.search.startsWith("?keepTests")) {
 		const test = tests[indexTest];
 		indexTest++;
 		if (test) {
-			addTest(test);
+			if (!test.env || test.env.includes("browser")) {
+				addTest(test);
+			}
 		} else if (!document.querySelectorAll("tr").length) {
 			document.body.innerHTML = "ok";
 		}
@@ -36,7 +38,7 @@ function addTest(test) {
 	link.textContent = test.title;
 	link.target = test.script;
 	row.dataset.script = test.script;
-	link.href = iframe.src = (test.env || "all") + "/loader.html#" + encodeURIComponent(JSON.stringify({ script: test.script }));
+	link.href = iframe.src = "/tests/all/loader.html#" + encodeURIComponent(JSON.stringify({ script: test.script }));
 	cellTest.appendChild(iframe);
 	cellLink.appendChild(link);
 	row.appendChild(cellLink);
