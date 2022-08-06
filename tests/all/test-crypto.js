@@ -23,10 +23,12 @@ async function test() {
 		data = null;
 	} catch (error) {
 		if (error.message == zip.ERR_ENCRYPTED) {
+			const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
 			try {
 				data = await entries[0].getData(dataBlobWriter, { password: "notagoodpassword" });
 				data = null;
 			} catch (error) {
+				const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
 				if (error.message == zip.ERR_INVALID_PASSWORD) {
 					data = await entries[0].getData(dataBlobWriter, { password: "password", checkSignature: true });
 				} else {

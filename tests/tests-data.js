@@ -5,7 +5,7 @@ export default ([
 	{ title: "Base 64", script: "./test-base64.js" },
 	{ title: "Blob", script: "./test-blob.js" },
 	{ title: "Codecs interoperability", script: "./test-codecs-interoperability.js", env: ["browser"] },
-	{ title: "Crypto", script: "./test-crypto.js", env: ["deno", "browser"] },
+	{ title: "Crypto", script: "./test-crypto.js" },
 	{ title: "Custom IO classes", script: "./test-custom-io.js" },
 	{ title: "Data descriptor signature", script: "./test-data-descriptor-signature.js" },
 	{ title: "Data descriptor", script: "./test-data-descriptor.js" },
@@ -45,5 +45,5 @@ export default ([
 	{ title: "Zip64 (auto)", script: "./test-zip64-auto.js", env: ["deno", "browser"] },
 	{ title: "Zip64 crypto", script: "./test-zip64-crypto.js" },
 	{ title: "Zip64", script: "./test-zip64.js" },
-	{ title: "Zipcrypto", script: "./test-zipcrypto.js", env: ["deno", "browser"] }
+	{ title: "Zipcrypto", script: "./test-zipcrypto.js" }
 ]);

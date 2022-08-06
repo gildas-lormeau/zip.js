@@ -16,14 +16,15 @@ async function test() {
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
 	const entries = await zipReader.getEntries();
-	const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
 	let data;
 	if (entries[0].encrypted) {
+		const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
 		try {
 			data = await entries[0].getData(dataBlobWriter, { password: "notagoodpassword" });
 			data = null;
 		} catch (error) {
 			if (error.message == zip.ERR_INVALID_PASSWORD) {
+				const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
 				data = await entries[0].getData(dataBlobWriter, { password: "password" });
 			} else {
 				throw error;
