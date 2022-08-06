@@ -116,12 +116,34 @@ interface WorkerConfiguration {
  * 
  * @param library The third-party codec implementations.
  * @param constructorOptions The options passed to the third-party implementations when building instances.
+ * @param registerDataHandler The function called to handle the `data` events triggered by a third-party codec implementation.
  * @returns An instance containing classes compatible with `ZipDeflate` and `ZipInflate`.
  */
-export function initShimAsyncCodec(library: EventBasedZipLibrary, constructorOptions?: any): ZipLibrary
+export function initShimAsyncCodec(library: EventBasedZipLibrary, constructorOptions: any | void, registerDataHandler: registerDataHandler): ZipLibrary
 
 /**
- * Terminates all the idle web workers.
+ * Represents the callback function used to register the `data` event handler.
+ */
+interface registerDataHandler {
+    /**
+     * @param codec The third-party codec instance.
+     * @param onData The `data` event handler.
+     */
+    (codec: EventBasedCodec, onData: dataHandler): void
+}
+
+/**
+ * Represents the callback function used to handle `data` events.
+ */
+interface dataHandler {
+    /**
+     * @param data The processed chunk of data.
+     */
+    (data: Uint8Array): void
+}
+
+/**
+ * Terminates all the idle web workers
  */
 export function terminateWorkers(): void
 
