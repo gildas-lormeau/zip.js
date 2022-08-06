@@ -1,4 +1,4 @@
-/* global Blob, FileReader, setTimeout */
+/* global Blob, setTimeout */
 
 import * as zip from "../../index.js";
 
@@ -46,32 +46,18 @@ async function test() {
 	return !results.includes(false) && !results2.includes(false);
 }
 
-function compareResult(result, value) {
-	return new Promise(resolve => {
-		const fileReaderInput = new FileReader();
-		const fileReaderOutput = new FileReader();
-		let loadCount = 0;
-		fileReaderInput.readAsArrayBuffer(value);
-		fileReaderOutput.readAsArrayBuffer(result);
-		fileReaderInput.onload = fileReaderOutput.onload = () => {
-			loadCount++;
-			if (loadCount == 2) {
-				const valueInput = new Float64Array(fileReaderInput.result);
-				const valueOutput = new Float64Array(fileReaderOutput.result);
-				if (valueInput.length != valueOutput.length) {
-					resolve(false);
-					return;
-				}
-				for (let indexValue = 0, n = valueInput.length; indexValue < n; indexValue++) {
-					if (valueInput[indexValue] != valueOutput[indexValue]) {
-						resolve(false);
-						return;
-					}
-				}
-				resolve(true);
-			}
-		};
-	});
+async function compareResult(result, value) {
+	const valueInput = new Float64Array(await result.arrayBuffer());
+	const valueOutput = new Float64Array(await value.arrayBuffer());
+	if (valueInput.length != valueOutput.length) {
+		return false;
+	}
+	for (let indexValue = 0, n = valueInput.length; indexValue < n; indexValue++) {
+		if (valueInput[indexValue] != valueOutput[indexValue]) {
+			return false;
+		}
+	}
+	return true;
 }
 
 function getBlob(size) {
