@@ -3532,6 +3532,7 @@
 				options,
 				config: getConfiguration(),
 				files: new Map(),
+				filenames: new Set(),
 				offset: writer.size || 0,
 				pendingCompressedSize: 0,
 				pendingEntries: [],
@@ -3550,9 +3551,17 @@
 				workers++;
 				let promiseAddFile;
 				try {
+					name = name.trim();
+					if (zipWriter.filenames.has(name)) {
+						throw new Error(ERR_DUPLICATED_NAME);
+					}
+					zipWriter.filenames.add(name);
 					promiseAddFile = addFile(zipWriter, name, reader, options);
 					pendingAddFileCalls.add(promiseAddFile);
 					return await promiseAddFile;
+				} catch (error) {
+					zipWriter.filenames.delete(name);
+					throw error;
 				} finally {
 					pendingAddFileCalls.delete(promiseAddFile);
 					workers--;
@@ -3588,9 +3597,6 @@
 			name += DIRECTORY_SIGNATURE;
 		} else {
 			options.directory = name.endsWith(DIRECTORY_SIGNATURE);
-		}
-		if (zipWriter.files.has(name)) {
-			throw new Error(ERR_DUPLICATED_NAME);
 		}
 		const rawFilename = encodeText(name);
 		if (rawFilename.length > MAX_16_BITS) {
