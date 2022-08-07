@@ -9,6 +9,7 @@ export default ([
 	{ title: "Custom IO classes", script: "./test-custom-io.js" },
 	{ title: "Data descriptor signature", script: "./test-data-descriptor-signature.js" },
 	{ title: "Data descriptor", script: "./test-data-descriptor.js" },
+	{ title: "Duplicated Filename", script: "./test-duplicated-filename.js" },
 	{ title: "Empty zip file", script: "./test-empty.js" },
 	{ title: "Extended timestamp", script: "./test-extended-timestamp.js" },
 	{ title: "Extra field", script: "./test-extra-field.js" },
