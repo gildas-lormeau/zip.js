@@ -271,6 +271,30 @@ interface ReadableReader {
 
 /**
  * Represents a `Reader` instance used to read any type of data.
+ * 
+ * Example: Custom Reader used to read binary strings.
+ * ```
+ * class BinaryStringReader extends Reader {
+ *
+ *   constructor(binaryString) {
+ *     super();
+ *     this.binaryString = binaryString;
+ *   }
+ *
+ *   init() {
+ *     super.init();
+ *     this.size = this.binaryString.length;
+ *   }
+ *
+ *   readUint8Array(offset, length) {
+ *     const result = new Uint8Array(length);
+ *     for (let indexCharacter = 0; indexCharacter < length; indexCharacter++) {
+ *       result[indexCharacter] = this.binaryString.charCodeAt(indexCharacter + offset) & 0xFF;
+ *     }
+ *     return result;
+ *   }
+ * }
+ * ```
  */
 export class Reader<Type> implements ReadableReader, DataProcessor {
     /**
@@ -405,6 +429,28 @@ interface WritableWriter {
 
 /**
  * Represents a `Writer` instance used to write any type of data.
+ * 
+ * Example: Custom Writer class used to write binary strings.
+ * ```
+ * class BinaryStringWriter extends Writer {
+ * 
+ *   constructor() {
+ *     super();
+ *     this.binaryString = "";
+ *   }
+ * 
+ *   writeUint8Array(array) {
+ *     super.writeUint8Array(array);
+ *     for (let indexCharacter = 0; indexCharacter < array.length; indexCharacter++) {
+ *       this.binaryString += String.fromCharCode(array[indexCharacter]);
+ *     }
+ *   }
+ * 
+ *   getData() {
+ *     return this.binaryString;
+ *   }
+ * }
+ * ```
  */
 export class Writer<Type> implements DataProcessor, WritableWriter {
     /**
