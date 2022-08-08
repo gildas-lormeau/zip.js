@@ -18,7 +18,6 @@ async function test() {
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
 	const entries = await zipReader.getEntries();
-	// await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 	await zipReader.close();
 	zip.terminateWorkers();
 	if (entries[0].extraField.get(42).data.length != 42) {
