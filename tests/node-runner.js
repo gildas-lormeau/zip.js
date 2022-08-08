@@ -8,25 +8,25 @@ async function runTests() {
 	let passed = true;
 	let passedCount = 0;
 	const tests = data.filter(test => !test.env || test.env.includes("node"));
-	console.log("running", tests.length, "tests from ./node-runner.js");
+	console.log("\u001b[38;5;240mrunning " + tests.length + "tests from ./node-runner.js\u001b[0m");
+	const start = Date.now();
 	for (const test of tests) {
 		const fn = async () => (await import("./all/" + test.script)).test();
 		try {
-			console.log(test.title + "...", await fn() || "ok");
+			const start = Date.now();
+			console.log(test.title + " ...", (await fn(), "\u001b[32mok\u001b[0m"), "\u001b[38;5;240m(" + (Date.now() - start) + "ms)\u001b[0m");
 			passedCount++;
 		} catch (error) {
 			passed = false;
-			console.error(test.title + "...", "FAILED");
+			console.error(test.title + "...", "\u001b[31mFAILED\u001b[0m");
 			console.error(error);
 		}
 	}
 	console.log("");
-	if (passed) {
-		console.log("ok", "|", passedCount, "passed");
-		console.log("");
-	} else {
-		console.error("error: Test failed");
-		console.log("");
+	console.log("\u001b[32mok\u001b[0m", "|", passedCount + " passed", "|", (tests.length - passedCount) + " failed", "\u001b[38;5;240m(" + Math.floor((Date.now() - start) / 1000) + "s)\u001b[0m");
+	console.log("");
+	if (!passed) {
+		console.error("\u001b[31merror\u001b[0m: Test failed");
 		process.exit(-1);
 	}
 }
