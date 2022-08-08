@@ -8,7 +8,7 @@ async function runTests() {
 	let passed = true;
 	let passedCount = 0;
 	const tests = data.filter(test => !test.env || test.env.includes("node"));
-	console.log("\u001b[38;5;240mrunning " + tests.length + "tests from ./node-runner.js\u001b[0m");
+	console.log("\u001b[38;5;240mrunning " + tests.length + " tests from ./node-runner.js\u001b[0m");
 	const start = Date.now();
 	for (const test of tests) {
 		const fn = async () => (await import("./all/" + test.script)).test();
