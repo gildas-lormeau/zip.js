@@ -14,7 +14,7 @@ async function runTests() {
 		const fn = async () => (await import("./all/" + test.script)).test();
 		try {
 			const start = Date.now();
-			console.log(test.title + " ...", (await fn(), "\u001b[32mok\u001b[0m"), "\u001b[38;5;240m(" + (Date.now() - start) + "ms)\u001b[0m");
+			console.log(test.title + " ...", (await fn(), "\u001b[32mok\u001b[0m"), "\u001b[38;5;240m(" + delayToString(Date.now() - start) + ")\u001b[0m");
 			passedCount++;
 		} catch (error) {
 			passed = false;
@@ -23,10 +23,18 @@ async function runTests() {
 		}
 	}
 	console.log("");
-	console.log("\u001b[32mok\u001b[0m", "|", passedCount + " passed", "|", (tests.length - passedCount) + " failed", "\u001b[38;5;240m(" + Math.floor((Date.now() - start) / 1000) + "s)\u001b[0m");
+	console.log("\u001b[32mok\u001b[0m", "|", passedCount + " passed", "|", (tests.length - passedCount) + " failed", "\u001b[38;5;240m(" + delayToString(Date.now() - start) + ")\u001b[0m");
 	console.log("");
 	if (!passed) {
 		console.error("\u001b[31merror\u001b[0m: Test failed");
 		process.exit(-1);
+	}
+}
+
+function delayToString(delay) {
+	if (delay < 1000) {
+		return delay + "ms";
+	} else {
+		return Math.floor(delay / 1000) + "s";
 	}
 }
