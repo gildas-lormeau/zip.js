@@ -26,6 +26,8 @@ async function test() {
 				if (TEXT_CONTENT != await data.text() || entries[0].uncompressedSize != TEXT_CONTENT.length) {
 					throw new Error();
 				}
+			} else {
+				throw new Error();
 			}
 		} else {
 			throw new Error();
