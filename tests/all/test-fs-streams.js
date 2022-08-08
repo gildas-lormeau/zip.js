@@ -18,5 +18,7 @@ async function test() {
 	transformStream = new TransformStream();
 	const [text] = await Promise.all([new Response(transformStream.readable).text(), firstEntry.getWritable(transformStream.writable)]);
 	zip.terminateWorkers();
-	return text == TEXT_CONTENT && firstEntry.name == FILENAME && firstEntry.uncompressedSize == TEXT_CONTENT.length;
+	if (text != TEXT_CONTENT) {
+		throw new Error();
+	}
 }

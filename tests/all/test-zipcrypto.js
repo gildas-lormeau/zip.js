@@ -35,5 +35,7 @@ async function test() {
 	}
 	await zipReader.close();
 	zip.terminateWorkers();
-	return TEXT_CONTENT == (await data.text()) && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
+	if (TEXT_CONTENT != await data.text()) {
+		throw new Error();
+	}
 }

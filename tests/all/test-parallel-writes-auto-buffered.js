@@ -43,7 +43,9 @@ async function test() {
 		return compareResult(blob, ENTRIES_DATA_PASS2.find(otherEntry => otherEntry.name == entry.filename).blob);
 	}));
 	zip.terminateWorkers();
-	return !results.includes(false) && !results2.includes(false);
+	if (results.includes(false) || results2.includes(false)) {
+		throw new Error();
+	}
 }
 
 async function compareResult(result, value) {

@@ -18,10 +18,8 @@
         import(testData.script).then(async Module => {
             try {
                 const result = await Module.test();
-                if (result) {
-                    document.body.innerHTML = "ok";
-                    parent.postMessage(JSON.stringify({ script }), "*");
-                }
+                document.body.innerHTML = "ok";
+                parent.postMessage(JSON.stringify({ script }), "*");
             } catch (error) {
                 parent.postMessage(JSON.stringify({ script, error: { message: error.message, stack: error.stack } }), "*");
                 throw error;

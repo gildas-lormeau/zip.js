@@ -23,7 +23,9 @@ async function test() {
 		return compareResult(blob, ENTRIES_DATA[indexEntry].blob);
 	}));
 	zip.terminateWorkers();
-	return !results.includes(false);
+	if (results.includes(false)) {
+		throw new Error();
+	}
 }
 
 async function compareResult(result, value) {

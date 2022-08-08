@@ -19,8 +19,10 @@ async function test() {
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	zip.terminateWorkers();
-	return JSON.stringify(ENTRIES_DATA.map(entry => entry.name)) ==
-		JSON.stringify(entries.sort((entry1, entry2) => entry1.offset - entry2.offset).map(entry => entry.filename));
+	if (JSON.stringify(ENTRIES_DATA.map(entry => entry.name)) !=
+		JSON.stringify(entries.sort((entry1, entry2) => entry1.offset - entry2.offset).map(entry => entry.filename))) {
+		throw new Error();
+	}
 }
 
 function getBlob(size) {

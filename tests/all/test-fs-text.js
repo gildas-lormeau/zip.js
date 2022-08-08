@@ -15,5 +15,7 @@ async function test() {
 	const firstEntry = zipFs.children[0];
 	const text = await firstEntry.getText();
 	zip.terminateWorkers();
-	return text == TEXT_CONTENT && firstEntry.name == FILENAME && firstEntry.uncompressedSize == TEXT_CONTENT.length;
+	if (text != TEXT_CONTENT) {
+		throw new Error();
+	}
 }

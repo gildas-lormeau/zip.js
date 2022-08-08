@@ -18,5 +18,7 @@ async function test() {
 	const firstEntry = zipFs.children[0];
 	const dataURI = await firstEntry.getData64URI("text/plain");
 	zip.terminateWorkers();
-	return dataURI == DATA_URI && firstEntry.name == FILENAME && firstEntry.uncompressedSize == TEXT_CONTENT.length;
+	if (dataURI != DATA_URI) {
+		throw new Error();
+	}
 }

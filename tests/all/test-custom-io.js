@@ -56,5 +56,7 @@ async function test() {
 	const data = await entries[0].getData(new BinaryStringWriter());
 	await zipReader.close();
 	zip.terminateWorkers();
-	return TEXT_CONTENT == data;
+	if (TEXT_CONTENT != data) {
+		throw new Error();
+	}
 }

@@ -12,30 +12,28 @@ async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
-	const entry = await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
-	if (entry.compressionMethod == 0x08) {
-		await zipWriter.close();
-		const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
-		const entries = await zipReader.getEntries();
-		if (entries[0].compressionMethod == 0x08) {
-			const data = new Uint8Array(entries[0].uncompressedSize);
-			let dataOffset = 0;
-			let writerClosed;
-			const writer = {
-				writable: new WritableStream({
-					write(chunk) {
-						data.set(chunk, dataOffset);
-						dataOffset += chunk.length;
-					},
-					close() {
-						writerClosed = true;
-					}
-				})
-			};
-			await entries[0].getData(writer);
-			await zipReader.close();
-			zip.terminateWorkers();
-			return TEXT_CONTENT == (await new Blob([data]).text()) && writerClosed;
-		}
+	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
+	await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
+	const entries = await zipReader.getEntries();
+	const data = new Uint8Array(entries[0].uncompressedSize);
+	let dataOffset = 0;
+	let writerClosed;
+	const writer = {
+		writable: new WritableStream({
+			write(chunk) {
+				data.set(chunk, dataOffset);
+				dataOffset += chunk.length;
+			},
+			close() {
+				writerClosed = true;
+			}
+		})
+	};
+	await entries[0].getData(writer);
+	await zipReader.close();
+	zip.terminateWorkers();
+	if (TEXT_CONTENT != await new Blob([data]).text() || !writerClosed) {
+		throw new Error();
 	}
 }

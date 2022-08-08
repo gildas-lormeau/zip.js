@@ -24,5 +24,7 @@ async function test() {
 		}
 	}
 	zip.terminateWorkers();
-	return TEXT_CONTENT == (await data.text()) && entries[0].uncompressedSize == TEXT_CONTENT.length;
+	if (TEXT_CONTENT != await data.text()) {
+		throw new Error();
+	}
 }

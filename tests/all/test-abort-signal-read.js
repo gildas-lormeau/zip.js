@@ -27,7 +27,6 @@ async function test() {
 	} catch (error) {
 		if (signal.reason == error || signal.reason.code == error.code) {
 			zip.terminateWorkers();
-			return true;
 		} else {
 			throw error;
 		}

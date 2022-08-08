@@ -26,7 +26,6 @@ async function test() {
 		}
 	} else if (location.search == "?test-ok") {
 		resetSearch();
-		return true;
 	}
 }
 

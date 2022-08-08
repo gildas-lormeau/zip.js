@@ -17,7 +17,9 @@ async function test() {
 	const data = await entries[0].getData(new zip.Uint8ArrayWriter());
 	await zipReader.close();
 	zip.terminateWorkers();
-	return getArrayText(data) == TEXT_CONTENT && entries[0].filename == FILENAME && entries[0].uncompressedSize == TEXT_CONTENT.length;
+	if (getArrayText(data) != TEXT_CONTENT) {
+		throw new Error();
+	}
 }
 
 function getArrayText(array) {

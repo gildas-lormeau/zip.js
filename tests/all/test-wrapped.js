@@ -19,10 +19,12 @@ async function test() {
 	await zipWriter.close(COMMENT);
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()), { extractPrependedData: true });
 	const entries = await zipReader.getEntries();
-	const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
+	await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 	await zipReader.close();
 	const comment = Array.from(zipReader.comment).toString();
 	const prependedData = Array.from(zipReader.prependedData).toString();
 	zip.terminateWorkers();
-	return TEXT_CONTENT == (await data.text()) && prependedData == Array.from(PREPENDED_DATA) && comment == Array.from(COMMENT);
+	if (prependedData != Array.from(PREPENDED_DATA) || comment != Array.from(COMMENT)) {
+		throw new Error();
+	}
 }

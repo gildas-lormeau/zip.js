@@ -12,7 +12,7 @@ async function runTests() {
 	for (const test of tests) {
 		const fn = async () => (await import("./all/" + test.script)).test();
 		try {
-			console.log(test.title + "...", await fn() && "ok");
+			console.log(test.title + "...", await fn() || "ok");
 			passedCount++;
 		} catch (error) {
 			passed = false;

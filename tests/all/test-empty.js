@@ -10,5 +10,7 @@ async function test() {
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	await zipReader.close();
-	return entries.length == 0;
+	if (entries.length != 0) {
+		throw new Error();
+	}
 }
