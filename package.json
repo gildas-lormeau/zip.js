@@ -29,7 +29,8 @@
     "scripts": {
         "build": "./build.sh",
         "dev": "npx rollup -c rollup.config.dev.js",
-        "test": "cd ./tests && \"./run-tests.sh\""
+        "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
+        "test-node": "cd ./tests && node ./node-runner.js"
     },
     "main": "index.js",
     "types": "index.d.ts",
