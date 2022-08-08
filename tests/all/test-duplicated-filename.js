@@ -14,7 +14,7 @@ async function test() {
 		]);
 	} catch (error) {
 		if (error.message == zip.ERR_DUPLICATED_NAME) {
-			return true;
+			return;
 		}
 	} finally {
 		await zipWriter.close();
