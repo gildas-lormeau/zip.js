@@ -29,6 +29,8 @@
     "scripts": {
         "build": "npx rollup -c",
         "build-dev": "npx rollup -c rollup.config.dev.js",
+        "build-fflate": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.js",
+        "build-fflate-dev": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.dev.js",
         "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
         "test-node": "cd ./tests && node ./node-runner.js",
         "test-firefox": "firefox http://localhost:8081/tests/ & npx http-server -p=8081",
