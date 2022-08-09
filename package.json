@@ -20,7 +20,9 @@
         "compression-streams",
         "web-crypto",
         "web-workers",
-        "deno"
+        "deno",
+        "node.js",
+        "multi-core"
     ],
     "engines": {
         "deno": ">=1.0.0",
