@@ -1,6 +1,6 @@
 {
     "name": "@zip.js/zip.js",
-    "description": "A JavaScript library to zip and unzip files in the browser and Deno",
+    "description": "A JavaScript library to zip and unzip files in the browser, Deno and Node.js",
     "author": "Gildas Lormeau",
     "license": "BSD-3-Clause",
     "version": "2.6.11",
