@@ -746,7 +746,7 @@ export interface Entry {
      */
     versionMadeBy: number
     /**
-     * `true` if `internalFileAttribute` and `externalFileAttribute` is compatible with MS-DOS format.
+     * `true` if `internalFileAttribute` and `externalFileAttribute` are compatible with MS-DOS format.
      */
     msDosCompatible: boolean
     /**
