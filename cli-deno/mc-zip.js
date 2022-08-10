@@ -36,7 +36,7 @@ async function displayUsage() {
 	await stdout.write("  --data-descriptor-signature   add data descriptor signatures (default: false)\n");
 	await stdout.write("  --keep-order                  keep entries order (default: true)\n");
 	await stdout.write("  --zip64                       use Zip64 format (default: false)\n");
-	await stdout.write("  --prevent-parent-directories  remove occurences of \"../\" in filenames\n");
+	await stdout.write("  --prevent-parent-directories  remove occurences of \"../\" in filenames (default: true)\n");
 	await stdout.write("\n");
 	Deno.exit(-1);
 }
