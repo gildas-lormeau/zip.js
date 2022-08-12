@@ -3,7 +3,6 @@
 "use strict";
 
 importScripts("./../../dist/zip-full.js");
-zip.configure({ useWebWorkers: false });
 self.addEventListener("fetch", event => {
 	const matchZipEntry = event.request.url.match(/.zip#(.+)$/i);
 	if (matchZipEntry) {
