@@ -2716,18 +2716,19 @@
 
 	class Uint8ArrayWriter extends Writer {
 
-		constructor() {
-			super();
-			this.array = new Uint8Array();
+		init(initSize = 0) {
+			this.array = new Uint8Array(initSize);
 		}
 
 		writeUint8Array(array) {
-			super.writeUint8Array(array);
 			const writer = this;
-			const previousArray = writer.array;
-			writer.array = new Uint8Array(previousArray.length + array.length);
-			writer.array.set(previousArray);
-			writer.array.set(array, previousArray.length);
+			if (writer.size + array.length > writer.array.length) {
+				const previousArray = writer.array;
+				writer.array = new Uint8Array(previousArray.length + array.length);
+				writer.array.set(previousArray);
+			}
+			writer.array.set(array, writer.size);
+			super.writeUint8Array(array);
 		}
 
 		getData() {
@@ -2741,9 +2742,9 @@
 		return protocol == "http:" || protocol == "https:";
 	}
 
-	async function initStream(stream) {
+	async function initStream(stream, initSize) {
 		if (stream.init && !stream.initialized) {
-			await stream.init();
+			await stream.init(initSize);
 		}
 	}
 
@@ -3162,6 +3163,7 @@
 				bitFlag,
 				signature,
 				rawLastModDate,
+				uncompressedSize,
 				compressedSize
 			} = zipEntry;
 			const localDirectory = zipEntry.localDirectory = {};
@@ -3202,7 +3204,7 @@
 			readable.size = size;
 			const { writable } = writer;
 			const signal = getOptionValue$1(zipEntry, options, "signal");
-			await initStream(writer);
+			await initStream(writer, uncompressedSize);
 			const { onstart, onprogress, onend } = options;
 			const workerOptions = {
 				options: {
@@ -4351,7 +4353,7 @@
 				return zipEntry.data;
 			} else {
 				const reader = zipEntry.reader = new zipEntry.Reader(zipEntry.data, options);
-				await Promise.all([initStream(reader), initStream(writer)]);
+				await Promise.all([initStream(reader), initStream(writer, zipEntry.data.uncompressedSize)]);
 				zipEntry.uncompressedSize = reader.size;
 				const readable = reader.readable;
 				readable.size = () => reader.size;
