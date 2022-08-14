@@ -464,8 +464,9 @@ export class Writer<Type> implements DataProcessor, WritableWriter {
     /**
      * Initializes the instance asynchronously
      * 
+     * @param size the total size of the written data in bytes.
      */
-    init?(): Promise<void>
+    init?(size?: number): Promise<void>
     /**
      * Appends a chunk of data
      * 
