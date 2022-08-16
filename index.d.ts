@@ -272,7 +272,8 @@ interface ReadableReader {
 /**
  * Represents a `Reader` instance used to read any type of data.
  * 
- * Example: Custom Reader used to read binary strings.
+ * @example
+ * Here is an example of custom `Reader` class used to read binary strings:
  * ```
  * class BinaryStringReader extends Reader {
  *
@@ -430,7 +431,8 @@ interface WritableWriter {
 /**
  * Represents a `Writer` instance used to write any type of data.
  * 
- * Example: Custom Writer class used to write binary strings.
+ * @example
+ * Here is an example of custom `Writer` class used to write binary strings:
  * ```
  * class BinaryStringWriter extends Writer {
  * 
@@ -525,7 +527,8 @@ export class Uint8ArrayWriter extends Writer<Uint8Array> { }
 /**
  * Represents a `ZipReader` instance used to read a zip file.
  * 
- * Example:
+ * @example
+ * Here is an example showing how to read the text data of the first entry from a zip file:
  * ```
  * // create a BlobReader to read with a ZipReader the zip from a Blob object
  * const reader = new zip.ZipReader(new zip.BlobReader(blob));
@@ -776,7 +779,8 @@ interface EntryGetDataOptions extends EntryDataOnprogressOptions, ZipReaderOptio
 /**
  * Represents a `ZipWriter` instance used to create a zip file.
  * 
- * Example:
+ * @example
+ * Here is an example showing how to create a zip file containing a compressed text file:
  * ```
  * // use a BlobWriter to store with a ZipWriter the zip into a Blob object
  * const blobWriter = new zip.BlobWriter("application/zip");
@@ -1313,7 +1317,8 @@ interface ZipDirectoryEntryExportOptions extends ZipWriterConstructorOptions, En
 /**
  * Represents a Filesystem instance.
  * 
- * Example:
+ * @example
+ * Here is an example showing how to create and read a zip file containing a compressed text file:
  * ```
  * const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.";
  * const FILENAME = "lorem.txt";
