@@ -1327,7 +1327,7 @@ interface ZipDirectoryEntryExportOptions extends ZipWriterConstructorOptions, En
  * const unzippedBlob = await firstEntry.getBlob(zip.getMimeType(firstEntry.name));
  * ```
  */
-declare class FS extends ZipDirectoryEntry {
+export class FS extends ZipDirectoryEntry {
     /**
      * The root directory.
      */
