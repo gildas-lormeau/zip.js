@@ -1,7 +1,9 @@
 # Introduction
 
-zip.js is an open-source library (BSD-3-Clause license) to zip and unzip files.
-It supports multi-core compression, compression streams, Zip64 and encryption.
+zip.js is an open-source library (BSD-3-Clause license) to zip and unzip files
+implemneted in JavaScript. It has been designed to handle large amounts of data
+and notably supports multi-core compression, compression streams, Zip64 and
+encryption.
 
 # Documentation
 
