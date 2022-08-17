@@ -42,7 +42,8 @@ const zipWriter = new ZipWriter(zipFileWriter);
 await zipWriter.add("hello.txt", helloWorldReader);
 await zipWriter.close();
 
-// Retrieves the Blob object containing the zip content into `zipFileBlob`.
+// Retrieves the Blob object containing the zip content into `zipFileBlob`. It
+// is also returned by zipWriter.close() for more convenience.
 const zipFileBlob = await zipFileWriter.getData();
 
 // ----
