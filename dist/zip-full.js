@@ -7986,8 +7986,9 @@
 		let bufferedWrite;
 		let releaseLockWriter;
 		let releaseLockCurrentFileEntry;
-		let bufferedDataWritten;
+		let writingBufferedData;
 		let fileWriter;
+		let fileWriterSize;
 		files.set(name, fileEntry);
 		try {
 			let lockPreviousFileEntry;
@@ -8004,6 +8005,7 @@
 				await initStream(writer);
 				fileWriter = writer;
 			}
+			fileWriterSize = fileWriter.size;
 			fileEntry = await createFileEntry(reader, fileEntry, fileWriter.writable, zipWriter.config, options);
 			files.set(name, fileEntry);
 			fileEntry.filename = name;
@@ -8011,7 +8013,7 @@
 				let blob = fileWriter.getData();
 				await lockPreviousFileEntry;
 				await requestLockWriter();
-				bufferedDataWritten = true;
+				writingBufferedData = true;
 				const { writable } = writer;
 				if (!dataDescriptor) {
 					const headerLength = 26;
@@ -8031,7 +8033,7 @@
 					blob = blob.slice(headerLength);
 				}
 				await blob.stream().pipeTo(writable, { preventClose: true, signal });
-				bufferedDataWritten = false;
+				writingBufferedData = false;
 			}
 			fileEntry.offset = zipWriter.offset;
 			if (fileEntry.zip64) {
@@ -8043,9 +8045,12 @@
 			zipWriter.offset += fileEntry.length;
 			return fileEntry;
 		} catch (error) {
-			if ((bufferedWrite && bufferedDataWritten) || (!bufferedWrite && fileEntry.dataWritten)) {
-				error.corruptedEntry = zipWriter.hasCorruptedEntries = true;
-				zipWriter.offset += fileWriter.size;
+			if ((bufferedWrite && writingBufferedData) || (!bufferedWrite && fileEntry.writingData)) {
+				zipWriter.hasCorruptedEntries = true;
+				if (error) {
+					error.corruptedEntry = true;
+				}
+				zipWriter.offset += fileWriter.size - fileWriterSize;
 			}
 			files.delete(name);
 			throw error;
@@ -8222,10 +8227,10 @@
 		arraySet(localHeaderArray, rawExtraField, 30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length);
 		let result;
 		let compressedSize = 0;
+		fileEntry.writingData = pendingFileEntry.writingData = true;
 		if (reader) {
 			reader.chunkSize = getChunkSize(config);
 			await writeData(writable, localHeaderArray);
-			fileEntry.dataWritten = pendingFileEntry.dataWritten = true;
 			const size = () => reader.size;
 			const readable = reader.readable;
 			readable.size = size;
@@ -8252,7 +8257,6 @@
 			compressedSize = result.size;
 		} else {
 			await writeData(writable, localHeaderArray);
-			fileEntry.dataWritten = pendingFileEntry.dataWritten = true;
 		}
 		let dataDescriptorArray = new Uint8Array();
 		let dataDescriptorView, dataDescriptorOffset = 0;
@@ -8305,7 +8309,8 @@
 			creationDate,
 			lastAccessDate,
 			encrypted,
-			length
+			length,
+			writingData: false
 		});
 		return fileEntry;
 	}
