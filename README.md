@@ -12,10 +12,6 @@ See here for more info: https://gildas-lormeau.github.io/zip.js/
 ## Hello world
 
 ```js
-// ----
-// Hello world
-// ----
-
 import {
   BlobReader,
   BlobWriter,
@@ -71,10 +67,6 @@ console.log(helloWorldText);
 ## Hello world with Streams
 
 ```js
-// ----
-// Hello world with Streams
-// ----
-
 import {
   BlobReader,
   ZipReader,
