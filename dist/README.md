@@ -1,4 +1,6 @@
 # Built scripts of zip.js
+
+**Warning**: These files are not compatible with ES modules, i.e. they cannot be imported with `import`. Use files prefixed with `zip-` in the [`/lib`](../lib) folder instead.
  
 - for production (minified):
 
