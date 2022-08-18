@@ -1,7 +1,7 @@
 # Built scripts of zip.js
 
-**Warning**: These files are not compatible with ES modules, i.e. they cannot be imported with `import`. Import one of the files prefixed with `zip-` in the [`/lib`](../lib) folder instead.
- 
+**Warning**: These files are not compatible with ES modules, i.e. they cannot be imported with `import`. Instead, import one of the files prefixed with `zip-` in the [`/lib`](../lib) folder (e.g. `/lib/zip-no-worker.js`).
+
 - for production (minified):
 
 |                                | [`ZipReader`](https://gildas-lormeau.github.io/zip.js/core-api.html#zip-reading) API | [`ZipWriter`](https://gildas-lormeau.github.io/zip.js/core-api.html#zip-writing) API | [`zip.fs`](https://gildas-lormeau.github.io/zip.js/fs-api.html#fs-constructor) API | Web Workers | No Web Workers | Usage                                                 |
