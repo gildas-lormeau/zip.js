@@ -4,7 +4,7 @@
 
 - for production (minified):
 
-|                                | [`ZipReader`](https://gildas-lormeau.github.io/zip.js/core-api.html#zip-reading) API | [`ZipWriter`](https://gildas-lormeau.github.io/zip.js/core-api.html#zip-writing) API | [`zip.fs`](https://gildas-lormeau.github.io/zip.js/fs-api.html#fs-constructor) API | Web Workers | No Web Workers | Usage                                                 |
+|                                | [`ZipReader`](https://gildas-lormeau.github.io/zip.js/api/classes/ZipReader.html) API | [`ZipWriter`](https://gildas-lormeau.github.io/zip.js/api/classes/ZipWriter.html) API | [`zip.fs`](https://gildas-lormeau.github.io/zip.js/api/classes/FS.html) API | Web Workers | No Web Workers | Usage                                                 |
 |--------------------------------|-----------------|-----------------|--------------|-------------|----------------|-------------------------------------------------------|
 | `zip.min.js`                   |               x |               x |              |           x |                | compression/decompression with web workers            |
 | `zip-no-worker.min.js`         |               x |               x |              |             |              x | compression/decompression without web workers         |
@@ -16,7 +16,7 @@
 
 - for development/debugging:
 
-|                       | [`zip`](https://gildas-lormeau.github.io/zip.js/core-api.html) API | [`zip.fs`](https://gildas-lormeau.github.io/zip.js/fs-api.html#fs-constructor) API | Web Workers | No Web Workers | 
+|                       | `zip` API | [`zip.fs`](https://gildas-lormeau.github.io/zip.js/api/classes/FS.html) API | Web Workers | No Web Workers | 
 |-----------------------|-----------|--------------|-------------|----------------|
 | `zip.js`              |         x |              |           x |                |
 | `zip-full.js`         |         x |              |           x |              x |
