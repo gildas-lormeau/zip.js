@@ -23,6 +23,6 @@
 | `zip-fs.js`           |         x |            x |           x |                |
 | `zip-fs-full.js`      |         x |            x |           x |              x |
 
-- `z-worker.js` can be used as a web worker script if the [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) does not allow to load it with a Blob URI
+- `z-worker.js` can be used as a web worker script if the [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) blocks scripts loaded with a `blob:` scheme
 - `z-worker-fflate.js` is the web worker script for using [fflate](https://gildas-lormeau.github.io/zip.js/core-api.html#alternative-codec-fflate)
 - `z-worker-pako.js` is the web worker script for using [pako](https://gildas-lormeau.github.io/zip.js/core-api.html#alternative-codec-pako)
