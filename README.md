@@ -126,7 +126,7 @@ await zipReader.close();
 const helloWorldText = await helloWorldTextPromise;
 console.log(helloWorldText);
 ```
-Run the code on JSFiddle: https://jsfiddle.net/jh2pwefv/
+Run the code on JSFiddle: https://jsfiddle.net/m8q1u0ox/
 
 See here for more examples:
 https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
