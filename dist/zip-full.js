@@ -7766,6 +7766,7 @@
 	const EXTRAFIELD_LENGTH_ZIP64 = 24;
 
 	let workers = 0;
+	const pendingEntries = [];
 
 	class ZipWriter {
 
@@ -7778,7 +7779,6 @@
 				filenames: new Set(),
 				offset: writer.size || 0,
 				pendingCompressedSize: 0,
-				pendingEntries: [],
 				pendingAddFileCalls: new Set()
 			});
 		}
@@ -7787,36 +7787,34 @@
 			const zipWriter = this;
 			const {
 				pendingAddFileCalls,
-				pendingEntries,
 				config
 			} = zipWriter;
 			if (workers < config.maxWorkers) {
 				workers++;
-				let promiseAddFile;
-				try {
-					name = name.trim();
-					if (zipWriter.filenames.has(name)) {
-						throw new Error(ERR_DUPLICATED_NAME);
-					}
-					zipWriter.filenames.add(name);
-					promiseAddFile = addFile(zipWriter, name, reader, options);
-					pendingAddFileCalls.add(promiseAddFile);
-					return await promiseAddFile;
-				} catch (error) {
-					zipWriter.filenames.delete(name);
-					throw error;
-				} finally {
-					pendingAddFileCalls.delete(promiseAddFile);
-					workers--;
-					const pendingEntry = pendingEntries.shift();
-					if (pendingEntry) {
-						zipWriter.add(pendingEntry.name, pendingEntry.reader, pendingEntry.options)
-							.then(pendingEntry.resolve)
-							.catch(pendingEntry.reject);
-					}
-				}
 			} else {
-				return new Promise((resolve, reject) => pendingEntries.push({ name, reader, options, resolve, reject }));
+				await new Promise(resolve => pendingEntries.push(resolve));
+			}
+			let promiseAddFile;
+			try {
+				name = name.trim();
+				if (zipWriter.filenames.has(name)) {
+					throw new Error(ERR_DUPLICATED_NAME);
+				}
+				zipWriter.filenames.add(name);
+				promiseAddFile = addFile(zipWriter, name, reader, options);
+				pendingAddFileCalls.add(promiseAddFile);
+				return await promiseAddFile;
+			} catch (error) {
+				zipWriter.filenames.delete(name);
+				throw error;
+			} finally {
+				pendingAddFileCalls.delete(promiseAddFile);
+				const pendingEntry = pendingEntries.shift();
+				if (pendingEntry) {
+					pendingEntry();
+				} else {
+					workers--;
+				}
 			}
 		}
 
