@@ -23,7 +23,7 @@ async function test() {
 	const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 	await zipReader.close();
 	zip.terminateWorkers();
-	if (TEXT_CONTENT != await data.text()) {
+	if (TEXT_CONTENT != await data.text() && !entries[0].zip64) {
 		throw new Error();
 	}
 }
