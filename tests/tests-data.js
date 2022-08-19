@@ -27,6 +27,7 @@ export default ([
 	{ title: "HTTP crypto", script: "./test-http-crypto.js", env: ["deno", "browser"] },
 	{ title: "HTTP zip64", script: "./test-http-zip64.js", env: ["deno", "browser"] },
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js", env: ["deno", "browser"] },
+	{ title: "Multiple writers", script: "./test-multiple-writers.js" },
 	{ title: "No worker", script: "./test-no-worker.js" },
 	{ title: "Pako", script: "./test-pako.js", env: ["browser"] },
 	{ title: "Pako (no worker)", script: "./test-pako-no-worker.js", env: ["deno", "browser"] },
