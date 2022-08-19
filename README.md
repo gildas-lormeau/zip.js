@@ -79,8 +79,8 @@ import {
 // Write the zip file
 // ----
 
-// Creates a TransformStream object where the zip content will be written in
-// the `writable` property.
+// Creates a TransformStream object, the zip content will be written in the
+// `writable` property.
 const zipFileWriter = new TransformStream();
 // Creates a Promise object resolved to the zip content returned as a Blob
 // object via the `readable` property of `zipFileWriter`.
@@ -106,8 +106,8 @@ const zipFileBlob = await zipFileBlobPromise;
 
 // Creates a BlobReader object used to read `zipFileBlob`.
 const zipFileReader = new BlobReader(zipFileBlob);
-// Creates a TransformStream object where the content of the first entry in the
-// zip will be written in the `writable` property.
+// Creates a TransformStream object, the content of the first entry in the zip
+// will be written in the `writable` property.
 const helloWorldWriter = new TransformStream();
 // Creates a Promise object resolved to the content of the first entry returned
 // as text via the `readable` property of `helloWorldWriter`.
