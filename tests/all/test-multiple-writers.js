@@ -12,7 +12,7 @@ async function test() {
 	zip.configure({ chunkSize: 128, maxWorkers: 4 });
 	await Promise.all(Array.from({ length: 5 }, async () => {
 		const zipWriter = new zip.ZipWriter(new zip.BlobWriter());
-		await zipWriter.add(FILENAME, new zip.TextReader(BLOB));
+		await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 		await zipWriter.close();
 	}));
 	zip.terminateWorkers();
