@@ -14,7 +14,7 @@ async function test() {
 	const zipWriter = new zip.ZipWriter(blobWriter, { zip64: true });
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { password: "password" });
 	await zipWriter.close();
-	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
+	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	let data;
 	try {

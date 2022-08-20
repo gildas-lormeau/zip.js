@@ -16,7 +16,7 @@ async function test() {
 	const zipWriter = new zip.ZipWriter(blobWriter, { keepOrder: true });
 	await Promise.all(ENTRIES_DATA.map(entryData => zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob))));
 	await zipWriter.close();
-	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
+	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	zip.terminateWorkers();
 	if (JSON.stringify(ENTRIES_DATA.map(entry => entry.name)) !=

@@ -793,7 +793,7 @@ interface EntryGetDataOptions extends EntryDataOnprogressOptions, ZipReaderOptio
  * await writer.close();
  * 
  * // get the zip file as a Blob
- * const blob = blobWriter.getData();
+ * const blob = await blobWriter.getData();
  * ```
  */
 export class ZipWriter<Type> {

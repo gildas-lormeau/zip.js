@@ -15,7 +15,7 @@ async function test() {
 	const entry = await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { level: 0 });
 	if (entry.compressionMethod === 0x00) {
 		await zipWriter.close();
-		const compressedData = blobWriter.getData();
+		const compressedData = await blobWriter.getData();
 		if ((await compressedData.text()).includes(TEXT_CONTENT)) {
 			const zipReader = new zip.ZipReader(new zip.BlobReader(compressedData));
 			const entries = await zipReader.getEntries();

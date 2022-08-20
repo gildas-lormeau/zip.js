@@ -16,7 +16,7 @@ async function test() {
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	ENTRIES_DATA.map(entryData => zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob))); // missing call to `await Promise.all`
 	await zipWriter.close();
-	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()));
+	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	const results = await Promise.all(entries.slice(0, ENTRIES_DATA.length).map(async (entry, indexEntry) => {
 		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));

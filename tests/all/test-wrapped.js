@@ -17,7 +17,7 @@ async function test() {
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	await zipWriter.close(COMMENT);
-	const zipReader = new zip.ZipReader(new zip.BlobReader(blobWriter.getData()), { extractPrependedData: true });
+	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()), { extractPrependedData: true });
 	const entries = await zipReader.getEntries();
 	await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 	await zipReader.close();
