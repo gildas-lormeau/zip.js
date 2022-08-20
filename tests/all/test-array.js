@@ -12,7 +12,7 @@ async function test() {
 	const zipWriter = new zip.ZipWriter(arrayWriter);
 	await zipWriter.add(FILENAME, new zip.Uint8ArrayReader(ARRAY));
 	await zipWriter.close();
-	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(arrayWriter.getData()));
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(await arrayWriter.getData()));
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new zip.Uint8ArrayWriter());
 	await zipReader.close();

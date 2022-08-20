@@ -51,7 +51,7 @@ async function test() {
 	const zipWriter = new zip.ZipWriter(binaryStringWriter);
 	await zipWriter.add(FILENAME, new BinaryStringReader(TEXT_CONTENT));
 	await zipWriter.close();
-	const zipReader = new zip.ZipReader(new BinaryStringReader(binaryStringWriter.getData()));
+	const zipReader = new zip.ZipReader(new BinaryStringReader(await binaryStringWriter.getData()));
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new BinaryStringWriter());
 	await zipReader.close();
