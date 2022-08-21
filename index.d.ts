@@ -651,6 +651,12 @@ interface ZipReaderOptions {
      * The `AbortSignal` instance used to cancel the decompression.
      */
     signal?: AbortSignal
+    /**
+     * `true` to prevent closing of `Writer#writable` when calling `Entry#getData()`.
+     * 
+     * @defaultValue false
+     */
+     preventClose?: boolean
 }
 
 /**
