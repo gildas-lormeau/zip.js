@@ -6686,7 +6686,12 @@
 			super();
 			const writer = this;
 			writer.contentType = contentType;
-			writer.transformStream = new TransformStream();
+			writer.transformStream = new TransformStream({
+				transform(chunk, controller) {
+					writer.size += chunk.length;
+					controller.enqueue(chunk);
+				}
+			});
 			Object.defineProperty(this, "writable", {
 				get() {
 					return writer.transformStream.writable;
