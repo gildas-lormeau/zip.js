@@ -8,9 +8,51 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 
 export { test };
 
+class CustomBlobWriter extends zip.Writer {
+
+	constructor(contentType) {
+		super();
+		const writer = this;
+		writer.contentType = contentType;
+		writer.arrayBuffersMaxlength = 8;
+		initArrayBuffers(writer);
+	}
+
+	writeUint8Array(array) {
+		super.writeUint8Array(array);
+		const writer = this;
+		if (writer.arrayBuffers.length == writer.arrayBuffersMaxlength) {
+			flushArrayBuffers(writer);
+		}
+		writer.arrayBuffers.push(array.buffer);
+	}
+
+	getData() {
+		const writer = this;
+		if (!writer.blob) {
+			if (writer.arrayBuffers.length) {
+				flushArrayBuffers(writer);
+			}
+			writer.blob = writer.pendingBlob;
+			initArrayBuffers(writer);
+		}
+		return writer.blob;
+	}
+}
+
+function initArrayBuffers(blobWriter) {
+	blobWriter.pendingBlob = new Blob([], { type: blobWriter.contentType });
+	blobWriter.arrayBuffers = [];
+}
+
+function flushArrayBuffers(blobWriter) {
+	blobWriter.pendingBlob = new Blob([blobWriter.pendingBlob, ...blobWriter.arrayBuffers], { type: blobWriter.contentType });
+	blobWriter.arrayBuffers = [];
+}
+
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	const blobWriter = new zip.BlobWriter("application/zip");
+	const blobWriter = new CustomBlobWriter("application/zip");
 	const array = new Uint8Array(64 * 1024 * 1024);
 	for (let index = 0; index < 64; index++) {
 		await blobWriter.writeUint8Array(array);
