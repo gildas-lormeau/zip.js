@@ -7,7 +7,7 @@ import tests from "./tests-data.js";
 const table = document.createElement("table");
 const MAX_TESTS = 16;
 let indexTest;
-for (indexTest = 0; indexTest < MAX_TESTS; indexTest++) {
+for (indexTest = 0; indexTest < Math.min(MAX_TESTS, tests.length); indexTest++) {
 	addTest(tests[indexTest]);
 }
 document.body.appendChild(table);
