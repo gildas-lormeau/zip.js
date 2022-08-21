@@ -119,7 +119,7 @@ interface WorkerConfiguration {
  * @param registerDataHandler The function called to handle the `data` events triggered by a third-party codec implementation.
  * @returns An instance containing classes compatible with `ZipDeflate` and `ZipInflate`.
  */
-export function initShimAsyncCodec(library: EventBasedZipLibrary, constructorOptions: any | void, registerDataHandler: registerDataHandler): ZipLibrary
+export function initShimAsyncCodec(library: EventBasedZipLibrary, constructorOptions: any | null | undefined, registerDataHandler: registerDataHandler): ZipLibrary
 
 /**
  * Represents the callback function used to register the `data` event handler.
@@ -656,7 +656,7 @@ interface ZipReaderOptions {
      * 
      * @defaultValue false
      */
-     preventClose?: boolean
+    preventClose?: boolean
 }
 
 /**
@@ -822,7 +822,7 @@ export class ZipWriter<Type> {
      * @param options The options.
      * @returns A promise resolving to an `Entry` instance.
      */
-    add<ReaderType>(filename: string, reader: Reader<ReaderType> | ReadableReader | void, options?: ZipWriterAddDataOptions): Promise<Entry>
+    add<ReaderType>(filename: string, reader: Reader<ReaderType> | ReadableReader | null | undefined, options?: ZipWriterAddDataOptions): Promise<Entry>
     /**
      * Writes the entries directory, writes the global comment, and returns the content of the zip file
      * 
@@ -830,7 +830,7 @@ export class ZipWriter<Type> {
      * @param options The options.
      * @returns The content of the zip file.
      */
-    close(comment: Uint8Array | void, options?: ZipWriterCloseOptions): Promise<Type>
+    close(comment: Uint8Array | null | undefined, options?: ZipWriterCloseOptions): Promise<Type>
 }
 
 /**
@@ -1089,7 +1089,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
      * @param options The options.
      * @returns A promise resolving to a `string`.
      */
-    getText(encoding: string | void, options?: EntryGetDataOptions): Promise<string>
+    getText(encoding: string | null | undefined, options?: EntryGetDataOptions): Promise<string>
     /**
      * Retrieves the content of the entry as a `Blob` instance
      * 
@@ -1097,7 +1097,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
      * @param options The options.
      * @returns A promise resolving to a `Blob` instance.
      */
-    getBlob(mimeType: string | void, options?: EntryGetDataOptions): Promise<Blob>
+    getBlob(mimeType: string | null | undefined, options?: EntryGetDataOptions): Promise<Blob>
     /**
      * Retrieves the content of the entry as as a Data URI `string` encoded in Base64
      * 
@@ -1105,7 +1105,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
      * @param options The options.
      * @returns A promise resolving to a Data URI `string` encoded in Base64.
      */
-    getData64URI(mimeType: string | void, options?: EntryGetDataOptions): Promise<string>
+    getData64URI(mimeType: string | null | undefined, options?: EntryGetDataOptions): Promise<string>
     /**
      * Retrieves the content of the entry as a `Uint8Array` instance
      * 
@@ -1120,7 +1120,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
      * @param options The options.
      * @returns A promise resolving to the `WritableStream` instance.
      */
-    getWritable(writable: WritableStream | void, options?: EntryGetDataOptions): Promise<WritableStream>
+    getWritable(writable: WritableStream | null | undefined, options?: EntryGetDataOptions): Promise<WritableStream>
     /**
      * Retrieves the content of the entry via a `Writer` instance
      * 
@@ -1302,7 +1302,7 @@ export class ZipDirectoryEntry extends ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the `Uint8Array` instance.
      */
-    exportWritable(writable: WritableStream | void, options?: ZipDirectoryEntryExportOptions): Promise<WritableStream>
+    exportWritable(writable: WritableStream | null | undefined, options?: ZipDirectoryEntryExportOptions): Promise<WritableStream>
 }
 
 /**
