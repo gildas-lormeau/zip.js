@@ -55,7 +55,7 @@ async function test() {
 	const blobWriter = new CustomBlobWriter("application/zip");
 	const array = new Uint8Array(64 * 1024 * 1024);
 	for (let index = 0; index < 64; index++) {
-		await blobWriter.writeUint8Array(array);
+		blobWriter.writeUint8Array(array);
 	}
 	const zipWriter = new zip.ZipWriter(blobWriter, { keepOrder: true });
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));

@@ -55,7 +55,7 @@ function flushArrayBuffers(blobWriter) {
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new CustomBlobWriter("application/zip");
-	await blobWriter.writeUint8Array(PREPENDED_DATA);
+	blobWriter.writeUint8Array(PREPENDED_DATA);
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	await zipWriter.close(COMMENT);
