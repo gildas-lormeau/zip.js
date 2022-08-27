@@ -32,7 +32,6 @@ class BinaryStringWriter extends zip.Writer {
 	}
 
 	writeUint8Array(array) {
-		super.writeUint8Array(array);
 		for (let indexCharacter = 0; indexCharacter < array.length; indexCharacter++) {
 			this.binaryString += String.fromCharCode(array[indexCharacter]);
 		}

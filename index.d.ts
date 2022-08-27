@@ -249,10 +249,6 @@ export function getMimeType(fileExtension: string): string
  */
 interface DataProcessor {
     /**
-     * The total size of the read/written data in bytes.
-     */
-    size: number
-    /**
      * Initializes the instance asynchronously
      * 
      */
@@ -442,7 +438,6 @@ interface WritableWriter {
  *   }
  * 
  *   writeUint8Array(array) {
- *     super.writeUint8Array(array);
  *     for (let indexCharacter = 0; indexCharacter < array.length; indexCharacter++) {
  *       this.binaryString += String.fromCharCode(array[indexCharacter]);
  *     }
@@ -460,10 +455,6 @@ export class Writer<Type> implements DataProcessor, WritableWriter {
      */
     writable: WritableStream
     /**
-     * The total size of the data in bytes.
-     */
-    size: number
-    /**
      * Initializes the instance asynchronously
      * 
      * @param size the total size of the written data in bytes.
@@ -473,6 +464,8 @@ export class Writer<Type> implements DataProcessor, WritableWriter {
      * Appends a chunk of data
      * 
      * @param array The chunk data to append.
+     * 
+     * @virtual
      */
     writeUint8Array(array: Uint8Array): Promise<void>
     /**

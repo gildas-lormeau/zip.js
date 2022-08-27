@@ -19,7 +19,6 @@ class CustomBlobWriter extends zip.Writer {
 	}
 
 	writeUint8Array(array) {
-		super.writeUint8Array(array);
 		const writer = this;
 		if (writer.arrayBuffers.length == writer.arrayBuffersMaxlength) {
 			flushArrayBuffers(writer);
@@ -53,9 +52,11 @@ function flushArrayBuffers(blobWriter) {
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new CustomBlobWriter("application/zip");
+	blobWriter.writable.size = 0;
 	const array = new Uint8Array(64 * 1024 * 1024);
 	for (let index = 0; index < 64; index++) {
 		blobWriter.writeUint8Array(array);
+		blobWriter.writable.size += array.length;
 	}
 	const zipWriter = new zip.ZipWriter(blobWriter, { keepOrder: true });
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
