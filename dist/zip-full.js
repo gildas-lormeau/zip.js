@@ -7773,7 +7773,7 @@
 				files: new Map(),
 				filenames: new Set(),
 				offset: writer.writable.size,
-				pendingCompressedSize: 0,
+				pendingEntriesSize: 0,
 				pendingAddFileCalls: new Set()
 			});
 		}
@@ -7885,6 +7885,7 @@
 			extendedTimestamp = true;
 		}
 		let maximumCompressedSize = 0;
+		let maximumEntrySize = 0;
 		let keepOrder = getOptionValue(zipWriter, options, "keepOrder");
 		if (keepOrder === undefined) {
 			keepOrder = true;
@@ -7906,7 +7907,7 @@
 			maximumCompressedSize = getMaximumCompressedSize(uncompressedSize);
 		}
 		let zip64 = options.zip64 || zipWriter.options.zip64 || false;
-		if (zipWriter.offset + zipWriter.pendingCompressedSize >= MAX_32_BITS ||
+		if (zipWriter.offset + zipWriter.pendingEntriesSize >= MAX_32_BITS ||
 			uncompressedSize >= MAX_32_BITS ||
 			maximumCompressedSize >= MAX_32_BITS) {
 			if (options.zip64 === false || zipWriter.options.zip64 === false || !keepOrder) {
@@ -7915,8 +7916,6 @@
 				zip64 = true;
 			}
 		}
-		zipWriter.pendingCompressedSize += maximumCompressedSize;
-		await Promise.resolve();
 		const level = getOptionValue(zipWriter, options, "level");
 		const useWebWorkers = getOptionValue(zipWriter, options, "useWebWorkers");
 		const bufferedWrite = getOptionValue(zipWriter, options, "bufferedWrite");
@@ -7930,7 +7929,7 @@
 		if (dataDescriptor && dataDescriptorSignature === undefined) {
 			dataDescriptorSignature = false;
 		}
-		const fileEntry = await getFileEntry(zipWriter, name, reader, Object.assign({}, options, {
+		options = Object.assign({}, options, {
 			rawFilename,
 			rawComment,
 			version,
@@ -7955,15 +7954,20 @@
 			internalFileAttribute,
 			externalFileAttribute,
 			useCompressionStream
-		}));
-		if (maximumCompressedSize) {
-			zipWriter.pendingCompressedSize -= maximumCompressedSize;
+		});
+		const localHeaderInfo = getLocalHeaderInfo(options);
+		const dataDescriptorInfo = getDataDescriptorInfo(options);
+		maximumEntrySize = localHeaderInfo.localHeaderArray.length + maximumCompressedSize + dataDescriptorInfo.dataDescriptorArray.length;
+		zipWriter.pendingEntriesSize += maximumEntrySize;
+		const fileEntry = await getFileEntry(zipWriter, name, reader, { localHeaderInfo, dataDescriptorInfo }, options);
+		if (maximumEntrySize) {
+			zipWriter.pendingEntriesSize -= maximumEntrySize;
 		}
 		Object.assign(fileEntry, { name, comment, extraField });
 		return new Entry(fileEntry);
 	}
 
-	async function getFileEntry(zipWriter, name, reader, options) {
+	async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		const {
 			files,
 			writer
@@ -8002,7 +8006,8 @@
 			if (!bufferedWrite) {
 				await lockPreviousFileEntry;
 			}
-			fileEntry = await createFileEntry(reader, fileWriter, fileEntry, zipWriter.config, options);
+			fileEntry.writingData = true;
+			fileEntry = await createFileEntry(reader, fileWriter, fileEntry, entryInfo, zipWriter.config, options);
 			files.set(name, fileEntry);
 			fileEntry.filename = name;
 			if (bufferedWrite) {
@@ -8078,7 +8083,25 @@
 		}
 	}
 
-	async function createFileEntry(reader, writer, pendingFileEntry, config, options) {
+	async function createFileEntry(reader, writer, pendingFileEntry, entryInfo, config, options) {
+		const {
+			localHeaderInfo,
+			dataDescriptorInfo
+		} = entryInfo;
+		const {
+			localHeaderArray,
+			headerArray,
+			lastModDate,
+			rawLastModDate,
+			encrypted,
+			compressed,
+			version,
+			compressionMethod,
+			rawExtraFieldExtendedTimestamp,
+			rawExtraFieldNTFS,
+			rawExtraFieldAES
+		} = localHeaderInfo;
+		const { dataDescriptorArray } = dataDescriptorInfo;
 		const {
 			rawFilename,
 			lastAccessDate,
@@ -8088,9 +8111,7 @@
 			zip64,
 			zipCrypto,
 			dataDescriptor,
-			dataDescriptorSignature,
 			directory,
-			version,
 			versionMadeBy,
 			rawComment,
 			rawExtraField,
@@ -8106,8 +8127,108 @@
 			externalFileAttribute,
 			useCompressionStream
 		} = options;
-		const encrypted = Boolean(password && password.length);
+		const fileEntry = {
+			lock: pendingFileEntry.lock,
+			versionMadeBy,
+			zip64,
+			directory: Boolean(directory),
+			filenameUTF8: true,
+			rawFilename,
+			commentUTF8: true,
+			rawComment,
+			rawExtraFieldExtendedTimestamp,
+			rawExtraFieldNTFS,
+			rawExtraFieldAES,
+			rawExtraField,
+			extendedTimestamp,
+			msDosCompatible,
+			internalFileAttribute,
+			externalFileAttribute
+		};
+		let uncompressedSize = 0;
+		let signature;
+		let compressedSize = 0;
+		const { writable } = writer;
+		if (reader) {
+			reader.chunkSize = getChunkSize(config);
+			await writeData(writable, localHeaderArray);
+			const size = () => reader.size;
+			const readable = reader.readable;
+			readable.size = size;
+			const workerOptions = {
+				options: {
+					codecType: CODEC_DEFLATE,
+					level,
+					password,
+					encryptionStrength,
+					zipCrypto: encrypted && zipCrypto,
+					passwordVerification: encrypted && zipCrypto && (rawLastModDate >> 8) & 0xFF,
+					signed: true,
+					compressed,
+					encrypted,
+					useWebWorkers,
+					useCompressionStream
+				},
+				config,
+				streamOptions: { signal, size, onstart, onprogress, onend },
+				codecConstructor: config.Deflate
+			};
+			const previousSize = writable.size;
+			signature = (await runWorker({ readable, writable }, workerOptions)).signature;
+			uncompressedSize = reader.size = readable.size();
+			compressedSize = writable.size - previousSize;
+		} else {
+			await writeData(writable, localHeaderArray);
+		}
+		const rawExtraFieldZip64 = zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array();
+		if (reader) {
+			setEntryInfo({
+				signature,
+				rawExtraFieldZip64,
+				compressedSize,
+				uncompressedSize,
+				localHeaderInfo,
+				dataDescriptorInfo
+			}, options);
+		}
+		if (dataDescriptor) {
+			await writeData(writable, dataDescriptorArray);
+		}
+		Object.assign(fileEntry, {
+			compressedSize,
+			lastModDate,
+			rawLastModDate,
+			creationDate,
+			lastAccessDate,
+			encrypted,
+			length: localHeaderArray.length + compressedSize + dataDescriptorArray.length,
+			compressionMethod,
+			version,
+			headerArray,
+			signature,
+			rawExtraFieldZip64
+		});
+		return fileEntry;
+	}
+
+	function getLocalHeaderInfo(options) {
+		const {
+			rawFilename,
+			lastAccessDate,
+			creationDate,
+			password,
+			level,
+			zip64,
+			zipCrypto,
+			dataDescriptor,
+			directory,
+			rawExtraField,
+			encryptionStrength,
+			extendedTimestamp,
+		} = options;
+		let version = options.version || VERSION_DEFLATE;
 		const compressed = level !== 0 && !directory;
+		const encrypted = Boolean(password && password.length);
 		let rawExtraFieldAES;
 		if (encrypted && !zipCrypto) {
 			rawExtraFieldAES = new Uint8Array(EXTRAFIELD_DATA_AES.length + 2);
@@ -8151,27 +8272,6 @@
 		} else {
 			rawExtraFieldNTFS = rawExtraFieldExtendedTimestamp = new Uint8Array();
 		}
-		const fileEntry = {
-			lock: pendingFileEntry.lock,
-			version: version || VERSION_DEFLATE,
-			versionMadeBy,
-			zip64,
-			directory: Boolean(directory),
-			filenameUTF8: true,
-			rawFilename,
-			commentUTF8: true,
-			rawComment,
-			rawExtraFieldZip64: zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array(),
-			rawExtraFieldExtendedTimestamp,
-			rawExtraFieldNTFS,
-			rawExtraFieldAES,
-			rawExtraField,
-			extendedTimestamp,
-			msDosCompatible,
-			internalFileAttribute,
-			externalFileAttribute
-		};
-		let uncompressedSize = 0;
 		let bitFlag = BITFLAG_LANG_ENCODING_FLAG;
 		if (dataDescriptor) {
 			bitFlag = bitFlag | BITFLAG_DATA_DESCRIPTOR;
@@ -8181,22 +8281,21 @@
 			compressionMethod = COMPRESSION_METHOD_DEFLATE;
 		}
 		if (zip64) {
-			fileEntry.version = fileEntry.version > VERSION_ZIP64 ? fileEntry.version : VERSION_ZIP64;
+			version = version > VERSION_ZIP64 ? version : VERSION_ZIP64;
 		}
 		if (encrypted) {
 			bitFlag = bitFlag | BITFLAG_ENCRYPTED;
 			if (!zipCrypto) {
-				fileEntry.version = fileEntry.version > VERSION_AES ? fileEntry.version : VERSION_AES;
+				version = version > VERSION_AES ? version : VERSION_AES;
 				compressionMethod = COMPRESSION_METHOD_AES;
 				if (compressed) {
-					fileEntry.rawExtraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
+					rawExtraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
 				}
 			}
 		}
-		fileEntry.compressionMethod = compressionMethod;
-		const headerArray = fileEntry.headerArray = new Uint8Array(26);
+		const headerArray = new Uint8Array(26);
 		const headerView = getDataView(headerArray);
-		setUint16(headerView, 0, fileEntry.version);
+		setUint16(headerView, 0, version);
 		setUint16(headerView, 2, bitFlag);
 		setUint16(headerView, 4, compressionMethod);
 		const dateArray = new Uint32Array(1);
@@ -8225,41 +8324,28 @@
 		arraySet(localHeaderArray, rawExtraFieldExtendedTimestamp, 30 + rawFilename.length + rawExtraFieldAES.length);
 		arraySet(localHeaderArray, rawExtraFieldNTFS, 30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length);
 		arraySet(localHeaderArray, rawExtraField, 30 + rawFilename.length + rawExtraFieldAES.length + rawExtraFieldExtendedTimestamp.length + rawExtraFieldNTFS.length);
-		let result;
-		let compressedSize = 0;
-		const { writable } = writer;
-		fileEntry.writingData = pendingFileEntry.writingData = true;
-		if (reader) {
-			reader.chunkSize = getChunkSize(config);
-			await writeData(writable, localHeaderArray);
-			const size = () => reader.size;
-			const readable = reader.readable;
-			readable.size = size;
-			const workerOptions = {
-				options: {
-					codecType: CODEC_DEFLATE,
-					level,
-					password,
-					encryptionStrength,
-					zipCrypto: encrypted && zipCrypto,
-					passwordVerification: encrypted && zipCrypto && (rawLastModDate >> 8) & 0xFF,
-					signed: true,
-					compressed,
-					encrypted,
-					useWebWorkers,
-					useCompressionStream
-				},
-				config,
-				streamOptions: { signal, size, onstart, onprogress, onend },
-				codecConstructor: config.Deflate
-			};
-			const previousSize = writable.size;
-			result = await runWorker({ readable, writable }, workerOptions);
-			uncompressedSize = reader.size = readable.size();
-			compressedSize = writable.size - previousSize;
-		} else {
-			await writeData(writable, localHeaderArray);
-		}
+		return {
+			localHeaderArray,
+			headerArray,
+			headerView,
+			lastModDate,
+			rawLastModDate,
+			encrypted,
+			compressed,
+			version,
+			compressionMethod,
+			rawExtraFieldExtendedTimestamp,
+			rawExtraFieldNTFS,
+			rawExtraFieldAES
+		};
+	}
+
+	function getDataDescriptorInfo(options) {
+		const {
+			zip64,
+			dataDescriptor,
+			dataDescriptorSignature
+		} = options;
 		let dataDescriptorArray = new Uint8Array();
 		let dataDescriptorView, dataDescriptorOffset = 0;
 		if (dataDescriptor) {
@@ -8270,51 +8356,61 @@
 				setUint32(dataDescriptorView, 0, DATA_DESCRIPTOR_RECORD_SIGNATURE);
 			}
 		}
-		if (reader) {
-			const { signature } = result;
-			if ((!encrypted || zipCrypto) && signature !== undefined) {
-				setUint32(headerView, 10, signature);
-				fileEntry.signature = signature;
-				if (dataDescriptor) {
-					setUint32(dataDescriptorView, dataDescriptorOffset, signature);
-				}
-			}
-			if (zip64) {
-				const rawExtraFieldZip64View = getDataView(fileEntry.rawExtraFieldZip64);
-				setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
-				setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
-				setUint32(headerView, 14, MAX_32_BITS);
-				setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
-				setUint32(headerView, 18, MAX_32_BITS);
-				setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
-				if (dataDescriptor) {
-					setBigUint64(dataDescriptorView, dataDescriptorOffset + 4, BigInt(compressedSize));
-					setBigUint64(dataDescriptorView, dataDescriptorOffset + 12, BigInt(uncompressedSize));
-				}
-			} else {
-				setUint32(headerView, 14, compressedSize);
-				setUint32(headerView, 18, uncompressedSize);
-				if (dataDescriptor) {
-					setUint32(dataDescriptorView, dataDescriptorOffset + 4, compressedSize);
-					setUint32(dataDescriptorView, dataDescriptorOffset + 8, uncompressedSize);
-				}
-			}
-		}
-		if (dataDescriptor) {
-			await writeData(writable, dataDescriptorArray);
-		}
-		const length = localHeaderArray.length + compressedSize + dataDescriptorArray.length;
-		Object.assign(fileEntry, {
+		return {
+			dataDescriptorArray,
+			dataDescriptorView,
+			dataDescriptorOffset
+		};
+	}
+
+	function setEntryInfo(entryInfo, options) {
+		const {
+			signature,
+			rawExtraFieldZip64,
 			compressedSize,
-			lastModDate,
-			rawLastModDate,
-			creationDate,
-			lastAccessDate,
-			encrypted,
-			length,
-			writingData: false
-		});
-		return fileEntry;
+			uncompressedSize,
+			localHeaderInfo,
+			dataDescriptorInfo
+		} = entryInfo;
+		const {
+			headerView,
+			encrypted
+		} = localHeaderInfo;
+		const {
+			dataDescriptorView,
+			dataDescriptorOffset
+		} = dataDescriptorInfo;
+		const {
+			zip64,
+			zipCrypto,
+			dataDescriptor
+		} = options;
+		if ((!encrypted || zipCrypto) && signature !== undefined) {
+			setUint32(headerView, 10, signature);
+			if (dataDescriptor) {
+				setUint32(dataDescriptorView, dataDescriptorOffset, signature);
+			}
+		}
+		if (zip64) {
+			const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
+			setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
+			setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
+			setUint32(headerView, 14, MAX_32_BITS);
+			setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
+			setUint32(headerView, 18, MAX_32_BITS);
+			setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
+			if (dataDescriptor) {
+				setBigUint64(dataDescriptorView, dataDescriptorOffset + 4, BigInt(compressedSize));
+				setBigUint64(dataDescriptorView, dataDescriptorOffset + 12, BigInt(uncompressedSize));
+			}
+		} else {
+			setUint32(headerView, 14, compressedSize);
+			setUint32(headerView, 18, uncompressedSize);
+			if (dataDescriptor) {
+				setUint32(dataDescriptorView, dataDescriptorOffset + 4, compressedSize);
+				setUint32(dataDescriptorView, dataDescriptorOffset + 8, uncompressedSize);
+			}
+		}
 	}
 
 	async function closeFile(zipWriter, comment, options) {
