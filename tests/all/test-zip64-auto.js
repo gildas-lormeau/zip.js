@@ -53,20 +53,26 @@ async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new CustomBlobWriter("application/zip");
 	blobWriter.writable.size = 0;
-	const array = new Uint8Array(64 * 1024 * 1024);
-	for (let index = 0; index < 64; index++) {
+	let array = new Uint8Array(64 * 1024 * 1024);
+	for (let index = 0; index < 63; index++) {
 		blobWriter.writeUint8Array(array);
 		blobWriter.writable.size += array.length;
 	}
+	array = new Uint8Array((64 * 1024 * 1024) - 1265);
+	blobWriter.writeUint8Array(array);
+	blobWriter.writable.size += array.length;
 	const zipWriter = new zip.ZipWriter(blobWriter, { keepOrder: true });
-	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
+	await Promise.all([
+		zipWriter.add(FILENAME, new zip.BlobReader(BLOB)),
+		zipWriter.add(FILENAME + "1", new zip.BlobReader(BLOB)),
+		zipWriter.add(FILENAME + "2", new zip.BlobReader(BLOB))
+	]);
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
-	const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 	await zipReader.close();
 	zip.terminateWorkers();
-	if (TEXT_CONTENT != await data.text() && !entries[0].zip64) {
+	if (entries[0].zip64 || entries[1].zip64 || !entries[2].zip64) {
 		throw new Error();
 	}
 }
