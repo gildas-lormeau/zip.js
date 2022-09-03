@@ -7688,7 +7688,7 @@
 			const writer = this;
 			writer.contentType = contentType;
 			writer.transformStream = new TransformStream();
-			Object.defineProperty(this, "writable", {
+			Object.defineProperty(writer, "writable", {
 				get() {
 					return writer.transformStream.writable;
 				}
@@ -7702,7 +7702,11 @@
 				transformStream,
 				contentType
 			} = writer;
-			writer.blob = new Response(transformStream.readable).blob({ type: contentType });
+			const headers = [];
+			if (contentType) {
+				headers.push(["content-type", contentType]);
+			}
+			writer.blob = new Response(transformStream.readable, { headers }).blob();
 		}
 
 		getData() {
@@ -8956,11 +8960,11 @@
 			externalFileAttribute,
 			useCompressionStream
 		});
-		const localHeaderInfo = getLocalHeaderInfo(options);
+		const headerInfo = getHeaderInfo(options);
 		const dataDescriptorInfo = getDataDescriptorInfo(options);
-		maximumEntrySize = localHeaderInfo.localHeaderArray.length + maximumCompressedSize + dataDescriptorInfo.dataDescriptorArray.length;
+		maximumEntrySize = headerInfo.localHeaderArray.length + maximumCompressedSize + dataDescriptorInfo.dataDescriptorArray.length;
 		zipWriter.pendingEntriesSize += maximumEntrySize;
-		const fileEntry = await getFileEntry(zipWriter, name, reader, { localHeaderInfo, dataDescriptorInfo }, options);
+		const fileEntry = await getFileEntry(zipWriter, name, reader, { headerInfo, dataDescriptorInfo }, options);
 		if (maximumEntrySize) {
 			zipWriter.pendingEntriesSize -= maximumEntrySize;
 		}
@@ -9086,7 +9090,7 @@
 
 	async function createFileEntry(reader, writer, pendingFileEntry, entryInfo, config, options) {
 		const {
-			localHeaderInfo,
+			headerInfo,
 			dataDescriptorInfo
 		} = entryInfo;
 		const {
@@ -9101,7 +9105,7 @@
 			rawExtraFieldExtendedTimestamp,
 			rawExtraFieldNTFS,
 			rawExtraFieldAES
-		} = localHeaderInfo;
+		} = headerInfo;
 		const { dataDescriptorArray } = dataDescriptorInfo;
 		const {
 			rawFilename,
@@ -9188,7 +9192,7 @@
 				rawExtraFieldZip64,
 				compressedSize,
 				uncompressedSize,
-				localHeaderInfo,
+				headerInfo,
 				dataDescriptorInfo
 			}, options);
 		}
@@ -9212,7 +9216,7 @@
 		return fileEntry;
 	}
 
-	function getLocalHeaderInfo(options) {
+	function getHeaderInfo(options) {
 		const {
 			rawFilename,
 			lastAccessDate,
@@ -9370,13 +9374,13 @@
 			rawExtraFieldZip64,
 			compressedSize,
 			uncompressedSize,
-			localHeaderInfo,
+			headerInfo,
 			dataDescriptorInfo
 		} = entryInfo;
 		const {
 			headerView,
 			encrypted
-		} = localHeaderInfo;
+		} = headerInfo;
 		const {
 			dataDescriptorView,
 			dataDescriptorOffset
