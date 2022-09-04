@@ -139,6 +139,7 @@ import {
   TextReader,
   ZipWriter,
 } from "https://unpkg.com/@zip.js/zip.js/index.js";
+const README_URL = "https://unpkg.com/@zip.js/zip.js/README.md";
 
 getZipFileBlob()
   .then(downloadFile);
@@ -147,10 +148,7 @@ async function getZipFileBlob() {
   const zipWriter = new ZipWriter(new BlobWriter());
   await Promise.all([
     zipWriter.add("hello.txt", new TextReader("hello world!")),
-    zipWriter.add(
-      "README.MD",
-      new HttpReader("https://unpkg.com/@zip.js/zip.js/README.md"),
-    ),
+    zipWriter.add("README.MD", new HttpReader(README_URL)),
   ]);
   return zipWriter.close();
 }
