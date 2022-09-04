@@ -65,6 +65,7 @@ await zipReader.close();
 // Displays "Hello world!".
 console.log(helloWorldText);
 ```
+
 Run the code on JSFiddle: https://jsfiddle.net/dns7pkxt/
 
 ## Hello world with Streams
@@ -126,6 +127,7 @@ await zipReader.close();
 const helloWorldText = await helloWorldTextPromise;
 console.log(helloWorldText);
 ```
+
 Run the code on JSFiddle: https://jsfiddle.net/m8q1u0ox/
 
 See here for more examples:
