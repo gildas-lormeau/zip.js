@@ -130,5 +130,41 @@ console.log(helloWorldText);
 
 Run the code on JSFiddle: https://jsfiddle.net/m8q1u0ox/
 
+## Adding concurrently multiple entries in a zip file
+
+```js
+import {
+  BlobWriter,
+  HttpReader,
+  TextReader,
+  ZipWriter,
+} from "https://unpkg.com/@zip.js/zip.js/index.js";
+
+getZipFileBlob()
+  .then(downloadFile);
+
+async function getZipFileBlob() {
+  const zipWriter = new ZipWriter(new BlobWriter());
+  await Promise.all([
+    zipWriter.add("hello.txt", new TextReader("hello world!")),
+    zipWriter.add(
+      "README.MD",
+      new HttpReader("https://unpkg.com/@zip.js/zip.js/README.md"),
+    ),
+  ]);
+  return zipWriter.close();
+}
+
+function downloadFile(blob) {
+  document.body.appendChild(Object.assign(document.createElement("a"), {
+    download: "hello.zip",
+    href: URL.createObjectURL(blob),
+    textContent: "Download zip file",
+  }));
+}
+```
+
+Run the code on Plunker: https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview
+
 See here for more examples:
 https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
