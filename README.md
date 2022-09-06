@@ -145,7 +145,7 @@ getZipFileBlob()
   .then(downloadFile);
 
 async function getZipFileBlob() {
-  const zipWriter = new ZipWriter(new BlobWriter());
+  const zipWriter = new ZipWriter(new BlobWriter("application/zip"));
   await Promise.all([
     zipWriter.add("hello.txt", new TextReader("Hello world!")),
     zipWriter.add("README.MD", new HttpReader(README_URL)),
