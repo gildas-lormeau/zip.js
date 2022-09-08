@@ -650,6 +650,12 @@ interface ZipReaderOptions {
      * @defaultValue false
      */
     preventClose?: boolean
+    /**
+    * `true` to transfer streams to web workers when decompressing data.
+    * 
+    * @defaultValue true
+    */
+    transferStreams?: boolean
 }
 
 /**
