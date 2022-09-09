@@ -19,18 +19,18 @@
 <h3>Example</h3><p>Here is an example showing how to create a zip file containing a compressed text file:</p>
 <pre><code><span class="hl-4">// use a BlobWriter to store with a ZipWriter the zip into a Blob object</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">blobWriter</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">BlobWriter</span><span class="hl-1">(</span><span class="hl-3">&quot;application/zip&quot;</span><span class="hl-1">);</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">writer</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">ZipWriter</span><span class="hl-1">(</span><span class="hl-2">blobWriter</span><span class="hl-1">);</span><br/><br/><span class="hl-4">// use a TextReader to read the String to add</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">writer</span><span class="hl-1">.</span><span class="hl-7">add</span><span class="hl-1">(</span><span class="hl-3">&quot;filename.txt&quot;</span><span class="hl-1">, </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">TextReader</span><span class="hl-1">(</span><span class="hl-3">&quot;test!&quot;</span><span class="hl-1">));</span><br/><br/><span class="hl-4">// close the ZipReader</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">writer</span><span class="hl-1">.</span><span class="hl-7">close</span><span class="hl-1">();</span><br/><br/><span class="hl-4">// get the zip file as a Blob</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">blob</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">blobWriter</span><span class="hl-1">.</span><span class="hl-7">getData</span><span class="hl-1">();</span>
 </code></pre>
-</div></section>
+</div></section> 
 <section class="tsd-panel tsd-type-parameters">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameters">
 <li>
-<h4>Type</h4></li></ul></section>
+<h4>Type</h4></li></ul></section> 
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
 <li><span class="target">ZipWriter</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/54f3b7c/index.d.ts#L798">index.d.ts:798</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/5d67eaa/index.d.ts#L804">index.d.ts:804</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -60,9 +60,11 @@
 </div>
 <div class="tsd-type-parameters">
 <h4 class="tsd-type-parameters-title">Type Parameters</h4>
+<section class="tsd-panel tsd-type-parameters">
+<h4>Type Parameters</h4>
 <ul class="tsd-type-parameters">
 <li>
-<h4>Type</h4></li></ul></div>
+<h4>Type</h4></li></ul></section></div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -76,7 +78,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="ZipWriter.html" class="tsd-signature-type" data-tsd-kind="Class">ZipWriter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Type</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/54f3b7c/index.d.ts#L805">index.d.ts:805</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/5d67eaa/index.d.ts#L811">index.d.ts:811</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="hasCorruptedEntries" class="tsd-anchor"></a>
@@ -85,7 +87,7 @@
 <div class="tsd-comment tsd-typography"><p><code>true</code> if the zip contains at least one entry that has been partially written.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/54f3b7c/index.d.ts#L809">index.d.ts:809</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/5d67eaa/index.d.ts#L815">index.d.ts:815</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="add" class="tsd-anchor"></a>
@@ -99,9 +101,11 @@
 </div>
 <div class="tsd-type-parameters">
 <h4 class="tsd-type-parameters-title">Type Parameters</h4>
+<section class="tsd-panel tsd-type-parameters">
+<h4>Type Parameters</h4>
 <ul class="tsd-type-parameters">
 <li>
-<h4>ReaderType</h4></li></ul></div>
+<h4>ReaderType</h4></li></ul></section></div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -119,7 +123,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Entry.html" class="tsd-signature-type" data-tsd-kind="Interface">Entry</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/54f3b7c/index.d.ts#L818">index.d.ts:818</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/5d67eaa/index.d.ts#L824">index.d.ts:824</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="close" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>close</span><a href="#close" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -142,7 +146,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Type</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/54f3b7c/index.d.ts#L826">index.d.ts:826</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/5d67eaa/index.d.ts#L832">index.d.ts:832</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
