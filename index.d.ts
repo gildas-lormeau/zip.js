@@ -119,7 +119,7 @@ interface WorkerConfiguration {
  * @param registerDataHandler The function called to handle the `data` events triggered by a third-party codec implementation.
  * @returns An instance containing classes compatible with `ZipDeflate` and `ZipInflate`.
  */
-export function initShimAsyncCodec(library: EventBasedZipLibrary, constructorOptions: any | null | undefined, registerDataHandler: registerDataHandler): ZipLibrary
+export function initShimAsyncCodec(library: EventBasedZipLibrary, constructorOptions: any | null, registerDataHandler: registerDataHandler): ZipLibrary
 
 /**
  * Represents the callback function used to register the `data` event handler.
