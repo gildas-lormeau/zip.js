@@ -556,7 +556,7 @@ export class ZipReader<Type> {
      * @param reader The `Reader` instance used to read data.
      * @param options The options.
      */
-    constructor(reader: Reader<Type> | ReadableReader, options?: ZipReaderConstructorOptions)
+    constructor(reader: Reader<Type> | ReadableReader | ReadableStream, options?: ZipReaderConstructorOptions)
     /**
      * The global comment of the zip file.
      */
@@ -773,7 +773,7 @@ export interface Entry {
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer`.
      */
-    getData?<Type>(writer: Writer<Type> | WritableWriter, options?: EntryGetDataOptions): Promise<Type>
+    getData?<Type>(writer: Writer<Type> | WritableWriter | WritableStream, options?: EntryGetDataOptions): Promise<Type>
 }
 
 /**
@@ -808,7 +808,7 @@ export class ZipWriter<Type> {
      * @param writer The `Writer` instance where the zip content will be written.
      * @param options The options.
      */
-    constructor(writer: Writer<Type> | WritableWriter, options?: ZipWriterConstructorOptions)
+    constructor(writer: Writer<Type> | WritableWriter | WritableStream, options?: ZipWriterConstructorOptions)
     /**
      * `true` if the zip contains at least one entry that has been partially written.
      */
@@ -821,7 +821,7 @@ export class ZipWriter<Type> {
      * @param options The options.
      * @returns A promise resolving to an `Entry` instance.
      */
-    add<ReaderType>(filename: string, reader?: Reader<ReaderType> | ReadableReader | null, options?: ZipWriterAddDataOptions): Promise<Entry>
+    add<ReaderType>(filename: string, reader?: Reader<ReaderType> | ReadableReader | ReadableStream | null, options?: ZipWriterAddDataOptions): Promise<Entry>
     /**
      * Writes the entries directory, writes the global comment, and returns the content of the zip file
      * 

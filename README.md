@@ -83,20 +83,19 @@ import {
 
 // Creates a TransformStream object, the zip content will be written in the
 // `writable` property.
-const zipFileWriter = new TransformStream();
+const zipFileStream = new TransformStream();
 // Creates a Promise object resolved to the zip content returned as a Blob
-// object via the `readable` property of `zipFileWriter`.
-const zipFileBlobPromise = new Response(zipFileWriter.readable).blob();
-// Creates a Reader object containing a `readable` property. This property is
-// set to a ReadableStream object storing the text of the entry to add in the
+// object retrieved from `zipFileStream.readable`.
+const zipFileBlobPromise = new Response(zipFileStream.readable).blob();
+// Creates a ReadableStream object storing the text of the entry to add in the
 // zip (i.e. "Hello world!").
-const helloWorldReader = { readable: new Blob(["Hello world!"]).stream() };
+const helloWorldReadable = new Blob(["Hello world!"]).stream();
 
-// Creates a ZipWriter object writing data via `zipFileWriter`, adds the entry
-// "hello.txt" containing the text "Hello world!" via `helloWorldReader`, and
-// closes the writer.
-const zipWriter = new ZipWriter(zipFileWriter);
-await zipWriter.add("hello.txt", helloWorldReader);
+// Creates a ZipWriter object writing data into `zipFileStream.writable`, adds
+// the entry "hello.txt" containing the text "Hello world!" retrieved from 
+// `helloWorldReadable`, and closes the writer.
+const zipWriter = new ZipWriter(zipFileStream.writable);
+await zipWriter.add("hello.txt", helloWorldReadable);
 await zipWriter.close();
 
 // Retrieves the Blob object containing the zip content into `zipFileBlob`.
@@ -110,17 +109,17 @@ const zipFileBlob = await zipFileBlobPromise;
 const zipFileReader = new BlobReader(zipFileBlob);
 // Creates a TransformStream object, the content of the first entry in the zip
 // will be written in the `writable` property.
-const helloWorldWriter = new TransformStream();
+const helloWorldStream = new TransformStream();
 // Creates a Promise object resolved to the content of the first entry returned
-// as text via the `readable` property of `helloWorldWriter`.
-const helloWorldTextPromise = new Response(helloWorldWriter.readable).text();
+// as text from `helloWorldStream.readable`.
+const helloWorldTextPromise = new Response(helloWorldStream.readable).text();
 
 // Creates a ZipReader object reading the zip content via `zipFileReader`,
 // retrieves metadata (name, dates, etc.) of the first entry, retrieves its
-// content via `helloWorldWriter`, and closes the reader.
+// content into `helloWorldStream.writable`, and closes the reader.
 const zipReader = new ZipReader(zipFileReader);
 const firstEntry = (await zipReader.getEntries()).shift();
-await firstEntry.getData(helloWorldWriter);
+await firstEntry.getData(helloWorldStream.writable);
 await zipReader.close();
 
 // Displays "Hello world!".
@@ -128,7 +127,7 @@ const helloWorldText = await helloWorldTextPromise;
 console.log(helloWorldText);
 ```
 
-Run the code on JSFiddle: https://jsfiddle.net/m8q1u0ox/
+Run the code on JSFiddle: https://jsfiddle.net/p6jb437z/
 
 ## Adding concurrently multiple entries in a zip file
 

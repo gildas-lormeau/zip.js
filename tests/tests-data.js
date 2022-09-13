@@ -41,6 +41,7 @@ export default ([
 	{ title: "Service worker", script: "./test-sw.js", env: ["browser"] },
 	{ title: "Signature CRC32", script: "./test-crc.js" },
 	{ title: "Store", script: "./test-store.js" },
+	{ title: "Streams", script: "./test-streams.js" },
 	{ title: "Worker timeout", script: "./test-worker-timeout.js" },
 	{ title: "Wrapped zip file", script: "./test-wrapped.js" },
 	{ title: "Writable Stream", script: "./test-writable-stream.js" },
