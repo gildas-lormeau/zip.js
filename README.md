@@ -127,7 +127,7 @@ const helloWorldText = await helloWorldTextPromise;
 console.log(helloWorldText);
 ```
 
-Run the code on JSFiddle: https://jsfiddle.net/p6jb437z/
+Run the code on JSFiddle: https://jsfiddle.net/d1jpk69u/
 
 ## Adding concurrently multiple entries in a zip file
 
