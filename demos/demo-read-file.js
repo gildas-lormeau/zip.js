@@ -1,4 +1,4 @@
-/* globals zip, document, URL, MouseEvent, AbortController, alert */
+/* global zip, document, URL, MouseEvent, AbortController, alert */
 
 (() => {
 

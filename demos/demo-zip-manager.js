@@ -1,4 +1,4 @@
-/* globals zip, document, URL, MouseEvent, alert, prompt, Range, getSelection */
+/* global zip, document, URL, MouseEvent, alert, prompt, Range, getSelection */
 
 (() => {
 
