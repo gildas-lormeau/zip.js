@@ -11,6 +11,16 @@ declare global {
 }
 
 /**
+ * Represents a generic `TransformStream` class.
+ * 
+ * @see {@link https://streams.spec.whatwg.org/#generictransformstream|specification}
+ */
+declare class GenericTransformStream {
+    readable: ReadableStream
+    writable: WritableStream
+}
+
+/**
  * Configures zip.js
  * 
  * @param configuration The configuration. 
@@ -74,23 +84,35 @@ interface Configuration extends WorkerConfiguration {
         inflate?: string[]
     }
     /**
-     * The size of the chunks in bytes during data compression/decopression.
+     * The size of the chunks in bytes during data compression/decompression.
      * 
      * @defaultValue 524288
      */
     chunkSize?: number
     /**
-     * The implementation used to compress data when `useWebWorkers` is set to `false`.
+     * The codec implementation used to compress data.
      * 
      * @defaultValue `ZipDeflate`
      */
     Deflate?: typeof ZipDeflate
     /**
-     * The implementation used to decompress data when `useWebWorkers` is set to `false`.
+     * The codec implementation used to decompress data.
      * 
      * @defaultValue `ZipInflate`
      */
     Inflate?: typeof ZipInflate
+    /**
+     * The stream implementation used to compress data when `useCompressionStream` is set to `false`.
+     * 
+     * @defaultValue `CodecStream`
+     */
+    CompressionStream?: typeof GenericTransformStream
+    /**
+     * The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
+     * 
+     * @defaultValue `CodecStream`
+     */
+    DecompressionStream?: typeof GenericTransformStream
 }
 
 /**
@@ -197,17 +219,20 @@ interface ZipLibrary {
     Inflate: typeof ZipInflate
 }
 
+declare class SyncCodec {
+    /**
+    * Appends a chunk of decompressed data to compress
+    * 
+    * @param data The chunk of decompressed data to append.
+    * @returns A chunk of compressed data.
+    */
+    append(data: Uint8Array): Uint8Array
+}
+
 /**
  * Represents an intance used to compress data.
  */
-declare class ZipDeflate {
-    /**
-     * Appends a chunk of decompressed data to compress
-     * 
-     * @param data The chunk of decompressed data to append.
-     * @returns A chunk of compressed data.
-     */
-    append(data: Uint8Array): Uint8Array
+declare class ZipDeflate extends SyncCodec {
     /**
      * Flushes the data
      * 
@@ -219,19 +244,17 @@ declare class ZipDeflate {
 /**
  * Represents a codec used to decompress data.
  */
-declare class ZipInflate {
-    /**
-     * Appends a chunk of compressed data to decompress
-     * 
-     * @param data The chunk of compressed data to append.
-     * @returns A chunk of decompressed data.
-     */
-    append(data: Uint8Array): Uint8Array
+declare class ZipInflate extends SyncCodec {
     /**
      * Flushes the data
      */
     flush(): void
 }
+
+/**
+ * Represents a class implementing `CompressionStream` or `DecompressionStream` interfaces.
+ */
+declare class CodecStream extends TransformStream { }
 
 /**
  * Returns the MIME type corresponding to a filename extension.
