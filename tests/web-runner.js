@@ -8,7 +8,10 @@ const table = document.createElement("table");
 const MAX_TESTS = 16;
 let indexTest;
 for (indexTest = 0; indexTest < Math.min(MAX_TESTS, tests.length); indexTest++) {
-	addTest(tests[indexTest]);
+	const test = tests[indexTest];
+	if (!test.env || test.env.includes("browser")) {
+		addTest(test);
+	}
 }
 document.body.appendChild(table);
 if (!location.search.startsWith("?keepTests")) {
