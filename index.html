@@ -77,17 +77,22 @@
 		</ul>
 
 		<h2>Installation</h2>
-		<p>You can download this project as a <a href="https://github.com/gildas-lormeau/zip.js/zipball/master">zip</a>
-			file.
+		<p><strong>Warning:</strong> Make sure that the code is parsed in UTF-8, e.g. served with the HTTP header
+			"<code>Content-Type: application/javascript; charset=utf-8</code>", otherwise filenames might be corrupted
+			when reading zip files.
 		</p>
-		<p>You can clone the project with <a href="https://git-scm.com">Git</a> from <a
-				href="https://github.com/gildas-lormeau/zip.js" target="repository">GitHub</a> by running:
-		</p>
-		<pre>$ git clone git://github.com/gildas-lormeau/zip.js</pre>
-		<p>You can also get the code via:</p>
+		<p>You can get the code via:</p>
 		<ul>
 			<li><a href="https://www.npmjs.com/package/@zip.js/zip.js">NPM</a> by running:
 				<pre>$ npm install @zip.js/zip.js</pre>
+				<ul>
+					<li>Import the libary as an EcmaScript module:
+						<pre><code class="prettyprint">import * as zip from "@zip.js/zip.js"</code></pre>
+					</li>
+					<li>or as a CommonJS module:
+						<pre><code class="prettyprint">const zip = require("@zip.js/zip.js/index.cjs")</code></pre>
+					</li>
+				</ul>
 			</li>
 			<li><a href="https://deno.land/x/zipjs">deno.land/x</a> by importing zip.js:
 				<pre><code class="prettyprint">import * as zip from "https://deno.land/x/zipjs/index.js"</code></pre>
@@ -98,24 +103,20 @@
 			directory in your project. If you don't want to use web workers, add <code>zip-full.min.js</code> instead.
 			Then, include <code>zip.min.js</code> (or <code>zip-full.min.js</code>) in your HTML page:
 		<ul>
-			<li>as a regular script:
-				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/library_path/zip.min.js&quot;&gt;&lt;/script&gt;
-&lt;script&gt;
-// the zip API is in window.zip
-// ...
-&lt;/script&gt;</code></pre>
-			</li>
-			<li>or as an AMD module:
+			<li>as an AMD module:
 				<pre><code class="prettyprint">require(["/library_path/zip.min.js"], zip => {
-// ...
+  // ...
 });</code></pre>
 
 			</li>
+			<li>or as a regular script:
+				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/library_path/zip.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+  // the zip API is in the `zip` global variable
+  // ...
+&lt;/script&gt;</code></pre>
+			</li>
 		</ul>
-		<p><strong>Warning:</strong> Make sure that the code is parsed in UTF-8, e.g. served with the HTTP header
-			"<code>Content-Type: application/javascript; charset=utf-8</code>", otherwise filenames might be corrupted
-			when reading zip files.
-		</p>
 		<div class="footer">
 			get the source code on GitHub : <a href="https://github.com/gildas-lormeau/zip.js">gildas-lormeau/zip.js</a>
 			- contact: gildas.lormeau &lt;at&gt; gmail.com
