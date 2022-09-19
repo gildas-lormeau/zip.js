@@ -140,6 +140,9 @@ export default [{
 		file: "dist/zip-fs-full.js",
 		format: "umd",
 		name: "zip"
+	}, {
+		file: "index.cjs",
+		format: "cjs"
 	}]
 }, {
 	input: "lib/z-worker-bootstrap-pako.js",

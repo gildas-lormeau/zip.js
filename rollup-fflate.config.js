@@ -145,6 +145,9 @@ export default [{
 		file: "dist/zip-fs-full.js",
 		format: "umd",
 		name: "zip"
+	}, {
+		file: "index.cjs",
+		format: "cjs"
 	}],
 	plugins: [nodeResolve()]
 }, {
