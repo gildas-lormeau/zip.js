@@ -99,7 +99,7 @@
 					});
 					li.title += `\n  Last modification date: ${entry.lastModDate.toLocaleString()}\n  Compressed size: ${entry.compressedSize.toLocaleString()} bytes`;
 				} catch (error) {
-					if (signal.reason.code == error.code) {
+					if (signal.reason && signal.reason.code == error.code) {
 						if (!li.previousElementSibling && !li.nextElementSibling) {
 							fileList.classList.add("empty");
 						}

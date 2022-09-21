@@ -143,7 +143,7 @@
 					const clickEvent = new MouseEvent("click");
 					a.dispatchEvent(clickEvent);
 				} catch (error) {
-					if (signal.reason.code != error.code) {
+					if (!signal.reason || signal.reason.code != error.code) {
 						throw error;
 					}
 				} finally {
