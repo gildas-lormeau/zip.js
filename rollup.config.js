@@ -64,14 +64,14 @@ export default [{
 		intro: GLOBALS,
 		file: "dist/zip.min.js",
 		format: "umd",
-		name: "zip"
+		name: "zip",
+		plugins: [terser(bundledTerserOptions)]
 	}, {
 		intro: GLOBALS,
 		file: "dist/zip.js",
 		format: "umd",
 		name: "zip"
-	}],
-	plugins: [terser(bundledTerserOptions)]
+	}]
 }, {
 	input: ["lib/zip-full.js"],
 	output: [{
