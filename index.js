@@ -54,6 +54,7 @@ export {
 	HttpRangeReader,
 	Uint8ArrayWriter,
 	Uint8ArrayReader,
+	SplitZipReader,
 	ERR_HTTP_RANGE,
 	ERR_BAD_FORMAT,
 	ERR_EOCDR_NOT_FOUND,

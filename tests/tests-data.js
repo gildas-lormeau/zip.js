@@ -41,6 +41,7 @@ export default ([
 	{ title: "Safe closing", script: "./test-safe-closing.js" },
 	{ title: "Service worker", script: "./test-sw.js", env: ["browser"] },
 	{ title: "Signature CRC32", script: "./test-crc.js" },
+	{ title: "Split files", script: "./test-split-zip.js", env: ["deno", "browser"] },
 	{ title: "Store", script: "./test-store.js" },
 	{ title: "Streams", script: "./test-streams.js" },
 	{ title: "Worker timeout", script: "./test-worker-timeout.js" },

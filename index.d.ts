@@ -366,6 +366,11 @@ export class Data64URIReader extends Reader<string> { }
  */
 export class Uint8ArrayReader extends Reader<Uint8Array> { }
 
+/**
+ * Represents a `Reader` instance used to read data provided as an array of `Reader` instances (i.e. split zip files).
+ */
+export class SplitZipReader extends Reader<Reader<any>[] | ReadableReader[] | ReadableStream[]> { }
+
 /** 
  * Represents a URL stored into a `string`.
  */
@@ -579,7 +584,7 @@ export class ZipReader<Type> {
      * @param reader The `Reader` instance used to read data.
      * @param options The options.
      */
-    constructor(reader: Reader<Type> | ReadableReader | ReadableStream, options?: ZipReaderConstructorOptions)
+    constructor(reader: Reader<Type> | ReadableReader | ReadableStream | Reader<any>[] | ReadableReader[] | ReadableStream[], options?: ZipReaderConstructorOptions)
     /**
      * The global comment of the zip file.
      */
