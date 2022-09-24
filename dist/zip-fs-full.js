@@ -7227,7 +7227,7 @@
 					const writable = new WritableStream({
 						async write(chunk) {
 							await writer.ready;
-							await writer.write(new Uint8Array(chunk));
+							await writer.write(chunk);
 						},
 						async close() {
 							writer.releaseLock();
