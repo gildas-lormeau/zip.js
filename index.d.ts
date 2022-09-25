@@ -273,7 +273,6 @@ export function getMimeType(fileExtension: string): string
 interface DataProcessor {
     /**
      * Initializes the instance asynchronously
-     * 
      */
     init?(): Promise<void>
 }
@@ -295,17 +294,17 @@ interface ReadableReader {
  * Here is an example of custom `Reader` class used to read binary strings:
  * ```
  * class BinaryStringReader extends Reader {
- *
+ * 
  *   constructor(binaryString) {
  *     super();
  *     this.binaryString = binaryString;
  *   }
- *
+ * 
  *   init() {
  *     super.init();
  *     this.size = this.binaryString.length;
  *   }
- *
+ * 
  *   readUint8Array(offset, length) {
  *     const result = new Uint8Array(length);
  *     for (let indexCharacter = 0; indexCharacter < length; indexCharacter++) {
@@ -333,7 +332,6 @@ export class Reader<Type> implements ReadableReader, DataProcessor {
     size: number
     /**
      * Initializes the instance asynchronously
-     * 
      */
     init?(): Promise<void>
     /**
