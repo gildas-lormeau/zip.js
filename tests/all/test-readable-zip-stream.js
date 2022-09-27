@@ -9,7 +9,7 @@ export { test };
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const readable = (await fetch(new URL("../data/lorem.zip", import.meta.url))).body;
-	const zipReader = new zip.ZipReader({ readable });
+	const zipReader = new zip.ZipReader(readable);
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new zip.BlobWriter());
 	await zipReader.close();

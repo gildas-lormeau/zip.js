@@ -12,8 +12,7 @@ async function test() {
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	const readable = (await fetch(new URL("../data/lorem.txt", import.meta.url))).body;
-	const reader = { readable };
-	await zipWriter.add(FILENAME, reader);
+	await zipWriter.add(FILENAME, readable);
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
