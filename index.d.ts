@@ -7,6 +7,7 @@ declare global {
      * 
      * @see {@link https://wicg.github.io/entries-api/#api-entry|specification}
      */
+    // deno-lint-ignore no-empty-interface
     interface FileSystemEntry { }
 }
 
@@ -141,6 +142,7 @@ interface WorkerConfiguration {
  * @param registerDataHandler The function called to handle the `data` events triggered by a third-party codec implementation.
  * @returns An instance containing classes compatible with `ZipDeflate` and `ZipInflate`.
  */
+// deno-lint-ignore no-explicit-any
 export function initShimAsyncCodec(library: EventBasedZipLibrary, constructorOptions: any | null, registerDataHandler: registerDataHandler): ZipLibrary
 
 /**
@@ -367,11 +369,13 @@ export class Uint8ArrayReader extends Reader<Uint8Array> { }
 /**
  * Represents a `Reader` instance used to read data provided as an array of `Reader` instances (i.e. split zip files).
  */
+// deno-lint-ignore no-explicit-any
 export class SplitZipReader extends Reader<Reader<any>[] | ReadableReader[] | ReadableStream[]> { }
 
 /** 
  * Represents a URL stored into a `string`.
  */
+// deno-lint-ignore no-empty-interface
 interface URLString extends String { }
 
 /**
@@ -582,6 +586,7 @@ export class ZipReader<Type> {
      * @param reader The `Reader` instance used to read data.
      * @param options The options.
      */
+    // deno-lint-ignore no-explicit-any
     constructor(reader: Reader<Type> | ReadableReader | ReadableStream | Reader<any>[] | ReadableReader[] | ReadableStream[], options?: ZipReaderConstructorOptions)
     /**
      * The global comment of the zip file.
