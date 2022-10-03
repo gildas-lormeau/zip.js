@@ -1,34 +1,37 @@
-/* global URL */
+/* global Blob */
 
 import * as zip from "../../index.js";
 
-const PATHS = [
-	"./../data/lorem-split.z01",
-	"./../data/lorem-split.z02",
-	"./../data/lorem-split.z03",
-	"./../data/lorem-split.z04",
-	"./../data/lorem-split.z05",
-	"./../data/lorem-split.z06",
-	"./../data/lorem-split.z07",
-	"./../data/lorem-split.zip",
-];
-const UNCOMPRESSED_SIZES = [
-	1162,
-	204946,
-	603889,
-	809738
-];
+const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam; est usus legentis in iis qui facit eorum claritatem. Investigationes demonstraverunt lectores legere me lius quod ii legunt saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium lectorum. Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.";
+const TEXT_CONTENT_REPEAT = 1024;
+const BLOB = new Blob([new Array(TEXT_CONTENT_REPEAT).fill(TEXT_CONTENT).join("")]);
 
 export { test };
 
+const writers = [];
+
+function* blobWriterGenerator() {
+	while (true) {
+		const writer = new zip.BlobWriter();
+		writers.push(writer);
+		yield writer;
+	}
+}
+
 async function test() {
-	zip.configure({ chunkSize: 16 * 1024, useWebWorkers: true });
-	const readers = PATHS.map(url => new zip.HttpReader(new URL(url, import.meta.url).href, { preventHeadRequest: true }));
+	zip.configure({ chunkSize: 1024, useWebWorkers: true });
+	const splitZipWriter = new zip.SplitZipWriter(blobWriterGenerator(), 8192);
+	const zipWriter = new zip.ZipWriter(splitZipWriter);
+	await Promise.all([
+		zipWriter.add("lorem1.txt", new zip.BlobReader(BLOB)),
+		zipWriter.add("lorem2.txt", new zip.BlobReader(BLOB)),
+		zipWriter.add("lorem3.txt", new zip.BlobReader(BLOB))
+	]);
+	await zipWriter.close();
+	const readers = await Promise.all(writers.map(async writer => new zip.BlobReader(await writer.getData())));
 	const zipReader = new zip.ZipReader(new zip.SplitZipReader(readers));
 	const entries = await zipReader.getEntries();
-	const results = await Promise.all(UNCOMPRESSED_SIZES.map(async (uncompressedSize, indexEntry) =>
-		(await entries[indexEntry].getData(new zip.TextWriter())).length == uncompressedSize
-	));
+	const results = await Promise.all(entries.map(async entry => (await entry.getData(new zip.TextWriter())).length == TEXT_CONTENT.length * TEXT_CONTENT_REPEAT));
 	await zipReader.close();
 	zip.terminateWorkers();
 	if (results.includes(false)) {

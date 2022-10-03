@@ -52,6 +52,7 @@ export {
 	Uint8ArrayWriter,
 	Uint8ArrayReader,
 	SplitZipReader,
+	SplitZipWriter,
 	ERR_HTTP_RANGE,
 	ERR_BAD_FORMAT,
 	ERR_EOCDR_NOT_FOUND,
@@ -74,6 +75,7 @@ export {
 	ERR_INVALID_EXTRAFIELD_DATA,
 	ERR_INVALID_ENCRYPTION_STRENGTH,
 	ERR_UNSUPPORTED_FORMAT,
-	ERR_SPLIT_ZIP_FILE
+	ERR_SPLIT_ZIP_FILE,
+	ERR_ITERATOR_COMPLETED_TOO_SOON
 } from "./lib/zip-fs.js";
 export { getMimeType, terminateWorkers };

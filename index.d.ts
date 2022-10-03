@@ -543,6 +543,27 @@ export class Data64URIWriter extends Writer<string> {
 }
 
 /**
+ * Represents a `Writer` instance used to retrieve the written data from a generator of `Writer` instances  (i.e. split zip files).
+ */
+export class SplitZipWriter implements DataProcessor, WritableWriter {
+    /**
+    * The `WritableStream` instance.
+    */
+    writable: WritableStream
+    /**
+     * Initializes the instance asynchronously
+     */
+    init(): Promise<void>
+    /**
+     * Creates the `SplitZipWriter` instance
+     * 
+     * @param writerGenerator The MIME type of the content.
+     * @param maxSize The maximum size of the data written into `Writer` instances.
+     */
+    constructor(writerGenerator: AsyncGenerator<Writer<any> | WritableWriter | WritableStream, boolean>, maxSize: number)
+}
+
+/**
  * Represents a `Writer` instance used to retrieve the written data as a `Uint8Array` instance.
  */
 export class Uint8ArrayWriter extends Writer<Uint8Array> { }
@@ -843,7 +864,7 @@ export class ZipWriter<Type> {
      * @param writer The `Writer` instance where the zip content will be written.
      * @param options The options.
      */
-    constructor(writer: Writer<Type> | WritableWriter | WritableStream, options?: ZipWriterConstructorOptions)
+    constructor(writer: Writer<Type> | WritableWriter | WritableStream | SplitZipWriter | AsyncGenerator<Writer<any> | WritableWriter | WritableStream, boolean>, options?: ZipWriterConstructorOptions)
     /**
      * `true` if the zip contains at least one entry that has been partially written.
      */
@@ -1454,3 +1475,4 @@ export const ERR_INVALID_EXTRAFIELD_DATA: string
 export const ERR_INVALID_ENCRYPTION_STRENGTH: string
 export const ERR_UNSUPPORTED_FORMAT: string
 export const ERR_SPLIT_ZIP_FILE: string
+export const ERR_ITERATOR_COMPLETED_TOO_SOON: string
