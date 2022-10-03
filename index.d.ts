@@ -798,6 +798,10 @@ export interface Entry {
      */
     externalFileAttribute: number
     /**
+     * The number of the disk where the entry data starts.
+     */
+    diskNumberStart: number
+    /**
      * Returns the content of the entry
      * 
      * @param writer The `Writer` instance used to write the content of the entry.
