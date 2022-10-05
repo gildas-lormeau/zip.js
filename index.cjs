@@ -8187,10 +8187,12 @@ class SplitZipWriter extends Stream {
 					zipWriter.diskNumber++;
 					diskWriter = null;
 					await this.write(chunk.slice(chunkLength));
-				} else if (chunk.length) {
-					await writeChunk(chunk);
+				} else {
+					if (chunk.length) {
+						await writeChunk(chunk);
+					}
+					zipWriter.availableSize = maxSize - diskSourceWriter.size;
 				}
-				zipWriter.availableSize = maxSize - diskSourceWriter.size;
 			},
 			async close() {
 				await diskWriter.ready;
