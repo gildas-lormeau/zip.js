@@ -7161,14 +7161,14 @@
 
 		constructor(writerGenerator, maxSize = 4294967296) {
 			super();
-			const writer = this;
-			Object.assign(writer, {
+			const zipWriter = this;
+			Object.assign(zipWriter, {
 				diskNumber: 0,
 				diskOffset: 0,
 				size: 0,
 				availableSize: maxSize
 			});
-			let currentWriter, diskWritable, diskWriter;
+			let diskSourceWriter, diskWritable, diskWriter;
 			const writable = new WritableStream({
 				async write(chunk) {
 					if (!diskWriter) {
@@ -7176,43 +7176,47 @@
 						if (done && !value) {
 							throw new Error(ERR_ITERATOR_COMPLETED_TOO_SOON);
 						} else {
-							currentWriter = value;
-							currentWriter.size = 0;
+							diskSourceWriter = value;
+							diskSourceWriter.size = 0;
 							diskWritable = value.writable;
 							diskWriter = diskWritable.getWriter();
 						}
 						await this.write(chunk);
-					} else if (diskWriter && currentWriter.size + chunk.length > maxSize) {
-						await diskWriter.ready;
-						const chunkLength = maxSize - currentWriter.size;
-						await diskWriter.write(chunk.slice(0, chunkLength));
-						chunk = chunk.slice(chunkLength);
-						currentWriter.size += chunkLength;
-						writer.size += chunkLength;
-						writer.diskOffset += diskWritable.size = currentWriter.size;
-						writer.diskNumber++;
-						await diskWriter.close();
+					} else if (diskSourceWriter.size + chunk.length >= maxSize) {
+						const chunkLength = maxSize - diskSourceWriter.size;
+						await writeChunk(chunk.slice(0, chunkLength));
+						await closeDisk();
+						zipWriter.diskOffset += diskSourceWriter.size;
+						zipWriter.diskNumber++;
 						diskWriter = null;
-						await this.write(chunk);
-					} else {
-						await diskWriter.ready;
-						await diskWriter.write(chunk);
-						currentWriter.size += chunk.length;
-						writer.size += chunk.length;
+						await this.write(chunk.slice(chunkLength));
+					} else if (chunk.length) {
+						await writeChunk(chunk);
 					}
-					writer.availableSize = maxSize - currentWriter.size;
+					zipWriter.availableSize = maxSize - diskSourceWriter.size;
 				},
 				async close() {
 					await diskWriter.ready;
-					diskWritable.size = currentWriter.size;
-					await diskWriter.close();
+					await closeDisk();
 				}
 			});
-			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
+			Object.defineProperty(zipWriter, PROPERTY_NAME_WRITABLE, {
 				get() {
 					return writable;
 				}
 			});
+
+			async function writeChunk(chunk) {
+				await diskWriter.ready;
+				await diskWriter.write(chunk);
+				diskSourceWriter.size += chunk.length;
+				zipWriter.size += chunk.length;
+			}
+
+			async function closeDisk() {
+				diskWritable.size = diskSourceWriter.size;
+				await diskWriter.close();
+			}
 		}
 	}
 
