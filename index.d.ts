@@ -521,13 +521,27 @@ export class TextWriter extends Writer<string> {
 /**
  * Represents a `Writer` instance used to retrieve the written data as a `Blob` instance.
  */
-export class BlobWriter extends Writer<Blob> {
+export class BlobWriter implements DataProcessor, WritableWriter {
+    /**
+    * The `WritableStream` instance.
+    */
+    writable: WritableStream
+    /**
+     * Initializes the instance asynchronously
+     */
+    init(): Promise<void>
     /**
      * Creates the `BlobWriter` instance
      * 
      * @param mimeString The MIME type of the content.
      */
     constructor(mimeString?: string)
+    /**
+     * Retrieves all the written data
+     * 
+     * @returns A promise resolving to the written data.
+     */
+    getData(): Promise<Blob>
 }
 
 /**
