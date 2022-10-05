@@ -272,7 +272,7 @@ export function getMimeType(fileExtension: string): string
  * zip.js can handle multiple types of data thanks to a generic API. This feature is based on 2 abstract constructors: `Reader` and `Writer`. 
  * The classes inheriting from `Reader` help to read data from a source of data. The classes inheriting from `Writer` help to write data into a destination.
  */
-interface DataProcessor {
+interface Initializable {
     /**
      * Initializes the instance asynchronously
      */
@@ -317,7 +317,7 @@ interface ReadableReader {
  * }
  * ```
  */
-export class Reader<Type> implements ReadableReader, DataProcessor {
+export class Reader<Type> implements Initializable, ReadableReader {
     /**
      * Creates the `Reader` instance
      * 
@@ -479,7 +479,7 @@ interface WritableWriter {
  * }
  * ```
  */
-export class Writer<Type> implements DataProcessor, WritableWriter {
+export class Writer<Type> implements Initializable, WritableWriter {
     /**
      * The `WritableStream` instance.
      */
@@ -521,7 +521,7 @@ export class TextWriter extends Writer<string> {
 /**
  * Represents a `Writer` instance used to retrieve the written data as a `Blob` instance.
  */
-export class BlobWriter implements DataProcessor, WritableWriter {
+export class BlobWriter implements Initializable, WritableWriter {
     /**
     * The `WritableStream` instance.
     */
@@ -559,7 +559,7 @@ export class Data64URIWriter extends Writer<string> {
 /**
  * Represents a `Writer` instance used to retrieve the written data from a generator of `Writer` instances  (i.e. split zip files).
  */
-export class SplitZipWriter implements DataProcessor, WritableWriter {
+export class SplitZipWriter implements Initializable, WritableWriter {
     /**
     * The `WritableStream` instance.
     */
