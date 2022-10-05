@@ -558,9 +558,9 @@ export class SplitZipWriter implements DataProcessor, WritableWriter {
      * Creates the `SplitZipWriter` instance
      * 
      * @param writerGenerator The MIME type of the content.
-     * @param maxSize The maximum size of the data written into `Writer` instances.
+     * @param maxSize The maximum size of the data written into `Writer` instances (default: 4GB).
      */
-    constructor(writerGenerator: AsyncGenerator<Writer<any> | WritableWriter | WritableStream, boolean>, maxSize: number)
+    constructor(writerGenerator: AsyncGenerator<Writer<any> | WritableWriter | WritableStream, boolean>, maxSize?: number)
 }
 
 /**
