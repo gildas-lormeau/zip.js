@@ -142,8 +142,7 @@ interface WorkerConfiguration {
  * @param registerDataHandler The function called to handle the `data` events triggered by a third-party codec implementation.
  * @returns An instance containing classes compatible with `ZipDeflate` and `ZipInflate`.
  */
-// deno-lint-ignore no-explicit-any
-export function initShimAsyncCodec(library: EventBasedZipLibrary, constructorOptions: any | null, registerDataHandler: registerDataHandler): ZipLibrary
+export function initShimAsyncCodec(library: EventBasedZipLibrary, constructorOptions: unknown | null, registerDataHandler: registerDataHandler): ZipLibrary
 
 /**
  * Represents the callback function used to register the `data` event handler.
@@ -267,7 +266,7 @@ declare class CodecStream extends TransformStream { }
 export function getMimeType(fileExtension: string): string
 
 /**
- * Represents an instance used to read or write any type of data.
+ * Represents an instance used to read or write unknown type of data.
  * 
  * zip.js can handle multiple types of data thanks to a generic API. This feature is based on 2 abstract constructors: `Reader` and `Writer`. 
  * The classes inheriting from `Reader` help to read data from a source of data. The classes inheriting from `Writer` help to write data into a destination.
@@ -290,7 +289,7 @@ interface ReadableReader {
 }
 
 /**
- * Represents a `Reader` instance used to read any type of data.
+ * Represents a `Reader` instance used to read unknown type of data.
  * 
  * @example
  * Here is an example of custom `Reader` class used to read binary strings:
@@ -369,8 +368,7 @@ export class Uint8ArrayReader extends Reader<Uint8Array> { }
 /**
  * Represents a `Reader` instance used to read data provided as an array of `Reader` instances (i.e. split zip files).
  */
-// deno-lint-ignore no-explicit-any
-export class SplitZipReader extends Reader<Reader<any>[] | ReadableReader[] | ReadableStream[]> { }
+export class SplitZipReader extends Reader<Reader<unknown>[] | ReadableReader[] | ReadableStream[]> { }
 
 /** 
  * Represents a URL stored into a `string`.
@@ -455,7 +453,7 @@ interface WritableWriter {
 }
 
 /**
- * Represents a `Writer` instance used to write any type of data.
+ * Represents a `Writer` instance used to write unknown type of data.
  * 
  * @example
  * Here is an example of custom `Writer` class used to write binary strings:
@@ -574,7 +572,7 @@ export class SplitZipWriter implements Initializable, WritableWriter {
      * @param writerGenerator The MIME type of the content.
      * @param maxSize The maximum size of the data written into `Writer` instances (default: 4GB).
      */
-    constructor(writerGenerator: AsyncGenerator<Writer<any> | WritableWriter | WritableStream, boolean>, maxSize?: number)
+    constructor(writerGenerator: AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, maxSize?: number)
 }
 
 /**
@@ -621,8 +619,7 @@ export class ZipReader<Type> {
      * @param reader The `Reader` instance used to read data.
      * @param options The options.
      */
-    // deno-lint-ignore no-explicit-any
-    constructor(reader: Reader<Type> | ReadableReader | ReadableStream | Reader<any>[] | ReadableReader[] | ReadableStream[], options?: ZipReaderConstructorOptions)
+    constructor(reader: Reader<Type> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[], options?: ZipReaderConstructorOptions)
     /**
      * The global comment of the zip file.
      */
@@ -878,7 +875,7 @@ export class ZipWriter<Type> {
      * @param writer The `Writer` instance where the zip content will be written.
      * @param options The options.
      */
-    constructor(writer: Writer<Type> | WritableWriter | WritableStream | SplitZipWriter | AsyncGenerator<Writer<any> | WritableWriter | WritableStream, boolean>, options?: ZipWriterConstructorOptions)
+    constructor(writer: Writer<Type> | WritableWriter | WritableStream | SplitZipWriter | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, options?: ZipWriterConstructorOptions)
     /**
      * `true` if the zip contains at least one entry that has been partially written.
      */
@@ -1344,28 +1341,28 @@ export class ZipDirectoryEntry extends ZipEntry {
      */
     importReadable(readable: ReadableStream, options?: ZipReaderConstructorOptions): Promise<void>
     /**
-     * Returns a `Blob` instance containing a zip file of the entry and its descendants, if any
+     * Returns a `Blob` instance containing a zip file of the entry and its descendants, if unknown
      * 
      * @param options  The options.
      * @returns A promise resolving to the `Blob` instance.
      */
     exportBlob(options?: ZipDirectoryEntryExportOptions): Promise<Blob>
     /**
-     * Returns a Data URI `string` encoded in Base64 containing a zip file of the entry and its descendants, if any
+     * Returns a Data URI `string` encoded in Base64 containing a zip file of the entry and its descendants, if unknown
      * 
      * @param options  The options.
      * @returns A promise resolving to the Data URI `string` encoded in Base64.
      */
     exportData64URI(options?: ZipDirectoryEntryExportOptions): Promise<string>
     /**
-     * Returns a `Uint8Array` instance containing a zip file of the entry and its descendants, if any
+     * Returns a `Uint8Array` instance containing a zip file of the entry and its descendants, if unknown
      * 
      * @param options  The options.
      * @returns A promise resolving to the `Uint8Array` instance.
      */
     exportUint8Array(options?: ZipDirectoryEntryExportOptions): Promise<Uint8Array>
     /**
-     * Creates a zip file via a `WritableStream` instance containing the entry and its descendants, if any
+     * Creates a zip file via a `WritableStream` instance containing the entry and its descendants, if unknown
      * 
      * @param writable The `WritableStream` instance.
      * @param options  The options.
