@@ -4,7 +4,6 @@ export default ([
 	{ title: "Uint8Array", script: "./test-array.js" },
 	{ title: "Base 64", script: "./test-base64.js" },
 	{ title: "Blob", script: "./test-blob.js" },
-	{ title: "Codecs interoperability", script: "./test-codecs-interoperability.js", env: ["browser"] },
 	{ title: "Common JS", script: "./test-common-js.cjs", env: ["node"] },
 	{ title: "Crypto", script: "./test-crypto.js" },
 	{ title: "Custom IO classes", script: "./test-custom-io.js" },
