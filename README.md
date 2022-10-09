@@ -1,9 +1,9 @@
 # Introduction
 
-zip.js is an open-source library (BSD-3-Clause license) implemented in
-JavaScript to compress and decompress zip files. It has been designed to handle
-large amounts of data and notably supports multi-core compression, compression
-streams, Zip64 and encryption.
+zip.js is a JavaScript open-source library (BSD-3-Clause license) for
+compressing and decompressing zip files. It was designed to handle large amounts
+of data and supports notably multi-core compression, compression streams, Zip64,
+split zip files and data encryption.
 
 # Documentation
 
@@ -92,7 +92,7 @@ const zipFileBlobPromise = new Response(zipFileStream.readable).blob();
 const helloWorldReadable = new Blob(["Hello world!"]).stream();
 
 // Creates a ZipWriter object writing data into `zipFileStream.writable`, adds
-// the entry "hello.txt" containing the text "Hello world!" retrieved from 
+// the entry "hello.txt" containing the text "Hello world!" retrieved from
 // `helloWorldReadable`, and closes the writer.
 const zipWriter = new ZipWriter(zipFileStream.writable);
 await zipWriter.add("hello.txt", helloWorldReadable);
