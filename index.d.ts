@@ -944,11 +944,15 @@ interface ZipWriterConstructorOptions {
     /**
      * `true` to use Zip64 to store the entry.
      * 
+     * `zip64` is automatically set to `true` when necessary (e.g. compressed data larger than 4GB).
+     * 
      * @defaultValue false
      */
     zip64?: boolean
     /**
-     * The level of compression.
+     * The level of compression. 
+     * 
+     * The minimum value is 0 and means that no compression is applied. The maximum value is 9.
      * 
      * @defaultValue 5
      */
@@ -956,19 +960,18 @@ interface ZipWriterConstructorOptions {
     /**
      * `true` to write entry data in a buffer before appending it to the zip file.
      * 
+     * `bufferedWrite` is automatically set to `true` when compressing more than one entry in parallel.
+     * 
      * @defaultValue false
      */
     bufferedWrite?: boolean
     /**
-     * `true` to keep the order of the entry physically in the zip file.
+     * `true` to keep the order of the entry physically in the zip file. 
+     * Setting `keepOrder` to `true` will improve the use of web workers. However, it also prevents files larger than 4GB from being created without setting the `zip54` option to `true` explicitly.
      * 
      * @defaultValue true
      */
     keepOrder?: boolean
-    /**
-     * The "Version" field.
-     */
-    version?: number
     /**
      * The password used to encrypt the content of the entry.
      */
@@ -979,24 +982,6 @@ interface ZipWriterConstructorOptions {
      * @defaultValue 3
      */
     encryptionStrength?: 1 | 2 | 3
-    /**
-     * `true` to use the ZipCrypto algorithm to encrypt the content of the entry.
-     * 
-     * @defaultValue false
-     */
-    zipCrypto?: boolean
-    /**
-     * `true` to to add a data descriptor.
-     * 
-     * @defaultValue true
-     */
-    dataDescriptor?: boolean
-    /**
-     * `true` to add the signature of the data descriptor.
-     * 
-     * @defaultValue false
-     */
-    dataDescriptorSignature?: boolean
     /**
      * The `AbortSignal` instance used to cancel the compression.
      */
@@ -1022,27 +1007,61 @@ interface ZipWriterConstructorOptions {
     /**
      * `true` to store extended timestamp extra fields.
      * 
+     * When set to `false`, the maximum last modification date cannot exceed November 31, 2107 and the accuracy is 2 seconds.
+     * 
      * @defaultValue true
      */
     extendedTimestamp?: boolean
     /**
-     * `true` to write `internalFileAttribute` and `externalFileAttribute` in MS-DOS format.
+     * `true` to use the ZipCrypto algorithm to encrypt the content of the entry.
+     * 
+     * It is not recommended to set `zipCrypto` to `true` because the ZipCrypto encryption can be easily broken.
+     * 
+     * @defaultValue false
+     */
+    zipCrypto?: boolean
+    /**
+     * The "Version" field.
+     */
+    version?: number
+    /**
+     * The "Version made by" field.
+     * 
+     * @defaultValue 20
+     */
+    versionMadeBy?: number
+    /**
+     * `true` to to add a data descriptor.
+     * 
+     * When set to `false`, the `bufferedWrite` option  will automatically be set to `true`.
+     * 
+     * @defaultValue true
+     */
+    dataDescriptor?: boolean
+    /**
+     * `true` to add the signature of the data descriptor.
+     * 
+     * @defaultValue false
+     */
+    dataDescriptorSignature?: boolean
+    /**
+     * `true` to write `externalFileAttribute` in MS-DOS format for folder entries.
      * 
      * @defaultValue true
      */
     msDosCompatible?: boolean
-    /**
-     * The internal file attribute.
-     * 
-     * @defaultValue 0
-     */
-    internalFileAttribute?: number
     /**
      * The external file attribute.
      * 
      * @defaultValue 0
      */
     externalFileAttribute?: number
+    /**
+     * The internal file attribute.
+     * 
+     * @defaultValue 0
+     */
+    internalFileAttribute?: number
 }
 
 /**
