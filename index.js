@@ -1,4 +1,4 @@
-/// <reference types="./index.d.ts" />
+/// <reference types="./index" />
 
 /*
  Copyright (c) 2022 Gildas Lormeau. All rights reserved.
