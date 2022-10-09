@@ -944,7 +944,7 @@ interface ZipWriterConstructorOptions {
     /**
      * `true` to use Zip64 to store the entry.
      * 
-     * `zip64` is automatically set to `true` when necessary (e.g. compressed data larger than 4GB).
+     * `zip64` is automatically set to `true` when necessary (e.g. compressed data larger than 4GB or with unknown size).
      * 
      * @defaultValue false
      */
