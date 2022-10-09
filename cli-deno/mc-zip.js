@@ -1,10 +1,10 @@
 #!/usr/bin/env -S deno run --allow-write --allow-read --allow-net
 
-/* global Deno, fetch, URL, TextEncoderStream */
+/* global Deno, URL, TextEncoderStream */
 
 import { parse as parseArgs } from "https://deno.land/std@0.147.0/flags/mod.ts";
 import { normalize as normalizePath, resolve as resolvePath, extname } from "https://deno.land/std@0.147.0/path/mod.ts";
-import { configure, ZipWriter, terminateWorkers } from "../index.js";
+import { configure, ZipWriter, terminateWorkers, HttpReader } from "../index.js";
 
 const args = parseArgs(Deno.args);
 const stdout = getTextWriter(Deno.stdout);
@@ -81,9 +81,9 @@ async function addFile(zipWriter, file) {
 		onstart: () => stdout.write("  adding: " + file.name + "\n")
 	};
 	try {
-		const readable = await getReadable(file);
-		if (readable) {
-			await zipWriter.add(file.name, { readable }, options);
+		const reader = await getReader(file);
+		if (reader) {
+			await zipWriter.add(file.name, reader, options);
 		}
 	} catch (error) {
 		await stdout.write("  error: " + error.message + ", file: " + file.url + "\n");
@@ -91,7 +91,7 @@ async function addFile(zipWriter, file) {
 }
 
 async function getFileInfo(file, options) {
-	let name, isFile, isDirectory, resolvedName;
+	let name, isFile, isDirectory, resolvedName, size;
 	const remote = isRemote(file);
 	if (remote) {
 		const url = new URL(file, import.meta.url);
@@ -111,9 +111,10 @@ async function getFileInfo(file, options) {
 		const stat = await Deno.stat(resolvedName);
 		isFile = stat.isFile;
 		isDirectory = stat.isDirectory;
+		size = stat.size;
 	}
 	return {
-		url: file, name, remote, isFile, isDirectory, resolvedName
+		url: file, name, remote, isFile, size, isDirectory, resolvedName
 	};
 }
 
@@ -134,12 +135,17 @@ async function addDirectories(file, options) {
 	}
 }
 
-async function getReadable(file) {
-	return file.remote ?
-		(await fetch(file.url)).body :
-		file.isFile ?
-			(await Deno.open(resolvePath(file.url), { read: true })).readable :
-			null;
+async function getReader(file) {
+	if (file.remote) {
+		return new HttpReader(file.url);
+	} else if (file.isFile) {
+		const { size } = file;
+		const { readable } = await Deno.open(resolvePath(file.url), { read: true });
+		return {
+			readable,
+			size
+		};
+	}
 }
 
 function isRemote(path) {
