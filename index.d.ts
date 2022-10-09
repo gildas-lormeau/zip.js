@@ -995,11 +995,15 @@ interface ZipWriterConstructorOptions {
     /**
      * The last access date.
      * 
+     * This option is ignored if the `extendedTimestamp` option is set to `false`.
+     * 
      * @defaultValue The current date.
      */
     lastAccessDate?: Date
     /**
      * The creation date.
+     * 
+     * This option is ignored if the `extendedTimestamp` option is set to `false`.
      * 
      * @defaultValue The current date.
      */
@@ -1007,7 +1011,7 @@ interface ZipWriterConstructorOptions {
     /**
      * `true` to store extended timestamp extra fields.
      * 
-     * When set to `false`, the maximum last modification date cannot exceed November 31, 2107 and the accuracy is 2 seconds.
+     * When set to `false`, the maximum last modification date cannot exceed November 31, 2107 and the maximum accuracy is 2 seconds.
      * 
      * @defaultValue true
      */
