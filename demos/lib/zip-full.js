@@ -8261,12 +8261,8 @@
 		let fileEntry;
 		try {
 			fileEntry = await getFileEntry(zipWriter, name, reader, { headerInfo, dataDescriptorInfo }, options);
+		} finally {
 			zipWriter.pendingEntriesSize -= maximumEntrySize;
-		} catch (error) {
-			if (!error.corruptedEntry) {
-				zipWriter.pendingEntriesSize -= maximumEntrySize;
-			}
-			throw error;
 		}
 		Object.assign(fileEntry, { name, comment, extraField });
 		return new Entry(fileEntry);
