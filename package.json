@@ -22,7 +22,8 @@
         "web-workers",
         "deno",
         "node.js",
-        "multi-core"
+        "multi-core",
+        "split-zip"
     ],
     "engines": {
         "deno": ">=1.0.0",
