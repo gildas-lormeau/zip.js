@@ -8339,14 +8339,34 @@ function decodeText(value, encoding) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+const PROPERTY_NAME_FILENAME = "filename";
+const PROPERTY_NAME_RAW_FILENAME = "rawFilename";
+const PROPERTY_NAME_COMMENT = "comment";
+const PROPERTY_NAME_RAW_COMMENT = "rawComment";
+const PROPERTY_NAME_UNCOMPPRESSED_SIZE = "uncompressedSize";
+const PROPERTY_NAME_COMPPRESSED_SIZE = "compressedSize";
+const PROPERTY_NAME_OFFSET = "offset";
+const PROPERTY_NAME_DISK_NUMBER_START = "diskNumberStart";
+const PROPERTY_NAME_LAST_MODIFICATION_DATE = "lastModDate";
+const PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE = "rawLastModDate";
+const PROPERTY_NAME_LAST_ACCESS_DATE = "lastAccessDate";
+const PROPERTY_NAME_RAW_LAST_ACCESS_DATE = "rawLastAccessDate";
+const PROPERTY_NAME_CREATION_DATE = "creationDate";
+const PROPERTY_NAME_RAW_CREATION_DATE = "rawCreationDate";
+const PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE = "internalFileAttribute";
+const PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE = "externalFileAttribute";
+const PROPERTY_NAME_MS_DOS_COMPATIBLE = "msDosCompatible";
+const PROPERTY_NAME_ZIP64 = "zip64";
+
 const PROPERTY_NAMES = [
-	"filename", "rawFilename", "directory", "encrypted", "compressedSize", "uncompressedSize",
-	"lastModDate", "rawLastModDate", "comment", "rawComment", "signature", "extraField",
-	"rawExtraField", "bitFlag", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment",
-	"extraFieldAES", "filenameUTF8", "commentUTF8", "offset", "zip64", "compressionMethod",
-	"extraFieldNTFS", "lastAccessDate", "creationDate", "extraFieldExtendedTimestamp",
-	"version", "versionMadeBy", "msDosCompatible", "internalFileAttribute", "externalFileAttribute",
-	"diskNumberStart"];
+	PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, PROPERTY_NAME_COMPPRESSED_SIZE, PROPERTY_NAME_UNCOMPPRESSED_SIZE,
+	PROPERTY_NAME_LAST_MODIFICATION_DATE, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT,
+	PROPERTY_NAME_LAST_ACCESS_DATE, PROPERTY_NAME_CREATION_DATE, PROPERTY_NAME_OFFSET, PROPERTY_NAME_DISK_NUMBER_START,
+	PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE,
+	PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64,
+	"directory", "bitFlag", "encrypted", "signature", "filenameUTF8", "commentUTF8", "compressionMethod", "version", "versionMadeBy",
+	"extraField", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS",
+	"extraFieldExtendedTimestamp"];
 
 class Entry {
 
@@ -8398,10 +8418,10 @@ const ERR_SPLIT_ZIP_FILE = "Split zip file";
 const CHARSET_UTF8 = "utf-8";
 const CHARSET_CP437 = "cp437";
 const ZIP64_PROPERTIES = [
-	["uncompressedSize", MAX_32_BITS],
-	["compressedSize", MAX_32_BITS],
-	["offset", MAX_32_BITS],
-	["diskNumberStart", MAX_16_BITS]
+	[PROPERTY_NAME_UNCOMPPRESSED_SIZE, MAX_32_BITS],
+	[PROPERTY_NAME_COMPPRESSED_SIZE, MAX_32_BITS],
+	[PROPERTY_NAME_OFFSET, MAX_32_BITS],
+	[PROPERTY_NAME_DISK_NUMBER_START, MAX_16_BITS]
 ];
 const ZIP64_EXTRACTION = {
 	[MAX_16_BITS]: {
@@ -8761,12 +8781,12 @@ async function readCommonFooter(fileEntry, directory, dataView, offset) {
 	}
 	const extraFieldUnicodePath = extraField.get(EXTRAFIELD_TYPE_UNICODE_PATH);
 	if (extraFieldUnicodePath) {
-		await readExtraFieldUnicode(extraFieldUnicodePath, "filename", "rawFilename", directory, fileEntry);
+		await readExtraFieldUnicode(extraFieldUnicodePath, PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, directory, fileEntry);
 		directory.extraFieldUnicodePath = extraFieldUnicodePath;
 	}
 	const extraFieldUnicodeComment = extraField.get(EXTRAFIELD_TYPE_UNICODE_COMMENT);
 	if (extraFieldUnicodeComment) {
-		await readExtraFieldUnicode(extraFieldUnicodeComment, "comment", "rawComment", directory, fileEntry);
+		await readExtraFieldUnicode(extraFieldUnicodeComment, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT, directory, fileEntry);
 		directory.extraFieldUnicodeComment = extraFieldUnicodeComment;
 	}
 	const extraFieldAES = extraField.get(EXTRAFIELD_TYPE_AES);
@@ -8880,16 +8900,16 @@ function readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory)
 	const timeProperties = [];
 	const timeRawProperties = [];
 	if ((flags & 0x1) == 0x1) {
-		timeProperties.push("lastModDate");
-		timeRawProperties.push("rawLastModDate");
+		timeProperties.push(PROPERTY_NAME_LAST_MODIFICATION_DATE);
+		timeRawProperties.push(PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE);
 	}
 	if ((flags & 0x2) == 0x2) {
-		timeProperties.push("lastAccessDate");
-		timeRawProperties.push("rawLastAccessDate");
+		timeProperties.push(PROPERTY_NAME_LAST_ACCESS_DATE);
+		timeRawProperties.push(PROPERTY_NAME_RAW_LAST_ACCESS_DATE);
 	}
 	if ((flags & 0x4) == 0x4) {
-		timeProperties.push("creationDate");
-		timeRawProperties.push("rawCreationDate");
+		timeProperties.push(PROPERTY_NAME_CREATION_DATE);
+		timeRawProperties.push(PROPERTY_NAME_RAW_CREATION_DATE);
 	}
 	let offset = 1;
 	timeProperties.forEach((propertyName, indexProperty) => {
@@ -9116,9 +9136,9 @@ async function addFile(zipWriter, name, reader, options) {
 	if (versionMadeBy > MAX_16_BITS) {
 		throw new Error(ERR_INVALID_VERSION);
 	}
-	const lastModDate = getOptionValue(zipWriter, options, "lastModDate") || new Date();
-	const lastAccessDate = getOptionValue(zipWriter, options, "lastAccessDate");
-	const creationDate = getOptionValue(zipWriter, options, "creationDate");
+	const lastModDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE) || new Date();
+	const lastAccessDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
+	const creationDate = getOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
 	const password = getOptionValue(zipWriter, options, "password");
 	const encryptionStrength = getOptionValue(zipWriter, options, "encryptionStrength") || 3;
 	const zipCrypto = getOptionValue(zipWriter, options, "zipCrypto");
@@ -9156,13 +9176,13 @@ async function addFile(zipWriter, name, reader, options) {
 		keepOrder = true;
 	}
 	let uncompressedSize = 0;
-	let msDosCompatible = getOptionValue(zipWriter, options, "msDosCompatible");
+	let msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE);
 	if (msDosCompatible === UNDEFINED_VALUE) {
 		msDosCompatible = true;
 	}
-	const internalFileAttribute = getOptionValue(zipWriter, options, "internalFileAttribute") || 0;
-	const externalFileAttribute = getOptionValue(zipWriter, options, "externalFileAttribute") || 0;
-	let zip64 = getOptionValue(zipWriter, options, "zip64");
+	const internalFileAttribute = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE) || 0;
+	const externalFileAttribute = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE) || 0;
+	let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
 	if (reader) {
 		if (reader instanceof ReadableStream) {
 			reader = {
@@ -9238,8 +9258,9 @@ async function addFile(zipWriter, name, reader, options) {
 	let fileEntry;
 	try {
 		fileEntry = await getFileEntry(zipWriter, name, reader, { headerInfo, dataDescriptorInfo }, options);
+		zipWriter.pendingEntriesSize -= maximumEntrySize;
 	} catch (error) {
-		if (!error.corruptedEntry && maximumEntrySize) {
+		if (!error.corruptedEntry) {
 			zipWriter.pendingEntriesSize -= maximumEntrySize;
 		}
 		throw error;
@@ -9289,7 +9310,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		if (zipWriter.addSplitZipSignature) {
 			delete zipWriter.addSplitZipSignature;
 			const signatureArray = new Uint8Array(4);
-			const signatureArrayView = new DataView(signatureArray.buffer);
+			const signatureArrayView = getDataView(signatureArray);
 			setUint32(signatureArrayView, 0, SPLIT_ZIP_FILE_SIGNATURE);
 			await writeData(writable, signatureArray);
 			zipWriter.offset += 4;
@@ -9427,9 +9448,9 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		externalFileAttribute,
 		diskNumberStart
 	};
+	let compressedSize = 0;
 	let uncompressedSize = 0;
 	let signature;
-	let compressedSize = 0;
 	const { writable } = writer;
 	if (reader) {
 		reader.chunkSize = getChunkSize(config);
@@ -9824,7 +9845,7 @@ async function closeFile(zipWriter, comment, options) {
 	const endOfdirectoryView = getDataView(endOfdirectoryArray);
 	let lastDiskNumber = writer.diskNumber;
 	const { availableSize } = writer;
-	if (availableSize < endOfdirectoryArray.length) {
+	if (availableSize < getLength(endOfdirectoryArray)) {
 		lastDiskNumber++;
 	}
 	offset = 0;
@@ -10578,7 +10599,7 @@ try {
 configure({ baseURL });
 e(configure);
 
-/// <reference types="./index.d.ts" />
+/// <reference types="./index" />
 
 configure({ Deflate: ZipDeflate, Inflate: ZipInflate });
 
