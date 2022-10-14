@@ -370,7 +370,7 @@ export class Uint8ArrayReader extends Reader<Uint8Array> { }
  * 
  * @deprecated Use {@link SplitDataReader} instead.
  */
-export class SplitZipReader extends SplitDataReader
+export class SplitZipReader extends SplitDataReader { }
 
 /**
  * Represents a `Reader` instance used to read data provided as an array of `Reader` instances (i.e. split zip files).
@@ -566,7 +566,7 @@ export class Data64URIWriter extends Writer<string> {
  * 
  * @deprecated Use {@link SplitDataWriter} instead.
  */
-export class SplitZipWriter extends SplitDataWriter
+export class SplitZipWriter extends SplitDataWriter { }
 
 /**
  * Represents a `Writer` instance used to retrieve the written data from a generator of `Writer` instances  (i.e. split zip files).
