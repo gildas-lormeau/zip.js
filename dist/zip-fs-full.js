@@ -8162,6 +8162,7 @@
 				diskNumber: 0,
 				diskOffset: 0,
 				size: 0,
+				maxSize,
 				availableSize: maxSize
 			});
 			let diskSourceWriter, diskWritable, diskWriter;
@@ -9055,7 +9056,8 @@
 				Object.assign(writer, {
 					diskNumber: 0,
 					diskOffset: 0,
-					availableSize: Infinity
+					availableSize: Infinity,
+					maxSize: Infinity
 				});
 			}
 			Object.assign(this, {
@@ -9209,11 +9211,11 @@
 				maximumCompressedSize = getMaximumCompressedSize(uncompressedSize);
 			}
 		}
-		const { diskOffset, diskNumber } = zipWriter.writer;
+		const { diskOffset, diskNumber, maxSize } = zipWriter.writer;
 		if (zipWriter.offset + zipWriter.pendingEntriesSize - diskOffset >= MAX_32_BITS ||
 			uncompressedSize >= MAX_32_BITS ||
 			maximumCompressedSize >= MAX_32_BITS ||
-			diskNumber >= MAX_16_BITS) {
+			diskNumber + Math.ceil(zipWriter.pendingEntriesSize / maxSize) >= MAX_16_BITS) {
 			if (zip64 === false || !keepOrder) {
 				throw new Error(ERR_UNSUPPORTED_FORMAT);
 			} else {
