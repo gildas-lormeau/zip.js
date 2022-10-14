@@ -53,6 +53,8 @@ export {
 	Uint8ArrayReader,
 	SplitZipReader,
 	SplitZipWriter,
+	SplitDataReader,
+	SplitDataWriter,
 	ERR_HTTP_RANGE,
 	ERR_BAD_FORMAT,
 	ERR_EOCDR_NOT_FOUND,

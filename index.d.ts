@@ -367,8 +367,15 @@ export class Uint8ArrayReader extends Reader<Uint8Array> { }
 
 /**
  * Represents a `Reader` instance used to read data provided as an array of `Reader` instances (i.e. split zip files).
+ * 
+ * @deprecated Use {@link SplitDataReader} instead.
  */
-export class SplitZipReader extends Reader<Reader<unknown>[] | ReadableReader[] | ReadableStream[]> { }
+export class SplitZipReader extends SplitDataReader
+
+/**
+ * Represents a `Reader` instance used to read data provided as an array of `Reader` instances (i.e. split zip files).
+ */
+export class SplitDataReader extends Reader<Reader<unknown>[] | ReadableReader[] | ReadableStream[]> { }
 
 /** 
  * Represents a URL stored into a `string`.
@@ -556,8 +563,15 @@ export class Data64URIWriter extends Writer<string> {
 
 /**
  * Represents a `Writer` instance used to retrieve the written data from a generator of `Writer` instances  (i.e. split zip files).
+ * 
+ * @deprecated Use {@link SplitDataWriter} instead.
  */
-export class SplitZipWriter implements Initializable, WritableWriter {
+export class SplitZipWriter extends SplitDataWriter
+
+/**
+ * Represents a `Writer` instance used to retrieve the written data from a generator of `Writer` instances  (i.e. split zip files).
+ */
+export class SplitDataWriter implements Initializable, WritableWriter {
     /**
     * The `WritableStream` instance.
     */
@@ -567,7 +581,7 @@ export class SplitZipWriter implements Initializable, WritableWriter {
      */
     init(): Promise<void>
     /**
-     * Creates the `SplitZipWriter` instance
+     * Creates the `SplitDataWriter` instance
      * 
      * @param writerGenerator The MIME type of the content.
      * @param maxSize The maximum size of the data written into `Writer` instances (default: 4GB).
@@ -875,7 +889,7 @@ export class ZipWriter<Type> {
      * @param writer The `Writer` instance where the zip content will be written.
      * @param options The options.
      */
-    constructor(writer: Writer<Type> | WritableWriter | WritableStream | SplitZipWriter | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, options?: ZipWriterConstructorOptions)
+    constructor(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, options?: ZipWriterConstructorOptions)
     /**
      * `true` if the zip contains at least one entry that has been partially written.
      */

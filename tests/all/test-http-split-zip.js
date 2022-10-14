@@ -24,7 +24,7 @@ export { test };
 async function test() {
 	zip.configure({ chunkSize: 16 * 1024, useWebWorkers: true });
 	const readers = PATHS.map(url => new zip.HttpReader(new URL(url, import.meta.url).href, { preventHeadRequest: true }));
-	const zipReader = new zip.ZipReader(new zip.SplitZipReader(readers));
+	const zipReader = new zip.ZipReader(new zip.SplitDataReader(readers));
 	const entries = await zipReader.getEntries();
 	const results = await Promise.all(UNCOMPRESSED_SIZES.map(async (uncompressedSize, indexEntry) =>
 		(await entries[indexEntry].getData(new zip.TextWriter())).length == uncompressedSize
