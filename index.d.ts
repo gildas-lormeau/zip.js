@@ -950,6 +950,12 @@ interface ZipWriterConstructorOptions {
      */
     zip64?: boolean
     /**
+     * `true` to prevent closing of `Writer#writable`.
+     * 
+     * @defaultValue false
+     */
+    preventClose?: boolean
+    /**
      * The level of compression. 
      * 
      * The minimum value is 0 and means that no compression is applied. The maximum value is 9.
