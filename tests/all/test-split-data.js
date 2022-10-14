@@ -31,6 +31,7 @@ async function test() {
 	await firstEntry.getData(new zip.SplitDataWriter(arrayWriterGenerator(), 128));
 	const chunks = await Promise.all(writers.map(writer => writer.getData()));
 	const text = new TextDecoder().decode(new Uint8Array(chunks.map(data => Array.from(data)).flat()));
+	zip.terminateWorkers();
 	if (text != TEXT_CONTENT + TEXT_CONTENT) {
 		throw new Error();
 	}
