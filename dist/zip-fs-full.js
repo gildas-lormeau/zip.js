@@ -8232,6 +8232,43 @@
 		}
 	}
 
+	function initReader(reader) {
+		if (Array.isArray(reader)) {
+			reader = new SplitDataReader(reader);
+		}
+		if (reader instanceof ReadableStream) {
+			reader = {
+				readable: reader
+			};
+		}
+		return reader;
+	}
+
+	function initWriter(writer) {
+		if (writer.writable === UNDEFINED_VALUE && typeof writer.next == FUNCTION_TYPE$1) {
+			writer = new SplitDataWriter(writer);
+		}
+		if (writer instanceof WritableStream) {
+			writer = {
+				writable: writer
+			};
+		}
+		const { writable } = writer;
+		if (writable.size === UNDEFINED_VALUE) {
+			writable.size = 0;
+		}
+		const splitZipFile = writer instanceof SplitDataWriter;
+		if (!splitZipFile) {
+			Object.assign(writer, {
+				diskNumber: 0,
+				diskOffset: 0,
+				availableSize: Infinity,
+				maxSize: Infinity
+			});
+		}
+		return writer;
+	}
+
 	function readUint8Array(reader, offset, size, diskNumber) {
 		return reader.readUint8Array(offset, size, diskNumber);
 	}
@@ -8446,13 +8483,8 @@
 	class ZipReader {
 
 		constructor(reader, options = {}) {
-			if (reader instanceof ReadableStream) {
-				reader = {
-					readable: reader
-				};
-			}
 			Object.assign(this, {
-				reader,
+				reader: initReader(reader),
 				options,
 				config: getConfiguration()
 			});
@@ -8464,11 +8496,7 @@
 			const { config } = zipReader;
 			await initStream(reader);
 			if (reader.size === UNDEFINED_VALUE || !reader.readUint8Array) {
-				if (Array.isArray(reader)) {
-					reader = new SplitDataReader(reader);
-				} else {
-					reader = new BlobReader(await new Response(reader.readable).blob());
-				}
+				reader = new BlobReader(await new Response(reader.readable).blob());
 				await initStream(reader);
 			}
 			if (reader.size < END_OF_CENTRAL_DIR_LENGTH) {
@@ -8701,17 +8729,10 @@
 			readable.diskNumberStart = diskNumberStart;
 			readable.offset = dataOffset;
 			const size = readable.size = compressedSize;
-			if (writer instanceof WritableStream) {
-				writer = {
-					writable: writer
-				};
-			}
-			const { writable } = writer;
-			if (writable.size === UNDEFINED_VALUE) {
-				writable.size = 0;
-			}
 			const signal = getOptionValue$1(zipEntry, options, "signal");
+			writer = initWriter(writer);
 			await initStream(writer, uncompressedSize);
+			const { writable } = writer;
 			const { onstart, onprogress, onend } = options;
 			const workerOptions = {
 				options: {
@@ -9042,27 +9063,10 @@
 	class ZipWriter {
 
 		constructor(writer, options = {}) {
-			if (writer.writable === UNDEFINED_VALUE && typeof writer.next == FUNCTION_TYPE$1) {
-				writer = new SplitDataWriter(writer);
-			}
-			if (writer instanceof WritableStream) {
-				writer = { writable: writer };
-			}
-			if (writer.writable.size === UNDEFINED_VALUE) {
-				writer.writable.size = 0;
-			}
-			const splitZipFile = writer instanceof SplitDataWriter;
-			if (!splitZipFile) {
-				Object.assign(writer, {
-					diskNumber: 0,
-					diskOffset: 0,
-					availableSize: Infinity,
-					maxSize: Infinity
-				});
-			}
+			writer = initWriter(writer);
 			Object.assign(this, {
 				writer,
-				addSplitZipSignature: splitZipFile,
+				addSplitZipSignature: writer instanceof SplitDataWriter,
 				options,
 				config: getConfiguration(),
 				files: new Map(),
@@ -9194,11 +9198,7 @@
 		let maximumEntrySize = 0;
 		let uncompressedSize = 0;
 		if (reader) {
-			if (reader instanceof ReadableStream) {
-				reader = {
-					readable: reader
-				};
-			}
+			reader = initReader(reader);
 			await initStream(reader);
 			if (reader.size === UNDEFINED_VALUE) {
 				dataDescriptor = true;
