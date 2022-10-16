@@ -24,7 +24,7 @@ async function test() {
 		new zip.TextReader(TEXT_CONTENT),
 		new zip.BlobReader(BLOB_CONTENT)
 	];
-	await zipWriter.add("loremx2.txt", new zip.SplitDataReader(readers));
+	await zipWriter.add("loremx2.txt", readers);
 	const blob = await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(blob));
 	const firstEntry = (await zipReader.getEntries()).shift();

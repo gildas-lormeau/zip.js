@@ -854,7 +854,7 @@ export interface Entry {
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer`.
      */
-    getData?<Type>(writer: Writer<Type> | WritableWriter | WritableStream, options?: EntryGetDataOptions): Promise<Type>
+    getData?<Type>(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, options?: EntryGetDataOptions): Promise<Type>
 }
 
 /**
@@ -902,7 +902,7 @@ export class ZipWriter<Type> {
      * @param options The options.
      * @returns A promise resolving to an `Entry` instance.
      */
-    add<ReaderType>(filename: string, reader?: Reader<ReaderType> | ReadableReader | ReadableStream, options?: ZipWriterAddDataOptions): Promise<Entry>
+    add<ReaderType>(filename: string, reader?: Reader<ReaderType> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[], options?: ZipWriterAddDataOptions): Promise<Entry>
     /**
      * Writes the entries directory, writes the global comment, and returns the content of the zip file
      * 
