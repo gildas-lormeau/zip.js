@@ -7924,7 +7924,6 @@
 
 	async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, getRequestData) {
 		const {
-			data,
 			useRangeHeader,
 			forceRangeRequests,
 			options
@@ -7936,10 +7935,11 @@
 			}
 			return new Uint8Array(await response.arrayBuffer());
 		} else {
+			const { data } = httpReader;
 			if (!data) {
 				await getRequestData(httpReader, options);
 			}
-			return new Uint8Array(data.subarray(index, index + length));
+			return new Uint8Array(httpReader.data.subarray(index, index + length));
 		}
 	}
 
