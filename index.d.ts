@@ -456,7 +456,11 @@ interface WritableWriter {
     /**
      * The `WritableStream` instance.
      */
-    writable: WritableStream
+    writable: WritableStream,
+    /**
+     * The maximum size of split data when creating a {@link ZipWriter} instance or when calling {@link ZipReader#getData} with a generator of {@link WritableWriter} instances.
+     */
+    maxSize?: number
 }
 
 /**

@@ -13,6 +13,7 @@ const writers = [];
 function* blobWriterGenerator() {
 	while (true) {
 		const writer = new zip.BlobWriter();
+		writer.maxSize = 8192;
 		writers.push(writer);
 		yield writer;
 	}
@@ -20,7 +21,7 @@ function* blobWriterGenerator() {
 
 async function test() {
 	zip.configure({ chunkSize: 1024, useWebWorkers: true });
-	const splitZipWriter = new zip.SplitDataWriter(blobWriterGenerator(), 8192);
+	const splitZipWriter = blobWriterGenerator();
 	const zipWriter = new zip.ZipWriter(splitZipWriter);
 	await Promise.all([
 		zipWriter.add("lorem1.txt", new zip.BlobReader(BLOB)),
