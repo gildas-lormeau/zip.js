@@ -13,7 +13,7 @@ const writers = [];
 function* blobWriterGenerator() {
 	while (true) {
 		const writer = new zip.BlobWriter();
-		writer.maxSize = 8192;
+		writer.maxSize = (8192 - 512) + Math.floor(Math.random() * 1024);
 		writers.push(writer);
 		yield writer;
 	}
