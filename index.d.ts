@@ -29,7 +29,7 @@ declare class GenericTransformStream {
 export function configure(configuration: Configuration): void
 
 /**
- * Represents the configuration passed to `configure()`.
+ * Represents the configuration passed to {@link configure}.
  */
 interface Configuration extends WorkerConfiguration {
     /**
@@ -93,31 +93,31 @@ interface Configuration extends WorkerConfiguration {
     /**
      * The codec implementation used to compress data.
      * 
-     * @defaultValue `ZipDeflate`
+     * @defaultValue {@link ZipDeflate}
      */
     Deflate?: typeof ZipDeflate
     /**
      * The codec implementation used to decompress data.
      * 
-     * @defaultValue `ZipInflate`
+     * @defaultValue {@link ZipInflate}
      */
     Inflate?: typeof ZipInflate
     /**
      * The stream implementation used to compress data when `useCompressionStream` is set to `false`.
      * 
-     * @defaultValue `CodecStream`
+     * @defaultValue {@link CodecStream}
      */
     CompressionStream?: typeof GenericTransformStream
     /**
      * The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
      * 
-     * @defaultValue `CodecStream`
+     * @defaultValue {@link CodecStream}
      */
     DecompressionStream?: typeof GenericTransformStream
 }
 
 /**
- * Represents configuration passed to `configure()`, the constructor of `ZipReader`, `ZipReader#getData()`, the constructor of `ZipWriter`, and `ZipWriter#add()`.
+ * Represents configuration passed to {@link configure}, the constructor of {@link ZipReader}, {@link Entry#getData}, the constructor of {@link ZipWriter}, and {@link ZipWriter#add}.
  */
 interface WorkerConfiguration {
     /**
@@ -127,7 +127,7 @@ interface WorkerConfiguration {
      */
     useWebWorkers?: boolean
     /**
-     * `true` to use the API `CompressionStream`/`DecompressionStream` to compress/decompress data.
+     * `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
      * 
      * @defaultValue true
      */
@@ -140,7 +140,7 @@ interface WorkerConfiguration {
  * @param library The third-party codec implementations.
  * @param constructorOptions The options passed to the third-party implementations when building instances.
  * @param registerDataHandler The function called to handle the `data` events triggered by a third-party codec implementation.
- * @returns An instance containing classes compatible with `ZipDeflate` and `ZipInflate`.
+ * @returns An instance containing classes compatible with {@link ZipDeflate} and {@link ZipInflate}.
  */
 export function initShimAsyncCodec(library: EventBasedZipLibrary, constructorOptions: unknown | null, registerDataHandler: registerDataHandler): ZipLibrary
 
@@ -209,13 +209,13 @@ interface ZipLibrary {
     /**
      * The class used to compress data.
      * 
-     * @defaultValue `ZipDeflate`
+     * @defaultValue {@link ZipDeflate}
      */
     Deflate: typeof ZipDeflate
     /**
      * The class used to decompress data.
      * 
-     * @defaultValue `ZipInflate`
+     * @defaultValue {@link ZipInflate}
      */
     Inflate: typeof ZipInflate
 }
@@ -268,8 +268,8 @@ export function getMimeType(fileExtension: string): string
 /**
  * Represents an instance used to read or write unknown type of data.
  * 
- * zip.js can handle multiple types of data thanks to a generic API. This feature is based on 2 abstract constructors: `Reader` and `Writer`. 
- * The classes inheriting from `Reader` help to read data from a source of data. The classes inheriting from `Writer` help to write data into a destination.
+ * zip.js can handle multiple types of data thanks to a generic API. This feature is based on 2 abstract constructors: {@link Reader} and {@link Writer}. 
+ * The classes inheriting from {@link Reader} help to read data from a source of data. The classes inheriting from {@link Writer} help to write data into a destination.
  */
 interface Initializable {
     /**
@@ -289,10 +289,10 @@ interface ReadableReader {
 }
 
 /**
- * Represents a `Reader` instance used to read unknown type of data.
+ * Represents an instance used to read unknown type of data.
  * 
  * @example
- * Here is an example of custom `Reader` class used to read binary strings:
+ * Here is an example of custom {@link Reader} class used to read binary strings:
  * ```
  * class BinaryStringReader extends Reader {
  * 
@@ -318,7 +318,7 @@ interface ReadableReader {
  */
 export class Reader<Type> implements Initializable, ReadableReader {
     /**
-     * Creates the `Reader` instance
+     * Creates the {@link Reader} instance
      * 
      * @param value The data to read.
      */
@@ -346,34 +346,34 @@ export class Reader<Type> implements Initializable, ReadableReader {
 }
 
 /**
- * Represents a `Reader` instance used to read data provided as a `string`.
+ * Represents a {@link Reader} instance used to read data provided as a `string`.
  */
 export class TextReader extends Reader<string> { }
 
 /**
- * Represents a `Reader` instance used to read data provided as a `Blob` instance.
+ * Represents a {@link Reader} instance used to read data provided as a `Blob` instance.
  */
 export class BlobReader extends Reader<Blob> { }
 
 /**
- * Represents a `Reader` instance used to read data provided as a Data URI `string` encoded in Base64.
+ * Represents a {@link Reader} instance used to read data provided as a Data URI `string` encoded in Base64.
  */
 export class Data64URIReader extends Reader<string> { }
 
 /**
- * Represents a `Reader` instance used to read data provided as a `Uint8Array` instance.
+ * Represents a {@link Reader} instance used to read data provided as a `Uint8Array` instance.
  */
 export class Uint8ArrayReader extends Reader<Uint8Array> { }
 
 /**
- * Represents a `Reader` instance used to read data provided as an array of `Reader` instances (i.e. split zip files).
+ * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
  * 
  * @deprecated Use {@link SplitDataReader} instead.
  */
 export class SplitZipReader extends SplitDataReader { }
 
 /**
- * Represents a `Reader` instance used to read data provided as an array of `Reader` instances (i.e. split zip files).
+ * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
  */
 export class SplitDataReader extends Reader<Reader<unknown>[] | ReadableReader[] | ReadableStream[]> { }
 
@@ -384,11 +384,11 @@ export class SplitDataReader extends Reader<Reader<unknown>[] | ReadableReader[]
 interface URLString extends String { }
 
 /**
- * Represents a `Reader` instance used to fetch data from a URL.
+ * Represents a {@link Reader} instance used to fetch data from a URL.
  */
 export class HttpReader extends Reader<URLString> {
     /**
-     * Creates the `HttpReader` instance
+     * Creates the {@link HttpReader} instance
      * 
      * @param url The URL of the data.
      * @param options The options.
@@ -397,11 +397,11 @@ export class HttpReader extends Reader<URLString> {
 }
 
 /**
- * Represents a `Reader` instance used to fetch data from servers returning `Accept-Ranges` headers.
+ * Represents a {@link Reader} instance used to fetch data from servers returning `Accept-Ranges` headers.
  */
 export class HttpRangeReader extends HttpReader {
     /**
-     * Creates the `HttpRangeReader` instance
+     * Creates the {@link HttpRangeReader} instance
      * 
      * @param url The URL of the data.
      * @param options The options.
@@ -410,7 +410,7 @@ export class HttpRangeReader extends HttpReader {
 }
 
 /**
- * Represents the options passed to the constructor of `HttpReader`.
+ * Represents the options passed to the constructor of {@link HttpReader}.
  */
 interface HttpOptions extends HttpRangeOptions {
     /**
@@ -434,7 +434,7 @@ interface HttpOptions extends HttpRangeOptions {
 }
 
 /**
- * Represents options passed to the constructor of `HttpRangeReader` and `HttpReader`.
+ * Represents options passed to the constructor of {@link HttpRangeReader} and {@link HttpReader}.
  */
 interface HttpRangeOptions {
     /**
@@ -458,16 +458,16 @@ interface WritableWriter {
      */
     writable: WritableStream,
     /**
-     * The maximum size of split data when creating a {@link ZipWriter} instance or when calling {@link ZipReader#getData} with a generator of {@link WritableWriter} instances.
+     * The maximum size of split data when creating a {@link ZipWriter} instance or when calling {@link Entry#getData} with a generator of {@link WritableWriter} instances.
      */
     maxSize?: number
 }
 
 /**
- * Represents a `Writer` instance used to write unknown type of data.
+ * Represents an instance used to write unknown type of data.
  * 
  * @example
- * Here is an example of custom `Writer` class used to write binary strings:
+ * Here is an example of custom {@link Writer} class used to write binary strings:
  * ```
  * class BinaryStringWriter extends Writer {
  * 
@@ -516,11 +516,11 @@ export class Writer<Type> implements Initializable, WritableWriter {
 }
 
 /**
- * Represents a `Writer` instance used to retrieve the written data as a `string`.
+ * Represents a {@link Writer} instance used to retrieve the written data as a `string`.
  */
 export class TextWriter extends Writer<string> {
     /**
-     * Creates the `TextWriter` instance
+     * Creates the {@link TextWriter} instance
      * 
      * @param encoding The encoding of the text.
      */
@@ -528,7 +528,7 @@ export class TextWriter extends Writer<string> {
 }
 
 /**
- * Represents a `Writer` instance used to retrieve the written data as a `Blob` instance.
+ * Represents a {@link WritableWriter} instance used to retrieve the written data as a `Blob` instance.
  */
 export class BlobWriter implements Initializable, WritableWriter {
     /**
@@ -540,7 +540,7 @@ export class BlobWriter implements Initializable, WritableWriter {
      */
     init(): Promise<void>
     /**
-     * Creates the `BlobWriter` instance
+     * Creates the {@link BlobWriter} instance
      * 
      * @param mimeString The MIME type of the content.
      */
@@ -554,11 +554,11 @@ export class BlobWriter implements Initializable, WritableWriter {
 }
 
 /**
- * Represents a `Writer` instance used to retrieve the written data as a Data URI `string` encoded in Base64.
+ * Represents a {@link Writer} instance used to retrieve the written data as a Data URI `string` encoded in Base64.
  */
 export class Data64URIWriter extends Writer<string> {
     /**
-     * Creates the `Data64URIWriter` instance
+     * Creates the {@link Data64URIWriter} instance
      * 
      * @param mimeString The MIME type of the content.
      */
@@ -566,14 +566,14 @@ export class Data64URIWriter extends Writer<string> {
 }
 
 /**
- * Represents a `Writer` instance used to retrieve the written data from a generator of `Writer` instances  (i.e. split zip files).
+ * Represents a {@link Writer} instance used to retrieve the written data from a generator of {@link WritableWriter} instances  (i.e. split zip files).
  * 
  * @deprecated Use {@link SplitDataWriter} instead.
  */
 export class SplitZipWriter extends SplitDataWriter { }
 
 /**
- * Represents a `Writer` instance used to retrieve the written data from a generator of `Writer` instances  (i.e. split zip files).
+ * Represents a {@link Writer}  instance used to retrieve the written data from a generator of {@link WritableWriter}  instances  (i.e. split zip files).
  */
 export class SplitDataWriter implements Initializable, WritableWriter {
     /**
@@ -585,21 +585,21 @@ export class SplitDataWriter implements Initializable, WritableWriter {
      */
     init(): Promise<void>
     /**
-     * Creates the `SplitDataWriter` instance
+     * Creates the {@link SplitDataWriter} instance
      * 
      * @param writerGenerator The MIME type of the content.
-     * @param maxSize The maximum size of the data written into `Writer` instances (default: 4GB).
+     * @param maxSize The maximum size of the data written into {@link Writer} instances (default: 4GB).
      */
     constructor(writerGenerator: AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, maxSize?: number)
 }
 
 /**
- * Represents a `Writer` instance used to retrieve the written data as a `Uint8Array` instance.
+ * Represents a {@link Writer}  instance used to retrieve the written data as a `Uint8Array` instance.
  */
 export class Uint8ArrayWriter extends Writer<Uint8Array> { }
 
 /**
- * Represents a `ZipReader` instance used to read a zip file.
+ * Represents an instance used to read a zip file.
  * 
  * @example
  * Here is an example showing how to read the text data of the first entry from a zip file:
@@ -632,9 +632,9 @@ export class Uint8ArrayWriter extends Writer<Uint8Array> { }
  */
 export class ZipReader<Type> {
     /**
-     * Creates the `ZipReader` instance
+     * Creates the instance
      * 
-     * @param reader The `Reader` instance used to read data.
+     * @param reader The {@link Reader} instance used to read data.
      * @param options The options.
      */
     constructor(reader: Reader<Type> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[], options?: ZipReaderConstructorOptions)
@@ -654,14 +654,14 @@ export class ZipReader<Type> {
      * Returns all the entries in the zip file
      * 
      * @param options The options.
-     * @returns A promise resolving to an `array` of `Entry` instances.
+     * @returns A promise resolving to an `array` of {@link Entry} instances.
      */
     getEntries(options?: ZipReaderGetEntriesOptions): Promise<Entry[]>
     /**
      * Returns a generator used to iterate on all the entries in the zip file
      * 
      * @param options The options.
-     * @returns An asynchrounous generator of `Entry` instances.
+     * @returns An asynchrounous generator of {@link Entry} instances.
      */
     getEntriesGenerator(options?: ZipReaderGetEntriesOptions): AsyncGenerator<Entry, boolean>
     /**
@@ -671,17 +671,17 @@ export class ZipReader<Type> {
 }
 
 /**
- * Represents the options passed to the constructor of `ZipReader`, and `ZipDirectoryEntry#import*()`.
+ * Represents the options passed to the constructor of {@link ZipReader}, and `{@link ZipDirectory}#import*`.
  */
 interface ZipReaderConstructorOptions extends ZipReaderOptions, GetEntriesOptions, WorkerConfiguration {
     /**
-     * `true` to extract the prepended data into `ZipReader#prependedData`.
+     * `true` to extract the prepended data into {@link ZipReader#prependedData}.
      * 
      * @defaultValue false
      */
     extractPrependedData?: boolean
     /**
-     * `true` to extract the appended data into `ZipReader#appendedData`.
+     * `true` to extract the appended data into {@link ZipReader#appendedData}.
      * 
      * @defaultValue false
      */
@@ -689,12 +689,12 @@ interface ZipReaderConstructorOptions extends ZipReaderOptions, GetEntriesOption
 }
 
 /**
- * Represents the options passed to `ZipReader#getEntries()` and `ZipReader#getEntriesGenerator()`.
+ * Represents the options passed to {@link ZipReader#getEntries} and {@link ZipReader#getEntriesGenerator}.
  */
 interface ZipReaderGetEntriesOptions extends GetEntriesOptions, EntryOnprogressOptions { }
 
 /**
- * Represents options passed to the constructor of `ZipReader`, `ZipReader#getEntries()` and `ZipReader#getEntriesGenerator()`.
+ * Represents options passed to the constructor of {@link ZipReader}, {@link ZipReader#getEntries} and {@link ZipReader#getEntriesGenerator}.
  */
 interface GetEntriesOptions {
     /**
@@ -708,7 +708,7 @@ interface GetEntriesOptions {
 }
 
 /**
- * Represents options passed to the constructor of `ZipReader` and `Entry#getData()`.
+ * Represents options passed to the constructor of {@link ZipReader} and {@link Entry#getData}.
  */
 interface ZipReaderOptions {
     /**
@@ -726,7 +726,7 @@ interface ZipReaderOptions {
      */
     signal?: AbortSignal
     /**
-     * `true` to prevent closing of `Writer#writable` when calling `Entry#getData()`.
+     * `true` to prevent closing of {@link Writer#writable} when calling {@link Entry#getData}.
      * 
      * @defaultValue false
      */
@@ -854,7 +854,7 @@ export interface Entry {
     /**
      * Returns the content of the entry
      * 
-     * @param writer The `Writer` instance used to write the content of the entry.
+     * @param writer The {@link Writer} instance used to write the content of the entry.
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer`.
      */
@@ -862,12 +862,12 @@ export interface Entry {
 }
 
 /**
- * Represents the options passed to `Entry#getData()` and `ZipFileEntry.get*()`.
+ * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
  */
 interface EntryGetDataOptions extends EntryDataOnprogressOptions, ZipReaderOptions, WorkerConfiguration { }
 
 /**
- * Represents a `ZipWriter` instance used to create a zip file.
+ * Represents an instance used to create a zip file.
  * 
  * @example
  * Here is an example showing how to create a zip file containing a compressed text file:
@@ -888,9 +888,9 @@ interface EntryGetDataOptions extends EntryDataOnprogressOptions, ZipReaderOptio
  */
 export class ZipWriter<Type> {
     /**
-     * Creates the `ZipWriter` instance
+     * Creates the {@link ZipWriter} instance
      * 
-     * @param writer The `Writer` instance where the zip content will be written.
+     * @param writer The {@link Writer} instance where the zip content will be written.
      * @param options The options.
      */
     constructor(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, options?: ZipWriterConstructorOptions)
@@ -902,9 +902,9 @@ export class ZipWriter<Type> {
      * Adds an entry into the zip file
      * 
      * @param filename The filename of the entry.
-     * @param reader The `Reader` instance used to read the content of the entry.
+     * @param reader The  {@link Reader} instance used to read the content of the entry.
      * @param options The options.
-     * @returns A promise resolving to an `Entry` instance.
+     * @returns A promise resolving to an {@link Entry} instance.
      */
     add<ReaderType>(filename: string, reader?: Reader<ReaderType> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[], options?: ZipWriterAddDataOptions): Promise<Entry>
     /**
@@ -918,7 +918,7 @@ export class ZipWriter<Type> {
 }
 
 /**
- * Represents the options passed to `ZipWriter#add()`.
+ * Represents the options passed to {@link ZipWriter#add}.
  */
 interface ZipWriterAddDataOptions extends ZipWriterConstructorOptions, EntryDataOnprogressOptions, WorkerConfiguration {
     /**
@@ -938,7 +938,7 @@ interface ZipWriterAddDataOptions extends ZipWriterConstructorOptions, EntryData
 }
 
 /**
- * Represents the options passed to `ZipWriter#close()`.
+ * Represents the options passed to  {@link ZipWriter#close}.
  */
 interface ZipWriterCloseOptions extends EntryOnprogressOptions {
     /**
@@ -948,7 +948,7 @@ interface ZipWriterCloseOptions extends EntryOnprogressOptions {
      */
     zip64?: boolean
     /**
-     * `true` to prevent closing of `Writer#writable`.
+     * `true` to prevent closing of {@link WritableWriter#writable}.
      * 
      * @defaultValue false
      */
@@ -956,7 +956,7 @@ interface ZipWriterCloseOptions extends EntryOnprogressOptions {
 }
 
 /**
- * Represents options passed to the constructor of `ZipWriter`, `ZipWriter#add()` and `ZipDirectoryEntry#export*()`.
+ * Represents options passed to the constructor of {@link ZipWriter}, {@link ZipWriter#add} and `{@link ZipDirectoryEntry}#export*`.
  */
 interface ZipWriterConstructorOptions {
     /**
@@ -968,7 +968,7 @@ interface ZipWriterConstructorOptions {
      */
     zip64?: boolean
     /**
-     * `true` to prevent closing of `Writer#writable`.
+     * `true` to prevent closing of {@link WritableWriter#writable}.
      * 
      * @defaultValue false
      */
@@ -1021,7 +1021,7 @@ interface ZipWriterConstructorOptions {
     /**
      * The last access date.
      * 
-     * This option is ignored if the `extendedTimestamp` option is set to `false`.
+     * This option is ignored if the {@link ZipWriterConstructorOptions#extendedTimestamp} option is set to `false`.
      * 
      * @defaultValue The current date.
      */
@@ -1029,7 +1029,7 @@ interface ZipWriterConstructorOptions {
     /**
      * The creation date.
      * 
-     * This option is ignored if the `extendedTimestamp` option is set to `false`.
+     * This option is ignored if the {@link ZipWriterConstructorOptions#extendedTimestamp} option is set to `false`.
      * 
      * @defaultValue The current date.
      */
@@ -1063,7 +1063,7 @@ interface ZipWriterConstructorOptions {
     /**
      * `true` to to add a data descriptor.
      * 
-     * When set to `false`, the `bufferedWrite` option  will automatically be set to `true`.
+     * When set to `false`, the {@link ZipWriterConstructorOptions#bufferedWrite} option  will automatically be set to `true`.
      * 
      * @defaultValue true
      */
@@ -1075,7 +1075,7 @@ interface ZipWriterConstructorOptions {
      */
     dataDescriptorSignature?: boolean
     /**
-     * `true` to write `externalFileAttribute` in MS-DOS format for folder entries.
+     * `true` to write {@link Entry#externalFileAttribute} in MS-DOS format for folder entries.
      * 
      * @defaultValue true
      */
@@ -1095,7 +1095,7 @@ interface ZipWriterConstructorOptions {
 }
 
 /**
- * Represents options passed to `Entry#getData`, `ZipWriter.add()` and `ZipDirectory.export*()`.
+ * Represents options passed to {@link Entry#getData}, {@link ZipWriter.add} and `{@link ZipDirectory}.export*`.
  */
 interface EntryDataOnprogressOptions {
     /**
@@ -1123,7 +1123,7 @@ interface EntryDataOnprogressOptions {
 }
 
 /**
- * Represents options passed to `ZipReader#getEntries()`, `ZipReader#getEntriesGenerator()`, and `ZipWriter#close()`.
+ * Represents options passed to {@link ZipReader#getEntries}, {@link ZipReader#getEntriesGenerator}, and {@link ZipWriter#close}.
  */
 interface EntryOnprogressOptions {
     /**
@@ -1146,7 +1146,7 @@ declare class ZipEntry {
      */
     name: string
     /**
-     * The underlying `Entry` instance.
+     * The underlying {@link Entry} instance.
      */
     data?: Entry
     /**
@@ -1174,9 +1174,9 @@ declare class ZipEntry {
      */
     getRelativeName(ancestor: ZipDirectoryEntry): string
     /**
-     * Tests if a `ZipDirectoryEntry` instance is an ancestor of the entry
+     * Tests if a {@link ZipDirectoryEntry} instance is an ancestor of the entry
      * 
-     * @param ancestor The `ZipDirectoryEntry` instance.
+     * @param ancestor The {@link ZipDirectoryEntry} instance.
      */
     isDescendantOf(ancestor: ZipDirectoryEntry): boolean
 }
@@ -1186,15 +1186,15 @@ declare class ZipEntry {
  */
 export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
     /**
-     * `void` for `ZipFileEntry` instances.
+     * `void` for {@link ZipFileEntry} instances.
      */
     directory: void
     /**
-     * The `Reader` instance used to read the content of the entry.
-     */
+    * The {@link Reader} instance used to read the content of the entry.
+    */
     reader: Reader<ReaderType> | ReadableReader
     /**
-     * The `Writer` instance used to write the content of the entry.
+     * The {@link Writer} instance used to write the content of the entry.
      */
     writer: Writer<WriterType> | WritableWriter
     /**
@@ -1237,11 +1237,11 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
      */
     getWritable(writable?: WritableStream, options?: EntryGetDataOptions): Promise<WritableStream>
     /**
-     * Retrieves the content of the entry via a `Writer` instance
+     * Retrieves the content of the entry via a {@link Writer} instance
      * 
-     * @param writer The `Writer` instance.
+     * @param writer The {@link Writer} instance.
      * @param options The options.
-     * @returns A promise resolving to data associated to the `Writer` instance.
+     * @returns A promise resolving to data associated to the {@link Writer} instance.
      */
     getData(writer: Writer<WriterType>, options?: EntryGetDataOptions): Promise<WriterType>
     /**
@@ -1281,21 +1281,21 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
  */
 export class ZipDirectoryEntry extends ZipEntry {
     /**
-     * `true` for `ZipDirectoryEntry` instances.
+     * `true` for  {@link ZipDirectoryEntry} instances.
      */
     directory: true
     /**
-     * Gets a `ZipEntry` child instance from its relative filename
+     * Gets a {@link ZipEntry} child instance from its relative filename
      * 
      * @param name The relative filename.
-     * @returns A `ZipFileEntry` or a `ZipDirectoryEntry` instance (use the `directory` property to differentiate entries).
+     * @returns A {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instance (use the {@link ZipFileEntry#directory} and {@link ZipDirectoryEntry#directory} properties to differentiate entries).
      */
     getChildByName(name: string): ZipEntry | undefined
     /**
      * Adds a directory
      * 
      * @param name The relative filename of the directory
-     * @returns A `ZipDirectoryEntry` instance.
+     * @returns A {@link ZipDirectoryEntry} instance.
      */
     addDirectory(name: string): ZipDirectoryEntry
     /**
@@ -1303,7 +1303,7 @@ export class ZipDirectoryEntry extends ZipEntry {
      * 
      * @param name The relative filename of the entry.
      * @param text The text. 
-     * @returns A `ZipFileEntry` instance.
+     * @returns A {@link ZipFileEntry} instance.
      */
     addText(name: string, text: string): ZipFileEntry<string, string>
     /**
@@ -1311,7 +1311,7 @@ export class ZipDirectoryEntry extends ZipEntry {
      * 
      * @param name The relative filename of the entry.
      * @param blob The `Blob` instance. 
-     * @returns A `ZipFileEntry` instance.
+     * @returns A {@link ZipFileEntry} instance.
      */
     addBlob(name: string, blob: Blob): ZipFileEntry<Blob, Blob>
     /**
@@ -1319,7 +1319,7 @@ export class ZipDirectoryEntry extends ZipEntry {
      * 
      * @param name The relative filename of the entry.
      * @param dataURI The Data URI `string` encoded in Base64.
-     * @returns A `ZipFileEntry` instance.
+     * @returns A {@link ZipFileEntry} instance.
      */
     addData64URI(name: string, dataURI: string): ZipFileEntry<string, string>
     /**
@@ -1327,7 +1327,7 @@ export class ZipDirectoryEntry extends ZipEntry {
      * 
      * @param name The relative filename of the entry.
      * @param array The `Uint8Array` instance. 
-     * @returns A `ZipFileEntry` instance.
+     * @returns A {@link ZipFileEntry} instance.
      */
     addUint8Array(name: string, array: Uint8Array): ZipFileEntry<Uint8Array, Uint8Array>
     /**
@@ -1336,7 +1336,7 @@ export class ZipDirectoryEntry extends ZipEntry {
      * @param name The relative filename of the entry.
      * @param url The URL.
      * @param options The options. 
-     * @returns A `ZipFileEntry` instance.
+     * @returns A {@link ZipFileEntry} instance.
      */
     addHttpContent(name: string, url: string, options?: HttpOptions): ZipFileEntry<string, void>
     /**
@@ -1344,14 +1344,14 @@ export class ZipDirectoryEntry extends ZipEntry {
      * 
      * @param name The relative filename of the entry.
      * @param readable The `ReadableStream` instance. 
-     * @returns A `ZipFileEntry` instance.
+     * @returns A {@link ZipFileEntry} instance.
      */
     addReadable(name: string, readable: ReadableStream): ZipFileEntry<ReadableStream, void>
     /**
      * Adds an entry with content provided via a `FileSystemEntry` instance
      * 
      * @param fileSystemEntry The `FileSystemEntry` instance. 
-     * @returns A promise resolving to a `ZipFileEntry` or a `ZipDirectoryEntry` instance.
+     * @returns A promise resolving to a {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instance.
      */
     addFileSystemEntry(fileSystemEntry: FileSystemEntry): Promise<ZipEntry>
     /**
@@ -1421,12 +1421,12 @@ export class ZipDirectoryEntry extends ZipEntry {
 }
 
 /**
- * Represents the options passed to `ZipDirectoryEntry#importHttpContent()`.
+ * Represents the options passed to {@link ZipDirectoryEntry#importHttpContent}.
  */
 interface ZipDirectoryEntryImportHttpOptions extends ZipReaderConstructorOptions, HttpOptions { }
 
 /**
- * Represents the options passed to `ZipDirectoryEntry#export*()`.
+ * Represents the options passed to `{@link ZipDirectoryEntry}#export*()`.
  */
 interface ZipDirectoryEntryExportOptions extends ZipWriterConstructorOptions, EntryDataOnprogressOptions {
     /**
@@ -1459,30 +1459,30 @@ export class FS extends ZipDirectoryEntry {
      */
     root: ZipDirectoryEntry
     /**
-     * Removes a `ZipEntry` instance and its children
+     * Removes a {@link ZipEntry} instance and its children
      * 
-     * @param entry The `ZipEntry` instance to remove.
+     * @param entry The {@link ZipEntry} instance to remove.
      */
     remove(entry: ZipEntry): void
     /**
-     * Moves a `ZipEntry` instance and its children into a `ZipDirectoryEntry` instance
+     * Moves a {@link ZipEntry} instance and its children into a {@link ZipDirectoryEntry} instance
      * 
-     * @param entry The `ZipEntry` instance to move.
-     * @param destination The `ZipDirectoryEntry` instance.
+     * @param entry The {@link ZipEntry} instance to move.
+     * @param destination The {@link ZipDirectoryEntry} instance.
      */
     move(entry: ZipEntry, destination: ZipDirectoryEntry): void
     /**
-     * Returns a `ZipEntry` instance from its full filename
+     * Returns a {@link ZipEntry} instance from its full filename
      * 
      * @param fullname The full filename.
-     * @returns The `ZipEntry` instance.
+     * @returns The {@link ZipEntry} instance.
      */
     find(fullname: string): ZipEntry | undefined
     /**
-     * Returns a `ZipEntry` instance from the value of `ZipEntry#id`
+     * Returns a {@link ZipEntry} instance from the value of {@link ZipEntry#id}
      * 
-     * @param id The id of the `ZipEntry` instance.
-     * @returns The `ZipEntry` instance.
+     * @param id The id of the {@link ZipEntry} instance.
+     * @returns The {@link ZipEntry} instance.
      */
     getById(id: number): ZipEntry | undefined
 }
@@ -1494,19 +1494,19 @@ export const fs: {
     /**
      * The Filesystem constructor.
      * 
-     * @defaultValue `FS`
+     * @defaultValue {@link FS}
      */
     FS: typeof FS
     /**
-     * The `ZipDirectoryEntry` constructor.
+     * The {@link ZipDirectoryEntry} constructor.
      * 
-     * @defaultValue `ZipDirectoryEntry`
+     * @defaultValue {@link ZipDirectoryEntry}
      */
     ZipDirectoryEntry: typeof ZipDirectoryEntry
     /**
-     * The `ZipFileEntry` constructor.
+     * The {@link ZipFileEntry} constructor.
      * 
-     * @defaultValue `ZipFileEntry`
+     * @defaultValue {@link ZipFileEntry}
      */
     ZipFileEntry: typeof ZipFileEntry
 }
