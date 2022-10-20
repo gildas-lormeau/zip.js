@@ -8164,6 +8164,7 @@ class SplitDataWriter extends Stream {
 		let diskSourceWriter, diskWritable, diskWriter;
 		const writable = new WritableStream({
 			async write(chunk) {
+				let { maxSize } = zipWriter;
 				if (!diskWriter) {
 					const { value, done } = await writerGenerator.next();
 					if (done && !value) {
@@ -8171,6 +8172,9 @@ class SplitDataWriter extends Stream {
 					} else {
 						diskSourceWriter = value;
 						diskSourceWriter.size = 0;
+						if (diskSourceWriter.maxSize) {
+							zipWriter.maxSize = diskSourceWriter.maxSize;
+						}
 						await initStream(diskSourceWriter);
 						diskWritable = value.writable;
 						diskWriter = diskWritable.getWriter();
