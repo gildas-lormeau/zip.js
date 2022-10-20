@@ -14,7 +14,7 @@
 <li><a href="ZipWriter.html">ZipWriter</a></li></ul>
 <h1>Class ZipWriter&lt;Type&gt;</h1></div>
 <section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>Represents a <code>ZipWriter</code> instance used to create a zip file.</p>
+<div class="tsd-comment tsd-typography"><p>Represents an instance used to create a zip file.</p>
 
 <h3>Example</h3><p>Here is an example showing how to create a zip file containing a compressed text file:</p>
 <pre><code><span class="hl-4">// use a BlobWriter to store with a ZipWriter the zip into a Blob object</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">blobWriter</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">BlobWriter</span><span class="hl-1">(</span><span class="hl-3">&quot;application/zip&quot;</span><span class="hl-1">);</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">writer</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">ZipWriter</span><span class="hl-1">(</span><span class="hl-2">blobWriter</span><span class="hl-1">);</span><br/><br/><span class="hl-4">// use a TextReader to read the String to add</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">writer</span><span class="hl-1">.</span><span class="hl-7">add</span><span class="hl-1">(</span><span class="hl-3">&quot;filename.txt&quot;</span><span class="hl-1">, </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">TextReader</span><span class="hl-1">(</span><span class="hl-3">&quot;test!&quot;</span><span class="hl-1">));</span><br/><br/><span class="hl-4">// close the ZipReader</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">writer</span><span class="hl-1">.</span><span class="hl-7">close</span><span class="hl-1">();</span><br/><br/><span class="hl-4">// get the zip file as a Blob</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">blob</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">blobWriter</span><span class="hl-1">.</span><span class="hl-7">getData</span><span class="hl-1">();</span>
@@ -30,7 +30,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">ZipWriter</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/cb8b5d3/index.d.ts#L885">index.d.ts:885</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/844f0de/index.d.ts#L889">index.d.ts:889</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -56,7 +56,7 @@
 <ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
 <li class="tsd-signature tsd-anchor-link" id="constructor.new_ZipWriter">new <wbr/>Zip<wbr/>Writer<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Type</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>writer<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WritableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/WritableWriter.html" class="tsd-signature-type" data-tsd-kind="Interface">WritableWriter</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">AsyncGenerator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">WritableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/WritableWriter.html" class="tsd-signature-type" data-tsd-kind="Interface">WritableWriter</a><span class="tsd-signature-symbol"> | </span><a href="Writer.html" class="tsd-signature-type" data-tsd-kind="Class">Writer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="Writer.html" class="tsd-signature-type" data-tsd-kind="Class">Writer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Type</span><span class="tsd-signature-symbol">&gt;</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/ZipWriterConstructorOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">ZipWriterConstructorOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="ZipWriter.html" class="tsd-signature-type" data-tsd-kind="Class">ZipWriter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Type</span><span class="tsd-signature-symbol">&gt;</span><a href="#constructor.new_ZipWriter" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Creates the <code>ZipWriter</code> instance</p>
+<div class="tsd-comment tsd-typography"><p>Creates the <a href="ZipWriter.html">ZipWriter</a> instance</p>
 </div>
 <section class="tsd-panel tsd-type-parameters">
 <h4>Type Parameters</h4>
@@ -68,7 +68,7 @@
 <ul class="tsd-parameter-list">
 <li>
 <h5>writer: <span class="tsd-signature-type">WritableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/WritableWriter.html" class="tsd-signature-type" data-tsd-kind="Interface">WritableWriter</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">AsyncGenerator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">WritableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/WritableWriter.html" class="tsd-signature-type" data-tsd-kind="Interface">WritableWriter</a><span class="tsd-signature-symbol"> | </span><a href="Writer.html" class="tsd-signature-type" data-tsd-kind="Class">Writer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="Writer.html" class="tsd-signature-type" data-tsd-kind="Class">Writer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Type</span><span class="tsd-signature-symbol">&gt;</span></h5>
-<div class="tsd-comment tsd-typography"><p>The <code>Writer</code> instance where the zip content will be written.</p>
+<div class="tsd-comment tsd-typography"><p>The <a href="Writer.html">Writer</a> instance where the zip content will be written.</p>
 </div></li>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> options: <a href="../interfaces/ZipWriterConstructorOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">ZipWriterConstructorOptions</a></h5>
@@ -76,7 +76,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="ZipWriter.html" class="tsd-signature-type" data-tsd-kind="Class">ZipWriter</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Type</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/cb8b5d3/index.d.ts#L892">index.d.ts:892</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/844f0de/index.d.ts#L896">index.d.ts:896</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="hasCorruptedEntries" class="tsd-anchor"></a>
@@ -85,7 +85,7 @@
 <div class="tsd-comment tsd-typography"><p><code>true</code> if the zip contains at least one entry that has been partially written.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/cb8b5d3/index.d.ts#L896">index.d.ts:896</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/844f0de/index.d.ts#L900">index.d.ts:900</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="add" class="tsd-anchor"></a>
@@ -95,7 +95,7 @@
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Adds an entry into the zip file</p>
 
-<h3>Returns</h3><p>A promise resolving to an <code>Entry</code> instance.</p>
+<h3>Returns</h3><p>A promise resolving to an <a href="../interfaces/Entry.html">Entry</a> instance.</p>
 </div>
 <section class="tsd-panel tsd-type-parameters">
 <h4>Type Parameters</h4>
@@ -111,7 +111,7 @@
 </div></li>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> reader: <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/ReadableReader.html" class="tsd-signature-type" data-tsd-kind="Interface">ReadableReader</a><span class="tsd-signature-symbol"> | </span><a href="Reader.html" class="tsd-signature-type" data-tsd-kind="Class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/ReadableReader.html" class="tsd-signature-type" data-tsd-kind="Interface">ReadableReader</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><a href="Reader.html" class="tsd-signature-type" data-tsd-kind="Class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">ReaderType</span><span class="tsd-signature-symbol">&gt;</span></h5>
-<div class="tsd-comment tsd-typography"><p>The <code>Reader</code> instance used to read the content of the entry.</p>
+<div class="tsd-comment tsd-typography"><p>The  <a href="Reader.html">Reader</a> instance used to read the content of the entry.</p>
 </div></li>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> options: <a href="../interfaces/ZipWriterAddDataOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">ZipWriterAddDataOptions</a></h5>
@@ -119,7 +119,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Entry.html" class="tsd-signature-type" data-tsd-kind="Interface">Entry</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/cb8b5d3/index.d.ts#L905">index.d.ts:905</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/844f0de/index.d.ts#L909">index.d.ts:909</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="close" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>close</span><a href="#close" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -142,7 +142,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Type</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/cb8b5d3/index.d.ts#L913">index.d.ts:913</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/844f0de/index.d.ts#L917">index.d.ts:917</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
