@@ -740,7 +740,7 @@ interface ZipReaderOptions {
 }
 
 /**
- * Represents the metatdata of an entry in a zip file (Core API).
+ * Represents the metadata of an entry in a zip file (Core API).
  */
 export interface EntryMetaData {
     /**
