@@ -858,7 +858,7 @@ export interface Entry {
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer`.
      */
-    getData?<Type>(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, options?: EntryGetDataOptions): Promise<Type>
+    getData<Type>(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, options?: EntryGetDataOptions): Promise<Type>
 }
 
 /**
