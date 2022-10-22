@@ -740,9 +740,9 @@ interface ZipReaderOptions {
 }
 
 /**
- * Represents an entry in a zip file (Core API).
+ * Represents the metatdata of an entry in a zip file (Core API).
  */
-export interface Entry {
+export interface EntryMetaData {
     /**
      * The byte offset of the entry.
      */
@@ -862,6 +862,20 @@ export interface Entry {
 }
 
 /**
+ * Represents an entry with its data and metadata in a zip file (Core API).
+ */
+export interface Entry extends EntryMetaData {
+    /**
+     * Returns the content of the entry
+     * 
+     * @param writer The {@link Writer} instance used to write the content of the entry.
+     * @param options The options.
+     * @returns A promise resolving to the type to data associated to `writer`.
+     */
+    getData<Type>(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, options?: EntryGetDataOptions): Promise<Type>
+}
+
+/**
  * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
  */
 interface EntryGetDataOptions extends EntryDataOnprogressOptions, ZipReaderOptions, WorkerConfiguration { }
@@ -904,9 +918,9 @@ export class ZipWriter<Type> {
      * @param filename The filename of the entry.
      * @param reader The  {@link Reader} instance used to read the content of the entry.
      * @param options The options.
-     * @returns A promise resolving to an {@link Entry} instance.
+     * @returns A promise resolving to an {@link EntryMetaData} instance.
      */
-    add<ReaderType>(filename: string, reader?: Reader<ReaderType> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[], options?: ZipWriterAddDataOptions): Promise<Entry>
+    add<ReaderType>(filename: string, reader?: Reader<ReaderType> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[], options?: ZipWriterAddDataOptions): Promise<EntryMetaData>
     /**
      * Writes the entries directory, writes the global comment, and returns the content of the zip file
      * 
@@ -1075,7 +1089,7 @@ interface ZipWriterConstructorOptions {
      */
     dataDescriptorSignature?: boolean
     /**
-     * `true` to write {@link Entry#externalFileAttribute} in MS-DOS format for folder entries.
+     * `true` to write {@link EntryMetaData#externalFileAttribute} in MS-DOS format for folder entries.
      * 
      * @defaultValue true
      */
@@ -1134,7 +1148,7 @@ interface EntryOnprogressOptions {
      * @param entry The entry being read/written.
      * @returns An empty promise or `undefined`.
      */
-    onprogress?(progress: number, total: number, entry: Entry): Promise<void> | undefined
+    onprogress?(progress: number, total: number, entry: EntryMetaData): Promise<void> | undefined
 }
 
 /**
@@ -1146,9 +1160,9 @@ declare class ZipEntry {
      */
     name: string
     /**
-     * The underlying {@link Entry} instance.
+     * The underlying {@link EntryMetaData} instance.
      */
-    data?: Entry
+    data?: EntryMetaData
     /**
      * The ID of the instance.
      */
