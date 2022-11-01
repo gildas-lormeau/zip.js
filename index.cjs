@@ -8164,7 +8164,7 @@ class SplitDataWriter extends Stream {
 		let diskSourceWriter, diskWritable, diskWriter;
 		const writable = new WritableStream({
 			async write(chunk) {
-				let { maxSize } = zipWriter;
+				const { availableSize } = zipWriter;
 				if (!diskWriter) {
 					const { value, done } = await writerGenerator.next();
 					if (done && !value) {
@@ -8175,24 +8175,21 @@ class SplitDataWriter extends Stream {
 						if (diskSourceWriter.maxSize) {
 							zipWriter.maxSize = diskSourceWriter.maxSize;
 						}
+						zipWriter.availableSize = zipWriter.maxSize;
 						await initStream(diskSourceWriter);
 						diskWritable = value.writable;
 						diskWriter = diskWritable.getWriter();
 					}
 					await this.write(chunk);
-				} else if (diskSourceWriter.size + chunk.length >= maxSize) {
-					const chunkLength = maxSize - diskSourceWriter.size;
-					await writeChunk(chunk.slice(0, chunkLength));
+				} else if (chunk.length >= availableSize) {
+					await writeChunk(chunk.slice(0, availableSize));
 					await closeDisk();
 					zipWriter.diskOffset += diskSourceWriter.size;
 					zipWriter.diskNumber++;
 					diskWriter = null;
-					await this.write(chunk.slice(chunkLength));
+					await this.write(chunk.slice(availableSize));
 				} else {
-					if (chunk.length) {
-						await writeChunk(chunk);
-					}
-					zipWriter.availableSize = maxSize - diskSourceWriter.size;
+					await writeChunk(chunk);
 				}
 			},
 			async close() {
@@ -8207,10 +8204,14 @@ class SplitDataWriter extends Stream {
 		});
 
 		async function writeChunk(chunk) {
-			await diskWriter.ready;
-			await diskWriter.write(chunk);
-			diskSourceWriter.size += chunk.length;
-			zipWriter.size += chunk.length;
+			const chunkLength = chunk.length;
+			if (chunkLength) {
+				await diskWriter.ready;
+				await diskWriter.write(chunk);
+				diskSourceWriter.size += chunkLength;
+				zipWriter.size += chunkLength;
+				zipWriter.availableSize -= chunkLength;
+			}
 		}
 
 		async function closeDisk() {
@@ -9273,6 +9274,9 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		dataDescriptor,
 		signal
 	} = options;
+	const {
+		headerInfo
+	} = entryInfo;
 	const previousFileEntry = Array.from(files.values()).pop();
 	let fileEntry = {};
 	let bufferedWrite;
@@ -9298,7 +9302,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 			initLockWriter();
 		}
 		await initStream(fileWriter);
-		const { writable, diskNumber } = writer;
+		const { writable } = writer;
 		let { diskOffset } = writer;
 		if (zipWriter.addSplitZipSignature) {
 			delete zipWriter.addSplitZipSignature;
@@ -9310,7 +9314,9 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		}
 		if (!bufferedWrite) {
 			await lockPreviousFileEntry;
+			await skipDiskIfNeeded(writable);
 		}
+		const { diskNumber } = writer;
 		writingEntryData = true;
 		fileEntry.diskNumberStart = diskNumber;
 		fileEntry = await createFileEntry(reader, fileWriter, fileEntry, entryInfo, zipWriter.config, options);
@@ -9326,6 +9332,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 			if (!dataDescriptor) {
 				blob = await writeMissingHeaderInfo(fileEntry, blob, writable, options);
 			}
+			await skipDiskIfNeeded(writable);
 			fileEntry.diskNumberStart = writer.diskNumber;
 			diskOffset = writer.diskOffset;
 			await blob.stream().pipeTo(writable, { preventClose: true, signal });
@@ -9379,6 +9386,13 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 			return requestLockWriter();
 		} else {
 			zipWriter.lockWriter = new Promise(resolve => releaseLockWriter = resolve);
+		}
+	}
+
+	async function skipDiskIfNeeded(writable) {
+		if (headerInfo.localHeaderArray.length > writer.availableSize) {
+			writer.availableSize = 0;
+			await writeData(writable, new Uint8Array());
 		}
 	}
 }
@@ -9768,6 +9782,8 @@ async function closeFile(zipWriter, comment, options) {
 	}
 	const directoryArray = new Uint8Array(directoryDataLength);
 	const directoryView = getDataView(directoryArray);
+	await initStream(writer);
+	let directoryDiskOffset = 0;
 	for (const [indexFileEntry, fileEntry] of Array.from(files.values()).entries()) {
 		const {
 			offset: fileEntryOffset,
@@ -9820,7 +9836,13 @@ async function closeFile(zipWriter, comment, options) {
 		arraySet(directoryArray, rawExtraFieldNTFS, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp));
 		arraySet(directoryArray, rawExtraField, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS));
 		arraySet(directoryArray, rawComment, offset + 46 + getLength(rawFilename) + extraFieldLength);
-		offset += 46 + getLength(rawFilename, rawComment) + extraFieldLength;
+		const directoryEntryLength = 46 + getLength(rawFilename, rawComment) + extraFieldLength;
+		if (offset - directoryDiskOffset > writer.availableSize) {
+			writer.availableSize = 0;
+			await writeData(writable, directoryArray.slice(directoryDiskOffset, offset));
+			directoryDiskOffset = offset;
+		}
+		offset += directoryEntryLength;
 		if (options.onprogress) {
 			try {
 				await options.onprogress(indexFileEntry + 1, files.size, new Entry(fileEntry));
@@ -9829,8 +9851,7 @@ async function closeFile(zipWriter, comment, options) {
 			}
 		}
 	}
-	await initStream(writer);
-	await writeData(writable, directoryArray);
+	await writeData(writable, directoryDiskOffset ? directoryArray.slice(directoryDiskOffset) : directoryArray);
 	let lastDiskNumber = writer.diskNumber;
 	const { availableSize } = writer;
 	if (availableSize < END_OF_CENTRAL_DIR_LENGTH) {
