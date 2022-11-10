@@ -7770,7 +7770,9 @@
 
 		async readUint8Array(offset, length) {
 			const reader = this;
-			return new Uint8Array(await reader.blob.slice(offset, offset + length).arrayBuffer());
+			const offsetEnd = offset + length;
+			const blob = offset || offsetEnd < reader.size ? reader.blob.slice(offset, offsetEnd) : reader.blob;
+			return new Uint8Array(await blob.arrayBuffer());
 		}
 	}
 
@@ -8155,7 +8157,7 @@
 
 	class SplitDataWriter extends Stream {
 
-		constructor(writerGenerator, maxSize = 4294967296) {
+		constructor(writerGenerator, maxSize = 4294967295) {
 			super();
 			const zipWriter = this;
 			Object.assign(zipWriter, {
