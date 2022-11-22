@@ -1465,7 +1465,7 @@ interface ZipDirectoryEntryExportOptions extends ZipWriterConstructorOptions, En
     /**
      * The MIME type of the exported data when relevant.
      */
-    mimeType: string
+    mimeType?: string
 }
 
 /**
