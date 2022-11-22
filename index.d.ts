@@ -1206,11 +1206,11 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
     /**
     * The {@link Reader} instance used to read the content of the entry.
     */
-    reader: Reader<ReaderType> | ReadableReader
+    reader: Reader<ReaderType> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[]
     /**
      * The {@link Writer} instance used to write the content of the entry.
      */
-    writer: Writer<WriterType> | WritableWriter
+    writer: Writer<WriterType> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream>
     /**
      * Retrieves the text content of the entry as a `string`
      * 
@@ -1257,7 +1257,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
      * @param options The options.
      * @returns A promise resolving to data associated to the {@link Writer} instance.
      */
-    getData(writer: Writer<WriterType>, options?: EntryGetDataOptions): Promise<WriterType>
+    getData(writer: Writer<unknown> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream>, options?: EntryGetDataOptions): Promise<unknown>
     /**
      * Replaces the content of the entry with a `Blob` instance
      * 
