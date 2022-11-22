@@ -10251,11 +10251,11 @@
 		}
 
 		exportBlob(options = {}) {
-			return this.exportZip(new BlobWriter("application/zip"), options);
+			return this.exportZip(new BlobWriter(options.mimeType || "application/zip"), options);
 		}
 
 		exportData64URI(options = {}) {
-			return this.exportZip(new Data64URIWriter("application/zip"), options);
+			return this.exportZip(new Data64URIWriter(options.mimeType || "application/zip"), options);
 		}
 
 		exportUint8Array(options = {}) {
