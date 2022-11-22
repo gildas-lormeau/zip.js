@@ -1462,6 +1462,10 @@ interface ZipDirectoryEntryExportOptions extends ZipWriterConstructorOptions, En
     * `true` to use filenames relative to the entry instead of full filenames.
     */
     relativePath?: boolean
+    /**
+     * The MIME type of the exported data when relevant.
+     */
+    mimeType: string
 }
 
 /**
