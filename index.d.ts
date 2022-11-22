@@ -1404,6 +1404,12 @@ export class ZipDirectoryEntry extends ZipEntry {
      */
     importReadable(readable: ReadableStream, options?: ZipReaderConstructorOptions): Promise<void>
     /**
+     * Extracts a zip file provided via a custom `Reader` instance into the entry
+     * 
+     * @param reader The `Reader` instance.
+     * @param options  The options.
+     */
+    importZip(reader: Reader<unknown> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[], options?: ZipReaderConstructorOptions): Promise<void>
     /**
      * Returns a `Blob` instance containing a zip file of the entry and its descendants
      * 
@@ -1433,6 +1439,14 @@ export class ZipDirectoryEntry extends ZipEntry {
      * @returns A promise resolving to the `Uint8Array` instance.
      */
     exportWritable(writable?: WritableStream, options?: ZipDirectoryEntryExportOptions): Promise<WritableStream>
+    /**
+     * Creates a zip file via a custom `Writer` instance containing the entry and its descendants
+     * 
+     * @param writer The `Writer` instance.
+     * @param options  The options.
+     * @returns A promise resolving to the data.
+     */
+    exportZip(writer: Writer<unknown> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream>, options?: ZipDirectoryEntryExportOptions):  Promise<unknown>
 }
 
 /**
