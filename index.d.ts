@@ -587,7 +587,7 @@ export class SplitDataWriter implements Initializable, WritableWriter {
     /**
      * Creates the {@link SplitDataWriter} instance
      * 
-     * @param writerGenerator The MIME type of the content.
+     * @param writerGenerator A generator of Writer isntances.
      * @param maxSize The maximum size of the data written into {@link Writer} instances (default: 4GB).
      */
     constructor(writerGenerator: AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, maxSize?: number)
@@ -1404,28 +1404,29 @@ export class ZipDirectoryEntry extends ZipEntry {
      */
     importReadable(readable: ReadableStream, options?: ZipReaderConstructorOptions): Promise<void>
     /**
-     * Returns a `Blob` instance containing a zip file of the entry and its descendants, if unknown
+    /**
+     * Returns a `Blob` instance containing a zip file of the entry and its descendants
      * 
      * @param options  The options.
      * @returns A promise resolving to the `Blob` instance.
      */
     exportBlob(options?: ZipDirectoryEntryExportOptions): Promise<Blob>
     /**
-     * Returns a Data URI `string` encoded in Base64 containing a zip file of the entry and its descendants, if unknown
+     * Returns a Data URI `string` encoded in Base64 containing a zip file of the entry and its descendants
      * 
      * @param options  The options.
      * @returns A promise resolving to the Data URI `string` encoded in Base64.
      */
     exportData64URI(options?: ZipDirectoryEntryExportOptions): Promise<string>
     /**
-     * Returns a `Uint8Array` instance containing a zip file of the entry and its descendants, if unknown
+     * Returns a `Uint8Array` instance containing a zip file of the entry and its descendants
      * 
      * @param options  The options.
      * @returns A promise resolving to the `Uint8Array` instance.
      */
     exportUint8Array(options?: ZipDirectoryEntryExportOptions): Promise<Uint8Array>
     /**
-     * Creates a zip file via a `WritableStream` instance containing the entry and its descendants, if unknown
+     * Creates a zip file via a `WritableStream` instance containing the entry and its descendants
      * 
      * @param writable The `WritableStream` instance.
      * @param options  The options.
