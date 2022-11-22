@@ -1404,9 +1404,9 @@ export class ZipDirectoryEntry extends ZipEntry {
      */
     importReadable(readable: ReadableStream, options?: ZipReaderConstructorOptions): Promise<void>
     /**
-     * Extracts a zip file provided via a custom `Reader` instance into the entry
+     * Extracts a zip file provided via a custom {@link Reader} instance into the entry
      * 
-     * @param reader The `Reader` instance.
+     * @param reader The {@link Reader} instance.
      * @param options  The options.
      */
     importZip(reader: Reader<unknown> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[], options?: ZipReaderConstructorOptions): Promise<void>
@@ -1440,9 +1440,9 @@ export class ZipDirectoryEntry extends ZipEntry {
      */
     exportWritable(writable?: WritableStream, options?: ZipDirectoryEntryExportOptions): Promise<WritableStream>
     /**
-     * Creates a zip file via a custom `Writer` instance containing the entry and its descendants
+     * Creates a zip file via a custom {@link Writer} instance containing the entry and its descendants
      * 
-     * @param writer The `Writer` instance.
+     * @param writer The {@link Writer} instance.
      * @param options  The options.
      * @returns A promise resolving to the data.
      */
