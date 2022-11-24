@@ -9087,7 +9087,8 @@ class ZipWriter {
 			filenames: new Set(),
 			offset: writer.writable.size,
 			pendingEntriesSize: 0,
-			pendingAddFileCalls: new Set()
+			pendingAddFileCalls: new Set(),
+			bufferedWrites: 0
 		});
 	}
 
@@ -9305,14 +9306,15 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 			lockPreviousFileEntry = previousFileEntry && previousFileEntry.lock;
 			requestLockCurrentFileEntry();
 		}
-		if (options.bufferedWrite || zipWriter.lockWriter || !dataDescriptor) {
+		if (options.bufferedWrite || zipWriter.writerLocked || zipWriter.bufferedWrites || !dataDescriptor) {
 			fileWriter = new BlobWriter();
 			fileWriter.writable.size = 0;
 			bufferedWrite = true;
+			zipWriter.bufferedWrites++;
 			await initStream(writer);
 		} else {
 			fileWriter = writer;
-			initLockWriter();
+			requestLockWriter();
 		}
 		await initStream(fileWriter);
 		const { writable } = writer;
@@ -9375,6 +9377,9 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		files.delete(name);
 		throw error;
 	} finally {
+		if (bufferedWrite) {
+			zipWriter.bufferedWrites--;
+		}
 		if (releaseLockCurrentFileEntry) {
 			releaseLockCurrentFileEntry();
 		}
@@ -9387,19 +9392,14 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		fileEntry.lock = new Promise(resolve => releaseLockCurrentFileEntry = resolve);
 	}
 
-	function initLockWriter() {
-		zipWriter.lockWriter = Promise.resolve();
-		releaseLockWriter = () => delete zipWriter.lockWriter;
-	}
-
 	async function requestLockWriter() {
-		const { lockWriter } = zipWriter;
-		if (lockWriter) {
-			await lockWriter.then(() => delete zipWriter.lockWriter);
-			return requestLockWriter();
-		} else {
-			zipWriter.lockWriter = new Promise(resolve => releaseLockWriter = resolve);
-		}
+		zipWriter.writerLocked = true;
+		let { lockWriter } = zipWriter; 
+		zipWriter.lockWriter = new Promise(resolve => releaseLockWriter = () => {
+			zipWriter.writerLocked = false;
+			resolve();
+		});
+		await lockWriter;
 	}
 
 	async function skipDiskIfNeeded(writable) {
