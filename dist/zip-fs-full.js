@@ -9308,7 +9308,7 @@
 				lockPreviousFileEntry = previousFileEntry && previousFileEntry.lock;
 				requestLockCurrentFileEntry();
 			}
-			if (options.bufferedWrite || zipWriter.writerLocked || zipWriter.bufferedWrites || !dataDescriptor) {
+			if (options.bufferedWrite || zipWriter.writerLocked || (zipWriter.bufferedWrites && keepOrder) || !dataDescriptor) {
 				fileWriter = new BlobWriter();
 				fileWriter.writable.size = 0;
 				bufferedWrite = true;
@@ -9316,7 +9316,7 @@
 				await initStream(writer);
 			} else {
 				fileWriter = writer;
-				requestLockWriter();
+				await requestLockWriter();
 			}
 			await initStream(fileWriter);
 			const { writable } = writer;
