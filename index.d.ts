@@ -1106,6 +1106,12 @@ interface ZipWriterConstructorOptions {
      * @defaultValue 0
      */
     internalFileAttribute?: number
+    /**
+     * `false` to never write disk numbers in zip64 data.
+     * 
+     * @defaultValue true
+     */
+    supportZip64SplitFile?: boolean
 }
 
 /**
