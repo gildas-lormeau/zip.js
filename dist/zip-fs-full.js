@@ -8535,12 +8535,9 @@
 			const commentOffset = endOfDirectoryInfo.offset;
 			const commentLength = getUint16(endOfDirectoryView, 20);
 			const appendedDataOffset = commentOffset + END_OF_CENTRAL_DIR_LENGTH + commentLength;
-			const lastDiskNumber = getUint16(endOfDirectoryView, 4);
+			let lastDiskNumber = getUint16(endOfDirectoryView, 4);
 			const expectedLastDiskNumber = reader.lastDiskNumber || 0;
 			let diskNumber = getUint16(endOfDirectoryView, 6);
-			if (expectedLastDiskNumber != lastDiskNumber) {
-				throw new Error(ERR_SPLIT_ZIP_FILE);
-			}
 			let filesLength = getUint16(endOfDirectoryView, 8);
 			let prependedDataLength = 0;
 			let startOffset = 0;
@@ -8564,8 +8561,11 @@
 				if (getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
 					throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
 				}
+				if (lastDiskNumber == MAX_16_BITS) {
+					lastDiskNumber = getUint32(endOfDirectoryView, 16);
+				}
 				if (diskNumber == MAX_16_BITS) {
-					diskNumber = getUint32(endOfDirectoryView, 16);
+					diskNumber = getUint32(endOfDirectoryView, 20);
 				}
 				if (filesLength == MAX_16_BITS) {
 					filesLength = getBigUint64(endOfDirectoryView, 32);
@@ -8574,6 +8574,9 @@
 					directoryDataLength = getBigUint64(endOfDirectoryView, 40);
 				}
 				directoryDataOffset -= directoryDataLength;
+			}
+			if (expectedLastDiskNumber != lastDiskNumber) {
+				throw new Error(ERR_SPLIT_ZIP_FILE);
 			}
 			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
 				throw new Error(ERR_BAD_FORMAT);
@@ -9071,7 +9074,6 @@
 	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (make sure 'keepOrder' is set to 'true')";
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
-	const EXTRAFIELD_LENGTH_ZIP64 = 28;
 
 	let workers = 0;
 	const pendingEntries = [];
@@ -9214,6 +9216,7 @@
 		let maximumCompressedSize = 0;
 		let maximumEntrySize = 0;
 		let uncompressedSize = 0;
+		const zip64Enabled = zip64 === true;
 		if (reader) {
 			reader = initReader(reader);
 			await initStream(reader);
@@ -9229,10 +9232,12 @@
 			}
 		}
 		const { diskOffset, diskNumber, maxSize } = zipWriter.writer;
-		if (zipWriter.offset + zipWriter.pendingEntriesSize - diskOffset >= MAX_32_BITS ||
-			uncompressedSize >= MAX_32_BITS ||
-			maximumCompressedSize >= MAX_32_BITS ||
-			diskNumber + Math.ceil(zipWriter.pendingEntriesSize / maxSize) >= MAX_16_BITS) {
+		const zip64UncompressedSize = zip64Enabled || uncompressedSize >= MAX_32_BITS;
+		const zip64CompressedSize = zip64Enabled || maximumCompressedSize >= MAX_32_BITS;
+		const zip64Offset = zip64Enabled || zipWriter.offset + zipWriter.pendingEntriesSize - diskOffset >= MAX_32_BITS;
+		const supportZip64SplitFile = getOptionValue(zipWriter, options, "supportZip64SplitFile", true);
+		const zip64DiskNumberStart = (supportZip64SplitFile && zip64Enabled) || diskNumber + Math.ceil(zipWriter.pendingEntriesSize / maxSize) >= MAX_16_BITS;
+		if (zip64Offset || zip64UncompressedSize || zip64CompressedSize || zip64DiskNumberStart) {
 			if (zip64 === false || !keepOrder) {
 				throw new Error(ERR_UNSUPPORTED_FORMAT);
 			} else {
@@ -9250,6 +9255,10 @@
 			creationDate,
 			rawExtraField,
 			zip64,
+			zip64UncompressedSize,
+			zip64CompressedSize,
+			zip64Offset,
+			zip64DiskNumberStart,
 			password,
 			level,
 			useWebWorkers,
@@ -9347,7 +9356,7 @@
 				await requestLockWriter();
 				writingBufferedEntryData = true;
 				if (!dataDescriptor) {
-					blob = await writeMissingHeaderInfo(fileEntry, blob, writable, options);
+					blob = await writeExtraHeaderInfo(fileEntry, blob, writable, options);
 				}
 				await skipDiskIfNeeded(writable);
 				fileEntry.diskNumberStart = writer.diskNumber;
@@ -9358,7 +9367,7 @@
 			}
 			fileEntry.offset = zipWriter.offset - diskOffset;
 			if (fileEntry.zip64) {
-				setZip64OffsetInfo(fileEntry);
+				setZip64ExtraInfo(fileEntry, options);
 			} else if (fileEntry.offset >= MAX_32_BITS) {
 				throw new Error(ERR_UNSUPPORTED_FORMAT);
 			}
@@ -9396,7 +9405,7 @@
 
 		async function requestLockWriter() {
 			zipWriter.writerLocked = true;
-			const { lockWriter } = zipWriter; 
+			const { lockWriter } = zipWriter;
 			zipWriter.lockWriter = new Promise(resolve => releaseLockWriter = () => {
 				zipWriter.writerLocked = false;
 				resolve();
@@ -9438,6 +9447,10 @@
 			password,
 			level,
 			zip64,
+			zip64UncompressedSize,
+			zip64CompressedSize,
+			zip64Offset,
+			zip64DiskNumberStart,
 			zipCrypto,
 			dataDescriptor,
 			directory,
@@ -9510,7 +9523,25 @@
 		} else {
 			await writeData(writable, localHeaderArray);
 		}
-		const rawExtraFieldZip64 = zip64 ? new Uint8Array(EXTRAFIELD_LENGTH_ZIP64 + 4) : new Uint8Array();
+		let rawExtraFieldZip64;
+		if (zip64) {
+			let rawExtraFieldZip64Length = 4;
+			if (zip64UncompressedSize) {
+				rawExtraFieldZip64Length += 8;
+			}
+			if (zip64CompressedSize) {
+				rawExtraFieldZip64Length += 8;
+			}
+			if (zip64Offset) {
+				rawExtraFieldZip64Length += 8;
+			}
+			if (zip64DiskNumberStart) {
+				rawExtraFieldZip64Length += 4;
+			}
+			rawExtraFieldZip64 = new Uint8Array(rawExtraFieldZip64Length);
+		} else {
+			rawExtraFieldZip64 = new Uint8Array();
+		}
 		if (reader) {
 			setEntryInfo({
 				signature,
@@ -9525,6 +9556,7 @@
 			await writeData(writable, dataDescriptorArray);
 		}
 		Object.assign(fileEntry, {
+			uncompressedSize,
 			compressedSize,
 			lastModDate,
 			rawLastModDate,
@@ -9536,7 +9568,11 @@
 			version,
 			headerArray,
 			signature,
-			rawExtraFieldZip64
+			rawExtraFieldZip64,
+			zip64UncompressedSize,
+			zip64CompressedSize,
+			zip64Offset,
+			zip64DiskNumberStart
 		});
 		return fileEntry;
 	}
@@ -9713,6 +9749,8 @@
 		} = dataDescriptorInfo;
 		const {
 			zip64,
+			zip64UncompressedSize,
+			zip64CompressedSize,
 			zipCrypto,
 			dataDescriptor
 		} = options;
@@ -9725,11 +9763,17 @@
 		if (zip64) {
 			const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
 			setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
-			setUint16(rawExtraFieldZip64View, 2, EXTRAFIELD_LENGTH_ZIP64);
-			setUint32(headerView, 14, MAX_32_BITS);
-			setBigUint64(rawExtraFieldZip64View, 12, BigInt(compressedSize));
-			setUint32(headerView, 18, MAX_32_BITS);
-			setBigUint64(rawExtraFieldZip64View, 4, BigInt(uncompressedSize));
+			setUint16(rawExtraFieldZip64View, 2, rawExtraFieldZip64.length - 4);
+			let rawExtraFieldZip64Offset = 4;
+			if (zip64UncompressedSize) {
+				setUint32(headerView, 18, MAX_32_BITS);
+				setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(uncompressedSize));
+				rawExtraFieldZip64Offset += 8;
+			}
+			if (zip64CompressedSize) {
+				setUint32(headerView, 14, MAX_32_BITS);
+				setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(compressedSize));
+			}
 			if (dataDescriptor) {
 				setBigUint64(dataDescriptorView, dataDescriptorOffset + 4, BigInt(compressedSize));
 				setBigUint64(dataDescriptorView, dataDescriptorOffset + 12, BigInt(uncompressedSize));
@@ -9744,7 +9788,7 @@
 		}
 	}
 
-	async function writeMissingHeaderInfo(fileEntry, entryData, writable, { zipCrypto }) {
+	async function writeExtraHeaderInfo(fileEntry, entryData, writable, { zipCrypto }) {
 		const arrayBuffer = await sliceAsArrayBuffer(entryData, 0, 26);
 		const arrayBufferView = new DataView(arrayBuffer);
 		if (!fileEntry.encrypted || zipCrypto) {
@@ -9761,11 +9805,24 @@
 		return entryData.slice(arrayBuffer.byteLength);
 	}
 
-	function setZip64OffsetInfo(fileEntry) {
+	function setZip64ExtraInfo(fileEntry, options) {
 		const { rawExtraFieldZip64, offset, diskNumberStart } = fileEntry;
+		const { zip64UncompressedSize, zip64CompressedSize, zip64Offset, zip64DiskNumberStart } = options;
 		const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
-		setBigUint64(rawExtraFieldZip64View, 20, BigInt(offset));
-		setUint32(rawExtraFieldZip64View, 28, diskNumberStart);
+		let rawExtraFieldZip64Offset = 4;
+		if (zip64UncompressedSize) {
+			rawExtraFieldZip64Offset += 8;
+		}
+		if (zip64CompressedSize) {
+			rawExtraFieldZip64Offset += 8;
+		}
+		if (zip64Offset) {
+			setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(offset));
+			rawExtraFieldZip64Offset += 8;
+		}
+		if (zip64DiskNumberStart) {
+			setUint32(rawExtraFieldZip64View, rawExtraFieldZip64Offset, diskNumberStart);
+		}
 	}
 
 	async function closeFile(zipWriter, comment, options) {
@@ -9812,12 +9869,18 @@
 				headerArray,
 				directory,
 				zip64,
+				zip64UncompressedSize,
+				zip64CompressedSize,
+				zip64DiskNumberStart,
+				zip64Offset,
 				msDosCompatible,
 				internalFileAttribute,
 				externalFileAttribute,
 				extendedTimestamp,
 				lastModDate,
-				diskNumberStart
+				diskNumberStart,
+				uncompressedSize,
+				compressedSize
 			} = fileEntry;
 			let rawExtraFieldExtendedTimestamp;
 			if (extendedTimestamp) {
@@ -9833,17 +9896,24 @@
 			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
 			setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 			setUint16(directoryView, offset + 4, versionMadeBy);
+			const headerView = getDataView(headerArray);
+			if (!zip64UncompressedSize) {
+				setUint32(headerView, 18, uncompressedSize);
+			}
+			if (!zip64CompressedSize) {
+				setUint32(headerView, 14, compressedSize);
+			}
 			arraySet(directoryArray, headerArray, offset + 6);
 			setUint16(directoryView, offset + 30, extraFieldLength);
 			setUint16(directoryView, offset + 32, getLength(rawComment));
-			setUint16(directoryView, offset + 34, zip64 ? MAX_16_BITS : diskNumberStart);
+			setUint16(directoryView, offset + 34, zip64 && zip64DiskNumberStart ? MAX_16_BITS : diskNumberStart);
 			setUint16(directoryView, offset + 36, internalFileAttribute);
 			if (externalFileAttribute) {
 				setUint32(directoryView, offset + 38, externalFileAttribute);
 			} else if (directory && msDosCompatible) {
 				setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 			}
-			setUint32(directoryView, offset + 42, zip64 ? MAX_32_BITS : fileEntryOffset);
+			setUint32(directoryView, offset + 42, zip64 && zip64Offset ? MAX_32_BITS : fileEntryOffset);
 			arraySet(directoryArray, rawFilename, offset + 46);
 			arraySet(directoryArray, rawExtraFieldZip64, offset + 46 + getLength(rawFilename));
 			arraySet(directoryArray, rawExtraFieldAES, offset + 46 + getLength(rawFilename, rawExtraFieldZip64));
@@ -9897,7 +9967,11 @@
 			setUint32(endOfdirectoryView, 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
 			setBigUint64(endOfdirectoryView, 64, BigInt(directoryOffset) + BigInt(directoryDataLength));
 			setUint32(endOfdirectoryView, 72, lastDiskNumber + 1);
-			diskNumber = MAX_16_BITS;
+			const supportZip64SplitFile = getOptionValue(zipWriter, options, "supportZip64SplitFile", true);
+			if (supportZip64SplitFile) {
+				lastDiskNumber = MAX_16_BITS;
+				diskNumber = MAX_16_BITS;
+			}
 			filesLength = MAX_16_BITS;
 			directoryOffset = MAX_32_BITS;
 			directoryDataLength = MAX_32_BITS;
