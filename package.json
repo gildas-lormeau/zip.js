@@ -40,8 +40,22 @@
         "test-firefox": "firefox http://localhost:8081/tests/ & npx http-server -p=8081 & wait $!",
         "test-chrome": "google-chrome http://localhost:8081/tests/ & npx http-server -p=8081 & wait $!"
     },
-    "main": "index.js",
-    "types": "index.d.ts",
+    "main": "./index.cjs",
+    "module": "./index.js",
+    "types": "./index.d.ts",
+    "exports": {
+      "./package.json": "./package.json",
+      ".": {
+        "import": {
+          "types": "./index.d.ts",
+          "default": "./index.js"
+        },
+        "require": {
+            "types": "./index.d.ts",
+            "default": "./index.cjs"
+        }
+      }
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/gildas-lormeau/zip.js.git"
