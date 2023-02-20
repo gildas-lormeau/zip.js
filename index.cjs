@@ -6490,8 +6490,6 @@ misc.hmacSha1 = class {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* global crypto */
-
 const GET_RANDOM_VALUES_SUPPORTED = typeof crypto != "undefined" && typeof crypto.getRandomValues == "function";
 
 const ERR_INVALID_PASSWORD = "Invalid password";
@@ -7619,9 +7617,6 @@ function createCodecClass(constructor, constructorOptions, registerDataHandler) 
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/* global Blob, atob, btoa, XMLHttpRequest, URL, fetch, ReadableStream, WritableStream, FileReader, TransformStream, Response */
-// deno-lint-ignore-file no-this-alias
 
 const ERR_HTTP_STATUS = "HTTP error ";
 const ERR_HTTP_RANGE = "HTTP Range not supported";
@@ -9357,7 +9352,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 			await skipDiskIfNeeded(writable);
 			fileEntry.diskNumberStart = writer.diskNumber;
 			diskOffset = writer.diskOffset;
-			await blob.stream().pipeTo(writable, { preventClose: true, signal });
+			await blob.stream().pipeTo(writable, { preventClose: true, preventAbort: true, signal });
 			writable.size += blob.size;
 			writingBufferedEntryData = false;
 		}
@@ -9373,7 +9368,11 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		if ((bufferedWrite && writingBufferedEntryData) || (!bufferedWrite && writingEntryData)) {
 			zipWriter.hasCorruptedEntries = true;
 			if (error) {
-				error.corruptedEntry = true;
+				try {
+					error.corruptedEntry = true;
+				} catch (_error) {
+					// ignored
+				}
 			}
 			if (bufferedWrite) {
 				zipWriter.offset += fileWriter.writable.size;
