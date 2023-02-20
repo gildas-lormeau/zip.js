@@ -35,7 +35,7 @@
 				fs.move(entry, target);
 			},
 			rename(entry, name) {
-				entry.name = name;
+				entry.rename(name);
 			},
 			async exportZip(entry, options) {
 				const blob = await entry.exportBlob(options);
