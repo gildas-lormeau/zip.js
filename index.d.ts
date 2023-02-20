@@ -1199,6 +1199,12 @@ declare class ZipEntry {
      * @param ancestor The {@link ZipDirectoryEntry} instance.
      */
     isDescendantOf(ancestor: ZipDirectoryEntry): boolean
+    /**
+     * Set the name of the entry
+     * 
+     * @param name The new name of the netry.
+     */
+    rename(name: string): void
 }
 
 /**
