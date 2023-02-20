@@ -4915,6 +4915,15 @@
 			}
 			return Boolean(entry);
 		}
+
+		rename(name) {
+			const parent = this.parent;
+			if (parent && parent.getChildByName(name)) {
+				throw new Error("Entry filename already exists");
+			} else {
+				this.name = name;
+			}
+		}
 	}
 
 	class ZipFileEntry extends ZipEntry {
