@@ -2625,8 +2625,8 @@
 		}
 
 		async init() {
-			super.init();
 			await initHttpReader(this, sendFetchRequest, getFetchRequestData);
+			super.init();
 		}
 
 		readUint8Array(index, length) {
@@ -2642,8 +2642,8 @@
 		}
 
 		async init() {
-			super.init();
 			await initHttpReader(this, sendXMLHttpRequest, getXMLHttpRequestData);
+			super.init();
 		}
 
 		readUint8Array(index, length) {
@@ -2830,8 +2830,8 @@
 		}
 
 		async init() {
-			super.init();
 			await this.reader.init();
+			super.init();
 		}
 
 		readUint8Array(index, length) {
@@ -2866,11 +2866,11 @@
 	class Uint8ArrayWriter extends Writer {
 
 		init(initSize = 0) {
-			super.init();
 			Object.assign(this, {
 				offset: 0,
 				array: new Uint8Array(initSize)
 			});
+			super.init();
 		}
 
 		writeUint8Array(array) {
@@ -2897,7 +2897,6 @@
 		}
 
 		async init() {
-			super.init();
 			const reader = this;
 			const { readers } = reader;
 			reader.lastDiskNumber = 0;
@@ -2905,6 +2904,7 @@
 				await diskReader.init();
 				reader.size += diskReader.size;
 			}));
+			super.init();
 		}
 
 		async readUint8Array(offset, length, diskNumber = 0) {
@@ -5316,12 +5316,12 @@
 			}
 
 			async init() {
-				super.init();
 				const zipBlobReader = this;
 				zipBlobReader.size = zipBlobReader.entry.uncompressedSize;
 				const data = await zipBlobReader.entry.getData(new BlobWriter(), Object.assign({}, zipBlobReader.options, options));
 				zipBlobReader.data = data;
 				zipBlobReader.blobReader = new BlobReader(data);
+				super.init();
 			}
 
 			readUint8Array(index, length) {
@@ -5332,7 +5332,7 @@
 
 	async function initReaders(entry) {
 		if (entry.children.length) {
-			for (const child of entry.children) {
+			await Promise.all(entry.children.map(async child => {
 				if (child.directory) {
 					await initReaders(child);
 				} else {
@@ -5340,7 +5340,7 @@
 					await initStream(reader);
 					child.uncompressedSize = reader.size;
 				}
-			}
+			}));
 		}
 	}
 
