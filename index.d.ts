@@ -1186,6 +1186,10 @@ declare class ZipEntry {
      */
     children: ZipEntry[]
     /**
+     * Clones the entry
+     */
+    clone(): ZipEntry
+    /**
      * Returns the full filename of the entry
      */
     getFullname(): string
