@@ -10162,6 +10162,10 @@
 			}
 		}
 
+		clone() {
+			return new ZipFileEntry(this.fs, this.name, this);
+		}
+
 		async getData(writer, options = {}) {
 			const zipEntry = this;
 			if (!writer || (writer.constructor == zipEntry.Writer && zipEntry.data)) {
@@ -10247,6 +10251,10 @@
 		constructor(fs, name, params, parent) {
 			super(fs, name, params, parent);
 			this.directory = true;
+		}
+
+		clone() {
+			return new ZipDirectoryEntry(this.fs, this.name);
 		}
 
 		addDirectory(name) {
@@ -10569,12 +10577,14 @@
 	}
 
 	function detach(entry) {
-		const children = entry.parent.children;
-		children.forEach((child, index) => {
-			if (child.id == entry.id) {
-				children.splice(index, 1);
-			}
-		});
+		if (entry.parent) {
+			const children = entry.parent.children;
+			children.forEach((child, index) => {
+				if (child.id == entry.id) {
+					children.splice(index, 1);
+				}
+			});
+		}
 	}
 
 	async function exportZip(zipWriter, entry, totalSize, options) {
