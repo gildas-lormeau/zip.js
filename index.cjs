@@ -10254,9 +10254,9 @@ class ZipDirectoryEntry extends ZipEntry {
 		const clonedEntry = new ZipDirectoryEntry(zipEntry.fs, zipEntry.name);
 		if (deepClone) {
 			clonedEntry.children = zipEntry.children.map(child => {
-				const clone = child.clone(deepClone);
-				clone.parent = clonedEntry;
-				return clonedEntry;
+				const childClone = child.clone(deepClone);
+				childClone.parent = clonedEntry;
+				return childClone;
 			});
 		}
 		return clonedEntry;
