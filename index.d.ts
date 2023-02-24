@@ -1187,8 +1187,10 @@ declare class ZipEntry {
     children: ZipEntry[]
     /**
      * Clones the entry
+     * 
+     * @param deepClone `true` to clone all the descendants.
      */
-    clone(): ZipEntry
+    clone(deepClone: boolean): ZipEntry
     /**
      * Returns the full filename of the entry
      */
