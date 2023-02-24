@@ -5029,8 +5029,13 @@
 			this.directory = true;
 		}
 
-		clone() {
-			return new ZipDirectoryEntry(this.fs, this.name);
+		clone(deepClone) {
+			const zipEntry = this;
+			const clone = new ZipDirectoryEntry(zipEntry.fs, zipEntry.name);
+			if (deepClone) {
+				clone.children = zipEntry.children.map(child => child.clone(deepClone));
+			}
+			return clone;
 		}
 
 		addDirectory(name) {
