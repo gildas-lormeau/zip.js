@@ -10257,7 +10257,10 @@
 			const zipEntry = this;
 			const clone = new ZipDirectoryEntry(zipEntry.fs, zipEntry.name);
 			if (deepClone) {
-				clone.children = zipEntry.children.map(child => child.clone(deepClone));
+				clone.children = zipEntry.children.map(child => {
+					child.clone(deepClone);
+					child.parent = this;
+				});
 			}
 			return clone;
 		}
