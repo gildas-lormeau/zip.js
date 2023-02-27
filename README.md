@@ -168,4 +168,4 @@ See here for more examples:
 https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
 
 Demo written wth React:
-https://github.com/gildas-lormeau/zipjs-react-app
+https://gildas-lormeau.github.io/zipjs-react-app
