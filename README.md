@@ -166,3 +166,6 @@ Run the code on Plunker: https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview
 
 See here for more examples:
 https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
+
+Demo written wth React:
+https://github.com/gildas-lormeau/zipjs-react-app
