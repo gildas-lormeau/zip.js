@@ -5160,7 +5160,7 @@
 
 		async exportZip(writer, options) {
 			const zipEntry = this;
-			await Promise.all([initReaders(zipEntry, options), initStream(writer)]);
+			await Promise.all([initReaders(zipEntry, options.readerOptions), initStream(writer)]);
 			const zipWriter = new ZipWriter(writer, options);
 			await exportZip(zipWriter, zipEntry, getTotalSize([zipEntry], "uncompressedSize"), options);
 			await zipWriter.close();
@@ -5351,9 +5351,7 @@
 		if (entry.children.length) {
 			await Promise.all(entry.children.map(async child => {
 				if (child.directory) {
-					const readerOptions = Object.assign({}, options);
-					readerOptions.onprogress = null;
-					await initReaders(child, readerOptions);
+					await initReaders(child, options);
 				} else {
 					const reader = child.reader = new child.Reader(child.data, options);
 					await initStream(reader);
