@@ -164,8 +164,9 @@ function downloadFile(blob) {
 
 Run the code on Plunker: https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview
 
+
+Demo of the Filesystem API in zip.js written with React:
+https://gildas-lormeau.github.io/zipjs-react-app
+
 See here for more examples:
 https://github.com/gildas-lormeau/zip.js/tree/master/tests/all
-
-Demo written wth React:
-https://gildas-lormeau.github.io/zipjs-react-app
