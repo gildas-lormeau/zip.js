@@ -164,7 +164,7 @@ function downloadFile(blob) {
 
 Run the code on Plunker: https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview
 
-## Demo of the FS API written with React
+## Demo of the FS API based on React
 
 See https://gildas-lormeau.github.io/zipjs-react-app
 
