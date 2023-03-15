@@ -10574,7 +10574,16 @@ async function initReaders(entry, options) {
 				await initReaders(child, options);
 			} else {
 				const reader = child.reader = new child.Reader(child.data, options);
-				await initStream(reader);
+				try {
+					await initStream(reader);
+				} catch (error) {
+					try {
+						error.entryId = child.id;
+					} catch (_error) {
+						// ignored
+					}
+					throw error;
+				}
 				child.uncompressedSize = reader.size;
 			}
 		}));
