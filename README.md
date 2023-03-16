@@ -10,6 +10,10 @@ encryption.
 
 See here for more info: https://gildas-lormeau.github.io/zip.js/
 
+## Demo of the FS API based on React
+
+See https://gildas-lormeau.github.io/zipjs-react-app
+
 # Examples
 
 ## Hello world
@@ -163,10 +167,6 @@ function downloadFile(blob) {
 ```
 
 Run the code on Plunker: https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview
-
-## Demo of the FS API based on React
-
-See https://gildas-lormeau.github.io/zipjs-react-app
 
 ## Tests
 
