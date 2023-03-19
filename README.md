@@ -10,7 +10,7 @@ encryption.
 
 See here for more info: https://gildas-lormeau.github.io/zip.js/
 
-## Demo of the FS API based on React
+## PWA Demo based on React
 
 See https://gildas-lormeau.github.io/zipjs-react-app
 
