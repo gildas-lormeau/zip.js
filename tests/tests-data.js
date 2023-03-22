@@ -20,6 +20,7 @@ export default ([
 	{ title: "Filesystem export", script: "./test-fs-export-options.js", env: ["deno", "browser"] },
 	{ title: "Filesystem HTTP import", script: "./test-fs-http-import.js", env: ["deno", "browser"] },
 	{ title: "Filesystem HTTP reader", script: "./test-fs-http-reader.js", env: ["deno", "browser"] },
+	{ title: "Filesystem metadata", script: "./test-fs-metadata.js", env: ["deno", "browser"] },
 	{ title: "Filesystem replace entry", script: "./test-fs-replace.js", env: ["deno", "browser"] },
 	{ title: "Filesystem streams", script: "./test-fs-streams.js" },
 	{ title: "Filesystem text", script: "./test-fs-text.js" },

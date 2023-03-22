@@ -1326,66 +1326,73 @@ export class ZipDirectoryEntry extends ZipEntry {
     /**
      * Adds a directory
      * 
-     * @param name The relative filename of the directory
+     * @param name The relative filename of the directory.
+     * @param options The options.
      * @returns A {@link ZipDirectoryEntry} instance.
      */
-    addDirectory(name: string): ZipDirectoryEntry
+    addDirectory(name: string, options?: ZipWriterAddDataOptions): ZipDirectoryEntry
     /**
      * Adds an entry with content provided as text
      * 
      * @param name The relative filename of the entry.
-     * @param text The text. 
+     * @param text The text.
+     * @param options The options.
      * @returns A {@link ZipFileEntry} instance.
      */
-    addText(name: string, text: string): ZipFileEntry<string, string>
+    addText(name: string, text: string, options?: ZipWriterAddDataOptions): ZipFileEntry<string, string>
     /**
      * Adds aentry entry with content provided as a `Blob` instance
      * 
      * @param name The relative filename of the entry.
-     * @param blob The `Blob` instance. 
+     * @param blob The `Blob` instance.
+     * @param options The options.
      * @returns A {@link ZipFileEntry} instance.
      */
-    addBlob(name: string, blob: Blob): ZipFileEntry<Blob, Blob>
+    addBlob(name: string, blob: Blob, options?: ZipWriterAddDataOptions): ZipFileEntry<Blob, Blob>
     /**
      * Adds aentry entry with content provided as a Data URI `string` encoded in Base64
      * 
      * @param name The relative filename of the entry.
      * @param dataURI The Data URI `string` encoded in Base64.
+     * @param options The options.
      * @returns A {@link ZipFileEntry} instance.
      */
-    addData64URI(name: string, dataURI: string): ZipFileEntry<string, string>
+    addData64URI(name: string, dataURI: string, options?: ZipWriterAddDataOptions): ZipFileEntry<string, string>
     /**
      * Adds an entry with content provided as a `Uint8Array` instance
      * 
      * @param name The relative filename of the entry.
-     * @param array The `Uint8Array` instance. 
+     * @param array The `Uint8Array` instance.
+     * @param options The options.
      * @returns A {@link ZipFileEntry} instance.
      */
-    addUint8Array(name: string, array: Uint8Array): ZipFileEntry<Uint8Array, Uint8Array>
+    addUint8Array(name: string, array: Uint8Array, options?: ZipWriterAddDataOptions): ZipFileEntry<Uint8Array, Uint8Array>
     /**
      * Adds an entry with content fetched from a URL
      * 
      * @param name The relative filename of the entry.
      * @param url The URL.
-     * @param options The options. 
+     * @param options The options.
      * @returns A {@link ZipFileEntry} instance.
      */
-    addHttpContent(name: string, url: string, options?: HttpOptions): ZipFileEntry<string, void>
+    addHttpContent(name: string, url: string, options?: HttpOptions & ZipWriterAddDataOptions): ZipFileEntry<string, void>
     /**
      * Adds aentry entry with content provided via a `ReadableStream` instance
      * 
      * @param name The relative filename of the entry.
-     * @param readable The `ReadableStream` instance. 
+     * @param readable The `ReadableStream` instance.
+     * @param options The options.
      * @returns A {@link ZipFileEntry} instance.
      */
-    addReadable(name: string, readable: ReadableStream): ZipFileEntry<ReadableStream, void>
+    addReadable(name: string, readable: ReadableStream, options?: ZipWriterAddDataOptions): ZipFileEntry<ReadableStream, void>
     /**
      * Adds an entry with content provided via a `FileSystemEntry` instance
      * 
-     * @param fileSystemEntry The `FileSystemEntry` instance. 
+     * @param fileSystemEntry The `FileSystemEntry` instance.
+     * @param options The options.
      * @returns A promise resolving to a {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instance.
      */
-    addFileSystemEntry(fileSystemEntry: FileSystemEntry): Promise<ZipEntry>
+    addFileSystemEntry(fileSystemEntry: FileSystemEntry, options?: ZipWriterAddDataOptions): Promise<ZipEntry>
     /**
      * Extracts a zip file provided as a `Blob` instance into the entry
      * 
