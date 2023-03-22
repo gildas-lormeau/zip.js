@@ -4876,6 +4876,7 @@
 				fs,
 				name,
 				data: params.data,
+				options: params.options,
 				id: fs.entries.length,
 				parent,
 				children: [],
@@ -5042,39 +5043,43 @@
 			return clonedEntry;
 		}
 
-		addDirectory(name) {
-			return addChild(this, name, null, true);
+		addDirectory(name, options) {
+			return addChild(this, name, { options }, true);
 		}
 
-		addText(name, text) {
+		addText(name, text, options = {}) {
 			return addChild(this, name, {
 				data: text,
 				Reader: TextReader,
-				Writer: TextWriter
+				Writer: TextWriter,
+				options
 			});
 		}
 
-		addBlob(name, blob) {
+		addBlob(name, blob, options = {}) {
 			return addChild(this, name, {
 				data: blob,
 				Reader: BlobReader,
-				Writer: BlobWriter
+				Writer: BlobWriter,
+				options
 			});
 		}
 
-		addData64URI(name, dataURI) {
+		addData64URI(name, dataURI, options = {}) {
 			return addChild(this, name, {
 				data: dataURI,
 				Reader: Data64URIReader,
-				Writer: Data64URIWriter
+				Writer: Data64URIWriter,
+				options
 			});
 		}
 
-		addUint8Array(name, array) {
+		addUint8Array(name, array, options = {}) {
 			return addChild(this, name, {
 				data: array,
 				Reader: Uint8ArrayReader,
-				Writer: Uint8ArrayWriter
+				Writer: Uint8ArrayWriter,
+				options
 			});
 		}
 
@@ -5085,18 +5090,20 @@
 					constructor(url) {
 						super(url, options);
 					}
-				}
+				},
+				options
 			});
 		}
 
-		addReadable(name, readable) {
+		addReadable(name, readable, options = {}) {
 			return addChild(this, name, {
-				Reader: function () { return { readable }; }
+				Reader: function () { return { readable }; },
+				options
 			});
 		}
 
-		addFileSystemEntry(fileSystemEntry) {
-			return addFileSystemEntry(this, fileSystemEntry);
+		addFileSystemEntry(fileSystemEntry, options = {}) {
+			return addFileSystemEntry(this, fileSystemEntry, options);
 		}
 
 		addData(name, params) {
@@ -5234,32 +5241,32 @@
 			return this.root.getChildByName(name);
 		}
 
-		addDirectory(name) {
-			return this.root.addDirectory(name);
+		addDirectory(name, options) {
+			return this.root.addDirectory(name, options);
 		}
 
-		addText(name, text) {
-			return this.root.addText(name, text);
+		addText(name, text, options) {
+			return this.root.addText(name, text, options);
 		}
 
-		addBlob(name, blob) {
-			return this.root.addBlob(name, blob);
+		addBlob(name, blob, options) {
+			return this.root.addBlob(name, blob, options);
 		}
 
-		addData64URI(name, dataURI) {
-			return this.root.addData64URI(name, dataURI);
+		addData64URI(name, dataURI, options) {
+			return this.root.addData64URI(name, dataURI, options);
 		}
 
 		addHttpContent(name, url, options) {
 			return this.root.addHttpContent(name, url, options);
 		}
 
-		addReadable(name, readable) {
-			return this.root.addReadable(name, readable);
+		addReadable(name, readable, options) {
+			return this.root.addReadable(name, readable, options);
 		}
 
-		addFileSystemEntry(fileSystemEntry) {
-			return this.root.addFileSystemEntry(fileSystemEntry);
+		addFileSystemEntry(fileSystemEntry, options) {
+			return this.root.addFileSystemEntry(fileSystemEntry, options);
 		}
 
 		addData(name, params) {
@@ -5401,9 +5408,32 @@
 
 			async function processChild(child) {
 				const name = options.relativePath ? child.getRelativeName(selectedEntry) : child.getFullname();
+				let externalFileAttribute;
+				let versionMadeBy;
+				let comment;
+				let lastModDate;
+				let lastAccessDate;
+				let creationDate;
+				let childOptions = child.options || {};
+				if (child.data instanceof Entry) {
+					({
+						externalFileAttribute,
+						versionMadeBy,
+						comment,
+						lastModDate,
+						lastAccessDate,
+						creationDate
+					} = child.data);
+				}
 				await zipWriter.add(name, child.reader, Object.assign({
 					directory: child.directory
 				}, Object.assign({}, options, {
+					externalFileAttribute,
+					versionMadeBy,
+					comment,
+					lastModDate,
+					lastAccessDate,
+					creationDate,
 					onprogress: async indexProgress => {
 						if (options.onprogress) {
 							entryOffsets.set(name, indexProgress);
@@ -5414,30 +5444,30 @@
 							}
 						}
 					}
-				})));
+				}, childOptions)));
 				await process(zipWriter, child);
 			}
 		}
 	}
 
-	async function addFileSystemEntry(zipEntry, fileSystemEntry) {
+	async function addFileSystemEntry(zipEntry, fileSystemEntry, options) {
 		if (fileSystemEntry.isDirectory) {
-			const entry = zipEntry.addDirectory(fileSystemEntry.name);
+			const entry = zipEntry.addDirectory(fileSystemEntry.name, options);
 			await addDirectory(entry, fileSystemEntry);
 			return entry;
 		} else {
-			return new Promise((resolve, reject) => fileSystemEntry.file(file => resolve(zipEntry.addBlob(fileSystemEntry.name, file)), reject));
+			return new Promise((resolve, reject) => fileSystemEntry.file(file => resolve(zipEntry.addBlob(fileSystemEntry.name, file, options)), reject));
 		}
 
 		async function addDirectory(zipEntry, fileEntry) {
 			const children = await getChildren(fileEntry);
 			for (const child of children) {
 				if (child.isDirectory) {
-					await addDirectory(zipEntry.addDirectory(child.name), child);
+					await addDirectory(zipEntry.addDirectory(child.name, options), child);
 				} else {
 					await new Promise((resolve, reject) => {
 						child.file(file => {
-							const childZipEntry = zipEntry.addBlob(child.name, file);
+							const childZipEntry = zipEntry.addBlob(child.name, file, options);
 							childZipEntry.uncompressedSize = file.size;
 							resolve(childZipEntry);
 						}, reject);
