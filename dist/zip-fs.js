@@ -5412,17 +5412,13 @@
 				let versionMadeBy;
 				let comment;
 				let lastModDate;
-				let lastAccessDate;
-				let creationDate;
 				let childOptions = child.options || {};
 				if (child.data instanceof Entry) {
 					({
 						externalFileAttribute,
 						versionMadeBy,
 						comment,
-						lastModDate,
-						lastAccessDate,
-						creationDate
+						lastModDate
 					} = child.data);
 				}
 				await zipWriter.add(name, child.reader, Object.assign({
@@ -5432,8 +5428,6 @@
 					versionMadeBy,
 					comment,
 					lastModDate,
-					lastAccessDate,
-					creationDate,
 					onprogress: async indexProgress => {
 						if (options.onprogress) {
 							entryOffsets.set(name, indexProgress);
