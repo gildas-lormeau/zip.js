@@ -6,13 +6,13 @@ of data. It supports notably multi-core compression, native compression with
 compression streams, files larger than 4GB with Zip64, split zip files and data
 encryption.
 
+## Demo
+
+See https://gildas-lormeau.github.io/zipjs-react-app
+
 # Documentation
 
 See here for more info: https://gildas-lormeau.github.io/zip.js/
-
-## PWA Demo based on React
-
-See https://gildas-lormeau.github.io/zipjs-react-app
 
 # Examples
 
