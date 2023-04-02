@@ -8,7 +8,7 @@ encryption.
 
 ## Demo
 
-See https://gildas-lormeau.github.io/zipjs-react-app
+See https://gildas-lormeau.github.io/zip-manager
 
 # Documentation
 
