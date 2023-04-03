@@ -6,7 +6,7 @@ of data. It supports notably multi-core compression, native compression with
 compression streams, files larger than 4GB with Zip64, split zip files and data
 encryption.
 
-## Demo
+# Demo
 
 See https://gildas-lormeau.github.io/zip-manager
 
