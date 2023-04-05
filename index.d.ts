@@ -1413,42 +1413,42 @@ export class ZipDirectoryEntry extends ZipEntry {
      * @param blob The `Blob` instance.
      * @param options  The options.
      */
-    importBlob(blob: Blob, options?: ZipReaderConstructorOptions): Promise<void>
+    importBlob(blob: Blob, options?: ZipReaderConstructorOptions): Promise<[ZipEntry]>
     /**
      * Extracts a zip file provided as a Data URI `string` encoded in Base64 into the entry
      * 
      * @param dataURI The Data URI `string` encoded in Base64.
      * @param options  The options.
      */
-    importData64URI(dataURI: string, options?: ZipReaderConstructorOptions): Promise<void>
+    importData64URI(dataURI: string, options?: ZipReaderConstructorOptions): Promise<[ZipEntry]>
     /**
      * Extracts a zip file provided as a `Uint8Array` instance into the entry
      * 
      * @param array The `Uint8Array` instance.
      * @param options  The options.
      */
-    importUint8Array(array: Uint8Array, options?: ZipReaderConstructorOptions): Promise<void>
+    importUint8Array(array: Uint8Array, options?: ZipReaderConstructorOptions): Promise<[ZipEntry]>
     /**
      * Extracts a zip file fetched from a URL into the entry
      * 
      * @param url The URL.
      * @param options  The options.
      */
-    importHttpContent(url: string, options?: ZipDirectoryEntryImportHttpOptions): Promise<void>
+    importHttpContent(url: string, options?: ZipDirectoryEntryImportHttpOptions): Promise<[ZipEntry]>
     /**
      * Extracts a zip file provided via a `ReadableStream` instance into the entry
      * 
      * @param readable The `ReadableStream` instance.
      * @param options  The options.
      */
-    importReadable(readable: ReadableStream, options?: ZipReaderConstructorOptions): Promise<void>
+    importReadable(readable: ReadableStream, options?: ZipReaderConstructorOptions): Promise<[ZipEntry]>
     /**
      * Extracts a zip file provided via a custom {@link Reader} instance into the entry
      * 
      * @param reader The {@link Reader} instance.
      * @param options  The options.
      */
-    importZip(reader: Reader<unknown> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[], options?: ZipReaderConstructorOptions): Promise<void>
+    importZip(reader: Reader<unknown> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[], options?: ZipReaderConstructorOptions): Promise<[ZipEntry]>
     /**
      * Returns a `Blob` instance containing a zip file of the entry and its descendants
      * 

@@ -14,12 +14,12 @@ async function test() {
 	await directory.importHttpContent(url, { preventHeadRequest: true });
 	const blob = await zipFs.exportBlob();
 	zipFs = new zip.fs.FS();
-	await zipFs.importBlob(blob);
+	const importedEntries = await zipFs.importBlob(blob);
 	directory = zipFs.getChildByName("import");
 	const firstEntry = directory.children[0];
 	const text = await firstEntry.getText();
 	zip.terminateWorkers();
-	if (text != TEXT_CONTENT) {
+	if (text != TEXT_CONTENT || importedEntries.length != 2) {
 		throw new Error();
 	}
 }
