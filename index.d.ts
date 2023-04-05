@@ -712,6 +712,12 @@ interface GetEntriesOptions {
  */
 interface ZipReaderOptions {
     /**
+    * `true` to check only if the password is valid.
+    * 
+    * @defaultValue false
+    */
+    checkPasswordOnly?: boolean
+    /**
      * `true` to check the signature of the entry.
      * 
      * @defaultValue false
@@ -868,11 +874,11 @@ export interface Entry extends EntryMetaData {
     /**
      * Returns the content of the entry
      * 
-     * @param writer The {@link Writer} instance used to write the content of the entry.
+     * @param writer The {@link Writer} instance used to write the content of the entry or `undefined`/`null` if the option `checkPasswordOnly` is set to `true`.
      * @param options The options.
-     * @returns A promise resolving to the type to data associated to `writer`.
+     * @returns A promise resolving to the type to data associated to `writer` or `undefined` if the option `checkPasswordOnly` is set to `true`.
      */
-    getData<Type>(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, options?: EntryGetDataOptions): Promise<Type>
+    getData<Type>(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream | undefined | null, boolean>, options?: EntryGetDataOptions): Promise<Type | undefined>
 }
 
 /**
@@ -1205,6 +1211,14 @@ declare class ZipEntry {
      * @param ancestor The {@link ZipDirectoryEntry} instance.
      */
     isDescendantOf(ancestor: ZipDirectoryEntry): boolean
+    /**
+     * Tests if the entry or any of its children is password protected
+     */
+    isPasswordProtected(): boolean
+    /**
+     * Tests the password on the entry and all children if any, returns `true` if the entry is not password protected
+     */
+    checkPassword(password: string, options?: EntryGetDataOptions): Promise<boolean>
     /**
      * Set the name of the entry
      * 
