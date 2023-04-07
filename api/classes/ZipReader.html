@@ -19,7 +19,7 @@
 <div class="tsd-comment tsd-typography"><p>Represents an instance used to read a zip file.</p>
 
 <h3>Example</h3><p>Here is an example showing how to read the text data of the first entry from a zip file:</p>
-<pre><code><span class="hl-4">// create a BlobReader to read with a ZipReader the zip from a Blob object</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">reader</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">ZipReader</span><span class="hl-1">(</span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">BlobReader</span><span class="hl-1">(</span><span class="hl-2">blob</span><span class="hl-1">));</span><br/><br/><span class="hl-4">// get all entries from the zip</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">entries</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">reader</span><span class="hl-1">.</span><span class="hl-7">getEntries</span><span class="hl-1">();</span><br/><span class="hl-0">if</span><span class="hl-1"> (</span><span class="hl-2">entries</span><span class="hl-1">.</span><span class="hl-2">length</span><span class="hl-1">) {</span><br/><br/><span class="hl-1">  </span><span class="hl-4">// get first entry content as text by using a TextWriter</span><br/><span class="hl-1">  </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">text</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">entries</span><span class="hl-1">[</span><span class="hl-9">0</span><span class="hl-1">].</span><span class="hl-7">getData</span><span class="hl-1">(</span><br/><span class="hl-1">    </span><span class="hl-4">// writer</span><br/><span class="hl-1">    </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">TextWriter</span><span class="hl-1">(),</span><br/><span class="hl-1">    </span><span class="hl-4">// options</span><br/><span class="hl-1">    { </span><br/><span class="hl-1">      </span><span class="hl-7">onprogress</span><span class="hl-2">:</span><span class="hl-1"> (</span><span class="hl-2">index</span><span class="hl-1">, </span><span class="hl-2">max</span><span class="hl-1">) </span><span class="hl-5">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-4">// onprogress callback</span><br/><span class="hl-1">      }</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">  );</span><br/><span class="hl-1">  </span><span class="hl-4">// text contains the entry data as a String</span><br/><span class="hl-1">  </span><span class="hl-2">console</span><span class="hl-1">.</span><span class="hl-7">log</span><span class="hl-1">(</span><span class="hl-2">text</span><span class="hl-1">);</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-4">// close the ZipReader</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">reader</span><span class="hl-1">.</span><span class="hl-7">close</span><span class="hl-1">();</span>
+<pre><code><span class="hl-4">// create a BlobReader to read with a ZipReader the zip from a Blob object</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">reader</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">ZipReader</span><span class="hl-1">(</span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">BlobReader</span><span class="hl-1">(</span><span class="hl-2">blob</span><span class="hl-1">));</span><br/><br/><span class="hl-4">// get all entries from the zip</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">entries</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">reader</span><span class="hl-1">.</span><span class="hl-7">getEntries</span><span class="hl-1">();</span><br/><span class="hl-0">if</span><span class="hl-1"> (</span><span class="hl-2">entries</span><span class="hl-1">.</span><span class="hl-2">length</span><span class="hl-1">) {</span><br/><br/><span class="hl-1">  </span><span class="hl-4">// get first entry content as text by using a TextWriter</span><br/><span class="hl-1">  </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">text</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">entries</span><span class="hl-1">[</span><span class="hl-9">0</span><span class="hl-1">].</span><span class="hl-7">getData</span><span class="hl-1">(</span><br/><span class="hl-1">    </span><span class="hl-4">// writer</span><br/><span class="hl-1">    </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1">.</span><span class="hl-7">TextWriter</span><span class="hl-1">(),</span><br/><span class="hl-1">    </span><span class="hl-4">// options</span><br/><span class="hl-1">    {</span><br/><span class="hl-1">      </span><span class="hl-7">onprogress</span><span class="hl-2">:</span><span class="hl-1"> (</span><span class="hl-2">index</span><span class="hl-1">, </span><span class="hl-2">max</span><span class="hl-1">) </span><span class="hl-5">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-4">// onprogress callback</span><br/><span class="hl-1">      }</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">  );</span><br/><span class="hl-1">  </span><span class="hl-4">// text contains the entry data as a String</span><br/><span class="hl-1">  </span><span class="hl-2">console</span><span class="hl-1">.</span><span class="hl-7">log</span><span class="hl-1">(</span><span class="hl-2">text</span><span class="hl-1">);</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-4">// close the ZipReader</span><br/><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">reader</span><span class="hl-1">.</span><span class="hl-7">close</span><span class="hl-1">();</span>
 </code></pre>
 </div></section> 
 <section class="tsd-panel tsd-type-parameters">
@@ -32,7 +32,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">ZipReader</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/d491c169/index.d.ts#L633">index.d.ts:633</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/11557d9a/index.d.ts#L644">index.d.ts:644</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -81,7 +81,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="ZipReader.html" class="tsd-signature-type" data-tsd-kind="Class">ZipReader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Type</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/d491c169/index.d.ts#L640">index.d.ts:640</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/11557d9a/index.d.ts#L651">index.d.ts:651</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="appendedData" class="tsd-anchor"></a>
@@ -90,21 +90,21 @@
 <div class="tsd-comment tsd-typography"><p>The data appended after the zip file.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/d491c169/index.d.ts#L652">index.d.ts:652</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/11557d9a/index.d.ts#L672">index.d.ts:672</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="comment" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>comment</span><a href="#comment" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">comment<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span></div>
 <div class="tsd-comment tsd-typography"><p>The global comment of the zip file.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/d491c169/index.d.ts#L644">index.d.ts:644</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/11557d9a/index.d.ts#L664">index.d.ts:664</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="prependedData" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>prepended<wbr/>Data</span><a href="#prependedData" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">prepended<wbr/>Data<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Uint8Array</span></div>
 <div class="tsd-comment tsd-typography"><p>The data prepended before the zip file.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/d491c169/index.d.ts#L648">index.d.ts:648</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/11557d9a/index.d.ts#L668">index.d.ts:668</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="close" class="tsd-anchor"></a>
@@ -116,7 +116,7 @@
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/d491c169/index.d.ts#L670">index.d.ts:670</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/11557d9a/index.d.ts#L692">index.d.ts:692</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getEntries" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Entries</span><a href="#getEntries" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -135,7 +135,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Entry.html" class="tsd-signature-type" data-tsd-kind="Interface">Entry</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/d491c169/index.d.ts#L659">index.d.ts:659</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/11557d9a/index.d.ts#L679">index.d.ts:679</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getEntriesGenerator" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Entries<wbr/>Generator</span><a href="#getEntriesGenerator" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -154,7 +154,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">AsyncGenerator</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Entry.html" class="tsd-signature-type" data-tsd-kind="Interface">Entry</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/d491c169/index.d.ts#L666">index.d.ts:666</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/11557d9a/index.d.ts#L686">index.d.ts:686</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
