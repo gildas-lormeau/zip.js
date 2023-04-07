@@ -710,13 +710,19 @@ interface GetEntriesOptions {
 /**
  * Represents options passed to the constructor of {@link ZipReader} and {@link Entry#getData}.
  */
-interface ZipReaderOptions {
+interface ZipReaderCheckPasswordOptions {
     /**
     * `true` to check only if the password is valid.
     * 
     * @defaultValue false
     */
     checkPasswordOnly?: boolean
+}
+
+/**
+ * Represents options passed to the constructor of {@link ZipReader} and {@link Entry#getData}.
+ */
+interface ZipReaderOptions {
     /**
      * `true` to check the signature of the entry.
      * 
@@ -857,14 +863,6 @@ export interface EntryMetaData {
      * The number of the disk where the entry data starts.
      */
     diskNumberStart: number
-    /**
-     * Returns the content of the entry
-     * 
-     * @param writer The {@link Writer} instance used to write the content of the entry.
-     * @param options The options.
-     * @returns A promise resolving to the type to data associated to `writer`.
-     */
-    getData?<Type>(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream | undefined | null, boolean>, options?: EntryGetDataOptions): Promise<Type | undefined>
 }
 
 /**
@@ -878,13 +876,27 @@ export interface Entry extends EntryMetaData {
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer` or `undefined` if the option `checkPasswordOnly` is set to `true`.
      */
-    getData<Type>(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream | undefined | null, boolean>, options?: EntryGetDataOptions): Promise<Type | undefined>
+    getData?<Type>(writer: Writer<Type> | WritableWriter | WritableStream | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream, boolean>, options?: EntryGetDataOptions): Promise<Type>
+
+    /**
+     * Returns the content of the entry
+     * 
+     * @param writer The {@link Writer} instance used to write the content of the entry or `undefined`/`null` if the option `checkPasswordOnly` is set to `true`.
+     * @param options The options.
+     * @returns A promise resolving to the type to data associated to `writer` or `undefined` if the option `checkPasswordOnly` is set to `true`.
+     */
+    getData?(writer: undefined | null, options?: EntryGetDataCheckPasswordOptions): Promise<undefined>
 }
 
 /**
  * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
  */
 interface EntryGetDataOptions extends EntryDataOnprogressOptions, ZipReaderOptions, WorkerConfiguration { }
+
+/**
+ * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
+ */
+interface EntryGetDataCheckPasswordOptions extends EntryGetDataOptions { }
 
 /**
  * Represents an instance used to create a zip file.
