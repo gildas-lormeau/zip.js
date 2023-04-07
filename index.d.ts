@@ -740,7 +740,7 @@ interface ZipReaderCheckPasswordOptions {
    *
    * @defaultValue false
    */
-  checkPasswordOnly?: boolean;
+  checkPasswordOnly: boolean;
 }
 
 /**
@@ -896,9 +896,9 @@ export interface Entry extends EntryMetaData {
   /**
    * Returns the content of the entry
    *
-   * @param writer The {@link Writer} instance used to write the content of the entry or `undefined`/`null` if the option `checkPasswordOnly` is set to `true`.
+   * @param writer The {@link Writer} instance used to write the content of the entry.
    * @param options The options.
-   * @returns A promise resolving to the type to data associated to `writer` or `undefined` if the option `checkPasswordOnly` is set to `true`.
+   * @returns A promise resolving to the type to data associated to `writer`.
    */
   getData?<Type>(
     writer:
@@ -913,16 +913,15 @@ export interface Entry extends EntryMetaData {
   ): Promise<Type>;
 
   /**
-   * Returns the content of the entry
+   * Tests if the password is valid.
    *
-   * @param writer The {@link Writer} instance used to write the content of the entry or `undefined`/`null` if the option `checkPasswordOnly` is set to `true`.
-   * @param options The options.
-   * @returns A promise resolving to the type to data associated to `writer` or `undefined` if the option `checkPasswordOnly` is set to `true`.
+   * @param writer `undefined` or `null`.
+   * @param options The options with `checkPasswordOnly` set to `true`.
    */
   getData?(
     writer: undefined | null,
-    options?: EntryGetDataCheckPasswordOptions,
-  ): Promise<undefined>;
+    options: EntryGetDataCheckPasswordOptions,
+  ): Promise<void>;
 }
 
 /**
@@ -934,7 +933,8 @@ interface EntryGetDataOptions
 /**
  * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
  */
-interface EntryGetDataCheckPasswordOptions extends EntryGetDataOptions {}
+interface EntryGetDataCheckPasswordOptions
+  extends EntryGetDataOptions, ZipReaderCheckPasswordOptions {}
 
 /**
  * Represents an instance used to create a zip file.
