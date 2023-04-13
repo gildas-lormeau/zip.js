@@ -9560,16 +9560,14 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 	} else {
 		rawExtraFieldZip64 = new Uint8Array();
 	}
-	if (reader) {
-		setEntryInfo({
-			signature,
-			rawExtraFieldZip64,
-			compressedSize,
-			uncompressedSize,
-			headerInfo,
-			dataDescriptorInfo
-		}, options);
-	}
+	setEntryInfo({
+		signature,
+		rawExtraFieldZip64,
+		compressedSize,
+		uncompressedSize,
+		headerInfo,
+		dataDescriptorInfo
+	}, options);
 	if (dataDescriptor) {
 		await writeData(writable, dataDescriptorArray);
 	}
