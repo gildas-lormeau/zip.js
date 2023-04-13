@@ -10425,11 +10425,11 @@
 				let parent = this;
 				const path = entry.filename.split("/");
 				const name = path.pop();
-				path.forEach(pathPart => {
+				path.forEach((pathPart, pathIndex) => {
 					const previousParent = parent;
 					parent = parent.getChildByName(pathPart);
 					if (!parent) {
-						parent = new ZipDirectoryEntry(this.fs, pathPart, null, previousParent);
+						parent = new ZipDirectoryEntry(this.fs, pathPart, { data: pathIndex == path.length - 1 ? entry : null }, previousParent);
 						importedEntries.push(parent);
 					}
 				});
