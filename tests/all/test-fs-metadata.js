@@ -10,7 +10,8 @@ export { test };
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	let zipFs = new zip.fs.FS();
-	let directory = zipFs.addDirectory("import");
+	const lastModDate = new Date(1982, 0, 1, 0, 0, 0, 0);
+	let directory = zipFs.addDirectory("import", { lastModDate });
 	await directory.importHttpContent(url, { preventHeadRequest: true });
 	directory.addText("test.txt", TEXT_CONTENT, { comment: "test", versionMadeBy: 42 });
 	const blob = await zipFs.exportBlob();
@@ -20,8 +21,9 @@ async function test() {
 	const importedTextFile = directory.children[0];
 	const addedTextFile = zipFs.find("import/test.txt");
 	zip.terminateWorkers();
-	if (importedTextFile.data.externalFileAttribute != 32 && importedTextFile.data.versionMadeBy != 20
-		&& addedTextFile.data.comment != "test" && addedTextFile.data.versionMadeBy != 42) {
+	if (importedTextFile.data.externalFileAttribute != 32 || importedTextFile.data.versionMadeBy != 20
+		|| addedTextFile.data.comment != "test" || addedTextFile.data.versionMadeBy != 42 || 
+		directory.data.lastModDate.getTime() != lastModDate.getTime()) {
 		throw new Error();
 	}
 }
