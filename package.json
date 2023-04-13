@@ -44,17 +44,23 @@
     "module": "./index.js",
     "types": "./index.d.ts",
     "exports": {
-      "./package.json": "./package.json",
-      ".": {
-        "import": {
-          "types": "./index.d.ts",
-          "default": "./index.js"
+        "./package.json": "./package.json",
+        ".": {
+            "import": {
+                "types": "./index.d.ts",
+                "default": "./index.js"
+            },
+            "require": {
+                "types": "./index.d.ts",
+                "default": "./index.cjs"
+            }
         },
-        "require": {
-            "types": "./index.d.ts",
-            "default": "./index.cjs"
-        }
-      }
+        "./lib/zip-fs.js": "./lib/zip-fs.js",
+        "./lib/zip-full.js": "./lib/zip-full.js",
+        "./lib/zip-no-worker-deflate.js": "./lib/zip-no-worker-deflate.js",
+        "./lib/zip-no-worker-inflate.js": "./lib/zip-no-worker-inflate.js",
+        "./lib/zip-no-worker.js": "./lib/zip-no-worker.js",
+        "./lib/zip.js": "./lib/zip.js"
     },
     "repository": {
         "type": "git",
