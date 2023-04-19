@@ -4,12 +4,12 @@
 
 import tests from "./tests-data.js";
 
-for (const test of tests) {
-	if (!test.env || test.env.includes("deno")) {
+for (const testData of tests) {
+	if (!testData.env || testData.env.includes("deno")) {
 		Deno.test({
-			name: test.title,
-			fn: async () => (await import("./all/" + test.script)).test(),
-			sanitizeResources: test.sanitizeResources === undefined || test.sanitizeResources === true
+			name: testData.title,
+			fn: async () => (await import("./all/" + testData.script)).test(),
+			sanitizeResources: testData.sanitizeResources === undefined || testData.sanitizeResources === true
 		});
 	}
 }
