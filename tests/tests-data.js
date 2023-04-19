@@ -52,7 +52,7 @@ export default ([
 	{ title: "Worker timeout", script: "./test-worker-timeout.js" },
 	{ title: "Wrapped zip file", script: "./test-wrapped.js" },
 	{ title: "Writable Stream", script: "./test-writable-stream.js" },
-	{ title: "Zip64 (auto)", script: "./test-zip64-auto.js", env: ["deno", "browser"] },
+	{ title: "Zip64 (auto)", script: "./test-zip64-auto.js", env: ["deno", "browser", "bun"] },
 	{ title: "Zip64 crypto", script: "./test-zip64-crypto.js", env: ["deno", "node", "browser"] },
 	{ title: "Zip64", script: "./test-zip64.js" },
 	{ title: "Zipcrypto", script: "./test-zipcrypto.js" }
