@@ -1,7 +1,5 @@
 /* global Deno */
 
-// Install Deno from https://deno.land and run `deno test --allow-read ./deno-runner.js`
-
 import tests from "./tests-data.js";
 
 for (const testData of tests) {
