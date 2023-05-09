@@ -3525,10 +3525,13 @@
 				}
 			}
 			const dataOffset = offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
+			const size = compressedSize;
 			const readable = reader.readable;
-			readable.diskNumberStart = diskNumberStart;
-			readable.offset = dataOffset;
-			let size = readable.size = compressedSize;
+			Object.assign(readable, {
+				diskNumberStart,
+				offset: dataOffset,
+				size
+			});
 			const signal = getOptionValue$1(zipEntry, options, "signal");
 			const checkPasswordOnly = getOptionValue$1(zipEntry, options, "checkPasswordOnly");
 			if (checkPasswordOnly) {
@@ -5149,7 +5152,26 @@
 		}
 
 		addFileSystemEntry(fileSystemEntry, options = {}) {
-			return addFileSystemEntry(this, fileSystemEntry, options);
+			return addFileSystemHandle(this, fileSystemEntry, options);
+		}
+
+		addFileSystemHandle(handle, options = {}) {
+			return addFileSystemHandle(this, handle, options);
+		}
+
+		addFile(file, options = {}) {
+			if (!options.lastModDate) {
+				options.lastModDate = new Date(file.lastModified);
+			}
+			return addChild(this, file.name, {
+				data: file,
+				Reader: function () {
+					const readable = file.stream();
+					const size = file.size;
+					return { readable, size };
+				},
+				options
+			});
 		}
 
 		addData(name, params) {
@@ -5352,6 +5374,14 @@
 			return this.root.addFileSystemEntry(fileSystemEntry, options);
 		}
 
+		addFileSystemHandle(handle, options) {
+			return this.root.addFileSystemHandle(handle, options);
+		}
+
+		addFile(file, options) {
+			return this.root.addFile(file, options);
+		}
+
 		addData(name, params) {
 			return this.root.addData(name, params);
 		}
@@ -5542,54 +5572,92 @@
 		}
 	}
 
-	async function addFileSystemEntry(zipEntry, fileSystemEntry, options) {
-		if (fileSystemEntry.isDirectory) {
-			const entry = zipEntry.addDirectory(fileSystemEntry.name, options);
-			await addDirectory(entry, fileSystemEntry);
-			return entry;
-		} else {
-			return new Promise((resolve, reject) => fileSystemEntry.file(file => resolve(zipEntry.addBlob(fileSystemEntry.name, file, options)), reject));
-		}
+	async function addFileSystemHandle(zipEntry, handle, options) {
+		await addFile(zipEntry, handle, []);
 
-		async function addDirectory(zipEntry, fileEntry) {
-			const children = await getChildren(fileEntry);
-			for (const child of children) {
-				if (child.isDirectory) {
-					await addDirectory(zipEntry.addDirectory(child.name, options), child);
-				} else {
-					await new Promise((resolve, reject) => {
-						child.file(file => {
-							const childZipEntry = zipEntry.addBlob(child.name, file, options);
-							childZipEntry.uncompressedSize = file.size;
-							resolve(childZipEntry);
-						}, reject);
-					});
+		async function addFile(parentEntry, handle, addedEntries) {
+			try {
+				if (handle.isFile || handle.isDirectory) {
+					handle = transformToFileSystemhandle(handle);
 				}
+				if (handle.kind == "file") {
+					const file = await handle.getFile();
+					addedEntries.push(
+						parentEntry.addData(file.name, {
+							Reader: function () {
+								const readable = file.stream();
+								const size = file.size;
+								return { readable, size };
+							},
+							options: {
+								lastModDate: new Date(file.lastModified)
+							}
+						}, options)
+					);
+				} else if (handle.kind == "directory") {
+					const directoryEntry = parentEntry.addDirectory(handle.name);
+					addedEntries.push(directoryEntry);
+					for await (const childHandle of handle.values()) {
+						await addFile(directoryEntry, childHandle, addedEntries);
+					}
+				}
+			} catch (error) {
+				const message = error.message + (handle ? " (" + handle.name + ")" : "");
+				throw new Error(message);
 			}
+			return addedEntries;
 		}
+	}
 
-		function getChildren(fileEntry) {
-			return new Promise((resolve, reject) => {
-				let entries = [];
-				if (fileEntry.isDirectory) {
-					readEntries(fileEntry.createReader());
-				}
-				if (fileEntry.isFile) {
+	async function transformToFileSystemhandle(entry) {
+		const handle = {
+			name: entry.name
+		};
+		if (entry.isFile) {
+			handle.kind = "file";
+			handle.getFile = () =>
+				new Promise((resolve, reject) => entry.file(resolve, reject));
+		}
+		if (entry.isDirectory) {
+			handle.kind = "directory";
+			const handles = await transformToFileSystemhandles(entry);
+			handle.values = () => handles;
+		}
+		return handle;
+	}
+
+	async function transformToFileSystemhandles(entry) {
+		const entries = [];
+		function readEntries(directoryReader, resolve, reject) {
+			directoryReader.readEntries(async (entriesPart) => {
+				if (!entriesPart.length) {
 					resolve(entries);
+				} else {
+					for (const entry of entriesPart) {
+						entries.push(await transformToFileSystemhandle(entry));
+					}
+					readEntries(directoryReader, resolve, reject);
 				}
-
-				function readEntries(directoryReader) {
-					directoryReader.readEntries(temporaryEntries => {
-						if (!temporaryEntries.length) {
-							resolve(entries);
-						} else {
-							entries = entries.concat(temporaryEntries);
-							readEntries(directoryReader);
-						}
-					}, reject);
-				}
-			});
+			}, reject);
 		}
+		await new Promise((resolve, reject) =>
+			readEntries(entry.createReader(), resolve, reject)
+		);
+		return {
+			[Symbol.iterator]() {
+				let entryIndex = 0;
+				return {
+					next() {
+						const result = {
+							value: entries[entryIndex],
+							done: entryIndex === entries.length
+						};
+						entryIndex++;
+						return result;
+					}
+				};
+			}
+		};
 	}
 
 	function resetFS(fs) {

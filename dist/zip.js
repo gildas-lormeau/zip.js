@@ -3525,10 +3525,13 @@
 				}
 			}
 			const dataOffset = offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
+			const size = compressedSize;
 			const readable = reader.readable;
-			readable.diskNumberStart = diskNumberStart;
-			readable.offset = dataOffset;
-			let size = readable.size = compressedSize;
+			Object.assign(readable, {
+				diskNumberStart,
+				offset: dataOffset,
+				size
+			});
 			const signal = getOptionValue$1(zipEntry, options, "signal");
 			const checkPasswordOnly = getOptionValue$1(zipEntry, options, "checkPasswordOnly");
 			if (checkPasswordOnly) {
