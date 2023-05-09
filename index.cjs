@@ -10798,7 +10798,7 @@ async function addFileSystemHandle(zipEntry, handle, options) {
 	async function addFile(parentEntry, handle, addedEntries) {
 		try {
 			if (handle.isFile || handle.isDirectory) {
-				handle = transformToFileSystemhandle(handle);
+				handle = await transformToFileSystemhandle(handle);
 			}
 			if (handle.kind == "file") {
 				const file = await handle.getFile();
