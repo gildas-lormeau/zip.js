@@ -9,6 +9,13 @@ declare global {
    */
   // deno-lint-ignore no-empty-interface
   interface FileSystemEntry {}
+  /**
+   * Represents the `FileSystemHandle` class.
+   *
+   * @see {@link https://fs.spec.whatwg.org/#api-filesystemhandle}
+   */
+  // deno-lint-ignore no-empty-interface
+  interface FileSystemHandle {}
 }
 
 /**
@@ -1531,6 +1538,17 @@ export class ZipDirectoryEntry extends ZipEntry {
     options?: ZipWriterAddDataOptions,
   ): ZipFileEntry<ReadableStream, void>;
   /**
+   * Adds an entry with content provided via a `File` instance
+   *
+   * @param file The `File` instance.
+   * @param options The options.
+   * @returns A promise resolving to a {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instance.
+   */
+  addFile(
+    file: File, 
+    options?: ZipWriterAddDataOptions,
+  ): Promise<ZipEntry>;
+  /**
    * Adds an entry with content provided via a `FileSystemEntry` instance
    *
    * @param fileSystemEntry The `FileSystemEntry` instance.
@@ -1539,6 +1557,17 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   addFileSystemEntry(
     fileSystemEntry: FileSystemEntry,
+    options?: ZipWriterAddDataOptions,
+  ): Promise<ZipEntry>;
+  /**
+   * Adds an entry with content provided via a `FileSystemHandle` instance
+   *
+   * @param fileSystemHandle The `fileSystemHandle` instance.
+   * @param options The options.
+   * @returns A promise resolving to a {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instance.
+   */
+  addFileSystemHandle(
+    fileSystemEntry: FileSystemHandle,
     options?: ZipWriterAddDataOptions,
   ): Promise<ZipEntry>;
   /**
