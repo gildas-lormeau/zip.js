@@ -1553,23 +1553,23 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @param fileSystemEntry The `FileSystemEntry` instance.
    * @param options The options.
-   * @returns A promise resolving to a {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instance.
+   * @returns A promise resolving to an array of {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instances.
    */
   addFileSystemEntry(
     fileSystemEntry: FileSystemEntry,
     options?: ZipWriterAddDataOptions,
-  ): Promise<ZipEntry>;
+  ): Promise<ZipEntry[]>;
   /**
    * Adds an entry with content provided via a `FileSystemHandle` instance
    *
    * @param fileSystemHandle The `fileSystemHandle` instance.
    * @param options The options.
-   * @returns A promise resolving to a {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instance.
+   * @returns A promise resolving to an array of {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instances.
    */
   addFileSystemHandle(
     fileSystemEntry: FileSystemHandle,
     options?: ZipWriterAddDataOptions,
-  ): Promise<ZipEntry>;
+  ): Promise<ZipEntry[]>;
   /**
    * Extracts a zip file provided as a `Blob` instance into the entry
    *
