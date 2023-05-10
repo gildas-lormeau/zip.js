@@ -10793,7 +10793,7 @@ async function exportZip(zipWriter, entry, totalSize, options) {
 }
 
 async function addFileSystemHandle(zipEntry, handle, options) {
-	await addFile(zipEntry, handle, []);
+	return addFile(zipEntry, handle, []);
 
 	async function addFile(parentEntry, handle, addedEntries) {
 		try {
