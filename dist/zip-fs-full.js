@@ -10198,7 +10198,8 @@
 				return zipEntry.data;
 			} else {
 				const reader = zipEntry.reader = new zipEntry.Reader(zipEntry.data, options);
-				await Promise.all([initStream(reader), initStream(writer, zipEntry.data.uncompressedSize)]);
+				const uncompressedSize = zipEntry.data ? zipEntry.data.uncompressedSize : reader.size;
+				await Promise.all([initStream(reader), initStream(writer, uncompressedSize)]);
 				const readable = reader.readable;
 				readable.size = zipEntry.uncompressedSize = reader.size;
 				await readable.pipeTo(writer.writable);
