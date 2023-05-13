@@ -2906,8 +2906,12 @@
 			const reader = this;
 			const { readers } = reader;
 			reader.lastDiskNumber = 0;
-			await Promise.all(readers.map(async diskReader => {
+			reader.lastDiskOffset = 0;
+			await Promise.all(readers.map(async (diskReader, indexDiskReader) => {
 				await diskReader.init();
+				if (indexDiskReader != readers.length - 1) {
+					reader.lastDiskOffset += diskReader.size;
+				}
 				reader.size += diskReader.size;
 			}));
 			super.init();
@@ -3370,6 +3374,12 @@
 					directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength, diskNumber);
 					directoryView = getDataView$1(directoryArray);
 				}
+			}
+			const expectedDirectoryDataLength = endOfDirectoryInfo.offset - directoryDataOffset - (reader.lastDiskOffset || 0);
+			if (directoryDataLength != expectedDirectoryDataLength && expectedDirectoryDataLength) {
+				directoryDataLength = expectedDirectoryDataLength;
+				directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength, diskNumber);
+				directoryView = getDataView$1(directoryArray);
 			}
 			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
 				throw new Error(ERR_BAD_FORMAT);
