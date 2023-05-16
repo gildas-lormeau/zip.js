@@ -2805,7 +2805,7 @@
 					reject(request.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (request.statusText || request.status)));
 				}
 			}, false);
-			request.addEventListener("error", event => reject(event.detail.error), false);
+			request.addEventListener("error", event => reject(event.detail ? event.detail.error : new Error("Network error")), false);
 			request.open(method, url);
 			if (headers) {
 				for (const entry of Object.entries(headers)) {
