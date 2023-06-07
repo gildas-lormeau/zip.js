@@ -10131,7 +10131,7 @@ class ZipEntry {
 			id: fs.entries.length,
 			parent,
 			children: [],
-			uncompressedSize: 0
+			uncompressedSize: params.uncompressedSize || 0
 		});
 		fs.entries.push(zipEntry);
 		if (parent) {
@@ -10328,7 +10328,8 @@ class ZipDirectoryEntry extends ZipEntry {
 			data: text,
 			Reader: TextReader,
 			Writer: TextWriter,
-			options
+			options,
+			uncompressedSize: text.length
 		});
 	}
 
@@ -10337,16 +10338,23 @@ class ZipDirectoryEntry extends ZipEntry {
 			data: blob,
 			Reader: BlobReader,
 			Writer: BlobWriter,
-			options
+			options,
+			uncompressedSize: blob.size
 		});
 	}
 
 	addData64URI(name, dataURI, options = {}) {
+		let dataEnd = dataURI.length;
+		while (dataURI.charAt(dataEnd - 1) == "=") {
+			dataEnd--;
+		}
+		const dataStart = dataURI.indexOf(",") + 1;
 		return addChild(this, name, {
 			data: dataURI,
 			Reader: Data64URIReader,
 			Writer: Data64URIWriter,
-			options
+			options,
+			uncompressedSize: Math.floor((dataEnd - dataStart) * 0.75)
 		});
 	}
 
@@ -10355,7 +10363,8 @@ class ZipDirectoryEntry extends ZipEntry {
 			data: array,
 			Reader: Uint8ArrayReader,
 			Writer: Uint8ArrayWriter,
-			options
+			options,
+			uncompressedSize: array.length
 		});
 	}
 
@@ -10397,7 +10406,8 @@ class ZipDirectoryEntry extends ZipEntry {
 				const size = file.size;
 				return { readable, size };
 			},
-			options
+			options,
+			uncompressedSize: file.size
 		});
 	}
 
@@ -10463,7 +10473,8 @@ class ZipDirectoryEntry extends ZipEntry {
 				if (!entry.directory) {
 					importedEntries.push(addChild(parent, name, {
 						data: entry,
-						Reader: getZipBlobReader(Object.assign({}, options))
+						Reader: getZipBlobReader(Object.assign({}, options)),
+						uncompressedSize: entry.uncompressedSize
 					}));
 				}
 			} catch (error) {
@@ -10816,10 +10827,9 @@ async function addFileSystemHandle(zipEntry, handle, options) {
 							const size = file.size;
 							return { readable, size };
 						},
-						options: {
-							lastModDate: new Date(file.lastModified)
-						}
-					}, options)
+						options: Object.assign({}, { lastModDate: new Date(file.lastModified) }, options),
+						uncompressedSize: file.size
+					})
 				);
 			} else if (handle.kind == "directory") {
 				const directoryEntry = parentEntry.addDirectory(handle.name);
