@@ -9,7 +9,7 @@
 
   Then, run the command below.
 
-  npx rollup -c rollup.config.dev.js
+  npx rollup -c rollup-es5.config.dev.js
   
  */
 
