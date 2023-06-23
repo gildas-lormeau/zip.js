@@ -7783,7 +7783,11 @@ class BlobReader extends Reader {
 		const reader = this;
 		const offsetEnd = offset + length;
 		const blob = offset || offsetEnd < reader.size ? reader.blob.slice(offset, offsetEnd) : reader.blob;
-		return new Uint8Array(await blob.arrayBuffer());
+		let arrayBuffer = await blob.arrayBuffer();
+		if (arrayBuffer.byteLength > length) {
+			arrayBuffer = arrayBuffer.slice(offset, offsetEnd);
+		}
+		return new Uint8Array(arrayBuffer);
 	}
 }
 
@@ -9820,7 +9824,11 @@ function setEntryInfo(entryInfo, options) {
 }
 
 async function writeExtraHeaderInfo(fileEntry, entryData, writable, { zipCrypto }) {
-	const arrayBuffer = await sliceAsArrayBuffer(entryData, 0, 26);
+	let arrayBuffer;
+	arrayBuffer = await entryData.slice(0, 26).arrayBuffer();
+	if (arrayBuffer.byteLength != 26) {
+		arrayBuffer = arrayBuffer.slice(0, 26);
+	}
 	const arrayBufferView = new DataView(arrayBuffer);
 	if (!fileEntry.encrypted || zipCrypto) {
 		setUint32(arrayBufferView, 14, fileEntry.signature);
@@ -10026,14 +10034,6 @@ async function closeFile(zipWriter, comment, options) {
 	await writeData(writable, endOfdirectoryArray);
 	if (commentLength) {
 		await writeData(writable, comment);
-	}
-}
-
-function sliceAsArrayBuffer(blob, start, end) {
-	if (start || end) {
-		return blob.slice(start, end).arrayBuffer();
-	} else {
-		return blob.arrayBuffer();
 	}
 }
 
