@@ -3385,7 +3385,7 @@
 				}
 			}
 			const expectedDirectoryDataLength = endOfDirectoryInfo.offset - directoryDataOffset - (reader.lastDiskOffset || 0);
-			if (directoryDataLength != expectedDirectoryDataLength && expectedDirectoryDataLength) {
+			if (directoryDataLength != expectedDirectoryDataLength && expectedDirectoryDataLength >= 0) {
 				directoryDataLength = expectedDirectoryDataLength;
 				directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength, diskNumber);
 				directoryView = getDataView$1(directoryArray);
