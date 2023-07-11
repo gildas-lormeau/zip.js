@@ -8260,7 +8260,7 @@
 				dataDescriptor = true;
 				if (zip64 || zip64 === UNDEFINED_VALUE) {
 					zip64 = true;
-					maximumCompressedSize = MAX_32_BITS;
+					uncompressedSize = maximumCompressedSize = MAX_32_BITS;
 				}
 			} else {
 				uncompressedSize = reader.size;
