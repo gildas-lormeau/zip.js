@@ -9533,6 +9533,7 @@
 		let uncompressedSize = 0;
 		let signature;
 		const { writable } = writer;
+		const metaDataLength = getLength(localHeaderArray, dataDescriptorArray);
 		if (reader) {
 			reader.chunkSize = getChunkSize(config);
 			await writeData(writable, localHeaderArray);
@@ -9602,7 +9603,7 @@
 			creationDate,
 			lastAccessDate,
 			encrypted,
-			length: getLength(localHeaderArray, dataDescriptorArray) + compressedSize,
+			length: metaDataLength + compressedSize,
 			compressionMethod,
 			version,
 			headerArray,
