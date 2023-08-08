@@ -27,7 +27,8 @@
     ],
     "engines": {
         "deno": ">=1.0.0",
-        "node": ">=16.5.0"
+        "node": ">=16.5.0",
+        "bun": ">=0.7.0"
     },
     "scripts": {
         "build": "npx rollup -c",
