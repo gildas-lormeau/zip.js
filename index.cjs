@@ -4530,37 +4530,72 @@ const table$1 = {
 		"atomcat+xml": "atomcat",
 		"atomserv+xml": "atomsrv",
 		"bbolin": "lin",
-		"cap": ["cap", "pcap"],
+		"cap": [
+			"cap",
+			"pcap"
+		],
 		"cu-seeme": "cu",
 		"davmount+xml": "davmount",
 		"dsptype": "tsp",
-		"ecmascript": ["es", "ecma"],
+		"ecmascript": [
+			"es",
+			"ecma"
+		],
 		"futuresplash": "spl",
 		"hta": "hta",
 		"java-archive": "jar",
 		"java-serialized-object": "ser",
 		"java-vm": "class",
-		"javascript": "js",
 		"m3g": "m3g",
 		"mac-binhex40": "hqx",
-		"mathematica": ["nb", "ma", "mb"],
+		"mathematica": [
+			"nb",
+			"ma",
+			"mb"
+		],
 		"msaccess": "mdb",
-		"msword": ["doc", "dot"],
+		"msword": [
+			"doc",
+			"dot",
+			"wiz"
+		],
 		"mxf": "mxf",
 		"oda": "oda",
 		"ogg": "ogx",
 		"pdf": "pdf",
 		"pgp-keys": "key",
-		"pgp-signature": ["asc", "sig"],
+		"pgp-signature": [
+			"asc",
+			"sig"
+		],
 		"pics-rules": "prf",
-		"postscript": ["ps", "ai", "eps", "epsi", "epsf", "eps2", "eps3"],
+		"postscript": [
+			"ps",
+			"ai",
+			"eps",
+			"epsi",
+			"epsf",
+			"eps2",
+			"eps3"
+		],
 		"rar": "rar",
 		"rdf+xml": "rdf",
 		"rss+xml": "rss",
 		"rtf": "rtf",
-		"smil": ["smi", "smil"],
-		"xhtml+xml": ["xhtml", "xht"],
-		"xml": ["xml", "xsl", "xsd"],
+		"smil": [
+			"smi",
+			"smil"
+		],
+		"xhtml+xml": [
+			"xhtml",
+			"xht"
+		],
+		"xml": [
+			"xml",
+			"xsl",
+			"xsd",
+			"xpdl"
+		],
 		"xspf+xml": "xspf",
 		"zip": "zip",
 		"vnd.android.package-archive": "apk",
@@ -4568,10 +4603,24 @@ const table$1 = {
 		"vnd.google-earth.kml+xml": "kml",
 		"vnd.google-earth.kmz": "kmz",
 		"vnd.mozilla.xul+xml": "xul",
-		"vnd.ms-excel": ["xls", "xlb", "xlt", "xlm", "xla", "xlc", "xlw"],
+		"vnd.ms-excel": [
+			"xls",
+			"xlb",
+			"xlt",
+			"xlm",
+			"xla",
+			"xlc",
+			"xlw"
+		],
 		"vnd.ms-pki.seccat": "cat",
 		"vnd.ms-pki.stl": "stl",
-		"vnd.ms-powerpoint": ["ppt", "pps", "pot"],
+		"vnd.ms-powerpoint": [
+			"ppt",
+			"pps",
+			"pot",
+			"ppa",
+			"pwz"
+		],
 		"vnd.oasis.opendocument.chart": "odc",
 		"vnd.oasis.opendocument.database": "odb",
 		"vnd.oasis.opendocument.formula": "odf",
@@ -4583,7 +4632,10 @@ const table$1 = {
 		"vnd.oasis.opendocument.spreadsheet": "ods",
 		"vnd.oasis.opendocument.spreadsheet-template": "ots",
 		"vnd.oasis.opendocument.text": "odt",
-		"vnd.oasis.opendocument.text-master": "odm",
+		"vnd.oasis.opendocument.text-master": [
+			"odm",
+			"otm"
+		],
 		"vnd.oasis.opendocument.text-template": "ott",
 		"vnd.oasis.opendocument.text-web": "oth",
 		"vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
@@ -4598,8 +4650,14 @@ const table$1 = {
 		"vnd.stardivision.chart": "sds",
 		"vnd.stardivision.draw": "sda",
 		"vnd.stardivision.impress": "sdd",
-		"vnd.stardivision.math": ["sdf", "smf"],
-		"vnd.stardivision.writer": ["sdw", "vor"],
+		"vnd.stardivision.math": [
+			"sdf",
+			"smf"
+		],
+		"vnd.stardivision.writer": [
+			"sdw",
+			"vor"
+		],
 		"vnd.stardivision.writer-global": "sgl",
 		"vnd.sun.xml.calc": "sxc",
 		"vnd.sun.xml.calc.template": "stc",
@@ -4611,8 +4669,21 @@ const table$1 = {
 		"vnd.sun.xml.writer": "sxw",
 		"vnd.sun.xml.writer.global": "sxg",
 		"vnd.sun.xml.writer.template": "stw",
-		"vnd.symbian.install": ["sis", "sisx"],
-		"vnd.visio": ["vsd", "vst", "vss", "vsw"],
+		"vnd.symbian.install": [
+			"sis",
+			"sisx"
+		],
+		"vnd.visio": [
+			"vsd",
+			"vst",
+			"vss",
+			"vsw",
+			"vsdx",
+			"vssx",
+			"vstx",
+			"vssm",
+			"vstm"
+		],
 		"vnd.wap.wbxml": "wbxml",
 		"vnd.wap.wmlc": "wmlc",
 		"vnd.wap.wmlscriptc": "wmlsc",
@@ -4624,15 +4695,35 @@ const table$1 = {
 		"x-apple-diskimage": "dmg",
 		"x-bcpio": "bcpio",
 		"x-bittorrent": "torrent",
-		"x-cbr": ["cbr", "cba", "cbt", "cb7"],
+		"x-cbr": [
+			"cbr",
+			"cba",
+			"cbt",
+			"cb7"
+		],
 		"x-cbz": "cbz",
-		"x-cdf": ["cdf", "cda"],
+		"x-cdf": [
+			"cdf",
+			"cda"
+		],
 		"x-cdlink": "vcd",
 		"x-chess-pgn": "pgn",
 		"x-cpio": "cpio",
 		"x-csh": "csh",
-		"x-debian-package": ["deb", "udeb"],
-		"x-director": ["dcr", "dir", "dxr", "cst", "cct", "cxt", "w3d", "fgd", "swa"],
+		"x-debian-package": [
+			"deb",
+			"udeb"
+		],
+		"x-director": [
+			"dir",
+			"dxr",
+			"cst",
+			"cct",
+			"cxt",
+			"w3d",
+			"fgd",
+			"swa"
+		],
 		"x-dms": "dms",
 		"x-doom": "wad",
 		"x-dvi": "dvi",
@@ -4642,9 +4733,16 @@ const table$1 = {
 		"x-gnumeric": "gnumeric",
 		"x-go-sgf": "sgf",
 		"x-graphing-calculator": "gcf",
-		"x-gtar": ["gtar", "taz"],
+		"x-gtar": [
+			"gtar",
+			"taz"
+		],
 		"x-hdf": "hdf",
-		"x-httpd-php": ["phtml", "pht", "php"],
+		"x-httpd-php": [
+			"phtml",
+			"pht",
+			"php"
+		],
 		"x-httpd-php-source": "phps",
 		"x-httpd-php3": "php3",
 		"x-httpd-php3-preprocessed": "php3p",
@@ -4652,39 +4750,85 @@ const table$1 = {
 		"x-httpd-php5": "php5",
 		"x-ica": "ica",
 		"x-info": "info",
-		"x-internet-signup": ["ins", "isp"],
+		"x-internet-signup": [
+			"ins",
+			"isp"
+		],
 		"x-iphone": "iii",
 		"x-iso9660-image": "iso",
 		"x-java-jnlp-file": "jnlp",
 		"x-jmol": "jmz",
 		"x-killustrator": "kil",
-		"x-koan": ["skp", "skd", "skt", "skm"],
-		"x-kpresenter": ["kpr", "kpt"],
-		"x-kword": ["kwd", "kwt"],
+		"x-koan": [
+			"skp",
+			"skd",
+			"skt",
+			"skm"
+		],
+		"x-kpresenter": [
+			"kpr",
+			"kpt"
+		],
+		"x-kword": [
+			"kwd",
+			"kwt"
+		],
 		"x-latex": "latex",
 		"x-lha": "lha",
 		"x-lyx": "lyx",
 		"x-lzh": "lzh",
 		"x-lzx": "lzx",
-		"x-maker": ["frm", "maker", "frame", "fm", "fb", "book", "fbdoc"],
+		"x-maker": [
+			"frm",
+			"maker",
+			"frame",
+			"fm",
+			"fb",
+			"book",
+			"fbdoc"
+		],
 		"x-ms-wmd": "wmd",
 		"x-ms-wmz": "wmz",
-		"x-msdos-program": ["com", "exe", "bat", "dll"],
+		"x-msdos-program": [
+			"com",
+			"exe",
+			"bat",
+			"dll"
+		],
 		"x-msi": "msi",
-		"x-netcdf": ["nc", "cdf"],
-		"x-ns-proxy-autoconfig": ["pac", "dat"],
+		"x-netcdf": [
+			"nc",
+			"cdf"
+		],
+		"x-ns-proxy-autoconfig": [
+			"pac",
+			"dat"
+		],
 		"x-nwc": "nwc",
 		"x-object": "o",
 		"x-oz-application": "oza",
 		"x-pkcs7-certreqresp": "p7r",
-		"x-python-code": ["pyc", "pyo"],
-		"x-qgis": ["qgs", "shp", "shx"],
+		"x-python-code": [
+			"pyc",
+			"pyo"
+		],
+		"x-qgis": [
+			"qgs",
+			"shp",
+			"shx"
+		],
 		"x-quicktimeplayer": "qtl",
-		"x-redhat-package-manager": "rpm",
+		"x-redhat-package-manager": [
+			"rpm",
+			"rpa"
+		],
 		"x-ruby": "rb",
 		"x-sh": "sh",
 		"x-shar": "shar",
-		"x-shockwave-flash": ["swf", "swfl"],
+		"x-shockwave-flash": [
+			"swf",
+			"swfl"
+		],
 		"x-silverlight": "scr",
 		"x-stuffit": "sit",
 		"x-sv4cpio": "sv4cpio",
@@ -4693,16 +4837,33 @@ const table$1 = {
 		"x-tcl": "tcl",
 		"x-tex-gf": "gf",
 		"x-tex-pk": "pk",
-		"x-texinfo": ["texinfo", "texi"],
-		"x-trash": ["~", "%", "bak", "old", "sik"],
-		"x-troff": ["t", "tr", "roff"],
+		"x-texinfo": [
+			"texinfo",
+			"texi"
+		],
+		"x-trash": [
+			"~",
+			"%",
+			"bak",
+			"old",
+			"sik"
+		],
+		"x-troff": [
+			"t",
+			"tr",
+			"roff"
+		],
 		"x-troff-man": "man",
 		"x-troff-me": "me",
 		"x-troff-ms": "ms",
 		"x-ustar": "ustar",
 		"x-wais-source": "src",
 		"x-wingz": "wz",
-		"x-x509-ca-cert": ["crt", "der", "cer"],
+		"x-x509-ca-cert": [
+			"crt",
+			"der",
+			"cer"
+		],
 		"x-xcf": "xcf",
 		"x-xfig": "fig",
 		"x-xpinstall": "xpi",
@@ -4725,31 +4886,47 @@ const table$1 = {
 		"gpx+xml": "gpx",
 		"gxf": "gxf",
 		"hyperstudio": "stk",
-		"inkml+xml": ["ink", "inkml"],
+		"inkml+xml": [
+			"ink",
+			"inkml"
+		],
 		"ipfix": "ipfix",
-		"json": "json",
 		"jsonml+json": "jsonml",
 		"lost+xml": "lostxml",
 		"mads+xml": "mads",
 		"marc": "mrc",
 		"marcxml+xml": "mrcx",
-		"mathml+xml": "mathml",
+		"mathml+xml": [
+			"mathml",
+			"mml"
+		],
 		"mbox": "mbox",
 		"mediaservercontrol+xml": "mscml",
 		"metalink+xml": "metalink",
 		"metalink4+xml": "meta4",
 		"mets+xml": "mets",
 		"mods+xml": "mods",
-		"mp21": ["m21", "mp21"],
+		"mp21": [
+			"m21",
+			"mp21"
+		],
 		"mp4": "mp4s",
 		"oebps-package+xml": "opf",
 		"omdoc+xml": "omdoc",
-		"onenote": ["onetoc", "onetoc2", "onetmp", "onepkg"],
+		"onenote": [
+			"onetoc",
+			"onetoc2",
+			"onetmp",
+			"onepkg"
+		],
 		"oxps": "oxps",
 		"patch-ops-error+xml": "xer",
 		"pgp-encrypted": "pgp",
 		"pkcs10": "p10",
-		"pkcs7-mime": ["p7m", "p7c"],
+		"pkcs7-mime": [
+			"p7m",
+			"p7c"
+		],
 		"pkcs7-signature": "p7s",
 		"pkcs8": "p8",
 		"pkix-attr-cert": "ac",
@@ -4784,7 +4961,10 @@ const table$1 = {
 		"sru+xml": "sru",
 		"ssdl+xml": "ssdl",
 		"ssml+xml": "ssml",
-		"tei+xml": ["tei", "teicorpus"],
+		"tei+xml": [
+			"tei",
+			"teicorpus"
+		],
 		"thraud+xml": "tfi",
 		"timestamped-data": "tsd",
 		"vnd.3gpp.pic-bw-large": "plb",
@@ -4795,10 +4975,16 @@ const table$1 = {
 		"vnd.accpac.simply.aso": "aso",
 		"vnd.accpac.simply.imp": "imp",
 		"vnd.acucobol": "acu",
-		"vnd.acucorp": ["atc", "acutc"],
+		"vnd.acucorp": [
+			"atc",
+			"acutc"
+		],
 		"vnd.adobe.air-application-installer-package+zip": "air",
 		"vnd.adobe.formscentral.fcdt": "fcdt",
-		"vnd.adobe.fxp": ["fxp", "fxpl"],
+		"vnd.adobe.fxp": [
+			"fxp",
+			"fxpl"
+		],
 		"vnd.adobe.xdp+xml": "xdp",
 		"vnd.adobe.xfdf": "xfdf",
 		"vnd.ahead.space": "ahead",
@@ -4822,7 +5008,13 @@ const table$1 = {
 		"vnd.chipnuts.karaoke-mmd": "mmd",
 		"vnd.claymore": "cla",
 		"vnd.cloanto.rp9": "rp9",
-		"vnd.clonk.c4group": ["c4g", "c4d", "c4f", "c4p", "c4u"],
+		"vnd.clonk.c4group": [
+			"c4g",
+			"c4d",
+			"c4f",
+			"c4p",
+			"c4u"
+		],
 		"vnd.cluetrust.cartomobile-config": "c11amc",
 		"vnd.cluetrust.cartomobile-config-pkg": "c11amz",
 		"vnd.commonspace": "csp",
@@ -4840,10 +5032,24 @@ const table$1 = {
 		"vnd.curl.pcurl": "pcurl",
 		"vnd.dart": "dart",
 		"vnd.data-vision.rdz": "rdz",
-		"vnd.dece.data": ["uvf", "uvvf", "uvd", "uvvd"],
-		"vnd.dece.ttml+xml": ["uvt", "uvvt"],
-		"vnd.dece.unspecified": ["uvx", "uvvx"],
-		"vnd.dece.zip": ["uvz", "uvvz"],
+		"vnd.dece.data": [
+			"uvf",
+			"uvvf",
+			"uvd",
+			"uvvd"
+		],
+		"vnd.dece.ttml+xml": [
+			"uvt",
+			"uvvt"
+		],
+		"vnd.dece.unspecified": [
+			"uvx",
+			"uvvx"
+		],
+		"vnd.dece.zip": [
+			"uvz",
+			"uvvz"
+		],
 		"vnd.denovo.fcselayout-link": "fe_launch",
 		"vnd.dna": "dna",
 		"vnd.dolby.mlp": "mlp",
@@ -4860,15 +5066,26 @@ const table$1 = {
 		"vnd.epson.quickanime": "qam",
 		"vnd.epson.salt": "slt",
 		"vnd.epson.ssf": "ssf",
-		"vnd.eszigno3+xml": ["es3", "et3"],
+		"vnd.eszigno3+xml": [
+			"es3",
+			"et3"
+		],
 		"vnd.ezpix-album": "ez2",
 		"vnd.ezpix-package": "ez3",
 		"vnd.fdf": "fdf",
 		"vnd.fdsn.mseed": "mseed",
-		"vnd.fdsn.seed": ["seed", "dataless"],
+		"vnd.fdsn.seed": [
+			"seed",
+			"dataless"
+		],
 		"vnd.flographit": "gph",
 		"vnd.fluxtime.clip": "ftc",
-		"vnd.framemaker": ["fm", "frame", "maker", "book"],
+		"vnd.framemaker": [
+			"fm",
+			"frame",
+			"maker",
+			"book"
+		],
 		"vnd.frogans.fnc": "fnc",
 		"vnd.frogans.ltf": "ltf",
 		"vnd.fsc.weblaunch": "fsc",
@@ -4884,12 +5101,18 @@ const table$1 = {
 		"vnd.genomatix.tuxedo": "txd",
 		"vnd.geogebra.file": "ggb",
 		"vnd.geogebra.tool": "ggt",
-		"vnd.geometry-explorer": ["gex", "gre"],
+		"vnd.geometry-explorer": [
+			"gex",
+			"gre"
+		],
 		"vnd.geonext": "gxt",
 		"vnd.geoplan": "g2w",
 		"vnd.geospace": "g3w",
 		"vnd.gmx": "gmx",
-		"vnd.grafeq": ["gqf", "gqs"],
+		"vnd.grafeq": [
+			"gqf",
+			"gqs"
+		],
 		"vnd.groove-account": "gac",
 		"vnd.groove-help": "ghf",
 		"vnd.groove-identity-message": "gim",
@@ -4909,15 +5132,25 @@ const table$1 = {
 		"vnd.hp-pclxl": "pclxl",
 		"vnd.hydrostatix.sof-data": "sfd-hdstx",
 		"vnd.ibm.minipay": "mpy",
-		"vnd.ibm.modcap": ["afp", "listafp", "list3820"],
+		"vnd.ibm.modcap": [
+			"afp",
+			"listafp",
+			"list3820"
+		],
 		"vnd.ibm.rights-management": "irm",
 		"vnd.ibm.secure-container": "sc",
-		"vnd.iccprofile": ["icc", "icm"],
+		"vnd.iccprofile": [
+			"icc",
+			"icm"
+		],
 		"vnd.igloader": "igl",
 		"vnd.immervision-ivp": "ivp",
 		"vnd.immervision-ivu": "ivu",
 		"vnd.insors.igm": "igm",
-		"vnd.intercon.formnet": ["xpw", "xpx"],
+		"vnd.intercon.formnet": [
+			"xpw",
+			"xpx"
+		],
 		"vnd.intergeo": "i2g",
 		"vnd.intu.qbo": "qbo",
 		"vnd.intu.qfx": "qfx",
@@ -4929,19 +5162,36 @@ const table$1 = {
 		"vnd.jcp.javame.midlet-rms": "rms",
 		"vnd.jisp": "jisp",
 		"vnd.joost.joda-archive": "joda",
-		"vnd.kahootz": ["ktz", "ktr"],
+		"vnd.kahootz": [
+			"ktz",
+			"ktr"
+		],
 		"vnd.kde.karbon": "karbon",
 		"vnd.kde.kchart": "chrt",
 		"vnd.kde.kformula": "kfo",
 		"vnd.kde.kivio": "flw",
 		"vnd.kde.kontour": "kon",
-		"vnd.kde.kpresenter": ["kpr", "kpt"],
+		"vnd.kde.kpresenter": [
+			"kpr",
+			"kpt"
+		],
 		"vnd.kde.kspread": "ksp",
-		"vnd.kde.kword": ["kwd", "kwt"],
+		"vnd.kde.kword": [
+			"kwd",
+			"kwt"
+		],
 		"vnd.kenameaapp": "htke",
 		"vnd.kidspiration": "kia",
-		"vnd.kinar": ["kne", "knp"],
-		"vnd.koan": ["skp", "skd", "skt", "skm"],
+		"vnd.kinar": [
+			"kne",
+			"knp"
+		],
+		"vnd.koan": [
+			"skp",
+			"skd",
+			"skt",
+			"skm"
+		],
 		"vnd.kodak-descriptor": "sse",
 		"vnd.las.las+xml": "lasxml",
 		"vnd.llamagraphics.life-balance.desktop": "lbd",
@@ -4987,10 +5237,18 @@ const table$1 = {
 		"vnd.ms-powerpoint.slide.macroenabled.12": "sldm",
 		"vnd.ms-powerpoint.slideshow.macroenabled.12": "ppsm",
 		"vnd.ms-powerpoint.template.macroenabled.12": "potm",
-		"vnd.ms-project": ["mpp", "mpt"],
+		"vnd.ms-project": [
+			"mpp",
+			"mpt"
+		],
 		"vnd.ms-word.document.macroenabled.12": "docm",
 		"vnd.ms-word.template.macroenabled.12": "dotm",
-		"vnd.ms-works": ["wps", "wks", "wcm", "wdb"],
+		"vnd.ms-works": [
+			"wps",
+			"wks",
+			"wcm",
+			"wdb"
+		],
 		"vnd.ms-wpl": "wpl",
 		"vnd.ms-xpsdocument": "xps",
 		"vnd.mseq": "mseq",
@@ -4998,7 +5256,10 @@ const table$1 = {
 		"vnd.muvee.style": "msty",
 		"vnd.mynfc": "taglet",
 		"vnd.neurolanguage.nlu": "nlu",
-		"vnd.nitf": ["ntf", "nitf"],
+		"vnd.nitf": [
+			"ntf",
+			"nitf"
+		],
 		"vnd.noblenet-directory": "nnd",
 		"vnd.noblenet-sealer": "nns",
 		"vnd.noblenet-web": "nnw",
@@ -5019,7 +5280,11 @@ const table$1 = {
 		"vnd.osgeo.mapguide.package": "mgp",
 		"vnd.osgi.dp": "dp",
 		"vnd.osgi.subsystem": "esa",
-		"vnd.palm": ["pdb", "pqa", "oprc"],
+		"vnd.palm": [
+			"pdb",
+			"pqa",
+			"oprc"
+		],
 		"vnd.pawaafile": "paw",
 		"vnd.pg.format": "str",
 		"vnd.pg.osasli": "ei6",
@@ -5031,7 +5296,14 @@ const table$1 = {
 		"vnd.proteus.magazine": "mgz",
 		"vnd.publishare-delta-tree": "qps",
 		"vnd.pvi.ptid1": "ptid",
-		"vnd.quark.quarkxpress": ["qxd", "qxt", "qwd", "qwt", "qxl", "qxb"],
+		"vnd.quark.quarkxpress": [
+			"qxd",
+			"qxt",
+			"qwd",
+			"qwt",
+			"qxl",
+			"qxb"
+		],
 		"vnd.realvnc.bed": "bed",
 		"vnd.recordare.musicxml": "mxl",
 		"vnd.recordare.musicxml+xml": "musicxml",
@@ -5048,25 +5320,41 @@ const table$1 = {
 		"vnd.shana.informed.formtemplate": "itp",
 		"vnd.shana.informed.interchange": "iif",
 		"vnd.shana.informed.package": "ipk",
-		"vnd.simtech-mindmapper": ["twd", "twds"],
+		"vnd.simtech-mindmapper": [
+			"twd",
+			"twds"
+		],
 		"vnd.smart.teacher": "teacher",
-		"vnd.solent.sdkm+xml": ["sdkm", "sdkd"],
+		"vnd.solent.sdkm+xml": [
+			"sdkm",
+			"sdkd"
+		],
 		"vnd.spotfire.dxp": "dxp",
 		"vnd.spotfire.sfs": "sfs",
 		"vnd.stepmania.package": "smzip",
 		"vnd.stepmania.stepchart": "sm",
-		"vnd.sus-calendar": ["sus", "susp"],
+		"vnd.sus-calendar": [
+			"sus",
+			"susp"
+		],
 		"vnd.svd": "svd",
 		"vnd.syncml+xml": "xsm",
 		"vnd.syncml.dm+wbxml": "bdm",
 		"vnd.syncml.dm+xml": "xdm",
 		"vnd.tao.intent-module-archive": "tao",
-		"vnd.tcpdump.pcap": ["pcap", "cap", "dmp"],
+		"vnd.tcpdump.pcap": [
+			"pcap",
+			"cap",
+			"dmp"
+		],
 		"vnd.tmobile-livetv": "tmo",
 		"vnd.trid.tpt": "tpt",
 		"vnd.triscape.mxs": "mxs",
 		"vnd.trueapp": "tra",
-		"vnd.ufdl": ["ufd", "ufdl"],
+		"vnd.ufdl": [
+			"ufd",
+			"ufdl"
+		],
 		"vnd.uiq.theme": "utz",
 		"vnd.umajin": "umj",
 		"vnd.unity": "unityweb",
@@ -5088,7 +5376,10 @@ const table$1 = {
 		"vnd.yamaha.smaf-audio": "saf",
 		"vnd.yamaha.smaf-phrase": "spf",
 		"vnd.yellowriver-custom-menu": "cmp",
-		"vnd.zul": ["zir", "zirz"],
+		"vnd.zul": [
+			"zir",
+			"zirz"
+		],
 		"vnd.zzazz.deck+xml": "zaz",
 		"voicexml+xml": "vxml",
 		"widget": "wgt",
@@ -5096,12 +5387,23 @@ const table$1 = {
 		"wsdl+xml": "wsdl",
 		"wspolicy+xml": "wspolicy",
 		"x-ace-compressed": "ace",
-		"x-authorware-bin": ["aab", "x32", "u32", "vox"],
+		"x-authorware-bin": [
+			"aab",
+			"x32",
+			"u32",
+			"vox"
+		],
 		"x-authorware-map": "aam",
 		"x-authorware-seg": "aas",
-		"x-blorb": ["blb", "blorb"],
+		"x-blorb": [
+			"blb",
+			"blorb"
+		],
 		"x-bzip": "bz",
-		"x-bzip2": ["bz2", "boz"],
+		"x-bzip2": [
+			"bz2",
+			"boz"
+		],
 		"x-cfs-compressed": "cfs",
 		"x-chat": "chat",
 		"x-conference": "nsc",
@@ -5113,37 +5415,70 @@ const table$1 = {
 		"x-font-bdf": "bdf",
 		"x-font-ghostscript": "gsf",
 		"x-font-linux-psf": "psf",
-		"x-font-otf": "otf",
 		"x-font-pcf": "pcf",
 		"x-font-snf": "snf",
-		"x-font-ttf": ["ttf", "ttc"],
-		"x-font-type1": ["pfa", "pfb", "pfm", "afm"],
-		"x-font-woff": "woff",
+		"x-font-ttf": [
+			"ttf",
+			"ttc"
+		],
+		"x-font-type1": [
+			"pfa",
+			"pfb",
+			"pfm",
+			"afm"
+		],
 		"x-freearc": "arc",
 		"x-gca-compressed": "gca",
 		"x-glulx": "ulx",
 		"x-gramps-xml": "gramps",
 		"x-install-instructions": "install",
-		"x-lzh-compressed": ["lzh", "lha"],
+		"x-lzh-compressed": [
+			"lzh",
+			"lha"
+		],
 		"x-mie": "mie",
-		"x-mobipocket-ebook": ["prc", "mobi"],
+		"x-mobipocket-ebook": [
+			"prc",
+			"mobi"
+		],
 		"x-ms-application": "application",
 		"x-ms-shortcut": "lnk",
 		"x-ms-xbap": "xbap",
 		"x-msbinder": "obd",
 		"x-mscardfile": "crd",
 		"x-msclip": "clp",
-		"x-msdownload": ["exe", "dll", "com", "bat", "msi"],
-		"x-msmediaview": ["mvb", "m13", "m14"],
-		"x-msmetafile": ["wmf", "wmz", "emf", "emz"],
+		"x-msdownload": [
+			"exe",
+			"dll",
+			"com",
+			"bat",
+			"msi"
+		],
+		"x-msmediaview": [
+			"mvb",
+			"m13",
+			"m14"
+		],
+		"x-msmetafile": [
+			"wmf",
+			"wmz",
+			"emf",
+			"emz"
+		],
 		"x-msmoney": "mny",
 		"x-mspublisher": "pub",
 		"x-msschedule": "scd",
 		"x-msterminal": "trm",
 		"x-mswrite": "wri",
 		"x-nzb": "nzb",
-		"x-pkcs12": ["p12", "pfx"],
-		"x-pkcs7-certificates": ["p7b", "spc"],
+		"x-pkcs12": [
+			"p12",
+			"pfx"
+		],
+		"x-pkcs7-certificates": [
+			"p7b",
+			"spc"
+		],
 		"x-research-info-systems": "ris",
 		"x-silverlight-app": "xap",
 		"x-sql": "sql",
@@ -5156,7 +5491,16 @@ const table$1 = {
 		"x-tgif": "obj",
 		"x-xliff+xml": "xlf",
 		"x-xz": "xz",
-		"x-zmachine": ["z1", "z2", "z3", "z4", "z5", "z6", "z7", "z8"],
+		"x-zmachine": [
+			"z1",
+			"z2",
+			"z3",
+			"z4",
+			"z5",
+			"z6",
+			"z7",
+			"z8"
+		],
 		"xaml+xml": "xaml",
 		"xcap-diff+xml": "xdf",
 		"xenc+xml": "xenc",
@@ -5164,7 +5508,12 @@ const table$1 = {
 		"xop+xml": "xop",
 		"xproc+xml": "xpl",
 		"xslt+xml": "xslt",
-		"xv+xml": ["mxml", "xhvml", "xvml", "xvm"],
+		"xv+xml": [
+			"mxml",
+			"xhvml",
+			"xvml",
+			"xvm"
+		],
 		"yang": "yang",
 		"yin+xml": "yin",
 		"envoy": "evy",
@@ -5175,35 +5524,119 @@ const table$1 = {
 		"vnd.ms-pkicertstore": "sst",
 		"x-compress": "z",
 		"x-compressed": "tgz",
-		"x-gzip": "gz",
-		"x-perfmon": ["pma", "pmc", "pml", "pmr", "pmw"],
-		"x-pkcs7-mime": ["p7c", "p7m"],
-		"ynd.ms-pkipko": "pko"
+		"x-gzip": [
+			"gz",
+			"tgz"
+		],
+		"x-perfmon": [
+			"pma",
+			"pmc",
+			"pml",
+			"pmr",
+			"pmw"
+		],
+		"x-pkcs7-mime": [
+			"p7c",
+			"p7m"
+		],
+		"ynd.ms-pkipko": "pko",
+		"gzip": [
+			"gz",
+			"tgz"
+		],
+		"smil+xml": [
+			"smi",
+			"smil"
+		],
+		"vnd.debian.binary-package": [
+			"deb",
+			"udeb"
+		],
+		"vnd.hzn-3d-crossword": "x3d",
+		"vnd.sqlite3": [
+			"db",
+			"sqlite",
+			"sqlite3",
+			"db-wal",
+			"sqlite-wal",
+			"db-shm",
+			"sqlite-shm"
+		],
+		"vnd.wap.sic": "sic",
+		"vnd.wap.slc": "slc",
+		"x-krita": [
+			"kra",
+			"krz"
+		],
+		"x-perl": [
+			"pm",
+			"pl"
+		],
+		"x-sqlite3": [
+			"db",
+			"sqlite",
+			"sqlite3",
+			"db-wal",
+			"sqlite-wal",
+			"db-shm",
+			"sqlite-shm"
+		],
+		"yaml": [
+			"yaml",
+			"yml"
+		]
 	},
 	"audio": {
 		"amr": "amr",
 		"amr-wb": "awb",
 		"annodex": "axa",
-		"basic": ["au", "snd"],
+		"basic": [
+			"au",
+			"snd"
+		],
 		"flac": "flac",
-		"midi": ["mid", "midi", "kar", "rmi"],
-		"mpeg": ["mpga", "mpega", "mp2", "mp3", "m4a", "mp2a", "m2a", "m3a"],
+		"midi": [
+			"mid",
+			"midi",
+			"kar",
+			"rmi"
+		],
+		"mpeg": [
+			"mpga",
+			"mpega",
+			"mp2",
+			"mp3",
+			"m4a",
+			"mp2a",
+			"m2a",
+			"m3a"
+		],
 		"mpegurl": "m3u",
-		"ogg": ["oga", "ogg", "spx"],
+		"ogg": [
+			"oga",
+			"ogg",
+			"spx"
+		],
 		"prs.sid": "sid",
-		"x-aiff": ["aif", "aiff", "aifc"],
+		"x-aiff": [
+			"aif",
+			"aiff",
+			"aifc"
+		],
 		"x-gsm": "gsm",
 		"x-ms-wma": "wma",
 		"x-ms-wax": "wax",
 		"x-pn-realaudio": "ram",
 		"x-realaudio": "ra",
 		"x-sd2": "sd2",
-		"x-wav": "wav",
 		"adpcm": "adp",
 		"mp4": "mp4a",
 		"s3m": "s3m",
 		"silk": "sil",
-		"vnd.dece.audio": ["uva", "uvva"],
+		"vnd.dece.audio": [
+			"uva",
+			"uvva"
+		],
 		"vnd.digital-winds": "eol",
 		"vnd.dra": "dra",
 		"vnd.dts": "dts",
@@ -5220,13 +5653,35 @@ const table$1 = {
 		"x-matroska": "mka",
 		"x-pn-realaudio-plugin": "rmp",
 		"xm": "xm",
-		"mid": ["mid", "rmi"]
+		"mid": [
+			"mid",
+			"rmi"
+		],
+		"aac": [
+			"aac",
+			"mp4",
+			"m4a"
+		],
+		"aiff": [
+			"aiff",
+			"aif",
+			"aff"
+		],
+		"opus": "opus",
+		"wav": "wav"
 	},
 	"chemical": {
 		"x-alchemy": "alc",
-		"x-cache": ["cac", "cache"],
+		"x-cache": [
+			"cac",
+			"cache"
+		],
 		"x-cache-csf": "csf",
-		"x-cactvs-binary": ["cbin", "cascii", "ctab"],
+		"x-cactvs-binary": [
+			"cbin",
+			"cascii",
+			"ctab"
+		],
 		"x-cdx": "cdx",
 		"x-chem3d": "c3d",
 		"x-cif": "cif",
@@ -5234,38 +5689,84 @@ const table$1 = {
 		"x-cml": "cml",
 		"x-compass": "cpa",
 		"x-crossfire": "bsd",
-		"x-csml": ["csml", "csm"],
+		"x-csml": [
+			"csml",
+			"csm"
+		],
 		"x-ctx": "ctx",
-		"x-cxf": ["cxf", "cef"],
-		"x-embl-dl-nucleotide": ["emb", "embl"],
-		"x-gamess-input": ["inp", "gam", "gamin"],
-		"x-gaussian-checkpoint": ["fch", "fchk"],
+		"x-cxf": [
+			"cxf",
+			"cef"
+		],
+		"x-embl-dl-nucleotide": [
+			"emb",
+			"embl"
+		],
+		"x-gamess-input": [
+			"inp",
+			"gam",
+			"gamin"
+		],
+		"x-gaussian-checkpoint": [
+			"fch",
+			"fchk"
+		],
 		"x-gaussian-cube": "cub",
-		"x-gaussian-input": ["gau", "gjc", "gjf"],
+		"x-gaussian-input": [
+			"gau",
+			"gjc",
+			"gjf"
+		],
 		"x-gaussian-log": "gal",
 		"x-gcg8-sequence": "gcg",
 		"x-genbank": "gen",
 		"x-hin": "hin",
-		"x-isostar": ["istr", "ist"],
-		"x-jcamp-dx": ["jdx", "dx"],
+		"x-isostar": [
+			"istr",
+			"ist"
+		],
+		"x-jcamp-dx": [
+			"jdx",
+			"dx"
+		],
 		"x-kinemage": "kin",
 		"x-macmolecule": "mcm",
-		"x-macromodel-input": ["mmd", "mmod"],
+		"x-macromodel-input": [
+			"mmd",
+			"mmod"
+		],
 		"x-mdl-molfile": "mol",
 		"x-mdl-rdfile": "rd",
 		"x-mdl-rxnfile": "rxn",
-		"x-mdl-sdfile": ["sd", "sdf"],
+		"x-mdl-sdfile": [
+			"sd",
+			"sdf"
+		],
 		"x-mdl-tgf": "tgf",
 		"x-mmcif": "mcif",
 		"x-mol2": "mol2",
 		"x-molconn-Z": "b",
 		"x-mopac-graph": "gpt",
-		"x-mopac-input": ["mop", "mopcrt", "mpc", "zmt"],
+		"x-mopac-input": [
+			"mop",
+			"mopcrt",
+			"mpc",
+			"zmt"
+		],
 		"x-mopac-out": "moo",
 		"x-ncbi-asn1": "asn",
-		"x-ncbi-asn1-ascii": ["prt", "ent"],
-		"x-ncbi-asn1-binary": ["val", "aso"],
-		"x-pdb": ["pdb", "ent"],
+		"x-ncbi-asn1-ascii": [
+			"prt",
+			"ent"
+		],
+		"x-ncbi-asn1-binary": [
+			"val",
+			"aso"
+		],
+		"x-pdb": [
+			"pdb",
+			"ent"
+		],
 		"x-rosdal": "ros",
 		"x-swissprot": "sw",
 		"x-vamas-iso14976": "vms",
@@ -5273,15 +5774,37 @@ const table$1 = {
 		"x-xtel": "xtel",
 		"x-xyz": "xyz"
 	},
+	"font": {
+		"otf": "otf",
+		"woff": "woff",
+		"woff2": "woff2"
+	},
 	"image": {
 		"gif": "gif",
 		"ief": "ief",
-		"jpeg": ["jpeg", "jpg", "jpe"],
+		"jpeg": [
+			"jpeg",
+			"jpg",
+			"jpe",
+			"pjpg",
+			"jfif",
+			"jfif-tbnl",
+			"jif"
+		],
 		"pcx": "pcx",
 		"png": "png",
-		"svg+xml": ["svg", "svgz"],
-		"tiff": ["tiff", "tif"],
-		"vnd.djvu": ["djvu", "djv"],
+		"svg+xml": [
+			"svg",
+			"svgz"
+		],
+		"tiff": [
+			"tiff",
+			"tif"
+		],
+		"vnd.djvu": [
+			"djvu",
+			"djv"
+		],
 		"vnd.wap.wbmp": "wbmp",
 		"x-canon-cr2": "cr2",
 		"x-canon-crw": "crw",
@@ -5296,7 +5819,6 @@ const table$1 = {
 		"x-jng": "jng",
 		"x-nikon-nef": "nef",
 		"x-olympus-orf": "orf",
-		"x-photoshop": "psd",
 		"x-portable-anymap": "pnm",
 		"x-portable-bitmap": "pbm",
 		"x-portable-graymap": "pgm",
@@ -5311,7 +5833,12 @@ const table$1 = {
 		"ktx": "ktx",
 		"prs.btif": "btif",
 		"sgi": "sgi",
-		"vnd.dece.graphic": ["uvi", "uvvi", "uvg", "uvvg"],
+		"vnd.dece.graphic": [
+			"uvi",
+			"uvvi",
+			"uvg",
+			"uvvg"
+		],
 		"vnd.dwg": "dwg",
 		"vnd.dxf": "dxf",
 		"vnd.fastbidsheet": "fbs",
@@ -5326,22 +5853,90 @@ const table$1 = {
 		"webp": "webp",
 		"x-3ds": "3ds",
 		"x-cmx": "cmx",
-		"x-freehand": ["fh", "fhc", "fh4", "fh5", "fh7"],
-		"x-pict": ["pic", "pct"],
+		"x-freehand": [
+			"fh",
+			"fhc",
+			"fh4",
+			"fh5",
+			"fh7"
+		],
+		"x-pict": [
+			"pic",
+			"pct"
+		],
 		"x-tga": "tga",
 		"cis-cod": "cod",
-		"pipeg": "jfif"
+		"avif": "avifs",
+		"heic": [
+			"heif",
+			"heic"
+		],
+		"pjpeg": [
+			"jpe",
+			"jpeg",
+			"jpg",
+			"pjpg",
+			"jfi",
+			"jfif-tbnl",
+			"jif"
+		],
+		"vnd.adobe.photoshop": "psd",
+		"x-adobe-dng": "dng",
+		"x-fuji-raf": "raf",
+		"x-icns": "icns",
+		"x-kodak-dcr": "dcr",
+		"x-kodak-k25": "k25",
+		"x-kodak-kdc": "kdc",
+		"x-minolta-mrw": "mrw",
+		"x-panasonic-raw": [
+			"raw",
+			"rw2",
+			"rwl"
+		],
+		"x-pentax-pef": [
+			"pef",
+			"ptx"
+		],
+		"x-sigma-x3f": "x3f",
+		"x-sony-arw": "arw",
+		"x-sony-sr2": "sr2",
+		"x-sony-srf": "srf"
 	},
 	"message": {
-		"rfc822": ["eml", "mime", "mht", "mhtml", "nws"]
+		"rfc822": [
+			"eml",
+			"mime",
+			"mht",
+			"mhtml",
+			"nws"
+		]
 	},
 	"model": {
-		"iges": ["igs", "iges"],
-		"mesh": ["msh", "mesh", "silo"],
-		"vrml": ["wrl", "vrml"],
-		"x3d+vrml": ["x3dv", "x3dvz"],
-		"x3d+xml": ["x3d", "x3dz"],
-		"x3d+binary": ["x3db", "x3dbz"],
+		"iges": [
+			"igs",
+			"iges"
+		],
+		"mesh": [
+			"msh",
+			"mesh",
+			"silo"
+		],
+		"vrml": [
+			"wrl",
+			"vrml"
+		],
+		"x3d+vrml": [
+			"x3dv",
+			"x3dvz"
+		],
+		"x3d+xml": [
+			"x3d",
+			"x3dz"
+		],
+		"x3d+binary": [
+			"x3db",
+			"x3dbz"
+		],
 		"vnd.collada+xml": "dae",
 		"vnd.dwf": "dwf",
 		"vnd.gdl": "gdl",
@@ -5350,49 +5945,119 @@ const table$1 = {
 		"vnd.vtu": "vtu"
 	},
 	"text": {
-		"cache-manifest": ["manifest", "appcache"],
-		"calendar": ["ics", "icz", "ifb"],
+		"cache-manifest": [
+			"manifest",
+			"appcache"
+		],
+		"calendar": [
+			"ics",
+			"icz",
+			"ifb"
+		],
 		"css": "css",
 		"csv": "csv",
 		"h323": "323",
-		"html": ["html", "htm", "shtml", "stm"],
+		"html": [
+			"html",
+			"htm",
+			"shtml",
+			"stm"
+		],
 		"iuls": "uls",
-		"mathml": "mml",
-		"plain": ["txt", "text", "brf", "conf", "def", "list", "log", "in", "bas"],
+		"plain": [
+			"txt",
+			"text",
+			"brf",
+			"conf",
+			"def",
+			"list",
+			"log",
+			"in",
+			"bas",
+			"diff",
+			"ksh",
+			"pl"
+		],
 		"richtext": "rtx",
-		"scriptlet": ["sct", "wsc"],
-		"texmacs": ["tm", "ts"],
+		"scriptlet": [
+			"sct",
+			"wsc"
+		],
+		"texmacs": "tm",
 		"tab-separated-values": "tsv",
 		"vnd.sun.j2me.app-descriptor": "jad",
 		"vnd.wap.wml": "wml",
 		"vnd.wap.wmlscript": "wmls",
 		"x-bibtex": "bib",
 		"x-boo": "boo",
-		"x-c++hdr": ["h++", "hpp", "hxx", "hh"],
-		"x-c++src": ["c++", "cpp", "cxx", "cc"],
+		"x-c++hdr": [
+			"h++",
+			"hpp",
+			"hxx",
+			"hh"
+		],
+		"x-c++src": [
+			"c++",
+			"cpp",
+			"cxx",
+			"cc"
+		],
 		"x-component": "htc",
 		"x-dsrc": "d",
-		"x-diff": ["diff", "patch"],
+		"x-diff": [
+			"diff",
+			"patch"
+		],
 		"x-haskell": "hs",
 		"x-java": "java",
 		"x-literate-haskell": "lhs",
 		"x-moc": "moc",
-		"x-pascal": ["p", "pas"],
+		"x-pascal": [
+			"p",
+			"pas",
+			"pp",
+			"inc"
+		],
 		"x-pcs-gcd": "gcd",
-		"x-perl": ["pl", "pm"],
+		"x-perl": [
+			"pl",
+			"pm"
+		],
 		"x-python": "py",
 		"x-scala": "scala",
 		"x-setext": "etx",
-		"x-tcl": ["tcl", "tk"],
-		"x-tex": ["tex", "ltx", "sty", "cls"],
+		"x-tcl": [
+			"tcl",
+			"tk"
+		],
+		"x-tex": [
+			"tex",
+			"ltx",
+			"sty",
+			"cls"
+		],
 		"x-vcalendar": "vcs",
 		"x-vcard": "vcf",
 		"n3": "n3",
 		"prs.lines.tag": "dsc",
-		"sgml": ["sgml", "sgm"],
-		"troff": ["t", "tr", "roff", "man", "me", "ms"],
+		"sgml": [
+			"sgml",
+			"sgm"
+		],
+		"troff": [
+			"t",
+			"tr",
+			"roff",
+			"man",
+			"me",
+			"ms"
+		],
 		"turtle": "ttl",
-		"uri-list": ["uri", "uris", "urls"],
+		"uri-list": [
+			"uri",
+			"uris",
+			"urls"
+		],
 		"vcard": "vcard",
 		"vnd.curl": "curl",
 		"vnd.curl.dcurl": "dcurl",
@@ -5404,67 +6069,166 @@ const table$1 = {
 		"vnd.graphviz": "gv",
 		"vnd.in3d.3dml": "3dml",
 		"vnd.in3d.spot": "spot",
-		"x-asm": ["s", "asm"],
-		"x-c": ["c", "cc", "cxx", "cpp", "h", "hh", "dic"],
-		"x-fortran": ["f", "for", "f77", "f90"],
+		"x-asm": [
+			"s",
+			"asm"
+		],
+		"x-c": [
+			"c",
+			"cc",
+			"cxx",
+			"cpp",
+			"h",
+			"hh",
+			"dic"
+		],
+		"x-fortran": [
+			"f",
+			"for",
+			"f77",
+			"f90"
+		],
 		"x-opml": "opml",
 		"x-nfo": "nfo",
 		"x-sfv": "sfv",
 		"x-uuencode": "uu",
-		"webviewhtml": "htt"
+		"webviewhtml": "htt",
+		"javascript": "js",
+		"json": "json",
+		"markdown": [
+			"md",
+			"markdown",
+			"mdown",
+			"markdn"
+		],
+		"vnd.wap.si": "si",
+		"vnd.wap.sl": "sl",
+		"x-markdown": [
+			"md",
+			"markdown",
+			"mdown",
+			"markdn"
+		]
 	},
 	"video": {
-		"avif": ".avif",
+		"avif": "avif",
 		"3gpp": "3gp",
 		"annodex": "axv",
 		"dl": "dl",
-		"dv": ["dif", "dv"],
+		"dv": [
+			"dif",
+			"dv"
+		],
 		"fli": "fli",
 		"gl": "gl",
-		"mpeg": ["mpeg", "mpg", "mpe", "m1v", "m2v", "mp2", "mpa", "mpv2"],
-		"mp4": ["mp4", "mp4v", "mpg4"],
-		"quicktime": ["qt", "mov"],
+		"mpeg": [
+			"mpeg",
+			"mpg",
+			"mpe",
+			"m1v",
+			"m2v",
+			"mp2",
+			"mpa",
+			"mpv2"
+		],
+		"mp4": [
+			"mp4",
+			"mp4v",
+			"mpg4"
+		],
+		"quicktime": [
+			"qt",
+			"mov"
+		],
 		"ogg": "ogv",
-		"vnd.mpegurl": ["mxu", "m4u"],
+		"vnd.mpegurl": [
+			"mxu",
+			"m4u"
+		],
 		"x-flv": "flv",
-		"x-la-asf": ["lsf", "lsx"],
+		"x-la-asf": [
+			"lsf",
+			"lsx"
+		],
 		"x-mng": "mng",
-		"x-ms-asf": ["asf", "asx", "asr"],
+		"x-ms-asf": [
+			"asf",
+			"asx",
+			"asr"
+		],
 		"x-ms-wm": "wm",
 		"x-ms-wmv": "wmv",
 		"x-ms-wmx": "wmx",
 		"x-ms-wvx": "wvx",
 		"x-msvideo": "avi",
 		"x-sgi-movie": "movie",
-		"x-matroska": ["mpv", "mkv", "mk3d", "mks"],
+		"x-matroska": [
+			"mpv",
+			"mkv",
+			"mk3d",
+			"mks"
+		],
 		"3gpp2": "3g2",
 		"h261": "h261",
 		"h263": "h263",
 		"h264": "h264",
 		"jpeg": "jpgv",
-		"jpm": ["jpm", "jpgm"],
-		"mj2": ["mj2", "mjp2"],
-		"vnd.dece.hd": ["uvh", "uvvh"],
-		"vnd.dece.mobile": ["uvm", "uvvm"],
-		"vnd.dece.pd": ["uvp", "uvvp"],
-		"vnd.dece.sd": ["uvs", "uvvs"],
-		"vnd.dece.video": ["uvv", "uvvv"],
+		"jpm": [
+			"jpm",
+			"jpgm"
+		],
+		"mj2": [
+			"mj2",
+			"mjp2"
+		],
+		"vnd.dece.hd": [
+			"uvh",
+			"uvvh"
+		],
+		"vnd.dece.mobile": [
+			"uvm",
+			"uvvm"
+		],
+		"vnd.dece.pd": [
+			"uvp",
+			"uvvp"
+		],
+		"vnd.dece.sd": [
+			"uvs",
+			"uvvs"
+		],
+		"vnd.dece.video": [
+			"uvv",
+			"uvvv"
+		],
 		"vnd.dvb.file": "dvb",
 		"vnd.fvt": "fvt",
 		"vnd.ms-playready.media.pyv": "pyv",
-		"vnd.uvvu.mp4": ["uvu", "uvvu"],
+		"vnd.uvvu.mp4": [
+			"uvu",
+			"uvvu"
+		],
 		"vnd.vivo": "viv",
 		"webm": "webm",
 		"x-f4v": "f4v",
 		"x-m4v": "m4v",
 		"x-ms-vob": "vob",
-		"x-smv": "smv"
+		"x-smv": "smv",
+		"mp2t": "ts"
 	},
 	"x-conference": {
 		"x-cooltalk": "ice"
 	},
 	"x-world": {
-		"x-vrml": ["vrm", "vrml", "wrl", "flr", "wrz", "xaf", "xof"]
+		"x-vrml": [
+			"vrm",
+			"vrml",
+			"wrl",
+			"flr",
+			"wrz",
+			"xaf",
+			"xof"
+		]
 	}
 };
 
