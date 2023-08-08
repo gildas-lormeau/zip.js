@@ -101,6 +101,9 @@ export default [{
 	}, {
 		file: "index.cjs",
 		format: "cjs"
+	}, {
+		file: "index.min.js",
+		format: "es"
 	}]
 }, {
 	input: "lib/z-worker-bootstrap-pako.js",

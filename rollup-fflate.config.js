@@ -148,6 +148,10 @@ export default [{
 	}, {
 		file: "index.cjs",
 		format: "cjs"
+	}, {
+		file: "index.min.js",
+		format: "es",
+		plugins: [terser(bundledTerserOptions)]
 	}],
 	plugins: [nodeResolve()]
 }, {
