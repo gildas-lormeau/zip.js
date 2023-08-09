@@ -4530,10 +4530,6 @@ const table$1 = {
 		"atomcat+xml": "atomcat",
 		"atomserv+xml": "atomsrv",
 		"bbolin": "lin",
-		"cap": [
-			"cap",
-			"pcap"
-		],
 		"cu-seeme": "cu",
 		"davmount+xml": "davmount",
 		"dsptype": "tsp",
@@ -4582,10 +4578,6 @@ const table$1 = {
 		"rdf+xml": "rdf",
 		"rss+xml": "rss",
 		"rtf": "rtf",
-		"smil": [
-			"smi",
-			"smil"
-		],
 		"xhtml+xml": [
 			"xhtml",
 			"xht"
@@ -4710,10 +4702,6 @@ const table$1 = {
 		"x-chess-pgn": "pgn",
 		"x-cpio": "cpio",
 		"x-csh": "csh",
-		"x-debian-package": [
-			"deb",
-			"udeb"
-		],
 		"x-director": [
 			"dir",
 			"dxr",
@@ -4759,46 +4747,23 @@ const table$1 = {
 		"x-java-jnlp-file": "jnlp",
 		"x-jmol": "jmz",
 		"x-killustrator": "kil",
-		"x-koan": [
-			"skp",
-			"skd",
-			"skt",
-			"skm"
-		],
-		"x-kpresenter": [
-			"kpr",
-			"kpt"
-		],
-		"x-kword": [
-			"kwd",
-			"kwt"
-		],
 		"x-latex": "latex",
-		"x-lha": "lha",
 		"x-lyx": "lyx",
-		"x-lzh": "lzh",
 		"x-lzx": "lzx",
 		"x-maker": [
 			"frm",
-			"maker",
-			"frame",
-			"fm",
 			"fb",
-			"book",
 			"fbdoc"
 		],
 		"x-ms-wmd": "wmd",
-		"x-ms-wmz": "wmz",
 		"x-msdos-program": [
 			"com",
 			"exe",
 			"bat",
 			"dll"
 		],
-		"x-msi": "msi",
 		"x-netcdf": [
-			"nc",
-			"cdf"
+			"nc"
 		],
 		"x-ns-proxy-autoconfig": [
 			"pac",
@@ -4834,7 +4799,6 @@ const table$1 = {
 		"x-sv4cpio": "sv4cpio",
 		"x-sv4crc": "sv4crc",
 		"x-tar": "tar",
-		"x-tcl": "tcl",
 		"x-tex-gf": "gf",
 		"x-tex-pk": "pk",
 		"x-texinfo": [
@@ -4848,14 +4812,6 @@ const table$1 = {
 			"old",
 			"sik"
 		],
-		"x-troff": [
-			"t",
-			"tr",
-			"roff"
-		],
-		"x-troff-man": "man",
-		"x-troff-me": "me",
-		"x-troff-ms": "ms",
 		"x-ustar": "ustar",
 		"x-wais-source": "src",
 		"x-wingz": "wz",
@@ -5447,13 +5403,7 @@ const table$1 = {
 		"x-msbinder": "obd",
 		"x-mscardfile": "crd",
 		"x-msclip": "clp",
-		"x-msdownload": [
-			"exe",
-			"dll",
-			"com",
-			"bat",
-			"msi"
-		],
+		"application/x-ms-installer": "msi",
 		"x-msmediaview": [
 			"mvb",
 			"m13",
@@ -5485,8 +5435,6 @@ const table$1 = {
 		"x-stuffitx": "sitx",
 		"x-subrip": "srt",
 		"x-t3vm-image": "t3",
-		"x-tads": "gam",
-		"x-tex": "tex",
 		"x-tex-tfm": "tfm",
 		"x-tgif": "obj",
 		"x-xliff+xml": "xlf",
@@ -5523,21 +5471,11 @@ const table$1 = {
 		"vnd.ms-outlook": "msg",
 		"vnd.ms-pkicertstore": "sst",
 		"x-compress": "z",
-		"x-compressed": "tgz",
-		"x-gzip": [
-			"gz",
-			"tgz"
-		],
 		"x-perfmon": [
 			"pma",
 			"pmc",
-			"pml",
 			"pmr",
 			"pmw"
-		],
-		"x-pkcs7-mime": [
-			"p7c",
-			"p7m"
 		],
 		"ynd.ms-pkipko": "pko",
 		"gzip": [
@@ -5572,15 +5510,6 @@ const table$1 = {
 			"pm",
 			"pl"
 		],
-		"x-sqlite3": [
-			"db",
-			"sqlite",
-			"sqlite3",
-			"db-wal",
-			"sqlite-wal",
-			"db-shm",
-			"sqlite-shm"
-		],
 		"yaml": [
 			"yaml",
 			"yml"
@@ -5604,7 +5533,6 @@ const table$1 = {
 		"mpeg": [
 			"mpga",
 			"mpega",
-			"mp2",
 			"mp3",
 			"m4a",
 			"mp2a",
@@ -5618,11 +5546,7 @@ const table$1 = {
 			"spx"
 		],
 		"prs.sid": "sid",
-		"x-aiff": [
-			"aif",
-			"aiff",
-			"aifc"
-		],
+		"x-aiff": "aifc",
 		"x-gsm": "gsm",
 		"x-ms-wma": "wma",
 		"x-ms-wax": "wax",
@@ -5648,20 +5572,11 @@ const table$1 = {
 		"vnd.nuera.ecelp9600": "ecelp9600",
 		"vnd.rip": "rip",
 		"webm": "weba",
-		"x-aac": "aac",
 		"x-caf": "caf",
 		"x-matroska": "mka",
 		"x-pn-realaudio-plugin": "rmp",
 		"xm": "xm",
-		"mid": [
-			"mid",
-			"rmi"
-		],
-		"aac": [
-			"aac",
-			"mp4",
-			"m4a"
-		],
+		"aac": "aac",
 		"aiff": [
 			"aiff",
 			"aif",
@@ -5731,17 +5646,11 @@ const table$1 = {
 		],
 		"x-kinemage": "kin",
 		"x-macmolecule": "mcm",
-		"x-macromodel-input": [
-			"mmd",
-			"mmod"
-		],
+		"x-macromodel-input": "mmod",
 		"x-mdl-molfile": "mol",
 		"x-mdl-rdfile": "rd",
 		"x-mdl-rxnfile": "rxn",
-		"x-mdl-sdfile": [
-			"sd",
-			"sdf"
-		],
+		"x-mdl-sdfile": "sd",
 		"x-mdl-tgf": "tgf",
 		"x-mmcif": "mcif",
 		"x-mol2": "mol2",
@@ -5750,7 +5659,6 @@ const table$1 = {
 		"x-mopac-input": [
 			"mop",
 			"mopcrt",
-			"mpc",
 			"zmt"
 		],
 		"x-mopac-out": "moo",
@@ -5759,14 +5667,7 @@ const table$1 = {
 			"prt",
 			"ent"
 		],
-		"x-ncbi-asn1-binary": [
-			"val",
-			"aso"
-		],
-		"x-pdb": [
-			"pdb",
-			"ent"
-		],
+		"x-ncbi-asn1-binary": "val",
 		"x-rosdal": "ros",
 		"x-swissprot": "sw",
 		"x-vamas-iso14976": "vms",
@@ -5786,7 +5687,6 @@ const table$1 = {
 			"jpeg",
 			"jpg",
 			"jpe",
-			"pjpg",
 			"jfif",
 			"jfif-tbnl",
 			"jif"
@@ -5872,13 +5772,7 @@ const table$1 = {
 			"heic"
 		],
 		"pjpeg": [
-			"jpe",
-			"jpeg",
-			"jpg",
-			"pjpg",
-			"jfi",
-			"jfif-tbnl",
-			"jif"
+			"pjpg"
 		],
 		"vnd.adobe.photoshop": "psd",
 		"x-adobe-dng": "dng",
@@ -5929,10 +5823,7 @@ const table$1 = {
 			"x3dv",
 			"x3dvz"
 		],
-		"x3d+xml": [
-			"x3d",
-			"x3dz"
-		],
+		"x3d+xml": "x3dz",
 		"x3d+binary": [
 			"x3db",
 			"x3dbz"
@@ -5975,8 +5866,7 @@ const table$1 = {
 			"in",
 			"bas",
 			"diff",
-			"ksh",
-			"pl"
+			"ksh"
 		],
 		"richtext": "rtx",
 		"scriptlet": [
@@ -6004,10 +5894,7 @@ const table$1 = {
 		],
 		"x-component": "htc",
 		"x-dsrc": "d",
-		"x-diff": [
-			"diff",
-			"patch"
-		],
+		"x-diff": "patch",
 		"x-haskell": "hs",
 		"x-java": "java",
 		"x-literate-haskell": "lhs",
@@ -6019,10 +5906,6 @@ const table$1 = {
 			"inc"
 		],
 		"x-pcs-gcd": "gcd",
-		"x-perl": [
-			"pl",
-			"pm"
-		],
 		"x-python": "py",
 		"x-scala": "scala",
 		"x-setext": "etx",
@@ -6075,11 +5958,7 @@ const table$1 = {
 		],
 		"x-c": [
 			"c",
-			"cc",
-			"cxx",
-			"cpp",
 			"h",
-			"hh",
 			"dic"
 		],
 		"x-fortran": [
@@ -6102,13 +5981,7 @@ const table$1 = {
 			"markdn"
 		],
 		"vnd.wap.si": "si",
-		"vnd.wap.sl": "sl",
-		"x-markdown": [
-			"md",
-			"markdown",
-			"mdown",
-			"markdn"
-		]
+		"vnd.wap.sl": "sl"
 	},
 	"video": {
 		"avif": "avif",
@@ -6222,8 +6095,6 @@ const table$1 = {
 	"x-world": {
 		"x-vrml": [
 			"vrm",
-			"vrml",
-			"wrl",
 			"flr",
 			"wrz",
 			"xaf",
@@ -9503,7 +9374,7 @@ class ZipEntry$1 {
 		localDirectory.rawExtraField = localDirectory.extraFieldLength ?
 			await readUint8Array(reader, offset + 30 + localDirectory.filenameLength, localDirectory.extraFieldLength, diskNumberStart) :
 			new Uint8Array();
-		await readCommonFooter(zipEntry, localDirectory, dataView, 4);
+		await readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
 		Object.assign(fileEntry, {
 			lastAccessDate: localDirectory.lastAccessDate,
 			creationDate: localDirectory.creationDate
@@ -9590,7 +9461,7 @@ function readCommonHeader(directory, dataView, offset) {
 	});
 }
 
-async function readCommonFooter(fileEntry, directory, dataView, offset) {
+async function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory) {
 	const { rawExtraField } = directory;
 	const extraField = directory.extraField = new Map();
 	const rawExtraFieldView = getDataView$1(new Uint8Array(rawExtraField));
@@ -9643,7 +9514,7 @@ async function readCommonFooter(fileEntry, directory, dataView, offset) {
 	}
 	const extraFieldExtendedTimestamp = extraField.get(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 	if (extraFieldExtendedTimestamp) {
-		readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory);
+		readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory, localDirectory);
 		directory.extraFieldExtendedTimestamp = extraFieldExtendedTimestamp;
 	}
 }
@@ -9734,22 +9605,27 @@ function readExtraFieldNTFS(extraFieldNTFS, directory) {
 	}
 }
 
-function readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory) {
+function readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory, localDirectory) {
 	const extraFieldView = getDataView$1(extraFieldExtendedTimestamp.data);
 	const flags = getUint8(extraFieldView, 0);
 	const timeProperties = [];
 	const timeRawProperties = [];
-	if ((flags & 0x1) == 0x1) {
+	if (localDirectory)	{
+		if ((flags & 0x1) == 0x1) {
+			timeProperties.push(PROPERTY_NAME_LAST_MODIFICATION_DATE);
+			timeRawProperties.push(PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE);
+		}
+		if ((flags & 0x2) == 0x2) {
+			timeProperties.push(PROPERTY_NAME_LAST_ACCESS_DATE);
+			timeRawProperties.push(PROPERTY_NAME_RAW_LAST_ACCESS_DATE);
+		}
+		if ((flags & 0x4) == 0x4) {
+			timeProperties.push(PROPERTY_NAME_CREATION_DATE);
+			timeRawProperties.push(PROPERTY_NAME_RAW_CREATION_DATE);
+		}
+	} else if (extraFieldExtendedTimestamp.data.length >= 5) {
 		timeProperties.push(PROPERTY_NAME_LAST_MODIFICATION_DATE);
 		timeRawProperties.push(PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE);
-	}
-	if ((flags & 0x2) == 0x2) {
-		timeProperties.push(PROPERTY_NAME_LAST_ACCESS_DATE);
-		timeRawProperties.push(PROPERTY_NAME_RAW_LAST_ACCESS_DATE);
-	}
-	if ((flags & 0x4) == 0x4) {
-		timeProperties.push(PROPERTY_NAME_CREATION_DATE);
-		timeRawProperties.push(PROPERTY_NAME_RAW_CREATION_DATE);
 	}
 	let offset = 1;
 	timeProperties.forEach((propertyName, indexProperty) => {
@@ -10233,6 +10109,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		version,
 		compressionMethod,
 		rawExtraFieldExtendedTimestamp,
+		extraFieldExtendedTimestampFlag,
 		rawExtraFieldNTFS,
 		rawExtraFieldAES
 	} = headerInfo;
@@ -10364,6 +10241,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		headerArray,
 		signature,
 		rawExtraFieldZip64,
+		extraFieldExtendedTimestampFlag,
 		zip64UncompressedSize,
 		zip64CompressedSize,
 		zip64Offset,
@@ -10386,7 +10264,7 @@ function getHeaderInfo(options) {
 		directory,
 		rawExtraField,
 		encryptionStrength,
-		extendedTimestamp,
+		extendedTimestamp
 	} = options;
 	const compressed = level !== 0 && !directory;
 	const encrypted = Boolean(password && getLength(password));
@@ -10403,19 +10281,23 @@ function getHeaderInfo(options) {
 	}
 	let rawExtraFieldNTFS;
 	let rawExtraFieldExtendedTimestamp;
+	let extraFieldExtendedTimestampFlag;
 	if (extendedTimestamp) {
 		rawExtraFieldExtendedTimestamp = new Uint8Array(9 + (lastAccessDate ? 4 : 0) + (creationDate ? 4 : 0));
 		const extraFieldExtendedTimestampView = getDataView(rawExtraFieldExtendedTimestamp);
 		setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 		setUint16(extraFieldExtendedTimestampView, 2, getLength(rawExtraFieldExtendedTimestamp) - 4);
-		const extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0);
+		extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0);
 		setUint8(extraFieldExtendedTimestampView, 4, extraFieldExtendedTimestampFlag);
-		setUint32(extraFieldExtendedTimestampView, 5, Math.floor(lastModDate.getTime() / 1000));
+		let offset = 5;
+		setUint32(extraFieldExtendedTimestampView, offset, Math.floor(lastModDate.getTime() / 1000));
+		offset += 4;
 		if (lastAccessDate) {
-			setUint32(extraFieldExtendedTimestampView, 9, Math.floor(lastAccessDate.getTime() / 1000));
+			setUint32(extraFieldExtendedTimestampView, offset, Math.floor(lastAccessDate.getTime() / 1000));
+			offset += 4;
 		}
 		if (creationDate) {
-			setUint32(extraFieldExtendedTimestampView, 13, Math.floor(creationDate.getTime() / 1000));
+			setUint32(extraFieldExtendedTimestampView, offset, Math.floor(creationDate.getTime() / 1000));
 		}
 		try {
 			rawExtraFieldNTFS = new Uint8Array(36);
@@ -10496,6 +10378,7 @@ function getHeaderInfo(options) {
 		compressed,
 		version,
 		compressionMethod,
+		extraFieldExtendedTimestampFlag,
 		rawExtraFieldExtendedTimestamp,
 		rawExtraFieldNTFS,
 		rawExtraFieldAES
@@ -10632,23 +10515,38 @@ async function closeFile(zipWriter, comment, options) {
 	let directoryDataLength = 0;
 	let directoryOffset = zipWriter.offset - diskOffset;
 	let filesLength = files.size;
-	for (const [, {
-		rawFilename,
-		rawExtraFieldZip64,
-		rawExtraFieldAES,
-		rawExtraField,
-		rawComment,
-		rawExtraFieldExtendedTimestamp,
-		rawExtraFieldNTFS
-	}] of files) {
+	for (const [, fileEntry] of files) {
+		const {
+			rawFilename,
+			rawExtraFieldZip64,
+			rawExtraFieldAES,
+			rawComment,
+			rawExtraFieldNTFS,
+			rawExtraField,
+			extendedTimestamp,
+			extraFieldExtendedTimestampFlag,
+			lastModDate
+		} = fileEntry;
+		let rawExtraFieldTimestamp;
+		if (extendedTimestamp) {
+			rawExtraFieldTimestamp = new Uint8Array(9);
+			const extraFieldExtendedTimestampView = getDataView(rawExtraFieldTimestamp);
+			setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
+			setUint16(extraFieldExtendedTimestampView, 2, 5);
+			setUint8(extraFieldExtendedTimestampView, 4, extraFieldExtendedTimestampFlag);
+			setUint32(extraFieldExtendedTimestampView, 5, Math.floor(lastModDate.getTime() / 1000));
+		} else {
+			rawExtraFieldTimestamp = new Uint8Array();
+		}
+		fileEntry.rawExtraFieldCDExtendedTimestamp = rawExtraFieldTimestamp;
 		directoryDataLength += 46 +
 			getLength(
 				rawFilename,
 				rawComment,
 				rawExtraFieldZip64,
 				rawExtraFieldAES,
-				rawExtraFieldExtendedTimestamp,
 				rawExtraFieldNTFS,
+				rawExtraFieldTimestamp,
 				rawExtraField);
 	}
 	const directoryArray = new Uint8Array(directoryDataLength);
@@ -10661,6 +10559,7 @@ async function closeFile(zipWriter, comment, options) {
 			rawFilename,
 			rawExtraFieldZip64,
 			rawExtraFieldAES,
+			rawExtraFieldCDExtendedTimestamp,
 			rawExtraFieldNTFS,
 			rawExtraField,
 			rawComment,
@@ -10675,24 +10574,11 @@ async function closeFile(zipWriter, comment, options) {
 			msDosCompatible,
 			internalFileAttribute,
 			externalFileAttribute,
-			extendedTimestamp,
-			lastModDate,
 			diskNumberStart,
 			uncompressedSize,
 			compressedSize
 		} = fileEntry;
-		let rawExtraFieldExtendedTimestamp;
-		if (extendedTimestamp) {
-			rawExtraFieldExtendedTimestamp = new Uint8Array(9);
-			const extraFieldExtendedTimestampView = getDataView(rawExtraFieldExtendedTimestamp);
-			setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
-			setUint16(extraFieldExtendedTimestampView, 2, getLength(rawExtraFieldExtendedTimestamp) - 4);
-			setUint8(extraFieldExtendedTimestampView, 4, 0x1);
-			setUint32(extraFieldExtendedTimestampView, 5, Math.floor(lastModDate.getTime() / 1000));
-		} else {
-			rawExtraFieldExtendedTimestamp = new Uint8Array();
-		}
-		const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
+		const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldCDExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
 		setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 		setUint16(directoryView, offset + 4, versionMadeBy);
 		const headerView = getDataView(headerArray);
@@ -10716,9 +10602,9 @@ async function closeFile(zipWriter, comment, options) {
 		arraySet(directoryArray, rawFilename, offset + 46);
 		arraySet(directoryArray, rawExtraFieldZip64, offset + 46 + getLength(rawFilename));
 		arraySet(directoryArray, rawExtraFieldAES, offset + 46 + getLength(rawFilename, rawExtraFieldZip64));
-		arraySet(directoryArray, rawExtraFieldExtendedTimestamp, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES));
-		arraySet(directoryArray, rawExtraFieldNTFS, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp));
-		arraySet(directoryArray, rawExtraField, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS));
+		arraySet(directoryArray, rawExtraFieldCDExtendedTimestamp, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES));
+		arraySet(directoryArray, rawExtraFieldNTFS, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldCDExtendedTimestamp));
+		arraySet(directoryArray, rawExtraField, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldCDExtendedTimestamp, rawExtraFieldNTFS));
 		arraySet(directoryArray, rawComment, offset + 46 + getLength(rawFilename) + extraFieldLength);
 		const directoryEntryLength = 46 + getLength(rawFilename, rawComment) + extraFieldLength;
 		if (offset - directoryDiskOffset > writer.availableSize) {

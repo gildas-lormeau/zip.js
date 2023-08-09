@@ -7748,7 +7748,7 @@
 			localDirectory.rawExtraField = localDirectory.extraFieldLength ?
 				await readUint8Array(reader, offset + 30 + localDirectory.filenameLength, localDirectory.extraFieldLength, diskNumberStart) :
 				new Uint8Array();
-			await readCommonFooter(zipEntry, localDirectory, dataView, 4);
+			await readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
 			Object.assign(fileEntry, {
 				lastAccessDate: localDirectory.lastAccessDate,
 				creationDate: localDirectory.creationDate
@@ -7835,7 +7835,7 @@
 		});
 	}
 
-	async function readCommonFooter(fileEntry, directory, dataView, offset) {
+	async function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory) {
 		const { rawExtraField } = directory;
 		const extraField = directory.extraField = new Map();
 		const rawExtraFieldView = getDataView$1(new Uint8Array(rawExtraField));
@@ -7888,7 +7888,7 @@
 		}
 		const extraFieldExtendedTimestamp = extraField.get(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 		if (extraFieldExtendedTimestamp) {
-			readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory);
+			readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory, localDirectory);
 			directory.extraFieldExtendedTimestamp = extraFieldExtendedTimestamp;
 		}
 	}
@@ -7979,22 +7979,27 @@
 		}
 	}
 
-	function readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory) {
+	function readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory, localDirectory) {
 		const extraFieldView = getDataView$1(extraFieldExtendedTimestamp.data);
 		const flags = getUint8(extraFieldView, 0);
 		const timeProperties = [];
 		const timeRawProperties = [];
-		if ((flags & 0x1) == 0x1) {
+		if (localDirectory)	{
+			if ((flags & 0x1) == 0x1) {
+				timeProperties.push(PROPERTY_NAME_LAST_MODIFICATION_DATE);
+				timeRawProperties.push(PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE);
+			}
+			if ((flags & 0x2) == 0x2) {
+				timeProperties.push(PROPERTY_NAME_LAST_ACCESS_DATE);
+				timeRawProperties.push(PROPERTY_NAME_RAW_LAST_ACCESS_DATE);
+			}
+			if ((flags & 0x4) == 0x4) {
+				timeProperties.push(PROPERTY_NAME_CREATION_DATE);
+				timeRawProperties.push(PROPERTY_NAME_RAW_CREATION_DATE);
+			}
+		} else if (extraFieldExtendedTimestamp.data.length >= 5) {
 			timeProperties.push(PROPERTY_NAME_LAST_MODIFICATION_DATE);
 			timeRawProperties.push(PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE);
-		}
-		if ((flags & 0x2) == 0x2) {
-			timeProperties.push(PROPERTY_NAME_LAST_ACCESS_DATE);
-			timeRawProperties.push(PROPERTY_NAME_RAW_LAST_ACCESS_DATE);
-		}
-		if ((flags & 0x4) == 0x4) {
-			timeProperties.push(PROPERTY_NAME_CREATION_DATE);
-			timeRawProperties.push(PROPERTY_NAME_RAW_CREATION_DATE);
 		}
 		let offset = 1;
 		timeProperties.forEach((propertyName, indexProperty) => {
@@ -8478,6 +8483,7 @@
 			version,
 			compressionMethod,
 			rawExtraFieldExtendedTimestamp,
+			extraFieldExtendedTimestampFlag,
 			rawExtraFieldNTFS,
 			rawExtraFieldAES
 		} = headerInfo;
@@ -8609,6 +8615,7 @@
 			headerArray,
 			signature,
 			rawExtraFieldZip64,
+			extraFieldExtendedTimestampFlag,
 			zip64UncompressedSize,
 			zip64CompressedSize,
 			zip64Offset,
@@ -8631,7 +8638,7 @@
 			directory,
 			rawExtraField,
 			encryptionStrength,
-			extendedTimestamp,
+			extendedTimestamp
 		} = options;
 		const compressed = level !== 0 && !directory;
 		const encrypted = Boolean(password && getLength(password));
@@ -8648,19 +8655,23 @@
 		}
 		let rawExtraFieldNTFS;
 		let rawExtraFieldExtendedTimestamp;
+		let extraFieldExtendedTimestampFlag;
 		if (extendedTimestamp) {
 			rawExtraFieldExtendedTimestamp = new Uint8Array(9 + (lastAccessDate ? 4 : 0) + (creationDate ? 4 : 0));
 			const extraFieldExtendedTimestampView = getDataView(rawExtraFieldExtendedTimestamp);
 			setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 			setUint16(extraFieldExtendedTimestampView, 2, getLength(rawExtraFieldExtendedTimestamp) - 4);
-			const extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0);
+			extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0);
 			setUint8(extraFieldExtendedTimestampView, 4, extraFieldExtendedTimestampFlag);
-			setUint32(extraFieldExtendedTimestampView, 5, Math.floor(lastModDate.getTime() / 1000));
+			let offset = 5;
+			setUint32(extraFieldExtendedTimestampView, offset, Math.floor(lastModDate.getTime() / 1000));
+			offset += 4;
 			if (lastAccessDate) {
-				setUint32(extraFieldExtendedTimestampView, 9, Math.floor(lastAccessDate.getTime() / 1000));
+				setUint32(extraFieldExtendedTimestampView, offset, Math.floor(lastAccessDate.getTime() / 1000));
+				offset += 4;
 			}
 			if (creationDate) {
-				setUint32(extraFieldExtendedTimestampView, 13, Math.floor(creationDate.getTime() / 1000));
+				setUint32(extraFieldExtendedTimestampView, offset, Math.floor(creationDate.getTime() / 1000));
 			}
 			try {
 				rawExtraFieldNTFS = new Uint8Array(36);
@@ -8741,6 +8752,7 @@
 			compressed,
 			version,
 			compressionMethod,
+			extraFieldExtendedTimestampFlag,
 			rawExtraFieldExtendedTimestamp,
 			rawExtraFieldNTFS,
 			rawExtraFieldAES
@@ -8877,23 +8889,38 @@
 		let directoryDataLength = 0;
 		let directoryOffset = zipWriter.offset - diskOffset;
 		let filesLength = files.size;
-		for (const [, {
-			rawFilename,
-			rawExtraFieldZip64,
-			rawExtraFieldAES,
-			rawExtraField,
-			rawComment,
-			rawExtraFieldExtendedTimestamp,
-			rawExtraFieldNTFS
-		}] of files) {
+		for (const [, fileEntry] of files) {
+			const {
+				rawFilename,
+				rawExtraFieldZip64,
+				rawExtraFieldAES,
+				rawComment,
+				rawExtraFieldNTFS,
+				rawExtraField,
+				extendedTimestamp,
+				extraFieldExtendedTimestampFlag,
+				lastModDate
+			} = fileEntry;
+			let rawExtraFieldTimestamp;
+			if (extendedTimestamp) {
+				rawExtraFieldTimestamp = new Uint8Array(9);
+				const extraFieldExtendedTimestampView = getDataView(rawExtraFieldTimestamp);
+				setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
+				setUint16(extraFieldExtendedTimestampView, 2, 5);
+				setUint8(extraFieldExtendedTimestampView, 4, extraFieldExtendedTimestampFlag);
+				setUint32(extraFieldExtendedTimestampView, 5, Math.floor(lastModDate.getTime() / 1000));
+			} else {
+				rawExtraFieldTimestamp = new Uint8Array();
+			}
+			fileEntry.rawExtraFieldCDExtendedTimestamp = rawExtraFieldTimestamp;
 			directoryDataLength += 46 +
 				getLength(
 					rawFilename,
 					rawComment,
 					rawExtraFieldZip64,
 					rawExtraFieldAES,
-					rawExtraFieldExtendedTimestamp,
 					rawExtraFieldNTFS,
+					rawExtraFieldTimestamp,
 					rawExtraField);
 		}
 		const directoryArray = new Uint8Array(directoryDataLength);
@@ -8906,6 +8933,7 @@
 				rawFilename,
 				rawExtraFieldZip64,
 				rawExtraFieldAES,
+				rawExtraFieldCDExtendedTimestamp,
 				rawExtraFieldNTFS,
 				rawExtraField,
 				rawComment,
@@ -8920,24 +8948,11 @@
 				msDosCompatible,
 				internalFileAttribute,
 				externalFileAttribute,
-				extendedTimestamp,
-				lastModDate,
 				diskNumberStart,
 				uncompressedSize,
 				compressedSize
 			} = fileEntry;
-			let rawExtraFieldExtendedTimestamp;
-			if (extendedTimestamp) {
-				rawExtraFieldExtendedTimestamp = new Uint8Array(9);
-				const extraFieldExtendedTimestampView = getDataView(rawExtraFieldExtendedTimestamp);
-				setUint16(extraFieldExtendedTimestampView, 0, EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
-				setUint16(extraFieldExtendedTimestampView, 2, getLength(rawExtraFieldExtendedTimestamp) - 4);
-				setUint8(extraFieldExtendedTimestampView, 4, 0x1);
-				setUint32(extraFieldExtendedTimestampView, 5, Math.floor(lastModDate.getTime() / 1000));
-			} else {
-				rawExtraFieldExtendedTimestamp = new Uint8Array();
-			}
-			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
+			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldCDExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
 			setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 			setUint16(directoryView, offset + 4, versionMadeBy);
 			const headerView = getDataView(headerArray);
@@ -8961,9 +8976,9 @@
 			arraySet(directoryArray, rawFilename, offset + 46);
 			arraySet(directoryArray, rawExtraFieldZip64, offset + 46 + getLength(rawFilename));
 			arraySet(directoryArray, rawExtraFieldAES, offset + 46 + getLength(rawFilename, rawExtraFieldZip64));
-			arraySet(directoryArray, rawExtraFieldExtendedTimestamp, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES));
-			arraySet(directoryArray, rawExtraFieldNTFS, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp));
-			arraySet(directoryArray, rawExtraField, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS));
+			arraySet(directoryArray, rawExtraFieldCDExtendedTimestamp, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES));
+			arraySet(directoryArray, rawExtraFieldNTFS, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldCDExtendedTimestamp));
+			arraySet(directoryArray, rawExtraField, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldCDExtendedTimestamp, rawExtraFieldNTFS));
 			arraySet(directoryArray, rawComment, offset + 46 + getLength(rawFilename) + extraFieldLength);
 			const directoryEntryLength = 46 + getLength(rawFilename, rawComment) + extraFieldLength;
 			if (offset - directoryDiskOffset > writer.availableSize) {
