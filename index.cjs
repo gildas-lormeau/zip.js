@@ -11425,26 +11425,29 @@ async function exportZip(zipWriter, entry, totalSize, options) {
 
 		async function processChild(child) {
 			const name = options.relativePath ? child.getRelativeName(selectedEntry) : child.getFullname();
-			let externalFileAttribute;
-			let versionMadeBy;
-			let comment;
-			let lastModDate;
 			let childOptions = child.options || {};
+			let zipEntryOptions = {};
 			if (child.data instanceof Entry) {
-				({
+				const {
 					externalFileAttribute,
 					versionMadeBy,
 					comment,
-					lastModDate
-				} = child.data);
+					lastModDate,
+					creationDate,
+					lastAccessDate
+				} = child.data;
+				zipEntryOptions = {
+					externalFileAttribute,
+					versionMadeBy,
+					comment,
+					lastModDate,
+					creationDate,
+					lastAccessDate
+				};
 			}
 			await zipWriter.add(name, child.reader, Object.assign({
 				directory: child.directory
-			}, Object.assign({}, options, {
-				externalFileAttribute,
-				versionMadeBy,
-				comment,
-				lastModDate,
+			}, Object.assign({}, options, zipEntryOptions, childOptions, {
 				onprogress: async indexProgress => {
 					if (options.onprogress) {
 						entryOffsets.set(name, indexProgress);
@@ -11455,7 +11458,7 @@ async function exportZip(zipWriter, entry, totalSize, options) {
 						}
 					}
 				}
-			}, childOptions)));
+			})));
 			await process(zipWriter, child);
 		}
 	}
