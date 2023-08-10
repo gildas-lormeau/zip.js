@@ -1545,7 +1545,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * @returns A promise resolving to a {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instance.
    */
   addFile(
-    file: File, 
+    file: File,
     options?: ZipWriterAddDataOptions,
   ): Promise<ZipEntry>;
   /**
