@@ -130,9 +130,10 @@ progress {
 	visibility: hidden;
 	display: block;
 	opacity: .7;
-	width: 100%;
+	width: calc(100% - 2px);
 	height: 8px;
 	margin-top: -2px;
+	background-color: whiteSmoke;
 }
 
 @media (max-width: 680px) {
