@@ -24,7 +24,8 @@ async function test() {
 	for (const entry of entries) {
 		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
 		const testDataAlignment = ((entry.localDirectory.filenameLength + entry.localDirectory.rawExtraField.length + entry.offset + 30) % 64) == 0;
-		testOK = testOK && testDataAlignment && compareResult(blob, indexEntry);
+		const testExtraField = Boolean(entry.localDirectory.extraFieldUSDZ);
+		testOK = testOK && testDataAlignment && testExtraField && compareResult(blob, indexEntry);
 		indexEntry++;
 	}
 	zip.terminateWorkers();
