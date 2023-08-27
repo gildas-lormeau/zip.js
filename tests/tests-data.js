@@ -49,6 +49,7 @@ export default ([
 	{ title: "Split zip file", script: "./test-split-zip.js" },
 	{ title: "Store", script: "./test-store.js" },
 	{ title: "Streams", script: "./test-streams.js" },
+	{ title: "USDZ", script: "./test-usdz.js" },
 	{ title: "Worker timeout", script: "./test-worker-timeout.js" },
 	{ title: "Wrapped zip file", script: "./test-wrapped.js" },
 	{ title: "Writable Stream", script: "./test-writable-stream.js" },
