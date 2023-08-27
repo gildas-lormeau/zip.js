@@ -14,7 +14,9 @@ async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter, { usdz: true, level: 0 });
-	await Promise.all(ENTRIES_DATA.map(entryData => zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob))));
+	for (const entryData of ENTRIES_DATA) {
+		await zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob));
+	}
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
