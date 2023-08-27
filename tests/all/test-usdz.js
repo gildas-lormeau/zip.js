@@ -11,7 +11,7 @@ const ENTRIES_DATA = [
 export { test };
 
 async function test() {
-	const blobWriter = new zip.BlobWriter("application/zip");
+	const blobWriter = new zip.BlobWriter("model/vnd.usdz+zip");
 	const zipWriter = new zip.ZipWriter(blobWriter, { usdz: true, level: 0 });
 	for (const entryData of ENTRIES_DATA) {
 		await zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob));
