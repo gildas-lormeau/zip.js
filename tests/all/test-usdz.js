@@ -18,13 +18,16 @@ async function test() {
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
-	const results = await Promise.all(entries.map(async (entry, indexEntry) => {
+	let indexEntry = 0;
+	let testOK = true;
+	for (const entry of entries) {
 		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
 		const testDataAlignment = ((entry.localDirectory.filenameLength + entry.localDirectory.rawExtraField.length + entry.offset + 30) % 64) == 0;
-		return testDataAlignment && compareResult(blob, indexEntry);
-	}));
+		testOK = testOK && testDataAlignment && compareResult(blob, indexEntry);
+		indexEntry++;
+	}
 	zip.terminateWorkers();
-	if (results.includes(false)) {
+	if (!testOK) {
 		throw new Error();
 	}
 }
