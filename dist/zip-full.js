@@ -8393,7 +8393,7 @@
 			writingEntryData = true;
 			fileEntry.diskNumberStart = diskNumber;
 			if (usdz) {
-				appendExtraFieldUSDZ(entryInfo, zipWriter.offset);
+				appendExtraFieldUSDZ(entryInfo, zipWriter.offset - diskOffset);
 			}
 			fileEntry = await createFileEntry(reader, fileWriter, fileEntry, entryInfo, zipWriter.config, options);
 			writingEntryData = false;
