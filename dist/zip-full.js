@@ -7892,6 +7892,10 @@
 			readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory, localDirectory);
 			directory.extraFieldExtendedTimestamp = extraFieldExtendedTimestamp;
 		}
+		const extraFieldUSDZ = extraField.get(EXTRAFIELD_TYPE_USDZ);
+		if (extraFieldUSDZ) {
+			directory.extraFieldUSDZ = extraFieldUSDZ;
+		}
 	}
 
 	function readExtraFieldZip64(extraFieldZip64, directory) {

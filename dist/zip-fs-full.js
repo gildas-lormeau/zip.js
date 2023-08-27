@@ -5838,6 +5838,7 @@
 			"vnd.gdl": "gdl",
 			"vnd.gtw": "gtw",
 			"vnd.mts": "mts",
+			"vnd.usdz+zip": "usdz",
 			"vnd.vtu": "vtu"
 		},
 		"text": {
@@ -9521,6 +9522,10 @@
 		if (extraFieldExtendedTimestamp) {
 			readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory, localDirectory);
 			directory.extraFieldExtendedTimestamp = extraFieldExtendedTimestamp;
+		}
+		const extraFieldUSDZ = extraField.get(EXTRAFIELD_TYPE_USDZ);
+		if (extraFieldUSDZ) {
+			directory.extraFieldUSDZ = extraFieldUSDZ;
 		}
 	}
 
