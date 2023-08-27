@@ -11,7 +11,6 @@ const ENTRIES_DATA = [
 export { test };
 
 async function test() {
-	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter, { usdz: true, level: 0 });
 	for (const entryData of ENTRIES_DATA) {
