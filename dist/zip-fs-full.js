@@ -10020,6 +10020,9 @@
 				await writeData(writable, signatureArray);
 				zipWriter.offset += 4;
 			}
+			if (usdz) {
+				appendExtraFieldUSDZ(entryInfo, zipWriter.offset - diskOffset);
+			}
 			if (!bufferedWrite) {
 				await lockPreviousFileEntry;
 				await skipDiskIfNeeded(writable);
@@ -10027,9 +10030,6 @@
 			const { diskNumber } = writer;
 			writingEntryData = true;
 			fileEntry.diskNumberStart = diskNumber;
-			if (usdz) {
-				appendExtraFieldUSDZ(entryInfo, zipWriter.offset - diskOffset);
-			}
 			fileEntry = await createFileEntry(reader, fileWriter, fileEntry, entryInfo, zipWriter.config, options);
 			writingEntryData = false;
 			files.set(name, fileEntry);
@@ -11288,6 +11288,10 @@
 
 		addData64URI(name, dataURI, options) {
 			return this.root.addData64URI(name, dataURI, options);
+		}
+
+		addUint8Array(name, array, options) {
+			return this.root.addUint8Array(name, array, options);
 		}
 
 		addHttpContent(name, url, options) {
