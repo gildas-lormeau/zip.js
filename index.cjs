@@ -11179,6 +11179,9 @@ class ZipDirectoryEntry extends ZipEntry {
 
 	async exportZip(writer, options) {
 		const zipEntry = this;
+		if (options.bufferedWrite === undefined) {
+			options.bufferedWrite = true;
+		}
 		await Promise.all([initReaders(zipEntry, options.readerOptions), initStream(writer)]);
 		const zipWriter = new ZipWriter(writer, options);
 		await exportZip(zipWriter, zipEntry, getTotalSize([zipEntry], "uncompressedSize"), options);
