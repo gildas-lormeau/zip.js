@@ -9224,10 +9224,14 @@
 				}
 				directoryDataOffset -= directoryDataLength;
 			}
+			if (directoryDataOffset >= reader.size) {
+				prependedDataLength = reader.size - directoryDataOffset - directoryDataLength - END_OF_CENTRAL_DIR_LENGTH;
+				directoryDataOffset = reader.size - directoryDataLength - END_OF_CENTRAL_DIR_LENGTH;	
+			}
 			if (expectedLastDiskNumber != lastDiskNumber) {
 				throw new Error(ERR_SPLIT_ZIP_FILE);
 			}
-			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
+			if (directoryDataOffset < 0) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
 			let offset = 0;
@@ -9238,7 +9242,7 @@
 				if (getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE && directoryDataOffset != expectedDirectoryDataOffset) {
 					const originalDirectoryDataOffset = directoryDataOffset;
 					directoryDataOffset = expectedDirectoryDataOffset;
-					prependedDataLength = directoryDataOffset - originalDirectoryDataOffset;
+					prependedDataLength += directoryDataOffset - originalDirectoryDataOffset;
 					directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength, diskNumber);
 					directoryView = getDataView$1(directoryArray);
 				}
