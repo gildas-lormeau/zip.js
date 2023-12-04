@@ -8015,7 +8015,12 @@ function sendMessage(message, { worker, writer, onTaskFinished, transferStreams 
 		let { value, readable, writable } = message;
 		const transferables = [];
 		if (value) {
-			message.value = value.buffer;
+			if (value.byteLength < value.buffer.byteLength) {
+				message.value = value.buffer.slice(0, value.byteLength);
+			}
+			else {
+				message.value = value.buffer;
+			}
 			transferables.push(message.value);
 		}
 		if (transferStreams && transferStreamsSupported) {
