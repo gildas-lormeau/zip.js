@@ -72,7 +72,7 @@ async function runCommand(zipfile, list, options) {
 		await Promise.all(list.map(file => addFile(zipWriter, file)));
 		await zipWriter.close();
 	} finally {
-		terminateWorkers();
+		await terminateWorkers();
 	}
 }
 
