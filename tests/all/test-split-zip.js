@@ -34,7 +34,7 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	const results = await Promise.all(entries.map(async entry => (await entry.getData(new zip.TextWriter())).length == TEXT_CONTENT.length * TEXT_CONTENT_REPEAT));
 	await zipReader.close();
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	if (results.includes(false)) {
 		throw new Error();
 	}

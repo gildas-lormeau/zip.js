@@ -22,7 +22,7 @@ async function test() {
 		if (!entries[1].directory && entries[1].filename == FILENAME) {
 			const text = await entries[1].getData(new zip.TextWriter());
 			await zipReader.close();
-			await zip.terminateWorkers();
+			zip.terminateWorkers();
 			if (TEXT_CONTENT != text) {
 				throw new Error();
 			}

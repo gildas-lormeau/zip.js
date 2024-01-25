@@ -17,7 +17,7 @@ async function test() {
 	await zipFs.importBlob(blob);
 	const firstEntry = zipFs.children[0];
 	const text = await firstEntry.getText();
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	if (text != TEXT_CONTENT || firstEntry.name != FILENAME || firstEntry.uncompressedSize != TEXT_CONTENT.length) {
 		throw new Error();
 	}

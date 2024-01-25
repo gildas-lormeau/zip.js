@@ -65,7 +65,7 @@ async function test() {
 	await zipReader.close();
 	const comment = Array.from(zipReader.comment).toString();
 	const prependedData = Array.from(zipReader.prependedData).toString();
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	if (prependedData != Array.from(PREPENDED_DATA) || comment != Array.from(COMMENT)) {
 		throw new Error();
 	}

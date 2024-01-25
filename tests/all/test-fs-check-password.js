@@ -29,7 +29,7 @@ async function test() {
 	} else {
 		throw new Error();
 	}
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	if (!result) {
 		throw new Error();
 	}

@@ -18,7 +18,7 @@ async function test() {
 	directory = zipFs.getChildByName("import");
 	const firstEntry = directory.children[0];
 	const text = await firstEntry.getText();
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	if (text != TEXT_CONTENT) {
 		throw new Error();
 	}

@@ -14,7 +14,7 @@ async function test() {
 	await zipFs.importBlob(data);
 	const firstEntry = zipFs.children[0];
 	const text = await firstEntry.getText();
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	if (text != TEXT_CONTENT) {
 		throw new Error();
 	}

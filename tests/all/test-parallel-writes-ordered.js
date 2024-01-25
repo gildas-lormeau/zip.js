@@ -18,7 +18,7 @@ async function test() {
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	if (JSON.stringify(ENTRIES_DATA.map(entry => entry.name)) !=
 		JSON.stringify(entries.sort((entry1, entry2) => entry1.offset - entry2.offset).map(entry => entry.filename))) {
 		throw new Error();

@@ -20,7 +20,7 @@ async function test() {
 		if (entries[0].compressionMethod == 0x08) {
 			const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 			await zipReader.close();
-			await zip.terminateWorkers();
+			zip.terminateWorkers();
 			if (TEXT_CONTENT != (await data.text())) {
 				throw new Error();
 			}

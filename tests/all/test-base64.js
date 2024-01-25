@@ -18,7 +18,7 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new zip.Data64URIWriter("text/plain"));
 	await zipReader.close();
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	if (data != DATA_URI) {
 		throw new Error();
 	}

@@ -25,6 +25,6 @@ async function testLastModDate(extendedTimestamp, lastModDate) {
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	await zipReader.close();
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	return entries[0].lastModDate.getTime() == lastModDate.getTime();
 }

@@ -15,5 +15,5 @@ async function test() {
 		await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 		await zipWriter.close();
 	}));
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 }

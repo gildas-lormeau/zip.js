@@ -54,7 +54,7 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new BinaryStringWriter());
 	await zipReader.close();
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	if (TEXT_CONTENT != data) {
 		throw new Error();
 	}

@@ -17,7 +17,7 @@ async function test() {
 	await zipFs.importData64URI(data);
 	const firstEntry = zipFs.children[0];
 	const dataURI = await firstEntry.getData64URI("text/plain");
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	if (dataURI != DATA_URI) {
 		throw new Error();
 	}
