@@ -24,6 +24,6 @@ async function test() {
 		firstEntry.getData(entryStream.writable),
 		zipReader.close()
 	]);
-	await zip.terminateWorkers();
+	zip.terminateWorkers();
 	return TEXT_CONTENT == entryText && firstEntry.uncompressedSize == TEXT_CONTENT.length && firstEntry.compressedSize > 0;
 }
