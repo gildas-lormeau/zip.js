@@ -40,7 +40,7 @@ async function test() {
 		}
 	}
 	await zipReader.close();
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (TEXT_CONTENT != await data.text()) {
 		throw new Error();
 	}

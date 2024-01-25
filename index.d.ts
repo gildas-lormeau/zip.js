@@ -177,9 +177,9 @@ interface dataHandler {
 }
 
 /**
- * Terminates all the idle web workers
+ * Terminates all the web workers
  */
-export function terminateWorkers(): void;
+export function terminateWorkers(): Promise<void>;
 
 /**
  * Represents event-based implementations used to compress/decompress data.

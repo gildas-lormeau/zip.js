@@ -32,7 +32,7 @@ async function test() {
 	};
 	await entries[0].getData(writer);
 	await zipReader.close();
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (TEXT_CONTENT != await new Blob([data]).text() || !writerClosed) {
 		throw new Error();
 	}

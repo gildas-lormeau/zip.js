@@ -28,7 +28,7 @@ async function test() {
 		testOK = testOK && testDataAlignment && testExtraField && compareResult(blob, indexEntry);
 		indexEntry++;
 	}
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (!testOK) {
 		throw new Error();
 	}

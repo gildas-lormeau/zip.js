@@ -26,7 +26,7 @@ async function test() {
 		await zipReader.close();
 	} catch (error) {
 		if (signal.reason == error || signal.reason.code == error.code) {
-			zip.terminateWorkers();
+			await zip.terminateWorkers();
 		} else {
 			throw error;
 		}

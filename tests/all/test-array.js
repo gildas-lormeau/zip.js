@@ -16,7 +16,7 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new zip.Uint8ArrayWriter());
 	await zipReader.close();
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (getArrayText(data) != TEXT_CONTENT) {
 		throw new Error();
 	}

@@ -28,7 +28,7 @@ async function test() {
 		}
 	}
 	await zipReader.close();
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (TEXT_CONTENT != await data.text() || !entries[0].zip64 || entries[0].uncompressedSize != TEXT_CONTENT.length) {
 		throw new Error();
 	}

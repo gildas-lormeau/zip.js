@@ -71,7 +71,7 @@ async function test() {
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	await zipReader.close();
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (entries[0].zip64 || entries[1].zip64 || !entries[2].zip64) {
 		throw new Error();
 	}

@@ -27,7 +27,7 @@ async function test() {
 			throw error;
 		}
 	}
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (text != TEXT_CONTENT || firstEntry.uncompressedSize != TEXT_CONTENT.length) {
 		throw new Error();
 	}
