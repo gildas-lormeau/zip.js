@@ -19,7 +19,7 @@ async function test() {
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	await zipReader.close();
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (entries[0].extraField.get(42).data.length != 42) {
 		throw new Error();
 	}

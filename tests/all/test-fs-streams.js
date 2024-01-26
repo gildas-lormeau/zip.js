@@ -17,7 +17,7 @@ async function test() {
 	const firstEntry = destinationFS.children[0];
 	transformStream = new TransformStream();
 	const [text] = await Promise.all([new Response(transformStream.readable).text(), firstEntry.getWritable(transformStream.writable)]);
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (text != TEXT_CONTENT) {
 		throw new Error();
 	}

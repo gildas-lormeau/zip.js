@@ -20,7 +20,7 @@ async function test() {
 	directory = zipFs.getChildByName("import");
 	firstEntry = directory.children[0];
 	const text = await firstEntry.getText();
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (text != NEW_TEXT_CONTENT) {
 		throw new Error();
 	}

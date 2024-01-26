@@ -30,7 +30,7 @@ async function test() {
 		(await entries[indexEntry].getData(new zip.TextWriter())).length == uncompressedSize
 	));
 	await zipReader.close();
-	zip.terminateWorkers();
+	await zip.terminateWorkers();
 	if (results.includes(false)) {
 		throw new Error();
 	}
