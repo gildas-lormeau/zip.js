@@ -34,7 +34,7 @@ export default ([
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js" },
 	{ title: "Multiple writers", script: "./test-multiple-writers.js" },
 	{ title: "No worker", script: "./test-no-worker.js" },
-	{ title: "Pako", script: "./test-pako.js", env: ["node", "browser", "bun"] },
+	{ title: "Pako", script: "./test-pako.js" },
 	{ title: "Pako (no worker)", script: "./test-pako-no-worker.js", env: ["deno", "node", "browser"] },
 	{ title: "Parallel reads", script: "./test-parallel-reads.js" },
 	{ title: "Parallel writes (auto buffered)", script: "./test-parallel-writes-auto-buffered.js" },
