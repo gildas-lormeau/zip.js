@@ -15,7 +15,7 @@ export default ([
 	{ title: "Empty zip file", script: "./test-empty.js" },
 	{ title: "Extended timestamp", script: "./test-extended-timestamp.js" },
 	{ title: "Extra field", script: "./test-extra-field.js" },
-	{ title: "Fflate", script: "./test-fflate.js", env: ["browser"] },
+	{ title: "Fflate", script: "./test-fflate.js", env: ["bun", "node", "browser"] },
 	{ title: "Fflate (no worker)", script: "./test-fflate-no-worker.js", sanitizeResources: false },
 	{ title: "Filesystem base 64", script: "./test-fs-base64.js" },
 	{ title: "Filesystem check password", script: "./test-fs-check-password.js", env: ["deno", "node", "browser"] },
