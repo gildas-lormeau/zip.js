@@ -11,13 +11,13 @@ export { test };
 async function test() {
 	zip.configure({ useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
-	const zipWriter = new zip.ZipWriter(blobWriter, { rawPassword: [0xce, 0xd2, 0xca, 0xc7, 0xc3, 0xdc, 0xb4, 0x61], encryptionStrength: 3 });
+	const zipWriter = new zip.ZipWriter(blobWriter, { rawPassword: new Uint8Array([0xce, 0xd2, 0xca, 0xc7, 0xc3, 0xdc, 0xb4, 0x61]), encryptionStrength: 3 });
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
-	const data = await entries[0].getData(dataBlobWriter, { rawPassword: [0xce, 0xd2, 0xca, 0xc7, 0xc3, 0xdc, 0xb4, 0x61] });
+	const data = await entries[0].getData(dataBlobWriter, { rawPassword: new Uint8Array([0xce, 0xd2, 0xca, 0xc7, 0xc3, 0xdc, 0xb4, 0x61]) });
 	await zipReader.close();
 	await zip.terminateWorkers();
 	if (TEXT_CONTENT != await data.text()) {
