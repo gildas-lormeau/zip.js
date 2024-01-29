@@ -1581,7 +1581,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * @returns A promise resolving to an array of {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instances.
    */
   addFileSystemHandle(
-    fileSystemEntry: FileSystemHandle,
+    fileSystemHandle: FileSystemHandle,
     options?: ZipWriterAddDataOptions,
   ): Promise<ZipEntry[]>;
   /**
