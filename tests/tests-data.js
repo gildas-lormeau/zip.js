@@ -6,6 +6,7 @@ export default ([
 	{ title: "Blob", script: "./test-blob.js" },
 	{ title: "Common JS", script: "./test-common-js.cjs", env: ["node"] },
 	{ title: "Crypto", script: "./test-crypto.js", env: ["deno", "node", "browser"] },
+	{ title: "Crypto (raw password)", script: "./test-crypto-raw-password.js", env: ["deno", "node", "browser"] },
 	{ title: "Crypto check password only", script: "./test-crypto-check-password.js", env: ["deno", "node", "browser"] },
 	{ title: "Custom IO classes", script: "./test-custom-io.js" },
 	{ title: "Data descriptor signature", script: "./test-data-descriptor-signature.js" },

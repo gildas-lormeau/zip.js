@@ -765,6 +765,10 @@ interface ZipReaderOptions {
    */
   password?: string;
   /**
+   * The password used to encrypt the content of the entry (raw).
+   */
+  rawPassword?: Uint8Array;
+  /**
    * The `AbortSignal` instance used to cancel the decompression.
    */
   signal?: AbortSignal;
@@ -1103,6 +1107,10 @@ interface ZipWriterConstructorOptions {
    * The password used to encrypt the content of the entry.
    */
   password?: string;
+  /**
+   * The password used to encrypt the content of the entry (raw).
+   */
+  rawPassword?: Uint8Array;
   /**
    * The encryption strength (AES).
    *
