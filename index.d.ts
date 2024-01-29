@@ -1209,7 +1209,7 @@ interface ZipWriterConstructorOptions {
   supportZip64SplitFile?: boolean;
   /**
    * `true`to produce zip files compatible with the USDZ specification.
-   * 
+   *
    * @defaultValue false
    */
   usdz?: boolean;
