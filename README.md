@@ -3,7 +3,7 @@
 zip.js is a JavaScript open-source library (BSD-3-Clause license) for
 compressing and decompressing zip files. It has been designed to handle large amounts
 of data. It supports notably multi-core compression, native compression with
-compression streams, files larger than 4GB with Zip64, split zip files and data
+compression streams, archives larger than 4GB with Zip64, split zip files and data
 encryption.
 
 # Demo
