@@ -242,7 +242,7 @@ declare class SyncCodec {
 }
 
 /**
- * Represents an intance used to compress data.
+ * Represents an instance used to compress data.
  */
 declare class ZipDeflate extends SyncCodec {
   /**
@@ -599,7 +599,7 @@ export class SplitDataWriter implements Initializable, WritableWriter {
   /**
    * Creates the {@link SplitDataWriter} instance
    *
-   * @param writerGenerator A generator of Writer isntances.
+   * @param writerGenerator A generator of Writer instances.
    * @param maxSize The maximum size of the data written into {@link Writer} instances (default: 4GB).
    */
   constructor(
@@ -615,6 +615,40 @@ export class SplitDataWriter implements Initializable, WritableWriter {
  * Represents a {@link Writer}  instance used to retrieve the written data as a `Uint8Array` instance.
  */
 export class Uint8ArrayWriter extends Writer<Uint8Array> {}
+
+/**
+ * Represents an instance used to create an unzipped stream.
+ *
+ * @example
+ * This example will take a zip file, decompress it and then recompress each file in it, saving it to disk.
+ * ```
+ * for await (const entry of (await fetch(urlToZippedFile)).body.pipeThrough(new ZipDecompressionStream()))
+ *   if (entry.readable) {
+ *     console.log(entry.filename)
+ *     entry.readable
+ *       .pipeThrough(ZipCompressionStream().transform(entry.filename))
+ *       .pipeTo((await Deno.create(entry.filename + '.zip')).writable)
+ *   }
+ * ```
+ */
+export class ZipDecompressionStream<T> {
+	/**
+	 * Creates the stream.
+	 *
+	 * @param options The options.
+	 */
+	constructor (options?: ZipReaderConstructorOptions);
+
+	/**
+	 * The readonly property for the readable stream.
+	 */
+	get readable(): ReadableStream<Omit<Entry, 'getData'> & { readable?: ReadableStream<Uint8Array>; }>;
+
+	/**
+	 * The readonly property for the writable stream.
+	 */
+	get writable(): WritableStream<T>;
+}
 
 /**
  * Represents an instance used to read a zip file.
@@ -688,7 +722,7 @@ export class ZipReader<Type> {
    * Returns a generator used to iterate on all the entries in the zip file
    *
    * @param options The options.
-   * @returns An asynchrounous generator of {@link Entry} instances.
+   * @returns An asynchronous generator of {@link Entry} instances.
    */
   getEntriesGenerator(
     options?: ZipReaderGetEntriesOptions,
@@ -946,6 +980,81 @@ interface EntryGetDataOptions
  */
 interface EntryGetDataCheckPasswordOptions
   extends EntryGetDataOptions, ZipReaderCheckPasswordOptions {}
+
+/**
+ * Represents an instance used to create a zipped stream.
+ *
+ * @example
+ * This example creates a zipped file called numbers.txt.zip containing the numbers 0 - 1000 each on their own line.
+ * ```
+ * const readable = ReadableStream.from((function* () {
+ *   for (let i = 0; i < 1000; ++i)
+ *     yield i + '\n'
+ * })())
+ *
+ * readable
+ *   .pipeThrough(new ZipCompressionStream().transform('numbers.txt'))
+ *   .pipeTo((await Deno.create('numbers.txt.zip')).writable)
+ * ```
+ *
+ * @example
+ * This example creates a zipped file called Archive.zip containing two files called numbers.txt and letters.txt
+ * ```
+ * const readable1 = ReadableStream.from((function* () {
+ *   for (let i = 0; i < 1000; ++i)
+ *     yield i + '\n'
+ * })())
+ * const readable2 = ReadableStream.from((function* () {
+ *   const letters = 'abcdefghijklmnopqrstuvwxyz'.split('')
+ *   while (letters.length)
+ *     yield letters.shift() + '\n'
+ * })())
+ *
+ * const zipper = new ZipCompressionStream()
+ * zipper.readable.pipeTo((await Deno.create('Archive.zip')).writable)
+ * readable1.pipeTo(zipper.writable('numbers.txt'))
+ * readable2.pipeTo(zipper.writable('letters.txt'))
+ * zipper.close()
+ * ```
+ */
+export class ZipCompressionStream {
+	/**
+	 * Creates the stream.
+	 *
+	 * @param options The options.
+	 */
+	constructor (options?: ZipWriterConstructorOptions);
+
+	/**
+	 * The readonly property for the readable stream.
+	 */
+	get readable(): ReadableStream<Uint8Array>;
+
+	/**
+	 * Returns an object containing a readable and writable property for the .pipeThrough method
+	 *
+	 * @param path The name of the stream when unzipped.
+	 * @returns An object containing readable and writable properties
+	 */
+	transform<T>(path: string): { readable: ReadableStream<T>, writable: WritableStream<T>; };
+
+	/**
+	 * Returns a WritableStream for the .pipeTo method
+	 *
+	 * @param path The directory path of where the stream should exist in the zipped stream.
+	 * @returns A WritableStream.
+	 */
+	writable<T>(path: string): WritableStream<T>;
+
+	/**
+	 * Writes the entries directory, writes the global comment, and returns the content of the zipped file.
+	 *
+	 * @param comment The global comment of the zip file.
+	 * @param options The options.
+	 * @returns The content of the zip file.
+	 */
+	close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<unknown>;
+}
 
 /**
  * Represents an instance used to create a zip file.
@@ -1324,7 +1433,7 @@ declare class ZipEntry {
   /**
    * Set the name of the entry
    *
-   * @param name The new name of the netry.
+   * @param name The new name of the entry.
    */
   rename(name: string): void;
 }
@@ -1487,7 +1596,7 @@ export class ZipDirectoryEntry extends ZipEntry {
     options?: ZipWriterAddDataOptions,
   ): ZipFileEntry<string, string>;
   /**
-   * Adds aentry entry with content provided as a `Blob` instance
+   * Adds a entry entry with content provided as a `Blob` instance
    *
    * @param name The relative filename of the entry.
    * @param blob The `Blob` instance.
@@ -1500,7 +1609,7 @@ export class ZipDirectoryEntry extends ZipEntry {
     options?: ZipWriterAddDataOptions,
   ): ZipFileEntry<Blob, Blob>;
   /**
-   * Adds aentry entry with content provided as a Data URI `string` encoded in Base64
+   * Adds a entry entry with content provided as a Data URI `string` encoded in Base64
    *
    * @param name The relative filename of the entry.
    * @param dataURI The Data URI `string` encoded in Base64.
@@ -1539,7 +1648,7 @@ export class ZipDirectoryEntry extends ZipEntry {
     options?: HttpOptions & ZipWriterAddDataOptions,
   ): ZipFileEntry<string, void>;
   /**
-   * Adds aentry entry with content provided via a `ReadableStream` instance
+   * Adds a entry entry with content provided via a `ReadableStream` instance
    *
    * @param name The relative filename of the entry.
    * @param readable The `ReadableStream` instance.
