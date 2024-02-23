@@ -622,16 +622,16 @@ export class Uint8ArrayWriter extends Writer<Uint8Array> {}
  * @example
  * This example will take a zip file, decompress it and then recompress each file in it, saving it to disk.
  * ```
- * for await (const entry of (await fetch(urlToZippedFile)).body.pipeThrough(new ZipDecompressionStream()))
+ * for await (const entry of (await fetch(urlToZippedFile)).body.pipeThrough(new ZipWriterStream()))
  *   if (entry.readable) {
  *     console.log(entry.filename)
  *     entry.readable
- *       .pipeThrough(ZipCompressionStream().transform(entry.filename))
+ *       .pipeThrough(ZipReaderStream().transform(entry.filename))
  *       .pipeTo((await Deno.create(entry.filename + '.zip')).writable)
  *   }
  * ```
  */
-export class ZipDecompressionStream<T> {
+export class ZipReaderStream<T> {
 	/**
 	 * Creates the stream.
 	 *
@@ -640,14 +640,14 @@ export class ZipDecompressionStream<T> {
 	constructor (options?: ZipReaderConstructorOptions);
 
 	/**
-	 * The readonly property for the readable stream.
+	 * The readable stream.
 	 */
-	get readable(): ReadableStream<Omit<Entry, 'getData'> & { readable?: ReadableStream<Uint8Array>; }>;
+	readable: ReadableStream<Omit<Entry, 'getData'> & { readable?: ReadableStream<Uint8Array>; }>;
 
 	/**
-	 * The readonly property for the writable stream.
+	 * The writable stream.
 	 */
-	get writable(): WritableStream<T>;
+	writable: WritableStream<T>;
 }
 
 /**
@@ -993,7 +993,7 @@ interface EntryGetDataCheckPasswordOptions
  * })())
  *
  * readable
- *   .pipeThrough(new ZipCompressionStream().transform('numbers.txt'))
+ *   .pipeThrough(new ZipWriterStream().transform('numbers.txt'))
  *   .pipeTo((await Deno.create('numbers.txt.zip')).writable)
  * ```
  *
@@ -1010,14 +1010,14 @@ interface EntryGetDataCheckPasswordOptions
  *     yield letters.shift() + '\n'
  * })())
  *
- * const zipper = new ZipCompressionStream()
+ * const zipper = new ZipWriterStream()
  * zipper.readable.pipeTo((await Deno.create('Archive.zip')).writable)
  * readable1.pipeTo(zipper.writable('numbers.txt'))
  * readable2.pipeTo(zipper.writable('letters.txt'))
  * zipper.close()
  * ```
  */
-export class ZipCompressionStream {
+export class ZipWriterStream {
 	/**
 	 * Creates the stream.
 	 *
@@ -1026,9 +1026,14 @@ export class ZipCompressionStream {
 	constructor (options?: ZipWriterConstructorOptions);
 
 	/**
-	 * The readonly property for the readable stream.
+	 * The readable stream.
 	 */
-	get readable(): ReadableStream<Uint8Array>;
+	readable: ReadableStream<Uint8Array>;
+
+	/**
+	 * The ZipWriter property.
+	 */
+	zipWriter: ZipWriter<unknown>
 
 	/**
 	 * Returns an object containing a readable and writable property for the .pipeThrough method
