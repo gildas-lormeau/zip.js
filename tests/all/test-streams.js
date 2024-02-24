@@ -25,5 +25,7 @@ async function test() {
 		zipReader.close()
 	]);
 	await zip.terminateWorkers();
-	return TEXT_CONTENT == entryText && firstEntry.uncompressedSize == TEXT_CONTENT.length && firstEntry.compressedSize > 0;
+	if (TEXT_CONTENT != entryText || firstEntry.uncompressedSize != TEXT_CONTENT.length || firstEntry.compressedSize <= 0) {
+		throw new Error();
+	}
 }
