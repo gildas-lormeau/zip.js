@@ -3069,8 +3069,8 @@
 
 		constructor(writerGenerator, maxSize = 4294967295) {
 			super();
-			const zipWriter = this;
-			Object.assign(zipWriter, {
+			const writer = this;
+			Object.assign(writer, {
 				diskNumber: 0,
 				diskOffset: 0,
 				size: 0,
@@ -3080,7 +3080,7 @@
 			let diskSourceWriter, diskWritable, diskWriter;
 			const writable = new WritableStream({
 				async write(chunk) {
-					const { availableSize } = zipWriter;
+					const { availableSize } = writer;
 					if (!diskWriter) {
 						const { value, done } = await writerGenerator.next();
 						if (done && !value) {
@@ -3089,9 +3089,9 @@
 							diskSourceWriter = value;
 							diskSourceWriter.size = 0;
 							if (diskSourceWriter.maxSize) {
-								zipWriter.maxSize = diskSourceWriter.maxSize;
+								writer.maxSize = diskSourceWriter.maxSize;
 							}
-							zipWriter.availableSize = zipWriter.maxSize;
+							writer.availableSize = writer.maxSize;
 							await initStream(diskSourceWriter);
 							diskWritable = value.writable;
 							diskWriter = diskWritable.getWriter();
@@ -3100,8 +3100,8 @@
 					} else if (chunk.length >= availableSize) {
 						await writeChunk(chunk.slice(0, availableSize));
 						await closeDisk();
-						zipWriter.diskOffset += diskSourceWriter.size;
-						zipWriter.diskNumber++;
+						writer.diskOffset += diskSourceWriter.size;
+						writer.diskNumber++;
 						diskWriter = null;
 						await this.write(chunk.slice(availableSize));
 					} else {
@@ -3113,7 +3113,7 @@
 					await closeDisk();
 				}
 			});
-			Object.defineProperty(zipWriter, PROPERTY_NAME_WRITABLE, {
+			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
 				get() {
 					return writable;
 				}
@@ -3125,8 +3125,8 @@
 					await diskWriter.ready;
 					await diskWriter.write(chunk);
 					diskSourceWriter.size += chunkLength;
-					zipWriter.size += chunkLength;
-					zipWriter.availableSize -= chunkLength;
+					writer.size += chunkLength;
+					writer.availableSize -= chunkLength;
 				}
 			}
 
@@ -3146,6 +3146,8 @@
 	async function initStream(stream, initSize) {
 		if (stream.init && !stream.initialized) {
 			await stream.init(initSize);
+		} else {
+			return Promise.resolve();
 		}
 	}
 
@@ -3347,8 +3349,8 @@
 	 1. Redistributions of source code must retain the above copyright notice,
 	 this list of conditions and the following disclaimer.
 
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
 	 the documentation and/or other materials provided with the distribution.
 
 	 3. The names of the authors may not be used to endorse or promote products
@@ -3477,7 +3479,7 @@
 			}
 			if (directoryDataOffset >= reader.size) {
 				prependedDataLength = reader.size - directoryDataOffset - directoryDataLength - END_OF_CENTRAL_DIR_LENGTH;
-				directoryDataOffset = reader.size - directoryDataLength - END_OF_CENTRAL_DIR_LENGTH;	
+				directoryDataOffset = reader.size - directoryDataLength - END_OF_CENTRAL_DIR_LENGTH;
 			}
 			if (expectedLastDiskNumber != lastDiskNumber) {
 				throw new Error(ERR_SPLIT_ZIP_FILE);
@@ -3591,6 +3593,34 @@
 		}
 
 		async close() {
+		}
+	}
+
+	class ZipReaderStream {
+
+		constructor(options = {}) {
+			const { readable, writable } = new TransformStream();
+			const gen = new ZipReader(readable, options).getEntriesGenerator();
+			this.readable = new ReadableStream({
+				async pull(controller) {
+					const { done, value } = await gen.next();
+					if (done)
+						return controller.close();
+					const chunk = {
+						...value,
+						readable: (function () {
+							const { readable, writable } = new TransformStream();
+							if (value.getData) {
+								value.getData(writable);
+								return readable;
+							}
+						})()
+					};
+					delete chunk.getData;
+					controller.enqueue(chunk);
+				}
+			});
+			this.writable = writable;
 		}
 	}
 
@@ -3983,8 +4013,8 @@
 	 1. Redistributions of source code must retain the above copyright notice,
 	 this list of conditions and the following disclaimer.
 
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
 	 the documentation and/or other materials provided with the distribution.
 
 	 3. The names of the authors may not be used to endorse or promote products
@@ -4021,9 +4051,12 @@
 
 		constructor(writer, options = {}) {
 			writer = initWriter(writer);
+			const addSplitZipSignature =
+				writer.availableSize !== UNDEFINED_VALUE && writer.availableSize > 0 && writer.availableSize !== Infinity &&
+				writer.maxSize !== UNDEFINED_VALUE && writer.maxSize > 0 && writer.maxSize !== Infinity;
 			Object.assign(this, {
 				writer,
-				addSplitZipSignature: writer instanceof SplitDataWriter,
+				addSplitZipSignature,
 				options,
 				config: getConfiguration(),
 				files: new Map(),
@@ -4083,6 +4116,33 @@
 				await writable.getWriter().close();
 			}
 			return writer.getData ? writer.getData() : writable;
+		}
+	}
+
+	class ZipWriterStream {
+
+		constructor(options = {}) {
+			const { readable, writable } = new TransformStream();
+			this.readable = readable;
+			this.zipWriter = new ZipWriter(writable, options);
+		}
+
+		transform(path) {
+			const { readable, writable } = new TransformStream({
+				flush: () => { this.zipWriter.close(); }
+			});
+			this.zipWriter.add(path, readable);
+			return { readable: this.readable, writable };
+		}
+
+		writable(path) {
+			const { readable, writable } = new TransformStream();
+			this.zipWriter.add(path, readable);
+			return writable;
+		}
+
+		close(comment = undefined, options = {}) {
+			return this.zipWriter.close(comment, options);
 		}
 	}
 
@@ -4256,6 +4316,7 @@
 		let writingBufferedEntryData;
 		let writingEntryData;
 		let fileWriter;
+		let blobPromise;
 		files.set(name, fileEntry);
 		try {
 			let lockPreviousFileEntry;
@@ -4264,7 +4325,8 @@
 				requestLockCurrentFileEntry();
 			}
 			if ((options.bufferedWrite || zipWriter.writerLocked || (zipWriter.bufferedWrites && keepOrder) || !dataDescriptor) && !usdz) {
-				fileWriter = new BlobWriter();
+				fileWriter = new TransformStream();
+				blobPromise = new Response(fileWriter.readable).blob();
 				fileWriter.writable.size = 0;
 				bufferedWrite = true;
 				zipWriter.bufferedWrites++;
@@ -4300,7 +4362,7 @@
 			fileEntry.filename = name;
 			if (bufferedWrite) {
 				await fileWriter.writable.getWriter().close();
-				let blob = await fileWriter.getData();
+				let blob = await blobPromise;
 				await lockPreviousFileEntry;
 				await requestLockWriter();
 				writingBufferedEntryData = true;
@@ -5891,8 +5953,8 @@
 	 1. Redistributions of source code must retain the above copyright notice,
 	 this list of conditions and the following disclaimer.
 
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
 	 the documentation and/or other materials provided with the distribution.
 
 	 3. The names of the authors may not be used to endorse or promote products
@@ -5960,7 +6022,9 @@
 	exports.Uint8ArrayWriter = Uint8ArrayWriter;
 	exports.Writer = Writer;
 	exports.ZipReader = ZipReader;
+	exports.ZipReaderStream = ZipReaderStream;
 	exports.ZipWriter = ZipWriter;
+	exports.ZipWriterStream = ZipWriterStream;
 	exports.configure = configure;
 	exports.fs = fs;
 	exports.getMimeType = getMimeType;
