@@ -25,6 +25,16 @@ async function test() {
 				throw new Error();
 			}
 		}
+	} else {
+		const reader = entriesStream.getReader();
+		let entry;
+		while ((entry = await reader.read()) && !entry.done) {
+			const entryText = await new Response(entry.value.readable).text();
+			if (TEXT_CONTENT != entryText || entry.value.uncompressedSize != TEXT_CONTENT.length || entry.value.compressedSize <= 0) {
+				throw new Error();
+			}
+		}
+		reader.releaseLock();
 	}
 	await zip.terminateWorkers();
 }
