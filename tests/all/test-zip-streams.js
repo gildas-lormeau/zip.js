@@ -18,14 +18,7 @@ async function test() {
 	zipWriterStream.close();
 	const zipReaderStream = new zip.ZipReaderStream();
 	const entriesStream = transformStream.readable.pipeThrough(zipReaderStream);
-	if (entriesStream[Symbol.asyncIterator] !== undefined) {
-		for await (const entry of entriesStream) {
-			const entryText = await new Response(entry.readable).text();
-			if (TEXT_CONTENT != entryText || entry.uncompressedSize != TEXT_CONTENT.length || entry.compressedSize <= 0) {
-				throw new Error();
-			}
-		}
-	} else {
+	if (entriesStream[Symbol.asyncIterator] === undefined) {
 		const reader = entriesStream.getReader();
 		let entry;
 		while ((entry = await reader.read()) && !entry.done) {
@@ -35,6 +28,13 @@ async function test() {
 			}
 		}
 		reader.releaseLock();
+	} else {
+		for await (const entry of entriesStream) {
+			const entryText = await new Response(entry.readable).text();
+			if (TEXT_CONTENT != entryText || entry.uncompressedSize != TEXT_CONTENT.length || entry.compressedSize <= 0) {
+				throw new Error();
+			}
+		}
 	}
 	await zip.terminateWorkers();
 }
