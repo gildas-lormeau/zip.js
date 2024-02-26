@@ -1,22 +1,18 @@
 /**
- * The global object.
+ * Represents the `FileSystemEntry` class.
+ *
+ * @see {@link https://wicg.github.io/entries-api/#api-entry|specification}
  */
-declare global {
-  /**
-   * Represents the `FileSystemEntry` class.
-   *
-   * @see {@link https://wicg.github.io/entries-api/#api-entry|specification}
-   */
-  // deno-lint-ignore no-empty-interface
-  interface FileSystemEntry {}
-  /**
-   * Represents the `FileSystemHandle` class.
-   *
-   * @see {@link https://fs.spec.whatwg.org/#api-filesystemhandle}
-   */
-  // deno-lint-ignore no-empty-interface
-  interface FileSystemHandle {}
-}
+// deno-lint-ignore no-empty-interface
+interface FileSystemEntry {}
+
+/**
+ * Represents the `FileSystemHandle` class.
+ *
+ * @see {@link https://fs.spec.whatwg.org/#api-filesystemhandle}
+ */
+// deno-lint-ignore no-empty-interface
+interface FileSystemHandle {}
 
 /**
  * Represents a generic `TransformStream` class.
@@ -632,22 +628,24 @@ export class Uint8ArrayWriter extends Writer<Uint8Array> {}
  * ```
  */
 export class ZipReaderStream<T> {
-	/**
-	 * Creates the stream.
-	 *
-	 * @param options The options.
-	 */
-	constructor (options?: ZipReaderConstructorOptions);
+  /**
+   * Creates the stream.
+   *
+   * @param options The options.
+   */
+  constructor(options?: ZipReaderConstructorOptions);
 
-	/**
-	 * The readable stream.
-	 */
-	readable: ReadableStream<Omit<Entry, 'getData'> & { readable?: ReadableStream<Uint8Array>; }>;
+  /**
+   * The readable stream.
+   */
+  readable: ReadableStream<
+    Omit<Entry, "getData"> & { readable?: ReadableStream<Uint8Array> }
+  >;
 
-	/**
-	 * The writable stream.
-	 */
-	writable: WritableStream<T>;
+  /**
+   * The writable stream.
+   */
+  writable: WritableStream<T>;
 }
 
 /**
@@ -1018,47 +1016,52 @@ interface EntryGetDataCheckPasswordOptions
  * ```
  */
 export class ZipWriterStream {
-	/**
-	 * Creates the stream.
-	 *
-	 * @param options The options.
-	 */
-	constructor (options?: ZipWriterConstructorOptions);
+  /**
+   * Creates the stream.
+   *
+   * @param options The options.
+   */
+  constructor(options?: ZipWriterConstructorOptions);
 
-	/**
-	 * The readable stream.
-	 */
-	readable: ReadableStream<Uint8Array>;
+  /**
+   * The readable stream.
+   */
+  readable: ReadableStream<Uint8Array>;
 
-	/**
-	 * The ZipWriter property.
-	 */
-	zipWriter: ZipWriter<unknown>
+  /**
+   * The ZipWriter property.
+   */
+  zipWriter: ZipWriter<unknown>;
 
-	/**
-	 * Returns an object containing a readable and writable property for the .pipeThrough method
-	 *
-	 * @param path The name of the stream when unzipped.
-	 * @returns An object containing readable and writable properties
-	 */
-	transform<T>(path: string): { readable: ReadableStream<T>, writable: WritableStream<T>; };
+  /**
+   * Returns an object containing a readable and writable property for the .pipeThrough method
+   *
+   * @param path The name of the stream when unzipped.
+   * @returns An object containing readable and writable properties
+   */
+  transform<T>(
+    path: string,
+  ): { readable: ReadableStream<T>; writable: WritableStream<T> };
 
-	/**
-	 * Returns a WritableStream for the .pipeTo method
-	 *
-	 * @param path The directory path of where the stream should exist in the zipped stream.
-	 * @returns A WritableStream.
-	 */
-	writable<T>(path: string): WritableStream<T>;
+  /**
+   * Returns a WritableStream for the .pipeTo method
+   *
+   * @param path The directory path of where the stream should exist in the zipped stream.
+   * @returns A WritableStream.
+   */
+  writable<T>(path: string): WritableStream<T>;
 
-	/**
-	 * Writes the entries directory, writes the global comment, and returns the content of the zipped file.
-	 *
-	 * @param comment The global comment of the zip file.
-	 * @param options The options.
-	 * @returns The content of the zip file.
-	 */
-	close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<unknown>;
+  /**
+   * Writes the entries directory, writes the global comment, and returns the content of the zipped file.
+   *
+   * @param comment The global comment of the zip file.
+   * @param options The options.
+   * @returns The content of the zip file.
+   */
+  close(
+    comment?: Uint8Array,
+    options?: ZipWriterCloseOptions,
+  ): Promise<unknown>;
 }
 
 /**
