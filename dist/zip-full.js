@@ -6821,26 +6821,25 @@
 
 	class Data64URIReader extends Reader {
 
-		#dataURI;
-		#dataStart;
-
 		constructor(dataURI) {
 			super();
-			const reader = this;
 			let dataEnd = dataURI.length;
 			while (dataURI.charAt(dataEnd - 1) == "=") {
 				dataEnd--;
 			}
 			const dataStart = dataURI.indexOf(",") + 1;
-			reader.#dataURI = dataURI;
-			reader.#dataStart = dataStart;
-			reader.size = Math.floor((dataEnd - dataStart) * 0.75);
+			Object.assign(this, {
+				dataURI,
+				dataStart,
+				size: Math.floor((dataEnd - dataStart) * 0.75)
+			});
 		}
 
 		readUint8Array(offset, length) {
-			const reader = this;
-			const dataURI = reader.#dataURI;
-			const dataStart = reader.#dataStart;
+			const {
+				dataStart,
+				dataURI
+			} = this;
 			const dataArray = new Uint8Array(length);
 			const start = Math.floor(offset / 3) * 4;
 			const bytes = atob(dataURI.substring(start + dataStart, Math.ceil((offset + length) / 3) * 4 + dataStart));
@@ -6854,54 +6853,52 @@
 
 	class Data64URIWriter extends Writer {
 
-		#pending = "";
-		#data;
-
 		constructor(contentType) {
 			super();
-			const writer = this;
-			writer.#data = "data:" + (contentType || "") + ";base64,";
+			Object.assign(this, {
+				data: "data:" + (contentType || "") + ";base64,",
+				pending: []
+			});
 		}
 
 		writeUint8Array(array) {
 			const writer = this;
 			let indexArray = 0;
-			let dataString = writer.#pending;
-			const delta = writer.#pending.length;
-			writer.#pending = "";
+			let dataString = writer.pending;
+			const delta = writer.pending.length;
+			writer.pending = "";
 			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
 				dataString += String.fromCharCode(array[indexArray]);
 			}
 			for (; indexArray < array.length; indexArray++) {
-				writer.#pending += String.fromCharCode(array[indexArray]);
+				writer.pending += String.fromCharCode(array[indexArray]);
 			}
 			if (dataString.length > 2) {
-				writer.#data += btoa(dataString);
+				writer.data += btoa(dataString);
 			} else {
-				writer.#pending = dataString;
+				writer.pending = dataString;
 			}
 		}
 
 		getData() {
-			return this.#data + btoa(this.#pending);
+			return this.data + btoa(this.pending);
 		}
 	}
 
 	class BlobReader extends Reader {
 
-		#blob;
-
 		constructor(blob) {
 			super();
-			const reader = this;
-			reader.#blob = blob;
-			reader.size = blob.size;
+			Object.assign(this, {
+				blob,
+				size: blob.size
+			});
 		}
 
 		async readUint8Array(offset, length) {
 			const reader = this;
 			const offsetEnd = offset + length;
-			const blob = offset || offsetEnd < reader.size ? reader.#blob.slice(offset, offsetEnd) : reader.#blob;
+			const blob = offset || offsetEnd < reader.size ? reader.blob.slice(offset, offsetEnd) : reader.blob;
 			let arrayBuffer = await blob.arrayBuffer();
 			if (arrayBuffer.byteLength > length) {
 				arrayBuffer = arrayBuffer.slice(offset, offsetEnd);
@@ -6911,8 +6908,6 @@
 	}
 
 	class BlobWriter extends Stream {
-
-		#blob;
 
 		constructor(contentType) {
 			super();
@@ -6927,11 +6922,11 @@
 					return transformStream.writable;
 				}
 			});
-			writer.#blob = new Response(transformStream.readable, { headers }).blob();
+			writer.blob = new Response(transformStream.readable, { headers }).blob();
 		}
 
 		getData() {
-			return this.#blob;
+			return this.blob;
 		}
 	}
 
@@ -6944,19 +6939,19 @@
 
 	class TextWriter extends BlobWriter {
 
-		#encoding;
-		#utf8;
-
 		constructor(encoding) {
 			super(encoding);
-			const writer = this;
-			writer.#encoding = encoding;
-			writer.#utf8 = !encoding || encoding.toLowerCase() == "utf-8";
+			Object.assign(this, {
+				encoding,
+				utf8: !encoding || encoding.toLowerCase() == "utf-8"
+			});
 		}
 
 		async getData() {
-			const encoding = this.#encoding;
-			const utf8 = this.#utf8;
+			const {
+				encoding,
+				utf8
+			} = this;
 			const blob = await super.getData();
 			if (blob.text && utf8) {
 				return blob.text();
@@ -7169,11 +7164,12 @@
 
 	class HttpReader extends Reader {
 
-		#reader;
-
 		constructor(url, options = {}) {
 			super();
-			this.#reader = options.useXHR ? new XHRReader(url, options) : new FetchReader(url, options);
+			Object.assign(this, {
+				url,
+				reader: options.useXHR ? new XHRReader(url, options) : new FetchReader(url, options)
+			});
 		}
 
 		set size(value) {
@@ -7181,16 +7177,16 @@
 		}
 
 		get size() {
-			return this.#reader.size;
+			return this.reader.size;
 		}
 
 		async init() {
-			await this.#reader.init();
+			await this.reader.init();
 			super.init();
 		}
 
 		readUint8Array(index, length) {
-			return this.#reader.readUint8Array(index, length);
+			return this.reader.readUint8Array(index, length);
 		}
 	}
 
@@ -7205,58 +7201,55 @@
 
 	class Uint8ArrayReader extends Reader {
 
-		#array;
-
 		constructor(array) {
 			super();
-			const reader = this;
-			reader.#array = array;
-			reader.size = array.length;
+			Object.assign(this, {
+				array,
+				size: array.length
+			});
 		}
 
 		readUint8Array(index, length) {
-			return this.#array.slice(index, index + length);
+			return this.array.slice(index, index + length);
 		}
 	}
 
 	class Uint8ArrayWriter extends Writer {
 
-		#array;
-		#offset = 0;
-
 		init(initSize = 0) {
+			Object.assign(this, {
+				offset: 0,
+				array: new Uint8Array(initSize)
+			});
 			super.init();
-			this.#array = new Uint8Array(initSize);
 		}
 
 		writeUint8Array(array) {
 			const writer = this;
-			if (writer.#offset + array.length > writer.#array.length) {
-				const previousArray = writer.#array;
-				writer.#array = new Uint8Array(previousArray.length + array.length);
-				writer.#array.set(previousArray);
+			if (writer.offset + array.length > writer.array.length) {
+				const previousArray = writer.array;
+				writer.array = new Uint8Array(previousArray.length + array.length);
+				writer.array.set(previousArray);
 			}
-			writer.#array.set(array, writer.#offset);
-			writer.#offset += array.length;
+			writer.array.set(array, writer.offset);
+			writer.offset += array.length;
 		}
 
 		getData() {
-			return this.#array;
+			return this.array;
 		}
 	}
 
 	class SplitDataReader extends Reader {
 
-		#readers;
-
 		constructor(readers) {
 			super();
-			this.#readers = readers;
+			this.readers = readers;
 		}
 
 		async init() {
 			const reader = this;
-			const readers = reader.#readers;
+			const { readers } = reader;
 			reader.lastDiskNumber = 0;
 			reader.lastDiskOffset = 0;
 			await Promise.all(readers.map(async (diskReader, indexDiskReader) => {
@@ -7271,7 +7264,7 @@
 
 		async readUint8Array(offset, length, diskNumber = 0) {
 			const reader = this;
-			const readers = reader.#readers;
+			const { readers } = this;
 			let result;
 			let currentDiskNumber = diskNumber;
 			if (currentDiskNumber == -1) {
