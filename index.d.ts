@@ -34,7 +34,7 @@ export function configure(configuration: Configuration): void;
 /**
  * Represents the configuration passed to {@link configure}.
  */
-interface Configuration extends WorkerConfiguration {
+export interface Configuration extends WorkerConfiguration {
   /**
    * The maximum number of web workers used to compress/decompress data simultaneously.
    *
@@ -122,7 +122,7 @@ interface Configuration extends WorkerConfiguration {
 /**
  * Represents configuration passed to {@link configure}, the constructor of {@link ZipReader}, {@link Entry#getData}, the constructor of {@link ZipWriter}, and {@link ZipWriter#add}.
  */
-interface WorkerConfiguration {
+export interface WorkerConfiguration {
   /**
    * `true` to use web workers to compress/decompress data in non-blocking background processes.
    *
@@ -154,7 +154,7 @@ export function initShimAsyncCodec(
 /**
  * Represents the callback function used to register the `data` event handler.
  */
-interface registerDataHandler {
+export interface registerDataHandler {
   /**
    * @param codec The third-party codec instance.
    * @param onData The `data` event handler.
@@ -165,7 +165,7 @@ interface registerDataHandler {
 /**
  * Represents the callback function used to handle `data` events.
  */
-interface dataHandler {
+export interface dataHandler {
   /**
    * @param data The processed chunk of data.
    */
@@ -180,7 +180,7 @@ export function terminateWorkers(): Promise<void>;
 /**
  * Represents event-based implementations used to compress/decompress data.
  */
-interface EventBasedZipLibrary {
+export interface EventBasedZipLibrary {
   /**
    * The class used to compress data.
    */
@@ -212,7 +212,7 @@ declare class EventBasedCodec {
 /**
  * Represents the implementations zip.js uses to compress/decompress data.
  */
-interface ZipLibrary {
+export interface ZipLibrary {
   /**
    * The class used to compress data.
    *
@@ -278,7 +278,7 @@ export function getMimeType(fileExtension: string): string;
  * zip.js can handle multiple types of data thanks to a generic API. This feature is based on 2 abstract constructors: {@link Reader} and {@link Writer}.
  * The classes inheriting from {@link Reader} help to read data from a source of data. The classes inheriting from {@link Writer} help to write data into a destination.
  */
-interface Initializable {
+export interface Initializable {
   /**
    * Initializes the instance asynchronously
    */
@@ -288,7 +288,7 @@ interface Initializable {
 /**
  * Represents an instance used to read data from a `ReadableStream` instance.
  */
-interface ReadableReader {
+export interface ReadableReader {
   /**
    * The `ReadableStream` instance.
    */
@@ -420,7 +420,7 @@ export class HttpRangeReader extends HttpReader {
 /**
  * Represents the options passed to the constructor of {@link HttpReader}.
  */
-interface HttpOptions extends HttpRangeOptions {
+export interface HttpOptions extends HttpRangeOptions {
   /**
    * `true` to use `Range` headers when fetching data from servers returning `Accept-Ranges` headers.
    *
@@ -444,7 +444,7 @@ interface HttpOptions extends HttpRangeOptions {
 /**
  * Represents options passed to the constructor of {@link HttpRangeReader} and {@link HttpReader}.
  */
-interface HttpRangeOptions {
+export interface HttpRangeOptions {
   /**
    * `true` to rely `XMLHttpRequest` instead of `fetch` to fetch data.
    *
@@ -460,7 +460,7 @@ interface HttpRangeOptions {
 /**
  * Represents an instance used to write data into a `WritableStream` instance.
  */
-interface WritableWriter {
+export interface WritableWriter {
   /**
    * The `WritableStream` instance.
    */
@@ -734,7 +734,7 @@ export class ZipReader<Type> {
 /**
  * Represents the options passed to the constructor of {@link ZipReader}, and `{@link ZipDirectory}#import*`.
  */
-interface ZipReaderConstructorOptions
+export interface ZipReaderConstructorOptions
   extends ZipReaderOptions, GetEntriesOptions, WorkerConfiguration {
   /**
    * `true` to extract the prepended data into {@link ZipReader#prependedData}.
@@ -753,13 +753,13 @@ interface ZipReaderConstructorOptions
 /**
  * Represents the options passed to {@link ZipReader#getEntries} and {@link ZipReader#getEntriesGenerator}.
  */
-interface ZipReaderGetEntriesOptions
+export interface ZipReaderGetEntriesOptions
   extends GetEntriesOptions, EntryOnprogressOptions {}
 
 /**
  * Represents options passed to the constructor of {@link ZipReader}, {@link ZipReader#getEntries} and {@link ZipReader#getEntriesGenerator}.
  */
-interface GetEntriesOptions {
+export interface GetEntriesOptions {
   /**
    * The encoding of the filename of the entry.
    */
@@ -773,7 +773,7 @@ interface GetEntriesOptions {
 /**
  * Represents options passed to the constructor of {@link ZipReader} and {@link Entry#getData}.
  */
-interface ZipReaderCheckPasswordOptions {
+export interface ZipReaderCheckPasswordOptions {
   /**
    * `true` to check only if the password is valid.
    *
@@ -785,7 +785,7 @@ interface ZipReaderCheckPasswordOptions {
 /**
  * Represents options passed to the constructor of {@link ZipReader} and {@link Entry#getData}.
  */
-interface ZipReaderOptions {
+export interface ZipReaderOptions {
   /**
    * `true` to check the signature of the entry.
    *
@@ -970,13 +970,13 @@ export interface Entry extends EntryMetaData {
 /**
  * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
  */
-interface EntryGetDataOptions
+export interface EntryGetDataOptions
   extends EntryDataOnprogressOptions, ZipReaderOptions, WorkerConfiguration {}
 
 /**
  * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
  */
-interface EntryGetDataCheckPasswordOptions
+export interface EntryGetDataCheckPasswordOptions
   extends EntryGetDataOptions, ZipReaderCheckPasswordOptions {}
 
 /**
@@ -1138,7 +1138,7 @@ export class ZipWriter<Type> {
 /**
  * Represents the options passed to {@link ZipWriter#add}.
  */
-interface ZipWriterAddDataOptions
+export interface ZipWriterAddDataOptions
   extends
     ZipWriterConstructorOptions,
     EntryDataOnprogressOptions,
@@ -1162,7 +1162,7 @@ interface ZipWriterAddDataOptions
 /**
  * Represents the options passed to  {@link ZipWriter#close}.
  */
-interface ZipWriterCloseOptions extends EntryOnprogressOptions {
+export interface ZipWriterCloseOptions extends EntryOnprogressOptions {
   /**
    * `true` to use Zip64 to write the entries directory.
    *
@@ -1180,7 +1180,7 @@ interface ZipWriterCloseOptions extends EntryOnprogressOptions {
 /**
  * Represents options passed to the constructor of {@link ZipWriter}, {@link ZipWriter#add} and `{@link ZipDirectoryEntry}#export*`.
  */
-interface ZipWriterConstructorOptions {
+export interface ZipWriterConstructorOptions {
   /**
    * `true` to use Zip64 to store the entry.
    *
@@ -1335,7 +1335,7 @@ interface ZipWriterConstructorOptions {
 /**
  * Represents options passed to {@link Entry#getData}, {@link ZipWriter.add} and `{@link ZipDirectory}.export*`.
  */
-interface EntryDataOnprogressOptions {
+export interface EntryDataOnprogressOptions {
   /**
    * The function called when starting compression/decompression.
    *
@@ -1363,7 +1363,7 @@ interface EntryDataOnprogressOptions {
 /**
  * Represents options passed to {@link ZipReader#getEntries}, {@link ZipReader#getEntriesGenerator}, and {@link ZipWriter#close}.
  */
-interface EntryOnprogressOptions {
+export interface EntryOnprogressOptions {
   /**
    * The function called each time an entry is read/written.
    *
@@ -1821,13 +1821,13 @@ export class ZipDirectoryEntry extends ZipEntry {
 /**
  * Represents the options passed to {@link ZipDirectoryEntry#importHttpContent}.
  */
-interface ZipDirectoryEntryImportHttpOptions
+export interface ZipDirectoryEntryImportHttpOptions
   extends ZipReaderConstructorOptions, HttpOptions {}
 
 /**
  * Represents the options passed to `{@link ZipDirectoryEntry}#export*()`.
  */
-interface ZipDirectoryEntryExportOptions
+export interface ZipDirectoryEntryExportOptions
   extends ZipWriterConstructorOptions, EntryDataOnprogressOptions {
   /**
    * `true` to use filenames relative to the entry instead of full filenames.
