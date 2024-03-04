@@ -6465,10 +6465,12 @@
 			});
 		}
 		const resultValue = await result;
-		try {
-			await writable.getWriter().close();
-		} catch (_error) {
-			// ignored
+		if (!streamsTransferred) {
+			try {
+				const writer = writable.getWriter().close();
+			} catch (_error) {
+				// ignored
+			}
 		}
 		await closed;
 		return resultValue;
