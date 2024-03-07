@@ -4,7 +4,7 @@
  * @see {@link https://wicg.github.io/entries-api/#api-entry|specification}
  */
 // deno-lint-ignore no-empty-interface
-interface FileSystemEntry {}
+interface FileSystemEntryLike {}
 
 /**
  * Represents the `FileSystemHandle` class.
@@ -12,15 +12,21 @@ interface FileSystemEntry {}
  * @see {@link https://fs.spec.whatwg.org/#api-filesystemhandle}
  */
 // deno-lint-ignore no-empty-interface
-interface FileSystemHandle {}
+interface FileSystemHandleLike {}
 
 /**
  * Represents a generic `TransformStream` class.
  *
  * @see {@link https://streams.spec.whatwg.org/#generictransformstream|specification}
  */
-declare class GenericTransformStream {
+declare class TransformStreamLike {
+  /**
+   * The readable stream.
+   */
   readable: ReadableStream;
+  /**
+   * The writable stream.
+   */
   writable: WritableStream;
 }
 
@@ -110,13 +116,13 @@ export interface Configuration extends WorkerConfiguration {
    *
    * @defaultValue {@link CodecStream}
    */
-  CompressionStream?: typeof GenericTransformStream;
+  CompressionStream?: typeof TransformStreamLike;
   /**
    * The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
    *
    * @defaultValue {@link CodecStream}
    */
-  DecompressionStream?: typeof GenericTransformStream;
+  DecompressionStream?: typeof TransformStreamLike;
 }
 
 /**
@@ -1687,7 +1693,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * @returns A promise resolving to an array of {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instances.
    */
   addFileSystemEntry(
-    fileSystemEntry: FileSystemEntry,
+    fileSystemEntry: FileSystemEntryLike,
     options?: ZipWriterAddDataOptions,
   ): Promise<ZipEntry[]>;
   /**
@@ -1698,7 +1704,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * @returns A promise resolving to an array of {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instances.
    */
   addFileSystemHandle(
-    fileSystemHandle: FileSystemHandle,
+    fileSystemHandle: FileSystemHandleLike,
     options?: ZipWriterAddDataOptions,
   ): Promise<ZipEntry[]>;
   /**
