@@ -1926,27 +1926,99 @@ export const fs: {
 };
 
 // The error messages.
+/**
+ * HTTP range error
+ */
 export const ERR_HTTP_RANGE: string;
+/**
+ * Zip format error
+ */
 export const ERR_BAD_FORMAT: string;
+/**
+ * End of Central Directory Record not found error
+ */
 export const ERR_EOCDR_NOT_FOUND: string;
+/**
+ * Zip64 End of Central Directory Record not found error
+ */
 export const ERR_EOCDR_ZIP64_NOT_FOUND: string;
+/**
+ * Zip64 End of Central Directory Locator not found error
+ */
 export const ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND: string;
+/**
+ * Central Directory not found error
+ */
 export const ERR_CENTRAL_DIRECTORY_NOT_FOUND: string;
+/**
+ * Local file header not found error
+ */
 export const ERR_LOCAL_FILE_HEADER_NOT_FOUND: string;
+/**
+ * Extra field Zip64 not found error
+ */
 export const ERR_EXTRAFIELD_ZIP64_NOT_FOUND: string;
+/**
+ * Encrypted entry error
+ */
 export const ERR_ENCRYPTED: string;
+/**
+ * Unsupported encryption error
+ */
 export const ERR_UNSUPPORTED_ENCRYPTION: string;
+/**
+ * Unsupported compression error
+ */
 export const ERR_UNSUPPORTED_COMPRESSION: string;
+/**
+ * Invalid signature error
+ */
 export const ERR_INVALID_SIGNATURE: string;
+/**
+ * Invalid password error
+ */
 export const ERR_INVALID_PASSWORD: string;
+/**
+ * Duplicate entry error
+ */
 export const ERR_DUPLICATED_NAME: string;
+/**
+ * Invalid comment error
+ */
 export const ERR_INVALID_COMMENT: string;
+/**
+ * Invalid entry name error
+ */
 export const ERR_INVALID_ENTRY_NAME: string;
+/**
+ * Invalid entry comment error
+ */
 export const ERR_INVALID_ENTRY_COMMENT: string;
+/**
+ * Invalid version error
+ */
 export const ERR_INVALID_VERSION: string;
+/**
+ * Invalid extra field type error
+ */
 export const ERR_INVALID_EXTRAFIELD_TYPE: string;
+/**
+ * Invalid extra field data error
+ */
 export const ERR_INVALID_EXTRAFIELD_DATA: string;
+/**
+ * Invalid encryption strength error
+ */
 export const ERR_INVALID_ENCRYPTION_STRENGTH: string;
+/**
+ * Invalid format error
+ */
 export const ERR_UNSUPPORTED_FORMAT: string;
+/**
+ * Split zip file error
+ */
 export const ERR_SPLIT_ZIP_FILE: string;
+/**
+ * Iteration completed too soon error
+ */
 export const ERR_ITERATOR_COMPLETED_TOO_SOON: string;
