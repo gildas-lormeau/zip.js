@@ -8629,35 +8629,43 @@ function createHttpReader(httpReader, url, options) {
 	const {
 		preventHeadRequest,
 		useRangeHeader,
-		forceRangeRequests
+		forceRangeRequests,
+		combineSizeEocd
 	} = options;
 	options = Object.assign({}, options);
 	delete options.preventHeadRequest;
 	delete options.useRangeHeader;
 	delete options.forceRangeRequests;
+	delete options.combineSizeEocd;
 	delete options.useXHR;
 	Object.assign(httpReader, {
 		url,
 		options,
 		preventHeadRequest,
 		useRangeHeader,
-		forceRangeRequests
+		forceRangeRequests,
+		combineSizeEocd
 	});
 }
 
 async function initHttpReader(httpReader, sendRequest, getRequestData) {
 	const {
 		url,
+		preventHeadRequest,
 		useRangeHeader,
-		forceRangeRequests
+		forceRangeRequests,
+		combineSizeEocd
 	} = httpReader;
-	if (isHttpFamily(url) && (useRangeHeader || forceRangeRequests)) {
-		const { headers } = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader));
-		if (!forceRangeRequests && headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
+	if (isHttpFamily(url) && (useRangeHeader || forceRangeRequests) && (typeof preventHeadRequest == "undefined" || preventHeadRequest)) {
+		const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -END_OF_CENTRAL_DIR_LENGTH : undefined));
+		if (!forceRangeRequests && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
 			throw new Error(ERR_HTTP_RANGE);
 		} else {
+			if (combineSizeEocd) {
+				httpReader.eocdCache = new Uint8Array(await response.arrayBuffer());
+			}
 			let contentSize;
-			const contentRangeHeader = headers.get(HTTP_HEADER_CONTENT_RANGE);
+			const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
 			if (contentRangeHeader) {
 				const splitHeader = contentRangeHeader.trim().split(/\s*\/\s*/);
 				if (splitHeader.length) {
@@ -8682,9 +8690,14 @@ async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, 
 	const {
 		useRangeHeader,
 		forceRangeRequests,
+		eocdCache,
+		size,
 		options
 	} = httpReader;
 	if (useRangeHeader || forceRangeRequests) {
+		if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
+			return eocdCache;
+		}
 		const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
 		if (response.status != 206) {
 			throw new Error(ERR_HTTP_RANGE);
@@ -8700,7 +8713,7 @@ async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, 
 }
 
 function getRangeHeaders(httpReader, index = 0, length = 1) {
-	return Object.assign({}, getHeaders(httpReader), { [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + index + "-" + (index + length - 1) });
+	return Object.assign({}, getHeaders(httpReader), { [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + (index < 0 ? index : index + "-" + (index + length - 1)) });
 }
 
 function getHeaders({ options }) {
