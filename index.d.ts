@@ -441,10 +441,17 @@ export interface HttpOptions extends HttpRangeOptions {
   forceRangeRequests?: boolean;
   /**
    * `true` to prevent using `HEAD` HTTP request in order the get the size of the content.
+   * `false` to explicitly use `HEAD`, this is useful in case of CORS where `Access-Control-Expose-Headers: Content-Range` is not returned by the server.
    *
    * @defaultValue false
    */
   preventHeadRequest?: boolean;
+  /**
+   * `true` to use `Range: bytes=-22` on the first request and cache the EOCD, make sure beforehand that the server supports a suffix range request.
+   *
+   * @defaultValue false
+   */
+  combineSizeEocd?: boolean;
 }
 
 /**
