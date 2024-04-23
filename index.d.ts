@@ -4,7 +4,7 @@
  * @see {@link https://wicg.github.io/entries-api/#api-entry|specification}
  */
 // deno-lint-ignore no-empty-interface
-interface FileSystemEntryLike {}
+interface FileSystemEntryLike { }
 
 /**
  * Represents the `FileSystemHandle` class.
@@ -12,7 +12,7 @@ interface FileSystemEntryLike {}
  * @see {@link https://fs.spec.whatwg.org/#api-filesystemhandle}
  */
 // deno-lint-ignore no-empty-interface
-interface FileSystemHandleLike {}
+interface FileSystemHandleLike { }
 
 /**
  * Represents a generic `TransformStream` class.
@@ -268,7 +268,7 @@ declare class ZipInflate extends SyncCodec {
 /**
  * Represents a class implementing `CompressionStream` or `DecompressionStream` interfaces.
  */
-declare class CodecStream extends TransformStream {}
+declare class CodecStream extends TransformStream { }
 
 /**
  * Returns the MIME type corresponding to a filename extension.
@@ -361,41 +361,41 @@ export class Reader<Type> implements Initializable, ReadableReader {
 /**
  * Represents a {@link Reader} instance used to read data provided as a `string`.
  */
-export class TextReader extends Reader<string> {}
+export class TextReader extends Reader<string> { }
 
 /**
  * Represents a {@link Reader} instance used to read data provided as a `Blob` instance.
  */
-export class BlobReader extends Reader<Blob> {}
+export class BlobReader extends Reader<Blob> { }
 
 /**
  * Represents a {@link Reader} instance used to read data provided as a Data URI `string` encoded in Base64.
  */
-export class Data64URIReader extends Reader<string> {}
+export class Data64URIReader extends Reader<string> { }
 
 /**
  * Represents a {@link Reader} instance used to read data provided as a `Uint8Array` instance.
  */
-export class Uint8ArrayReader extends Reader<Uint8Array> {}
+export class Uint8ArrayReader extends Reader<Uint8Array> { }
 
 /**
  * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
  *
  * @deprecated Use {@link SplitDataReader} instead.
  */
-export class SplitZipReader extends SplitDataReader {}
+export class SplitZipReader extends SplitDataReader { }
 
 /**
  * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
  */
 export class SplitDataReader
-  extends Reader<Reader<unknown>[] | ReadableReader[] | ReadableStream[]> {}
+  extends Reader<Reader<unknown>[] | ReadableReader[] | ReadableStream[]> { }
 
 /**
  * Represents a URL stored into a `string`.
  */
 // deno-lint-ignore no-empty-interface
-interface URLString extends String {}
+interface URLString extends String { }
 
 /**
  * Represents a {@link Reader} instance used to fetch data from a URL.
@@ -591,7 +591,7 @@ export class Data64URIWriter extends Writer<string> {
  *
  * @deprecated Use {@link SplitDataWriter} instead.
  */
-export class SplitZipWriter extends SplitDataWriter {}
+export class SplitZipWriter extends SplitDataWriter { }
 
 /**
  * Represents a {@link Writer}  instance used to retrieve the written data from a generator of {@link WritableWriter}  instances  (i.e. split zip files).
@@ -623,7 +623,7 @@ export class SplitDataWriter implements Initializable, WritableWriter {
 /**
  * Represents a {@link Writer}  instance used to retrieve the written data as a `Uint8Array` instance.
  */
-export class Uint8ArrayWriter extends Writer<Uint8Array> {}
+export class Uint8ArrayWriter extends Writer<Uint8Array> { }
 
 /**
  * Represents an instance used to create an unzipped stream.
@@ -767,7 +767,7 @@ export interface ZipReaderConstructorOptions
  * Represents the options passed to {@link ZipReader#getEntries} and {@link ZipReader#getEntriesGenerator}.
  */
 export interface ZipReaderGetEntriesOptions
-  extends GetEntriesOptions, EntryOnprogressOptions {}
+  extends GetEntriesOptions, EntryOnprogressOptions { }
 
 /**
  * Represents options passed to the constructor of {@link ZipReader}, {@link ZipReader#getEntries} and {@link ZipReader#getEntriesGenerator}.
@@ -984,13 +984,13 @@ export interface Entry extends EntryMetaData {
  * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
  */
 export interface EntryGetDataOptions
-  extends EntryDataOnprogressOptions, ZipReaderOptions, WorkerConfiguration {}
+  extends EntryDataOnprogressOptions, ZipReaderOptions, WorkerConfiguration { }
 
 /**
  * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
  */
 export interface EntryGetDataCheckPasswordOptions
-  extends EntryGetDataOptions, ZipReaderCheckPasswordOptions {}
+  extends EntryGetDataOptions, ZipReaderCheckPasswordOptions { }
 
 /**
  * Represents an instance used to create a zipped stream.
@@ -1153,9 +1153,9 @@ export class ZipWriter<Type> {
  */
 export interface ZipWriterAddDataOptions
   extends
-    ZipWriterConstructorOptions,
-    EntryDataOnprogressOptions,
-    WorkerConfiguration {
+  ZipWriterConstructorOptions,
+  EntryDataOnprogressOptions,
+  WorkerConfiguration {
   /**
    * `true` if the entry is a directory.
    *
@@ -1835,7 +1835,7 @@ export class ZipDirectoryEntry extends ZipEntry {
  * Represents the options passed to {@link ZipDirectoryEntry#importHttpContent}.
  */
 export interface ZipDirectoryEntryImportHttpOptions
-  extends ZipReaderConstructorOptions, HttpOptions {}
+  extends ZipReaderConstructorOptions, HttpOptions { }
 
 /**
  * Represents the options passed to `{@link ZipDirectoryEntry}#export*()`.
