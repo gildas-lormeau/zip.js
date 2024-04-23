@@ -3558,9 +3558,10 @@
 					commentUTF8,
 					rawExtraField: directoryArray.subarray(extraFieldOffset, commentOffset)
 				});
+				const decode = getOptionValue$1(zipReader, options, "decodeText") || decodeText;
 				const [filename, comment] = await Promise.all([
-					decodeText(rawFilename, filenameUTF8 ? CHARSET_UTF8 : filenameEncoding || CHARSET_CP437),
-					decodeText(rawComment, commentUTF8 ? CHARSET_UTF8 : commentEncoding || CHARSET_CP437)
+					decode(rawFilename, filenameUTF8 ? CHARSET_UTF8 : filenameEncoding || CHARSET_CP437),
+					decode(rawComment, commentUTF8 ? CHARSET_UTF8 : commentEncoding || CHARSET_CP437)
 				]);
 				Object.assign(fileEntry, {
 					rawComment,
@@ -4164,12 +4165,13 @@
 		} else {
 			options.directory = name.endsWith(DIRECTORY_SIGNATURE);
 		}
-		const rawFilename = encodeText(name);
+		const encode = getOptionValue(zipWriter, options, "encodeText", encodeText);
+		const rawFilename = encode(name);
 		if (getLength(rawFilename) > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_ENTRY_NAME);
 		}
 		const comment = options.comment || "";
-		const rawComment = encodeText(comment);
+		const rawComment = encode(comment);
 		if (getLength(rawComment) > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_ENTRY_COMMENT);
 		}
@@ -4272,7 +4274,7 @@
 			zip64DiskNumberStart,
 			password,
 			rawPassword,
-			level,
+			level: !useCompressionStream && zipWriter.config.CompressionStream === UNDEFINED_VALUE ? 0 : level,
 			useWebWorkers,
 			encryptionStrength,
 			extendedTimestamp,
