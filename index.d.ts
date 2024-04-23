@@ -781,6 +781,14 @@ export interface GetEntriesOptions {
    * The encoding of the comment of the entry.
    */
   commentEncoding?: string;
+  /**
+   * Decodes the filename and the comment of the entry.
+   * 
+   * @param value The raw text value.
+   * @param encoding The encoding of the text.
+   * @returns The decoded text value.
+   */
+  decodeText?(value: Uint8Array, encoding: string): string
 }
 
 /**
@@ -1343,6 +1351,13 @@ export interface ZipWriterConstructorOptions {
    * @defaultValue false
    */
   usdz?: boolean;
+  /**
+   * Encode the filename and the comment of the entry.
+   * 
+   * @param text The text to encode.
+   * @returns The encoded text.
+   */
+  encodeText?(text: string): Uint8Array
 }
 
 /**
