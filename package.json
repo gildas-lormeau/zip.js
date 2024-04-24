@@ -83,6 +83,6 @@
         "typedoc": "^0.25.7"
     },
     "overrides": {
-        "terser": "5.16.2"
+        "terser": "^5.30.4"
     }
 }
