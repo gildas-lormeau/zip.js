@@ -1961,10 +1961,6 @@ export const ERR_BAD_FORMAT: string;
  */
 export const ERR_EOCDR_NOT_FOUND: string;
 /**
- * Zip64 End of Central Directory Record not found error
- */
-export const ERR_EOCDR_ZIP64_NOT_FOUND: string;
-/**
  * Zip64 End of Central Directory Locator not found error
  */
 export const ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND: string;
