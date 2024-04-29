@@ -786,9 +786,9 @@ export interface GetEntriesOptions {
    * 
    * @param value The raw text value.
    * @param encoding The encoding of the text.
-   * @returns The decoded text value.
+   * @returns The decoded text value or `undefined` if the raw text value should be decoded by zip.js.
    */
-  decodeText?(value: Uint8Array, encoding: string): string
+  decodeText?(value: Uint8Array, encoding: string): string | undefined;
 }
 
 /**
@@ -1355,9 +1355,9 @@ export interface ZipWriterConstructorOptions {
    * Encode the filename and the comment of the entry.
    * 
    * @param text The text to encode.
-   * @returns The encoded text.
+   * @returns The encoded text or `undefined` if the text should be encoded by zip.js.
    */
-  encodeText?(text: string): Uint8Array
+  encodeText?(text: string): Uint8Array | undefined;
 }
 
 /**
