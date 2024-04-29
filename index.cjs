@@ -9407,10 +9407,16 @@ class ZipReader {
 				rawExtraField: directoryArray.subarray(extraFieldOffset, commentOffset)
 			});
 			const decode = getOptionValue$1(zipReader, options, "decodeText") || decodeText;
-			const [filename, comment] = await Promise.all([
-				decode(rawFilename, filenameUTF8 ? CHARSET_UTF8 : filenameEncoding || CHARSET_CP437),
-				decode(rawComment, commentUTF8 ? CHARSET_UTF8 : commentEncoding || CHARSET_CP437)
-			]);
+			const rawFilenameEncoding = filenameUTF8 ? CHARSET_UTF8 : filenameEncoding || CHARSET_CP437;
+			const rawCommentEncoding = commentUTF8 ? CHARSET_UTF8 : commentEncoding || CHARSET_CP437;
+			let filename = decode(rawFilename, rawFilenameEncoding);
+			if (filename === UNDEFINED_VALUE) {
+				filename = decodeText(rawFilename, rawFilenameEncoding);
+			}
+			let comment = decode(rawComment, rawCommentEncoding);
+			if (comment === UNDEFINED_VALUE) {
+				comment = decodeText(rawComment, rawCommentEncoding);
+			}
 			Object.assign(fileEntry, {
 				rawComment,
 				filename,
@@ -10014,12 +10020,18 @@ async function addFile(zipWriter, name, reader, options) {
 		options.directory = name.endsWith(DIRECTORY_SIGNATURE);
 	}
 	const encode = getOptionValue(zipWriter, options, "encodeText", encodeText);
-	const rawFilename = encode(name);
+	let rawFilename = encode(name);
+	if (rawFilename === UNDEFINED_VALUE) {
+		rawFilename = encodeText(name);
+	}
 	if (getLength(rawFilename) > MAX_16_BITS) {
 		throw new Error(ERR_INVALID_ENTRY_NAME);
 	}
 	const comment = options.comment || "";
-	const rawComment = encode(comment);
+	let rawComment = encode(comment);
+	if (rawComment === UNDEFINED_VALUE) {
+		rawComment = encodeText(comment);
+	}
 	if (getLength(rawComment) > MAX_16_BITS) {
 		throw new Error(ERR_INVALID_ENTRY_COMMENT);
 	}
@@ -10085,7 +10097,7 @@ async function addFile(zipWriter, name, reader, options) {
 			dataDescriptor = true;
 			if (zip64 || zip64 === UNDEFINED_VALUE) {
 				zip64 = true;
-				uncompressedSize = maximumCompressedSize = MAX_32_BITS;
+				uncompressedSize = maximumCompressedSize = MAX_32_BITS + 1;
 			}
 		} else {
 			uncompressedSize = reader.size;
@@ -10093,11 +10105,11 @@ async function addFile(zipWriter, name, reader, options) {
 		}
 	}
 	const { diskOffset, diskNumber, maxSize } = zipWriter.writer;
-	const zip64UncompressedSize = zip64Enabled || uncompressedSize >= MAX_32_BITS;
-	const zip64CompressedSize = zip64Enabled || maximumCompressedSize >= MAX_32_BITS;
-	const zip64Offset = zip64Enabled || zipWriter.offset + zipWriter.pendingEntriesSize - diskOffset >= MAX_32_BITS;
+	const zip64UncompressedSize = zip64Enabled || uncompressedSize > MAX_32_BITS;
+	const zip64CompressedSize = zip64Enabled || maximumCompressedSize > MAX_32_BITS;
+	const zip64Offset = zip64Enabled || zipWriter.offset + zipWriter.pendingEntriesSize - diskOffset > MAX_32_BITS;
 	const supportZip64SplitFile = getOptionValue(zipWriter, options, "supportZip64SplitFile", true);
-	const zip64DiskNumberStart = (supportZip64SplitFile && zip64Enabled) || diskNumber + Math.ceil(zipWriter.pendingEntriesSize / maxSize) >= MAX_16_BITS;
+	const zip64DiskNumberStart = (supportZip64SplitFile && zip64Enabled) || diskNumber + Math.ceil(zipWriter.pendingEntriesSize / maxSize) > MAX_16_BITS;
 	if (zip64Offset || zip64UncompressedSize || zip64CompressedSize || zip64DiskNumberStart) {
 		if (zip64 === false || !keepOrder) {
 			throw new Error(ERR_UNSUPPORTED_FORMAT);
@@ -10240,7 +10252,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		fileEntry.offset = zipWriter.offset - diskOffset;
 		if (fileEntry.zip64) {
 			setZip64ExtraInfo(fileEntry, options);
-		} else if (fileEntry.offset >= MAX_32_BITS) {
+		} else if (fileEntry.offset > MAX_32_BITS) {
 			throw new Error(ERR_UNSUPPORTED_FORMAT);
 		}
 		zipWriter.offset += fileEntry.size;
@@ -10857,7 +10869,7 @@ async function closeFile(zipWriter, comment, options) {
 		lastDiskNumber++;
 	}
 	let zip64 = getOptionValue(zipWriter, options, "zip64");
-	if (directoryOffset >= MAX_32_BITS || directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS || lastDiskNumber >= MAX_16_BITS) {
+	if (directoryOffset > MAX_32_BITS || directoryDataLength > MAX_32_BITS || filesLength > MAX_16_BITS || lastDiskNumber > MAX_16_BITS) {
 		if (zip64 === false) {
 			throw new Error(ERR_UNSUPPORTED_FORMAT);
 		} else {
