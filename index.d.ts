@@ -634,7 +634,7 @@ export class Uint8ArrayWriter extends Writer<Uint8Array> { }
  * import {resolve} from "https://deno.land/std/path/mod.ts";
  * import {ensureDir, ensureFile} from "https://deno.land/std/fs/mod.ts";
  *
- * for await (const entry of (await fetch(urlToZippedFile)).body.pipeThrough(new ZipReaderStream()))) {
+ * for await (const entry of (await fetch(urlToZippedFile)).body.pipeThrough(new ZipReaderStream())) {
  *   const fullPath = resolve(destination, entry.filename);
  *   if (entry.directory) {
  *     await ensureDir(fullPath);
