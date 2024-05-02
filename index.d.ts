@@ -629,15 +629,21 @@ export class Uint8ArrayWriter extends Writer<Uint8Array> { }
  * Represents an instance used to create an unzipped stream.
  *
  * @example
- * This example will take a zip file, decompress it and then recompress each file in it, saving it to disk.
+ * This example will take a zip file, decompress it and then save its files and directories to disk.
  * ```
- * for await (const entry of (await fetch(urlToZippedFile)).body.pipeThrough(new ZipWriterStream()))
- *   if (entry.readable) {
- *     console.log(entry.filename)
- *     entry.readable
- *       .pipeThrough(ZipReaderStream().transform(entry.filename))
- *       .pipeTo((await Deno.create(entry.filename + '.zip')).writable)
+ * import {resolve} from "https://deno.land/std/path/mod.ts";
+ * import {ensureDir, ensureFile} from "https://deno.land/std/fs/mod.ts";
+ *
+ * for await (const entry of (await fetch(urlToZippedFile)).body.pipeThrough(new ZipReaderStream()))) {
+ *   const fullPath = resolve(destination, entry.filename);
+ *   if (entry.directory) {
+ *     await ensureDir(fullPath);
+ *     continue;
  *   }
+ *
+ *   await ensureFile(fullPath);
+ *   await entry.readable?.pipeTo((await Deno.create(fullPath)).writable);
+ * }
  * ```
  */
 export class ZipReaderStream<T> {
