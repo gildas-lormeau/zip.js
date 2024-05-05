@@ -1241,7 +1241,7 @@ export interface ZipWriterConstructorOptions {
   /**
    * `true` to keep the order of the entry physically in the zip file.
    *
-   * When set to `true`, the use of web workers will be improved. However, it also prevents files larger than 4GB from being created without setting the `zip54` option to `true` explicitly.
+   * When set to `true`, the use of web workers will be improved. However, it also prevents files larger than 4GB from being created without setting the `zip64` option to `true` explicitly.
    * Another solution to improve the use of web workers is to add entries from smallest to largest in uncompressed size.
    *
    * @defaultValue true
