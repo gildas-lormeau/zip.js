@@ -1,5 +1,5 @@
 import replace from "@rollup/plugin-replace";
-import { terser } from "rollup-plugin-terser";
+import terser from "@rollup/plugin-terser";
 import fs from "fs";
 
 const bundledTerserOptions = {

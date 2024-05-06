@@ -6,6 +6,7 @@
 
 	const { Array, Object, String, Number, BigInt, Math, Date, Map, Set, Response, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, document, crypto, btoa, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream, navigator, Worker } = typeof globalThis !== 'undefined' ? globalThis : this || self;
 
+	var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
@@ -1046,7 +1047,7 @@
 			bi_windup(); // align on byte boundary
 			last_eob_len = 8; // enough lookahead for inflate
 
-			if (header) {
+			{
 				put_short(len);
 				put_short(~len);
 			}
@@ -1061,7 +1062,7 @@
 			eof // true if this is the last block for a file
 		) {
 			send_bits((STORED_BLOCK << 1) + (eof ? 1 : 0), 3); // send block type
-			copy_block(buf, stored_len, true); // with header
+			copy_block(buf, stored_len); // with header
 		}
 
 		// Determine the best encoding for the current block: dynamic trees, static
@@ -4331,6 +4332,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	class StreamAdapter {
 
 		constructor(Codec) {
@@ -4380,6 +4382,7 @@
 	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
+
 
 	const MINIMUM_CHUNK_SIZE = 64;
 	let maxWorkers = 2;
@@ -4496,6 +4499,7 @@
 	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
+
 
 	function getMimeType() {
 		return "application/octet-stream";
@@ -4644,6 +4648,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	class Crc32Stream extends TransformStream {
 
 		constructor() {
@@ -4692,6 +4697,7 @@
 	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
+
 
 	function encodeText(value) {
 		if (typeof TextEncoder == UNDEFINED_TYPE) {
@@ -5554,6 +5560,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	const GET_RANDOM_VALUES_SUPPORTED = typeof crypto != UNDEFINED_TYPE && typeof crypto.getRandomValues == FUNCTION_TYPE;
 
 	const ERR_INVALID_PASSWORD = "Invalid password";
@@ -5595,6 +5602,7 @@
 	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
+
 
 	const BLOCK_LENGTH = 16;
 	const RAW_FORMAT = "raw";
@@ -5899,6 +5907,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	const HEADER_LENGTH = 12;
 
 	class ZipCryptoDecryptionStream extends TransformStream {
@@ -6046,6 +6055,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	const COMPRESSION_FORMAT = "deflate-raw";
 
 	class DeflateStream extends TransformStream {
@@ -6186,6 +6196,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	const MESSAGE_EVENT_TYPE = "message";
 	const MESSAGE_START = "start";
 	const MESSAGE_PULL = "pull";
@@ -6306,6 +6317,7 @@
 	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
+
 
 	// deno-lint-ignore valid-typeof
 	let WEB_WORKERS_SUPPORTED = typeof Worker != UNDEFINED_TYPE;
@@ -6635,6 +6647,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	let pool = [];
 	const pendingRequests = [];
 
@@ -6740,6 +6753,7 @@
 	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
+
 
 	const ERR_HTTP_STATUS = "HTTP error ";
 	const ERR_HTTP_RANGE = "HTTP Range not supported";
@@ -7501,6 +7515,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	function decodeText(value, encoding) {
 		if (encoding && encoding.trim().toLowerCase() == "cp437") {
 			return decodeCP437(value);
@@ -7601,6 +7616,7 @@
 	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
+
 
 	const ERR_BAD_FORMAT = "File format is not recognized";
 	const ERR_EOCDR_NOT_FOUND = "End of central directory not found";
@@ -8270,6 +8286,7 @@
 	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
+
 
 	const ERR_DUPLICATED_NAME = "File already exists";
 	const ERR_INVALID_COMMENT = "Zip file comment exceeds 64KB";
@@ -9381,9 +9398,10 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	let baseURL;
 	try {
-		baseURL = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('zip-full.js', document.baseURI).href));
+		baseURL = (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.src || new URL('zip-full.js', document.baseURI).href));
 	} catch (_error) {
 		// ignored
 	}
@@ -9441,7 +9459,5 @@
 	exports.initWriter = initWriter;
 	exports.readUint8Array = readUint8Array;
 	exports.terminateWorkers = terminateWorkers;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

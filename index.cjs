@@ -1,7 +1,6 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
+var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 /*
  Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
@@ -1042,7 +1041,7 @@ function Deflate() {
 		bi_windup(); // align on byte boundary
 		last_eob_len = 8; // enough lookahead for inflate
 
-		if (header) {
+		{
 			put_short(len);
 			put_short(~len);
 		}
@@ -1057,7 +1056,7 @@ function Deflate() {
 		eof // true if this is the last block for a file
 	) {
 		send_bits((STORED_BLOCK << 1) + (eof ? 1 : 0), 3); // send block type
-		copy_block(buf, stored_len, true); // with header
+		copy_block(buf, stored_len); // with header
 	}
 
 	// Determine the best encoding for the current block: dynamic trees, static
@@ -4327,6 +4326,7 @@ const FUNCTION_TYPE = "function";
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 class StreamAdapter {
 
 	constructor(Codec) {
@@ -4376,6 +4376,7 @@ class StreamAdapter {
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 const MINIMUM_CHUNK_SIZE = 64;
 let maxWorkers = 2;
@@ -4491,6 +4492,7 @@ function setIfDefined(propertyName, propertyValue) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 function getMimeType$1() {
 	return "application/octet-stream";
 }
@@ -4522,6 +4524,7 @@ function getMimeType$1() {
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 const table$1 = {
 	"application": {
@@ -6214,6 +6217,7 @@ class Crc32 {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 class Crc32Stream extends TransformStream {
 
 	constructor() {
@@ -6262,6 +6266,7 @@ class Crc32Stream extends TransformStream {
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 function encodeText(value) {
 	if (typeof TextEncoder == UNDEFINED_TYPE) {
@@ -7124,6 +7129,7 @@ misc.hmacSha1 = class {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 const GET_RANDOM_VALUES_SUPPORTED = typeof crypto != UNDEFINED_TYPE && typeof crypto.getRandomValues == FUNCTION_TYPE;
 
 const ERR_INVALID_PASSWORD = "Invalid password";
@@ -7165,6 +7171,7 @@ function getRandomValues(array) {
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 const BLOCK_LENGTH = 16;
 const RAW_FORMAT = "raw";
@@ -7469,6 +7476,7 @@ function toBits(codecBytes, chunk) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 const HEADER_LENGTH = 12;
 
 class ZipCryptoDecryptionStream extends TransformStream {
@@ -7616,6 +7624,7 @@ function getInt32(number) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 const COMPRESSION_FORMAT = "deflate-raw";
 
 class DeflateStream extends TransformStream {
@@ -7756,6 +7765,7 @@ function pipeThrough(readable, transformStream) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 const MESSAGE_EVENT_TYPE = "message";
 const MESSAGE_START = "start";
 const MESSAGE_PULL = "pull";
@@ -7876,6 +7886,7 @@ class ChunkStream extends TransformStream {
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 // deno-lint-ignore valid-typeof
 let WEB_WORKERS_SUPPORTED = typeof Worker != UNDEFINED_TYPE;
@@ -8205,6 +8216,7 @@ async function onMessage({ data }, workerData) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 let pool = [];
 const pendingRequests = [];
 
@@ -8367,6 +8379,7 @@ function createCodecClass(constructor, constructorOptions, registerDataHandler) 
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 const ERR_HTTP_STATUS = "HTTP error ";
 const ERR_HTTP_RANGE = "HTTP Range not supported";
@@ -9128,6 +9141,7 @@ function decodeCP437(stringValue) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 function decodeText(value, encoding) {
 	if (encoding && encoding.trim().toLowerCase() == "cp437") {
 		return decodeCP437(value);
@@ -9228,6 +9242,7 @@ class Entry {
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 const ERR_BAD_FORMAT = "File format is not recognized";
 const ERR_EOCDR_NOT_FOUND = "End of central directory not found";
@@ -9490,7 +9505,7 @@ class ZipReaderStream {
 	}
 }
 
-class ZipEntry$1 {
+let ZipEntry$1 = class ZipEntry {
 
 	constructor(reader, config, options) {
 		Object.assign(this, {
@@ -9604,7 +9619,7 @@ class ZipEntry$1 {
 		}
 		return checkPasswordOnly ? UNDEFINED_VALUE : writer.getData ? writer.getData() : writable;
 	}
-}
+};
 
 function readCommonHeader(directory, dataView, offset) {
 	const rawBitFlag = directory.rawBitFlag = getUint16(dataView, offset + 2);
@@ -9897,6 +9912,7 @@ function getDataView$1(array) {
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 const ERR_DUPLICATED_NAME = "File already exists";
 const ERR_INVALID_COMMENT = "Zip file comment exceeds 64KB";
@@ -11008,6 +11024,7 @@ function getLength(...arrayLikes) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 class ZipEntry {
 
 	constructor(fs, name, params, parent) {
@@ -11845,9 +11862,10 @@ function addChild(parent, name, params, directory) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 let baseURL;
 try {
-	baseURL = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('index.cjs', document.baseURI).href));
+	baseURL = (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.src || new URL('index.cjs', document.baseURI).href));
 } catch (_error) {
 	// ignored
 }
@@ -11855,6 +11873,7 @@ configure({ baseURL });
 e(configure);
 
 /// <reference types="./index.d.ts" />
+
 
 configure({ Deflate: ZipDeflate, Inflate: ZipInflate });
 
