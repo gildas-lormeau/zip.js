@@ -1,6 +1,14 @@
 {
     "typedocOptions": {
-        "entryPoints": ["index.d.ts"],
+        "entryPoints": [
+            "index.d.ts"
+        ],
         "out": "../doc/api"
+    },
+    "compilerOptions": {
+        "lib": [
+            "es2018",
+            "dom"
+        ]
     }
 }
