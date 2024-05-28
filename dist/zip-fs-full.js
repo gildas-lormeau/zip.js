@@ -10156,7 +10156,7 @@
 			zip64DiskNumberStart,
 			password,
 			rawPassword,
-			level: !useCompressionStream && zipWriter.config.CompressionStream === UNDEFINED_VALUE ? 0 : level,
+			level: !useCompressionStream && (zipWriter.config.CompressionStream === UNDEFINED_VALUE && zipWriter.config.CompressionStreamNative === UNDEFINED_VALUE) ? 0 : level,
 			useWebWorkers,
 			encryptionStrength,
 			extendedTimestamp,
