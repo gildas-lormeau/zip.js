@@ -77,10 +77,10 @@
     "homepage": "https://gildas-lormeau.github.io/zip.js",
     "devDependencies": {
         "@rollup/plugin-node-resolve": "^15.2.3",
-        "@rollup/plugin-replace": "^5.0.5",
+        "@rollup/plugin-replace": "^5.0.7",
         "@rollup/plugin-terser": "^0.4.4",
         "http-server": "^14.1.1",
-        "rollup": "^4.17.2",
-        "typedoc": "^0.25.13"
+        "rollup": "^4.18.1",
+        "typedoc": "^0.26.4"
     }
 }
