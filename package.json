@@ -59,6 +59,7 @@
                 "default": "./index.cjs"
             }
         },
+        "./zip-data-uri.js": "./lib/zip-data-uri.js",
         "./lib/zip-fs.js": "./lib/zip-fs.js",
         "./lib/zip-full.js": "./lib/zip-full.js",
         "./lib/zip-no-worker-deflate.js": "./lib/zip-no-worker-deflate.js",
