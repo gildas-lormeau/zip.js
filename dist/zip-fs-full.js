@@ -10082,6 +10082,7 @@
 		const bufferedWrite = getOptionValue(zipWriter, options, "bufferedWrite");
 		const dataDescriptorSignature = getOptionValue(zipWriter, options, "dataDescriptorSignature", false);
 		const signal = getOptionValue(zipWriter, options, "signal");
+		const useUnicodeFileNames = getOptionValue(zipWriter, options, "useUnicodeFileNames", true);
 		const useCompressionStream = getOptionValue(zipWriter, options, "useCompressionStream");
 		let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor", true);
 		let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
@@ -10163,6 +10164,7 @@
 			zipCrypto,
 			bufferedWrite,
 			keepOrder,
+			useUnicodeFileNames,
 			dataDescriptor,
 			dataDescriptorSignature,
 			signal,
@@ -10501,6 +10503,7 @@
 			level,
 			zip64,
 			zipCrypto,
+			useUnicodeFileNames,
 			dataDescriptor,
 			directory,
 			rawExtraField,
@@ -10557,7 +10560,10 @@
 		} else {
 			rawExtraFieldNTFS = rawExtraFieldExtendedTimestamp = new Uint8Array();
 		}
-		let bitFlag = BITFLAG_LANG_ENCODING_FLAG;
+		let bitFlag = 0;
+		if (useUnicodeFileNames) {
+			bitFlag = bitFlag | BITFLAG_LANG_ENCODING_FLAG;
+		}
 		if (dataDescriptor) {
 			bitFlag = bitFlag | BITFLAG_DATA_DESCRIPTOR;
 		}

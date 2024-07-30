@@ -1314,7 +1314,15 @@ export interface ZipWriterConstructorOptions {
    */
   versionMadeBy?: number;
   /**
-   * `true` to to add a data descriptor.
+   * `true` to mark the file names as UTF-8 setting the general purpose bit 11 in the header (see Appendix D - Language Encoding (EFS)), `false` to mark the names as compliant with the original IBM Code Page 437.
+   * 
+   * Note that this does not ensure that the file names are in the correct encoding.
+   *
+   * @defaultValue true
+   */
+  useUnicodeFileNames?: boolean;
+  /**
+   * `true` to add a data descriptor.
    *
    * When set to `false`, the {@link ZipWriterConstructorOptions#bufferedWrite} option  will automatically be set to `true`.
    *
