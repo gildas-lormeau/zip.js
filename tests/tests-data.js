@@ -11,6 +11,7 @@ export default ([
 	{ title: "Custom IO classes", script: "./test-custom-io.js" },
 	{ title: "Data descriptor signature", script: "./test-data-descriptor-signature.js" },
 	{ title: "Data descriptor", script: "./test-data-descriptor.js" },
+	{ title: "Unicode file names", script: "./test-use-unicode-file-names.js" },
 	{ title: "Directory", script: "./test-directory.js" },
 	{ title: "Duplicated Filename", script: "./test-duplicated-filename.js" },
 	{ title: "Empty zip file", script: "./test-empty.js" },
