@@ -800,19 +800,13 @@ export interface GetEntriesOptions {
 /**
  * Represents options passed to the constructor of {@link ZipReader} and {@link Entry#getData}.
  */
-export interface ZipReaderCheckPasswordOptions {
+export interface ZipReaderOptions {
   /**
    * `true` to check only if the password is valid.
    *
    * @defaultValue false
    */
   checkPasswordOnly: boolean;
-}
-
-/**
- * Represents options passed to the constructor of {@link ZipReader} and {@link Entry#getData}.
- */
-export interface ZipReaderOptions {
   /**
    * `true` to check the signature of the entry.
    *
@@ -823,6 +817,10 @@ export interface ZipReaderOptions {
    * The password used to decrypt the content of the entry.
    */
   password?: string;
+  /**
+   * `true` to read the data as-is without decompressing it and without decrypting it.
+   */
+  passThrough?: boolean;
   /**
    * The password used to encrypt the content of the entry (raw).
    */
@@ -979,19 +977,8 @@ export interface Entry extends EntryMetaData {
         Writer<unknown> | WritableWriter | WritableStream,
         boolean
       >,
-    options?: EntryGetDataOptions,
+    options?: EntryGetDataCheckPasswordOptions
   ): Promise<Type>;
-
-  /**
-   * Tests if the password is valid.
-   *
-   * @param writer `undefined` or `null`.
-   * @param options The options with `checkPasswordOnly` set to `true`.
-   */
-  getData?(
-    writer: undefined | null,
-    options: EntryGetDataCheckPasswordOptions,
-  ): Promise<void>;
 }
 
 /**
@@ -1004,7 +991,7 @@ export interface EntryGetDataOptions
  * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
  */
 export interface EntryGetDataCheckPasswordOptions
-  extends EntryGetDataOptions, ZipReaderCheckPasswordOptions { }
+  extends EntryGetDataOptions { }
 
 /**
  * Represents an instance used to create a zipped stream.
