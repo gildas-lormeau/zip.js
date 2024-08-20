@@ -1171,6 +1171,14 @@ export interface ZipWriterAddDataOptions
    * The extra field of the entry.
    */
   extraField?: Map<number, Uint8Array>;
+  /**
+   * The uncompressed size of the entry. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
+   */
+  uncompressedSize?: number;
+  /**
+   * The signature (CRC32 checksum) of the content. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
+   */
+  signature?: number;
 }
 
 /**
@@ -1352,6 +1360,14 @@ export interface ZipWriterConstructorOptions {
    * @defaultValue false
    */
   usdz?: boolean;
+  /**
+   * `true` to write the data as-is without compressing it and without crypting it.
+   */
+  passThrough?: boolean;
+  /**
+   * `true` to write encrypted data when `passThrough` is set to `true`.
+   */
+  encrypted?: boolean;
   /**
    * Encode the filename and the comment of the entry.
    * 
@@ -2041,3 +2057,7 @@ export const ERR_SPLIT_ZIP_FILE: string;
  * Iteration completed too soon error
  */
 export const ERR_ITERATOR_COMPLETED_TOO_SOON: string;
+/**
+ * Undefined uncompressed size error
+ */
+export const ERR_UNDEFINED_UNCOMPRESSED_SIZE: string

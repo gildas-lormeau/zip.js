@@ -22,4 +22,17 @@ async function test() {
 	if (data.size != entries[0].compressedSize) {
 		throw new Error();
 	}
+	const uncompressedSize = TEXT_CONTENT.length;
+	blobWriter = new zip.BlobWriter("application/zip");
+	zipWriter = new zip.ZipWriter(blobWriter);
+	await zipWriter.add(FILENAME, new zip.BlobReader(data), { passThrough: true, uncompressedSize, encrypted: true, encryptionStrength: 3 });
+	await zipWriter.close();
+	zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
+	entries = await zipReader.getEntries();
+	data = await entries[0].getData(new zip.TextWriter(), { password: "password" });
+	await zipReader.close();
+	await zip.terminateWorkers();
+	if (data != TEXT_CONTENT) {
+		throw new Error();
+	}
 }
