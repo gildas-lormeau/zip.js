@@ -872,6 +872,10 @@ export interface EntryMetaData {
    */
   encrypted: boolean;
   /**
+   * `true` if the content of the entry is encrypted with the ZipCrypto algorithm.
+   */
+  zipCrypto: boolean;
+  /**
    * The size of the compressed data in bytes.
    */
   compressedSize: number;
