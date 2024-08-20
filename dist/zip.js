@@ -3356,7 +3356,7 @@
 		PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64,
 		"directory", "bitFlag", "encrypted", "signature", "filenameUTF8", "commentUTF8", "compressionMethod", "version", "versionMadeBy",
 		"extraField", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS",
-		"extraFieldExtendedTimestamp"];
+		"extraFieldExtendedTimestamp", "zipCrypto"];
 
 	class Entry {
 
@@ -3591,6 +3591,7 @@
 				});
 				startOffset = Math.max(offsetFileEntry, startOffset);
 				await readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
+				fileEntry.zipCrypto = fileEntry.encrypted && !fileEntry.extraFieldAES;
 				const entry = new Entry(fileEntry);
 				entry.getData = (writer, options) => fileEntry.getData(writer, entry, options);
 				offset = endOffset;
@@ -3711,6 +3712,9 @@
 			const passThrough = getOptionValue$1(zipEntry, options, "passThrough");
 			const encrypted = zipEntry.encrypted && localDirectory.encrypted && !passThrough;
 			const zipCrypto = encrypted && !extraFieldAES;
+			if (!passThrough) {
+				fileEntry.zipCrypto = zipCrypto;
+			}
 			if (encrypted) {
 				if (!zipCrypto && extraFieldAES.strength === UNDEFINED_VALUE) {
 					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
@@ -4567,9 +4571,14 @@
 			externalFileAttribute,
 			diskNumberStart
 		};
-		let { signature } = options;
+		let {
+			signature,
+			uncompressedSize
+		} = options;
 		let compressedSize = 0;
-		let uncompressedSize = 0;
+		if (!passThrough) {
+			uncompressedSize = 0;
+		}
 		const { writable } = writer;
 		if (reader) {
 			reader.chunkSize = getChunkSize(config);
@@ -4596,9 +4605,9 @@
 				streamOptions: { signal, size, onstart, onprogress, onend }
 			};
 			const result = await runWorker({ readable, writable }, workerOptions);
-			uncompressedSize = result.inputSize;
 			compressedSize = result.outputSize;
 			if (!passThrough) {
+				uncompressedSize = result.inputSize;
 				signature = result.signature;
 			}
 			writable.size += uncompressedSize;
@@ -4643,6 +4652,7 @@
 			creationDate,
 			lastAccessDate,
 			encrypted,
+			zipCrypto,
 			size: metadataSize + compressedSize,
 			compressionMethod,
 			version,
