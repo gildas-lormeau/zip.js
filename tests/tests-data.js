@@ -44,6 +44,7 @@ export default ([
 	{ title: "Pass through", script: "./test-passthrough.js" },
 	{ title: "Pass through crypto", script: "./test-passthrough-crypto.js" },
 	{ title: "Pass through zipcrypto", script: "./test-passthrough-zipcrypto.js" },
+	{ title: "Pass through uncompressed data", script: "./test-passthrough-uncompressed.js" },
 	{ title: "Readable Stream", script: "./test-readable-stream.js" },
 	{ title: "Readable Zip Stream", script: "./test-readable-zip-stream.js" },
 	{ title: "Safe closing", script: "./test-safe-closing.js" },
