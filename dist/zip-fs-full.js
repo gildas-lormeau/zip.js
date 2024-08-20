@@ -9563,7 +9563,8 @@
 				lastAccessDate: localDirectory.lastAccessDate,
 				creationDate: localDirectory.creationDate
 			});
-			const encrypted = zipEntry.encrypted && localDirectory.encrypted;
+			const passThrough = getOptionValue$1(zipEntry, options, "passThrough");
+			const encrypted = zipEntry.encrypted && localDirectory.encrypted && !passThrough;
 			const zipCrypto = encrypted && !extraFieldAES;
 			if (encrypted) {
 				if (!zipCrypto && extraFieldAES.strength === UNDEFINED_VALUE) {
@@ -9596,11 +9597,11 @@
 					rawPassword,
 					zipCrypto,
 					encryptionStrength: extraFieldAES && extraFieldAES.strength,
-					signed: getOptionValue$1(zipEntry, options, "checkSignature"),
+					signed: getOptionValue$1(zipEntry, options, "checkSignature") && !passThrough,
 					passwordVerification: zipCrypto && (bitFlag.dataDescriptor ? ((rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
 					signature,
-					compressed: compressionMethod != 0,
-					encrypted,
+					compressed: compressionMethod != 0 && !passThrough,
+					encrypted: zipEntry.encrypted && !passThrough,
 					useWebWorkers: getOptionValue$1(zipEntry, options, "useWebWorkers"),
 					useCompressionStream: getOptionValue$1(zipEntry, options, "useCompressionStream"),
 					transferStreams: getOptionValue$1(zipEntry, options, "transferStreams"),
@@ -9929,6 +9930,7 @@
 	const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
 	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
 	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (make sure 'keepOrder' is set to 'true')";
+	const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
 
@@ -10084,6 +10086,7 @@
 		const signal = getOptionValue(zipWriter, options, "signal");
 		const useUnicodeFileNames = getOptionValue(zipWriter, options, "useUnicodeFileNames", true);
 		const useCompressionStream = getOptionValue(zipWriter, options, "useCompressionStream");
+		const passThrough = getOptionValue(zipWriter, options, "passThrough");
 		let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor", true);
 		let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
 		if (password !== UNDEFINED_VALUE && encryptionStrength !== UNDEFINED_VALUE && (encryptionStrength < 1 || encryptionStrength > 3)) {
@@ -10112,18 +10115,28 @@
 		let maximumCompressedSize = 0;
 		let maximumEntrySize = 0;
 		let uncompressedSize = 0;
+		if (passThrough) {
+			({ uncompressedSize } = options);
+			if (uncompressedSize === UNDEFINED_VALUE) {
+				throw new Error(ERR_UNDEFINED_UNCOMPRESSED_SIZE);
+			}
+		}
 		const zip64Enabled = zip64 === true;
 		if (reader) {
 			reader = initReader(reader);
 			await initStream(reader);
-			if (reader.size === UNDEFINED_VALUE) {
-				dataDescriptor = true;
-				if (zip64 || zip64 === UNDEFINED_VALUE) {
-					zip64 = true;
-					uncompressedSize = maximumCompressedSize = MAX_32_BITS + 1;
+			if (!passThrough) {
+				if (reader.size === UNDEFINED_VALUE) {
+					dataDescriptor = true;
+					if (zip64 || zip64 === UNDEFINED_VALUE) {
+						zip64 = true;
+						uncompressedSize = maximumCompressedSize = MAX_32_BITS + 1;
+					}
+				} else {
+					uncompressedSize = reader.size;
+					maximumCompressedSize = getMaximumCompressedSize(uncompressedSize);
 				}
 			} else {
-				uncompressedSize = reader.size;
 				maximumCompressedSize = getMaximumCompressedSize(uncompressedSize);
 			}
 		}
@@ -10141,6 +10154,8 @@
 			}
 		}
 		zip64 = zip64 || false;
+		const encrypted = getOptionValue(zipWriter, options, "encrypted");
+		const { signature } = options;
 		options = Object.assign({}, options, {
 			rawFilename,
 			rawComment,
@@ -10171,7 +10186,10 @@
 			msDosCompatible,
 			internalFileAttribute,
 			externalFileAttribute,
-			useCompressionStream
+			useCompressionStream,
+			passThrough,
+			encrypted: Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted),
+			signature
 		});
 		const headerInfo = getHeaderInfo(options);
 		const dataDescriptorInfo = getDataDescriptorInfo(options);
@@ -10382,7 +10400,8 @@
 			msDosCompatible,
 			internalFileAttribute,
 			externalFileAttribute,
-			useCompressionStream
+			useCompressionStream,
+			passThrough
 		} = options;
 		const fileEntry = {
 			lock,
@@ -10403,9 +10422,9 @@
 			externalFileAttribute,
 			diskNumberStart
 		};
+		let { signature } = options;
 		let compressedSize = 0;
 		let uncompressedSize = 0;
-		let signature;
 		const { writable } = writer;
 		if (reader) {
 			reader.chunkSize = getChunkSize(config);
@@ -10421,9 +10440,9 @@
 					encryptionStrength,
 					zipCrypto: encrypted && zipCrypto,
 					passwordVerification: encrypted && zipCrypto && (rawLastModDate >> 8) & 0xFF,
-					signed: true,
-					compressed,
-					encrypted,
+					signed: !passThrough,
+					compressed: compressed && !passThrough,
+					encrypted: encrypted && !passThrough,
 					useWebWorkers,
 					useCompressionStream,
 					transferStreams: false
@@ -10434,7 +10453,9 @@
 			const result = await runWorker({ readable, writable }, workerOptions);
 			uncompressedSize = result.inputSize;
 			compressedSize = result.outputSize;
-			signature = result.signature;
+			if (!passThrough) {
+				signature = result.signature;
+			}
 			writable.size += uncompressedSize;
 		} else {
 			await writeData(writable, localHeaderArray);
@@ -10498,8 +10519,6 @@
 			lastModDate,
 			lastAccessDate,
 			creationDate,
-			rawPassword,
-			password,
 			level,
 			zip64,
 			zipCrypto,
@@ -10508,10 +10527,10 @@
 			directory,
 			rawExtraField,
 			encryptionStrength,
-			extendedTimestamp
+			extendedTimestamp,
+			encrypted
 		} = options;
 		const compressed = level !== 0 && !directory;
-		const encrypted = Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword)));
 		let version = options.version;
 		let rawExtraFieldAES;
 		if (encrypted && !zipCrypto) {
@@ -11913,6 +11932,7 @@
 	exports.ERR_ITERATOR_COMPLETED_TOO_SOON = ERR_ITERATOR_COMPLETED_TOO_SOON;
 	exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
 	exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
+	exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
 	exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION;
 	exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
 	exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
