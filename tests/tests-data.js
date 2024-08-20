@@ -24,6 +24,7 @@ export default ([
 	{ title: "Filesystem HTTP import", script: "./test-fs-http-import.js" },
 	{ title: "Filesystem HTTP reader", script: "./test-fs-http-reader.js" },
 	{ title: "Filesystem metadata", script: "./test-fs-metadata.js" },
+	{ title: "Filesystem passthrough", script: "./test-fs-passthrough.js" },
 	{ title: "Filesystem replace entry", script: "./test-fs-replace.js" },
 	{ title: "Filesystem streams", script: "./test-fs-streams.js" },
 	{ title: "Filesystem text", script: "./test-fs-text.js" },

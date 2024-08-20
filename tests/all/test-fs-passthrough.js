@@ -7,7 +7,7 @@ export { test };
 async function test() {
 	let zipFs = new zip.fs.FS();
 	zipFs.addText("text.txt", TEXT_CONTENT);
-	let blob = await zipFs.exportBlob({ password: "password", zipCrypto: true });
+	let blob = await zipFs.exportBlob({ password: "password" });
 	zipFs = new zip.fs.FS();
 	await zipFs.importBlob(blob, { passThrough: true });
 	blob = await zipFs.exportBlob();
