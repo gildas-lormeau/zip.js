@@ -4747,6 +4747,15 @@
 		let compressionMethod = COMPRESSION_METHOD_STORE;
 		if (compressed) {
 			compressionMethod = COMPRESSION_METHOD_DEFLATE;
+			if (level >= 1 && level < 3) {
+				bitFlag = bitFlag | 0b110;
+			}
+			if (level >= 3 && level < 5) {
+				bitFlag = bitFlag | 0b01;
+			}
+			if (level === 9) {
+				bitFlag = bitFlag | 0b10;
+			}
 		}
 		if (zip64) {
 			version = version > VERSION_ZIP64 ? version : VERSION_ZIP64;
@@ -5897,8 +5906,13 @@
 						uncompressedSize,
 						encrypted,
 						zipCrypto,
-						signature
+						signature,
+						compressionMethod
 					} = child.data;
+					let level;
+					if (compressionMethod === 0) {
+						level = 0;
+					}
 					zipEntryOptions = {
 						externalFileAttribute,
 						versionMadeBy,
@@ -5913,7 +5927,8 @@
 							encrypted,
 							zipCrypto,
 							signature,
-							uncompressedSize
+							uncompressedSize,
+							level
 						});
 					}
 				}
