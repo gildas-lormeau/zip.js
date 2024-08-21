@@ -9196,16 +9196,19 @@ const PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE = "internalFileAttribute";
 const PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE = "externalFileAttribute";
 const PROPERTY_NAME_MS_DOS_COMPATIBLE = "msDosCompatible";
 const PROPERTY_NAME_ZIP64 = "zip64";
+const PROPERTY_NAME_ENCRYPTED = "encrypted";
+const PROPERTY_NAME_VERSION = "version";
+const PROPERTY_NAME_VERSION_MADE_BY = "versionMadeBy";
+const PROPERTY_NAME_ZIPCRYPTO = "zipCrypto";
 
 const PROPERTY_NAMES = [
 	PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, PROPERTY_NAME_COMPPRESSED_SIZE, PROPERTY_NAME_UNCOMPPRESSED_SIZE,
 	PROPERTY_NAME_LAST_MODIFICATION_DATE, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT,
 	PROPERTY_NAME_LAST_ACCESS_DATE, PROPERTY_NAME_CREATION_DATE, PROPERTY_NAME_OFFSET, PROPERTY_NAME_DISK_NUMBER_START,
 	PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE,
-	PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64,
-	"directory", "bitFlag", "encrypted", "signature", "filenameUTF8", "commentUTF8", "compressionMethod", "version", "versionMadeBy",
-	"extraField", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS",
-	"extraFieldExtendedTimestamp", "zipCrypto"];
+	PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64, PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY,
+	PROPERTY_NAME_ZIPCRYPTO, "directory", "bitFlag", "signature", "filenameUTF8", "commentUTF8", "compressionMethod", "extraField", "rawExtraField",
+	"extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS", "extraFieldExtendedTimestamp"];
 
 class Entry {
 
@@ -10057,11 +10060,11 @@ async function addFile(zipWriter, name, reader, options) {
 	if (getLength(rawComment) > MAX_16_BITS) {
 		throw new Error(ERR_INVALID_ENTRY_COMMENT);
 	}
-	const version = getOptionValue(zipWriter, options, "version", VERSION_DEFLATE);
+	const version = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION, VERSION_DEFLATE);
 	if (version > MAX_16_BITS) {
 		throw new Error(ERR_INVALID_VERSION);
 	}
-	const versionMadeBy = getOptionValue(zipWriter, options, "versionMadeBy", 20);
+	const versionMadeBy = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION_MADE_BY, 20);
 	if (versionMadeBy > MAX_16_BITS) {
 		throw new Error(ERR_INVALID_VERSION);
 	}
@@ -10078,7 +10081,7 @@ async function addFile(zipWriter, name, reader, options) {
 		rawPassword = getOptionValue(zipWriter, options, "rawPassword");
 	}
 	const encryptionStrength = getOptionValue(zipWriter, options, "encryptionStrength", 3);
-	const zipCrypto = getOptionValue(zipWriter, options, "zipCrypto");
+	const zipCrypto = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIPCRYPTO);
 	const extendedTimestamp = getOptionValue(zipWriter, options, "extendedTimestamp", true);
 	const keepOrder = getOptionValue(zipWriter, options, "keepOrder", true);
 	const level = getOptionValue(zipWriter, options, "level");
@@ -10090,7 +10093,7 @@ async function addFile(zipWriter, name, reader, options) {
 	const useCompressionStream = getOptionValue(zipWriter, options, "useCompressionStream");
 	let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor", true);
 	let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
-	if ((password !== UNDEFINED_VALUE || rawPassword !== UNDEFINED_VALUE) && encryptionStrength !== UNDEFINED_VALUE && (encryptionStrength < 1 || encryptionStrength > 3)) {
+	if (!zipCrypto && (password !== UNDEFINED_VALUE || rawPassword !== UNDEFINED_VALUE) && !(encryptionStrength >= 1 && encryptionStrength <= 3)) {
 		throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
 	}
 	let rawExtraField = new Uint8Array();
@@ -10155,7 +10158,7 @@ async function addFile(zipWriter, name, reader, options) {
 		}
 	}
 	zip64 = zip64 || false;
-	const encrypted = getOptionValue(zipWriter, options, "encrypted");
+	const encrypted = getOptionValue(zipWriter, options, PROPERTY_NAME_ENCRYPTED);
 	const { signature } = options;
 	options = Object.assign({}, options, {
 		rawFilename,
@@ -10931,7 +10934,7 @@ async function closeFile(zipWriter, comment, options) {
 	if (availableSize < END_OF_CENTRAL_DIR_LENGTH) {
 		lastDiskNumber++;
 	}
-	let zip64 = getOptionValue(zipWriter, options, "zip64");
+	let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
 	if (directoryOffset > MAX_32_BITS || directoryDataLength > MAX_32_BITS || filesLength > MAX_16_BITS || lastDiskNumber > MAX_16_BITS) {
 		if (zip64 === false) {
 			throw new Error(ERR_UNSUPPORTED_FORMAT);
@@ -11756,11 +11759,15 @@ async function exportZip(zipWriter, entry, totalSize, options) {
 					encrypted,
 					zipCrypto,
 					signature,
-					compressionMethod
+					compressionMethod,
+					extraFieldAES
 				} = child.data;
-				let level;
+				let level, encryptionStrength;
 				if (compressionMethod === 0) {
 					level = 0;
+				}
+				if (extraFieldAES) {
+					encryptionStrength = extraFieldAES.strength;
 				}
 				zipEntryOptions = {
 					externalFileAttribute,
@@ -11777,7 +11784,8 @@ async function exportZip(zipWriter, entry, totalSize, options) {
 						zipCrypto,
 						signature,
 						uncompressedSize,
-						level
+						level,
+						encryptionStrength
 					});
 				}
 			}
