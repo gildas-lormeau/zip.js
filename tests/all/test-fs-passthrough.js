@@ -7,6 +7,9 @@ export { test };
 async function test() {
 	let zipFs = new zip.fs.FS();
 	zipFs.addText("text.txt", TEXT_CONTENT);
+	let blobEncryptedLevel1 = await zipFs.exportBlob({ password: "password", encryptionStrength: 1 });
+	zipFs = new zip.fs.FS();
+	zipFs.addText("text.txt", TEXT_CONTENT);
 	let blobEncrypted = await zipFs.exportBlob({ password: "password" });
 	zipFs = new zip.fs.FS();
 	zipFs.addText("text.txt", TEXT_CONTENT);
@@ -15,7 +18,9 @@ async function test() {
 	zipFs.addText("text.txt", TEXT_CONTENT);
 	let blobUncompressed = await zipFs.exportBlob({ level: 0 });
 	zipFs = new zip.fs.FS();
-	let directory = zipFs.addDirectory("import-encrypted");
+	let directory = zipFs.addDirectory("import-encrypted-level1");
+	await directory.importBlob(blobEncryptedLevel1, { passThrough: true });
+	directory = zipFs.addDirectory("import-encrypted");
 	await directory.importBlob(blobEncrypted, { passThrough: true });
 	directory = zipFs.addDirectory("import-zip-crypto");
 	await directory.importBlob(blobZipCrypto, { passThrough: true });
@@ -24,9 +29,15 @@ async function test() {
 	const blob = await zipFs.exportBlob();
 	zipFs = new zip.fs.FS();
 	await zipFs.importBlob(blob);
-	directory = zipFs.getChildByName("import-encrypted");
+	directory = zipFs.getChildByName("import-encrypted-level1");
 	let firstEntry = directory.children[0];
 	let text = await firstEntry.getText(null, { password: "password" });
+	if (text != TEXT_CONTENT || firstEntry.uncompressedSize != TEXT_CONTENT.length) {
+		throw new Error();
+	}
+	directory = zipFs.getChildByName("import-encrypted");
+	firstEntry = directory.children[0];
+	text = await firstEntry.getText(null, { password: "password", checkSignature: true });
 	if (text != TEXT_CONTENT || firstEntry.uncompressedSize != TEXT_CONTENT.length) {
 		throw new Error();
 	}
