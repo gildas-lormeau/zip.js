@@ -37,7 +37,7 @@ async function test() {
 	}
 	directory = zipFs.getChildByName("import-encrypted");
 	firstEntry = directory.children[0];
-	text = await firstEntry.getText(null, { password: "password", checkSignature: true });
+	text = await firstEntry.getText(null, { password: "password" });
 	if (text != TEXT_CONTENT || firstEntry.uncompressedSize != TEXT_CONTENT.length) {
 		throw new Error();
 	}
