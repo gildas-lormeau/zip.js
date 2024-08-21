@@ -8323,7 +8323,7 @@
 				config: getConfiguration(),
 				files: new Map(),
 				filenames: new Set(),
-				offset: writer.writable.size,
+				offset: options.offset === UNDEFINED_VALUE ? writer.writable.size : options.offset,
 				pendingEntriesSize: 0,
 				pendingAddFileCalls: new Set(),
 				bufferedWrites: 0
