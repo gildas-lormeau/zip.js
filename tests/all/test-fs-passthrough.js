@@ -32,13 +32,13 @@ async function test() {
 	}
 	directory = zipFs.getChildByName("import-zip-crypto");
 	firstEntry = directory.children[0];
-	text = await firstEntry.getText(null, { password: "password" });
+	text = await firstEntry.getText(null, { password: "password", checkSignature: true });
 	if (text != TEXT_CONTENT || firstEntry.uncompressedSize != TEXT_CONTENT.length) {
 		throw new Error();
 	}
 	directory = zipFs.getChildByName("import-uncompressed");
 	firstEntry = directory.children[0];
-	text = await firstEntry.getText();
+	text = await firstEntry.getText(null, { checkSignature: true });
 	await zip.terminateWorkers();
 	if (text != TEXT_CONTENT || firstEntry.uncompressedSize != TEXT_CONTENT.length) {
 		throw new Error();
