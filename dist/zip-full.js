@@ -8445,8 +8445,12 @@
 		const msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE, true);
 		const internalFileAttribute = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, 0);
 		const externalFileAttribute = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, 0);
-		const password = getOptionValue(zipWriter, options, "password");
-		const rawPassword = getOptionValue(zipWriter, options, "rawPassword");
+		const passThrough = getOptionValue(zipWriter, options, "passThrough");
+		let password, rawPassword;
+		if (!passThrough) {
+			password = getOptionValue(zipWriter, options, "password");
+			rawPassword = getOptionValue(zipWriter, options, "rawPassword");
+		}
 		const encryptionStrength = getOptionValue(zipWriter, options, "encryptionStrength", 3);
 		const zipCrypto = getOptionValue(zipWriter, options, "zipCrypto");
 		const extendedTimestamp = getOptionValue(zipWriter, options, "extendedTimestamp", true);
@@ -8458,10 +8462,9 @@
 		const signal = getOptionValue(zipWriter, options, "signal");
 		const useUnicodeFileNames = getOptionValue(zipWriter, options, "useUnicodeFileNames", true);
 		const useCompressionStream = getOptionValue(zipWriter, options, "useCompressionStream");
-		const passThrough = getOptionValue(zipWriter, options, "passThrough");
 		let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor", true);
 		let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
-		if (password !== UNDEFINED_VALUE && encryptionStrength !== UNDEFINED_VALUE && (encryptionStrength < 1 || encryptionStrength > 3)) {
+		if ((password !== UNDEFINED_VALUE || rawPassword !== UNDEFINED_VALUE) && encryptionStrength !== UNDEFINED_VALUE && (encryptionStrength < 1 || encryptionStrength > 3)) {
 			throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
 		}
 		let rawExtraField = new Uint8Array();
