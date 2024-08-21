@@ -1373,6 +1373,10 @@ export interface ZipWriterConstructorOptions {
    */
   encrypted?: boolean;
   /**
+   * The offset of the first entry in the zip file.
+   */
+  offset?: number;
+  /**
    * Encode the filename and the comment of the entry.
    * 
    * @param text The text to encode.
