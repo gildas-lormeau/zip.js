@@ -7,14 +7,38 @@ export { test };
 async function test() {
 	let zipFs = new zip.fs.FS();
 	zipFs.addText("text.txt", TEXT_CONTENT);
-	let blob = await zipFs.exportBlob({ password: "password" });
+	let blobEncrypted = await zipFs.exportBlob({ password: "password" });
 	zipFs = new zip.fs.FS();
-	await zipFs.importBlob(blob, { passThrough: true });
-	blob = await zipFs.exportBlob();
+	zipFs.addText("text.txt", TEXT_CONTENT);
+	let blobZipCrypto = await zipFs.exportBlob({ password: "password", zipCrypto: true });
+	zipFs = new zip.fs.FS();
+	zipFs.addText("text.txt", TEXT_CONTENT);
+	let blobUncompressed = await zipFs.exportBlob({ level: 0 });
+	zipFs = new zip.fs.FS();
+	let directory = zipFs.addDirectory("import-encrypted");
+	await directory.importBlob(blobEncrypted, { passThrough: true });
+	directory = zipFs.addDirectory("import-zip-crypto");
+	await directory.importBlob(blobZipCrypto, { passThrough: true });
+	directory = zipFs.addDirectory("import-uncompressed");
+	await directory.importBlob(blobUncompressed, { passThrough: true });
+	const blob = await zipFs.exportBlob();
 	zipFs = new zip.fs.FS();
 	await zipFs.importBlob(blob);
-	const firstEntry = zipFs.root.children[0];
-	const text = await firstEntry.getText(null, { password: "password" });
+	directory = zipFs.getChildByName("import-encrypted");
+	let firstEntry = directory.children[0];
+	let text = await firstEntry.getText(null, { password: "password" });
+	if (text != TEXT_CONTENT || firstEntry.uncompressedSize != TEXT_CONTENT.length) {
+		throw new Error();
+	}
+	directory = zipFs.getChildByName("import-zip-crypto");
+	firstEntry = directory.children[0];
+	text = await firstEntry.getText(null, { password: "password" });
+	if (text != TEXT_CONTENT || firstEntry.uncompressedSize != TEXT_CONTENT.length) {
+		throw new Error();
+	}
+	directory = zipFs.getChildByName("import-uncompressed");
+	firstEntry = directory.children[0];
+	text = await firstEntry.getText();
 	await zip.terminateWorkers();
 	if (text != TEXT_CONTENT || firstEntry.uncompressedSize != TEXT_CONTENT.length) {
 		throw new Error();
