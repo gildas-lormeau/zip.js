@@ -806,7 +806,7 @@ export interface ZipReaderOptions {
    *
    * @defaultValue false
    */
-  checkPasswordOnly: boolean;
+  checkPasswordOnly?: boolean;
   /**
    * `true` to check the signature of the entry.
    *
