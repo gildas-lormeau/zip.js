@@ -959,6 +959,7 @@ export interface EntryMetaData {
    * The number of the disk where the entry data starts.
    */
   diskNumberStart: number;
+   * The compression method.
 }
 
 /**
