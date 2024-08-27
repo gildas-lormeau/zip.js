@@ -3690,6 +3690,7 @@
 			const dataView = getDataView$1(dataArray);
 			let password = getOptionValue$1(zipEntry, options, "password");
 			let rawPassword = getOptionValue$1(zipEntry, options, "rawPassword");
+			const passThrough = getOptionValue$1(zipEntry, options, "passThrough");
 			password = password && password.length && password;
 			rawPassword = rawPassword && rawPassword.length && rawPassword;
 			if (extraFieldAES) {
@@ -3697,7 +3698,7 @@
 					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 				}
 			}
-			if (compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE) {
+			if ((compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE) && !passThrough) {
 				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 			}
 			if (getUint32(dataView, 0) != LOCAL_FILE_HEADER_SIGNATURE) {
@@ -3712,7 +3713,6 @@
 				lastAccessDate: localDirectory.lastAccessDate,
 				creationDate: localDirectory.creationDate
 			});
-			const passThrough = getOptionValue$1(zipEntry, options, "passThrough");
 			const encrypted = zipEntry.encrypted && localDirectory.encrypted && !passThrough;
 			const zipCrypto = encrypted && !extraFieldAES;
 			if (!passThrough) {
@@ -3739,7 +3739,7 @@
 				writer = new WritableStream();
 			}
 			writer = initWriter(writer);
-			await initStream(writer, uncompressedSize);
+			await initStream(writer, passThrough ? compressedSize : uncompressedSize);
 			const { writable } = writer;
 			const { onstart, onprogress, onend } = options;
 			const workerOptions = {
@@ -4242,6 +4242,7 @@
 		const signal = getOptionValue(zipWriter, options, "signal");
 		const useUnicodeFileNames = getOptionValue(zipWriter, options, "useUnicodeFileNames", true);
 		const useCompressionStream = getOptionValue(zipWriter, options, "useCompressionStream");
+		const compressionMethod = getOptionValue(zipWriter, options, "compressionMethod");
 		let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor", true);
 		let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
 		if (!zipCrypto && (password !== UNDEFINED_VALUE || rawPassword !== UNDEFINED_VALUE) && !(encryptionStrength >= 1 && encryptionStrength <= 3)) {
@@ -4344,7 +4345,8 @@
 			useCompressionStream,
 			passThrough,
 			encrypted: Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted),
-			signature
+			signature,
+			compressionMethod
 		});
 		const headerInfo = getHeaderInfo(options);
 		const dataDescriptorInfo = getDataDescriptorInfo(options);
@@ -4692,7 +4694,7 @@
 			encrypted
 		} = options;
 		const compressed = level !== 0 && !directory;
-		let version = options.version;
+		let { version, compressionMethod } = options;
 		let rawExtraFieldAES;
 		if (encrypted && !zipCrypto) {
 			rawExtraFieldAES = new Uint8Array(getLength(EXTRAFIELD_DATA_AES) + 2);
@@ -4747,9 +4749,10 @@
 		if (dataDescriptor) {
 			bitFlag = bitFlag | BITFLAG_DATA_DESCRIPTOR;
 		}
-		let compressionMethod = COMPRESSION_METHOD_STORE;
+		if (compressionMethod === UNDEFINED_VALUE) {
+			compressionMethod = compressed ? COMPRESSION_METHOD_DEFLATE : COMPRESSION_METHOD_STORE;
+		}
 		if (compressed) {
-			compressionMethod = COMPRESSION_METHOD_DEFLATE;
 			if (level >= 1 && level < 3) {
 				bitFlag = bitFlag | 0b110;
 			}
@@ -4767,10 +4770,8 @@
 			bitFlag = bitFlag | BITFLAG_ENCRYPTED;
 			if (!zipCrypto) {
 				version = version > VERSION_AES ? version : VERSION_AES;
+				rawExtraFieldAES[9] = compressionMethod;
 				compressionMethod = COMPRESSION_METHOD_AES;
-				if (compressed) {
-					rawExtraFieldAES[9] = COMPRESSION_METHOD_DEFLATE;
-				}
 			}
 		}
 		const headerArray = new Uint8Array(26);
@@ -5913,13 +5914,6 @@
 						compressionMethod,
 						extraFieldAES
 					} = child.data;
-					let level, encryptionStrength;
-					if (compressionMethod === 0) {
-						level = 0;
-					}
-					if (extraFieldAES) {
-						encryptionStrength = extraFieldAES.strength;
-					}
 					zipEntryOptions = {
 						externalFileAttribute,
 						versionMadeBy,
@@ -5929,6 +5923,13 @@
 						lastAccessDate
 					};
 					if (child.passThrough) {
+						let level, encryptionStrength;
+						if (compressionMethod === 0) {
+							level = 0;
+						}
+						if (extraFieldAES) {
+							encryptionStrength = extraFieldAES.strength;
+						}
 						zipEntryOptions = Object.assign(zipEntryOptions, {
 							passThrough: true,
 							encrypted,
@@ -5936,7 +5937,8 @@
 							signature,
 							uncompressedSize,
 							level,
-							encryptionStrength
+							encryptionStrength,
+							compressionMethod
 						});
 					}
 				}
