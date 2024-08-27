@@ -407,7 +407,7 @@ export class HttpReader extends Reader<URLString> {
    * @param url The URL of the data.
    * @param options The options.
    */
-  constructor(url: URLString, options?: HttpOptions);
+  constructor(url: URLString | URL, options?: HttpOptions);
 }
 
 /**
@@ -420,7 +420,7 @@ export class HttpRangeReader extends HttpReader {
    * @param url The URL of the data.
    * @param options The options.
    */
-  constructor(url: URLString, options?: HttpRangeOptions);
+  constructor(url: URLString | URL, options?: HttpRangeOptions);
 }
 
 /**
