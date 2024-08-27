@@ -959,7 +959,10 @@ export interface EntryMetaData {
    * The number of the disk where the entry data starts.
    */
   diskNumberStart: number;
+  /**
    * The compression method.
+   */
+  compressionMethod: number;
 }
 
 /**
@@ -1377,6 +1380,10 @@ export interface ZipWriterConstructorOptions {
    * The offset of the first entry in the zip file.
    */
   offset?: number;
+  /**
+   * The compression method (e.g. 8 for DEFLATE, 0 for STORE).
+   */
+  compressionMethod?: number
   /**
    * Encode the filename and the comment of the entry.
    * 
