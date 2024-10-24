@@ -32,6 +32,7 @@
         "bun": ">=0.7.0"
     },
     "scripts": {
+        "test": "mocha",
         "build": "npx rollup -c",
         "build-dev": "npx rollup -c rollup.config.dev.js",
         "build-fflate": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.js",
@@ -79,8 +80,11 @@
         "@rollup/plugin-node-resolve": "^15.2.3",
         "@rollup/plugin-replace": "^5.0.7",
         "@rollup/plugin-terser": "^0.4.4",
+        "assert": "^2.1.0",
         "http-server": "^14.1.1",
+        "mocha": "^10.7.3",
         "rollup": "^4.18.1",
+        "sinon": "^19.0.2",
         "typedoc": "^0.26.4"
     }
 }
