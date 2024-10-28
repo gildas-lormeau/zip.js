@@ -926,7 +926,7 @@ export interface EntryMetaData {
   /**
    * The extra field.
    */
-  extraField?: Map<number, Uint8Array>;
+  extraField?: Map<number, { type: number, data: Uint8Array }>;
   /**
    * The extra field (raw).
    */
