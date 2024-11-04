@@ -394,7 +394,6 @@ export class SplitDataReader
 /**
  * Represents a URL stored into a `string`.
  */
-// deno-lint-ignore no-empty-interface
 interface URLString extends String { }
 
 /**
