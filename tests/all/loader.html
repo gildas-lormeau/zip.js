@@ -15,7 +15,7 @@
     <script>
         const testData = JSON.parse(decodeURIComponent(location.hash.substring(1)));
         const script = testData.script;
-        import(testData.script).then(async Module => {
+        import(script).then(async Module => {
             try {
                 const result = await Module.test();
                 document.body.innerHTML = "ok";
