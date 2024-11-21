@@ -8,7 +8,7 @@ import tests from "./tests-data.js";
 
 setMaxListeners(100);
 
-beforeEach(() => globalThis.fetch = mock.fn(async (url) => {
+beforeEach(() => globalThis.fetch = mock.fn(async url => {
 	const blob = await openAsBlob("." + url.toString().match(/(\/data\/.*)/)[1]);
 	return {
 		status: 200,
