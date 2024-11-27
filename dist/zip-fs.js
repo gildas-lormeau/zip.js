@@ -282,6 +282,9 @@
 		return "application/octet-stream";
 	}
 
+	/* eslint-disable no-prototype-builtins */
+
+
 	function initShimAsyncCodec(library, options = {}, registerDataHandler) {
 		return {
 			Deflate: createCodecClass(library.Deflate, options.deflate, registerDataHandler),
@@ -290,14 +293,18 @@
 	}
 
 	function objectHasOwn(object, propertyName) {
-		// eslint-disable-next-line no-prototype-builtins
-		return typeof Object.hasOwn === FUNCTION_TYPE ? Object.hasOwn(object, propertyName) : object.hasOwnProperty(propertyName);
+		// deno-lint-ignore valid-typeof
+		return typeof Object.hasOwn === FUNCTION_TYPE ?
+			Object.hasOwn(object, propertyName) :
+			// deno-lint-ignore no-prototype-builtins
+			object.hasOwnProperty(propertyName);
 	}
 
 	function createCodecClass(constructor, constructorOptions, registerDataHandler) {
 		return class {
 
 			constructor(options) {
+				// deno-lint-ignore no-this-alias
 				const codecAdapter = this;
 				const onData = data => {
 					if (codecAdapter.pendingData) {
@@ -429,6 +436,7 @@
 	class Crc32Stream extends TransformStream {
 
 		constructor() {
+			// deno-lint-ignore prefer-const
 			let stream;
 			const crc32 = new Crc32();
 			super({
@@ -477,6 +485,7 @@
 
 
 	function encodeText(value) {
+		// deno-lint-ignore valid-typeof
 		if (typeof TextEncoder == UNDEFINED_TYPE) {
 			value = unescape(encodeURIComponent(value));
 			const result = new Uint8Array(value.length);
@@ -1927,11 +1936,11 @@
 		try {
 			const CompressionStream = useCompressionStream && CodecStreamNative ? CodecStreamNative : CodecStream;
 			readable = pipeThrough(readable, new CompressionStream(COMPRESSION_FORMAT, options));
-		} catch (error) {
+		} catch (_error) {
 			if (useCompressionStream) {
 				try {
 					readable = pipeThrough(readable, new CodecStream(COMPRESSION_FORMAT, options));
-				} catch (error) {
+				} catch (_error) {
 					return readable;
 				}
 			} else {
@@ -2191,7 +2200,7 @@
 			let worker;
 			try {
 				worker = getWebWorker(workerData.scripts[0], baseURL, workerData);
-			} catch (error) {
+			} catch (_error) {
 				WEB_WORKERS_SUPPORTED = false;
 				return createWorkerInterface(workerData, config);
 			}
@@ -2313,7 +2322,7 @@
 
 	function sendMessage(message, { worker, writer, onTaskFinished, transferStreams }) {
 		try {
-			let { value, readable, writable } = message;
+			const { value, readable, writable } = message;
 			const transferables = [];
 			if (value) {
 				if (value.byteLength < value.buffer.byteLength) {
@@ -2441,6 +2450,7 @@
 		options.useCompressionStream = useCompressionStream || (useCompressionStream === UNDEFINED_VALUE && config.useCompressionStream);
 		return (await getWorker()).run();
 
+		// deno-lint-ignore require-await
 		async function getWorker() {
 			const workerData = pool.find(workerData => !workerData.busy);
 			if (workerData) {
@@ -3593,7 +3603,7 @@
 					directory: directory || filename.endsWith(DIRECTORY_SIGNATURE)
 				});
 				startOffset = Math.max(offsetFileEntry, startOffset);
-				await readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
+				readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
 				fileEntry.zipCrypto = fileEntry.encrypted && !fileEntry.extraFieldAES;
 				const entry = new Entry(fileEntry);
 				entry.getData = (writer, options) => fileEntry.getData(writer, entry, options);
@@ -3708,7 +3718,7 @@
 			localDirectory.rawExtraField = localDirectory.extraFieldLength ?
 				await readUint8Array(reader, offset + 30 + localDirectory.filenameLength, localDirectory.extraFieldLength, diskNumberStart) :
 				new Uint8Array();
-			await readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
+			readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
 			Object.assign(fileEntry, {
 				lastAccessDate: localDirectory.lastAccessDate,
 				creationDate: localDirectory.creationDate
@@ -3799,7 +3809,7 @@
 		});
 	}
 
-	async function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory) {
+	function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory) {
 		const { rawExtraField } = directory;
 		const extraField = directory.extraField = new Map();
 		const rawExtraFieldView = getDataView$1(new Uint8Array(rawExtraField));
@@ -3830,12 +3840,12 @@
 		}
 		const extraFieldUnicodePath = extraField.get(EXTRAFIELD_TYPE_UNICODE_PATH);
 		if (extraFieldUnicodePath) {
-			await readExtraFieldUnicode(extraFieldUnicodePath, PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, directory, fileEntry);
+			readExtraFieldUnicode(extraFieldUnicodePath, PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, directory, fileEntry);
 			directory.extraFieldUnicodePath = extraFieldUnicodePath;
 		}
 		const extraFieldUnicodeComment = extraField.get(EXTRAFIELD_TYPE_UNICODE_COMMENT);
 		if (extraFieldUnicodeComment) {
-			await readExtraFieldUnicode(extraFieldUnicodeComment, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT, directory, fileEntry);
+			readExtraFieldUnicode(extraFieldUnicodeComment, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT, directory, fileEntry);
 			directory.extraFieldUnicodeComment = extraFieldUnicodeComment;
 		}
 		const extraFieldAES = extraField.get(EXTRAFIELD_TYPE_AES);
@@ -3877,7 +3887,7 @@
 		}
 	}
 
-	async function readExtraFieldUnicode(extraFieldUnicode, propertyName, rawPropertyName, directory, fileEntry) {
+	function readExtraFieldUnicode(extraFieldUnicode, propertyName, rawPropertyName, directory, fileEntry) {
 		const extraFieldView = getDataView$1(extraFieldUnicode.data);
 		const crc32 = new Crc32();
 		crc32.append(fileEntry[rawPropertyName]);
@@ -5796,7 +5806,7 @@
 			return this.root.isPasswordProtected();
 		}
 
-		async checkPassword(password, options) {
+		checkPassword(password, options) {
 			return this.root.checkPassword(password, options);
 		}
 	}
@@ -5897,7 +5907,7 @@
 
 			async function processChild(child) {
 				const name = options.relativePath ? child.getRelativeName(selectedEntry) : child.getFullname();
-				let childOptions = child.options || {};
+				const childOptions = child.options || {};
 				let zipEntryOptions = {};
 				if (child.data instanceof Entry) {
 					const {
@@ -5961,7 +5971,7 @@
 		}
 	}
 
-	async function addFileSystemHandle(zipEntry, handle, options) {
+	function addFileSystemHandle(zipEntry, handle, options) {
 		return addFile(zipEntry, handle, []);
 
 		async function addFile(parentEntry, handle, addedEntries) {
