@@ -12,7 +12,7 @@ async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	let blobWriter = new zip.BlobWriter("application/zip");
 	let zipWriter = new zip.ZipWriter(blobWriter);
-	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { level: 0 });
+	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { compressionMethod: 0 });
 	await zipWriter.close();
 	let zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	let entries = await zipReader.getEntries();
