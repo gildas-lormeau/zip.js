@@ -39,7 +39,7 @@
         "build-doc-api": "npx typedoc",
         "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
         "test-node": "cd ./tests && node ./node-runner.js",
-        "test-bun": "cd ./tests && bun test bun-runner.js",
+        "test-bun": "cd ./tests && bun test ./bun-runner.js",
         "test-firefox": "firefox http://localhost:8081/tests/ & npx http-server -p=8081 & wait $!",
         "test-chrome": "google-chrome http://localhost:8081/tests/ & npx http-server -p=8081 & wait $!"
     },
