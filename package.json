@@ -1,86 +1,88 @@
 {
-    "name": "@zip.js/zip.js",
-    "description": "A JavaScript library to zip and unzip files in the browser, Deno and Node.js",
-    "author": "Gildas Lormeau",
-    "license": "BSD-3-Clause",
-    "version": "2.7.54",
-    "type": "module",
-    "keywords": [
-        "zip",
-        "unzip",
-        "browser",
-        "web",
-        "aes-256",
-        "aes-192",
-        "aes-128",
-        "zip-crypto",
-        "encryption",
-        "zip64",
-        "web-streams",
-        "compression-streams",
-        "web-crypto",
-        "web-workers",
-        "deno",
-        "node.js",
-        "multi-core",
-        "split-zip",
-        "usdz"
-    ],
-    "engines": {
-        "deno": ">=1.0.0",
-        "node": ">=16.5.0",
-        "bun": ">=0.7.0"
+  "name": "@zip.js/zip.js",
+  "description": "A JavaScript library to zip and unzip files in the browser, Deno and Node.js",
+  "author": "Gildas Lormeau",
+  "license": "BSD-3-Clause",
+  "version": "2.7.54",
+  "type": "module",
+  "keywords": [
+    "zip",
+    "unzip",
+    "browser",
+    "web",
+    "aes-256",
+    "aes-192",
+    "aes-128",
+    "zip-crypto",
+    "encryption",
+    "zip64",
+    "web-streams",
+    "compression-streams",
+    "web-crypto",
+    "web-workers",
+    "deno",
+    "node.js",
+    "multi-core",
+    "split-zip",
+    "usdz"
+  ],
+  "engines": {
+    "deno": ">=1.0.0",
+    "node": ">=16.5.0",
+    "bun": ">=0.7.0"
+  },
+  "scripts": {
+    "build": "npx rollup -c",
+    "build-dev": "npx rollup -c rollup.config.dev.js",
+    "build-fflate": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.js",
+    "build-fflate-dev": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.dev.js",
+    "build-doc-api": "npx typedoc",
+    "build-markdown-docs": "npx typedoc --plugin typedoc-plugin-markdown --out ./docs",
+    "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
+    "test-node": "cd ./tests && node ./node-runner.js",
+    "test-bun": "cd ./tests && bun test ./bun-runner.js",
+    "test-firefox": "firefox http://localhost:8081/tests/ & npx http-server -p=8081 & wait $!",
+    "test-chrome": "google-chrome http://localhost:8081/tests/ & npx http-server -p=8081 & wait $!"
+  },
+  "main": "./index.cjs",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    "./index.min.js": "./index.min.js",
+    ".": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.cjs"
+      }
     },
-    "scripts": {
-        "build": "npx rollup -c",
-        "build-dev": "npx rollup -c rollup.config.dev.js",
-        "build-fflate": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.js",
-        "build-fflate-dev": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.dev.js",
-        "build-doc-api": "npx typedoc",
-        "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
-        "test-node": "cd ./tests && node ./node-runner.js",
-        "test-bun": "cd ./tests && bun test ./bun-runner.js",
-        "test-firefox": "firefox http://localhost:8081/tests/ & npx http-server -p=8081 & wait $!",
-        "test-chrome": "google-chrome http://localhost:8081/tests/ & npx http-server -p=8081 & wait $!"
-    },
-    "main": "./index.cjs",
-    "module": "./index.js",
-    "types": "./index.d.ts",
-    "exports": {
-        "./package.json": "./package.json",
-        "./index.min.js": "./index.min.js",
-        ".": {
-            "import": {
-                "types": "./index.d.ts",
-                "default": "./index.js"
-            },
-            "require": {
-                "types": "./index.d.ts",
-                "default": "./index.cjs"
-            }
-        },
-        "./data-uri.js": "./lib/zip-data-uri.js",
-        "./lib/zip-fs.js": "./lib/zip-fs.js",
-        "./lib/zip-full.js": "./lib/zip-full.js",
-        "./lib/zip-no-worker-deflate.js": "./lib/zip-no-worker-deflate.js",
-        "./lib/zip-no-worker-inflate.js": "./lib/zip-no-worker-inflate.js",
-        "./lib/zip-no-worker.js": "./lib/zip-no-worker.js",
-        "./lib/zip.js": "./lib/zip.js"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/gildas-lormeau/zip.js.git"
-    },
-    "bugs": {
-        "url": "https://github.com/gildas-lormeau/zip.js/issues"
-    },
-    "homepage": "https://gildas-lormeau.github.io/zip.js",
-    "devDependencies": {
-        "@rollup/plugin-node-resolve": "^15.3.0",
-        "@rollup/plugin-replace": "^6.0.1",
-        "@rollup/plugin-terser": "^0.4.4",
-        "http-server": "^14.1.1",
-        "rollup": "^4.28.0",
-        "typedoc": "^0.27.3"
-    }
+    "./data-uri.js": "./lib/zip-data-uri.js",
+    "./lib/zip-fs.js": "./lib/zip-fs.js",
+    "./lib/zip-full.js": "./lib/zip-full.js",
+    "./lib/zip-no-worker-deflate.js": "./lib/zip-no-worker-deflate.js",
+    "./lib/zip-no-worker-inflate.js": "./lib/zip-no-worker-inflate.js",
+    "./lib/zip-no-worker.js": "./lib/zip-no-worker.js",
+    "./lib/zip.js": "./lib/zip.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gildas-lormeau/zip.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gildas-lormeau/zip.js/issues"
+  },
+  "homepage": "https://gildas-lormeau.github.io/zip.js",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-replace": "^6.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "http-server": "^14.1.1",
+    "rollup": "^4.28.0",
+    "typedoc": "^0.27.4",
+    "typedoc-plugin-markdown": "^4.3.2"
+  }
 }
