@@ -4,3 +4,4 @@ rollup*
 tsconfig.json
 .vscode
 .eslintrc.json
+docs
