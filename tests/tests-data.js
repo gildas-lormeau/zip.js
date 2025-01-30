@@ -12,6 +12,7 @@ export default ([
 	{ title: "Data descriptor signature", script: "./test-data-descriptor-signature.js" },
 	{ title: "Data descriptor", script: "./test-data-descriptor.js" },
 	{ title: "Directory", script: "./test-directory.js" },
+	{ title: "Executable", script: "./test-executable.js" },
 	{ title: "Duplicated Filename", script: "./test-duplicated-filename.js" },
 	{ title: "Empty zip file", script: "./test-empty.js" },
 	{ title: "Extended timestamp", script: "./test-extended-timestamp.js" },

@@ -1188,6 +1188,12 @@ export interface ZipWriterAddDataOptions
    */
   directory?: boolean;
   /**
+   * `true` if the entry is an executable file.
+   *
+   * @defaultValue false
+   */
+  executable?: boolean;
+  /**
    * The comment of the entry.
    */
   comment?: string;
@@ -1357,7 +1363,7 @@ export interface ZipWriterConstructorOptions {
   /**
    * `true` to write {@link EntryMetaData#externalFileAttributes} in MS-DOS format for folder entries.
    *
-   * @defaultValue true
+   * @defaultValue false
    */
   msDosCompatible?: boolean;
   /**
