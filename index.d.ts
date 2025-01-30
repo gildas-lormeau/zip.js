@@ -867,6 +867,10 @@ export interface EntryMetaData {
    */
   directory: boolean;
   /**
+   * `true` if the entry is an executable file
+   */
+  executable: boolean;
+  /**
    * `true` if the content of the entry is encrypted.
    */
   encrypted: boolean;
