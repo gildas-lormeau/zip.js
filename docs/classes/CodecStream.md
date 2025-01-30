@@ -6,6 +6,8 @@
 
 # Class: CodecStream
 
+Defined in: [index.d.ts:271](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L271)
+
 Represents a class implementing `CompressionStream` or `DecompressionStream` interfaces.
 
 ## Extends
@@ -18,19 +20,21 @@ Represents a class implementing `CompressionStream` or `DecompressionStream` int
 
 > **new CodecStream**(`transformer`?, `writableStrategy`?, `readableStrategy`?): [`CodecStream`](CodecStream.md)
 
+Defined in: node\_modules/typescript/lib/lib.dom.d.ts:23111
+
 #### Parameters
 
 ##### transformer?
 
-`Transformer`\<`any`, `any`\>
+`Transformer`
 
 ##### writableStrategy?
 
-`QueuingStrategy`\<`any`\>
+`QueuingStrategy`
 
 ##### readableStrategy?
 
-`QueuingStrategy`\<`any`\>
+`QueuingStrategy`
 
 #### Returns
 
@@ -40,15 +44,13 @@ Represents a class implementing `CompressionStream` or `DecompressionStream` int
 
 `TransformStream.constructor`
 
-#### Defined in
-
-node\_modules/typescript/lib/lib.dom.d.ts:23111
-
 ## Properties
 
 ### readable
 
-> `readonly` **readable**: `ReadableStream`\<`any`\>
+> `readonly` **readable**: `ReadableStream`
+
+Defined in: node\_modules/typescript/lib/lib.dom.d.ts:23104
 
 [MDN Reference](https://developer.mozilla.org/docs/Web/API/TransformStream/readable)
 
@@ -56,22 +58,16 @@ node\_modules/typescript/lib/lib.dom.d.ts:23111
 
 `TransformStream.readable`
 
-#### Defined in
-
-node\_modules/typescript/lib/lib.dom.d.ts:23104
-
 ***
 
 ### writable
 
-> `readonly` **writable**: `WritableStream`\<`any`\>
+> `readonly` **writable**: `WritableStream`
+
+Defined in: node\_modules/typescript/lib/lib.dom.d.ts:23106
 
 [MDN Reference](https://developer.mozilla.org/docs/Web/API/TransformStream/writable)
 
 #### Inherited from
 
 `TransformStream.writable`
-
-#### Defined in
-
-node\_modules/typescript/lib/lib.dom.d.ts:23106

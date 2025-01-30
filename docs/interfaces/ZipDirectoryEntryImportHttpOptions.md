@@ -6,6 +6,8 @@
 
 # Interface: ZipDirectoryEntryImportHttpOptions
 
+Defined in: [index.d.ts:1901](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L1901)
+
 Represents the options passed to [ZipDirectoryEntry#importHttpContent](../classes/ZipDirectoryEntry.md#importhttpcontent).
 
 ## Extends
@@ -17,6 +19,8 @@ Represents the options passed to [ZipDirectoryEntry#importHttpContent](../classe
 ### checkPasswordOnly?
 
 > `optional` **checkPasswordOnly**: `boolean`
+
+Defined in: [index.d.ts:808](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L808)
 
 `true` to check only if the password is valid.
 
@@ -30,15 +34,13 @@ false
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkPasswordOnly`](ZipReaderConstructorOptions.md#checkpasswordonly)
 
-#### Defined in
-
-[index.d.ts:808](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L808)
-
 ***
 
 ### checkSignature?
 
 > `optional` **checkSignature**: `boolean`
+
+Defined in: [index.d.ts:814](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L814)
 
 `true` to check the signature of the entry.
 
@@ -52,15 +54,13 @@ false
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkSignature`](ZipReaderConstructorOptions.md#checksignature)
 
-#### Defined in
-
-[index.d.ts:814](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L814)
-
 ***
 
 ### combineSizeEocd?
 
 > `optional` **combineSizeEocd**: `boolean`
+
+Defined in: [index.d.ts:453](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L453)
 
 `true` to use `Range: bytes=-22` on the first request and cache the EOCD, make sure beforehand that the server supports a suffix range request.
 
@@ -74,15 +74,13 @@ false
 
 [`HttpOptions`](HttpOptions.md).[`combineSizeEocd`](HttpOptions.md#combinesizeeocd)
 
-#### Defined in
-
-[index.d.ts:453](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L453)
-
 ***
 
 ### commentEncoding?
 
 > `optional` **commentEncoding**: `string`
+
+Defined in: [index.d.ts:788](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L788)
 
 The encoding of the comment of the entry.
 
@@ -90,15 +88,13 @@ The encoding of the comment of the entry.
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`commentEncoding`](ZipReaderConstructorOptions.md#commentencoding)
 
-#### Defined in
-
-[index.d.ts:788](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L788)
-
 ***
 
 ### extractAppendedData?
 
 > `optional` **extractAppendedData**: `boolean`
+
+Defined in: [index.d.ts:768](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L768)
 
 `true` to extract the appended data into [ZipReader#appendedData](../classes/ZipReader.md#appendeddata).
 
@@ -112,15 +108,13 @@ false
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`extractAppendedData`](ZipReaderConstructorOptions.md#extractappendeddata)
 
-#### Defined in
-
-[index.d.ts:768](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L768)
-
 ***
 
 ### extractPrependedData?
 
 > `optional` **extractPrependedData**: `boolean`
+
+Defined in: [index.d.ts:762](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L762)
 
 `true` to extract the prepended data into [ZipReader#prependedData](../classes/ZipReader.md#prependeddata).
 
@@ -134,15 +128,13 @@ false
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`extractPrependedData`](ZipReaderConstructorOptions.md#extractprependeddata)
 
-#### Defined in
-
-[index.d.ts:762](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L762)
-
 ***
 
 ### filenameEncoding?
 
 > `optional` **filenameEncoding**: `string`
+
+Defined in: [index.d.ts:784](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L784)
 
 The encoding of the filename of the entry.
 
@@ -150,15 +142,13 @@ The encoding of the filename of the entry.
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`filenameEncoding`](ZipReaderConstructorOptions.md#filenameencoding)
 
-#### Defined in
-
-[index.d.ts:784](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L784)
-
 ***
 
 ### forceRangeRequests?
 
 > `optional` **forceRangeRequests**: `boolean`
+
+Defined in: [index.d.ts:440](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L440)
 
 `true` to always use `Range` headers when fetching data.
 
@@ -172,15 +162,13 @@ false
 
 [`HttpOptions`](HttpOptions.md).[`forceRangeRequests`](HttpOptions.md#forcerangerequests)
 
-#### Defined in
-
-[index.d.ts:440](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L440)
-
 ***
 
 ### headers?
 
-> `optional` **headers**: `Iterable`\<[`string`, `string`], `any`, `any`\> \| `Map`\<`string`, `string`\>
+> `optional` **headers**: `Iterable`\<\[`string`, `string`\]\> \| `Map`\<`string`, `string`\>
+
+Defined in: [index.d.ts:469](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L469)
 
 The HTTP headers.
 
@@ -188,15 +176,13 @@ The HTTP headers.
 
 [`HttpOptions`](HttpOptions.md).[`headers`](HttpOptions.md#headers)
 
-#### Defined in
-
-[index.d.ts:469](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L469)
-
 ***
 
 ### passThrough?
 
 > `optional` **passThrough**: `boolean`
+
+Defined in: [index.d.ts:822](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L822)
 
 `true` to read the data as-is without decompressing it and without decrypting it.
 
@@ -204,15 +190,13 @@ The HTTP headers.
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`passThrough`](ZipReaderConstructorOptions.md#passthrough)
 
-#### Defined in
-
-[index.d.ts:822](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L822)
-
 ***
 
 ### password?
 
 > `optional` **password**: `string`
+
+Defined in: [index.d.ts:818](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L818)
 
 The password used to decrypt the content of the entry.
 
@@ -220,15 +204,13 @@ The password used to decrypt the content of the entry.
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`password`](ZipReaderConstructorOptions.md#password)
 
-#### Defined in
-
-[index.d.ts:818](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L818)
-
 ***
 
 ### preventClose?
 
 > `optional` **preventClose**: `boolean`
+
+Defined in: [index.d.ts:836](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L836)
 
 `true` to prevent closing of [Writer#writable](../classes/Writer.md#writable) when calling [Entry#getData](Entry.md#getdata).
 
@@ -242,15 +224,13 @@ false
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`preventClose`](ZipReaderConstructorOptions.md#preventclose)
 
-#### Defined in
-
-[index.d.ts:836](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L836)
-
 ***
 
 ### preventHeadRequest?
 
 > `optional` **preventHeadRequest**: `boolean`
+
+Defined in: [index.d.ts:447](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L447)
 
 `true` to prevent using `HEAD` HTTP request in order the get the size of the content.
 `false` to explicitly use `HEAD`, this is useful in case of CORS where `Access-Control-Expose-Headers: Content-Range` is not returned by the server.
@@ -265,15 +245,13 @@ false
 
 [`HttpOptions`](HttpOptions.md).[`preventHeadRequest`](HttpOptions.md#preventheadrequest)
 
-#### Defined in
-
-[index.d.ts:447](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L447)
-
 ***
 
 ### rawPassword?
 
-> `optional` **rawPassword**: `Uint8Array`\<`ArrayBufferLike`\>
+> `optional` **rawPassword**: `Uint8Array`
+
+Defined in: [index.d.ts:826](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L826)
 
 The password used to encrypt the content of the entry (raw).
 
@@ -281,15 +259,13 @@ The password used to encrypt the content of the entry (raw).
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`rawPassword`](ZipReaderConstructorOptions.md#rawpassword)
 
-#### Defined in
-
-[index.d.ts:826](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L826)
-
 ***
 
 ### signal?
 
 > `optional` **signal**: `AbortSignal`
+
+Defined in: [index.d.ts:830](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L830)
 
 The `AbortSignal` instance used to cancel the decompression.
 
@@ -297,15 +273,13 @@ The `AbortSignal` instance used to cancel the decompression.
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`signal`](ZipReaderConstructorOptions.md#signal)
 
-#### Defined in
-
-[index.d.ts:830](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L830)
-
 ***
 
 ### transferStreams?
 
 > `optional` **transferStreams**: `boolean`
+
+Defined in: [index.d.ts:842](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L842)
 
 `true` to transfer streams to web workers when decompressing data.
 
@@ -319,15 +293,13 @@ true
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`transferStreams`](ZipReaderConstructorOptions.md#transferstreams)
 
-#### Defined in
-
-[index.d.ts:842](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L842)
-
 ***
 
 ### useCompressionStream?
 
 > `optional` **useCompressionStream**: `boolean`
+
+Defined in: [index.d.ts:143](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L143)
 
 `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
 
@@ -341,15 +313,13 @@ true
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`useCompressionStream`](ZipReaderConstructorOptions.md#usecompressionstream)
 
-#### Defined in
-
-[index.d.ts:143](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L143)
-
 ***
 
 ### useRangeHeader?
 
 > `optional` **useRangeHeader**: `boolean`
+
+Defined in: [index.d.ts:434](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L434)
 
 `true` to use `Range` headers when fetching data from servers returning `Accept-Ranges` headers.
 
@@ -363,15 +333,13 @@ false
 
 [`HttpOptions`](HttpOptions.md).[`useRangeHeader`](HttpOptions.md#userangeheader)
 
-#### Defined in
-
-[index.d.ts:434](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L434)
-
 ***
 
 ### useWebWorkers?
 
 > `optional` **useWebWorkers**: `boolean`
+
+Defined in: [index.d.ts:137](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L137)
 
 `true` to use web workers to compress/decompress data in non-blocking background processes.
 
@@ -385,15 +353,13 @@ true
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`useWebWorkers`](ZipReaderConstructorOptions.md#usewebworkers)
 
-#### Defined in
-
-[index.d.ts:137](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L137)
-
 ***
 
 ### useXHR?
 
 > `optional` **useXHR**: `boolean`
+
+Defined in: [index.d.ts:465](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L465)
 
 `true` to rely `XMLHttpRequest` instead of `fetch` to fetch data.
 
@@ -407,15 +373,13 @@ false
 
 [`HttpOptions`](HttpOptions.md).[`useXHR`](HttpOptions.md#usexhr)
 
-#### Defined in
-
-[index.d.ts:465](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L465)
-
 ## Methods
 
 ### decodeText()?
 
 > `optional` **decodeText**(`value`, `encoding`): `string`
+
+Defined in: [index.d.ts:796](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L796)
 
 Decodes the filename and the comment of the entry.
 
@@ -423,7 +387,7 @@ Decodes the filename and the comment of the entry.
 
 ##### value
 
-`Uint8Array`\<`ArrayBufferLike`\>
+`Uint8Array`
 
 The raw text value.
 
@@ -442,7 +406,3 @@ The decoded text value or `undefined` if the raw text value should be decoded by
 #### Inherited from
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`decodeText`](ZipReaderConstructorOptions.md#decodetext)
-
-#### Defined in
-
-[index.d.ts:796](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L796)

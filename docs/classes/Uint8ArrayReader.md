@@ -6,6 +6,8 @@
 
 # Class: Uint8ArrayReader
 
+Defined in: [index.d.ts:379](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L379)
+
 Represents a [Reader](Reader.md) instance used to read data provided as a `Uint8Array` instance.
 
 ## Extends
@@ -18,13 +20,15 @@ Represents a [Reader](Reader.md) instance used to read data provided as a `Uint8
 
 > **new Uint8ArrayReader**(`value`): [`Uint8ArrayReader`](Uint8ArrayReader.md)
 
+Defined in: [index.d.ts:338](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L338)
+
 Creates the [Reader](Reader.md) instance
 
 #### Parameters
 
 ##### value
 
-`Uint8Array`\<`ArrayBufferLike`\>
+`Uint8Array`
 
 The data to read.
 
@@ -36,15 +40,13 @@ The data to read.
 
 [`Reader`](Reader.md).[`constructor`](Reader.md#constructors)
 
-#### Defined in
-
-[index.d.ts:338](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L338)
-
 ## Properties
 
 ### readable
 
-> **readable**: `ReadableStream`\<`any`\>
+> **readable**: `ReadableStream`
+
+Defined in: [index.d.ts:342](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L342)
 
 The `ReadableStream` instance.
 
@@ -52,15 +54,13 @@ The `ReadableStream` instance.
 
 [`Reader`](Reader.md).[`readable`](Reader.md#readable)
 
-#### Defined in
-
-[index.d.ts:342](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L342)
-
 ***
 
 ### size
 
 > **size**: `number`
+
+Defined in: [index.d.ts:346](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L346)
 
 The total size of the data in bytes.
 
@@ -68,15 +68,13 @@ The total size of the data in bytes.
 
 [`Reader`](Reader.md).[`size`](Reader.md#size)
 
-#### Defined in
-
-[index.d.ts:346](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L346)
-
 ## Methods
 
 ### init()?
 
 > `optional` **init**(): `Promise`\<`void`\>
+
+Defined in: [index.d.ts:350](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L350)
 
 Initializes the instance asynchronously
 
@@ -88,15 +86,13 @@ Initializes the instance asynchronously
 
 [`Reader`](Reader.md).[`init`](Reader.md#init)
 
-#### Defined in
-
-[index.d.ts:350](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L350)
-
 ***
 
 ### readUint8Array()
 
-> **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+> **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\>
+
+Defined in: [index.d.ts:358](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L358)
 
 Reads a chunk of data
 
@@ -116,14 +112,10 @@ The length of the data to read in bytes.
 
 #### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Promise`\<`Uint8Array`\>
 
 A promise resolving to a chunk of data.
 
 #### Inherited from
 
 [`Reader`](Reader.md).[`readUint8Array`](Reader.md#readuint8array)
-
-#### Defined in
-
-[index.d.ts:358](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L358)

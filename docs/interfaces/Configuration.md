@@ -6,6 +6,8 @@
 
 # Interface: Configuration
 
+Defined in: [index.d.ts:43](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L43)
+
 Represents the configuration passed to [configure](../functions/configure.md).
 
 ## Extends
@@ -18,6 +20,8 @@ Represents the configuration passed to [configure](../functions/configure.md).
 
 > `optional` **chunkSize**: `number`
 
+Defined in: [index.d.ts:101](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L101)
+
 The size of the chunks in bytes during data compression/decompression.
 
 #### Default Value
@@ -26,15 +30,13 @@ The size of the chunks in bytes during data compression/decompression.
 524288
 ```
 
-#### Defined in
-
-[index.d.ts:101](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L101)
-
 ***
 
 ### CompressionStream?
 
 > `optional` **CompressionStream**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+
+Defined in: [index.d.ts:119](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L119)
 
 The stream implementation used to compress data when `useCompressionStream` is set to `false`.
 
@@ -42,15 +44,13 @@ The stream implementation used to compress data when `useCompressionStream` is s
 
 [CodecStream](../classes/CodecStream.md)
 
-#### Defined in
-
-[index.d.ts:119](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L119)
-
 ***
 
 ### DecompressionStream?
 
 > `optional` **DecompressionStream**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+
+Defined in: [index.d.ts:125](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L125)
 
 The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
 
@@ -58,15 +58,13 @@ The stream implementation used to decompress data when `useCompressionStream` is
 
 [CodecStream](../classes/CodecStream.md)
 
-#### Defined in
-
-[index.d.ts:125](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L125)
-
 ***
 
 ### Deflate?
 
 > `optional` **Deflate**: *typeof* [`ZipDeflate`](../classes/ZipDeflate.md)
+
+Defined in: [index.d.ts:107](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L107)
 
 The codec implementation used to compress data.
 
@@ -74,15 +72,13 @@ The codec implementation used to compress data.
 
 [ZipDeflate](../classes/ZipDeflate.md)
 
-#### Defined in
-
-[index.d.ts:107](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L107)
-
 ***
 
 ### Inflate?
 
 > `optional` **Inflate**: *typeof* [`ZipInflate`](../classes/ZipInflate.md)
+
+Defined in: [index.d.ts:113](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L113)
 
 The codec implementation used to decompress data.
 
@@ -90,15 +86,13 @@ The codec implementation used to decompress data.
 
 [ZipInflate](../classes/ZipInflate.md)
 
-#### Defined in
-
-[index.d.ts:113](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L113)
-
 ***
 
 ### maxWorkers?
 
 > `optional` **maxWorkers**: `number`
+
+Defined in: [index.d.ts:49](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L49)
 
 The maximum number of web workers used to compress/decompress data simultaneously.
 
@@ -106,15 +100,13 @@ The maximum number of web workers used to compress/decompress data simultaneousl
 
 `navigator.hardwareConcurrency`
 
-#### Defined in
-
-[index.d.ts:49](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L49)
-
 ***
 
 ### terminateWorkerTimeout?
 
 > `optional` **terminateWorkerTimeout**: `number`
+
+Defined in: [index.d.ts:55](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L55)
 
 The delay in milliseconds before idle web workers are automatically terminated. You can call `terminateWorkers()` to terminate idle workers.
 
@@ -124,15 +116,13 @@ The delay in milliseconds before idle web workers are automatically terminated. 
 5000
 ```
 
-#### Defined in
-
-[index.d.ts:55](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L55)
-
 ***
 
 ### useCompressionStream?
 
 > `optional` **useCompressionStream**: `boolean`
+
+Defined in: [index.d.ts:143](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L143)
 
 `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
 
@@ -146,15 +136,13 @@ true
 
 [`WorkerConfiguration`](WorkerConfiguration.md).[`useCompressionStream`](WorkerConfiguration.md#usecompressionstream)
 
-#### Defined in
-
-[index.d.ts:143](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L143)
-
 ***
 
 ### useWebWorkers?
 
 > `optional` **useWebWorkers**: `boolean`
+
+Defined in: [index.d.ts:137](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L137)
 
 `true` to use web workers to compress/decompress data in non-blocking background processes.
 
@@ -168,15 +156,13 @@ true
 
 [`WorkerConfiguration`](WorkerConfiguration.md).[`useWebWorkers`](WorkerConfiguration.md#usewebworkers)
 
-#### Defined in
-
-[index.d.ts:137](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L137)
-
 ***
 
 ### workerScripts?
 
 > `optional` **workerScripts**: `object`
+
+Defined in: [index.d.ts:86](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L86)
 
 The URIs of the compression/decompression scripts run in web workers.
 
@@ -218,7 +204,3 @@ The URIs of the scripts implementing used for compression.
 > `optional` **inflate**: `string`[]
 
 The URIs of the scripts implementing used for decompression.
-
-#### Defined in
-
-[index.d.ts:86](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L86)

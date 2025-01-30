@@ -6,6 +6,8 @@
 
 # Class: ZipWriter\<Type\>
 
+Defined in: [index.d.ts:1125](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L1125)
+
 Represents an instance used to create a zip file.
 
 ## Example
@@ -36,6 +38,8 @@ const blob = await blobWriter.getData();
 
 > **new ZipWriter**\<`Type`\>(`writer`, `options`?): [`ZipWriter`](ZipWriter.md)\<`Type`\>
 
+Defined in: [index.d.ts:1132](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L1132)
+
 Creates the [ZipWriter](ZipWriter.md) instance
 
 #### Parameters
@@ -44,7 +48,7 @@ Creates the [ZipWriter](ZipWriter.md) instance
 
 The [Writer](Writer.md) instance where the zip content will be written.
 
-`WritableStream`\<`any`\> | [`WritableWriter`](../interfaces/WritableWriter.md) | `AsyncGenerator`\<`WritableStream`\<`any`\> \| [`WritableWriter`](../interfaces/WritableWriter.md) \| [`Writer`](Writer.md)\<`unknown`\>, `boolean`, `any`\> | [`Writer`](Writer.md)\<`Type`\>
+`WritableStream` | [`WritableWriter`](../interfaces/WritableWriter.md) | `AsyncGenerator`\<`WritableStream` \| [`WritableWriter`](../interfaces/WritableWriter.md) \| [`Writer`](Writer.md)\<`unknown`\>, `boolean`\> | [`Writer`](Writer.md)\<`Type`\>
 
 ##### options?
 
@@ -56,27 +60,23 @@ The options.
 
 [`ZipWriter`](ZipWriter.md)\<`Type`\>
 
-#### Defined in
-
-[index.d.ts:1115](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L1115)
-
 ## Properties
 
 ### hasCorruptedEntries?
 
 > `readonly` `optional` **hasCorruptedEntries**: `boolean`
 
+Defined in: [index.d.ts:1146](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L1146)
+
 `true` if the zip contains at least one entry that has been partially written.
-
-#### Defined in
-
-[index.d.ts:1129](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L1129)
 
 ## Methods
 
 ### add()
 
 > **add**\<`ReaderType`\>(`filename`, `reader`?, `options`?): `Promise`\<[`EntryMetaData`](../interfaces/EntryMetaData.md)\>
+
+Defined in: [index.d.ts:1155](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L1155)
 
 Adds an entry into the zip file
 
@@ -96,7 +96,7 @@ The filename of the entry.
 
 The  [Reader](Reader.md) instance used to read the content of the entry.
 
-`ReadableStream`\<`any`\> | [`ReadableReader`](../interfaces/ReadableReader.md) | [`Reader`](Reader.md)\<`unknown`\>[] | [`ReadableReader`](../interfaces/ReadableReader.md)[] | `ReadableStream`\<`any`\>[] | [`Reader`](Reader.md)\<`ReaderType`\>
+`ReadableStream` | [`ReadableReader`](../interfaces/ReadableReader.md) | [`Reader`](Reader.md)\<`unknown`\>[] | [`ReadableReader`](../interfaces/ReadableReader.md)[] | `ReadableStream`[] | [`Reader`](Reader.md)\<`ReaderType`\>
 
 ##### options?
 
@@ -110,15 +110,13 @@ The options.
 
 A promise resolving to an [EntryMetaData](../interfaces/EntryMetaData.md) instance.
 
-#### Defined in
-
-[index.d.ts:1138](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L1138)
-
 ***
 
 ### close()
 
 > **close**(`comment`?, `options`?): `Promise`\<`Type`\>
+
+Defined in: [index.d.ts:1173](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L1173)
 
 Writes the entries directory, writes the global comment, and returns the content of the zip file
 
@@ -126,7 +124,7 @@ Writes the entries directory, writes the global comment, and returns the content
 
 ##### comment?
 
-`Uint8Array`\<`ArrayBufferLike`\>
+`Uint8Array`
 
 The global comment of the zip file.
 
@@ -141,7 +139,3 @@ The options.
 `Promise`\<`Type`\>
 
 The content of the zip file.
-
-#### Defined in
-
-[index.d.ts:1156](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L1156)

@@ -6,6 +6,8 @@
 
 # Class: TransformStreamLike
 
+Defined in: [index.d.ts:22](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L22)
+
 Represents a generic `TransformStream` class.
 
 ## See
@@ -26,22 +28,18 @@ Represents a generic `TransformStream` class.
 
 ### readable
 
-> **readable**: `ReadableStream`\<`any`\>
+> **readable**: `ReadableStream`
+
+Defined in: [index.d.ts:26](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L26)
 
 The readable stream.
-
-#### Defined in
-
-[index.d.ts:26](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L26)
 
 ***
 
 ### writable
 
-> **writable**: `WritableStream`\<`any`\>
+> **writable**: `WritableStream`
+
+Defined in: [index.d.ts:30](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L30)
 
 The writable stream.
-
-#### Defined in
-
-[index.d.ts:30](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L30)

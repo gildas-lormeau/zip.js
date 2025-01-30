@@ -6,9 +6,13 @@
 
 # Interface: registerDataHandler()
 
+Defined in: [index.d.ts:163](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L163)
+
 Represents the callback function used to register the `data` event handler.
 
 > **registerDataHandler**(`codec`, `onData`): `void`
+
+Defined in: [index.d.ts:168](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L168)
 
 Represents the callback function used to register the `data` event handler.
 
@@ -29,7 +33,3 @@ The `data` event handler.
 ## Returns
 
 `void`
-
-## Defined in
-
-[index.d.ts:168](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L168)

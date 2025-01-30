@@ -6,6 +6,8 @@
 
 # Class: Reader\<Type\>
 
+Defined in: [index.d.ts:332](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L332)
+
 Represents an instance used to read unknown type of data.
 
 ## Example
@@ -58,6 +60,8 @@ class BinaryStringReader extends Reader {
 
 > **new Reader**\<`Type`\>(`value`): [`Reader`](Reader.md)\<`Type`\>
 
+Defined in: [index.d.ts:338](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L338)
+
 Creates the [Reader](Reader.md) instance
 
 #### Parameters
@@ -72,15 +76,13 @@ The data to read.
 
 [`Reader`](Reader.md)\<`Type`\>
 
-#### Defined in
-
-[index.d.ts:338](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L338)
-
 ## Properties
 
 ### readable
 
-> **readable**: `ReadableStream`\<`any`\>
+> **readable**: `ReadableStream`
+
+Defined in: [index.d.ts:342](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L342)
 
 The `ReadableStream` instance.
 
@@ -88,27 +90,23 @@ The `ReadableStream` instance.
 
 [`ReadableReader`](../interfaces/ReadableReader.md).[`readable`](../interfaces/ReadableReader.md#readable)
 
-#### Defined in
-
-[index.d.ts:342](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L342)
-
 ***
 
 ### size
 
 > **size**: `number`
 
+Defined in: [index.d.ts:346](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L346)
+
 The total size of the data in bytes.
-
-#### Defined in
-
-[index.d.ts:346](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L346)
 
 ## Methods
 
 ### init()?
 
 > `optional` **init**(): `Promise`\<`void`\>
+
+Defined in: [index.d.ts:350](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L350)
 
 Initializes the instance asynchronously
 
@@ -120,15 +118,13 @@ Initializes the instance asynchronously
 
 [`Initializable`](../interfaces/Initializable.md).[`init`](../interfaces/Initializable.md#init)
 
-#### Defined in
-
-[index.d.ts:350](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L350)
-
 ***
 
 ### readUint8Array()
 
-> **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+> **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\>
+
+Defined in: [index.d.ts:358](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L358)
 
 Reads a chunk of data
 
@@ -148,10 +144,6 @@ The length of the data to read in bytes.
 
 #### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Promise`\<`Uint8Array`\>
 
 A promise resolving to a chunk of data.
-
-#### Defined in
-
-[index.d.ts:358](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L358)

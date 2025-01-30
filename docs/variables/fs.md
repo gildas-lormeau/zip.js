@@ -8,6 +8,8 @@
 
 > `const` **fs**: `object`
 
+Defined in: [index.d.ts:1978](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L1978)
+
 The Filesystem API.
 
 ## Type declaration
@@ -41,7 +43,3 @@ The [ZipFileEntry](../classes/ZipFileEntry.md) constructor.
 #### Default Value
 
 [ZipFileEntry](../classes/ZipFileEntry.md)
-
-## Defined in
-
-[index.d.ts:1961](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L1961)

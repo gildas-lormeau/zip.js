@@ -6,6 +6,8 @@
 
 # Interface: ZipReaderGetEntriesOptions
 
+Defined in: [index.d.ts:774](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L774)
+
 Represents the options passed to [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
 ## Extends
@@ -18,15 +20,13 @@ Represents the options passed to [ZipReader#getEntries](../classes/ZipReader.md#
 
 > `optional` **commentEncoding**: `string`
 
+Defined in: [index.d.ts:788](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L788)
+
 The encoding of the comment of the entry.
 
 #### Inherited from
 
 [`GetEntriesOptions`](GetEntriesOptions.md).[`commentEncoding`](GetEntriesOptions.md#commentencoding)
-
-#### Defined in
-
-[index.d.ts:788](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L788)
 
 ***
 
@@ -34,15 +34,13 @@ The encoding of the comment of the entry.
 
 > `optional` **filenameEncoding**: `string`
 
+Defined in: [index.d.ts:784](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L784)
+
 The encoding of the filename of the entry.
 
 #### Inherited from
 
 [`GetEntriesOptions`](GetEntriesOptions.md).[`filenameEncoding`](GetEntriesOptions.md#filenameencoding)
-
-#### Defined in
-
-[index.d.ts:784](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L784)
 
 ## Methods
 
@@ -50,13 +48,15 @@ The encoding of the filename of the entry.
 
 > `optional` **decodeText**(`value`, `encoding`): `string`
 
+Defined in: [index.d.ts:796](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L796)
+
 Decodes the filename and the comment of the entry.
 
 #### Parameters
 
 ##### value
 
-`Uint8Array`\<`ArrayBufferLike`\>
+`Uint8Array`
 
 The raw text value.
 
@@ -76,15 +76,13 @@ The decoded text value or `undefined` if the raw text value should be decoded by
 
 [`GetEntriesOptions`](GetEntriesOptions.md).[`decodeText`](GetEntriesOptions.md#decodetext)
 
-#### Defined in
-
-[index.d.ts:796](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L796)
-
 ***
 
 ### onprogress()?
 
 > `optional` **onprogress**(`progress`, `total`, `entry`): `Promise`\<`void`\>
+
+Defined in: [index.d.ts:1452](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L1452)
 
 The function called each time an entry is read/written.
 
@@ -117,7 +115,3 @@ An empty promise or `undefined`.
 #### Inherited from
 
 [`EntryOnprogressOptions`](EntryOnprogressOptions.md).[`onprogress`](EntryOnprogressOptions.md#onprogress)
-
-#### Defined in
-
-[index.d.ts:1435](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L1435)

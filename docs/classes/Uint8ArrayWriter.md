@@ -6,6 +6,8 @@
 
 # Class: Uint8ArrayWriter
 
+Defined in: [index.d.ts:625](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L625)
+
 Represents a [Writer](Writer.md)  instance used to retrieve the written data as a `Uint8Array` instance.
 
 ## Extends
@@ -30,7 +32,9 @@ Represents a [Writer](Writer.md)  instance used to retrieve the written data as 
 
 ### writable
 
-> **writable**: `WritableStream`\<`any`\>
+> **writable**: `WritableStream`
+
+Defined in: [index.d.ts:515](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L515)
 
 The `WritableStream` instance.
 
@@ -38,21 +42,19 @@ The `WritableStream` instance.
 
 [`Writer`](Writer.md).[`writable`](Writer.md#writable)
 
-#### Defined in
-
-[index.d.ts:515](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L515)
-
 ## Methods
 
 ### getData()
 
-> **getData**(): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+> **getData**(): `Promise`\<`Uint8Array`\>
+
+Defined in: [index.d.ts:535](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L535)
 
 Retrieves all the written data
 
 #### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Promise`\<`Uint8Array`\>
 
 A promise resolving to the written data.
 
@@ -60,15 +62,13 @@ A promise resolving to the written data.
 
 [`Writer`](Writer.md).[`getData`](Writer.md#getdata)
 
-#### Defined in
-
-[index.d.ts:535](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L535)
-
 ***
 
 ### init()?
 
 > `optional` **init**(`size`?): `Promise`\<`void`\>
+
+Defined in: [index.d.ts:521](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L521)
 
 Initializes the instance asynchronously
 
@@ -88,15 +88,13 @@ the total size of the written data in bytes.
 
 [`Writer`](Writer.md).[`init`](Writer.md#init)
 
-#### Defined in
-
-[index.d.ts:521](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L521)
-
 ***
 
 ### writeUint8Array()
 
 > **writeUint8Array**(`array`): `Promise`\<`void`\>
+
+Defined in: [index.d.ts:529](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L529)
 
 Appends a chunk of data
 
@@ -104,7 +102,7 @@ Appends a chunk of data
 
 ##### array
 
-`Uint8Array`\<`ArrayBufferLike`\>
+`Uint8Array`
 
 The chunk data to append.
 
@@ -115,7 +113,3 @@ The chunk data to append.
 #### Inherited from
 
 [`Writer`](Writer.md).[`writeUint8Array`](Writer.md#writeuint8array)
-
-#### Defined in
-
-[index.d.ts:529](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L529)

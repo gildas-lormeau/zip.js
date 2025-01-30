@@ -6,6 +6,8 @@
 
 # Interface: Initializable
 
+Defined in: [index.d.ts:287](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L287)
+
 Represents an instance used to read or write unknown type of data.
 
 zip.js can handle multiple types of data thanks to a generic API. This feature is based on 2 abstract constructors: [Reader](../classes/Reader.md) and [Writer](../classes/Writer.md).
@@ -17,12 +19,10 @@ The classes inheriting from [Reader](../classes/Reader.md) help to read data fro
 
 > `optional` **init**(): `Promise`\<`void`\>
 
+Defined in: [index.d.ts:291](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L291)
+
 Initializes the instance asynchronously
 
 #### Returns
 
 `Promise`\<`void`\>
-
-#### Defined in
-
-[index.d.ts:291](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L291)

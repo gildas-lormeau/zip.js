@@ -8,6 +8,8 @@
 
 > **initShimAsyncCodec**(`library`, `constructorOptions`, `registerDataHandler`): [`ZipLibrary`](../interfaces/ZipLibrary.md)
 
+Defined in: [index.d.ts:154](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L154)
+
 Transforms event-based third-party codec implementations into implementations compatible with zip.js
 
 ## Parameters
@@ -35,7 +37,3 @@ The function called to handle the `data` events triggered by a third-party codec
 [`ZipLibrary`](../interfaces/ZipLibrary.md)
 
 An instance containing classes compatible with [ZipDeflate](../classes/ZipDeflate.md) and [ZipInflate](../classes/ZipInflate.md).
-
-## Defined in
-
-[index.d.ts:154](https://github.com/gildas-lormeau/zip.js/blob/24ecd74cb4237f29fe97eb10cff1144c3877ce3d/index.d.ts#L154)
