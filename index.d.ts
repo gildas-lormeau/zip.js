@@ -943,15 +943,28 @@ export interface EntryMetaData {
    */
   versionMadeBy: number;
   /**
-   * `true` if `internalFileAttribute` and `externalFileAttribute` are compatible with MS-DOS format.
+   * `true` if `internalFileAttributes` and `externalFileAttributes` are compatible with MS-DOS format.
    */
   msDosCompatible: boolean;
   /**
+   * The internal file attributes (raw).
+   */
+  internalFileAttributes: number;
+  /**
+   * The external file attributes (raw).
+   */
+  externalFileAttributes: number;
+  /**
+   * The number of the disk where the entry data starts.
+   */
+  /**
    * The internal file attribute (raw).
+   * @deprecated Use {@link EntryMetaData#internalFileAttributes} instead.
    */
   internalFileAttribute: number;
   /**
    * The external file attribute (raw).
+   * @deprecated Use {@link EntryMetaData#externalFileAttributes} instead.
    */
   externalFileAttribute: number;
   /**
@@ -1338,7 +1351,7 @@ export interface ZipWriterConstructorOptions {
    */
   dataDescriptorSignature?: boolean;
   /**
-   * `true` to write {@link EntryMetaData#externalFileAttribute} in MS-DOS format for folder entries.
+   * `true` to write {@link EntryMetaData#externalFileAttributes} in MS-DOS format for folder entries.
    *
    * @defaultValue true
    */
@@ -1348,13 +1361,13 @@ export interface ZipWriterConstructorOptions {
    *
    * @defaultValue 0
    */
-  externalFileAttribute?: number;
+  externalFileAttributes?: number;
   /**
    * The internal file attribute.
    *
    * @defaultValue 0
    */
-  internalFileAttribute?: number;
+  internalFileAttributes?: number;
   /**
    * `false` to never write disk numbers in zip64 data.
    *

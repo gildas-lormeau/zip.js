@@ -21,7 +21,7 @@ async function test() {
 	const importedTextFile = directory.children[0];
 	const addedTextFile = zipFs.find("import/test.txt");
 	await zip.terminateWorkers();
-	if (importedTextFile.data.externalFileAttribute != 32 || importedTextFile.data.versionMadeBy != 20
+	if (importedTextFile.data.externalFileAttributes != 32 || importedTextFile.data.versionMadeBy != 20
 		|| addedTextFile.data.comment != "test" || addedTextFile.data.versionMadeBy != 42 || 
 		directory.data.lastModDate.getTime() != lastModDate.getTime()) {
 		throw new Error();
