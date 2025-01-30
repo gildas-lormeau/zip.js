@@ -1,5 +1,3 @@
-/* global globalThis */
-
 import { test, mock, beforeEach } from "node:test";
 import { setMaxListeners } from "node:events";
 import { openAsBlob } from "node:fs";

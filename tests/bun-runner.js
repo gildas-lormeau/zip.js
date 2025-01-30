@@ -1,4 +1,4 @@
-/* global globalThis, Bun */
+/* global Bun */
 
 import { test, beforeEach } from "bun:test";
 
