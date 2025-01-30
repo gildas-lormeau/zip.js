@@ -1246,7 +1246,6 @@
 			}
 
 			// Copy as much as possible from input to output:
-			// eslint-disable-next-line no-constant-condition
 			while (true) {
 				// Fill the win as much as possible:
 				if (lookahead <= 1) {
@@ -1341,7 +1340,6 @@
 
 				// We check for insufficient lookahead only every 8th comparison;
 				// the 256th check will be made at strstart+258.
-				// eslint-disable-next-line no-empty
 				do {
 					// empty block
 				} while (win[++scan] == win[++match] && win[++scan] == win[++match] && win[++scan] == win[++match]
@@ -1377,7 +1375,6 @@
 			let hash_head = 0; // head of the hash chain
 			let bflush; // set if current block must be flushed
 
-			// eslint-disable-next-line no-constant-condition
 			while (true) {
 				// Make sure that we always have enough lookahead, except
 				// at the end of the input file. We need MAX_MATCH bytes
@@ -1484,7 +1481,6 @@
 			let max_insert;
 
 			// Process the input block.
-			// eslint-disable-next-line no-constant-condition
 			while (true) {
 				// Make sure that we always have enough lookahead, except
 				// at the end of the input file. We need MAX_MATCH bytes
@@ -2834,7 +2830,6 @@
 			m = q < s.read ? s.read - q - 1 : s.end - q;
 
 			// process input and output based on current state
-			// eslint-disable-next-line no-constant-condition
 			while (true) {
 				switch (mode) {
 					// waiting for "i:"=input, "o:"=output, "x:"=nothing
@@ -3325,7 +3320,6 @@
 
 			// process input based on current state
 			// DEBUG dtree
-			// eslint-disable-next-line no-constant-condition
 			while (true) {
 				let bl, bd, tl, td, bl_, bd_, tl_, td_;
 				switch (mode) {
@@ -3602,7 +3596,6 @@
 						mode = DTREE;
 					/* falls through */
 					case DTREE:
-						// eslint-disable-next-line no-constant-condition
 						while (true) {
 							t = table;
 							if (index >= 258 + (t & 0x1f) + ((t >> 5) & 0x1f)) {
@@ -3910,7 +3903,6 @@
 			const istate = z.istate;
 			f = f == Z_FINISH ? Z_BUF_ERROR : Z_OK;
 			r = Z_BUF_ERROR;
-			// eslint-disable-next-line no-constant-condition
 			while (true) {
 				switch (istate.mode) {
 					case METHOD:
@@ -4290,6 +4282,8 @@
 	const BITFLAG_DATA_DESCRIPTOR = 0x0008;
 	const BITFLAG_LANG_ENCODING_FLAG = 0x0800;
 	const FILE_ATTR_MSDOS_DIR_MASK = 0x10;
+	const FILE_ATTR_UNIX_DIR_MASK =  0x4000;
+	const FILE_ATTR_UNIX_EXECUTABLE_MASK = 0o111;
 
 	const VERSION_DEFLATE = 0x14;
 	const VERSION_ZIP64 = 0x2D;
@@ -4390,7 +4384,8 @@
 		if (typeof navigator != UNDEFINED_TYPE && navigator.hardwareConcurrency) {
 			maxWorkers = navigator.hardwareConcurrency;
 		}
-	} catch (_error) {
+		// eslint-disable-next-line no-unused-vars
+	} catch (_) {
 		// ignored
 	}
 	const DEFAULT_CONFIGURATION = {
@@ -7396,7 +7391,8 @@
 		if (IMPORT_KEY_SUPPORTED) {
 			try {
 				return await subtle.importKey(format, password, algorithm, extractable, keyUsages);
-			} catch (_error) {
+				// eslint-disable-next-line no-unused-vars
+			} catch (_) {
 				IMPORT_KEY_SUPPORTED = false;
 				return misc.importKey(password);
 			}
@@ -7409,7 +7405,8 @@
 		if (DERIVE_BITS_SUPPORTED) {
 			try {
 				return await subtle.deriveBits(algorithm, baseKey, length);
-			} catch (_error) {
+				// eslint-disable-next-line no-unused-vars
+			} catch (_) {
 				DERIVE_BITS_SUPPORTED = false;
 				return misc.pbkdf2(baseKey, algorithm.salt, DERIVED_BITS_ALGORITHM.iterations, length);
 			}
@@ -7727,11 +7724,13 @@
 		try {
 			const CompressionStream = useCompressionStream && CodecStreamNative ? CodecStreamNative : CodecStream;
 			readable = pipeThrough(readable, new CompressionStream(COMPRESSION_FORMAT, options));
-		} catch (_error) {
+			// eslint-disable-next-line no-unused-vars
+		} catch (_) {
 			if (useCompressionStream) {
 				try {
 					readable = pipeThrough(readable, new CodecStream(COMPRESSION_FORMAT, options));
-				} catch (_error) {
+					// eslint-disable-next-line no-unused-vars
+				} catch (_) {
 					return readable;
 				}
 			} else {
@@ -7974,7 +7973,8 @@
 	async function callHandler(handler, ...parameters) {
 		try {
 			await handler(...parameters);
-		} catch (_error) {
+			// eslint-disable-next-line no-unused-vars
+		} catch (_) {
 			// ignored
 		}
 	}
@@ -7991,7 +7991,8 @@
 			let worker;
 			try {
 				worker = getWebWorker(workerData.scripts[0], baseURL, workerData);
-			} catch (_error) {
+				// eslint-disable-next-line no-unused-vars
+			} catch (_) {
 				WEB_WORKERS_SUPPORTED = false;
 				return createWorkerInterface(workerData, config);
 			}
@@ -8094,13 +8095,15 @@
 		}
 		try {
 			scriptUrl = new URL(url, baseURL);
-		} catch (_error) {
+			// eslint-disable-next-line no-unused-vars
+		} catch (_) {
 			scriptUrl = url;
 		}
 		if (classicWorkersSupported) {
 			try {
 				worker = new Worker(scriptUrl);
-			} catch (_error) {
+				// eslint-disable-next-line no-unused-vars
+			} catch (_) {
 				classicWorkersSupported = false;
 				worker = new Worker(scriptUrl, workerOptions);
 			}
@@ -8138,7 +8141,8 @@
 				try {
 					worker.postMessage(message, transferables);
 					return true;
-				} catch (_error) {
+					// eslint-disable-next-line no-unused-vars
+				} catch (_) {
 					transferStreamsSupported = false;
 					message.readable = message.writable = null;
 					worker.postMessage(message);
@@ -8281,7 +8285,8 @@
 					pool = pool.filter(data => data != workerData);
 					try {
 						await workerData.terminate();
-					} catch (_error) {
+						// eslint-disable-next-line no-unused-vars
+					} catch (_) {
 						// ignored
 					}
 				}, terminateWorkerTimeout);
@@ -8686,7 +8691,7 @@
 			combineSizeEocd
 		} = httpReader;
 		if (isHttpFamily(url) && (useRangeHeader || forceRangeRequests) && (typeof preventHeadRequest == "undefined" || preventHeadRequest)) {
-			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -END_OF_CENTRAL_DIR_LENGTH : undefined));
+			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -22 : undefined));
 			if (!forceRangeRequests && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
 				throw new Error(ERR_HTTP_RANGE);
 			} else {
@@ -9209,7 +9214,9 @@
 	const PROPERTY_NAME_CREATION_DATE = "creationDate";
 	const PROPERTY_NAME_RAW_CREATION_DATE = "rawCreationDate";
 	const PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE = "internalFileAttribute";
+	const PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES = "internalFileAttributes";
 	const PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE = "externalFileAttribute";
+	const PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES = "externalFileAttributes";
 	const PROPERTY_NAME_MS_DOS_COMPATIBLE = "msDosCompatible";
 	const PROPERTY_NAME_ZIP64 = "zip64";
 	const PROPERTY_NAME_ENCRYPTED = "encrypted";
@@ -9221,10 +9228,7 @@
 		PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, PROPERTY_NAME_COMPPRESSED_SIZE, PROPERTY_NAME_UNCOMPPRESSED_SIZE,
 		PROPERTY_NAME_LAST_MODIFICATION_DATE, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT,
 		PROPERTY_NAME_LAST_ACCESS_DATE, PROPERTY_NAME_CREATION_DATE, PROPERTY_NAME_OFFSET, PROPERTY_NAME_DISK_NUMBER_START,
-		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE,
-		PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64, PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY,
-		PROPERTY_NAME_ZIPCRYPTO, "directory", "bitFlag", "signature", "filenameUTF8", "commentUTF8", "compressionMethod", "extraField", "rawExtraField",
-		"extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS", "extraFieldExtendedTimestamp"];
+		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64, PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY, PROPERTY_NAME_ZIPCRYPTO, "directory", "executable", "bitFlag", "signature", "filenameUTF8", "commentUTF8", "compressionMethod", "extraField", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS", "extraFieldExtendedTimestamp"];
 
 	class Entry {
 
@@ -9415,14 +9419,20 @@
 				const extraFieldOffset = filenameOffset + fileEntry.filenameLength;
 				const commentOffset = extraFieldOffset + fileEntry.extraFieldLength;
 				const versionMadeBy = getUint16(directoryView, offset + 4);
-				const msDosCompatible = (versionMadeBy & 0) == 0;
+				const msDosCompatible = versionMadeBy >> 8 == 0;
+				const unixCompatible = versionMadeBy >> 8 == 3;
 				const rawFilename = directoryArray.subarray(filenameOffset, extraFieldOffset);
 				const commentLength = getUint16(directoryView, offset + 32);
 				const endOffset = commentOffset + commentLength;
 				const rawComment = directoryArray.subarray(commentOffset, endOffset);
 				const filenameUTF8 = languageEncodingFlag;
 				const commentUTF8 = languageEncodingFlag;
-				const directory = msDosCompatible && ((getUint8(directoryView, offset + 38) & FILE_ATTR_MSDOS_DIR_MASK) == FILE_ATTR_MSDOS_DIR_MASK);
+				const externalFileAttributes = getUint32(directoryView, offset + 38);
+				const directory =
+					(msDosCompatible && ((getUint8(directoryView, offset + 38) & FILE_ATTR_MSDOS_DIR_MASK) == FILE_ATTR_MSDOS_DIR_MASK)) ||
+					(unixCompatible && (((externalFileAttributes >> 16) & FILE_ATTR_UNIX_DIR_MASK) == FILE_ATTR_UNIX_DIR_MASK)) ||
+					(rawFilename.length && rawFilename[rawFilename.length - 1] == DIRECTORY_SIGNATURE.charCodeAt(0));
+				const executable = (unixCompatible && (((externalFileAttributes >> 16) & FILE_ATTR_UNIX_EXECUTABLE_MASK) == FILE_ATTR_UNIX_EXECUTABLE_MASK));
 				const offsetFileEntry = getUint32(directoryView, offset + 42) + prependedDataLength;
 				Object.assign(fileEntry, {
 					versionMadeBy,
@@ -9433,13 +9443,16 @@
 					directory,
 					offset: offsetFileEntry,
 					diskNumberStart: getUint16(directoryView, offset + 34),
-					internalFileAttribute: getUint16(directoryView, offset + 36),
-					externalFileAttribute: getUint32(directoryView, offset + 38),
+					internalFileAttributes: getUint16(directoryView, offset + 36),
+					externalFileAttributes,
 					rawFilename,
 					filenameUTF8,
 					commentUTF8,
-					rawExtraField: directoryArray.subarray(extraFieldOffset, commentOffset)
+					rawExtraField: directoryArray.subarray(extraFieldOffset, commentOffset),
+					executable
 				});
+				fileEntry.internalFileAttribute = fileEntry.internalFileAttributes;
+				fileEntry.externalFileAttribute = fileEntry.externalFileAttributes;
 				const decode = getOptionValue$1(zipReader, options, "decodeText") || decodeText;
 				const rawFilenameEncoding = filenameUTF8 ? CHARSET_UTF8 : filenameEncoding || CHARSET_CP437;
 				const rawCommentEncoding = commentUTF8 ? CHARSET_UTF8 : commentEncoding || CHARSET_CP437;
@@ -9467,7 +9480,8 @@
 				if (onprogress) {
 					try {
 						await onprogress(indexFile + 1, filesLength, new Entry(fileEntry));
-					} catch (_error) {
+						// eslint-disable-next-line no-unused-vars
+					} catch (_) {
 						// ignored
 					}
 				}
@@ -9679,7 +9693,8 @@
 				});
 				offsetExtraField += 4 + size;
 			}
-		} catch (_error) {
+			// eslint-disable-next-line no-unused-vars
+		} catch (_) {
 			// ignored
 		}
 		const compressionMethod = getUint16(dataView, offset + 4);
@@ -9786,7 +9801,8 @@
 				}
 				offsetExtraField += 4 + attributeSize;
 			}
-		} catch (_error) {
+			// eslint-disable-next-line no-unused-vars
+		} catch (_) {
 			// ignored
 		}
 		try {
@@ -9807,7 +9823,8 @@
 				Object.assign(extraFieldNTFS, extraFieldData);
 				Object.assign(directory, extraFieldData);
 			}
-		} catch (_error) {
+			// eslint-disable-next-line no-unused-vars
+		} catch (_) {
 			// ignored
 		}
 	}
@@ -9876,7 +9893,8 @@
 		const date = (timeRaw & 0xffff0000) >> 16, time = timeRaw & 0x0000ffff;
 		try {
 			return new Date(1980 + ((date & 0xFE00) >> 9), ((date & 0x01E0) >> 5) - 1, date & 0x001F, (time & 0xF800) >> 11, (time & 0x07E0) >> 5, (time & 0x001F) * 2, 0);
-		} catch (_error) {
+			// eslint-disable-next-line no-unused-vars
+		} catch (_) {
 			// ignored
 		}
 	}
@@ -10088,8 +10106,14 @@
 		const lastAccessDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
 		const creationDate = getOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
 		const msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE, true);
-		const internalFileAttribute = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, 0);
-		const externalFileAttribute = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, 0);
+		let internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, 0);
+		if (internalFileAttributes === 0) {
+			internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, 0);
+		}
+		let externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, 0);
+		if (externalFileAttributes === 0) {
+			externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, 0);
+		}
 		const passThrough = getOptionValue(zipWriter, options, "passThrough");
 		let password, rawPassword;
 		if (!passThrough) {
@@ -10205,8 +10229,10 @@
 			dataDescriptorSignature,
 			signal,
 			msDosCompatible,
-			internalFileAttribute,
-			externalFileAttribute,
+			internalFileAttribute: internalFileAttributes,
+			internalFileAttributes,
+			externalFileAttribute: externalFileAttributes,
+			externalFileAttributes,
 			useCompressionStream,
 			passThrough,
 			encrypted: Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted),
@@ -10327,7 +10353,8 @@
 				if (error) {
 					try {
 						error.corruptedEntry = true;
-					} catch (_error) {
+						// eslint-disable-next-line no-unused-vars
+					} catch (_) {
 						// ignored
 					}
 				}
@@ -10420,8 +10447,8 @@
 			encryptionStrength,
 			extendedTimestamp,
 			msDosCompatible,
-			internalFileAttribute,
-			externalFileAttribute,
+			internalFileAttributes,
+			externalFileAttributes,
 			useCompressionStream,
 			passThrough
 		} = options;
@@ -10440,8 +10467,8 @@
 			rawExtraField,
 			extendedTimestamp,
 			msDosCompatible,
-			internalFileAttribute,
-			externalFileAttribute,
+			internalFileAttributes,
+			externalFileAttributes,
 			diskNumberStart
 		};
 		let {
@@ -10601,7 +10628,8 @@
 				setBigUint64(extraFieldNTFSView, 12, lastModTimeNTFS);
 				setBigUint64(extraFieldNTFSView, 20, getTimeNTFS(lastAccessDate) || lastModTimeNTFS);
 				setBigUint64(extraFieldNTFSView, 28, getTimeNTFS(creationDate) || lastModTimeNTFS);
-			} catch (_error) {
+				// eslint-disable-next-line no-unused-vars
+			} catch (_) {
 				rawExtraFieldNTFS = new Uint8Array();
 			}
 		} else {
@@ -10896,8 +10924,8 @@
 				zip64DiskNumberStart,
 				zip64Offset,
 				msDosCompatible,
-				internalFileAttribute,
-				externalFileAttribute,
+				internalFileAttributes,
+				externalFileAttributes,
 				diskNumberStart,
 				uncompressedSize,
 				compressedSize
@@ -10916,9 +10944,9 @@
 			setUint16(directoryView, offset + 30, extraFieldLength);
 			setUint16(directoryView, offset + 32, getLength(rawComment));
 			setUint16(directoryView, offset + 34, zip64 && zip64DiskNumberStart ? MAX_16_BITS : diskNumberStart);
-			setUint16(directoryView, offset + 36, internalFileAttribute);
-			if (externalFileAttribute) {
-				setUint32(directoryView, offset + 38, externalFileAttribute);
+			setUint16(directoryView, offset + 36, internalFileAttributes);
+			if (externalFileAttributes) {
+				setUint32(directoryView, offset + 38, externalFileAttributes);
 			} else if (directory && msDosCompatible) {
 				setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 			}
@@ -10940,7 +10968,8 @@
 			if (options.onprogress) {
 				try {
 					await options.onprogress(indexFileEntry + 1, files.size, new Entry(fileEntry));
-				} catch (_error) {
+					// eslint-disable-next-line no-unused-vars
+				} catch (_) {
 					// ignored
 				}
 			}
@@ -11463,7 +11492,8 @@
 						error.cause = {
 							entry
 						};
-					} catch (_error) {
+						// eslint-disable-next-line no-unused-vars
+					} catch (_) {
 						// ignored
 					}
 					throw error;
@@ -11720,7 +11750,8 @@
 							error.cause = {
 								entry: child
 							};
-						} catch (_error) {
+							// eslint-disable-next-line no-unused-vars
+						} catch (_) {
 							// ignored
 						}
 						throw error;
@@ -11766,7 +11797,7 @@
 				let zipEntryOptions = {};
 				if (child.data instanceof Entry) {
 					const {
-						externalFileAttribute,
+						externalFileAttributes,
 						versionMadeBy,
 						comment,
 						lastModDate,
@@ -11780,7 +11811,7 @@
 						extraFieldAES
 					} = child.data;
 					zipEntryOptions = {
-						externalFileAttribute,
+						externalFileAttributes,
 						versionMadeBy,
 						comment,
 						lastModDate,
@@ -11815,7 +11846,8 @@
 							entryOffsets.set(name, indexProgress);
 							try {
 								await options.onprogress(Array.from(entryOffsets.values()).reduce((previousValue, currentValue) => previousValue + currentValue), totalSize);
-							} catch (_error) {
+								// eslint-disable-next-line no-unused-vars
+							} catch (_) {
 								// ignored
 							}
 						}
@@ -11960,7 +11992,8 @@
 	let baseURL;
 	try {
 		baseURL = (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('zip-fs-full.js', document.baseURI).href));
-	} catch (_error) {
+		// eslint-disable-next-line no-unused-vars
+	} catch (_) {
 		// ignored
 	}
 	configure({ baseURL });
