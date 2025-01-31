@@ -69,6 +69,7 @@
 	const FILE_ATTR_MSDOS_DIR_MASK = 0x10;
 	const FILE_ATTR_UNIX_DIR_MASK =  0x4000;
 	const FILE_ATTR_UNIX_EXECUTABLE_MASK = 0o111;
+	const FILE_ATTR_UNIX_DEFAULT_MASK = 0o644;
 
 	const VERSION_DEFLATE = 0x14;
 	const VERSION_ZIP64 = 0x2D;
@@ -3376,12 +3377,14 @@
 	const PROPERTY_NAME_VERSION = "version";
 	const PROPERTY_NAME_VERSION_MADE_BY = "versionMadeBy";
 	const PROPERTY_NAME_ZIPCRYPTO = "zipCrypto";
+	const PROPERTY_NAME_DIRECTORY = "directory";
+	const PROPERTY_NAME_EXECUTABLE = "executable";
 
 	const PROPERTY_NAMES = [
 		PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, PROPERTY_NAME_COMPPRESSED_SIZE, PROPERTY_NAME_UNCOMPPRESSED_SIZE,
 		PROPERTY_NAME_LAST_MODIFICATION_DATE, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT,
 		PROPERTY_NAME_LAST_ACCESS_DATE, PROPERTY_NAME_CREATION_DATE, PROPERTY_NAME_OFFSET, PROPERTY_NAME_DISK_NUMBER_START,
-		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64, PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY, PROPERTY_NAME_ZIPCRYPTO, "directory", "executable", "bitFlag", "signature", "filenameUTF8", "commentUTF8", "compressionMethod", "extraField", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS", "extraFieldExtendedTimestamp"];
+		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64, PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY, PROPERTY_NAME_ZIPCRYPTO, PROPERTY_NAME_DIRECTORY, PROPERTY_NAME_EXECUTABLE, "bitFlag", "signature", "filenameUTF8", "commentUTF8", "compressionMethod", "extraField", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS", "extraFieldExtendedTimestamp"];
 
 	class Entry {
 
@@ -4226,10 +4229,37 @@
 
 	async function addFile(zipWriter, name, reader, options) {
 		name = name.trim();
-		if (options.directory && (!name.endsWith(DIRECTORY_SIGNATURE))) {
-			name += DIRECTORY_SIGNATURE;
-		} else {
-			options.directory = name.endsWith(DIRECTORY_SIGNATURE);
+		const msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE);
+		const versionMadeBy = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION_MADE_BY, msDosCompatible ? 20 : 768);
+		const executable = getOptionValue(zipWriter, options, PROPERTY_NAME_EXECUTABLE);
+		if (versionMadeBy > MAX_16_BITS) {
+			throw new Error(ERR_INVALID_VERSION);
+		}
+		let externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, 0);
+		if (externalFileAttributes === 0) {
+			externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, 0);
+		}
+		if (!options.directory && name.endsWith(DIRECTORY_SIGNATURE)) {
+			options.directory = true;
+		}
+		const directory = getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY);
+		if (directory) {
+			if (!name.endsWith(DIRECTORY_SIGNATURE)) {
+				name += DIRECTORY_SIGNATURE;
+			}
+			if (externalFileAttributes === 0) {
+				if (msDosCompatible) {
+					externalFileAttributes = FILE_ATTR_MSDOS_DIR_MASK;
+				} else {
+					externalFileAttributes = FILE_ATTR_UNIX_DIR_MASK << 16;
+				}
+			}
+		} else if (!msDosCompatible && externalFileAttributes === 0) {
+			if (executable) {
+				externalFileAttributes = (FILE_ATTR_UNIX_EXECUTABLE_MASK | FILE_ATTR_UNIX_DEFAULT_MASK) << 16;
+			} else {
+				externalFileAttributes = FILE_ATTR_UNIX_DEFAULT_MASK << 16;
+			}
 		}
 		const encode = getOptionValue(zipWriter, options, "encodeText", encodeText);
 		let rawFilename = encode(name);
@@ -4251,21 +4281,12 @@
 		if (version > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_VERSION);
 		}
-		const versionMadeBy = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION_MADE_BY, 20);
-		if (versionMadeBy > MAX_16_BITS) {
-			throw new Error(ERR_INVALID_VERSION);
-		}
 		const lastModDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE, new Date());
 		const lastAccessDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
 		const creationDate = getOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
-		const msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE, true);
 		let internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, 0);
 		if (internalFileAttributes === 0) {
 			internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, 0);
-		}
-		let externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, 0);
-		if (externalFileAttributes === 0) {
-			externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, 0);
 		}
 		const passThrough = getOptionValue(zipWriter, options, "passThrough");
 		let password, rawPassword;
@@ -4589,6 +4610,7 @@
 			zipCrypto,
 			dataDescriptor,
 			directory,
+			executable,
 			versionMadeBy,
 			rawComment,
 			rawExtraField,
@@ -4610,6 +4632,7 @@
 			versionMadeBy,
 			zip64,
 			directory: Boolean(directory),
+			executable: Boolean(executable),
 			filenameUTF8: true,
 			rawFilename,
 			commentUTF8: true,
@@ -5070,13 +5093,11 @@
 				rawComment,
 				versionMadeBy,
 				headerArray,
-				directory,
 				zip64,
 				zip64UncompressedSize,
 				zip64CompressedSize,
 				zip64DiskNumberStart,
 				zip64Offset,
-				msDosCompatible,
 				internalFileAttributes,
 				externalFileAttributes,
 				diskNumberStart,
@@ -5100,8 +5121,6 @@
 			setUint16(directoryView, offset + 36, internalFileAttributes);
 			if (externalFileAttributes) {
 				setUint32(directoryView, offset + 38, externalFileAttributes);
-			} else if (directory && msDosCompatible) {
-				setUint8(directoryView, offset + 38, FILE_ATTR_MSDOS_DIR_MASK);
 			}
 			setUint32(directoryView, offset + 42, zip64 && zip64Offset ? MAX_32_BITS : fileEntryOffset);
 			arraySet(directoryArray, rawFilename, offset + 46);
