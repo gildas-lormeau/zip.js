@@ -6,7 +6,7 @@
 
 # Interface: EventBasedZipLibrary
 
-Defined in: [index.d.ts:189](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L189)
+Defined in: [index.d.ts:189](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L189)
 
 Represents event-based implementations used to compress/decompress data.
 
@@ -16,7 +16,7 @@ Represents event-based implementations used to compress/decompress data.
 
 > **Deflate**: *typeof* [`EventBasedCodec`](../classes/EventBasedCodec.md)
 
-Defined in: [index.d.ts:193](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L193)
+Defined in: [index.d.ts:193](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L193)
 
 The class used to compress data.
 
@@ -26,6 +26,6 @@ The class used to compress data.
 
 > **Inflate**: *typeof* [`EventBasedCodec`](../classes/EventBasedCodec.md)
 
-Defined in: [index.d.ts:197](https://github.com/gildas-lormeau/zip.js/blob/d0e6c1395e38b4516517dbdf3097589fab5ed02c/index.d.ts#L197)
+Defined in: [index.d.ts:197](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L197)
 
 The class used to decompress data.
