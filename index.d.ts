@@ -1281,7 +1281,10 @@ export interface ZipWriterConstructorOptions {
    */
   rawPassword?: Uint8Array;
   /**
-   * The encryption strength (AES).
+   * The encryption strength (AES):
+   * - 1: 128-bit encryption key
+   * - 2: 192-bit encryption key
+   * - 3: 256-bit encryption key
    *
    * @defaultValue 3
    */
