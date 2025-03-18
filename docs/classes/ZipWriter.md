@@ -6,7 +6,7 @@
 
 # Class: ZipWriter\<Type\>
 
-Defined in: [index.d.ts:1125](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L1125)
+Defined in: [index.d.ts:1125](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1125)
 
 Represents an instance used to create a zip file.
 
@@ -38,7 +38,7 @@ const blob = await blobWriter.getData();
 
 > **new ZipWriter**\<`Type`\>(`writer`, `options`?): [`ZipWriter`](ZipWriter.md)\<`Type`\>
 
-Defined in: [index.d.ts:1132](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L1132)
+Defined in: [index.d.ts:1132](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1132)
 
 Creates the [ZipWriter](ZipWriter.md) instance
 
@@ -66,7 +66,7 @@ The options.
 
 > `readonly` `optional` **hasCorruptedEntries**: `boolean`
 
-Defined in: [index.d.ts:1146](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L1146)
+Defined in: [index.d.ts:1146](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1146)
 
 `true` if the zip contains at least one entry that has been partially written.
 
@@ -76,7 +76,7 @@ Defined in: [index.d.ts:1146](https://github.com/gildas-lormeau/zip.js/blob/6e0f
 
 > **add**\<`ReaderType`\>(`filename`, `reader`?, `options`?): `Promise`\<[`EntryMetaData`](../interfaces/EntryMetaData.md)\>
 
-Defined in: [index.d.ts:1155](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L1155)
+Defined in: [index.d.ts:1155](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1155)
 
 Adds an entry into the zip file
 
@@ -116,7 +116,7 @@ A promise resolving to an [EntryMetaData](../interfaces/EntryMetaData.md) instan
 
 > **close**(`comment`?, `options`?): `Promise`\<`Type`\>
 
-Defined in: [index.d.ts:1173](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L1173)
+Defined in: [index.d.ts:1173](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1173)
 
 Writes the entries directory, writes the global comment, and returns the content of the zip file
 

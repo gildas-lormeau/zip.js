@@ -6,7 +6,7 @@
 
 # Class: Uint8ArrayWriter
 
-Defined in: [index.d.ts:625](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L625)
+Defined in: [index.d.ts:625](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L625)
 
 Represents a [Writer](Writer.md)  instance used to retrieve the written data as a `Uint8Array` instance.
 
@@ -34,7 +34,7 @@ Represents a [Writer](Writer.md)  instance used to retrieve the written data as 
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:515](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L515)
+Defined in: [index.d.ts:515](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L515)
 
 The `WritableStream` instance.
 
@@ -48,7 +48,7 @@ The `WritableStream` instance.
 
 > **getData**(): `Promise`\<`Uint8Array`\>
 
-Defined in: [index.d.ts:535](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L535)
+Defined in: [index.d.ts:535](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L535)
 
 Retrieves all the written data
 
@@ -68,7 +68,7 @@ A promise resolving to the written data.
 
 > `optional` **init**(`size`?): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:521](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L521)
+Defined in: [index.d.ts:521](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L521)
 
 Initializes the instance asynchronously
 
@@ -94,7 +94,7 @@ the total size of the written data in bytes.
 
 > **writeUint8Array**(`array`): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:529](https://github.com/gildas-lormeau/zip.js/blob/6e0fd98b749fcfd4608f898ad72964d533d72ffa/index.d.ts#L529)
+Defined in: [index.d.ts:529](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L529)
 
 Appends a chunk of data
 
