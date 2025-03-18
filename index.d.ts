@@ -787,7 +787,7 @@ export interface GetEntriesOptions {
    */
   commentEncoding?: string;
   /**
-   * Decodes the filename and the comment of the entry.
+   * The function called for decoding the filename and the comment of the entry.
    * 
    * @param value The raw text value.
    * @param encoding The encoding of the text.
@@ -1410,7 +1410,7 @@ export interface ZipWriterConstructorOptions {
    */
   compressionMethod?: number
   /**
-   * Encode the filename and the comment of the entry.
+   * The function called for encoding the filename and the comment of the entry.
    * 
    * @param text The text to encode.
    * @returns The encoded text or `undefined` if the text should be encoded by zip.js.
