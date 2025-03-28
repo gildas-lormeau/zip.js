@@ -2102,3 +2102,7 @@ export const ERR_ITERATOR_COMPLETED_TOO_SOON: string;
  * Undefined uncompressed size error
  */
 export const ERR_UNDEFINED_UNCOMPRESSED_SIZE: string
+/**
+ * Writer not initialized error
+ */
+export const ERR_WRITER_NOT_INITIALIZED: string;
