@@ -37,7 +37,7 @@
     "build-fflate": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.js",
     "build-fflate-dev": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.dev.js",
     "build-doc-api": "npx typedoc",
-    "build-markdown-docs": "npx typedoc --plugin typedoc-plugin-markdown --out ./docs",
+    "build-doc-markdown": "npx typedoc --plugin typedoc-plugin-markdown --out ./docs",
     "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
     "test-node": "cd ./tests && node ./node-runner.js",
     "test-bun": "cd ./tests && bun test ./bun-runner.js",
