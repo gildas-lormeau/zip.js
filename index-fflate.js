@@ -78,6 +78,6 @@ export {
 	ERR_UNSUPPORTED_FORMAT,
 	ERR_SPLIT_ZIP_FILE,
 	ERR_ITERATOR_COMPLETED_TOO_SOON,
-	ERR_STREAM_NOT_INITIALIZED
+	ERR_WRITER_NOT_INITIALIZED
 } from "./lib/zip-fs.js";
 export { getMimeType, terminateWorkers };
