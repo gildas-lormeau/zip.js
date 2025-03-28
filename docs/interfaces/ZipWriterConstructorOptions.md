@@ -6,7 +6,7 @@
 
 # Interface: ZipWriterConstructorOptions
 
-Defined in: [index.d.ts:1235](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1235)
+Defined in: [index.d.ts:1230](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1230)
 
 Represents options passed to the constructor of [ZipWriter](../classes/ZipWriter.md), [ZipWriter#add](../classes/ZipWriter.md#add) and `{@link ZipDirectoryEntry}#export*`.
 
@@ -21,7 +21,7 @@ Represents options passed to the constructor of [ZipWriter](../classes/ZipWriter
 
 > `optional` **bufferedWrite**: `boolean`
 
-Defined in: [index.d.ts:1265](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1265)
+Defined in: [index.d.ts:1260](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1260)
 
 `true` to write entry data in a buffer before appending it to the zip file.
 
@@ -39,7 +39,7 @@ false
 
 > `optional` **compressionMethod**: `number`
 
-Defined in: [index.d.ts:1411](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1411)
+Defined in: [index.d.ts:1406](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1406)
 
 The compression method (e.g. 8 for DEFLATE, 0 for STORE).
 
@@ -49,11 +49,11 @@ The compression method (e.g. 8 for DEFLATE, 0 for STORE).
 
 > `optional` **creationDate**: `Date`
 
-Defined in: [index.d.ts:1317](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1317)
+Defined in: [index.d.ts:1312](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1312)
 
 The creation date.
 
-This option is ignored if the [ZipWriterConstructorOptions#extendedTimestamp](ZipWriterConstructorOptions.md#extendedtimestamp) option is set to `false`.
+This option is ignored if the [ZipWriterConstructorOptions#extendedTimestamp](#extendedtimestamp) option is set to `false`.
 
 #### Default Value
 
@@ -67,11 +67,11 @@ The current date.
 
 > `optional` **dataDescriptor**: `boolean`
 
-Defined in: [index.d.ts:1359](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1359)
+Defined in: [index.d.ts:1354](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1354)
 
 `true` to add a data descriptor.
 
-When set to `false`, the [ZipWriterConstructorOptions#bufferedWrite](ZipWriterConstructorOptions.md#bufferedwrite) option  will automatically be set to `true`.
+When set to `false`, the [ZipWriterConstructorOptions#bufferedWrite](#bufferedwrite) option  will automatically be set to `true`.
 
 #### Default Value
 
@@ -85,7 +85,7 @@ true
 
 > `optional` **dataDescriptorSignature**: `boolean`
 
-Defined in: [index.d.ts:1365](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1365)
+Defined in: [index.d.ts:1360](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1360)
 
 `true` to add the signature of the data descriptor.
 
@@ -101,7 +101,7 @@ false
 
 > `optional` **encrypted**: `boolean`
 
-Defined in: [index.d.ts:1403](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1403)
+Defined in: [index.d.ts:1398](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1398)
 
 `true` to write encrypted data when `passThrough` is set to `true`.
 
@@ -111,7 +111,7 @@ Defined in: [index.d.ts:1403](https://github.com/gildas-lormeau/zip.js/blob/be8a
 
 > `optional` **encryptionStrength**: `1` \| `2` \| `3`
 
-Defined in: [index.d.ts:1291](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1291)
+Defined in: [index.d.ts:1286](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1286)
 
 The encryption strength (AES):
 - 1: 128-bit encryption key
@@ -130,7 +130,7 @@ The encryption strength (AES):
 
 > `optional` **extendedTimestamp**: `boolean`
 
-Defined in: [index.d.ts:1325](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1325)
+Defined in: [index.d.ts:1320](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1320)
 
 `true` to store extended timestamp extra fields.
 
@@ -148,7 +148,7 @@ true
 
 > `optional` **externalFileAttributes**: `number`
 
-Defined in: [index.d.ts:1377](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1377)
+Defined in: [index.d.ts:1372](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1372)
 
 The external file attribute.
 
@@ -164,7 +164,7 @@ The external file attribute.
 
 > `optional` **internalFileAttributes**: `number`
 
-Defined in: [index.d.ts:1383](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1383)
+Defined in: [index.d.ts:1378](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1378)
 
 The internal file attribute.
 
@@ -180,7 +180,7 @@ The internal file attribute.
 
 > `optional` **keepOrder**: `boolean`
 
-Defined in: [index.d.ts:1274](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1274)
+Defined in: [index.d.ts:1269](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1269)
 
 `true` to keep the order of the entry physically in the zip file.
 
@@ -199,11 +199,11 @@ true
 
 > `optional` **lastAccessDate**: `Date`
 
-Defined in: [index.d.ts:1309](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1309)
+Defined in: [index.d.ts:1304](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1304)
 
 The last access date.
 
-This option is ignored if the [ZipWriterConstructorOptions#extendedTimestamp](ZipWriterConstructorOptions.md#extendedtimestamp) option is set to `false`.
+This option is ignored if the [ZipWriterConstructorOptions#extendedTimestamp](#extendedtimestamp) option is set to `false`.
 
 #### Default Value
 
@@ -217,7 +217,7 @@ The current date.
 
 > `optional` **lastModDate**: `Date`
 
-Defined in: [index.d.ts:1301](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1301)
+Defined in: [index.d.ts:1296](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1296)
 
 The last modification date.
 
@@ -233,7 +233,7 @@ The current date.
 
 > `optional` **level**: `number`
 
-Defined in: [index.d.ts:1257](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1257)
+Defined in: [index.d.ts:1252](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1252)
 
 The level of compression.
 
@@ -251,7 +251,7 @@ The minimum value is 0 and means that no compression is applied. The maximum val
 
 > `optional` **msDosCompatible**: `boolean`
 
-Defined in: [index.d.ts:1371](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1371)
+Defined in: [index.d.ts:1366](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1366)
 
 `true` to write [EntryMetaData#externalFileAttributes](EntryMetaData.md#externalfileattributes) in MS-DOS format for folder entries.
 
@@ -267,7 +267,7 @@ false
 
 > `optional` **offset**: `number`
 
-Defined in: [index.d.ts:1407](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1407)
+Defined in: [index.d.ts:1402](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1402)
 
 The offset of the first entry in the zip file.
 
@@ -277,7 +277,7 @@ The offset of the first entry in the zip file.
 
 > `optional` **passThrough**: `boolean`
 
-Defined in: [index.d.ts:1399](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1399)
+Defined in: [index.d.ts:1394](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1394)
 
 `true` to write the data as-is without compressing it and without crypting it.
 
@@ -287,7 +287,7 @@ Defined in: [index.d.ts:1399](https://github.com/gildas-lormeau/zip.js/blob/be8a
 
 > `optional` **password**: `string`
 
-Defined in: [index.d.ts:1278](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1278)
+Defined in: [index.d.ts:1273](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1273)
 
 The password used to encrypt the content of the entry.
 
@@ -297,7 +297,7 @@ The password used to encrypt the content of the entry.
 
 > `optional` **preventClose**: `boolean`
 
-Defined in: [index.d.ts:1249](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1249)
+Defined in: [index.d.ts:1244](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1244)
 
 `true` to prevent closing of [WritableWriter#writable](WritableWriter.md#writable).
 
@@ -311,9 +311,9 @@ false
 
 ### rawPassword?
 
-> `optional` **rawPassword**: `Uint8Array`
+> `optional` **rawPassword**: `Uint8Array`\<`ArrayBuffer`\>
 
-Defined in: [index.d.ts:1282](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1282)
+Defined in: [index.d.ts:1277](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1277)
 
 The password used to encrypt the content of the entry (raw).
 
@@ -323,7 +323,7 @@ The password used to encrypt the content of the entry (raw).
 
 > `optional` **signal**: `AbortSignal`
 
-Defined in: [index.d.ts:1295](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1295)
+Defined in: [index.d.ts:1290](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1290)
 
 The `AbortSignal` instance used to cancel the compression.
 
@@ -333,7 +333,7 @@ The `AbortSignal` instance used to cancel the compression.
 
 > `optional` **supportZip64SplitFile**: `boolean`
 
-Defined in: [index.d.ts:1389](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1389)
+Defined in: [index.d.ts:1384](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1384)
 
 `false` to never write disk numbers in zip64 data.
 
@@ -349,7 +349,7 @@ true
 
 > `optional` **usdz**: `boolean`
 
-Defined in: [index.d.ts:1395](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1395)
+Defined in: [index.d.ts:1390](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1390)
 
 `true`to produce zip files compatible with the USDZ specification.
 
@@ -365,7 +365,7 @@ false
 
 > `optional` **useUnicodeFileNames**: `boolean`
 
-Defined in: [index.d.ts:1351](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1351)
+Defined in: [index.d.ts:1346](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1346)
 
 `true` to mark the file names as UTF-8 setting the general purpose bit 11 in the header (see Appendix D - Language Encoding (EFS)), `false` to mark the names as compliant with the original IBM Code Page 437.
 
@@ -383,7 +383,7 @@ true
 
 > `optional` **version**: `number`
 
-Defined in: [index.d.ts:1337](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1337)
+Defined in: [index.d.ts:1332](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1332)
 
 The "Version" field.
 
@@ -393,7 +393,7 @@ The "Version" field.
 
 > `optional` **versionMadeBy**: `number`
 
-Defined in: [index.d.ts:1343](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1343)
+Defined in: [index.d.ts:1338](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1338)
 
 The "Version made by" field.
 
@@ -409,7 +409,7 @@ The "Version made by" field.
 
 > `optional` **zip64**: `boolean`
 
-Defined in: [index.d.ts:1243](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1243)
+Defined in: [index.d.ts:1238](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1238)
 
 `true` to use Zip64 to store the entry.
 
@@ -427,7 +427,7 @@ false
 
 > `optional` **zipCrypto**: `boolean`
 
-Defined in: [index.d.ts:1333](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1333)
+Defined in: [index.d.ts:1328](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1328)
 
 `true` to use the ZipCrypto algorithm to encrypt the content of the entry.
 
@@ -443,9 +443,9 @@ false
 
 ### encodeText()?
 
-> `optional` **encodeText**(`text`): `Uint8Array`
+> `optional` **encodeText**(`text`): `Uint8Array`\<`ArrayBuffer`\>
 
-Defined in: [index.d.ts:1418](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1418)
+Defined in: [index.d.ts:1413](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1413)
 
 The function called for encoding the filename and the comment of the entry.
 
@@ -459,6 +459,6 @@ The text to encode.
 
 #### Returns
 
-`Uint8Array`
+`Uint8Array`\<`ArrayBuffer`\>
 
 The encoded text or `undefined` if the text should be encoded by zip.js.

@@ -6,7 +6,7 @@
 
 # Interface: WorkerConfiguration
 
-Defined in: [index.d.ts:131](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L131)
+Defined in: [index.d.ts:131](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L131)
 
 Represents configuration passed to [configure](../functions/configure.md), the constructor of [ZipReader](../classes/ZipReader.md), [Entry#getData](Entry.md#getdata), the constructor of [ZipWriter](../classes/ZipWriter.md), and [ZipWriter#add](../classes/ZipWriter.md#add).
 
@@ -23,7 +23,7 @@ Represents configuration passed to [configure](../functions/configure.md), the c
 
 > `optional` **useCompressionStream**: `boolean`
 
-Defined in: [index.d.ts:143](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L143)
+Defined in: [index.d.ts:143](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L143)
 
 `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
 
@@ -39,7 +39,7 @@ true
 
 > `optional` **useWebWorkers**: `boolean`
 
-Defined in: [index.d.ts:137](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L137)
+Defined in: [index.d.ts:137](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L137)
 
 `true` to use web workers to compress/decompress data in non-blocking background processes.
 

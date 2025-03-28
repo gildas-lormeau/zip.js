@@ -6,7 +6,7 @@
 
 # Class: ZipDeflate
 
-Defined in: [index.d.ts:249](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L249)
+Defined in: [index.d.ts:249](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L249)
 
 Represents an instance used to compress data.
 
@@ -16,25 +16,25 @@ Represents an instance used to compress data.
 
 ## Constructors
 
-### new ZipDeflate()
+### Constructor
 
-> **new ZipDeflate**(): [`ZipDeflate`](ZipDeflate.md)
+> **new ZipDeflate**(): `ZipDeflate`
 
 #### Returns
 
-[`ZipDeflate`](ZipDeflate.md)
+`ZipDeflate`
 
 #### Inherited from
 
-[`SyncCodec`](SyncCodec.md).[`constructor`](SyncCodec.md#constructors)
+[`SyncCodec`](SyncCodec.md).[`constructor`](SyncCodec.md#constructor)
 
 ## Methods
 
 ### append()
 
-> **append**(`data`): `Uint8Array`
+> **append**(`data`): `Uint8Array`\<`ArrayBuffer`\>
 
-Defined in: [index.d.ts:243](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L243)
+Defined in: [index.d.ts:243](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L243)
 
 Appends a chunk of decompressed data to compress
 
@@ -42,13 +42,13 @@ Appends a chunk of decompressed data to compress
 
 ##### data
 
-`Uint8Array`
+`Uint8Array`\<`ArrayBuffer`\>
 
 The chunk of decompressed data to append.
 
 #### Returns
 
-`Uint8Array`
+`Uint8Array`\<`ArrayBuffer`\>
 
 A chunk of compressed data.
 
@@ -60,14 +60,14 @@ A chunk of compressed data.
 
 ### flush()
 
-> **flush**(): `Uint8Array`
+> **flush**(): `Uint8Array`\<`ArrayBuffer`\>
 
-Defined in: [index.d.ts:255](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L255)
+Defined in: [index.d.ts:255](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L255)
 
 Flushes the data
 
 #### Returns
 
-`Uint8Array`
+`Uint8Array`\<`ArrayBuffer`\>
 
 A chunk of compressed data.

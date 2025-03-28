@@ -6,13 +6,13 @@
 
 # Class: Reader\<Type\>
 
-Defined in: [index.d.ts:332](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L332)
+Defined in: [index.d.ts:332](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L332)
 
 Represents an instance used to read unknown type of data.
 
 ## Example
 
-Here is an example of custom [Reader](Reader.md) class used to read binary strings:
+Here is an example of custom Reader class used to read binary strings:
 ```
 class BinaryStringReader extends Reader {
 
@@ -47,7 +47,9 @@ class BinaryStringReader extends Reader {
 
 ## Type Parameters
 
-• **Type**
+### Type
+
+`Type`
 
 ## Implements
 
@@ -56,13 +58,13 @@ class BinaryStringReader extends Reader {
 
 ## Constructors
 
-### new Reader()
+### Constructor
 
-> **new Reader**\<`Type`\>(`value`): [`Reader`](Reader.md)\<`Type`\>
+> **new Reader**\<`Type`\>(`value`): `Reader`\<`Type`\>
 
-Defined in: [index.d.ts:338](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L338)
+Defined in: [index.d.ts:338](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L338)
 
-Creates the [Reader](Reader.md) instance
+Creates the Reader instance
 
 #### Parameters
 
@@ -74,7 +76,7 @@ The data to read.
 
 #### Returns
 
-[`Reader`](Reader.md)\<`Type`\>
+`Reader`\<`Type`\>
 
 ## Properties
 
@@ -82,7 +84,7 @@ The data to read.
 
 > **readable**: `ReadableStream`
 
-Defined in: [index.d.ts:342](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L342)
+Defined in: [index.d.ts:342](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L342)
 
 The `ReadableStream` instance.
 
@@ -96,7 +98,7 @@ The `ReadableStream` instance.
 
 > **size**: `number`
 
-Defined in: [index.d.ts:346](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L346)
+Defined in: [index.d.ts:346](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L346)
 
 The total size of the data in bytes.
 
@@ -106,7 +108,7 @@ The total size of the data in bytes.
 
 > `optional` **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:350](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L350)
+Defined in: [index.d.ts:350](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L350)
 
 Initializes the instance asynchronously
 
@@ -122,9 +124,9 @@ Initializes the instance asynchronously
 
 ### readUint8Array()
 
-> **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\>
+> **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\<`ArrayBuffer`\>\>
 
-Defined in: [index.d.ts:358](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L358)
+Defined in: [index.d.ts:358](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L358)
 
 Reads a chunk of data
 
@@ -144,6 +146,6 @@ The length of the data to read in bytes.
 
 #### Returns
 
-`Promise`\<`Uint8Array`\>
+`Promise`\<`Uint8Array`\<`ArrayBuffer`\>\>
 
 A promise resolving to a chunk of data.

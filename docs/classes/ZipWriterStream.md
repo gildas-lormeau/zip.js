@@ -6,7 +6,7 @@
 
 # Class: ZipWriterStream
 
-Defined in: [index.d.ts:1056](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1056)
+Defined in: [index.d.ts:1051](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1051)
 
 Represents an instance used to create a zipped stream.
 
@@ -45,11 +45,11 @@ zipper.close()
 
 ## Constructors
 
-### new ZipWriterStream()
+### Constructor
 
-> **new ZipWriterStream**(`options`?): [`ZipWriterStream`](ZipWriterStream.md)
+> **new ZipWriterStream**(`options`?): `ZipWriterStream`
 
-Defined in: [index.d.ts:1062](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1062)
+Defined in: [index.d.ts:1057](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1057)
 
 Creates the stream.
 
@@ -63,15 +63,15 @@ The options.
 
 #### Returns
 
-[`ZipWriterStream`](ZipWriterStream.md)
+`ZipWriterStream`
 
 ## Properties
 
 ### readable
 
-> **readable**: `ReadableStream`\<`Uint8Array`\>
+> **readable**: `ReadableStream`\<`Uint8Array`\<`ArrayBuffer`\>\>
 
-Defined in: [index.d.ts:1067](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1067)
+Defined in: [index.d.ts:1062](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1062)
 
 The readable stream.
 
@@ -81,7 +81,7 @@ The readable stream.
 
 > **zipWriter**: [`ZipWriter`](ZipWriter.md)\<`unknown`\>
 
-Defined in: [index.d.ts:1072](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1072)
+Defined in: [index.d.ts:1067](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1067)
 
 The ZipWriter property.
 
@@ -91,7 +91,7 @@ The ZipWriter property.
 
 > **close**(`comment`?, `options`?): `Promise`\<`unknown`\>
 
-Defined in: [index.d.ts:1099](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1099)
+Defined in: [index.d.ts:1094](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1094)
 
 Writes the entries directory, writes the global comment, and returns the content of the zipped file.
 
@@ -99,7 +99,7 @@ Writes the entries directory, writes the global comment, and returns the content
 
 ##### comment?
 
-`Uint8Array`
+`Uint8Array`\<`ArrayBuffer`\>
 
 The global comment of the zip file.
 
@@ -121,13 +121,15 @@ The content of the zip file.
 
 > **transform**\<`T`\>(`path`): `object`
 
-Defined in: [index.d.ts:1080](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1080)
+Defined in: [index.d.ts:1075](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1075)
 
 Returns an object containing a readable and writable property for the .pipeThrough method
 
 #### Type Parameters
 
-• **T**
+##### T
+
+`T`
 
 #### Parameters
 
@@ -157,13 +159,15 @@ An object containing readable and writable properties
 
 > **writable**\<`T`\>(`path`): `WritableStream`\<`T`\>
 
-Defined in: [index.d.ts:1090](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L1090)
+Defined in: [index.d.ts:1085](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1085)
 
 Returns a WritableStream for the .pipeTo method
 
 #### Type Parameters
 
-• **T**
+##### T
+
+`T`
 
 #### Parameters
 

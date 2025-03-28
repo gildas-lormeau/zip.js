@@ -6,7 +6,7 @@
 
 # Class: SplitDataWriter
 
-Defined in: [index.d.ts:598](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L598)
+Defined in: [index.d.ts:593](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L593)
 
 Represents a [Writer](Writer.md)  instance used to retrieve the written data from a generator of [WritableWriter](../interfaces/WritableWriter.md)  instances  (i.e. split zip files).
 
@@ -21,19 +21,19 @@ Represents a [Writer](Writer.md)  instance used to retrieve the written data fro
 
 ## Constructors
 
-### new SplitDataWriter()
+### Constructor
 
-> **new SplitDataWriter**(`writerGenerator`, `maxSize`?): [`SplitDataWriter`](SplitDataWriter.md)
+> **new SplitDataWriter**(`writerGenerator`, `maxSize`?): `SplitDataWriter`
 
-Defined in: [index.d.ts:613](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L613)
+Defined in: [index.d.ts:608](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L608)
 
-Creates the [SplitDataWriter](SplitDataWriter.md) instance
+Creates the SplitDataWriter instance
 
 #### Parameters
 
 ##### writerGenerator
 
-`AsyncGenerator`\<`WritableStream` \| [`WritableWriter`](../interfaces/WritableWriter.md) \| [`Writer`](Writer.md)\<`unknown`\>, `boolean`\>
+`AsyncGenerator`\<`WritableStream`\<`any`\> \| [`WritableWriter`](../interfaces/WritableWriter.md) \| [`Writer`](Writer.md)\<`unknown`\>, `boolean`\>
 
 A generator of Writer instances.
 
@@ -45,7 +45,7 @@ The maximum size of the data written into [Writer](Writer.md) instances (default
 
 #### Returns
 
-[`SplitDataWriter`](SplitDataWriter.md)
+`SplitDataWriter`
 
 ## Properties
 
@@ -53,7 +53,7 @@ The maximum size of the data written into [Writer](Writer.md) instances (default
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:602](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L602)
+Defined in: [index.d.ts:597](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L597)
 
 The `WritableStream` instance.
 
@@ -67,7 +67,7 @@ The `WritableStream` instance.
 
 > **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:606](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L606)
+Defined in: [index.d.ts:601](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L601)
 
 Initializes the instance asynchronously
 

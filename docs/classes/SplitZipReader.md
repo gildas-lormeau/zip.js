@@ -6,7 +6,7 @@
 
 # Class: ~~SplitZipReader~~
 
-Defined in: [index.d.ts:386](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L386)
+Defined in: [index.d.ts:386](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L386)
 
 Represents a [Reader](Reader.md) instance used to read data provided as an array of [ReadableReader](../interfaces/ReadableReader.md) instances (e.g. split zip files).
 
@@ -20,11 +20,11 @@ Use [SplitDataReader](SplitDataReader.md) instead.
 
 ## Constructors
 
-### new SplitZipReader()
+### Constructor
 
-> **new SplitZipReader**(`value`): [`SplitZipReader`](SplitZipReader.md)
+> **new SplitZipReader**(`value`): `SplitZipReader`
 
-Defined in: [index.d.ts:338](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L338)
+Defined in: [index.d.ts:338](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L338)
 
 Creates the [Reader](Reader.md) instance
 
@@ -34,15 +34,15 @@ Creates the [Reader](Reader.md) instance
 
 The data to read.
 
-[`Reader`](Reader.md)\<`unknown`\>[] | [`ReadableReader`](../interfaces/ReadableReader.md)[] | `ReadableStream`[]
+[`Reader`](Reader.md)\<`unknown`\>[] | [`ReadableReader`](../interfaces/ReadableReader.md)[] | `ReadableStream`\<`any`\>[]
 
 #### Returns
 
-[`SplitZipReader`](SplitZipReader.md)
+`SplitZipReader`
 
 #### Inherited from
 
-[`SplitDataReader`](SplitDataReader.md).[`constructor`](SplitDataReader.md#constructors)
+[`SplitDataReader`](SplitDataReader.md).[`constructor`](SplitDataReader.md#constructor)
 
 ## Properties
 
@@ -50,7 +50,7 @@ The data to read.
 
 > **readable**: `ReadableStream`
 
-Defined in: [index.d.ts:342](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L342)
+Defined in: [index.d.ts:342](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L342)
 
 The `ReadableStream` instance.
 
@@ -64,7 +64,7 @@ The `ReadableStream` instance.
 
 > **size**: `number`
 
-Defined in: [index.d.ts:346](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L346)
+Defined in: [index.d.ts:346](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L346)
 
 The total size of the data in bytes.
 
@@ -78,7 +78,7 @@ The total size of the data in bytes.
 
 > `optional` **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:350](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L350)
+Defined in: [index.d.ts:350](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L350)
 
 Initializes the instance asynchronously
 
@@ -94,9 +94,9 @@ Initializes the instance asynchronously
 
 ### ~~readUint8Array()~~
 
-> **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\>
+> **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\<`ArrayBuffer`\>\>
 
-Defined in: [index.d.ts:358](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L358)
+Defined in: [index.d.ts:358](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L358)
 
 Reads a chunk of data
 
@@ -116,7 +116,7 @@ The length of the data to read in bytes.
 
 #### Returns
 
-`Promise`\<`Uint8Array`\>
+`Promise`\<`Uint8Array`\<`ArrayBuffer`\>\>
 
 A promise resolving to a chunk of data.
 

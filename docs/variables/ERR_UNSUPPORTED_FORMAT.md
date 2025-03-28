@@ -8,6 +8,6 @@
 
 > `const` **ERR\_UNSUPPORTED\_FORMAT**: `string`
 
-Defined in: [index.d.ts:2092](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L2092)
+Defined in: [index.d.ts:2087](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L2087)
 
 Invalid format error

@@ -8,7 +8,7 @@
 
 > **terminateWorkers**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:184](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L184)
+Defined in: [index.d.ts:184](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L184)
 
 Terminates all the web workers
 

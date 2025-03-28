@@ -56,7 +56,6 @@
 - [Initializable](interfaces/Initializable.md)
 - [ReadableReader](interfaces/ReadableReader.md)
 - [registerDataHandler](interfaces/registerDataHandler.md)
-- [URLString](interfaces/URLString.md)
 - [WorkerConfiguration](interfaces/WorkerConfiguration.md)
 - [WritableWriter](interfaces/WritableWriter.md)
 - [ZipDirectoryEntryExportOptions](interfaces/ZipDirectoryEntryExportOptions.md)
@@ -95,6 +94,7 @@
 - [ERR\_UNSUPPORTED\_COMPRESSION](variables/ERR_UNSUPPORTED_COMPRESSION.md)
 - [ERR\_UNSUPPORTED\_ENCRYPTION](variables/ERR_UNSUPPORTED_ENCRYPTION.md)
 - [ERR\_UNSUPPORTED\_FORMAT](variables/ERR_UNSUPPORTED_FORMAT.md)
+- [ERR\_WRITER\_NOT\_INITIALIZED](variables/ERR_WRITER_NOT_INITIALIZED.md)
 - [fs](variables/fs.md)
 
 ## Functions

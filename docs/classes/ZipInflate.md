@@ -6,7 +6,7 @@
 
 # Class: ZipInflate
 
-Defined in: [index.d.ts:261](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L261)
+Defined in: [index.d.ts:261](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L261)
 
 Represents a codec used to decompress data.
 
@@ -16,25 +16,25 @@ Represents a codec used to decompress data.
 
 ## Constructors
 
-### new ZipInflate()
+### Constructor
 
-> **new ZipInflate**(): [`ZipInflate`](ZipInflate.md)
+> **new ZipInflate**(): `ZipInflate`
 
 #### Returns
 
-[`ZipInflate`](ZipInflate.md)
+`ZipInflate`
 
 #### Inherited from
 
-[`SyncCodec`](SyncCodec.md).[`constructor`](SyncCodec.md#constructors)
+[`SyncCodec`](SyncCodec.md).[`constructor`](SyncCodec.md#constructor)
 
 ## Methods
 
 ### append()
 
-> **append**(`data`): `Uint8Array`
+> **append**(`data`): `Uint8Array`\<`ArrayBuffer`\>
 
-Defined in: [index.d.ts:243](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L243)
+Defined in: [index.d.ts:243](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L243)
 
 Appends a chunk of decompressed data to compress
 
@@ -42,13 +42,13 @@ Appends a chunk of decompressed data to compress
 
 ##### data
 
-`Uint8Array`
+`Uint8Array`\<`ArrayBuffer`\>
 
 The chunk of decompressed data to append.
 
 #### Returns
 
-`Uint8Array`
+`Uint8Array`\<`ArrayBuffer`\>
 
 A chunk of compressed data.
 
@@ -62,7 +62,7 @@ A chunk of compressed data.
 
 > **flush**(): `void`
 
-Defined in: [index.d.ts:265](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L265)
+Defined in: [index.d.ts:265](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L265)
 
 Flushes the data
 

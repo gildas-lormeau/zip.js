@@ -6,7 +6,7 @@
 
 # Class: BlobWriter
 
-Defined in: [index.d.ts:553](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L553)
+Defined in: [index.d.ts:548](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L548)
 
 Represents a [WritableWriter](../interfaces/WritableWriter.md) instance used to retrieve the written data as a `Blob` instance.
 
@@ -17,13 +17,13 @@ Represents a [WritableWriter](../interfaces/WritableWriter.md) instance used to 
 
 ## Constructors
 
-### new BlobWriter()
+### Constructor
 
-> **new BlobWriter**(`mimeString`?): [`BlobWriter`](BlobWriter.md)
+> **new BlobWriter**(`mimeString`?): `BlobWriter`
 
-Defined in: [index.d.ts:567](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L567)
+Defined in: [index.d.ts:562](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L562)
 
-Creates the [BlobWriter](BlobWriter.md) instance
+Creates the BlobWriter instance
 
 #### Parameters
 
@@ -35,7 +35,7 @@ The MIME type of the content.
 
 #### Returns
 
-[`BlobWriter`](BlobWriter.md)
+`BlobWriter`
 
 ## Properties
 
@@ -43,7 +43,7 @@ The MIME type of the content.
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:557](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L557)
+Defined in: [index.d.ts:552](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L552)
 
 The `WritableStream` instance.
 
@@ -57,7 +57,7 @@ The `WritableStream` instance.
 
 > **getData**(): `Promise`\<`Blob`\>
 
-Defined in: [index.d.ts:573](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L573)
+Defined in: [index.d.ts:568](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L568)
 
 Retrieves all the written data
 
@@ -73,7 +73,7 @@ A promise resolving to the written data.
 
 > **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:561](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L561)
+Defined in: [index.d.ts:556](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L556)
 
 Initializes the instance asynchronously
 

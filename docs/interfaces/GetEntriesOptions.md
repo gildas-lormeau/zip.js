@@ -6,7 +6,7 @@
 
 # Interface: GetEntriesOptions
 
-Defined in: [index.d.ts:780](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L780)
+Defined in: [index.d.ts:775](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L775)
 
 Represents options passed to the constructor of [ZipReader](../classes/ZipReader.md), [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
@@ -21,7 +21,7 @@ Represents options passed to the constructor of [ZipReader](../classes/ZipReader
 
 > `optional` **commentEncoding**: `string`
 
-Defined in: [index.d.ts:788](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L788)
+Defined in: [index.d.ts:783](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L783)
 
 The encoding of the comment of the entry.
 
@@ -31,7 +31,7 @@ The encoding of the comment of the entry.
 
 > `optional` **filenameEncoding**: `string`
 
-Defined in: [index.d.ts:784](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L784)
+Defined in: [index.d.ts:779](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L779)
 
 The encoding of the filename of the entry.
 
@@ -41,7 +41,7 @@ The encoding of the filename of the entry.
 
 > `optional` **decodeText**(`value`, `encoding`): `string`
 
-Defined in: [index.d.ts:796](https://github.com/gildas-lormeau/zip.js/blob/be8a40fccb32dc320b3cf56a5faf9a609e60a6cb/index.d.ts#L796)
+Defined in: [index.d.ts:791](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L791)
 
 The function called for decoding the filename and the comment of the entry.
 
@@ -49,7 +49,7 @@ The function called for decoding the filename and the comment of the entry.
 
 ##### value
 
-`Uint8Array`
+`Uint8Array`\<`ArrayBuffer`\>
 
 The raw text value.
 
