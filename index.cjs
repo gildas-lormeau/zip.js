@@ -8400,6 +8400,7 @@ function createCodecClass(constructor, constructorOptions, registerDataHandler) 
 const ERR_HTTP_STATUS = "HTTP error ";
 const ERR_HTTP_RANGE = "HTTP Range not supported";
 const ERR_ITERATOR_COMPLETED_TOO_SOON = "Writer iterator completed too soon";
+const ERR_WRITER_NOT_INITIALIZED = "Writer not initialized";
 
 const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
@@ -8437,8 +8438,10 @@ class Reader extends Stream {
 			async pull(controller) {
 				const { offset = 0, size, diskNumberStart } = readable;
 				const { chunkOffset } = this;
-				controller.enqueue(await readUint8Array(reader, offset + chunkOffset, Math.min(chunkSize, size - chunkOffset), diskNumberStart));
-				if (chunkOffset + chunkSize > size) {
+				const dataSize = size === UNDEFINED_VALUE ? chunkSize : Math.min(chunkSize, size - chunkOffset);
+				const data = await readUint8Array(reader, offset + chunkOffset, dataSize, diskNumberStart);
+				controller.enqueue(data);
+				if ((chunkOffset + chunkSize > size) || (size === UNDEFINED_VALUE && !data.length && dataSize)) {
 					controller.close();
 				} else {
 					this.chunkOffset += chunkSize;
@@ -8456,6 +8459,9 @@ class Writer extends Stream {
 		const writer = this;
 		const writable = new WritableStream({
 			write(chunk) {
+				if (!writer.initialized) {
+					throw new Error(ERR_WRITER_NOT_INITIALIZED);
+				}
 				return writer.writeUint8Array(chunk);
 			}
 		});
@@ -12045,6 +12051,7 @@ exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
 exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION;
 exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
 exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
+exports.ERR_WRITER_NOT_INITIALIZED = ERR_WRITER_NOT_INITIALIZED;
 exports.HttpRangeReader = HttpRangeReader;
 exports.HttpReader = HttpReader;
 exports.Reader = Reader;
