@@ -392,21 +392,16 @@ export class SplitDataReader
   extends Reader<Reader<unknown>[] | ReadableReader[] | ReadableStream[]> { }
 
 /**
- * Represents a URL stored into a `string`.
- */
-interface URLString extends String { }
-
-/**
  * Represents a {@link Reader} instance used to fetch data from a URL.
  */
-export class HttpReader extends Reader<URLString> {
+export class HttpReader extends Reader<string> {
   /**
    * Creates the {@link HttpReader} instance
    *
    * @param url The URL of the data.
    * @param options The options.
    */
-  constructor(url: URLString | URL, options?: HttpOptions);
+  constructor(url: string | URL, options?: HttpOptions);
 }
 
 /**
@@ -419,7 +414,7 @@ export class HttpRangeReader extends HttpReader {
    * @param url The URL of the data.
    * @param options The options.
    */
-  constructor(url: URLString | URL, options?: HttpRangeOptions);
+  constructor(url: string | URL, options?: HttpRangeOptions);
 }
 
 /**
