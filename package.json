@@ -49,7 +49,6 @@
   "types": "./index.d.ts",
   "exports": {
     "./package.json": "./package.json",
-    "./index.min.js": "./index.min.js",
     ".": {
       "import": {
         "types": "./index.d.ts",
@@ -60,13 +59,64 @@
         "default": "./index.cjs"
       }
     },
-    "./data-uri.js": "./lib/zip-data-uri.js",
-    "./lib/zip-fs.js": "./lib/zip-fs.js",
-    "./lib/zip-full.js": "./lib/zip-full.js",
-    "./lib/zip-no-worker-deflate.js": "./lib/zip-no-worker-deflate.js",
-    "./lib/zip-no-worker-inflate.js": "./lib/zip-no-worker-inflate.js",
-    "./lib/zip-no-worker.js": "./lib/zip-no-worker.js",
-    "./lib/zip.js": "./lib/zip.js"
+    "./legacy-5.6": {
+      "import": {
+        "types": "./index-legacy-5.6.d.ts",
+        "default": "./index.js"
+      },
+      "require": {
+        "types": "./index-legacy-5.6.d.ts",
+        "default": "./index.cjs"
+      }
+    },
+    "./index.min.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./index.min.js"
+      }
+    },
+    "./data-uri.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/zip-data-uri.js"
+      }
+    },
+    "./lib/zip-fs.js": {
+      "import": {
+        "types": "./lib/zip-fs.d.ts",
+        "default": "./lib/zip-fs.js"
+      }
+    },
+    "./lib/zip-full.js": {
+      "import": {
+        "types": "./lib/zip-full.d.ts",
+        "default": "./lib/zip-full.js"
+      }
+    },
+    "./lib/zip-no-worker-deflate.js": {
+      "import": {
+        "types": "./lib/zip-no-worker-deflate.d.ts",
+        "default": "./lib/zip-no-worker-deflate.js"
+      }
+    },
+    "./lib/zip-no-worker-inflate.js": {
+      "import": {
+        "types": "./lib/zip-no-worker-inflate.d.ts",
+        "default": "./lib/zip-no-worker-inflate.js"
+      }
+    },
+    "./lib/zip-no-worker.js": {
+      "import": {
+        "types": "./lib/zip-no-worker.d.ts",
+        "default": "./lib/zip-no-worker.js"
+      }
+    },
+    "./lib/zip.js": {
+      "import": {
+        "types": "./lib/zip.d.ts",
+        "default": "./lib/zip.js"
+      }
+    }
   },
   "repository": {
     "type": "git",
