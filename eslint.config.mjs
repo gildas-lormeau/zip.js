@@ -7,7 +7,9 @@ export default [
 			".git/",
 			"dist/",
 			"**/*-inline.js",
-			"tests/vendor/*.js"
+			"tests/vendor/*.js",
+			"index.cjs",
+			"index.min.js"
 		]
 	},
 	js.configs.recommended,
