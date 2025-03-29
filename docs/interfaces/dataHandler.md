@@ -6,13 +6,13 @@
 
 # Interface: dataHandler()
 
-Defined in: [index.d.ts:174](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L174)
+Defined in: [index.d.ts:174](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L174)
 
 Represents the callback function used to handle `data` events.
 
 > **dataHandler**(`data`): `void`
 
-Defined in: [index.d.ts:178](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L178)
+Defined in: [index.d.ts:178](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L178)
 
 Represents the callback function used to handle `data` events.
 

@@ -6,7 +6,7 @@
 
 # Class: FS
 
-Defined in: [index.d.ts:1945](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1945)
+Defined in: [index.d.ts:1945](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1945)
 
 Represents a Filesystem instance.
 
@@ -50,7 +50,7 @@ const unzippedBlob = await firstEntry.getBlob(zip.getMimeType(firstEntry.name));
 
 > **children**: [`ZipEntry`](ZipEntry.md)[]
 
-Defined in: [index.d.ts:1490](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1490)
+Defined in: [index.d.ts:1490](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1490)
 
 The children of the entry.
 
@@ -64,7 +64,7 @@ The children of the entry.
 
 > `optional` **data**: [`EntryMetaData`](../interfaces/EntryMetaData.md)
 
-Defined in: [index.d.ts:1474](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1474)
+Defined in: [index.d.ts:1474](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1474)
 
 The underlying [EntryMetaData](../interfaces/EntryMetaData.md) instance.
 
@@ -78,7 +78,7 @@ The underlying [EntryMetaData](../interfaces/EntryMetaData.md) instance.
 
 > **directory**: `true`
 
-Defined in: [index.d.ts:1655](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1655)
+Defined in: [index.d.ts:1655](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1655)
 
 `true` for  [ZipDirectoryEntry](ZipDirectoryEntry.md) instances.
 
@@ -92,7 +92,7 @@ Defined in: [index.d.ts:1655](https://github.com/gildas-lormeau/zip.js/blob/0010
 
 > **id**: `number`
 
-Defined in: [index.d.ts:1478](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1478)
+Defined in: [index.d.ts:1478](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1478)
 
 The ID of the instance.
 
@@ -106,7 +106,7 @@ The ID of the instance.
 
 > **name**: `string`
 
-Defined in: [index.d.ts:1470](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1470)
+Defined in: [index.d.ts:1470](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1470)
 
 The relative filename of the entry.
 
@@ -120,7 +120,7 @@ The relative filename of the entry.
 
 > `optional` **parent**: [`ZipEntry`](ZipEntry.md)
 
-Defined in: [index.d.ts:1482](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1482)
+Defined in: [index.d.ts:1482](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1482)
 
 The parent directory of the entry.
 
@@ -134,7 +134,7 @@ The parent directory of the entry.
 
 > **root**: [`ZipDirectoryEntry`](ZipDirectoryEntry.md)
 
-Defined in: [index.d.ts:1949](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1949)
+Defined in: [index.d.ts:1949](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1949)
 
 The root directory.
 
@@ -144,7 +144,7 @@ The root directory.
 
 > **uncompressedSize**: `number`
 
-Defined in: [index.d.ts:1486](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1486)
+Defined in: [index.d.ts:1486](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1486)
 
 The uncompressed size of the content.
 
@@ -158,7 +158,7 @@ The uncompressed size of the content.
 
 > **addBlob**(`name`, `blob`, `options`?): [`ZipFileEntry`](ZipFileEntry.md)\<`Blob`, `Blob`\>
 
-Defined in: [index.d.ts:1695](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1695)
+Defined in: [index.d.ts:1695](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1695)
 
 Adds a entry entry with content provided as a `Blob` instance
 
@@ -198,7 +198,7 @@ A [ZipFileEntry](ZipFileEntry.md) instance.
 
 > **addData64URI**(`name`, `dataURI`, `options`?): [`ZipFileEntry`](ZipFileEntry.md)\<`string`, `string`\>
 
-Defined in: [index.d.ts:1708](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1708)
+Defined in: [index.d.ts:1708](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1708)
 
 Adds a entry entry with content provided as a Data URI `string` encoded in Base64
 
@@ -238,7 +238,7 @@ A [ZipFileEntry](ZipFileEntry.md) instance.
 
 > **addDirectory**(`name`, `options`?): [`ZipDirectoryEntry`](ZipDirectoryEntry.md)
 
-Defined in: [index.d.ts:1670](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1670)
+Defined in: [index.d.ts:1670](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1670)
 
 Adds a directory
 
@@ -272,7 +272,7 @@ A [ZipDirectoryEntry](ZipDirectoryEntry.md) instance.
 
 > **addFile**(`file`, `options`?): `Promise`\<[`ZipEntry`](ZipEntry.md)\>
 
-Defined in: [index.d.ts:1759](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1759)
+Defined in: [index.d.ts:1759](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1759)
 
 Adds an entry with content provided via a `File` instance
 
@@ -306,7 +306,7 @@ A promise resolving to a [ZipFileEntry](ZipFileEntry.md) or a [ZipDirectoryEntry
 
 > **addFileSystemEntry**(`fileSystemEntry`, `options`?): `Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
 
-Defined in: [index.d.ts:1770](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1770)
+Defined in: [index.d.ts:1770](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1770)
 
 Adds an entry with content provided via a `FileSystemEntry` instance
 
@@ -340,7 +340,7 @@ A promise resolving to an array of [ZipFileEntry](ZipFileEntry.md) or a [ZipDire
 
 > **addFileSystemHandle**(`fileSystemHandle`, `options`?): `Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
 
-Defined in: [index.d.ts:1781](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1781)
+Defined in: [index.d.ts:1781](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1781)
 
 Adds an entry with content provided via a `FileSystemHandle` instance
 
@@ -374,7 +374,7 @@ A promise resolving to an array of [ZipFileEntry](ZipFileEntry.md) or a [ZipDire
 
 > **addHttpContent**(`name`, `url`, `options`?): [`ZipFileEntry`](ZipFileEntry.md)\<`string`, `void`\>
 
-Defined in: [index.d.ts:1734](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1734)
+Defined in: [index.d.ts:1734](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1734)
 
 Adds an entry with content fetched from a URL
 
@@ -414,7 +414,7 @@ A [ZipFileEntry](ZipFileEntry.md) instance.
 
 > **addReadable**(`name`, `readable`, `options`?): [`ZipFileEntry`](ZipFileEntry.md)\<`ReadableStream`\<`any`\>, `void`\>
 
-Defined in: [index.d.ts:1747](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1747)
+Defined in: [index.d.ts:1747](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1747)
 
 Adds a entry entry with content provided via a `ReadableStream` instance
 
@@ -454,7 +454,7 @@ A [ZipFileEntry](ZipFileEntry.md) instance.
 
 > **addText**(`name`, `text`, `options`?): [`ZipFileEntry`](ZipFileEntry.md)\<`string`, `string`\>
 
-Defined in: [index.d.ts:1682](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1682)
+Defined in: [index.d.ts:1682](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1682)
 
 Adds an entry with content provided as text
 
@@ -494,7 +494,7 @@ A [ZipFileEntry](ZipFileEntry.md) instance.
 
 > **addUint8Array**(`name`, `array`, `options`?): [`ZipFileEntry`](ZipFileEntry.md)\<`Uint8Array`\<`ArrayBuffer`\>, `Uint8Array`\<`ArrayBuffer`\>\>
 
-Defined in: [index.d.ts:1721](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1721)
+Defined in: [index.d.ts:1721](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1721)
 
 Adds an entry with content provided as a `Uint8Array` instance
 
@@ -534,7 +534,7 @@ A [ZipFileEntry](ZipFileEntry.md) instance.
 
 > **checkPassword**(`password`, `options`?): `Promise`\<`boolean`\>
 
-Defined in: [index.d.ts:1518](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1518)
+Defined in: [index.d.ts:1518](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1518)
 
 Tests the password on the entry and all children if any, returns `true` if the entry is not password protected
 
@@ -562,7 +562,7 @@ Tests the password on the entry and all children if any, returns `true` if the e
 
 > **clone**(`deepClone`?): [`ZipEntry`](ZipEntry.md)
 
-Defined in: [index.d.ts:1496](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1496)
+Defined in: [index.d.ts:1496](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1496)
 
 Clones the entry
 
@@ -588,7 +588,7 @@ Clones the entry
 
 > **exportBlob**(`options`?): `Promise`\<`Blob`\>
 
-Defined in: [index.d.ts:1857](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1857)
+Defined in: [index.d.ts:1857](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1857)
 
 Returns a `Blob` instance containing a zip file of the entry and its descendants
 
@@ -616,7 +616,7 @@ A promise resolving to the `Blob` instance.
 
 > **exportData64URI**(`options`?): `Promise`\<`string`\>
 
-Defined in: [index.d.ts:1864](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1864)
+Defined in: [index.d.ts:1864](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1864)
 
 Returns a Data URI `string` encoded in Base64 containing a zip file of the entry and its descendants
 
@@ -644,7 +644,7 @@ A promise resolving to the Data URI `string` encoded in Base64.
 
 > **exportUint8Array**(`options`?): `Promise`\<`Uint8Array`\<`ArrayBuffer`\>\>
 
-Defined in: [index.d.ts:1871](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1871)
+Defined in: [index.d.ts:1871](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1871)
 
 Returns a `Uint8Array` instance containing a zip file of the entry and its descendants
 
@@ -672,7 +672,7 @@ A promise resolving to the `Uint8Array` instance.
 
 > **exportWritable**(`writable`?, `options`?): `Promise`\<`WritableStream`\<`any`\>\>
 
-Defined in: [index.d.ts:1881](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1881)
+Defined in: [index.d.ts:1881](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1881)
 
 Creates a zip file via a `WritableStream` instance containing the entry and its descendants
 
@@ -706,7 +706,7 @@ A promise resolving to the `Uint8Array` instance.
 
 > **exportZip**(`writer`, `options`?): `Promise`\<`unknown`\>
 
-Defined in: [index.d.ts:1892](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1892)
+Defined in: [index.d.ts:1892](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1892)
 
 Creates a zip file via a custom [Writer](Writer.md) instance containing the entry and its descendants
 
@@ -740,7 +740,7 @@ A promise resolving to the data.
 
 > **find**(`fullname`): [`ZipEntry`](ZipEntry.md)
 
-Defined in: [index.d.ts:1969](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1969)
+Defined in: [index.d.ts:1969](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1969)
 
 Returns a [ZipEntry](ZipEntry.md) instance from its full filename
 
@@ -764,7 +764,7 @@ The [ZipEntry](ZipEntry.md) instance.
 
 > **getById**(`id`): [`ZipEntry`](ZipEntry.md)
 
-Defined in: [index.d.ts:1976](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1976)
+Defined in: [index.d.ts:1976](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1976)
 
 Returns a [ZipEntry](ZipEntry.md) instance from the value of [ZipEntry#id](ZipEntry.md#id)
 
@@ -788,7 +788,7 @@ The [ZipEntry](ZipEntry.md) instance.
 
 > **getChildByName**(`name`): [`ZipEntry`](ZipEntry.md)
 
-Defined in: [index.d.ts:1662](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1662)
+Defined in: [index.d.ts:1662](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1662)
 
 Gets a [ZipEntry](ZipEntry.md) child instance from its relative filename
 
@@ -816,7 +816,7 @@ A [ZipFileEntry](ZipFileEntry.md) or a [ZipDirectoryEntry](ZipDirectoryEntry.md)
 
 > **getFullname**(): `string`
 
-Defined in: [index.d.ts:1500](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1500)
+Defined in: [index.d.ts:1500](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1500)
 
 Returns the full filename of the entry
 
@@ -834,7 +834,7 @@ Returns the full filename of the entry
 
 > **getRelativeName**(`ancestor`): `string`
 
-Defined in: [index.d.ts:1504](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1504)
+Defined in: [index.d.ts:1504](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1504)
 
 Returns the filename of the entry relative to a parent directory
 
@@ -858,7 +858,7 @@ Returns the filename of the entry relative to a parent directory
 
 > **importBlob**(`blob`, `options`?): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
 
-Defined in: [index.d.ts:1791](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1791)
+Defined in: [index.d.ts:1791](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1791)
 
 Extracts a zip file provided as a `Blob` instance into the entry
 
@@ -890,7 +890,7 @@ The options.
 
 > **importData64URI**(`dataURI`, `options`?): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
 
-Defined in: [index.d.ts:1801](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1801)
+Defined in: [index.d.ts:1801](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1801)
 
 Extracts a zip file provided as a Data URI `string` encoded in Base64 into the entry
 
@@ -922,7 +922,7 @@ The options.
 
 > **importHttpContent**(`url`, `options`?): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
 
-Defined in: [index.d.ts:1821](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1821)
+Defined in: [index.d.ts:1821](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1821)
 
 Extracts a zip file fetched from a URL into the entry
 
@@ -954,7 +954,7 @@ The options.
 
 > **importReadable**(`readable`, `options`?): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
 
-Defined in: [index.d.ts:1831](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1831)
+Defined in: [index.d.ts:1831](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1831)
 
 Extracts a zip file provided via a `ReadableStream` instance into the entry
 
@@ -986,7 +986,7 @@ The options.
 
 > **importUint8Array**(`array`, `options`?): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
 
-Defined in: [index.d.ts:1811](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1811)
+Defined in: [index.d.ts:1811](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1811)
 
 Extracts a zip file provided as a `Uint8Array` instance into the entry
 
@@ -1018,7 +1018,7 @@ The options.
 
 > **importZip**(`reader`, `options`?): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
 
-Defined in: [index.d.ts:1841](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1841)
+Defined in: [index.d.ts:1841](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1841)
 
 Extracts a zip file provided via a custom [Reader](Reader.md) instance into the entry
 
@@ -1028,7 +1028,7 @@ Extracts a zip file provided via a custom [Reader](Reader.md) instance into the 
 
 The [Reader](Reader.md) instance.
 
-`ReadableStream`\<`any`\> | [`ReadableReader`](../interfaces/ReadableReader.md) | [`Reader`](Reader.md)\<`unknown`\> | [`Reader`](Reader.md)\<`unknown`\>[] | [`ReadableReader`](../interfaces/ReadableReader.md)[] | `ReadableStream`\<`any`\>[]
+`ReadableStream`\<`any`\> | `ReadableStream`\<`any`\>[] | [`ReadableReader`](../interfaces/ReadableReader.md) | [`Reader`](Reader.md)\<`unknown`\> | [`Reader`](Reader.md)\<`unknown`\>[] | [`ReadableReader`](../interfaces/ReadableReader.md)[]
 
 ##### options?
 
@@ -1050,7 +1050,7 @@ The options.
 
 > **isDescendantOf**(`ancestor`): `boolean`
 
-Defined in: [index.d.ts:1510](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1510)
+Defined in: [index.d.ts:1510](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1510)
 
 Tests if a [ZipDirectoryEntry](ZipDirectoryEntry.md) instance is an ancestor of the entry
 
@@ -1076,7 +1076,7 @@ The [ZipDirectoryEntry](ZipDirectoryEntry.md) instance.
 
 > **isPasswordProtected**(): `boolean`
 
-Defined in: [index.d.ts:1514](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1514)
+Defined in: [index.d.ts:1514](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1514)
 
 Tests if the entry or any of its children is password protected
 
@@ -1094,7 +1094,7 @@ Tests if the entry or any of its children is password protected
 
 > **move**(`entry`, `destination`): `void`
 
-Defined in: [index.d.ts:1962](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1962)
+Defined in: [index.d.ts:1962](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1962)
 
 Moves a [ZipEntry](ZipEntry.md) instance and its children into a [ZipDirectoryEntry](ZipDirectoryEntry.md) instance
 
@@ -1122,7 +1122,7 @@ The [ZipDirectoryEntry](ZipDirectoryEntry.md) instance.
 
 > **remove**(`entry`): `void`
 
-Defined in: [index.d.ts:1955](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1955)
+Defined in: [index.d.ts:1955](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1955)
 
 Removes a [ZipEntry](ZipEntry.md) instance and its children
 
@@ -1144,7 +1144,7 @@ The [ZipEntry](ZipEntry.md) instance to remove.
 
 > **rename**(`name`): `void`
 
-Defined in: [index.d.ts:1527](https://github.com/gildas-lormeau/zip.js/blob/00105a96aa8272ce26bff0eea7ebcfd6071ad540/index.d.ts#L1527)
+Defined in: [index.d.ts:1527](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1527)
 
 Set the name of the entry
 
