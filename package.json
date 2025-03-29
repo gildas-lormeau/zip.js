@@ -132,7 +132,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "eslint": "^9.23.0",
     "http-server": "^14.1.1",
-    "rollup": "^4.37.0",
+    "rollup": "^4.38.0",
     "typedoc": "^0.28.1",
     "typedoc-plugin-markdown": "^4.6.0"
   }
