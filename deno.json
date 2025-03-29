@@ -4,5 +4,11 @@
 	"exports": {
 		".": "./index.js",
 		"./data-uri": "./lib/zip-data-uri.js"
+	},
+	"lint": {
+		"exclude": [
+			"dist/*.js",
+			"*-inline.js"
+		]
 	}
 }
