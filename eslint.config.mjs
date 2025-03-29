@@ -6,7 +6,8 @@ export default [
 			"**/node_modules/",
 			".git/",
 			"dist/",
-			"**/*-inline.js"
+			"**/*-inline.js",
+			"tests/vendor/*.js"
 		]
 	},
 	js.configs.recommended,
