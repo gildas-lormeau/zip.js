@@ -18,7 +18,7 @@
  *   TextWriter,
  *   ZipReader,
  *   ZipWriter,
- * } from from "https://deno.land/x/zipjs/mod.ts";
+ * } from from "@zip-js/zip-js";
  * 
  * // ----
  * // Write the zip file
@@ -71,7 +71,7 @@
  *   BlobReader,
  *   ZipReader,
  *   ZipWriter,
- * } from "https://deno.land/x/zipjs/index.js";
+ * } from "@zip-js/zip-js";
  * 
  * // ----
  * // Write the zip file
@@ -131,7 +131,7 @@
  *   HttpReader,
  *   TextReader,
  *   ZipWriter,
- * } from "https://deno.land/x/zipjs/index.js";
+ * } from "@zip-js/zip-js";
  * 
  * const README_URL = "https://unpkg.com/@zip.js/zip.js/README.md";
  * getZipFileBlob()
