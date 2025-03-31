@@ -335,7 +335,7 @@ export interface dataHandler {
   /**
    * @param data The processed chunk of data.
    */
-  (data: Uint8Array<ArrayBuffer>): void;
+  (data: Uint8Array): void;
 }
 
 /**
@@ -366,13 +366,13 @@ declare class EventBasedCodec {
    *
    * @param data The chunk of data to append.
    */
-  push(data: Uint8Array<ArrayBuffer>): void;
+  push(data: Uint8Array): void;
   /**
    * The function called when a chunk of data has been compressed/decompressed.
    *
    * @param data The chunk of compressed/decompressed data.
    */
-  ondata(data?: Uint8Array<ArrayBuffer>): void;
+  ondata(data?: Uint8Array): void;
 }
 
 /**
@@ -400,7 +400,7 @@ declare class SyncCodec {
    * @param data The chunk of decompressed data to append.
    * @returns A chunk of compressed data.
    */
-  append(data: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer>;
+  append(data: Uint8Array): Uint8Array;
 }
 
 /**
@@ -412,7 +412,7 @@ declare class ZipDeflate extends SyncCodec {
    *
    * @returns A chunk of compressed data.
    */
-  flush(): Uint8Array<ArrayBuffer>;
+  flush(): Uint8Array;
 }
 
 /**
@@ -515,7 +515,7 @@ export class Reader<Type> implements Initializable, ReadableReader {
    * @param length The length of the data to read in bytes.
    * @returns A promise resolving to a chunk of data.
    */
-  readUint8Array(index: number, length: number): Promise<Uint8Array<ArrayBuffer>>;
+  readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
 /**
@@ -536,7 +536,7 @@ export class Data64URIReader extends Reader<string> { }
 /**
  * Represents a {@link Reader} instance used to read data provided as a `Uint8Array` instance.
  */
-export class Uint8ArrayReader extends Reader<Uint8Array<ArrayBuffer>> { }
+export class Uint8ArrayReader extends Reader<Uint8Array> { }
 
 /**
  * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
@@ -552,16 +552,21 @@ export class SplitDataReader
   extends Reader<Reader<unknown>[] | ReadableReader[] | ReadableStream[]> { }
 
 /**
+ * Represents a URL stored into a `string`.
+ */
+interface URLString extends String { }
+
+/**
  * Represents a {@link Reader} instance used to fetch data from a URL.
  */
-export class HttpReader extends Reader<string> {
+export class HttpReader extends Reader<URLString> {
   /**
    * Creates the {@link HttpReader} instance
    *
    * @param url The URL of the data.
    * @param options The options.
    */
-  constructor(url: string | URL, options?: HttpOptions);
+  constructor(url: URLString | URL, options?: HttpOptions);
 }
 
 /**
@@ -574,7 +579,7 @@ export class HttpRangeReader extends HttpReader {
    * @param url The URL of the data.
    * @param options The options.
    */
-  constructor(url: string | URL, options?: HttpRangeOptions);
+  constructor(url: URLString | URL, options?: HttpRangeOptions);
 }
 
 /**
@@ -681,7 +686,7 @@ export class Writer<Type> implements Initializable, WritableWriter {
    *
    * @virtual
    */
-  writeUint8Array(array: Uint8Array<ArrayBuffer>): Promise<void>;
+  writeUint8Array(array: Uint8Array): Promise<void>;
   /**
    * Retrieves all the written data
    *
@@ -777,7 +782,7 @@ export class SplitDataWriter implements Initializable, WritableWriter {
 /**
  * Represents a {@link Writer}  instance used to retrieve the written data as a `Uint8Array` instance.
  */
-export class Uint8ArrayWriter extends Writer<Uint8Array<ArrayBuffer>> { }
+export class Uint8ArrayWriter extends Writer<Uint8Array> { }
 
 /**
  * Represents an instance used to create an unzipped stream.
@@ -812,7 +817,7 @@ export class ZipReaderStream<T> {
    * The readable stream.
    */
   readable: ReadableStream<
-    Omit<Entry, "getData"> & { readable?: ReadableStream<Uint8Array<ArrayBuffer>> }
+    Omit<Entry, "getData"> & { readable?: ReadableStream<Uint8Array> }
   >;
 
   /**
@@ -873,15 +878,15 @@ export class ZipReader<Type> {
   /**
    * The global comment of the zip file.
    */
-  comment: Uint8Array<ArrayBuffer>;
+  comment: Uint8Array;
   /**
    * The data prepended before the zip file.
    */
-  prependedData?: Uint8Array<ArrayBuffer>;
+  prependedData?: Uint8Array;
   /**
    * The data appended after the zip file.
    */
-  appendedData?: Uint8Array<ArrayBuffer>;
+  appendedData?: Uint8Array;
   /**
    * Returns all the entries in the zip file
    *
@@ -943,12 +948,12 @@ export interface GetEntriesOptions {
   commentEncoding?: string;
   /**
    * The function called for decoding the filename and the comment of the entry.
-   *
+   * 
    * @param value The raw text value.
    * @param encoding The encoding of the text.
    * @returns The decoded text value or `undefined` if the raw text value should be decoded by zip.js.
    */
-  decodeText?(value: Uint8Array<ArrayBuffer>, encoding: string): string | undefined;
+  decodeText?(value: Uint8Array, encoding: string): string | undefined;
 }
 
 /**
@@ -978,7 +983,7 @@ export interface ZipReaderOptions {
   /**
    * The password used to encrypt the content of the entry (raw).
    */
-  rawPassword?: Uint8Array<ArrayBuffer>;
+  rawPassword?: Uint8Array;
   /**
    * The `AbortSignal` instance used to cancel the decompression.
    */
@@ -1012,7 +1017,7 @@ export interface EntryMetaData {
   /**
    * The filename of the entry (raw).
    */
-  rawFilename: Uint8Array<ArrayBuffer>;
+  rawFilename: Uint8Array;
   /**
    * `true` if the filename is encoded in UTF-8.
    */
@@ -1072,7 +1077,7 @@ export interface EntryMetaData {
   /**
    * The comment of the entry (raw).
    */
-  rawComment: Uint8Array<ArrayBuffer>;
+  rawComment: Uint8Array;
   /**
    * `true` if the comment is encoded in UTF-8.
    */
@@ -1084,11 +1089,11 @@ export interface EntryMetaData {
   /**
    * The extra field.
    */
-  extraField?: Map<number, { type: number, data: Uint8Array<ArrayBuffer> }>;
+  extraField?: Map<number, { type: number, data: Uint8Array }>;
   /**
    * The extra field (raw).
    */
-  rawExtraField: Uint8Array<ArrayBuffer>;
+  rawExtraField: Uint8Array;
   /**
    * `true` if the entry is using Zip64.
    */
@@ -1219,7 +1224,7 @@ export class ZipWriterStream {
   /**
    * The readable stream.
    */
-  readable: ReadableStream<Uint8Array<ArrayBuffer>>;
+  readable: ReadableStream<Uint8Array>;
 
   /**
    * The ZipWriter property.
@@ -1252,7 +1257,7 @@ export class ZipWriterStream {
    * @returns The content of the zip file.
    */
   close(
-    comment?: Uint8Array<ArrayBuffer>,
+    comment?: Uint8Array,
     options?: ZipWriterCloseOptions,
   ): Promise<unknown>;
 }
@@ -1325,7 +1330,7 @@ export class ZipWriter<Type> {
    * @param options The options.
    * @returns The content of the zip file.
    */
-  close(comment?: Uint8Array<ArrayBuffer>, options?: ZipWriterCloseOptions): Promise<Type>;
+  close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
 }
 
 /**
@@ -1355,7 +1360,7 @@ export interface ZipWriterAddDataOptions
   /**
    * The extra field of the entry.
    */
-  extraField?: Map<number, Uint8Array<ArrayBuffer>>;
+  extraField?: Map<number, Uint8Array>;
   /**
    * The uncompressed size of the entry. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
    */
@@ -1434,7 +1439,7 @@ export interface ZipWriterConstructorOptions {
   /**
    * The password used to encrypt the content of the entry (raw).
    */
-  rawPassword?: Uint8Array<ArrayBuffer>;
+  rawPassword?: Uint8Array;
   /**
    * The encryption strength (AES):
    * - 1: 128-bit encryption key
@@ -1498,7 +1503,7 @@ export interface ZipWriterConstructorOptions {
   versionMadeBy?: number;
   /**
    * `true` to mark the file names as UTF-8 setting the general purpose bit 11 in the header (see Appendix D - Language Encoding (EFS)), `false` to mark the names as compliant with the original IBM Code Page 437.
-   *
+   * 
    * Note that this does not ensure that the file names are in the correct encoding.
    *
    * @defaultValue true
@@ -1566,11 +1571,11 @@ export interface ZipWriterConstructorOptions {
   compressionMethod?: number
   /**
    * The function called for encoding the filename and the comment of the entry.
-   *
+   * 
    * @param text The text to encode.
    * @returns The encoded text or `undefined` if the text should be encoded by zip.js.
    */
-  encodeText?(text: string): Uint8Array<ArrayBuffer> | undefined;
+  encodeText?(text: string): Uint8Array | undefined;
 }
 
 /**
@@ -1746,7 +1751,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    * @param options The options.
    * @returns A promise resolving to a `Uint8Array` instance.
    */
-  getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array<ArrayBuffer>>;
+  getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
   /**
    * Retrieves the content of the entry via a `WritableStream` instance
    *
@@ -1796,7 +1801,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    *
    * @param array The `Uint8Array` instance.
    */
-  replaceUint8Array(array: Uint8Array<ArrayBuffer>): void;
+  replaceUint8Array(array: Uint8Array): void;
   /**
    * Replaces the content of the entry with a `ReadableStream` instance
    *
@@ -1880,9 +1885,9 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   addUint8Array(
     name: string,
-    array: Uint8Array<ArrayBuffer>,
+    array: Uint8Array,
     options?: ZipWriterAddDataOptions,
-  ): ZipFileEntry<Uint8Array<ArrayBuffer>, Uint8Array<ArrayBuffer>>;
+  ): ZipFileEntry<Uint8Array, Uint8Array>;
   /**
    * Adds an entry with content fetched from a URL
    *
@@ -1969,7 +1974,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * @param options  The options.
    */
   importUint8Array(
-    array: Uint8Array<ArrayBuffer>,
+    array: Uint8Array,
     options?: ZipReaderConstructorOptions,
   ): Promise<[ZipEntry]>;
   /**
@@ -2030,7 +2035,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   exportUint8Array(
     options?: ZipDirectoryEntryExportOptions,
-  ): Promise<Uint8Array<ArrayBuffer>>;
+  ): Promise<Uint8Array>;
   /**
    * Creates a zip file via a `WritableStream` instance containing the entry and its descendants
    *

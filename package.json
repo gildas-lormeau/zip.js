@@ -59,16 +59,6 @@
         "default": "./index.cjs"
       }
     },
-    "./legacy-5.6": {
-      "import": {
-        "types": "./index-legacy-5.6.d.ts",
-        "default": "./index.js"
-      },
-      "require": {
-        "types": "./index-legacy-5.6.d.ts",
-        "default": "./index.cjs"
-      }
-    },
     "./index.min.js": {
       "import": {
         "types": "./index.d.ts",
