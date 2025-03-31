@@ -159,6 +159,14 @@
 */
 
 /**
+ * Uint8Array compatible with TS prior to 5.7.
+ */
+type Uint8ArrayLike =
+  Uint8Array extends { new(...args: any[]): infer U }
+  ? U
+  : Uint8Array;
+
+/**
  * Represents the `FileSystemEntry` class.
  *
  * @see {@link https://wicg.github.io/entries-api/#api-entry|specification}
@@ -335,7 +343,7 @@ export interface dataHandler {
   /**
    * @param data The processed chunk of data.
    */
-  (data: Uint8Array): void;
+  (data: Uint8ArrayLike): void;
 }
 
 /**
@@ -366,13 +374,13 @@ declare class EventBasedCodec {
    *
    * @param data The chunk of data to append.
    */
-  push(data: Uint8Array): void;
+  push(data: Uint8ArrayLike): void;
   /**
    * The function called when a chunk of data has been compressed/decompressed.
    *
    * @param data The chunk of compressed/decompressed data.
    */
-  ondata(data?: Uint8Array): void;
+  ondata(data?: Uint8ArrayLike): void;
 }
 
 /**
@@ -400,7 +408,7 @@ declare class SyncCodec {
    * @param data The chunk of decompressed data to append.
    * @returns A chunk of compressed data.
    */
-  append(data: Uint8Array): Uint8Array;
+  append(data: Uint8ArrayLike): Uint8ArrayLike;
 }
 
 /**
@@ -412,7 +420,7 @@ declare class ZipDeflate extends SyncCodec {
    *
    * @returns A chunk of compressed data.
    */
-  flush(): Uint8Array;
+  flush(): Uint8ArrayLike;
 }
 
 /**
@@ -515,7 +523,7 @@ export class Reader<Type> implements Initializable, ReadableReader {
    * @param length The length of the data to read in bytes.
    * @returns A promise resolving to a chunk of data.
    */
-  readUint8Array(index: number, length: number): Promise<Uint8Array>;
+  readUint8Array(index: number, length: number): Promise<Uint8ArrayLike>;
 }
 
 /**
@@ -536,7 +544,7 @@ export class Data64URIReader extends Reader<string> { }
 /**
  * Represents a {@link Reader} instance used to read data provided as a `Uint8Array` instance.
  */
-export class Uint8ArrayReader extends Reader<Uint8Array> { }
+export class Uint8ArrayReader extends Reader<Uint8ArrayLike> { }
 
 /**
  * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
@@ -686,7 +694,7 @@ export class Writer<Type> implements Initializable, WritableWriter {
    *
    * @virtual
    */
-  writeUint8Array(array: Uint8Array): Promise<void>;
+  writeUint8Array(array: Uint8ArrayLike): Promise<void>;
   /**
    * Retrieves all the written data
    *
@@ -782,7 +790,7 @@ export class SplitDataWriter implements Initializable, WritableWriter {
 /**
  * Represents a {@link Writer}  instance used to retrieve the written data as a `Uint8Array` instance.
  */
-export class Uint8ArrayWriter extends Writer<Uint8Array> { }
+export class Uint8ArrayWriter extends Writer<Uint8ArrayLike> { }
 
 /**
  * Represents an instance used to create an unzipped stream.
@@ -817,7 +825,7 @@ export class ZipReaderStream<T> {
    * The readable stream.
    */
   readable: ReadableStream<
-    Omit<Entry, "getData"> & { readable?: ReadableStream<Uint8Array> }
+    Omit<Entry, "getData"> & { readable?: ReadableStream<Uint8ArrayLike> }
   >;
 
   /**
@@ -878,15 +886,15 @@ export class ZipReader<Type> {
   /**
    * The global comment of the zip file.
    */
-  comment: Uint8Array;
+  comment: Uint8ArrayLike;
   /**
    * The data prepended before the zip file.
    */
-  prependedData?: Uint8Array;
+  prependedData?: Uint8ArrayLike;
   /**
    * The data appended after the zip file.
    */
-  appendedData?: Uint8Array;
+  appendedData?: Uint8ArrayLike;
   /**
    * Returns all the entries in the zip file
    *
@@ -953,7 +961,7 @@ export interface GetEntriesOptions {
    * @param encoding The encoding of the text.
    * @returns The decoded text value or `undefined` if the raw text value should be decoded by zip.js.
    */
-  decodeText?(value: Uint8Array, encoding: string): string | undefined;
+  decodeText?(value: Uint8ArrayLike, encoding: string): string | undefined;
 }
 
 /**
@@ -983,7 +991,7 @@ export interface ZipReaderOptions {
   /**
    * The password used to encrypt the content of the entry (raw).
    */
-  rawPassword?: Uint8Array;
+  rawPassword?: Uint8ArrayLike;
   /**
    * The `AbortSignal` instance used to cancel the decompression.
    */
@@ -1017,7 +1025,7 @@ export interface EntryMetaData {
   /**
    * The filename of the entry (raw).
    */
-  rawFilename: Uint8Array;
+  rawFilename: Uint8ArrayLike;
   /**
    * `true` if the filename is encoded in UTF-8.
    */
@@ -1077,7 +1085,7 @@ export interface EntryMetaData {
   /**
    * The comment of the entry (raw).
    */
-  rawComment: Uint8Array;
+  rawComment: Uint8ArrayLike;
   /**
    * `true` if the comment is encoded in UTF-8.
    */
@@ -1089,11 +1097,11 @@ export interface EntryMetaData {
   /**
    * The extra field.
    */
-  extraField?: Map<number, { type: number, data: Uint8Array }>;
+  extraField?: Map<number, { type: number, data: Uint8ArrayLike }>;
   /**
    * The extra field (raw).
    */
-  rawExtraField: Uint8Array;
+  rawExtraField: Uint8ArrayLike;
   /**
    * `true` if the entry is using Zip64.
    */
@@ -1224,7 +1232,7 @@ export class ZipWriterStream {
   /**
    * The readable stream.
    */
-  readable: ReadableStream<Uint8Array>;
+  readable: ReadableStream<Uint8ArrayLike>;
 
   /**
    * The ZipWriter property.
@@ -1257,7 +1265,7 @@ export class ZipWriterStream {
    * @returns The content of the zip file.
    */
   close(
-    comment?: Uint8Array,
+    comment?: Uint8ArrayLike,
     options?: ZipWriterCloseOptions,
   ): Promise<unknown>;
 }
@@ -1330,7 +1338,7 @@ export class ZipWriter<Type> {
    * @param options The options.
    * @returns The content of the zip file.
    */
-  close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
+  close(comment?: Uint8ArrayLike, options?: ZipWriterCloseOptions): Promise<Type>;
 }
 
 /**
@@ -1360,7 +1368,7 @@ export interface ZipWriterAddDataOptions
   /**
    * The extra field of the entry.
    */
-  extraField?: Map<number, Uint8Array>;
+  extraField?: Map<number, Uint8ArrayLike>;
   /**
    * The uncompressed size of the entry. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
    */
@@ -1439,7 +1447,7 @@ export interface ZipWriterConstructorOptions {
   /**
    * The password used to encrypt the content of the entry (raw).
    */
-  rawPassword?: Uint8Array;
+  rawPassword?: Uint8ArrayLike;
   /**
    * The encryption strength (AES):
    * - 1: 128-bit encryption key
@@ -1575,7 +1583,7 @@ export interface ZipWriterConstructorOptions {
    * @param text The text to encode.
    * @returns The encoded text or `undefined` if the text should be encoded by zip.js.
    */
-  encodeText?(text: string): Uint8Array | undefined;
+  encodeText?(text: string): Uint8ArrayLike | undefined;
 }
 
 /**
@@ -1751,7 +1759,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    * @param options The options.
    * @returns A promise resolving to a `Uint8Array` instance.
    */
-  getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
+  getUint8Array(options?: EntryGetDataOptions): Promise<Uint8ArrayLike>;
   /**
    * Retrieves the content of the entry via a `WritableStream` instance
    *
@@ -1801,7 +1809,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    *
    * @param array The `Uint8Array` instance.
    */
-  replaceUint8Array(array: Uint8Array): void;
+  replaceUint8Array(array: Uint8ArrayLike): void;
   /**
    * Replaces the content of the entry with a `ReadableStream` instance
    *
@@ -1885,9 +1893,9 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   addUint8Array(
     name: string,
-    array: Uint8Array,
+    array: Uint8ArrayLike,
     options?: ZipWriterAddDataOptions,
-  ): ZipFileEntry<Uint8Array, Uint8Array>;
+  ): ZipFileEntry<Uint8ArrayLike, Uint8ArrayLike>;
   /**
    * Adds an entry with content fetched from a URL
    *
@@ -1974,7 +1982,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * @param options  The options.
    */
   importUint8Array(
-    array: Uint8Array,
+    array: Uint8ArrayLike,
     options?: ZipReaderConstructorOptions,
   ): Promise<[ZipEntry]>;
   /**
@@ -2035,7 +2043,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   exportUint8Array(
     options?: ZipDirectoryEntryExportOptions,
-  ): Promise<Uint8Array>;
+  ): Promise<Uint8ArrayLike>;
   /**
    * Creates a zip file via a `WritableStream` instance containing the entry and its descendants
    *
