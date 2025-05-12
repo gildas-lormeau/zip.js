@@ -297,10 +297,8 @@
 	}
 
 	function objectHasOwn(object, propertyName) {
-		// deno-lint-ignore valid-typeof
 		return typeof Object.hasOwn === FUNCTION_TYPE ?
 			Object.hasOwn(object, propertyName) :
-			// deno-lint-ignore no-prototype-builtins
 			object.hasOwnProperty(propertyName);
 	}
 
@@ -308,7 +306,6 @@
 		return class {
 
 			constructor(options) {
-				// deno-lint-ignore no-this-alias
 				const codecAdapter = this;
 				const onData = data => {
 					if (codecAdapter.pendingData) {
@@ -489,7 +486,6 @@
 
 
 	function encodeText(value) {
-		// deno-lint-ignore valid-typeof
 		if (typeof TextEncoder == UNDEFINED_TYPE) {
 			value = unescape(encodeURIComponent(value));
 			const result = new Uint8Array(value.length);
@@ -1406,7 +1402,6 @@
 	const KEY_LENGTH = [16, 24, 32];
 	const SIGNATURE_LENGTH = 10;
 	const COUNTER_DEFAULT_VALUE = [0, 0, 0, 0];
-	// deno-lint-ignore valid-typeof
 	const CRYPTO_API_SUPPORTED = typeof crypto != UNDEFINED_TYPE;
 	const subtle = CRYPTO_API_SUPPORTED && crypto.subtle;
 	const SUBTLE_API_SUPPORTED = CRYPTO_API_SUPPORTED && typeof subtle != UNDEFINED_TYPE;
@@ -2113,7 +2108,6 @@
 	 */
 
 
-	// deno-lint-ignore valid-typeof
 	let WEB_WORKERS_SUPPORTED = typeof Worker != UNDEFINED_TYPE;
 
 	class CodecWorker {
@@ -2307,7 +2301,6 @@
 	function getWebWorker(url, baseURL, workerData) {
 		const workerOptions = { type: "module" };
 		let scriptUrl, worker;
-		// deno-lint-ignore valid-typeof
 		if (typeof url == FUNCTION_TYPE) {
 			url = url();
 		}
@@ -4257,7 +4250,7 @@
 				if (msDosCompatible) {
 					externalFileAttributes = FILE_ATTR_MSDOS_DIR_MASK;
 				} else {
-					externalFileAttributes = FILE_ATTR_UNIX_DIR_MASK << 16;
+					externalFileAttributes = (FILE_ATTR_UNIX_EXECUTABLE_MASK | FILE_ATTR_UNIX_DEFAULT_MASK) << 16;
 				}
 			}
 		} else if (!msDosCompatible && externalFileAttributes === 0) {
