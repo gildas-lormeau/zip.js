@@ -18,7 +18,9 @@ async function test() {
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
-	if (entries[0].directory && entries[0].filename == FOLDER_NAME && entries[0].externalFileAttributes >> 16 == 0o755) {
+	if (entries[0].directory && entries[0].filename == FOLDER_NAME &&
+		(entries[0].externalFileAttributes & 0xffff) == 0x10 &&
+		entries[0].externalFileAttributes >> 16 == 0o40755) {
 		if (!entries[1].directory && entries[1].filename == FILENAME) {
 			const text = await entries[1].getData(new zip.TextWriter());
 			await zipReader.close();
