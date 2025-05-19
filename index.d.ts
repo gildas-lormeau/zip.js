@@ -479,7 +479,7 @@ export interface ReadableReader {
  *     this.size = this.binaryString.length;
  *   }
  *
- *   readCompatibleUint8Array(offset, length) {
+ *   readUint8Array(offset, length) {
  *     const result = new Uint8Array(length);
  *     for (let indexCharacter = 0; indexCharacter < length; indexCharacter++) {
  *       result[indexCharacter] = this.binaryString.charCodeAt(indexCharacter + offset) & 0xFF;
@@ -515,7 +515,7 @@ export class Reader<Type> implements Initializable, ReadableReader {
    * @param length The length of the data to read in bytes.
    * @returns A promise resolving to a chunk of data.
    */
-  readCompatibleUint8Array(index: number, length: number): Promise<Uint8Array>;
+  readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
 
 /**
@@ -536,7 +536,7 @@ export class Data64URIReader extends Reader<string> { }
 /**
  * Represents a {@link Reader} instance used to read data provided as a `Uint8Array` instance.
  */
-export class CompatibleUint8ArrayReader extends Reader<Uint8Array> { }
+export class Uint8ArrayReader extends Reader<Uint8Array> { }
 
 /**
  * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
@@ -656,7 +656,7 @@ export interface WritableWriter {
  *     this.binaryString = "";
  *   }
  *
- *   writeCompatibleUint8Array(array) {
+ *   writeUint8Array(array) {
  *     for (let indexCharacter = 0; indexCharacter < array.length; indexCharacter++) {
  *       this.binaryString += String.fromCharCode(array[indexCharacter]);
  *     }
@@ -686,7 +686,7 @@ export class Writer<Type> implements Initializable, WritableWriter {
    *
    * @virtual
    */
-  writeCompatibleUint8Array(array: Uint8Array): Promise<void>;
+  writeUint8Array(array: Uint8Array): Promise<void>;
   /**
    * Retrieves all the written data
    *
@@ -782,7 +782,7 @@ export class SplitDataWriter implements Initializable, WritableWriter {
 /**
  * Represents a {@link Writer}  instance used to retrieve the written data as a `Uint8Array` instance.
  */
-export class CompatibleUint8ArrayWriter extends Writer<Uint8Array> { }
+export class Uint8ArrayWriter extends Writer<Uint8Array> { }
 
 /**
  * Represents an instance used to create an unzipped stream.
@@ -1751,7 +1751,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    * @param options The options.
    * @returns A promise resolving to a `Uint8Array` instance.
    */
-  getCompatibleUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
+  getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
   /**
    * Retrieves the content of the entry via a `WritableStream` instance
    *
@@ -1801,7 +1801,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    *
    * @param array The `Uint8Array` instance.
    */
-  replaceCompatibleUint8Array(array: Uint8Array): void;
+  replaceUint8Array(array: Uint8Array): void;
   /**
    * Replaces the content of the entry with a `ReadableStream` instance
    *
@@ -1883,7 +1883,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * @param options The options.
    * @returns A {@link ZipFileEntry} instance.
    */
-  addCompatibleUint8Array(
+  addUint8Array(
     name: string,
     array: Uint8Array,
     options?: ZipWriterAddDataOptions,
@@ -1973,7 +1973,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * @param array The `Uint8Array` instance.
    * @param options  The options.
    */
-  importCompatibleUint8Array(
+  importUint8Array(
     array: Uint8Array,
     options?: ZipReaderConstructorOptions,
   ): Promise<[ZipEntry]>;
@@ -2033,7 +2033,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * @param options  The options.
    * @returns A promise resolving to the `Uint8Array` instance.
    */
-  exportCompatibleUint8Array(
+  exportUint8Array(
     options?: ZipDirectoryEntryExportOptions,
   ): Promise<Uint8Array>;
   /**
@@ -2261,7 +2261,7 @@ export const ERR_ITERATOR_COMPLETED_TOO_SOON: string;
 /**
  * Undefined uncompressed size error
  */
-export const ERR_UNDEFINED_UNCOMPRESSED_SIZE: string
+export const ERR_UNDEFINED_UNCOMPRESSED_SIZE: string;
 /**
  * Writer not initialized error
  */
