@@ -56,6 +56,7 @@
 - [Initializable](interfaces/Initializable.md)
 - [ReadableReader](interfaces/ReadableReader.md)
 - [registerDataHandler](interfaces/registerDataHandler.md)
+- [URLString](interfaces/URLString.md)
 - [WorkerConfiguration](interfaces/WorkerConfiguration.md)
 - [WritableWriter](interfaces/WritableWriter.md)
 - [ZipDirectoryEntryExportOptions](interfaces/ZipDirectoryEntryExportOptions.md)

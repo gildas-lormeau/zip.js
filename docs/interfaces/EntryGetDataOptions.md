@@ -6,7 +6,7 @@
 
 # Interface: EntryGetDataOptions
 
-Defined in: [index.d.ts:1006](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1006)
+Defined in: [index.d.ts:1171](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L1171)
 
 Represents the options passed to [Entry#getData](Entry.md#getdata) and `{@link ZipFileEntry}.get*`.
 
@@ -24,7 +24,7 @@ Represents the options passed to [Entry#getData](Entry.md#getdata) and `{@link Z
 
 > `optional` **checkPasswordOnly**: `boolean`
 
-Defined in: [index.d.ts:803](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L803)
+Defined in: [index.d.ts:968](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L968)
 
 `true` to check only if the password is valid.
 
@@ -44,7 +44,7 @@ false
 
 > `optional` **checkSignature**: `boolean`
 
-Defined in: [index.d.ts:809](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L809)
+Defined in: [index.d.ts:974](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L974)
 
 `true` to check the signature of the entry.
 
@@ -64,7 +64,7 @@ false
 
 > `optional` **passThrough**: `boolean`
 
-Defined in: [index.d.ts:817](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L817)
+Defined in: [index.d.ts:982](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L982)
 
 `true` to read the data as-is without decompressing it and without decrypting it.
 
@@ -78,7 +78,7 @@ Defined in: [index.d.ts:817](https://github.com/gildas-lormeau/zip.js/blob/251b4
 
 > `optional` **password**: `string`
 
-Defined in: [index.d.ts:813](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L813)
+Defined in: [index.d.ts:978](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L978)
 
 The password used to decrypt the content of the entry.
 
@@ -92,7 +92,7 @@ The password used to decrypt the content of the entry.
 
 > `optional` **preventClose**: `boolean`
 
-Defined in: [index.d.ts:831](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L831)
+Defined in: [index.d.ts:996](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L996)
 
 `true` to prevent closing of [Writer#writable](../classes/Writer.md#writable) when calling [Entry#getData](Entry.md#getdata).
 
@@ -110,9 +110,9 @@ false
 
 ### rawPassword?
 
-> `optional` **rawPassword**: `Uint8Array`\<`ArrayBuffer`\>
+> `optional` **rawPassword**: `Uint8Array`
 
-Defined in: [index.d.ts:821](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L821)
+Defined in: [index.d.ts:986](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L986)
 
 The password used to encrypt the content of the entry (raw).
 
@@ -126,7 +126,7 @@ The password used to encrypt the content of the entry (raw).
 
 > `optional` **signal**: `AbortSignal`
 
-Defined in: [index.d.ts:825](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L825)
+Defined in: [index.d.ts:990](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L990)
 
 The `AbortSignal` instance used to cancel the decompression.
 
@@ -140,7 +140,7 @@ The `AbortSignal` instance used to cancel the decompression.
 
 > `optional` **transferStreams**: `boolean`
 
-Defined in: [index.d.ts:837](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L837)
+Defined in: [index.d.ts:1002](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L1002)
 
 `true` to transfer streams to web workers when decompressing data.
 
@@ -160,7 +160,7 @@ true
 
 > `optional` **useCompressionStream**: `boolean`
 
-Defined in: [index.d.ts:143](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L143)
+Defined in: [index.d.ts:303](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L303)
 
 `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
 
@@ -180,7 +180,7 @@ true
 
 > `optional` **useWebWorkers**: `boolean`
 
-Defined in: [index.d.ts:137](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L137)
+Defined in: [index.d.ts:297](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L297)
 
 `true` to use web workers to compress/decompress data in non-blocking background processes.
 
@@ -200,7 +200,7 @@ true
 
 > `optional` **onend**(`computedSize`): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:1441](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1441)
+Defined in: [index.d.ts:1606](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L1606)
 
 The function called when ending compression/decompression.
 
@@ -228,7 +228,7 @@ An empty promise or `undefined`.
 
 > `optional` **onprogress**(`progress`, `total`): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:1434](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1434)
+Defined in: [index.d.ts:1599](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L1599)
 
 The function called during compression/decompression.
 
@@ -262,7 +262,7 @@ An empty promise or `undefined`.
 
 > `optional` **onstart**(`total`): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:1426](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L1426)
+Defined in: [index.d.ts:1591](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L1591)
 
 The function called when starting compression/decompression.
 

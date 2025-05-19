@@ -6,13 +6,13 @@
 
 # Interface: dataHandler()
 
-Defined in: [index.d.ts:174](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L174)
+Defined in: [index.d.ts:334](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L334)
 
 Represents the callback function used to handle `data` events.
 
 > **dataHandler**(`data`): `void`
 
-Defined in: [index.d.ts:178](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L178)
+Defined in: [index.d.ts:338](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L338)
 
 Represents the callback function used to handle `data` events.
 
@@ -20,7 +20,7 @@ Represents the callback function used to handle `data` events.
 
 ### data
 
-`Uint8Array`\<`ArrayBuffer`\>
+`Uint8Array`
 
 The processed chunk of data.
 

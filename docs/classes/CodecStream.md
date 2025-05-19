@@ -6,7 +6,7 @@
 
 # Class: CodecStream
 
-Defined in: [index.d.ts:271](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L271)
+Defined in: [index.d.ts:431](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L431)
 
 Represents a class implementing `CompressionStream` or `DecompressionStream` interfaces.
 
@@ -18,7 +18,7 @@ Represents a class implementing `CompressionStream` or `DecompressionStream` int
 
 ### Constructor
 
-> **new CodecStream**(`transformer`?, `writableStrategy`?, `readableStrategy`?): `CodecStream`
+> **new CodecStream**(`transformer?`, `writableStrategy?`, `readableStrategy?`): `CodecStream`
 
 Defined in: node\_modules/typescript/lib/lib.dom.d.ts:23731
 

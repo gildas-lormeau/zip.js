@@ -6,7 +6,7 @@
 
 # Class: TextWriter
 
-Defined in: [index.d.ts:536](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L536)
+Defined in: [index.d.ts:701](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L701)
 
 Represents a [Writer](Writer.md) instance used to retrieve the written data as a `string`.
 
@@ -18,9 +18,9 @@ Represents a [Writer](Writer.md) instance used to retrieve the written data as a
 
 ### Constructor
 
-> **new TextWriter**(`encoding`?): `TextWriter`
+> **new TextWriter**(`encoding?`): `TextWriter`
 
-Defined in: [index.d.ts:542](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L542)
+Defined in: [index.d.ts:707](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L707)
 
 Creates the TextWriter instance
 
@@ -46,7 +46,7 @@ The encoding of the text.
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:510](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L510)
+Defined in: [index.d.ts:675](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L675)
 
 The `WritableStream` instance.
 
@@ -60,7 +60,7 @@ The `WritableStream` instance.
 
 > **getData**(): `Promise`\<`string`\>
 
-Defined in: [index.d.ts:530](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L530)
+Defined in: [index.d.ts:695](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L695)
 
 Retrieves all the written data
 
@@ -78,9 +78,9 @@ A promise resolving to the written data.
 
 ### init()?
 
-> `optional` **init**(`size`?): `Promise`\<`void`\>
+> `optional` **init**(`size?`): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:516](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L516)
+Defined in: [index.d.ts:681](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L681)
 
 Initializes the instance asynchronously
 
@@ -106,7 +106,7 @@ the total size of the written data in bytes.
 
 > **writeUint8Array**(`array`): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:524](https://github.com/gildas-lormeau/zip.js/blob/251b484ba01a922c47b1394efacb8926682f5796/index.d.ts#L524)
+Defined in: [index.d.ts:689](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L689)
 
 Appends a chunk of data
 
@@ -114,7 +114,7 @@ Appends a chunk of data
 
 ##### array
 
-`Uint8Array`\<`ArrayBuffer`\>
+`Uint8Array`
 
 The chunk data to append.
 
