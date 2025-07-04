@@ -41,13 +41,14 @@
 
 - [Configuration](interfaces/Configuration.md)
 - [dataHandler](interfaces/dataHandler.md)
-- [Entry](interfaces/Entry.md)
+- [DirectoryEntry](interfaces/DirectoryEntry.md)
 - [EntryDataOnprogressOptions](interfaces/EntryDataOnprogressOptions.md)
 - [EntryGetDataCheckPasswordOptions](interfaces/EntryGetDataCheckPasswordOptions.md)
 - [EntryGetDataOptions](interfaces/EntryGetDataOptions.md)
 - [EntryMetaData](interfaces/EntryMetaData.md)
 - [EntryOnprogressOptions](interfaces/EntryOnprogressOptions.md)
 - [EventBasedZipLibrary](interfaces/EventBasedZipLibrary.md)
+- [FileEntry](interfaces/FileEntry.md)
 - [FileSystemEntryLike](interfaces/FileSystemEntryLike.md)
 - [FileSystemHandleLike](interfaces/FileSystemHandleLike.md)
 - [GetEntriesOptions](interfaces/GetEntriesOptions.md)
@@ -68,6 +69,10 @@
 - [ZipWriterAddDataOptions](interfaces/ZipWriterAddDataOptions.md)
 - [ZipWriterCloseOptions](interfaces/ZipWriterCloseOptions.md)
 - [ZipWriterConstructorOptions](interfaces/ZipWriterConstructorOptions.md)
+
+## Type Aliases
+
+- [Entry](type-aliases/Entry.md)
 
 ## Variables
 

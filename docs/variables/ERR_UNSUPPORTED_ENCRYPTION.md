@@ -8,6 +8,6 @@
 
 > `const` **ERR\_UNSUPPORTED\_ENCRYPTION**: `string`
 
-Defined in: [index.d.ts:2204](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L2204)
+Defined in: [index.d.ts:2227](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L2227)
 
 Unsupported encryption error

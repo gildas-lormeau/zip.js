@@ -8,6 +8,6 @@
 
 > `const` **ERR\_EOCDR\_NOT\_FOUND**: `string`
 
-Defined in: [index.d.ts:2180](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L2180)
+Defined in: [index.d.ts:2203](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L2203)
 
 End of Central Directory Record not found error

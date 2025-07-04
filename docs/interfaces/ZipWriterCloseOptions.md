@@ -6,7 +6,7 @@
 
 # Interface: ZipWriterCloseOptions
 
-Defined in: [index.d.ts:1377](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L1377)
+Defined in: [index.d.ts:1400](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L1400)
 
 Represents the options passed to  [ZipWriter#close](../classes/ZipWriter.md#close).
 
@@ -20,7 +20,7 @@ Represents the options passed to  [ZipWriter#close](../classes/ZipWriter.md#clos
 
 > `optional` **preventClose**: `boolean`
 
-Defined in: [index.d.ts:1389](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L1389)
+Defined in: [index.d.ts:1412](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L1412)
 
 `true` to prevent closing of [WritableWriter#writable](WritableWriter.md#writable).
 
@@ -36,7 +36,7 @@ false
 
 > `optional` **zip64**: `boolean`
 
-Defined in: [index.d.ts:1383](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L1383)
+Defined in: [index.d.ts:1406](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L1406)
 
 `true` to use Zip64 to write the entries directory.
 
@@ -50,9 +50,9 @@ false
 
 ### onprogress()?
 
-> `optional` **onprogress**(`progress`, `total`, `entry`): `Promise`\<`void`\>
+> `optional` **onprogress**(`progress`, `total`, `entry`): `undefined` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:1621](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L1621)
+Defined in: [index.d.ts:1644](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L1644)
 
 The function called each time an entry is read/written.
 
@@ -78,7 +78,7 @@ The entry being read/written.
 
 #### Returns
 
-`Promise`\<`void`\>
+`undefined` \| `Promise`\<`void`\>
 
 An empty promise or `undefined`.
 

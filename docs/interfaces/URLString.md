@@ -6,7 +6,7 @@
 
 # Interface: URLString
 
-Defined in: [index.d.ts:557](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L557)
+Defined in: [index.d.ts:557](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L557)
 
 Represents a URL stored into a `string`.
 
@@ -200,7 +200,7 @@ The zero-based index of the desired character. If there is no character at the s
 
 ### codePointAt()
 
-> **codePointAt**(`pos`): `number`
+> **codePointAt**(`pos`): `undefined` \| `number`
 
 Defined in: node\_modules/typescript/lib/lib.es2015.core.d.ts:410
 
@@ -218,7 +218,7 @@ If a valid UTF-16 surrogate pair does not begin at pos, the result is the code u
 
 #### Returns
 
-`number`
+`undefined` \| `number`
 
 #### Inherited from
 
@@ -604,7 +604,7 @@ An object that contains one or more properties that specify comparison options. 
 
 #### Call Signature
 
-> **match**(`regexp`): `RegExpMatchArray`
+> **match**(`regexp`): `null` \| `RegExpMatchArray`
 
 Defined in: node\_modules/typescript/lib/lib.es5.d.ts:456
 
@@ -620,7 +620,7 @@ A variable name or string literal containing the regular expression pattern and 
 
 ##### Returns
 
-`RegExpMatchArray`
+`null` \| `RegExpMatchArray`
 
 ##### Inherited from
 
@@ -628,7 +628,7 @@ A variable name or string literal containing the regular expression pattern and 
 
 #### Call Signature
 
-> **match**(`matcher`): `RegExpMatchArray`
+> **match**(`matcher`): `null` \| `RegExpMatchArray`
 
 Defined in: node\_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts:241
 
@@ -645,7 +645,7 @@ An object that supports being matched against.
 
 ##### Returns
 
-`RegExpMatchArray`
+`null` \| `RegExpMatchArray`
 
 ##### Inherited from
 

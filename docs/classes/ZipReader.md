@@ -6,7 +6,7 @@
 
 # Class: ZipReader\<Type\>
 
-Defined in: [index.d.ts:861](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L861)
+Defined in: [index.d.ts:861](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L861)
 
 Represents an instance used to read a zip file.
 
@@ -52,7 +52,7 @@ await reader.close();
 
 > **new ZipReader**\<`Type`\>(`reader`, `options?`): `ZipReader`\<`Type`\>
 
-Defined in: [index.d.ts:868](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L868)
+Defined in: [index.d.ts:868](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L868)
 
 Creates the instance
 
@@ -78,9 +78,9 @@ The options.
 
 ### appendedData?
 
-> `optional` **appendedData**: `Uint8Array`
+> `optional` **appendedData**: `Uint8Array`\<`ArrayBufferLike`\>
 
-Defined in: [index.d.ts:889](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L889)
+Defined in: [index.d.ts:889](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L889)
 
 The data appended after the zip file.
 
@@ -90,7 +90,7 @@ The data appended after the zip file.
 
 > **comment**: `Uint8Array`
 
-Defined in: [index.d.ts:881](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L881)
+Defined in: [index.d.ts:881](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L881)
 
 The global comment of the zip file.
 
@@ -98,9 +98,9 @@ The global comment of the zip file.
 
 ### prependedData?
 
-> `optional` **prependedData**: `Uint8Array`
+> `optional` **prependedData**: `Uint8Array`\<`ArrayBufferLike`\>
 
-Defined in: [index.d.ts:885](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L885)
+Defined in: [index.d.ts:885](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L885)
 
 The data prepended before the zip file.
 
@@ -110,7 +110,7 @@ The data prepended before the zip file.
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:909](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L909)
+Defined in: [index.d.ts:909](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L909)
 
 Closes the zip file
 
@@ -122,9 +122,9 @@ Closes the zip file
 
 ### getEntries()
 
-> **getEntries**(`options?`): `Promise`\<[`Entry`](../interfaces/Entry.md)[]\>
+> **getEntries**(`options?`): `Promise`\<[`Entry`](../type-aliases/Entry.md)[]\>
 
-Defined in: [index.d.ts:896](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L896)
+Defined in: [index.d.ts:896](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L896)
 
 Returns all the entries in the zip file
 
@@ -138,17 +138,17 @@ The options.
 
 #### Returns
 
-`Promise`\<[`Entry`](../interfaces/Entry.md)[]\>
+`Promise`\<[`Entry`](../type-aliases/Entry.md)[]\>
 
-A promise resolving to an `array` of [Entry](../interfaces/Entry.md) instances.
+A promise resolving to an `array` of [Entry](../type-aliases/Entry.md) instances.
 
 ***
 
 ### getEntriesGenerator()
 
-> **getEntriesGenerator**(`options?`): `AsyncGenerator`\<[`Entry`](../interfaces/Entry.md), `boolean`\>
+> **getEntriesGenerator**(`options?`): `AsyncGenerator`\<[`Entry`](../type-aliases/Entry.md), `boolean`\>
 
-Defined in: [index.d.ts:903](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L903)
+Defined in: [index.d.ts:903](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L903)
 
 Returns a generator used to iterate on all the entries in the zip file
 
@@ -162,6 +162,6 @@ The options.
 
 #### Returns
 
-`AsyncGenerator`\<[`Entry`](../interfaces/Entry.md), `boolean`\>
+`AsyncGenerator`\<[`Entry`](../type-aliases/Entry.md), `boolean`\>
 
-An asynchronous generator of [Entry](../interfaces/Entry.md) instances.
+An asynchronous generator of [Entry](../type-aliases/Entry.md) instances.

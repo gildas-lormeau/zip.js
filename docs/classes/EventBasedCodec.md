@@ -6,7 +6,7 @@
 
 # Class: EventBasedCodec
 
-Defined in: [index.d.ts:363](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L363)
+Defined in: [index.d.ts:363](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L363)
 
 Represents an event-based implementation of a third-party codec.
 
@@ -26,7 +26,7 @@ Represents an event-based implementation of a third-party codec.
 
 > **ondata**(`data?`): `void`
 
-Defined in: [index.d.ts:375](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L375)
+Defined in: [index.d.ts:375](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L375)
 
 The function called when a chunk of data has been compressed/decompressed.
 
@@ -34,7 +34,7 @@ The function called when a chunk of data has been compressed/decompressed.
 
 ##### data?
 
-`Uint8Array`
+`Uint8Array`\<`ArrayBufferLike`\>
 
 The chunk of compressed/decompressed data.
 
@@ -48,7 +48,7 @@ The chunk of compressed/decompressed data.
 
 > **push**(`data`): `void`
 
-Defined in: [index.d.ts:369](https://github.com/gildas-lormeau/zip.js/blob/93e5cfb75d3abfbb07c60a453452660b0c4b1526/index.d.ts#L369)
+Defined in: [index.d.ts:369](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L369)
 
 Appends a chunk of data to compress/decompress
 
