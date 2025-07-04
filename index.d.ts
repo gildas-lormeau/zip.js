@@ -7,7 +7,7 @@
  *
  * @author Gildas Lormeau
  * @license BSD-3-Clause
- *  
+ *
  * @example
  * Hello world
  * ```js
@@ -19,39 +19,39 @@
  *   ZipReader,
  *   ZipWriter,
  * } from from "@zip-js/zip-js";
- * 
+ *
  * // ----
  * // Write the zip file
  * // ----
- * 
+ *
  * // Creates a BlobWriter object where the zip content will be written.
  * const zipFileWriter = new BlobWriter();
- * 
+ *
  * // Creates a TextReader object storing the text of the entry to add in the zip
  * // (i.e. "Hello world!").
  * const helloWorldReader = new TextReader("Hello world!");
- * 
+ *
  * // Creates a ZipWriter object writing data via `zipFileWriter`, adds the entry
  * // "hello.txt" containing the text "Hello world!" via `helloWorldReader`, and
  * // closes the writer.
  * const zipWriter = new ZipWriter(zipFileWriter);
  * await zipWriter.add("hello.txt", helloWorldReader);
  * await zipWriter.close();
- * 
+ *
  * // Retrieves the Blob object containing the zip content into `zipFileBlob`. It
  * // is also returned by zipWriter.close() for more convenience.
  * const zipFileBlob = await zipFileWriter.getData();
- * 
+ *
  * // ----
  * // Read the zip file
  * // ----
- * 
+ *
  * // Creates a BlobReader object used to read `zipFileBlob`.
  * const zipFileReader = new BlobReader(zipFileBlob);
  * // Creates a TextWriter object where the content of the first entry in the zip
  * // will be written.
  * const helloWorldWriter = new TextWriter();
- * 
+ *
  * // Creates a ZipReader object reading the zip content via `zipFileReader`,
  * // retrieves metadata (name, dates, etc.) of the first entry, retrieves its
  * // content via `helloWorldWriter`, and closes the reader.
@@ -59,11 +59,11 @@
  * const firstEntry = (await zipReader.getEntries()).shift();
  * const helloWorldText = await firstEntry.getData(helloWorldWriter);
  * await zipReader.close();
- * 
+ *
  * // Displays "Hello world!".
  * console.log(helloWorldText);
  * ```
- * 
+ *
  * @example
  * Hello world with Streams
  * ```js
@@ -72,11 +72,11 @@
  *   ZipReader,
  *   ZipWriter,
  * } from "@zip-js/zip-js";
- * 
+ *
  * // ----
  * // Write the zip file
  * // ----
- * 
+ *
  * // Creates a TransformStream object, the zip content will be written in the
  * // `writable` property.
  * const zipFileStream = new TransformStream();
@@ -86,21 +86,21 @@
  * // Creates a ReadableStream object storing the text of the entry to add in the
  * // zip (i.e. "Hello world!").
  * const helloWorldReadable = new Blob(["Hello world!"]).stream();
- * 
+ *
  * // Creates a ZipWriter object writing data into `zipFileStream.writable`, adds
  * // the entry "hello.txt" containing the text "Hello world!" retrieved from
  * // `helloWorldReadable`, and closes the writer.
  * const zipWriter = new ZipWriter(zipFileStream.writable);
  * await zipWriter.add("hello.txt", helloWorldReadable);
  * await zipWriter.close();
- * 
+ *
  * // Retrieves the Blob object containing the zip content into `zipFileBlob`.
  * const zipFileBlob = await zipFileBlobPromise;
- * 
+ *
  * // ----
  * // Read the zip file
  * // ----
- * 
+ *
  * // Creates a BlobReader object used to read `zipFileBlob`.
  * const zipFileReader = new BlobReader(zipFileBlob);
  * // Creates a TransformStream object, the content of the first entry in the zip
@@ -109,7 +109,7 @@
  * // Creates a Promise object resolved to the content of the first entry returned
  * // as text from `helloWorldStream.readable`.
  * const helloWorldTextPromise = new Response(helloWorldStream.readable).text();
- * 
+ *
  * // Creates a ZipReader object reading the zip content via `zipFileReader`,
  * // retrieves metadata (name, dates, etc.) of the first entry, retrieves its
  * // content into `helloWorldStream.writable`, and closes the reader.
@@ -117,12 +117,12 @@
  * const firstEntry = (await zipReader.getEntries()).shift();
  * await firstEntry.getData(helloWorldStream.writable);
  * await zipReader.close();
- * 
+ *
  * // Displays "Hello world!".
  * const helloWorldText = await helloWorldTextPromise;
  * console.log(helloWorldText);
  * ```
- * 
+ *
  * @example
  * Adding concurrently multiple entries in a zip file
  * ```js
@@ -132,11 +132,11 @@
  *   TextReader,
  *   ZipWriter,
  * } from "@zip-js/zip-js";
- * 
+ *
  * const README_URL = "https://unpkg.com/@zip.js/zip.js/README.md";
  * getZipFileBlob()
  *   .then(downloadFile);
- * 
+ *
  * async function getZipFileBlob() {
  *   const zipWriter = new ZipWriter(new BlobWriter("application/zip"));
  *   await Promise.all([
@@ -145,7 +145,7 @@
  *   ]);
  *   return zipWriter.close();
  * }
- * 
+ *
  * function downloadFile(blob) {
  *   document.body.appendChild(Object.assign(document.createElement("a"), {
  *     download: "hello.zip",
@@ -154,7 +154,7 @@
  *   }));
  * }
  * ```
- * 
+ *
  * @module
 */
 
@@ -948,7 +948,7 @@ export interface GetEntriesOptions {
   commentEncoding?: string;
   /**
    * The function called for decoding the filename and the comment of the entry.
-   * 
+   *
    * @param value The raw text value.
    * @param encoding The encoding of the text.
    * @returns The decoded text value or `undefined` if the raw text value should be decoded by zip.js.
@@ -1140,11 +1140,13 @@ export interface EntryMetaData {
    */
   compressionMethod: number;
 }
+export interface DirectoryEntry extends Omit<EntryMetaData, 'directory'> {
+  directory: true;
+  getData?: undefined;
+}
 
-/**
- * Represents an entry with its data and metadata in a zip file (Core API).
- */
-export interface Entry extends EntryMetaData {
+export interface FileEntry extends Omit<EntryMetaData, 'directory'> {
+  directory: false;
   /**
    * Returns the content of the entry
    *
@@ -1152,18 +1154,39 @@ export interface Entry extends EntryMetaData {
    * @param options The options.
    * @returns A promise resolving to the type to data associated to `writer`.
    */
-  getData?<Type>(
+  getData<Type>(
     writer:
       | Writer<Type>
       | WritableWriter
       | WritableStream
       | AsyncGenerator<
-        Writer<unknown> | WritableWriter | WritableStream,
-        boolean
-      >,
+      Writer<unknown> | WritableWriter | WritableStream,
+      boolean
+    >,
     options?: EntryGetDataCheckPasswordOptions
   ): Promise<Type>;
 }
+
+/**
+ * Represents an entry with its data and metadata in a zip file (Core API).
+ * This is a union type of {@link DirectoryEntry} and {@link FileEntry}.
+ *
+ * Before using getData, you should check if the entry is a file.
+ *
+ * @example
+ *
+ * ```ts
+ * for await (const entry of reader.getEntriesGenerator()) {
+ *   if (entry.directory) continue;
+ *
+ *   // entry is a FileEntry
+ *   const plainTextData = await entry.getData(new TextWriter());
+ *
+ *   // Do something with the plainTextData
+ * }
+ * ```
+ */
+export type Entry = DirectoryEntry | FileEntry;
 
 /**
  * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
@@ -1503,7 +1526,7 @@ export interface ZipWriterConstructorOptions {
   versionMadeBy?: number;
   /**
    * `true` to mark the file names as UTF-8 setting the general purpose bit 11 in the header (see Appendix D - Language Encoding (EFS)), `false` to mark the names as compliant with the original IBM Code Page 437.
-   * 
+   *
    * Note that this does not ensure that the file names are in the correct encoding.
    *
    * @defaultValue true
@@ -1571,7 +1594,7 @@ export interface ZipWriterConstructorOptions {
   compressionMethod?: number
   /**
    * The function called for encoding the filename and the comment of the entry.
-   * 
+   *
    * @param text The text to encode.
    * @returns The encoded text or `undefined` if the text should be encoded by zip.js.
    */
