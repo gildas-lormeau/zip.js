@@ -286,7 +286,7 @@ export interface Configuration extends WorkerConfiguration {
 }
 
 /**
- * Represents configuration passed to {@link configure}, the constructor of {@link ZipReader}, {@link Entry#getData}, the constructor of {@link ZipWriter}, and {@link ZipWriter#add}.
+ * Represents configuration passed to {@link configure}, the constructor of {@link ZipReader}, {@link FileEntry#getData}, the constructor of {@link ZipWriter}, and {@link ZipWriter#add}.
  */
 export interface WorkerConfiguration {
   /**
@@ -638,7 +638,7 @@ export interface WritableWriter {
    */
   writable: WritableStream;
   /**
-   * The maximum size of split data when creating a {@link ZipWriter} instance or when calling {@link Entry#getData} with a generator of {@link WritableWriter} instances.
+   * The maximum size of split data when creating a {@link ZipWriter} instance or when calling {@link FileEntry#getData} with a generator of {@link WritableWriter} instances.
    */
   maxSize?: number;
 }
@@ -957,7 +957,7 @@ export interface GetEntriesOptions {
 }
 
 /**
- * Represents options passed to the constructor of {@link ZipReader} and {@link Entry#getData}.
+ * Represents options passed to the constructor of {@link ZipReader} and {@link FileEntry#getData}.
  */
 export interface ZipReaderOptions {
   /**
@@ -989,7 +989,7 @@ export interface ZipReaderOptions {
    */
   signal?: AbortSignal;
   /**
-   * `true` to prevent closing of {@link Writer#writable} when calling {@link Entry#getData}.
+   * `true` to prevent closing of {@link Writer#writable} when calling {@link FileEntry#getData}.
    *
    * @defaultValue false
    */
@@ -1160,9 +1160,9 @@ export interface FileEntry extends Omit<EntryMetaData, 'directory'> {
       | WritableWriter
       | WritableStream
       | AsyncGenerator<
-      Writer<unknown> | WritableWriter | WritableStream,
-      boolean
-    >,
+        Writer<unknown> | WritableWriter | WritableStream,
+        boolean
+      >,
     options?: EntryGetDataCheckPasswordOptions
   ): Promise<Type>;
 }
@@ -1189,13 +1189,13 @@ export interface FileEntry extends Omit<EntryMetaData, 'directory'> {
 export type Entry = DirectoryEntry | FileEntry;
 
 /**
- * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
+ * Represents the options passed to {@link FileEntry#getData} and `{@link ZipFileEntry}.get*`.
  */
 export interface EntryGetDataOptions
   extends EntryDataOnprogressOptions, ZipReaderOptions, WorkerConfiguration { }
 
 /**
- * Represents the options passed to {@link Entry#getData} and `{@link ZipFileEntry}.get*`.
+ * Represents the options passed to {@link FileEntry#getData} and `{@link ZipFileEntry}.get*`.
  */
 export interface EntryGetDataCheckPasswordOptions
   extends EntryGetDataOptions { }
@@ -1602,7 +1602,7 @@ export interface ZipWriterConstructorOptions {
 }
 
 /**
- * Represents options passed to {@link Entry#getData}, {@link ZipWriter.add} and `{@link ZipDirectory}.export*`.
+ * Represents options passed to {@link FileEntry#getData}, {@link ZipWriter.add} and `{@link ZipDirectory}.export*`.
  */
 export interface EntryDataOnprogressOptions {
   /**
