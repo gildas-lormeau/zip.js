@@ -2311,3 +2311,7 @@ export const ERR_UNDEFINED_UNCOMPRESSED_SIZE: string;
  * Writer not initialized error
  */
 export const ERR_WRITER_NOT_INITIALIZED: string;
+/**
+ * Zip file not empty error
+ */
+export const ERR_ZIP_NOT_EMPTY: string;
