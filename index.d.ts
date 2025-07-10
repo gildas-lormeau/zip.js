@@ -1327,6 +1327,21 @@ export class ZipWriter<Type> {
    * `true` if the zip contains at least one entry that has been partially written.
    */
   readonly hasCorruptedEntries?: boolean;
+
+  /**
+   * Adds an existing zip file at the beginning of the current zip. This method 
+   * cannot be called after the first call to {@link ZipWriter#add}.
+   * 
+   * @param reader The {@link Reader} instance used to read the content of the zip file.
+   * @returns A promise resolving when the zip file has been added.
+   */
+  prependZip<ReaderType>(reader: Reader<ReaderType>
+      | ReadableReader
+      | ReadableStream
+      | Reader<unknown>[]
+      | ReadableReader[]
+      | ReadableStream[]): Promise<void>;
+
   /**
    * Adds an entry into the zip file
    *
