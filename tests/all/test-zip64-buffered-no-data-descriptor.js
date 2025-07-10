@@ -10,16 +10,19 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	const blobWriter = new zip.BlobWriter("application/zip");
-	const zipWriter = new zip.ZipWriter(blobWriter, { zip64: true, dataDescriptor: false, bufferedWrite: true });
+	let blobWriter = new zip.BlobWriter("application/zip");
+	let zipWriter = new zip.ZipWriter(blobWriter, { zip64: true, dataDescriptor: false, bufferedWrite: true });
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
-	await zipWriter.close();
+	const zipNoDataDescriptor = await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
-	await zipReader.close();
+	blobWriter = new zip.BlobWriter("application/zip");
+	zipWriter = new zip.ZipWriter(blobWriter, { zip64: true, dataDescriptor: true, bufferedWrite: true });
+	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
+	const zipDataDescriptor = await zipWriter.close();
 	await zip.terminateWorkers();
-	if (TEXT_CONTENT != await data.text() || !entries[0].zip64 || entries[0].uncompressedSize != TEXT_CONTENT.length) {
+	if (TEXT_CONTENT != await data.text() || !entries[0].zip64 || entries[0].uncompressedSize != TEXT_CONTENT.length || zipNoDataDescriptor.size >= zipDataDescriptor.size) {
 		throw new Error();
 	}
 }
