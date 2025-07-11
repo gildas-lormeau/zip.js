@@ -51,6 +51,8 @@ export default ([
 	{ title: "Pass through zstd", script: "./test-passthrough-zstd.js" },
 	{ title: "Readable Stream", script: "./test-readable-stream.js" },
 	{ title: "Readable Zip Stream", script: "./test-readable-zip-stream.js" },
+	{ title: "Remove entry", script: "./test-remove-entry.js" },
+	{ title: "Replace entry", script: "./test-replace-entry.js" },
 	{ title: "Safe closing", script: "./test-safe-closing.js" },
 	{ title: "Service worker", script: "./test-sw.js", env: ["browser"] },
 	{ title: "Signature CRC32", script: "./test-crc.js" },

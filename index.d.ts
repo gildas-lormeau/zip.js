@@ -1370,6 +1370,16 @@ export class ZipWriter<Type> {
       | ReadableStream[],
     options?: ZipWriterAddDataOptions
   ): Promise<EntryMetaData>;
+
+  /**
+   * Removes an entry from the zip file. Note that the entry is not removed from the zip file, but it
+   * is not written to the entries directory.
+   *
+   * @param entry The entry to remove. This can be an {@link Entry} instance or the filename of the entry.
+   * @returns `true` if the entry has been removed, `false` otherwise.
+   */
+  remove(entry: Entry | string): boolean;
+
   /**
    * Writes the entries directory, writes the global comment, and returns the content of the zip file
    *
