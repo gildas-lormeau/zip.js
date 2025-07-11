@@ -24,7 +24,7 @@ async function test() {
 			const files = await Promise.all(entries.map(entry => entry.getData(new zip.TextWriter())));
 			await zipReader.close();
 			await zip.terminateWorkers();
-			if (!files.length == 2 || files[0] !== TEXT_CONTENT || files[1] !== TEXT_CONTENT) {
+			if (files.length != 2 || files[0] !== TEXT_CONTENT || files[1] !== TEXT_CONTENT) {
 				throw new Error();
 			}
 		} else {
