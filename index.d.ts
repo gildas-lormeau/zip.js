@@ -1540,7 +1540,8 @@ export interface ZipWriterConstructorOptions {
    */
   extendedTimestamp?: boolean;
   /**
-   * `true` to use the ZipCrypto algorithm to encrypt the content of the entry.
+   * `true` to use the ZipCrypto algorithm to encrypt the content of the entry. Setting it to `true` will also
+   * set the {@link ZipWriterConstructorOptions#dataDescriptor} to `true`.
    *
    * It is not recommended to set `zipCrypto` to `true` because the ZipCrypto encryption can be easily broken.
    *
@@ -1558,7 +1559,8 @@ export interface ZipWriterConstructorOptions {
    */
   versionMadeBy?: number;
   /**
-   * `true` to mark the file names as UTF-8 setting the general purpose bit 11 in the header (see Appendix D - Language Encoding (EFS)), `false` to mark the names as compliant with the original IBM Code Page 437.
+   * `true` to mark the file names as UTF-8 setting the general purpose bit 11 in the header (see Appendix D -
+   * Language Encoding (EFS)), `false` to mark the names as compliant with the original IBM Code Page 437.
    *
    * Note that this does not ensure that the file names are in the correct encoding.
    *
@@ -1568,9 +1570,10 @@ export interface ZipWriterConstructorOptions {
   /**
    * `true` to add a data descriptor.
    *
-   * When set to `false`, the {@link ZipWriterConstructorOptions#bufferedWrite} option  will automatically be set to `true`.
-   *
-   * @defaultValue true
+   * When set to `false`, the {@link ZipWriterConstructorOptions#bufferedWrite} option  will automatically be 
+   * set to `true`. It will be automatically set to `false` when it is `undefined` and the
+   * {@link ZipWriterConstructorOptions#bufferedWrite} option is set to `true`, or ` when the
+   * {@link ZipWriterConstructorOptions#zipCrypto} option is set to `true`. Otherwise, the default value is `true`.
    */
   dataDescriptor?: boolean;
   /**
