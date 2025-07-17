@@ -4293,6 +4293,8 @@
 
 	const DIRECTORY_SIGNATURE = "/";
 
+	const HEADER_SIZE = 26;
+
 	const MAX_DATE = new Date(2107, 11, 31);
 	const MIN_DATE = new Date(1980, 0, 1);
 
@@ -7242,6 +7244,7 @@
 
 		constructor(array) {
 			super();
+			array = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
 			Object.assign(this, {
 				array,
 				size: array.length
@@ -7936,7 +7939,8 @@
 				compressedSize
 			} = zipEntry;
 			const localDirectory = fileEntry.localDirectory = {};
-			const dataArray = await readUint8Array(reader, offset, 30, diskNumberStart);
+			const dataArraySize = HEADER_SIZE + 4;
+			const dataArray = await readUint8Array(reader, offset, dataArraySize + 4, diskNumberStart);
 			const dataView = getDataView$1(dataArray);
 			let password = getOptionValue$1(zipEntry, options, "password");
 			let rawPassword = getOptionValue$1(zipEntry, options, "rawPassword");
@@ -7956,7 +7960,7 @@
 			}
 			readCommonHeader(localDirectory, dataView, 4);
 			localDirectory.rawExtraField = localDirectory.extraFieldLength ?
-				await readUint8Array(reader, offset + 30 + localDirectory.filenameLength, localDirectory.extraFieldLength, diskNumberStart) :
+				await readUint8Array(reader, offset + dataArraySize + localDirectory.filenameLength, localDirectory.extraFieldLength, diskNumberStart) :
 				new Uint8Array();
 			readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
 			Object.assign(fileEntry, {
@@ -7975,7 +7979,7 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const dataOffset = offset + 30 + localDirectory.filenameLength + localDirectory.extraFieldLength;
+			const dataOffset = offset + dataArraySize + localDirectory.filenameLength + localDirectory.extraFieldLength;
 			const size = compressedSize;
 			const readable = reader.readable;
 			Object.assign(readable, {
@@ -8337,6 +8341,7 @@
 	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
 	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (make sure 'keepOrder' is set to 'true')";
 	const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
+	const ERR_ZIP_NOT_EMPTY = "Zip file not empty";
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
 
@@ -8362,6 +8367,99 @@
 				pendingAddFileCalls: new Set(),
 				bufferedWrites: 0
 			});
+		}
+
+		async prependZip(reader) {
+			if (this.filenames.size) {
+				throw new Error(ERR_ZIP_NOT_EMPTY);
+			}
+			({ reader } = initReader(reader));
+			const [zipEntriesReader, zipDataReader] = reader.readable.tee();
+			const zipReader = new ZipReader(new ReadableStream({
+				async start(controller) {
+					const reader = zipEntriesReader.getReader();
+					await readChunk();
+
+					async function readChunk() {
+						const { done, value } = await reader.read();
+						if (done) {
+							controller.close();
+						} else {
+							controller.enqueue(value);
+							await readChunk();
+						}
+					}
+				}
+			}));
+			const entries = await zipReader.getEntries();
+			await zipReader.close();
+			await zipDataReader.pipeTo(this.writer.writable, { preventClose: true, preventAbort: true });
+			this.writer.writable.size = this.offset = reader.size;
+			this.filenames = new Set(entries.map(entry => entry.filename));
+			this.files = new Map(entries.map(entry => {
+				const {
+					version,
+					compressionMethod,
+					lastModDate,
+					lastAccessDate,
+					creationDate,
+					rawFilename,
+					bitFlag,
+					encrypted,
+					uncompressedSize,
+					compressedSize,
+					diskOffset,
+					diskNumber,
+					zip64
+				} = entry;
+				let {
+					rawExtraFieldZip64,
+					rawExtraFieldAES,
+					rawExtraFieldExtendedTimestamp,
+					rawExtraFieldNTFS,
+					rawExtraField,
+				} = entry;
+				const { level, languageEncodingFlag, dataDescriptor } = bitFlag;
+				rawExtraFieldZip64 = rawExtraFieldZip64 || new Uint8Array();
+				rawExtraFieldAES = rawExtraFieldAES || new Uint8Array();
+				rawExtraFieldExtendedTimestamp = rawExtraFieldExtendedTimestamp || new Uint8Array();
+				rawExtraFieldNTFS = rawExtraFieldNTFS || new Uint8Array();
+				rawExtraField = rawExtraField || new Uint8Array();
+				const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
+				const zip64UncompressedSize = zip64 && uncompressedSize > MAX_32_BITS;
+				const zip64CompressedSize = zip64 && compressedSize > MAX_32_BITS;
+				const {
+					headerArray,
+					headerView
+				} = getHeaderArrayData({
+					version,
+					bitflag: getBitflag(level, languageEncodingFlag, dataDescriptor, encrypted),
+					compressionMethod,
+					uncompressedSize,
+					compressedSize,
+					lastModDate,
+					rawFilename,
+					zip64CompressedSize,
+					zip64UncompressedSize,
+					extraFieldLength
+				});
+				Object.assign(entry, {
+					zip64UncompressedSize,
+					zip64CompressedSize,
+					zip64Offset: zip64 && this.offset - diskOffset > MAX_32_BITS,
+					zip64DiskNumberStart: zip64 && diskNumber > MAX_16_BITS,
+					rawExtraFieldZip64,
+					rawExtraFieldAES,
+					rawExtraFieldExtendedTimestamp,
+					rawExtraFieldNTFS,
+					rawExtraField,
+					extendedTimestamp: rawExtraFieldExtendedTimestamp.length > 0 || rawExtraFieldNTFS.length > 0,
+					extraFieldExtendedTimestampFlag: 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0),
+					headerArray,
+					headerView
+				});
+				return [entry.filename, entry];
+			}));
 		}
 
 		async add(name = "", reader, options = {}) {
@@ -8397,6 +8495,22 @@
 					workers--;
 				}
 			}
+		}
+
+		remove(entry) {
+			const { filenames, files } = this;
+			if (typeof entry == "string") {
+				entry = files.get(entry);
+			}
+			if (entry && entry.filename !== UNDEFINED_VALUE) {
+				const { filename } = entry;
+				if (filenames.has(filename) && files.has(filename)) {
+					filenames.delete(filename);
+					files.delete(filename);
+					return true;
+				}
+			}
+			return false;
 		}
 
 		async close(comment = new Uint8Array(), options = {}) {
@@ -8520,7 +8634,13 @@
 		const useUnicodeFileNames = getOptionValue(zipWriter, options, "useUnicodeFileNames", true);
 		const useCompressionStream = getOptionValue(zipWriter, options, "useCompressionStream");
 		const compressionMethod = getOptionValue(zipWriter, options, "compressionMethod");
-		let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor", true);
+		let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor");
+		if (bufferedWrite && dataDescriptor === UNDEFINED_VALUE) {
+			dataDescriptor = false;
+		}
+		if (dataDescriptor === UNDEFINED_VALUE || zipCrypto) {
+			dataDescriptor = true;
+		}
 		let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
 		if (!zipCrypto && (password !== UNDEFINED_VALUE || rawPassword !== UNDEFINED_VALUE) && !(encryptionStrength >= 1 && encryptionStrength <= 3)) {
 			throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
@@ -8566,10 +8686,11 @@
 						uncompressedSize = maximumCompressedSize = MAX_32_BITS + 1;
 					}
 				} else {
-					uncompressedSize = reader.size;
+					options.uncompressedSize = uncompressedSize = reader.size;
 					maximumCompressedSize = getMaximumCompressedSize(uncompressedSize);
 				}
 			} else {
+				options.uncompressedSize = uncompressedSize;
 				maximumCompressedSize = getMaximumCompressedSize(uncompressedSize);
 			}
 		}
@@ -8625,7 +8746,10 @@
 			passThrough,
 			encrypted: Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted),
 			signature,
-			compressionMethod
+			compressionMethod,
+			uncompressedSize,
+			offset: zipWriter.offset - diskOffset,
+			diskNumberStart: diskNumber,
 		});
 		const headerInfo = getHeaderInfo(options);
 		const dataDescriptorInfo = getDataDescriptorInfo(options);
@@ -8717,20 +8841,26 @@
 				await lockPreviousFileEntry;
 				await requestLockWriter();
 				writingBufferedEntryData = true;
-				if (!dataDescriptor) {
-					blob = await writeExtraHeaderInfo(fileEntry, blob, writable, options);
-				}
-				await skipDiskIfNeeded(writable);
 				fileEntry.diskNumberStart = writer.diskNumber;
 				diskOffset = writer.diskOffset;
+				fileEntry.offset = zipWriter.offset - diskOffset;
+				if (fileEntry.zip64) {
+					setExtraFieldZip64Data(fileEntry);
+				}
+				if (fileEntry.zip64 || !dataDescriptor) {
+					blob = await patchLocalHeader(fileEntry, blob, writable, options);
+				}
+				await skipDiskIfNeeded(writable);
 				await blob.stream().pipeTo(writable, { preventClose: true, preventAbort: true, signal });
 				writable.size += blob.size;
 				writingBufferedEntryData = false;
+			} else {
+				fileEntry.offset = zipWriter.offset - diskOffset;
+				if (fileEntry.zip64) {
+					setExtraFieldZip64Data(fileEntry);
+				}
 			}
-			fileEntry.offset = zipWriter.offset - diskOffset;
-			if (fileEntry.zip64) {
-				setZip64ExtraInfo(fileEntry, options);
-			} else if (fileEntry.offset > MAX_32_BITS) {
+			if (fileEntry.offset > MAX_32_BITS && !fileEntry.zip64) {
 				throw new Error(ERR_UNSUPPORTED_FORMAT);
 			}
 			zipWriter.offset += fileEntry.size;
@@ -8797,12 +8927,15 @@
 		const {
 			localHeaderArray,
 			headerArray,
+			headerView,
 			lastModDate,
 			rawLastModDate,
 			encrypted,
 			compressed,
 			version,
 			compressionMethod,
+			rawExtraFieldZip64,
+			localExtraFieldZip64Length,
 			rawExtraFieldExtendedTimestamp,
 			extraFieldExtendedTimestampFlag,
 			rawExtraFieldNTFS,
@@ -8851,6 +8984,8 @@
 			rawFilename,
 			commentUTF8: true,
 			rawComment,
+			rawExtraFieldZip64,
+			localExtraFieldZip64Length,
 			rawExtraFieldExtendedTimestamp,
 			rawExtraFieldNTFS,
 			rawExtraFieldAES,
@@ -8904,28 +9039,8 @@
 		} else {
 			await writeData(writable, localHeaderArray);
 		}
-		let rawExtraFieldZip64;
-		if (zip64) {
-			let rawExtraFieldZip64Length = 4;
-			if (zip64UncompressedSize) {
-				rawExtraFieldZip64Length += 8;
-			}
-			if (zip64CompressedSize) {
-				rawExtraFieldZip64Length += 8;
-			}
-			if (zip64Offset) {
-				rawExtraFieldZip64Length += 8;
-			}
-			if (zip64DiskNumberStart) {
-				rawExtraFieldZip64Length += 4;
-			}
-			rawExtraFieldZip64 = new Uint8Array(rawExtraFieldZip64Length);
-		} else {
-			rawExtraFieldZip64 = new Uint8Array();
-		}
 		setEntryInfo({
 			signature,
-			rawExtraFieldZip64,
 			compressedSize,
 			uncompressedSize,
 			headerInfo,
@@ -8947,8 +9062,8 @@
 			compressionMethod,
 			version,
 			headerArray,
+			headerView,
 			signature,
-			rawExtraFieldZip64,
 			extraFieldExtendedTimestampFlag,
 			zip64UncompressedSize,
 			zip64CompressedSize,
@@ -8973,10 +9088,62 @@
 			rawExtraField,
 			encryptionStrength,
 			extendedTimestamp,
-			encrypted
+			passThrough,
+			encrypted,
+			zip64UncompressedSize,
+			zip64CompressedSize,
+			zip64Offset,
+			zip64DiskNumberStart,
+			uncompressedSize,
+			offset,
+			diskNumberStart
 		} = options;
 		let { version, compressionMethod } = options;
 		const compressed = !directory && (level > 0 || (level === UNDEFINED_VALUE && compressionMethod !== 0));
+		let rawExtraFieldZip64;
+		const uncompressedFile = passThrough || !compressed;
+		const zip64ExtraFieldComplete = zip64 && (options.bufferedWrite || ((!zip64UncompressedSize && !zip64CompressedSize) || uncompressedFile));
+		if (zip64) {
+			let rawExtraFieldZip64Length = 4;
+			if (zip64UncompressedSize) {
+				rawExtraFieldZip64Length += 8;
+			}
+			if (zip64CompressedSize) {
+				rawExtraFieldZip64Length += 8;
+			}
+			if (zip64Offset) {
+				rawExtraFieldZip64Length += 8;
+			}
+			if (zip64DiskNumberStart) {
+				rawExtraFieldZip64Length += 4;
+			}
+			rawExtraFieldZip64 = new Uint8Array(rawExtraFieldZip64Length);
+			const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
+			setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
+			setUint16(rawExtraFieldZip64View, 2, getLength(rawExtraFieldZip64) - 4);
+			if (zip64ExtraFieldComplete) {
+				const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
+				let rawExtraFieldZip64Offset = 4;
+				if (zip64UncompressedSize) {
+					setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(uncompressedSize));
+					rawExtraFieldZip64Offset += 8;
+				}
+				if (zip64CompressedSize && uncompressedFile) {
+					setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(uncompressedSize));
+					rawExtraFieldZip64Offset += 8;
+				}
+				if (zip64Offset) {
+					setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(offset));
+					rawExtraFieldZip64Offset += 8;
+				}
+				if (zip64DiskNumberStart) {
+					setUint32(rawExtraFieldZip64View, rawExtraFieldZip64Offset, diskNumberStart);
+					rawExtraFieldZip64Offset += 4;
+				}
+			}
+		} else {
+			rawExtraFieldZip64 = new Uint8Array();
+		}
 		let rawExtraFieldAES;
 		if (encrypted && !zipCrypto) {
 			rawExtraFieldAES = new Uint8Array(getLength(EXTRAFIELD_DATA_AES) + 2);
@@ -9025,69 +9192,52 @@
 		} else {
 			rawExtraFieldNTFS = rawExtraFieldExtendedTimestamp = new Uint8Array();
 		}
-		let bitFlag = 0;
-		if (useUnicodeFileNames) {
-			bitFlag = bitFlag | BITFLAG_LANG_ENCODING_FLAG;
-		}
-		if (dataDescriptor) {
-			bitFlag = bitFlag | BITFLAG_DATA_DESCRIPTOR;
-		}
 		if (compressionMethod === UNDEFINED_VALUE) {
 			compressionMethod = compressed ? COMPRESSION_METHOD_DEFLATE : COMPRESSION_METHOD_STORE;
-		}
-		if (compressionMethod == COMPRESSION_METHOD_DEFLATE) {
-			if (level >= 1 && level < 3) {
-				bitFlag = bitFlag | 0b110;
-			}
-			if (level >= 3 && level < 5) {
-				bitFlag = bitFlag | 0b01;
-			}
-			if (level === 9) {
-				bitFlag = bitFlag | 0b10;
-			}
 		}
 		if (zip64) {
 			version = version > VERSION_ZIP64 ? version : VERSION_ZIP64;
 		}
-		if (encrypted) {
-			bitFlag = bitFlag | BITFLAG_ENCRYPTED;
-			if (!zipCrypto) {
-				version = version > VERSION_AES ? version : VERSION_AES;
-				rawExtraFieldAES[9] = compressionMethod;
-				compressionMethod = COMPRESSION_METHOD_AES;
-			}
+		if (encrypted && !zipCrypto) {
+			version = version > VERSION_AES ? version : VERSION_AES;
+			rawExtraFieldAES[9] = compressionMethod;
+			compressionMethod = COMPRESSION_METHOD_AES;
 		}
-		const headerArray = new Uint8Array(26);
-		const headerView = getDataView(headerArray);
-		setUint16(headerView, 0, version);
-		setUint16(headerView, 2, bitFlag);
-		setUint16(headerView, 4, compressionMethod);
-		const dateArray = new Uint32Array(1);
-		const dateView = getDataView(dateArray);
-		let lastModDateMsDos;
-		if (lastModDate < MIN_DATE) {
-			lastModDateMsDos = MIN_DATE;
-		} else if (lastModDate > MAX_DATE) {
-			lastModDateMsDos = MAX_DATE;
-		} else {
-			lastModDateMsDos = lastModDate;
-		}
-		setUint16(dateView, 0, (((lastModDateMsDos.getHours() << 6) | lastModDateMsDos.getMinutes()) << 5) | lastModDateMsDos.getSeconds() / 2);
-		setUint16(dateView, 2, ((((lastModDateMsDos.getFullYear() - 1980) << 4) | (lastModDateMsDos.getMonth() + 1)) << 5) | lastModDateMsDos.getDate());
-		const rawLastModDate = dateArray[0];
-		setUint32(headerView, 6, rawLastModDate);
-		setUint16(headerView, 22, getLength(rawFilename));
-		const extraFieldLength = getLength(rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
-		setUint16(headerView, 24, extraFieldLength);
-		const localHeaderArray = new Uint8Array(30 + getLength(rawFilename) + extraFieldLength);
+		const localExtraFieldZip64Length = zip64ExtraFieldComplete ? getLength(rawExtraFieldZip64) : 0;
+		const extraFieldLength = localExtraFieldZip64Length + getLength(rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
+		const {
+			headerArray,
+			headerView,
+			rawLastModDate
+		} = getHeaderArrayData({
+			version,
+			bitflag: getBitflag(level, useUnicodeFileNames, dataDescriptor, encrypted),
+			compressionMethod,
+			uncompressedSize,
+			lastModDate: lastModDate < MIN_DATE ? MIN_DATE : lastModDate > MAX_DATE ? MAX_DATE : lastModDate,
+			rawFilename,
+			zip64CompressedSize,
+			zip64UncompressedSize,
+			extraFieldLength
+		});
+		let localHeaderOffset = HEADER_SIZE + 4;
+		const localHeaderArray = new Uint8Array(localHeaderOffset + getLength(rawFilename) + extraFieldLength);
 		const localHeaderView = getDataView(localHeaderArray);
 		setUint32(localHeaderView, 0, LOCAL_FILE_HEADER_SIGNATURE);
 		arraySet(localHeaderArray, headerArray, 4);
-		arraySet(localHeaderArray, rawFilename, 30);
-		arraySet(localHeaderArray, rawExtraFieldAES, 30 + getLength(rawFilename));
-		arraySet(localHeaderArray, rawExtraFieldExtendedTimestamp, 30 + getLength(rawFilename, rawExtraFieldAES));
-		arraySet(localHeaderArray, rawExtraFieldNTFS, 30 + getLength(rawFilename, rawExtraFieldAES, rawExtraFieldExtendedTimestamp));
-		arraySet(localHeaderArray, rawExtraField, 30 + getLength(rawFilename, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS));
+		arraySet(localHeaderArray, rawFilename, localHeaderOffset);
+		localHeaderOffset += getLength(rawFilename);
+		if (zip64ExtraFieldComplete) {
+			arraySet(localHeaderArray, rawExtraFieldZip64, localHeaderOffset);
+		}
+		localHeaderOffset += localExtraFieldZip64Length;
+		arraySet(localHeaderArray, rawExtraFieldAES, localHeaderOffset);
+		localHeaderOffset += getLength(rawExtraFieldAES);
+		arraySet(localHeaderArray, rawExtraFieldExtendedTimestamp, localHeaderOffset);
+		localHeaderOffset += getLength(rawExtraFieldExtendedTimestamp);
+		arraySet(localHeaderArray, rawExtraFieldNTFS, localHeaderOffset);
+		localHeaderOffset += getLength(rawExtraFieldNTFS);
+		arraySet(localHeaderArray, rawExtraField, localHeaderOffset);
 		return {
 			localHeaderArray,
 			headerArray,
@@ -9099,6 +9249,8 @@
 			version,
 			compressionMethod,
 			extraFieldExtendedTimestampFlag,
+			rawExtraFieldZip64,
+			localExtraFieldZip64Length,
 			rawExtraFieldExtendedTimestamp,
 			rawExtraFieldNTFS,
 			rawExtraFieldAES,
@@ -9153,7 +9305,6 @@
 	function setEntryInfo(entryInfo, options) {
 		const {
 			signature,
-			rawExtraFieldZip64,
 			compressedSize,
 			uncompressedSize,
 			headerInfo,
@@ -9169,8 +9320,6 @@
 		} = dataDescriptorInfo;
 		const {
 			zip64,
-			zip64UncompressedSize,
-			zip64CompressedSize,
 			zipCrypto,
 			dataDescriptor
 		} = options;
@@ -9181,19 +9330,6 @@
 			}
 		}
 		if (zip64) {
-			const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
-			setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
-			setUint16(rawExtraFieldZip64View, 2, getLength(rawExtraFieldZip64) - 4);
-			let rawExtraFieldZip64Offset = 4;
-			if (zip64UncompressedSize) {
-				setUint32(headerView, 18, MAX_32_BITS);
-				setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(uncompressedSize));
-				rawExtraFieldZip64Offset += 8;
-			}
-			if (zip64CompressedSize) {
-				setUint32(headerView, 14, MAX_32_BITS);
-				setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(compressedSize));
-			}
 			if (dataDescriptor) {
 				setBigUint64(dataDescriptorView, dataDescriptorOffset + 4, BigInt(compressedSize));
 				setBigUint64(dataDescriptorView, dataDescriptorOffset + 12, BigInt(uncompressedSize));
@@ -9208,44 +9344,82 @@
 		}
 	}
 
-	async function writeExtraHeaderInfo(fileEntry, entryData, writable, { zipCrypto }) {
+	async function patchLocalHeader(fileEntry, entryData, writable, { zipCrypto, dataDescriptor }) {
+		const {
+			zip64,
+			rawFilename,
+			localExtraFieldZip64Length,
+			signature,
+			encrypted,
+			zip64UncompressedSize,
+			zip64CompressedSize,
+			zip64Offset,
+			zip64DiskNumberStart,
+			uncompressedSize,
+			compressedSize,
+			offset,
+			diskNumberStart
+		} = fileEntry;
 		let arrayBuffer;
-		arrayBuffer = await entryData.slice(0, 26).arrayBuffer();
-		if (arrayBuffer.byteLength != 26) {
-			arrayBuffer = arrayBuffer.slice(0, 26);
+		let rawExtraFieldZip64Offset = HEADER_SIZE + 4 + getLength(rawFilename);
+		const arrayBufferSize = zip64 && localExtraFieldZip64Length ? rawExtraFieldZip64Offset + localExtraFieldZip64Length : HEADER_SIZE;
+		arrayBuffer = await entryData.slice(0, arrayBufferSize).arrayBuffer();
+		if (arrayBuffer.byteLength != arrayBufferSize) {
+			arrayBuffer = arrayBuffer.slice(0, arrayBufferSize);
 		}
 		const arrayBufferView = new DataView(arrayBuffer);
-		if (!fileEntry.encrypted || zipCrypto) {
-			setUint32(arrayBufferView, 14, fileEntry.signature);
+		if (!dataDescriptor) {
+			if (!encrypted || zipCrypto) {
+				setUint32(arrayBufferView, 14, signature);
+			}
+			if (!zip64) {
+				setUint32(arrayBufferView, 18, compressedSize);
+				setUint32(arrayBufferView, 22, uncompressedSize);
+			}
 		}
-		if (fileEntry.zip64) {
+		if (zip64) {
 			setUint32(arrayBufferView, 18, MAX_32_BITS);
 			setUint32(arrayBufferView, 22, MAX_32_BITS);
-		} else {
-			setUint32(arrayBufferView, 18, fileEntry.compressedSize);
-			setUint32(arrayBufferView, 22, fileEntry.uncompressedSize);
+			if (localExtraFieldZip64Length) {
+				rawExtraFieldZip64Offset += 4;
+				if (zip64UncompressedSize) {
+					setBigUint64(arrayBufferView, rawExtraFieldZip64Offset, BigInt(uncompressedSize));
+					rawExtraFieldZip64Offset += 8;
+				}
+				if (zip64CompressedSize) {
+					setBigUint64(arrayBufferView, rawExtraFieldZip64Offset, BigInt(compressedSize));
+					rawExtraFieldZip64Offset += 8;
+				}
+				if (zip64Offset) {
+					setBigUint64(arrayBufferView, rawExtraFieldZip64Offset, BigInt(offset));
+					rawExtraFieldZip64Offset += 8;
+				}
+				if (zip64DiskNumberStart) {
+					setUint32(arrayBufferView, rawExtraFieldZip64Offset, diskNumberStart);
+				}
+			}
 		}
 		await writeData(writable, new Uint8Array(arrayBuffer));
 		return entryData.slice(arrayBuffer.byteLength);
 	}
 
-	function setZip64ExtraInfo(fileEntry, options) {
-		const { rawExtraFieldZip64, offset, diskNumberStart } = fileEntry;
-		const { zip64UncompressedSize, zip64CompressedSize, zip64Offset, zip64DiskNumberStart } = options;
-		const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
+	function setExtraFieldZip64Data(fileEntry) {
+		const rawExtraFieldZip64View = getDataView(fileEntry.rawExtraFieldZip64);
 		let rawExtraFieldZip64Offset = 4;
-		if (zip64UncompressedSize) {
+		if (fileEntry.zip64UncompressedSize) {
+			setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(fileEntry.uncompressedSize));
 			rawExtraFieldZip64Offset += 8;
 		}
-		if (zip64CompressedSize) {
+		if (fileEntry.zip64CompressedSize) {
+			setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(fileEntry.compressedSize));
 			rawExtraFieldZip64Offset += 8;
 		}
-		if (zip64Offset) {
-			setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(offset));
+		if (fileEntry.zip64Offset) {
+			setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(fileEntry.offset));
 			rawExtraFieldZip64Offset += 8;
 		}
-		if (zip64DiskNumberStart) {
-			setUint32(rawExtraFieldZip64View, rawExtraFieldZip64Offset, diskNumberStart);
+		if (fileEntry.zip64DiskNumberStart) {
+			setUint32(rawExtraFieldZip64View, rawExtraFieldZip64Offset, fileEntry.diskNumberStart);
 		}
 	}
 
@@ -9280,7 +9454,7 @@
 			} else {
 				rawExtraFieldTimestamp = new Uint8Array();
 			}
-			fileEntry.rawExtraFieldCDExtendedTimestamp = rawExtraFieldTimestamp;
+			fileEntry.rawExtraFieldExtendedTimestamp = rawExtraFieldTimestamp;
 			directoryDataLength += 46 +
 				getLength(
 					rawFilename,
@@ -9301,12 +9475,13 @@
 				rawFilename,
 				rawExtraFieldZip64,
 				rawExtraFieldAES,
-				rawExtraFieldCDExtendedTimestamp,
+				rawExtraFieldExtendedTimestamp,
 				rawExtraFieldNTFS,
 				rawExtraField,
 				rawComment,
 				versionMadeBy,
 				headerArray,
+				headerView,
 				zip64,
 				zip64UncompressedSize,
 				zip64CompressedSize,
@@ -9318,10 +9493,9 @@
 				uncompressedSize,
 				compressedSize
 			} = fileEntry;
-			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldCDExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
+			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
 			setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 			setUint16(directoryView, offset + 4, versionMadeBy);
-			const headerView = getDataView(headerArray);
 			if (!zip64UncompressedSize) {
 				setUint32(headerView, 18, uncompressedSize);
 			}
@@ -9329,28 +9503,40 @@
 				setUint32(headerView, 14, compressedSize);
 			}
 			arraySet(directoryArray, headerArray, offset + 6);
-			setUint16(directoryView, offset + 30, extraFieldLength);
-			setUint16(directoryView, offset + 32, getLength(rawComment));
-			setUint16(directoryView, offset + 34, zip64 && zip64DiskNumberStart ? MAX_16_BITS : diskNumberStart);
-			setUint16(directoryView, offset + 36, internalFileAttributes);
+			let directoryOffset = offset + HEADER_SIZE + 4;
+			setUint16(directoryView, directoryOffset, extraFieldLength);
+			directoryOffset += 2;
+			setUint16(directoryView, directoryOffset, getLength(rawComment));
+			directoryOffset += 2;
+			setUint16(directoryView, directoryOffset, zip64 && zip64DiskNumberStart ? MAX_16_BITS : diskNumberStart);
+			directoryOffset += 2;
+			setUint16(directoryView, directoryOffset, internalFileAttributes);
+			directoryOffset += 2;
 			if (externalFileAttributes) {
-				setUint32(directoryView, offset + 38, externalFileAttributes);
+				setUint32(directoryView, directoryOffset, externalFileAttributes);
 			}
-			setUint32(directoryView, offset + 42, zip64 && zip64Offset ? MAX_32_BITS : fileEntryOffset);
-			arraySet(directoryArray, rawFilename, offset + 46);
-			arraySet(directoryArray, rawExtraFieldZip64, offset + 46 + getLength(rawFilename));
-			arraySet(directoryArray, rawExtraFieldAES, offset + 46 + getLength(rawFilename, rawExtraFieldZip64));
-			arraySet(directoryArray, rawExtraFieldCDExtendedTimestamp, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES));
-			arraySet(directoryArray, rawExtraFieldNTFS, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldCDExtendedTimestamp));
-			arraySet(directoryArray, rawExtraField, offset + 46 + getLength(rawFilename, rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldCDExtendedTimestamp, rawExtraFieldNTFS));
-			arraySet(directoryArray, rawComment, offset + 46 + getLength(rawFilename) + extraFieldLength);
-			const directoryEntryLength = 46 + getLength(rawFilename, rawComment) + extraFieldLength;
+			directoryOffset += 4;
+			setUint32(directoryView, directoryOffset, zip64 && zip64Offset ? MAX_32_BITS : fileEntryOffset);
+			directoryOffset += 4;
+			arraySet(directoryArray, rawFilename, directoryOffset);
+			directoryOffset += getLength(rawFilename);
+			arraySet(directoryArray, rawExtraFieldZip64, directoryOffset);
+			directoryOffset += getLength(rawExtraFieldZip64);
+			arraySet(directoryArray, rawExtraFieldAES, directoryOffset);
+			directoryOffset += getLength(rawExtraFieldAES);
+			arraySet(directoryArray, rawExtraFieldExtendedTimestamp, directoryOffset);
+			directoryOffset += getLength(rawExtraFieldExtendedTimestamp);
+			arraySet(directoryArray, rawExtraFieldNTFS, directoryOffset);
+			directoryOffset += getLength(rawExtraFieldNTFS);
+			arraySet(directoryArray, rawExtraField, directoryOffset);
+			directoryOffset += getLength(rawExtraField);
+			arraySet(directoryArray, rawComment, directoryOffset);
 			if (offset - directoryDiskOffset > writer.availableSize) {
 				writer.availableSize = 0;
 				await writeData(writable, directoryArray.slice(directoryDiskOffset, offset));
 				directoryDiskOffset = offset;
 			}
-			offset += directoryEntryLength;
+			offset = directoryOffset;
 			if (options.onprogress) {
 				try {
 					await options.onprogress(indexFileEntry + 1, files.size, new Entry(fileEntry));
@@ -9478,6 +9664,67 @@
 		return result;
 	}
 
+	function getHeaderArrayData({
+		version,
+		bitflag,
+		compressionMethod,
+		uncompressedSize,
+		compressedSize,
+		lastModDate,
+		rawFilename,
+		zip64CompressedSize,
+		zip64UncompressedSize,
+		extraFieldLength
+	}) {
+		const headerArray = new Uint8Array(HEADER_SIZE);
+		const headerView = getDataView(headerArray);
+		setUint16(headerView, 0, version);
+		setUint16(headerView, 2, bitflag);
+		setUint16(headerView, 4, compressionMethod);
+		const dateArray = new Uint32Array(1);
+		const dateView = getDataView(dateArray);
+		setUint16(dateView, 0, (((lastModDate.getHours() << 6) | lastModDate.getMinutes()) << 5) | lastModDate.getSeconds() / 2);
+		setUint16(dateView, 2, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
+		const rawLastModDate = dateArray[0];
+		setUint32(headerView, 6, rawLastModDate);
+		if (zip64CompressedSize || compressedSize !== UNDEFINED_VALUE) {
+			setUint32(headerView, 14, zip64CompressedSize ? MAX_32_BITS : compressedSize);
+		}
+		if (zip64UncompressedSize || uncompressedSize !== UNDEFINED_VALUE) {
+			setUint32(headerView, 18, zip64UncompressedSize ? MAX_32_BITS : uncompressedSize);
+		}
+		setUint16(headerView, 22, getLength(rawFilename));
+		setUint16(headerView, 24, extraFieldLength);
+		return {
+			headerArray,
+			headerView,
+			rawLastModDate
+		};
+	}
+
+	function getBitflag(level, useUnicodeFileNames, dataDescriptor, encrypted) {
+		let bitFlag = 0;
+		if (useUnicodeFileNames) {
+			bitFlag = bitFlag | BITFLAG_LANG_ENCODING_FLAG;
+		}
+		if (dataDescriptor) {
+			bitFlag = bitFlag | BITFLAG_DATA_DESCRIPTOR;
+		}
+		if (level >= 1 && level < 3) {
+			bitFlag = bitFlag | 0b110;
+		}
+		if (level >= 3 && level < 5) {
+			bitFlag = bitFlag | 0b01;
+		}
+		if (level === 9) {
+			bitFlag = bitFlag | 0b10;
+		}
+		if (encrypted) {
+			bitFlag = bitFlag | BITFLAG_ENCRYPTED;
+		}
+		return bitFlag;
+	}
+
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
@@ -9546,6 +9793,7 @@
 	exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
 	exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
 	exports.ERR_WRITER_NOT_INITIALIZED = ERR_WRITER_NOT_INITIALIZED;
+	exports.ERR_ZIP_NOT_EMPTY = ERR_ZIP_NOT_EMPTY;
 	exports.HttpRangeReader = HttpRangeReader;
 	exports.HttpReader = HttpReader;
 	exports.Reader = Reader;

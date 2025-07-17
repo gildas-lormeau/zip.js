@@ -8,6 +8,6 @@
 
 > `const` **ERR\_SPLIT\_ZIP\_FILE**: `string`
 
-Defined in: [index.d.ts:2279](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L2279)
+Defined in: [index.d.ts:2314](https://github.com/gildas-lormeau/zip.js/blob/0ff014cd43c06ee35ed26f2c2f89837d8f86c870/index.d.ts#L2314)
 
 Split zip file error

@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_COMMENT**: `string`
 
-Defined in: [index.d.ts:2247](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L2247)
+Defined in: [index.d.ts:2282](https://github.com/gildas-lormeau/zip.js/blob/0ff014cd43c06ee35ed26f2c2f89837d8f86c870/index.d.ts#L2282)
 
 Invalid comment error

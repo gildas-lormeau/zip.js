@@ -6,7 +6,7 @@
 
 # Class: SyncCodec
 
-Defined in: [index.d.ts:396](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L396)
+Defined in: [index.d.ts:396](https://github.com/gildas-lormeau/zip.js/blob/0ff014cd43c06ee35ed26f2c2f89837d8f86c870/index.d.ts#L396)
 
 ## Extended by
 
@@ -29,7 +29,7 @@ Defined in: [index.d.ts:396](https://github.com/gildas-lormeau/zip.js/blob/f3a32
 
 > **append**(`data`): `Uint8Array`
 
-Defined in: [index.d.ts:403](https://github.com/gildas-lormeau/zip.js/blob/f3a32a7ff6dfd704bbdd861b62eec086ef8a7c94/index.d.ts#L403)
+Defined in: [index.d.ts:403](https://github.com/gildas-lormeau/zip.js/blob/0ff014cd43c06ee35ed26f2c2f89837d8f86c870/index.d.ts#L403)
 
 Appends a chunk of decompressed data to compress
 
