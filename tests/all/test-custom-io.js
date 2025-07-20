@@ -17,10 +17,16 @@ class BinaryStringReader extends zip.Reader {
 
 	readUint8Array(offset, length) {
 		const result = new Uint8Array(length);
-		for (let indexCharacter = 0; indexCharacter < length; indexCharacter++) {
+		let effectiveLength = 0;
+		for (let indexCharacter = 0; indexCharacter < length && indexCharacter + offset < this.binaryString.length; indexCharacter++) {
 			result[indexCharacter] = this.binaryString.charCodeAt(indexCharacter + offset) & 0xFF;
+			effectiveLength++;
 		}
-		return result;
+		if (effectiveLength < length) {
+			return result.slice(0, effectiveLength);
+		} else {
+			return result;
+		}
 	}
 }
 
