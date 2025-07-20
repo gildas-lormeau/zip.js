@@ -52,15 +52,15 @@ function flushArrayBuffers(blobWriter) {
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new CustomBlobWriter("application/zip");
-	blobWriter.writable.size = 0;
+	blobWriter.size = 0;
 	let array = new Uint8Array(64 * 1024 * 1024);
 	for (let index = 0; index < 63; index++) {
 		blobWriter.writeUint8Array(array);
-		blobWriter.writable.size += array.length;
+		blobWriter.size += array.length;
 	}
 	array = new Uint8Array((64 * 1024 * 1024) - 1265);
 	blobWriter.writeUint8Array(array);
-	blobWriter.writable.size += array.length;
+	blobWriter.size += array.length;
 	const zipWriter = new zip.ZipWriter(blobWriter, { keepOrder: true });
 	await Promise.all([
 		zipWriter.add(FILENAME, new zip.BlobReader(BLOB)),

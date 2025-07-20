@@ -513,7 +513,7 @@ export class Reader<Type> implements Initializable, ReadableReader {
    *
    * @param index The byte index of the data to read.
    * @param length The length of the data to read in bytes.
-   * @returns A promise resolving to a chunk of data.
+   * @returns A promise resolving to a chunk of data. The data must be trucated to the remaining size if the requested length is larger than the remaining size.
    */
   readUint8Array(index: number, length: number): Promise<Uint8Array>;
 }
@@ -1570,7 +1570,7 @@ export interface ZipWriterConstructorOptions {
   /**
    * `true` to add a data descriptor.
    *
-   * When set to `false`, the {@link ZipWriterConstructorOptions#bufferedWrite} option  will automatically be 
+   * When set to `false`, the {@link ZipWriterConstructorOptions#bufferedWrite} option  will automatically be
    * set to `true`. It will be automatically set to `false` when it is `undefined` and the
    * {@link ZipWriterConstructorOptions#bufferedWrite} option is set to `true`, or ` when the
    * {@link ZipWriterConstructorOptions#zipCrypto} option is set to `true`. Otherwise, the default value is `true`.

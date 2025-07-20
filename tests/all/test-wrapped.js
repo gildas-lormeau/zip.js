@@ -55,7 +55,7 @@ async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new CustomBlobWriter("application/zip");
 	blobWriter.writeUint8Array(PREPENDED_DATA);
-	blobWriter.writable.size = PREPENDED_DATA.length;
+	blobWriter.size = PREPENDED_DATA.length;
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	await zipWriter.close(COMMENT);
