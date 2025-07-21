@@ -1475,7 +1475,7 @@ export interface ZipWriterConstructorOptions {
    *
    * The minimum value is 0 and means that no compression is applied. The maximum value is 9.
    *
-   * @defaultValue 5
+   * @defaultValue 6
    */
   level?: number;
   /**
