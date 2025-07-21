@@ -8471,7 +8471,7 @@
 					headerView
 				} = getHeaderArrayData({
 					version,
-					bitflag: getBitflag(level, languageEncodingFlag, dataDescriptor, encrypted),
+					bitFlag: getBitFlag(level, languageEncodingFlag, dataDescriptor, encrypted),
 					compressionMethod,
 					uncompressedSize,
 					compressedSize,
@@ -9257,7 +9257,7 @@
 			rawLastModDate
 		} = getHeaderArrayData({
 			version,
-			bitflag: getBitflag(level, useUnicodeFileNames, dataDescriptor, encrypted),
+			bitFlag: getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted),
 			compressionMethod,
 			uncompressedSize,
 			lastModDate: lastModDate < MIN_DATE ? MIN_DATE : lastModDate > MAX_DATE ? MAX_DATE : lastModDate,
@@ -9709,7 +9709,7 @@
 
 	function getHeaderArrayData({
 		version,
-		bitflag,
+		bitFlag,
 		compressionMethod,
 		uncompressedSize,
 		compressedSize,
@@ -9722,7 +9722,7 @@
 		const headerArray = new Uint8Array(HEADER_SIZE);
 		const headerView = getDataView(headerArray);
 		setUint16(headerView, 0, version);
-		setUint16(headerView, 2, bitflag);
+		setUint16(headerView, 2, bitFlag);
 		setUint16(headerView, 4, compressionMethod);
 		const dateArray = new Uint32Array(1);
 		const dateView = getDataView(dateArray);
@@ -9746,7 +9746,7 @@
 	}
 
 
-	function getBitflag(level, useUnicodeFileNames, dataDescriptor, encrypted) {
+	function getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted) {
 		let bitFlag = 0;
 		if (useUnicodeFileNames) {
 			bitFlag = bitFlag | BITFLAG_LANG_ENCODING_FLAG;
@@ -9754,10 +9754,10 @@
 		if (dataDescriptor) {
 			bitFlag = bitFlag | BITFLAG_DATA_DESCRIPTOR;
 		}
-		if (level >= 0 && level < 2) {
+		if (level > 0 && level <= 3) {
 			bitFlag = bitFlag | BITFLAG_LEVEL_SUPER_FAST_MASK;
 		}
-		if (level >= 3 && level < 6) {
+		if (level > 3 && level <= 5) {
 			bitFlag = bitFlag | BITFLAG_LEVEL_FAST_MASK;
 		}
 		if (level == 9) {
