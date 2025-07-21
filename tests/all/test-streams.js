@@ -10,8 +10,8 @@ export { test };
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const zipStream = new TransformStream();
-	const zipWriter = new zip.ZipWriter(zipStream.writable);
-	const zipReader = new zip.ZipReader(zipStream.readable);
+	const zipWriter = new zip.ZipWriter(zipStream);
+	const zipReader = new zip.ZipReader(zipStream);
 	const [entries] = await Promise.all([
 		zipReader.getEntries(),
 		zipWriter.add(FILENAME, new Blob([TEXT_CONTENT]).stream()),
@@ -21,7 +21,7 @@ async function test() {
 	const entryStream = new TransformStream();
 	const [entryText] = await Promise.all([
 		new Response(entryStream.readable).text(),
-		firstEntry.getData(entryStream.writable),
+		firstEntry.getData(entryStream),
 		zipReader.close()
 	]);
 	await zip.terminateWorkers();
