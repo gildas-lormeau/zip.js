@@ -6,7 +6,7 @@
 
 # Class: ~~SplitZipWriter~~
 
-Defined in: [index.d.ts:754](https://github.com/gildas-lormeau/zip.js/blob/0ff014cd43c06ee35ed26f2c2f89837d8f86c870/index.d.ts#L754)
+Defined in: [index.d.ts:754](https://github.com/gildas-lormeau/zip.js/blob/71d0cfc32ac4da8ab21f65731cd6bc5601268bd6/index.d.ts#L754)
 
 Represents a [Writer](Writer.md) instance used to retrieve the written data from a generator of [WritableWriter](../interfaces/WritableWriter.md) instances  (i.e. split zip files).
 
@@ -24,7 +24,7 @@ Use [SplitDataWriter](SplitDataWriter.md) instead.
 
 > **new SplitZipWriter**(`writerGenerator`, `maxSize?`): `SplitZipWriter`
 
-Defined in: [index.d.ts:774](https://github.com/gildas-lormeau/zip.js/blob/0ff014cd43c06ee35ed26f2c2f89837d8f86c870/index.d.ts#L774)
+Defined in: [index.d.ts:774](https://github.com/gildas-lormeau/zip.js/blob/71d0cfc32ac4da8ab21f65731cd6bc5601268bd6/index.d.ts#L774)
 
 Creates the [SplitDataWriter](SplitDataWriter.md) instance
 
@@ -56,7 +56,7 @@ The maximum size of the data written into [Writer](Writer.md) instances (default
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:763](https://github.com/gildas-lormeau/zip.js/blob/0ff014cd43c06ee35ed26f2c2f89837d8f86c870/index.d.ts#L763)
+Defined in: [index.d.ts:763](https://github.com/gildas-lormeau/zip.js/blob/71d0cfc32ac4da8ab21f65731cd6bc5601268bd6/index.d.ts#L763)
 
 The `WritableStream` instance.
 
@@ -70,7 +70,7 @@ The `WritableStream` instance.
 
 > **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:767](https://github.com/gildas-lormeau/zip.js/blob/0ff014cd43c06ee35ed26f2c2f89837d8f86c870/index.d.ts#L767)
+Defined in: [index.d.ts:767](https://github.com/gildas-lormeau/zip.js/blob/71d0cfc32ac4da8ab21f65731cd6bc5601268bd6/index.d.ts#L767)
 
 Initializes the instance asynchronously
 

@@ -8,6 +8,6 @@
 
 > `const` **ERR\_EXTRAFIELD\_ZIP64\_NOT\_FOUND**: `string`
 
-Defined in: [index.d.ts:2254](https://github.com/gildas-lormeau/zip.js/blob/0ff014cd43c06ee35ed26f2c2f89837d8f86c870/index.d.ts#L2254)
+Defined in: [index.d.ts:2268](https://github.com/gildas-lormeau/zip.js/blob/71d0cfc32ac4da8ab21f65731cd6bc5601268bd6/index.d.ts#L2268)
 
 Extra field Zip64 not found error
