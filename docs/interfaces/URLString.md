@@ -6,7 +6,7 @@
 
 # Interface: URLString
 
-Defined in: [index.d.ts:558](https://github.com/gildas-lormeau/zip.js/blob/71d0cfc32ac4da8ab21f65731cd6bc5601268bd6/index.d.ts#L558)
+Defined in: [index.d.ts:558](https://github.com/gildas-lormeau/zip.js/blob/340c4ca9a2c0e59b25fae280b9b6013b4115e27c/index.d.ts#L558)
 
 Represents a URL stored into a `string`.
 
