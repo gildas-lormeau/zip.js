@@ -1829,14 +1829,14 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    * @param options The options.
    * @returns A promise resolving to data associated to the {@link Writer} instance.
    */
-  getData(
+  getData<Type>(
     writer:
       | Writer<unknown>
       | WritableWriter
       | WritableStream
       | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream>,
     options?: EntryGetDataOptions
-  ): Promise<unknown>;
+  ): Promise<Type>;
   /**
    * Replaces the content of the entry with a `Blob` instance
    *
