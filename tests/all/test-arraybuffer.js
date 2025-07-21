@@ -20,7 +20,7 @@ async function test() {
 	const text = new TextDecoder().decode(data);
 	await zipReader.close();
 	await zip.terminateWorkers();
-	if (TEXT_CONTENT != (await text)) {
+	if (TEXT_CONTENT != text) {
 		throw new Error();
 	}
 }
