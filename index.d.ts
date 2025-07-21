@@ -1169,6 +1169,13 @@ export interface FileEntry extends Omit<EntryMetaData, "directory"> {
         >,
     options?: EntryGetDataCheckPasswordOptions
   ): Promise<Type>;
+  /**
+   * Retrieves the content of the entry as an `ArrayBuffer` instance
+   *
+   * @param options The options.
+   * @returns A promise resolving to an `ArrayBuffer` instance.
+   */
+  arrayBuffer(options?: EntryGetDataOptions): Promise<ArrayBuffer>;
 }
 
 /**
@@ -1837,6 +1844,13 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
       | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream>,
     options?: EntryGetDataOptions
   ): Promise<Type>;
+  /**
+   * Retrieves the content of the entry as an `ArrayBuffer` instance
+   *
+   * @param options The options.
+   * @returns A promise resolving to an `ArrayBuffer` instance.
+   */
+  getArrayBuffer(options?: EntryGetDataOptions): Promise<ArrayBuffer>;
   /**
    * Replaces the content of the entry with a `Blob` instance
    *
