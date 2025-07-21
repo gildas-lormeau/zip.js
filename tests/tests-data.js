@@ -3,6 +3,7 @@ export default ([
 	{ title: "Abort signal (write)", script: "./test-abort-signal-write.js" },
 	{ title: "Append to zip", script: "./test-append-to-zip.js" },
 	{ title: "Uint8Array", script: "./test-array.js" },
+	{ title: "Arraybuffer", script: "./test-arrayBuffer.js" },
 	{ title: "Base 64", script: "./test-base64.js" },
 	{ title: "Blob", script: "./test-blob.js" },
 	{ title: "Common JS", script: "./test-common-js.cjs", env: ["node"] },
