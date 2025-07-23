@@ -34,6 +34,8 @@ export default ([
 	{ title: "Filesystem unzip uncompressed file", script: "./test-fs-unzip-store.js" },
 	{ title: "Filesystem test", script: "./test-fs.js" },
 	{ title: "HTTP crypto", script: "./test-http-crypto.js", env: ["deno", "node", "browser"] },
+	{ title: "HTTP range", script: "./test-http-range.js", env: ["browser"] },
+	{ title: "HTTP range (get data)", script: "./test-http-range-get-data.js", env: ["browser"] },
 	{ title: "HTTP split file", script: "./test-http-split-zip.js" },
 	{ title: "HTTP zip64", script: "./test-http-zip64.js" },
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js" },
