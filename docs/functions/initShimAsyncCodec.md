@@ -8,7 +8,7 @@
 
 > **initShimAsyncCodec**(`library`, `constructorOptions`, `registerDataHandler`): [`ZipLibrary`](../interfaces/ZipLibrary.md)
 
-Defined in: [index.d.ts:314](https://github.com/gildas-lormeau/zip.js/blob/340c4ca9a2c0e59b25fae280b9b6013b4115e27c/index.d.ts#L314)
+Defined in: [index.d.ts:314](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L314)
 
 Transforms event-based third-party codec implementations into implementations compatible with zip.js
 

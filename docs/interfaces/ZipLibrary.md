@@ -6,7 +6,7 @@
 
 # Interface: ZipLibrary
 
-Defined in: [index.d.ts:381](https://github.com/gildas-lormeau/zip.js/blob/340c4ca9a2c0e59b25fae280b9b6013b4115e27c/index.d.ts#L381)
+Defined in: [index.d.ts:381](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L381)
 
 Represents the implementations zip.js uses to compress/decompress data.
 
@@ -16,7 +16,7 @@ Represents the implementations zip.js uses to compress/decompress data.
 
 > **Deflate**: *typeof* [`ZipDeflate`](../classes/ZipDeflate.md)
 
-Defined in: [index.d.ts:387](https://github.com/gildas-lormeau/zip.js/blob/340c4ca9a2c0e59b25fae280b9b6013b4115e27c/index.d.ts#L387)
+Defined in: [index.d.ts:387](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L387)
 
 The class used to compress data.
 
@@ -30,7 +30,7 @@ The class used to compress data.
 
 > **Inflate**: *typeof* [`ZipInflate`](../classes/ZipInflate.md)
 
-Defined in: [index.d.ts:393](https://github.com/gildas-lormeau/zip.js/blob/340c4ca9a2c0e59b25fae280b9b6013b4115e27c/index.d.ts#L393)
+Defined in: [index.d.ts:393](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L393)
 
 The class used to decompress data.
 

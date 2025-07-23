@@ -6,7 +6,7 @@
 
 # Interface: GetEntriesOptions
 
-Defined in: [index.d.ts:944](https://github.com/gildas-lormeau/zip.js/blob/340c4ca9a2c0e59b25fae280b9b6013b4115e27c/index.d.ts#L944)
+Defined in: [index.d.ts:944](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L944)
 
 Represents options passed to the constructor of [ZipReader](../classes/ZipReader.md), [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
@@ -21,7 +21,7 @@ Represents options passed to the constructor of [ZipReader](../classes/ZipReader
 
 > `optional` **commentEncoding**: `string`
 
-Defined in: [index.d.ts:952](https://github.com/gildas-lormeau/zip.js/blob/340c4ca9a2c0e59b25fae280b9b6013b4115e27c/index.d.ts#L952)
+Defined in: [index.d.ts:952](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L952)
 
 The encoding of the comment of the entry.
 
@@ -31,7 +31,7 @@ The encoding of the comment of the entry.
 
 > `optional` **filenameEncoding**: `string`
 
-Defined in: [index.d.ts:948](https://github.com/gildas-lormeau/zip.js/blob/340c4ca9a2c0e59b25fae280b9b6013b4115e27c/index.d.ts#L948)
+Defined in: [index.d.ts:948](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L948)
 
 The encoding of the filename of the entry.
 
@@ -41,7 +41,7 @@ The encoding of the filename of the entry.
 
 > `optional` **decodeText**(`value`, `encoding`): `undefined` \| `string`
 
-Defined in: [index.d.ts:960](https://github.com/gildas-lormeau/zip.js/blob/340c4ca9a2c0e59b25fae280b9b6013b4115e27c/index.d.ts#L960)
+Defined in: [index.d.ts:960](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L960)
 
 The function called for decoding the filename and the comment of the entry.
 
