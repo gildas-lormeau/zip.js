@@ -7120,11 +7120,18 @@
 			if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
 				return eocdCache;
 			}
-			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
-			if (response.status != 206) {
-				throw new Error(ERR_HTTP_RANGE);
+			if (index >= size) {
+				return new Uint8Array();
+			} else {
+				if (index + length > size) {
+					length = size - index;
+				}
+				const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
+				if (response.status != 206) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+				return new Uint8Array(await response.arrayBuffer());
 			}
-			return new Uint8Array(await response.arrayBuffer());
 		} else {
 			const { data } = httpReader;
 			if (!data) {
