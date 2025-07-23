@@ -4253,6 +4253,7 @@
 	const MAX_32_BITS = 0xffffffff;
 	const MAX_16_BITS = 0xffff;
 	const COMPRESSION_METHOD_DEFLATE = 0x08;
+	const COMPRESSION_METHOD_DEFLATE_64 = 0x09;
 	const COMPRESSION_METHOD_STORE = 0x00;
 	const COMPRESSION_METHOD_AES = 0x63;
 
@@ -10043,27 +10044,11 @@
 			if (this.filenames.size) {
 				throw new Error(ERR_ZIP_NOT_EMPTY);
 			}
-			({ reader } = new GenericReader(reader));
-			const [zipEntriesReader, zipDataReader] = reader.readable.tee();
-			const zipReader = new ZipReader(new ReadableStream({
-				async start(controller) {
-					const reader = zipEntriesReader.getReader();
-					await readChunk();
-
-					async function readChunk() {
-						const { done, value } = await reader.read();
-						if (done) {
-							controller.close();
-						} else {
-							controller.enqueue(value);
-							await readChunk();
-						}
-					}
-				}
-			}));
+			reader = new GenericReader(reader);
+			const zipReader = new ZipReader(reader.readable);
 			const entries = await zipReader.getEntries();
 			await zipReader.close();
-			await zipDataReader.pipeTo(this.writer.writable, { preventClose: true, preventAbort: true });
+			await reader.readable.pipeTo(this.writer.writable, { preventClose: true, preventAbort: true });
 			this.writer.size = this.offset = reader.size;
 			this.filenames = new Set(entries.map(entry => entry.filename));
 			this.files = new Map(entries.map(entry => {
@@ -10103,7 +10088,7 @@
 					headerView
 				} = getHeaderArrayData({
 					version,
-					bitFlag: getBitFlag(level, languageEncodingFlag, dataDescriptor, encrypted),
+					bitFlag: getBitFlag(level, languageEncodingFlag, dataDescriptor, encrypted, compressionMethod),
 					compressionMethod,
 					uncompressedSize,
 					compressedSize,
@@ -10889,7 +10874,7 @@
 			rawLastModDate
 		} = getHeaderArrayData({
 			version,
-			bitFlag: getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted),
+			bitFlag: getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted, compressionMethod),
 			compressionMethod,
 			uncompressedSize,
 			lastModDate: lastModDate < MIN_DATE ? MIN_DATE : lastModDate > MAX_DATE ? MAX_DATE : lastModDate,
@@ -11377,8 +11362,7 @@
 		};
 	}
 
-
-	function getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted) {
+	function getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted, compressionMethod) {
 		let bitFlag = 0;
 		if (useUnicodeFileNames) {
 			bitFlag = bitFlag | BITFLAG_LANG_ENCODING_FLAG;
@@ -11386,14 +11370,16 @@
 		if (dataDescriptor) {
 			bitFlag = bitFlag | BITFLAG_DATA_DESCRIPTOR;
 		}
-		if (level > 0 && level <= 3) {
-			bitFlag = bitFlag | BITFLAG_LEVEL_SUPER_FAST_MASK;
-		}
-		if (level > 3 && level <= 5) {
-			bitFlag = bitFlag | BITFLAG_LEVEL_FAST_MASK;
-		}
-		if (level == 9) {
-			bitFlag = bitFlag | BITFLAG_LEVEL_MAX_MASK;
+		if (compressionMethod == COMPRESSION_METHOD_DEFLATE || compressionMethod == COMPRESSION_METHOD_DEFLATE_64) {
+			if (level >= 0 && level <= 3) {
+				bitFlag = bitFlag | BITFLAG_LEVEL_SUPER_FAST_MASK;
+			}
+			if (level > 3 && level <= 5) {
+				bitFlag = bitFlag | BITFLAG_LEVEL_FAST_MASK;
+			}
+			if (level == 9) {
+				bitFlag = bitFlag | BITFLAG_LEVEL_MAX_MASK;
+			}
 		}
 		if (encrypted) {
 			bitFlag = bitFlag | BITFLAG_ENCRYPTED;
