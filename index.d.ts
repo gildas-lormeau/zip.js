@@ -575,7 +575,9 @@ export class HttpReader extends Reader<URLString> {
  */
 export class HttpRangeReader extends HttpReader {
   /**
-   * Creates the {@link HttpRangeReader} instance
+   * Creates the {@link HttpRangeReader} instance.  It is particularly useful for reading ZIP files via HTTP.
+   * If you just want to add content retrieved via HTTP to a ZIP file, you can simply use
+   * `Response#body` {@link https://developer.mozilla.org/en-US/docs/Web/API/Response/body} instead.
    *
    * @param url The URL of the data.
    * @param options The options.
