@@ -7120,11 +7120,18 @@
 			if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
 				return eocdCache;
 			}
-			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
-			if (response.status != 206) {
-				throw new Error(ERR_HTTP_RANGE);
+			if (index >= size) {
+				return new Uint8Array();
+			} else {
+				if (index + length > size) {
+					length = size - index;
+				}
+				const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
+				if (response.status != 206) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+				return new Uint8Array(await response.arrayBuffer());
 			}
-			return new Uint8Array(await response.arrayBuffer());
 		} else {
 			const { data } = httpReader;
 			if (!data) {
@@ -8875,7 +8882,7 @@
 				if (zip64) {
 					updateZip64ExtraField(fileEntry);
 				}
-				updateLocalHeader(fileEntry, localHeaderView);
+				updateLocalHeader(fileEntry, localHeaderView, options);
 				await skipDiskIfNeeded(writable);
 				await writeData(writer, localHeaderArray);
 				await blob.stream().pipeTo(writable, { preventClose: true, preventAbort: true, signal });
@@ -9269,6 +9276,10 @@
 		arraySet(localHeaderArray, rawExtraFieldNTFS, localHeaderOffset);
 		localHeaderOffset += getLength(rawExtraFieldNTFS);
 		arraySet(localHeaderArray, rawExtraField, localHeaderOffset);
+		if (dataDescriptor) {
+			setUint32(localHeaderView, HEADER_OFFSET_COMPRESSED_SIZE + 4, 0);
+			setUint32(localHeaderView, HEADER_OFFSET_UNCOMPRESSED_SIZE + 4, 0);
+		}
 		return {
 			localHeaderArray,
 			localHeaderView,
@@ -9375,7 +9386,6 @@
 
 	function updateLocalHeader({
 		rawFilename,
-		dataDescriptor,
 		encrypted,
 		zip64,
 		localExtraFieldZip64Length,
@@ -9388,7 +9398,7 @@
 		zip64CompressedSize,
 		zip64Offset,
 		zip64DiskNumberStart
-	}, localHeaderView) {
+	}, localHeaderView, { dataDescriptor }) {
 		if (!dataDescriptor) {
 			if (!encrypted) {
 				setUint32(localHeaderView, HEADER_OFFSET_SIGNATURE + 4, signature);
