@@ -6,7 +6,7 @@
 
 # Class: EventBasedCodec
 
-Defined in: [index.d.ts:363](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L363)
+Defined in: [index.d.ts:363](https://github.com/gildas-lormeau/zip.js/blob/ac43341b8867abfc96920b30361a638957ffd437/index.d.ts#L363)
 
 Represents an event-based implementation of a third-party codec.
 
@@ -26,7 +26,7 @@ Represents an event-based implementation of a third-party codec.
 
 > **ondata**(`data?`): `void`
 
-Defined in: [index.d.ts:375](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L375)
+Defined in: [index.d.ts:375](https://github.com/gildas-lormeau/zip.js/blob/ac43341b8867abfc96920b30361a638957ffd437/index.d.ts#L375)
 
 The function called when a chunk of data has been compressed/decompressed.
 
@@ -48,7 +48,7 @@ The chunk of compressed/decompressed data.
 
 > **push**(`data`): `void`
 
-Defined in: [index.d.ts:369](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L369)
+Defined in: [index.d.ts:369](https://github.com/gildas-lormeau/zip.js/blob/ac43341b8867abfc96920b30361a638957ffd437/index.d.ts#L369)
 
 Appends a chunk of data to compress/decompress
 

@@ -6,7 +6,7 @@
 
 # Class: ZipInflate
 
-Defined in: [index.d.ts:421](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L421)
+Defined in: [index.d.ts:421](https://github.com/gildas-lormeau/zip.js/blob/ac43341b8867abfc96920b30361a638957ffd437/index.d.ts#L421)
 
 Represents a codec used to decompress data.
 
@@ -34,7 +34,7 @@ Represents a codec used to decompress data.
 
 > **append**(`data`): `Uint8Array`
 
-Defined in: [index.d.ts:403](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L403)
+Defined in: [index.d.ts:403](https://github.com/gildas-lormeau/zip.js/blob/ac43341b8867abfc96920b30361a638957ffd437/index.d.ts#L403)
 
 Appends a chunk of decompressed data to compress
 
@@ -62,7 +62,7 @@ A chunk of compressed data.
 
 > **flush**(): `void`
 
-Defined in: [index.d.ts:425](https://github.com/gildas-lormeau/zip.js/blob/cd8507443514e12617ac25921566eb3131bcdbff/index.d.ts#L425)
+Defined in: [index.d.ts:425](https://github.com/gildas-lormeau/zip.js/blob/ac43341b8867abfc96920b30361a638957ffd437/index.d.ts#L425)
 
 Flushes the data
 
