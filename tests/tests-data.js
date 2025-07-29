@@ -39,6 +39,7 @@ export default ([
 	{ title: "HTTP split file", script: "./test-http-split-zip.js" },
 	{ title: "HTTP zip64", script: "./test-http-zip64.js" },
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js" },
+	{ title: "Invalid uncompressed size", script: "./test-invalid-uncompressed-size.js" },
 	{ title: "Multiple writers", script: "./test-multiple-writers.js" },
 	{ title: "No worker", script: "./test-no-worker.js" },
 	{ title: "Pako", script: "./test-pako.js" },

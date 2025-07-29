@@ -2285,6 +2285,10 @@ export const ERR_UNSUPPORTED_COMPRESSION: string;
  */
 export const ERR_INVALID_SIGNATURE: string;
 /**
+ * Invalid uncompressed size error
+ */
+export const ERR_INVALID_UNCOMPRESSED_SIZE: string;
+/**
  * Invalid password error
  */
 export const ERR_INVALID_PASSWORD: string;
