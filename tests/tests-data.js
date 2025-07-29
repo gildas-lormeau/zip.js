@@ -13,6 +13,7 @@ export default ([
 	{ title: "Custom IO classes", script: "./test-custom-io.js" },
 	{ title: "Data descriptor signature", script: "./test-data-descriptor-signature.js" },
 	{ title: "Data descriptor", script: "./test-data-descriptor.js" },
+	{ title: "Data URI", script: "./test-data-uri.js" },
 	{ title: "Directory", script: "./test-directory.js" },
 	{ title: "Executable", script: "./test-executable.js" },
 	{ title: "Duplicated Filename", script: "./test-duplicated-filename.js" },
