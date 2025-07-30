@@ -979,6 +979,22 @@ export interface ZipReaderOptions {
    */
   checkSignature?: boolean;
   /**
+   * `true` to throw an error when calling {@link FileEntry#getData} if the entry overlaps with another entry on which
+   * {@link FileEntry#getData} has already been called (with the option `checkOverlappingEntry` or
+   * `checkOverlappingEntryOnly` set to `true`).
+   *
+   * @defaultValue false
+   */
+  checkOverlappingEntry?: boolean;
+  /**
+   * `true` to throw an error when calling {@link FileEntry#getData} if the entry overlaps with another entry on which
+   * {@link FileEntry#getData} has already been called (with the option `checkOverlappingEntry` or
+   * `checkOverlappingEntryOnly` set to `true`) without trying to read the content of the entry.
+   *
+   * @defaultValue false
+   */
+  checkOverlappingEntryOnly?: boolean;
+  /**
    * The password used to decrypt the content of the entry.
    */
   password?: string;
@@ -2332,6 +2348,10 @@ export const ERR_UNSUPPORTED_FORMAT: string;
  * Split zip file error
  */
 export const ERR_SPLIT_ZIP_FILE: string;
+/**
+ * Overlapping entry error
+ */
+export const ERR_OVERLAPPING_ENTRY: string;
 /**
  * Iteration completed too soon error
  */

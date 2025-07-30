@@ -43,6 +43,8 @@ export default ([
 	{ title: "Invalid uncompressed size", script: "./test-invalid-uncompressed-size.js" },
 	{ title: "Multiple writers", script: "./test-multiple-writers.js" },
 	{ title: "No worker", script: "./test-no-worker.js" },
+	{ title: "Overlapping entries only", script: "./test-overlapping-entries-only.js" },
+	{ title: "Overlapping entries", script: "./test-overlapping-entries.js" },
 	{ title: "Pako", script: "./test-pako.js" },
 	{ title: "Pako (no worker)", script: "./test-pako-no-worker.js", env: ["deno", "node", "browser"] },
 	{ title: "Parallel reads", script: "./test-parallel-reads.js" },
