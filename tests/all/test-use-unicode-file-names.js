@@ -31,7 +31,7 @@ async function assertLanguageEncodingFlagIs(expectedLanguageEncodingFlag, blobWr
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	const actual = entries[0].bitFlag.languageEncodingFlag;
-	if (actual === expectedLanguageEncodingFlag) {
+	if (actual == expectedLanguageEncodingFlag) {
 		const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
 		await zipReader.close();
 		await zip.terminateWorkers();

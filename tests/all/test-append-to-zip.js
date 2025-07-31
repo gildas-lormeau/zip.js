@@ -16,7 +16,7 @@ async function test() {
 	try {
 		await zipWriter.add("lorem.txt", new zip.BlobReader(BLOB));
 	} catch (error) {
-		if (error.message === zip.ERR_DUPLICATED_NAME) {
+		if (error.message == zip.ERR_DUPLICATED_NAME) {
 			await zipWriter.add("lorem2.txt", new zip.BlobReader(BLOB));
 			await zipWriter.close();
 			const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
