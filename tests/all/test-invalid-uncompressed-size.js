@@ -13,7 +13,7 @@ async function test() {
 		await entries[0].arrayBuffer();
 		throw new Error();
 	} catch (error) {
-		if (error.message !== zip.ERR_INVALID_UNCOMPRESSED_SIZE) {
+		if (error.message != zip.ERR_INVALID_UNCOMPRESSED_SIZE) {
 			throw error;
 		}
 		await zipReader.close();

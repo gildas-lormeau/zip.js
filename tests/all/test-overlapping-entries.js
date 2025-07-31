@@ -27,7 +27,7 @@ async function test() {
 		await entries[1].getData(new zip.TextWriter(), { checkOverlappingEntry: true });
 		throw new Error();
 	} catch (error) {
-		if (error.message !== zip.ERR_OVERLAPPING_ENTRY) {
+		if (error.message != zip.ERR_OVERLAPPING_ENTRY) {
 			throw error;
 		}
 	} finally {

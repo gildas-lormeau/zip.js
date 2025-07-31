@@ -15,7 +15,7 @@ async function test() {
 		}
 		throw new Error();
 	} catch (error) {
-		if (error.message !== zip.ERR_OVERLAPPING_ENTRY) {
+		if (error.message != zip.ERR_OVERLAPPING_ENTRY) {
 			throw error;
 		}
 	} finally {
