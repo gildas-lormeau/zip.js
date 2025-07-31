@@ -9229,8 +9229,8 @@
 	const PROPERTY_NAME_RAW_FILENAME = "rawFilename";
 	const PROPERTY_NAME_COMMENT = "comment";
 	const PROPERTY_NAME_RAW_COMMENT = "rawComment";
-	const PROPERTY_NAME_UNCOMPPRESSED_SIZE = "uncompressedSize";
-	const PROPERTY_NAME_COMPPRESSED_SIZE = "compressedSize";
+	const PROPERTY_NAME_UNCOMPRESSED_SIZE = "uncompressedSize";
+	const PROPERTY_NAME_COMPRESSED_SIZE = "compressedSize";
 	const PROPERTY_NAME_OFFSET = "offset";
 	const PROPERTY_NAME_DISK_NUMBER_START = "diskNumberStart";
 	const PROPERTY_NAME_LAST_MODIFICATION_DATE = "lastModDate";
@@ -9253,12 +9253,18 @@
 	const PROPERTY_NAME_EXECUTABLE = "executable";
 	const PROPERTY_NAME_COMPRESSION_METHOD = "compressionMethod";
 	const PROPERTY_NAME_SIGNATURE = "signature";
+	const PROPERTY_NAME_EXTRA_FIELD = "extraField";
 
 	const PROPERTY_NAMES = [
-		PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, PROPERTY_NAME_COMPPRESSED_SIZE, PROPERTY_NAME_UNCOMPPRESSED_SIZE,
+		PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, PROPERTY_NAME_COMPRESSED_SIZE, PROPERTY_NAME_UNCOMPRESSED_SIZE,
 		PROPERTY_NAME_LAST_MODIFICATION_DATE, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT,
 		PROPERTY_NAME_LAST_ACCESS_DATE, PROPERTY_NAME_CREATION_DATE, PROPERTY_NAME_OFFSET, PROPERTY_NAME_DISK_NUMBER_START,
-		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64, PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY, PROPERTY_NAME_ZIPCRYPTO, PROPERTY_NAME_DIRECTORY, PROPERTY_NAME_EXECUTABLE, PROPERTY_NAME_COMPRESSION_METHOD, PROPERTY_NAME_SIGNATURE, "bitFlag", "filenameUTF8", "commentUTF8", "extraField", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS", "extraFieldExtendedTimestamp"];
+		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES,
+		PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64,
+		PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY, PROPERTY_NAME_ZIPCRYPTO, PROPERTY_NAME_DIRECTORY,
+		PROPERTY_NAME_EXECUTABLE, PROPERTY_NAME_COMPRESSION_METHOD, PROPERTY_NAME_SIGNATURE, PROPERTY_NAME_EXTRA_FIELD,
+		"bitFlag", "filenameUTF8", "commentUTF8", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment",
+		"extraFieldAES", "extraFieldNTFS", "extraFieldExtendedTimestamp"];
 
 	class Entry {
 
@@ -9322,6 +9328,9 @@
 	const OPTION_USE_UNICODE_FILE_NAMES = "useUnicodeFileNames";
 	const OPTION_DATA_DESCRIPTOR = "dataDescriptor";
 	const OPTION_SUPPORT_ZIP64_SPLIT_FILE = "supportZip64SplitFile";
+	const OPTION_ENCODE_TEXT = "encodeText";
+	const OPTION_OFFSET = "offset";
+	const OPTION_USDZ = "usdz";
 
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
@@ -9366,8 +9375,8 @@
 	const CHARSET_UTF8 = "utf-8";
 	const CHARSET_CP437 = "cp437";
 	const ZIP64_PROPERTIES = [
-		[PROPERTY_NAME_UNCOMPPRESSED_SIZE, MAX_32_BITS],
-		[PROPERTY_NAME_COMPPRESSED_SIZE, MAX_32_BITS],
+		[PROPERTY_NAME_UNCOMPRESSED_SIZE, MAX_32_BITS],
+		[PROPERTY_NAME_COMPRESSED_SIZE, MAX_32_BITS],
 		[PROPERTY_NAME_OFFSET, MAX_32_BITS],
 		[PROPERTY_NAME_DISK_NUMBER_START, MAX_16_BITS]
 	];
@@ -10048,11 +10057,11 @@
 		}
 		const range = {
 			start: diskOffset + offset,
-			end: diskOffset + dataOffset + compressedSize + dataDescriptorLength - 1,
+			end: diskOffset + dataOffset + compressedSize + dataDescriptorLength,
 			fileEntry
 		};
-		for (const otherRange of readRanges.filter(otherRange => otherRange.fileEntry != fileEntry)) {
-			if (range.start >= otherRange.start && range.start <= otherRange.end) {
+		for (const otherRange of readRanges) {
+			if (otherRange.fileEntry != fileEntry && range.start >= otherRange.start && range.start < otherRange.end) {
 				const error = new Error(ERR_OVERLAPPING_ENTRY);
 				error.overlappingEntry = otherRange.fileEntry;
 				throw error;
@@ -10185,7 +10194,7 @@
 				config: getConfiguration(),
 				files: new Map(),
 				filenames: new Set(),
-				offset: options.offset === UNDEFINED_VALUE ? writer.size || writer.writable.size || 0 : options.offset,
+				offset: options[OPTION_OFFSET] === UNDEFINED_VALUE ? writer.size || writer.writable.size || 0 : options[OPTION_OFFSET],
 				pendingEntriesSize: 0,
 				pendingAddFileCalls: new Set(),
 				bufferedWrites: 0
@@ -10375,8 +10384,8 @@
 		if (externalFileAttributes === 0) {
 			externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, 0);
 		}
-		if (!options.directory && name.endsWith(DIRECTORY_SIGNATURE)) {
-			options.directory = true;
+		if (!options[PROPERTY_NAME_DIRECTORY] && name.endsWith(DIRECTORY_SIGNATURE)) {
+			options[PROPERTY_NAME_DIRECTORY] = true;
 		}
 		const directory = getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY);
 		if (directory) {
@@ -10396,7 +10405,7 @@
 				externalFileAttributes = FILE_ATTR_UNIX_DEFAULT_MASK << 16;
 			}
 		}
-		const encode = getOptionValue(zipWriter, options, "encodeText", encodeText);
+		const encode = getOptionValue(zipWriter, options, OPTION_ENCODE_TEXT, encodeText);
 		let rawFilename = encode(name);
 		if (rawFilename === UNDEFINED_VALUE) {
 			rawFilename = encodeText(name);
@@ -10404,7 +10413,7 @@
 		if (getLength(rawFilename) > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_ENTRY_NAME);
 		}
-		const comment = options.comment || "";
+		const comment = options[PROPERTY_NAME_COMMENT] || "";
 		let rawComment = encode(comment);
 		if (rawComment === UNDEFINED_VALUE) {
 			rawComment = encodeText(comment);
@@ -10453,7 +10462,7 @@
 			throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
 		}
 		let rawExtraField = new Uint8Array();
-		const { extraField } = options;
+		const extraField = options[PROPERTY_NAME_EXTRA_FIELD];
 		if (extraField) {
 			let extraFieldSize = 0;
 			let offset = 0;
@@ -10476,7 +10485,7 @@
 		let maximumEntrySize = 0;
 		let uncompressedSize = 0;
 		if (passThrough) {
-			({ uncompressedSize } = options);
+			uncompressedSize = options[PROPERTY_NAME_UNCOMPRESSED_SIZE];
 			if (uncompressedSize === UNDEFINED_VALUE) {
 				throw new Error(ERR_UNDEFINED_UNCOMPRESSED_SIZE);
 			}
@@ -10561,7 +10570,7 @@
 		const dataDescriptorInfo = getDataDescriptorInfo(options);
 		const metadataSize = getLength(headerInfo.localHeaderArray, dataDescriptorInfo.dataDescriptorArray);
 		maximumEntrySize = metadataSize + maximumCompressedSize;
-		if (zipWriter.options.usdz) {
+		if (zipWriter.options[OPTION_USDZ]) {
 			maximumEntrySize += maximumEntrySize + 64;
 		}
 		zipWriter.pendingEntriesSize += maximumEntrySize;
@@ -10588,7 +10597,7 @@
 		const {
 			headerInfo
 		} = entryInfo;
-		const { usdz } = zipWriter.options;
+		const usdz = zipWriter.options[OPTION_USDZ];
 		const previousFileEntry = Array.from(files.values()).pop();
 		let fileEntry = {};
 		let bufferedWrite;
