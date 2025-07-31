@@ -9251,12 +9251,14 @@
 	const PROPERTY_NAME_ZIPCRYPTO = "zipCrypto";
 	const PROPERTY_NAME_DIRECTORY = "directory";
 	const PROPERTY_NAME_EXECUTABLE = "executable";
+	const PROPERTY_NAME_COMPRESSION_METHOD = "compressionMethod";
+	const PROPERTY_NAME_SIGNATURE = "signature";
 
 	const PROPERTY_NAMES = [
 		PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, PROPERTY_NAME_COMPPRESSED_SIZE, PROPERTY_NAME_UNCOMPPRESSED_SIZE,
 		PROPERTY_NAME_LAST_MODIFICATION_DATE, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT,
 		PROPERTY_NAME_LAST_ACCESS_DATE, PROPERTY_NAME_CREATION_DATE, PROPERTY_NAME_OFFSET, PROPERTY_NAME_DISK_NUMBER_START,
-		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64, PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY, PROPERTY_NAME_ZIPCRYPTO, PROPERTY_NAME_DIRECTORY, PROPERTY_NAME_EXECUTABLE, "bitFlag", "signature", "filenameUTF8", "commentUTF8", "compressionMethod", "extraField", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS", "extraFieldExtendedTimestamp"];
+		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64, PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY, PROPERTY_NAME_ZIPCRYPTO, PROPERTY_NAME_DIRECTORY, PROPERTY_NAME_EXECUTABLE, PROPERTY_NAME_COMPRESSION_METHOD, PROPERTY_NAME_SIGNATURE, "bitFlag", "filenameUTF8", "commentUTF8", "extraField", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment", "extraFieldAES", "extraFieldNTFS", "extraFieldExtendedTimestamp"];
 
 	class Entry {
 
@@ -9265,6 +9267,61 @@
 		}
 
 	}
+
+	/*
+	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	const OPTION_FILENAME_ENCODING = "filenameEncoding";
+	const OPTION_COMMENT_ENCODING = "commentEncoding";
+	const OPTION_DECODE_TEXT = "decodeText";
+	const OPTION_EXTRACT_PREPENDED_DATA = "extractPrependedData";
+	const OPTION_EXTRACT_APPENDED_DATA = "extractAppendedData";
+	const OPTION_PASSWORD = "password";
+	const OPTION_RAW_PASSWORD = "rawPassword";
+	const OPTION_PASS_THROUGH = "passThrough";
+	const OPTION_SIGNAL = "signal";
+	const OPTION_CHECK_PASSWORD_ONLY = "checkPasswordOnly";
+	const OPTION_CHECK_OVERLAPPING_ENTRY_ONLY = "checkOverlappingEntryOnly";
+	const OPTION_CHECK_OVERLAPPING_ENTRY = "checkOverlappingEntry";
+	const OPTION_CHECK_SIGNATURE = "checkSignature";
+	const OPTION_USE_WEB_WORKERS = "useWebWorkers";
+	const OPTION_USE_COMPRESSION_STREAM = "useCompressionStream";
+	const OPTION_TRANSFER_STREAMS = "transferStreams";
+	const OPTION_PREVENT_CLOSE = "preventClose";
+	const OPTION_ENCRYPTION_STRENGTH = "encryptionStrength";
+	const OPTION_EXTENDED_TIMESTAMP = "extendedTimestamp";
+	const OPTION_KEEP_ORDER = "keepOrder";
+	const OPTION_LEVEL = "level";
+	const OPTION_BUFFERED_WRITE = "bufferedWrite";
+	const OPTION_DATA_DESCRIPTOR_SIGNATURE = "dataDescriptorSignature";
+	const OPTION_USE_UNICODE_FILE_NAMES = "useUnicodeFileNames";
+	const OPTION_DATA_DESCRIPTOR = "dataDescriptor";
+	const OPTION_SUPPORT_ZIP64_SPLIT_FILE = "supportZip64SplitFile";
 
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
@@ -9440,8 +9497,8 @@
 			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
-			const filenameEncoding = getOptionValue$1(zipReader, options, "filenameEncoding");
-			const commentEncoding = getOptionValue$1(zipReader, options, "commentEncoding");
+			const filenameEncoding = getOptionValue$1(zipReader, options, OPTION_FILENAME_ENCODING);
+			const commentEncoding = getOptionValue$1(zipReader, options, OPTION_COMMENT_ENCODING);
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
 				const fileEntry = new ZipEntry$1(reader, config, zipReader.options);
 				if (getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE) {
@@ -9487,7 +9544,7 @@
 				});
 				fileEntry.internalFileAttribute = fileEntry.internalFileAttributes;
 				fileEntry.externalFileAttribute = fileEntry.externalFileAttributes;
-				const decode = getOptionValue$1(zipReader, options, "decodeText") || decodeText;
+				const decode = getOptionValue$1(zipReader, options, OPTION_DECODE_TEXT) || decodeText;
 				const rawFilenameEncoding = filenameUTF8 ? CHARSET_UTF8 : filenameEncoding || CHARSET_CP437;
 				const rawCommentEncoding = commentUTF8 ? CHARSET_UTF8 : commentEncoding || CHARSET_CP437;
 				let filename = decode(rawFilename, rawFilenameEncoding);
@@ -9528,8 +9585,8 @@
 				}
 				yield entry;
 			}
-			const extractPrependedData = getOptionValue$1(zipReader, options, "extractPrependedData");
-			const extractAppendedData = getOptionValue$1(zipReader, options, "extractAppendedData");
+			const extractPrependedData = getOptionValue$1(zipReader, options, OPTION_EXTRACT_PREPENDED_DATA);
+			const extractAppendedData = getOptionValue$1(zipReader, options, OPTION_EXTRACT_APPENDED_DATA);
 			if (extractPrependedData) {
 				zipReader.prependedData = startOffset > 0 ? await readUint8Array(reader, 0, startOffset) : new Uint8Array();
 			}
@@ -9612,9 +9669,9 @@
 			const localDirectory = fileEntry.localDirectory = {};
 			const dataArray = await readUint8Array(reader, offset, HEADER_SIZE, diskNumberStart);
 			const dataView = getDataView$1(dataArray);
-			let password = getOptionValue$1(zipEntry, options, "password");
-			let rawPassword = getOptionValue$1(zipEntry, options, "rawPassword");
-			const passThrough = getOptionValue$1(zipEntry, options, "passThrough");
+			let password = getOptionValue$1(zipEntry, options, OPTION_PASSWORD);
+			let rawPassword = getOptionValue$1(zipEntry, options, OPTION_RAW_PASSWORD);
+			const passThrough = getOptionValue$1(zipEntry, options, OPTION_PASS_THROUGH);
 			password = password && password.length && password;
 			rawPassword = rawPassword && rawPassword.length && rawPassword;
 			if (extraFieldAES) {
@@ -9660,10 +9717,10 @@
 				offset: dataOffset,
 				size
 			});
-			const signal = getOptionValue$1(zipEntry, options, "signal");
-			const checkPasswordOnly = getOptionValue$1(zipEntry, options, "checkPasswordOnly");
-			let checkOverlappingEntry = getOptionValue$1(zipEntry, options, "checkOverlappingEntry");
-			const checkOverlappingEntryOnly = getOptionValue$1(zipEntry, options, "checkOverlappingEntryOnly");
+			const signal = getOptionValue$1(zipEntry, options, OPTION_SIGNAL);
+			const checkPasswordOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_PASSWORD_ONLY);
+			let checkOverlappingEntry = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY);
+			const checkOverlappingEntryOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY_ONLY);
 			if (checkOverlappingEntryOnly) {
 				checkOverlappingEntry = true;
 			}
@@ -9675,15 +9732,15 @@
 					rawPassword,
 					zipCrypto,
 					encryptionStrength: extraFieldAES && extraFieldAES.strength,
-					signed: getOptionValue$1(zipEntry, options, "checkSignature") && !passThrough,
+					signed: getOptionValue$1(zipEntry, options, OPTION_CHECK_SIGNATURE) && !passThrough,
 					passwordVerification: zipCrypto && (dataDescriptor ? ((rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
 					outputSize: uncompressedSize,
 					signature,
 					compressed: compressionMethod != 0 && !passThrough,
 					encrypted: zipEntry.encrypted && !passThrough,
-					useWebWorkers: getOptionValue$1(zipEntry, options, "useWebWorkers"),
-					useCompressionStream: getOptionValue$1(zipEntry, options, "useCompressionStream"),
-					transferStreams: getOptionValue$1(zipEntry, options, "transferStreams"),
+					useWebWorkers: getOptionValue$1(zipEntry, options, OPTION_USE_WEB_WORKERS),
+					useCompressionStream: getOptionValue$1(zipEntry, options, OPTION_USE_COMPRESSION_STREAM),
+					transferStreams: getOptionValue$1(zipEntry, options, OPTION_TRANSFER_STREAMS),
 					checkPasswordOnly
 				},
 				config,
@@ -9727,7 +9784,7 @@
 					throw error;
 				}
 			} finally {
-				const preventClose = getOptionValue$1(zipEntry, options, "preventClose");
+				const preventClose = getOptionValue$1(zipEntry, options, OPTION_PREVENT_CLOSE);
 				if (!preventClose && writable && !writable.locked) {
 					await writable.getWriter().close();
 				}
@@ -10271,7 +10328,7 @@
 				await Promise.allSettled(Array.from(pendingAddFileCalls));
 			}
 			await closeFile(this, comment, options);
-			const preventClose = getOptionValue(zipWriter, options, "preventClose");
+			const preventClose = getOptionValue(zipWriter, options, OPTION_PREVENT_CLOSE);
 			if (!preventClose) {
 				await writable.getWriter().close();
 			}
@@ -10366,25 +10423,25 @@
 		if (internalFileAttributes === 0) {
 			internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, 0);
 		}
-		const passThrough = getOptionValue(zipWriter, options, "passThrough");
+		const passThrough = getOptionValue(zipWriter, options, OPTION_PASS_THROUGH);
 		let password, rawPassword;
 		if (!passThrough) {
-			password = getOptionValue(zipWriter, options, "password");
-			rawPassword = getOptionValue(zipWriter, options, "rawPassword");
+			password = getOptionValue(zipWriter, options, OPTION_PASSWORD);
+			rawPassword = getOptionValue(zipWriter, options, OPTION_RAW_PASSWORD);
 		}
-		const encryptionStrength = getOptionValue(zipWriter, options, "encryptionStrength", 3);
+		const encryptionStrength = getOptionValue(zipWriter, options, OPTION_ENCRYPTION_STRENGTH, 3);
 		const zipCrypto = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIPCRYPTO);
-		const extendedTimestamp = getOptionValue(zipWriter, options, "extendedTimestamp", true);
-		const keepOrder = getOptionValue(zipWriter, options, "keepOrder", true);
-		const level = getOptionValue(zipWriter, options, "level");
-		const useWebWorkers = getOptionValue(zipWriter, options, "useWebWorkers");
-		const bufferedWrite = getOptionValue(zipWriter, options, "bufferedWrite");
-		const dataDescriptorSignature = getOptionValue(zipWriter, options, "dataDescriptorSignature", false);
-		const signal = getOptionValue(zipWriter, options, "signal");
-		const useUnicodeFileNames = getOptionValue(zipWriter, options, "useUnicodeFileNames", true);
-		const useCompressionStream = getOptionValue(zipWriter, options, "useCompressionStream");
-		const compressionMethod = getOptionValue(zipWriter, options, "compressionMethod");
-		let dataDescriptor = getOptionValue(zipWriter, options, "dataDescriptor");
+		const extendedTimestamp = getOptionValue(zipWriter, options, OPTION_EXTENDED_TIMESTAMP, true);
+		const keepOrder = getOptionValue(zipWriter, options, OPTION_KEEP_ORDER, true);
+		const level = getOptionValue(zipWriter, options, OPTION_LEVEL);
+		const useWebWorkers = getOptionValue(zipWriter, options, OPTION_USE_WEB_WORKERS);
+		const bufferedWrite = getOptionValue(zipWriter, options, OPTION_BUFFERED_WRITE);
+		const dataDescriptorSignature = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR_SIGNATURE, false);
+		const signal = getOptionValue(zipWriter, options, OPTION_SIGNAL);
+		const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES, true);
+		const useCompressionStream = getOptionValue(zipWriter, options, OPTION_USE_COMPRESSION_STREAM);
+		const compressionMethod = getOptionValue(zipWriter, options, PROPERTY_NAME_COMPRESSION_METHOD);
+		let dataDescriptor = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR);
 		if (bufferedWrite && dataDescriptor === UNDEFINED_VALUE) {
 			dataDescriptor = false;
 		}
@@ -10448,7 +10505,7 @@
 		const zip64UncompressedSize = zip64Enabled || uncompressedSize > MAX_32_BITS;
 		const zip64CompressedSize = zip64Enabled || maximumCompressedSize > MAX_32_BITS;
 		const zip64Offset = zip64Enabled || zipWriter.offset + zipWriter.pendingEntriesSize - diskOffset > MAX_32_BITS;
-		const supportZip64SplitFile = getOptionValue(zipWriter, options, "supportZip64SplitFile", true);
+		const supportZip64SplitFile = getOptionValue(zipWriter, options, OPTION_SUPPORT_ZIP64_SPLIT_FILE, true);
 		const zip64DiskNumberStart = (supportZip64SplitFile && zip64Enabled) || diskNumber + Math.ceil(zipWriter.pendingEntriesSize / maxSize) > MAX_16_BITS;
 		if (zip64Offset || zip64UncompressedSize || zip64CompressedSize || zip64DiskNumberStart) {
 			if (zip64 === false || !keepOrder) {
@@ -10459,7 +10516,6 @@
 		}
 		zip64 = zip64 || false;
 		const encrypted = getOptionValue(zipWriter, options, PROPERTY_NAME_ENCRYPTED);
-		const { signature } = options;
 		options = Object.assign({}, options, {
 			rawFilename,
 			rawComment,
@@ -10495,7 +10551,7 @@
 			useCompressionStream,
 			passThrough,
 			encrypted: Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted),
-			signature,
+			signature: options[PROPERTY_NAME_SIGNATURE],
 			compressionMethod,
 			uncompressedSize,
 			offset: zipWriter.offset - diskOffset,
@@ -11338,7 +11394,7 @@
 			setUint32(endOfdirectoryView, 56, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
 			setBigUint64(endOfdirectoryView, 64, BigInt(directoryOffset) + BigInt(directoryDataLength));
 			setUint32(endOfdirectoryView, 72, lastDiskNumber + 1);
-			const supportZip64SplitFile = getOptionValue(zipWriter, options, "supportZip64SplitFile", true);
+			const supportZip64SplitFile = getOptionValue(zipWriter, options, OPTION_SUPPORT_ZIP64_SPLIT_FILE, true);
 			if (supportZip64SplitFile) {
 				lastDiskNumber = MAX_16_BITS;
 				diskNumber = MAX_16_BITS;
