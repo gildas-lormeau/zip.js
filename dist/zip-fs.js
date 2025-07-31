@@ -4149,7 +4149,9 @@
 		};
 		for (const otherRange of readRanges.filter(otherRange => otherRange.fileEntry != fileEntry)) {
 			if (range.start >= otherRange.start && range.start <= otherRange.end) {
-				throw new Error(ERR_OVERLAPPING_ENTRY);
+				const error = new Error(ERR_OVERLAPPING_ENTRY);
+				error.overlappingEntry = otherRange.fileEntry;
+				throw error;
 			}
 		}
 		readRanges.push(range);
