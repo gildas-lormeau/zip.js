@@ -979,17 +979,18 @@ export interface ZipReaderOptions {
    */
   checkSignature?: boolean;
   /**
-   * `true` to throw an error when calling {@link FileEntry#getData} if the entry overlaps with another entry on which
-   * {@link FileEntry#getData} has already been called (with the option `checkOverlappingEntry` or
-   * `checkOverlappingEntryOnly` set to `true`).
+   * `true` to throw an {@link ERR_OVERLAPPING_ENTRY} error when calling {@link FileEntry#getData} if the entry
+   *  overlaps with another entry on which {@link FileEntry#getData} has already been called (with the option
+   * `checkOverlappingEntry` or  `checkOverlappingEntryOnly` set to `true`).
    *
    * @defaultValue false
    */
   checkOverlappingEntry?: boolean;
   /**
-   * `true` to throw an error when calling {@link FileEntry#getData} if the entry overlaps with another entry on which
-   * {@link FileEntry#getData} has already been called (with the option `checkOverlappingEntry` or
-   * `checkOverlappingEntryOnly` set to `true`) without trying to read the content of the entry.
+   * `true` to throw an {@link ERR_OVERLAPPING_ENTRY} error when calling {@link FileEntry#getData} if the entry
+   *  overlaps with another entry on which {@link FileEntry#getData} has already been called (with the option
+   * `checkOverlappingEntry` or  `checkOverlappingEntryOnly` set to `true`) without trying to read the content of the
+   * entry.
    *
    * @defaultValue false
    */
