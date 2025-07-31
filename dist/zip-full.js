@@ -4301,7 +4301,7 @@
 
 	const DIRECTORY_SIGNATURE = "/";
 
-	const HEADER_SIZE = 26;
+	const HEADER_SIZE = 30;
 	const HEADER_OFFSET_SIGNATURE = 10;
 	const HEADER_OFFSET_COMPRESSED_SIZE = 14;
 	const HEADER_OFFSET_UNCOMPRESSED_SIZE = 18;
@@ -6013,7 +6013,7 @@
 		Object.assign(target, {
 			keys,
 			crcKey0: new Crc32(keys[0]),
-			crcKey2: new Crc32(keys[2]),
+			crcKey2: new Crc32(keys[2])
 		});
 		for (let index = 0; index < password.length; index++) {
 			updateKeys(target, password.charCodeAt(index));
@@ -7978,8 +7978,7 @@
 				dataDescriptor
 			} = bitFlag;
 			const localDirectory = fileEntry.localDirectory = {};
-			const dataArraySize = HEADER_SIZE + 4;
-			const dataArray = await readUint8Array(reader, offset, dataArraySize + 4, diskNumberStart);
+			const dataArray = await readUint8Array(reader, offset, HEADER_SIZE, diskNumberStart);
 			const dataView = getDataView$1(dataArray);
 			let password = getOptionValue$1(zipEntry, options, "password");
 			let rawPassword = getOptionValue$1(zipEntry, options, "rawPassword");
@@ -8005,7 +8004,7 @@
 				creationDate
 			} = localDirectory;
 			localDirectory.rawExtraField = extraFieldLength ?
-				await readUint8Array(reader, offset + dataArraySize + filenameLength, extraFieldLength, diskNumberStart) :
+				await readUint8Array(reader, offset + HEADER_SIZE + filenameLength, extraFieldLength, diskNumberStart) :
 				new Uint8Array();
 			readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
 			Object.assign(fileEntry, { lastAccessDate, creationDate });
@@ -8021,7 +8020,7 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const dataOffset = offset + dataArraySize + filenameLength + extraFieldLength;
+			const dataOffset = offset + HEADER_SIZE + filenameLength + extraFieldLength;
 			const size = compressedSize;
 			const readable = reader.readable;
 			Object.assign(readable, {
@@ -8058,29 +8057,20 @@
 				config,
 				streamOptions: { signal, size, onstart, onprogress, onend }
 			};
-			let range;
 			if (checkOverlappingEntry) {
-				let diskOffset = 0;
-				if (diskNumberStart) {
-					for (let indexReader = 0; indexReader < diskNumberStart; indexReader++) {
-						const diskReader = reader.readers[indexReader];
-						diskOffset += diskReader.size;
-					}
-				}
-				range = {
-					start: diskOffset + offset,
-					end: dataOffset + size + (dataDescriptor ? extraFieldZip64 ? DATA_DESCRIPTOR_RECORD_ZIP_64_LENGTH : DATA_DESCRIPTOR_RECORD_LENGTH : 0) - 1
-				};
-				if (readRanges && readRanges.length) {
-					for (const otherRange of readRanges) {
-						if (range.start >= otherRange.start && range.start <= otherRange.end) {
-							if (range.start != otherRange.start || range.end != otherRange.end) {
-								throw new Error(ERR_OVERLAPPING_ENTRY);
-							}
-						}
-					}
-				}
-				readRanges.push(range);
+				await detectOverlappingEntry({
+					reader,
+					fileEntry,
+					offset,
+					diskNumberStart,
+					signature,
+					compressedSize,
+					uncompressedSize,
+					dataOffset,
+					dataDescriptor: dataDescriptor || localDirectory.bitFlag.dataDescriptor,
+					extraFieldZip64: extraFieldZip64 || localDirectory.extraFieldZip64,
+					readRanges
+				});
 			}
 			let writable;
 			try {
@@ -8095,12 +8085,6 @@
 					writer.size += outputSize;
 					if (outputSize != (passThrough ? compressedSize : uncompressedSize)) {
 						throw new Error(ERR_INVALID_UNCOMPRESSED_SIZE);
-					}
-				}
-				if (checkOverlappingEntry && dataDescriptor) {
-					const dataDescriptorSignature = await readUint8Array(reader, dataOffset + size, DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH, diskNumberStart);
-					if (getUint32(getDataView$1(dataDescriptorSignature)) == DATA_DESCRIPTOR_RECORD_SIGNATURE) {
-						range.end += DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH;
 					}
 				}
 			} catch (error) {
@@ -8324,6 +8308,68 @@
 		});
 	}
 
+	async function detectOverlappingEntry({
+		reader,
+		fileEntry,
+		offset,
+		diskNumberStart,
+		signature,
+		compressedSize,
+		uncompressedSize,
+		dataOffset,
+		dataDescriptor,
+		extraFieldZip64,
+		readRanges
+	}) {
+		let diskOffset = 0;
+		if (diskNumberStart) {
+			for (let indexReader = 0; indexReader < diskNumberStart; indexReader++) {
+				const diskReader = reader.readers[indexReader];
+				diskOffset += diskReader.size;
+			}
+		}
+		let dataDescriptorLength = 0;
+		if (dataDescriptor) {
+			if (extraFieldZip64) {
+				dataDescriptorLength = DATA_DESCRIPTOR_RECORD_ZIP_64_LENGTH;
+			} else {
+				dataDescriptorLength = DATA_DESCRIPTOR_RECORD_LENGTH;
+			}
+		}
+		if (dataDescriptorLength) {
+			const dataDescriptorArray = await readUint8Array(reader, dataOffset + compressedSize, dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH, diskNumberStart);
+			const dataDescriptorSignature = getUint32(getDataView$1(dataDescriptorArray), 0) == DATA_DESCRIPTOR_RECORD_SIGNATURE;
+			if (dataDescriptorSignature) {
+				const readSignature = getUint32(getDataView$1(dataDescriptorArray), 4);
+				let readCompressedSize;
+				let readUncompressedSize;
+				if (extraFieldZip64) {
+					readCompressedSize = getBigUint64(getDataView$1(dataDescriptorArray), 8);
+					readUncompressedSize = getBigUint64(getDataView$1(dataDescriptorArray), 16);
+				} else {
+					readCompressedSize = getUint32(getDataView$1(dataDescriptorArray), 8);
+					readUncompressedSize = getUint32(getDataView$1(dataDescriptorArray), 12);
+				}
+				if (readSignature == signature &&
+					readCompressedSize == compressedSize &&
+					readUncompressedSize == uncompressedSize) {
+					dataDescriptorLength += DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH;
+				}
+			}
+		}
+		const range = {
+			start: diskOffset + offset,
+			end: diskOffset + dataOffset + compressedSize + dataDescriptorLength - 1,
+			fileEntry
+		};
+		for (const otherRange of readRanges.filter(otherRange => otherRange.fileEntry != fileEntry)) {
+			if (range.start >= otherRange.start && range.start <= otherRange.end) {
+				throw new Error(ERR_OVERLAPPING_ENTRY);
+			}
+		}
+		readRanges.push(range);
+	}
+
 	async function seekSignature(reader, signature, startOffset, minimumBytes, maximumLength) {
 		const signatureArray = new Uint8Array(4);
 		const signatureView = getDataView$1(signatureArray);
@@ -8487,7 +8533,7 @@
 					rawExtraFieldAES,
 					rawExtraFieldExtendedTimestamp,
 					rawExtraFieldNTFS,
-					rawExtraField,
+					rawExtraField
 				} = entry;
 				const { level, languageEncodingFlag, dataDescriptor } = bitFlag;
 				rawExtraFieldZip64 = rawExtraFieldZip64 || new Uint8Array();
@@ -8819,7 +8865,7 @@
 			compressionMethod,
 			uncompressedSize,
 			offset: zipWriter.offset - diskOffset,
-			diskNumberStart: diskNumber,
+			diskNumberStart: diskNumber
 		});
 		const headerInfo = getHeaderInfo(options);
 		const dataDescriptorInfo = getDataDescriptorInfo(options);
@@ -9298,7 +9344,7 @@
 			zip64UncompressedSize,
 			extraFieldLength
 		});
-		let localHeaderOffset = HEADER_SIZE + 4;
+		let localHeaderOffset = HEADER_SIZE;
 		const localHeaderArray = new Uint8Array(localHeaderOffset + getLength(rawFilename) + extraFieldLength);
 		const localHeaderView = getDataView(localHeaderArray);
 		setUint32(localHeaderView, 0, LOCAL_FILE_HEADER_SIGNATURE);
@@ -9454,7 +9500,7 @@
 		}
 		if (zip64) {
 			if (localExtraFieldZip64Length) {
-				let localHeaderOffset = HEADER_SIZE + 4 + getLength(rawFilename) + 4;
+				let localHeaderOffset = HEADER_SIZE + getLength(rawFilename) + 4;
 				if (zip64UncompressedSize) {
 					setBigUint64(localHeaderView, localHeaderOffset, BigInt(uncompressedSize));
 					localHeaderOffset += 8;
@@ -9584,7 +9630,7 @@
 				setUint32(headerView, HEADER_OFFSET_COMPRESSED_SIZE, compressedSize);
 			}
 			arraySet(directoryArray, headerArray, offset + 6);
-			let directoryOffset = offset + HEADER_SIZE + 4;
+			let directoryOffset = offset + HEADER_SIZE;
 			setUint16(directoryView, directoryOffset, extraFieldLength);
 			directoryOffset += 2;
 			setUint16(directoryView, directoryOffset, getLength(rawComment));
@@ -9758,7 +9804,7 @@
 		zip64UncompressedSize,
 		extraFieldLength
 	}) {
-		const headerArray = new Uint8Array(HEADER_SIZE);
+		const headerArray = new Uint8Array(HEADER_SIZE - 4);
 		const headerView = getDataView(headerArray);
 		setUint16(headerView, 0, version);
 		setUint16(headerView, 2, bitFlag);
