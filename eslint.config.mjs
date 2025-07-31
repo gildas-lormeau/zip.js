@@ -18,7 +18,7 @@ export default [
 			ecmaVersion: 2020,
 			sourceType: "module",
 			globals: {
-				console: "readonly",
+				console: "readonly"
 			}
 		},
 		rules: {
