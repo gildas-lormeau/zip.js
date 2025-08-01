@@ -6,7 +6,7 @@
 
 # Interface: Initializable
 
-Defined in: [index.d.ts:447](https://github.com/gildas-lormeau/zip.js/blob/49e765ab0ea3b53d3426682f5f01f631cf166a03/index.d.ts#L447)
+Defined in: [index.d.ts:447](https://github.com/gildas-lormeau/zip.js/blob/f5689a69f57baaaa10605a11a4516e7cc749e4a1/index.d.ts#L447)
 
 Represents an instance used to read or write unknown type of data.
 
@@ -19,7 +19,7 @@ The classes inheriting from [Reader](../classes/Reader.md) help to read data fro
 
 > `optional` **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:451](https://github.com/gildas-lormeau/zip.js/blob/49e765ab0ea3b53d3426682f5f01f631cf166a03/index.d.ts#L451)
+Defined in: [index.d.ts:451](https://github.com/gildas-lormeau/zip.js/blob/f5689a69f57baaaa10605a11a4516e7cc749e4a1/index.d.ts#L451)
 
 Initializes the instance asynchronously
 

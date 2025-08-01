@@ -6,7 +6,7 @@
 
 # Interface: HttpRangeOptions
 
-Defined in: [index.d.ts:622](https://github.com/gildas-lormeau/zip.js/blob/49e765ab0ea3b53d3426682f5f01f631cf166a03/index.d.ts#L622)
+Defined in: [index.d.ts:622](https://github.com/gildas-lormeau/zip.js/blob/f5689a69f57baaaa10605a11a4516e7cc749e4a1/index.d.ts#L622)
 
 Represents options passed to the constructor of [HttpRangeReader](../classes/HttpRangeReader.md) and [HttpReader](../classes/HttpReader.md).
 
@@ -20,7 +20,7 @@ Represents options passed to the constructor of [HttpRangeReader](../classes/Htt
 
 > `optional` **headers**: `Iterable`\<\[`string`, `string`\], `any`, `any`\> \| `Map`\<`string`, `string`\>
 
-Defined in: [index.d.ts:632](https://github.com/gildas-lormeau/zip.js/blob/49e765ab0ea3b53d3426682f5f01f631cf166a03/index.d.ts#L632)
+Defined in: [index.d.ts:632](https://github.com/gildas-lormeau/zip.js/blob/f5689a69f57baaaa10605a11a4516e7cc749e4a1/index.d.ts#L632)
 
 The HTTP headers.
 
@@ -30,7 +30,7 @@ The HTTP headers.
 
 > `optional` **useXHR**: `boolean`
 
-Defined in: [index.d.ts:628](https://github.com/gildas-lormeau/zip.js/blob/49e765ab0ea3b53d3426682f5f01f631cf166a03/index.d.ts#L628)
+Defined in: [index.d.ts:628](https://github.com/gildas-lormeau/zip.js/blob/f5689a69f57baaaa10605a11a4516e7cc749e4a1/index.d.ts#L628)
 
 `true` to rely `XMLHttpRequest` instead of `fetch` to fetch data.
 
