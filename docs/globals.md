@@ -57,7 +57,6 @@
 - [Initializable](interfaces/Initializable.md)
 - [ReadableReader](interfaces/ReadableReader.md)
 - [registerDataHandler](interfaces/registerDataHandler.md)
-- [URLString](interfaces/URLString.md)
 - [WorkerConfiguration](interfaces/WorkerConfiguration.md)
 - [WritableWriter](interfaces/WritableWriter.md)
 - [ZipDirectoryEntryExportOptions](interfaces/ZipDirectoryEntryExportOptions.md)
@@ -73,6 +72,7 @@
 ## Type Aliases
 
 - [Entry](type-aliases/Entry.md)
+- [URLString](type-aliases/URLString.md)
 
 ## Variables
 
@@ -96,6 +96,7 @@
 - [ERR\_INVALID\_VERSION](variables/ERR_INVALID_VERSION.md)
 - [ERR\_ITERATOR\_COMPLETED\_TOO\_SOON](variables/ERR_ITERATOR_COMPLETED_TOO_SOON.md)
 - [ERR\_LOCAL\_FILE\_HEADER\_NOT\_FOUND](variables/ERR_LOCAL_FILE_HEADER_NOT_FOUND.md)
+- [ERR\_OVERLAPPING\_ENTRY](variables/ERR_OVERLAPPING_ENTRY.md)
 - [ERR\_SPLIT\_ZIP\_FILE](variables/ERR_SPLIT_ZIP_FILE.md)
 - [ERR\_UNDEFINED\_UNCOMPRESSED\_SIZE](variables/ERR_UNDEFINED_UNCOMPRESSED_SIZE.md)
 - [ERR\_UNSUPPORTED\_COMPRESSION](variables/ERR_UNSUPPORTED_COMPRESSION.md)

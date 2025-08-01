@@ -8,6 +8,6 @@
 
 > `const` **ERR\_WRITER\_NOT\_INITIALIZED**: `string`
 
-Defined in: [index.d.ts:2346](https://github.com/gildas-lormeau/zip.js/blob/ac43341b8867abfc96920b30361a638957ffd437/index.d.ts#L2346)
+Defined in: [index.d.ts:2367](https://github.com/gildas-lormeau/zip.js/blob/49e765ab0ea3b53d3426682f5f01f631cf166a03/index.d.ts#L2367)
 
 Writer not initialized error
