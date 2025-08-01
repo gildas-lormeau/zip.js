@@ -555,7 +555,7 @@ export class SplitDataReader extends Reader<
 /**
  * Represents a URL stored into a `string`.
  */
-interface URLString extends String {}
+type URLString = string;
 
 /**
  * Represents a {@link Reader} instance used to fetch data from a URL.
