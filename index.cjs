@@ -10042,7 +10042,8 @@ async function detectOverlappingEntry({
 				readCompressedSize = getUint32(getDataView$1(dataDescriptorArray), 8);
 				readUncompressedSize = getUint32(getDataView$1(dataDescriptorArray), 12);
 			}
-			if (readSignature == signature &&
+			const matchSignature = (fileEntry.encrypted && !fileEntry.zipCrypto) || readSignature == signature;
+			if (matchSignature &&
 				readCompressedSize == compressedSize &&
 				readUncompressedSize == uncompressedSize) {
 				dataDescriptorLength += DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH;
