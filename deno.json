@@ -13,5 +13,14 @@
 			"index.cjs",
 			"index.min.js"
 		]
-	}
+	},
+	"exclude": [
+		"cli-deno",
+		"tests",
+		"rollup*",
+		"tsconfig.json",
+		".vscode",
+		".eslintrc.json",
+		"docs"
+	]
 }
