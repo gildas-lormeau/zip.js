@@ -16,7 +16,6 @@
 	},
 	"exclude": [
 		"cli-deno",
-		"tests",
 		"rollup*",
 		"tsconfig.json",
 		".vscode",
