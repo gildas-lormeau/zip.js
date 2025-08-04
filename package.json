@@ -123,7 +123,7 @@
     "eslint": "^9.32.0",
     "http-server": "^14.1.1",
     "rollup": "^4.46.2",
-    "typedoc": "^0.28.8",
+    "typedoc": "^0.28.9",
     "typedoc-plugin-markdown": "^4.8.0"
   }
 }
