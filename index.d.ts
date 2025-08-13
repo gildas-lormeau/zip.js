@@ -783,9 +783,9 @@ export class SplitDataWriter implements Initializable, WritableWriter {
 }
 
 /**
- * Represents a {@link Writer}  instance used to retrieve the written data as a `Uint8Array` instance.
+ * Represents a {@link Writer} instance used to retrieve the written data as a `Uint8Array` instance.
  */
-export class Uint8ArrayWriter extends Writer<Uint8Array> {}
+export class Uint8ArrayWriter extends Writer<Uint8Array<ArrayBuffer>> {}
 
 /**
  * Represents an instance used to create an unzipped stream.
