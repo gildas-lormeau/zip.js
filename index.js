@@ -87,6 +87,24 @@ export {
 	ERR_SPLIT_ZIP_FILE,
 	ERR_OVERLAPPING_ENTRY,
 	ERR_ITERATOR_COMPLETED_TOO_SOON,
-	ERR_WRITER_NOT_INITIALIZED
+	ERR_WRITER_NOT_INITIALIZED,
+	// Security utilities
+	extractSafely,
+	extractMultipleSafely,
+	validateEntriesForExtraction,
+	createExtractionConfig,
+	validateFilename,
+	sanitizeFilename,
+	hasPathTraversal,
+	isAbsolutePath,
+	VALIDATION_STRICT,
+	VALIDATION_WARN,
+	VALIDATION_NONE,
+	ERR_UNSAFE_FILENAME,
+	ERR_ABSOLUTE_PATH,
+	ERR_PATH_TRAVERSAL,
+	ERR_INVALID_CHARACTERS,
+	ERR_FILENAME_TOO_LONG,
+	ERR_EXTRACTION_OUTSIDE_TARGET
 } from "./lib/zip-fs.js";
 export { getMimeType, terminateWorkers };
