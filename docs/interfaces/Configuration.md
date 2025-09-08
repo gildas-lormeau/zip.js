@@ -6,7 +6,7 @@
 
 # Interface: Configuration
 
-Defined in: [index.d.ts:203](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L203)
+Defined in: [index.d.ts:203](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L203)
 
 Represents the configuration passed to [configure](../functions/configure.md).
 
@@ -20,14 +20,14 @@ Represents the configuration passed to [configure](../functions/configure.md).
 
 > `optional` **chunkSize**: `number`
 
-Defined in: [index.d.ts:261](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L261)
+Defined in: [index.d.ts:242](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L242)
 
 The size of the chunks in bytes during data compression/decompression.
 
 #### Default Value
 
 ```ts
-524288
+65536
 ```
 
 ***
@@ -36,7 +36,21 @@ The size of the chunks in bytes during data compression/decompression.
 
 > `optional` **CompressionStream**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
 
-Defined in: [index.d.ts:279](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L279)
+Defined in: [index.d.ts:248](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L248)
+
+The stream implementation used to compress data when `useCompressionStream` is set to `true`.
+
+#### Default Value
+
+[CodecStream](../classes/CodecStream.md)
+
+***
+
+### CompressionStreamZlib?
+
+> `optional` **CompressionStreamZlib**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+
+Defined in: [index.d.ts:260](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L260)
 
 The stream implementation used to compress data when `useCompressionStream` is set to `false`.
 
@@ -50,7 +64,21 @@ The stream implementation used to compress data when `useCompressionStream` is s
 
 > `optional` **DecompressionStream**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
 
-Defined in: [index.d.ts:285](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L285)
+Defined in: [index.d.ts:254](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L254)
+
+The stream implementation used to decompress data when `useCompressionStream` is set to `true`.
+
+#### Default Value
+
+[CodecStream](../classes/CodecStream.md)
+
+***
+
+### DecompressionStreamZlib?
+
+> `optional` **DecompressionStreamZlib**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+
+Defined in: [index.d.ts:266](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L266)
 
 The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
 
@@ -60,39 +88,11 @@ The stream implementation used to decompress data when `useCompressionStream` is
 
 ***
 
-### Deflate?
-
-> `optional` **Deflate**: *typeof* [`ZipDeflate`](../classes/ZipDeflate.md)
-
-Defined in: [index.d.ts:267](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L267)
-
-The codec implementation used to compress data.
-
-#### Default Value
-
-[ZipDeflate](../classes/ZipDeflate.md)
-
-***
-
-### Inflate?
-
-> `optional` **Inflate**: *typeof* [`ZipInflate`](../classes/ZipInflate.md)
-
-Defined in: [index.d.ts:273](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L273)
-
-The codec implementation used to decompress data.
-
-#### Default Value
-
-[ZipInflate](../classes/ZipInflate.md)
-
-***
-
 ### maxWorkers?
 
 > `optional` **maxWorkers**: `number`
 
-Defined in: [index.d.ts:209](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L209)
+Defined in: [index.d.ts:209](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L209)
 
 The maximum number of web workers used to compress/decompress data simultaneously.
 
@@ -106,7 +106,7 @@ The maximum number of web workers used to compress/decompress data simultaneousl
 
 > `optional` **terminateWorkerTimeout**: `number`
 
-Defined in: [index.d.ts:215](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L215)
+Defined in: [index.d.ts:215](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L215)
 
 The delay in milliseconds before idle web workers are automatically terminated. You can call `terminateWorkers()` to terminate idle workers.
 
@@ -122,7 +122,7 @@ The delay in milliseconds before idle web workers are automatically terminated. 
 
 > `optional` **useCompressionStream**: `boolean`
 
-Defined in: [index.d.ts:303](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L303)
+Defined in: [index.d.ts:284](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L284)
 
 `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
 
@@ -142,7 +142,7 @@ true
 
 > `optional` **useWebWorkers**: `boolean`
 
-Defined in: [index.d.ts:297](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L297)
+Defined in: [index.d.ts:278](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L278)
 
 `true` to use web workers to compress/decompress data in non-blocking background processes.
 
@@ -158,49 +158,41 @@ true
 
 ***
 
-### workerScripts?
+### wasmURI?
 
-> `optional` **workerScripts**: `object`
+> `optional` **wasmURI**: `string`
 
-Defined in: [index.d.ts:246](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L246)
+Defined in: [index.d.ts:236](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L236)
 
-The URIs of the compression/decompression scripts run in web workers.
+The URI of the WebAssembly module used by default implementations to compress/decompress data. It is ignored if `useCompressionStream` is set to `true` and `CompressionStream`/`DecompressionStream` are supported by the environment.
 
-It allows using alternative deflate implementations or specifying a URL to the worker script if the CSP of the page blocks scripts imported from a Blob URI.
-The properties `deflate` and `inflate` must specify arrays of URLs to import the deflate/inflate web workers, respectively.
-The first URL is relative to the base URI of the document. The other URLs are relative to the URL of the first script. Scripts in the array are executed in order.
-If you only use deflation or inflation, the unused `deflate`/`inflate` property can be omitted.
+#### Default Value
+
+```ts
+"./core/streams/zlib/zlib-streams.wasm"
+```
+
+***
+
+### workerURI?
+
+> `optional` **workerURI**: `string`
+
+Defined in: [index.d.ts:230](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L230)
+
+The URI of the web worker.
+
+It allows using alternative deflate implementations or specifying a URL to the worker script if the CSP of the page blocks scripts imported from a Data URI.
 
 Here is an example:
 ```
 configure({
-  workerScripts: {
-    deflate: ["library_path/custom-worker.js", "./custom-deflate.js"],
-    inflate: ["library_path/custom-worker.js", "./custom-inflate.js"]
-  }
+  workerURI: "./custom-deflate.js"
 });
 ```
 
-If the CSP of the page blocks scripts imported from a Blob URI you can use `z-worker.js` from https://github.com/gildas-lormeau/zip.js/tree/master/dist and specify the URL where it can be found.
+#### Default Value
 
-Here is an example:
+```ts
+"./core/web-worker.js"
 ```
-configure({
-  workerScripts: {
-    deflate: ["library_path/z-worker.js"],
-    inflate: ["library_path/z-worker.js"]
-  }
-});
-```
-
-#### deflate?
-
-> `optional` **deflate**: `string`[]
-
-The URIs of the scripts implementing used for compression.
-
-#### inflate?
-
-> `optional` **inflate**: `string`[]
-
-The URIs of the scripts implementing used for decompression.

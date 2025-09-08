@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_ENTRY\_NAME**: `string`
 
-Defined in: [index.d.ts:2323](https://github.com/gildas-lormeau/zip.js/blob/a8683b5808f1a1fcac8b2988f79c4fbbc6b3e88f/index.d.ts#L2323)
+Defined in: [index.d.ts:2174](https://github.com/gildas-lormeau/zip.js/blob/c6ab5788eadb09dbc23208b1e438b2eec4ffa531/index.d.ts#L2174)
 
 Invalid entry name error
