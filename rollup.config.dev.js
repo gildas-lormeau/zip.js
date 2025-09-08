@@ -1,26 +1,60 @@
 import replace from "@rollup/plugin-replace";
 import fs from "node:fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { compress } from "./lib/core/util/mini-lz.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function copyWasmModule() {
+	return {
+		name: "copy-wasm",
+		buildStart() {
+			const wasmSrc = path.resolve(__dirname, "lib/core/streams/zlib/zlib-streams.wasm");
+			const wasmDest = path.resolve(__dirname, "dist/zip-module.wasm");
+			try {
+				fs.copyFileSync(wasmSrc, wasmDest);
+			} catch (e) {
+				this.warn && this.warn("copy-wasm: failed to copy wasm file: " + e.message);
+			}
+		}
+	};
+}
+
 
 const GLOBALS = "const { Array, Object, String, Number, BigInt, Math, Date, Map, Set, Response, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, document, crypto, btoa, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream, navigator, Worker } = typeof globalThis !== 'undefined' ? globalThis : this || self;";
 const GLOBALS_WORKER = "const { Array, Object, Number, Math, Error, Uint8Array, Uint16Array, Uint32Array, Int32Array, Map, DataView, Promise, TextEncoder, crypto, postMessage, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream } = self;";
 
 export default [{
-	input: "lib/z-worker.js",
+	input: "lib/core/web-worker.js",
 	output: [{
 		intro: GLOBALS_WORKER,
-		file: "lib/z-worker-inline.js",
+		file: "lib/core/web-worker-inline.js",
 		format: "umd"
 	}]
 }, {
-	input: "lib/z-worker-inline-template.js",
+	input: "lib/core/web-worker-inline-template.js",
 	output: [{
-		file: "lib/z-worker-inline.js",
+		file: "lib/core/web-worker-inline.js",
 		format: "es"
 	}],
 	plugins: [
 		replace({
 			preventAssignment: true,
-			"__workerCode__": () => fs.readFileSync("lib/z-worker-inline.js").toString()
+			"__workerCode__": () => fs.readFileSync("lib/core/web-worker-inline.js").toString()
+		})
+	]
+}, {
+	input: "lib/core/zlib-streams-inline-template.js",
+	output: [{
+		file: "lib/core/zlib-streams-inline.js",
+		format: "es"
+	}],
+	plugins: [
+		copyWasmModule(),
+		replace({
+			preventAssignment: true,
+			"__wasmBinary__": () => compress(fs.readFileSync("lib/core/streams/zlib/zlib-streams.wasm"))
 		})
 	]
 }, {
@@ -37,39 +71,28 @@ export default [{
 		name: "zip"
 	}]
 }, {
-	input: ["lib/zip-full.js"],
+	input: ["lib/zip-core.js"],
 	output: [{
 		intro: GLOBALS,
-		file: "dist/zip-full.min.js",
+		file: "dist/zip-core.min.js",
 		format: "umd",
 		name: "zip"
 	}, {
 		intro: GLOBALS,
-		file: "dist/zip-full.js",
+		file: "dist/zip-core.js",
 		format: "umd",
 		name: "zip"
 	}]
 }, {
-	input: "lib/zip-no-worker.js",
+	input: "lib/zip-fs-core.js",
 	output: [{
 		intro: GLOBALS,
-		file: "dist/zip-no-worker.min.js",
+		file: "dist/zip-fs-core.min.js",
 		format: "umd",
 		name: "zip"
-	}]
-}, {
-	input: "lib/zip-no-worker-deflate.js",
-	output: [{
+	}, {
 		intro: GLOBALS,
-		file: "dist/zip-no-worker-deflate.min.js",
-		format: "umd",
-		name: "zip"
-	}]
-}, {
-	input: "lib/zip-no-worker-inflate.js",
-	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-no-worker-inflate.min.js",
+		file: "dist/zip-fs-core.js",
 		format: "umd",
 		name: "zip"
 	}]
@@ -85,19 +108,6 @@ export default [{
 		file: "dist/zip-fs.js",
 		format: "umd",
 		name: "zip"
-	}]
-}, {
-	input: "index.js",
-	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-fs-full.min.js",
-		format: "umd",
-		name: "zip"
-	}, {
-		intro: GLOBALS,
-		file: "dist/zip-fs-full.js",
-		format: "umd",
-		name: "zip"
 	}, {
 		file: "index.cjs",
 		format: "cjs"
@@ -106,24 +116,10 @@ export default [{
 		format: "es"
 	}]
 }, {
-	input: "lib/z-worker-bootstrap-pako.js",
+	input: "lib/core/web-worker.js",
 	output: [{
 		intro: GLOBALS_WORKER,
-		file: "dist/z-worker-pako.js",
-		format: "iife"
-	}]
-}, {
-	input: "lib/z-worker-bootstrap-fflate.js",
-	output: [{
-		intro: GLOBALS_WORKER,
-		file: "dist/z-worker-fflate.js",
-		format: "iife"
-	}]
-}, {
-	input: "lib/z-worker.js",
-	output: [{
-		intro: GLOBALS_WORKER,
-		file: "dist/z-worker.js",
+		file: "dist/zip-web-worker.js",
 		format: "iife"
 	}]
 }];

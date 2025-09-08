@@ -1,9 +1,8 @@
 {
 	"name": "@zip-js/zip-js",
-	"version": "2.7.73",
+	"version": "2.8.0",
 	"exports": {
-		".": "./index.js",
-		"./data-uri": "./lib/zip-data-uri.js"
+		".": "./index.js"
 	},
 	"lint": {
 		"exclude": [

@@ -9,17 +9,23 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 export { test };
 
 async function test() {
-	zip.configure({ chunkSize: 128, useWebWorkers: false });
+	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
-	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
-	await zipWriter.close();
-	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
-	const entries = await zipReader.getEntries();
-	const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
-	await zipReader.close();
-	await zip.terminateWorkers();
-	if (TEXT_CONTENT != await data.text()) {
+	const entry = await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { level: 3 });
+	if (entry.compressionMethod == 0x08) {
+		await zipWriter.close();
+		const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
+		const entries = await zipReader.getEntries();
+		if (entries[0].compressionMethod == 0x08) {
+			const data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)));
+			await zipReader.close();
+			await zip.terminateWorkers();
+			if (TEXT_CONTENT != (await data.text())) {
+				throw new Error();
+			}
+		}
+	} else {
 		throw new Error();
 	}
 }

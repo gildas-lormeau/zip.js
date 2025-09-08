@@ -214,75 +214,56 @@ export interface Configuration extends WorkerConfiguration {
    */
   terminateWorkerTimeout?: number;
   /**
-   * The URIs of the compression/decompression scripts run in web workers.
+   * The URI of the web worker.
    *
-   * It allows using alternative deflate implementations or specifying a URL to the worker script if the CSP of the page blocks scripts imported from a Blob URI.
-   * The properties `deflate` and `inflate` must specify arrays of URLs to import the deflate/inflate web workers, respectively.
-   * The first URL is relative to the base URI of the document. The other URLs are relative to the URL of the first script. Scripts in the array are executed in order.
-   * If you only use deflation or inflation, the unused `deflate`/`inflate` property can be omitted.
+   * It allows using alternative deflate implementations or specifying a URL to the worker script if the CSP of the page blocks scripts imported from a Data URI.
    *
    * Here is an example:
    * ```
    * configure({
-   *   workerScripts: {
-   *     deflate: ["library_path/custom-worker.js", "./custom-deflate.js"],
-   *     inflate: ["library_path/custom-worker.js", "./custom-inflate.js"]
-   *   }
+   *   workerURI: "./custom-deflate.js"
    * });
    * ```
    *
-   * If the CSP of the page blocks scripts imported from a Blob URI you can use `z-worker.js` from https://github.com/gildas-lormeau/zip.js/tree/master/dist and specify the URL where it can be found.
-   *
-   * Here is an example:
-   * ```
-   * configure({
-   *   workerScripts: {
-   *     deflate: ["library_path/z-worker.js"],
-   *     inflate: ["library_path/z-worker.js"]
-   *   }
-   * });
-   * ```
+   * @defaultValue "./core/web-worker.js"
    */
-  workerScripts?: {
-    /**
-     * The URIs of the scripts implementing used for compression.
-     */
-    deflate?: string[];
-    /**
-     * The URIs of the scripts implementing used for decompression.
-     */
-    inflate?: string[];
-  };
+  workerURI?: string;
+  /**
+   * The URI of the WebAssembly module used by default implementations to compress/decompress data. It is ignored if `useCompressionStream` is set to `true` and `CompressionStream`/`DecompressionStream` are supported by the environment.
+   *
+   * @defaultValue "./core/streams/zlib/zlib-streams.wasm"
+   */
+  wasmURI?: string;
   /**
    * The size of the chunks in bytes during data compression/decompression.
    *
-   * @defaultValue 524288
+   * @defaultValue 65536
    */
   chunkSize?: number;
   /**
-   * The codec implementation used to compress data.
-   *
-   * @defaultValue {@link ZipDeflate}
-   */
-  Deflate?: typeof ZipDeflate;
-  /**
-   * The codec implementation used to decompress data.
-   *
-   * @defaultValue {@link ZipInflate}
-   */
-  Inflate?: typeof ZipInflate;
-  /**
-   * The stream implementation used to compress data when `useCompressionStream` is set to `false`.
+   * The stream implementation used to compress data when `useCompressionStream` is set to `true`.
    *
    * @defaultValue {@link CodecStream}
    */
   CompressionStream?: typeof TransformStreamLike;
   /**
-   * The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
+   * The stream implementation used to decompress data when `useCompressionStream` is set to `true`.
    *
    * @defaultValue {@link CodecStream}
    */
   DecompressionStream?: typeof TransformStreamLike;
+  /**
+   * The stream implementation used to compress data when `useCompressionStream` is set to `false`.
+   *
+   * @defaultValue {@link CodecStream}
+   */
+  CompressionStreamZlib?: typeof TransformStreamLike;
+  /**
+   * The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
+   *
+   * @defaultValue {@link CodecStream}
+   */
+  DecompressionStreamZlib?: typeof TransformStreamLike;
 }
 
 /**
@@ -304,126 +285,9 @@ export interface WorkerConfiguration {
 }
 
 /**
- * Transforms event-based third-party codec implementations into implementations compatible with zip.js
- *
- * @param library The third-party codec implementations.
- * @param constructorOptions The options passed to the third-party implementations when building instances.
- * @param registerDataHandler The function called to handle the `data` events triggered by a third-party codec implementation.
- * @returns An instance containing classes compatible with {@link ZipDeflate} and {@link ZipInflate}.
- */
-export function initShimAsyncCodec(
-  library: EventBasedZipLibrary,
-  constructorOptions: unknown | null,
-  registerDataHandler: registerDataHandler
-): ZipLibrary;
-
-/**
- * Represents the callback function used to register the `data` event handler.
- */
-export interface registerDataHandler {
-  /**
-   * @param codec The third-party codec instance.
-   * @param onData The `data` event handler.
-   */
-  (codec: EventBasedCodec, onData: dataHandler): void;
-}
-
-/**
- * Represents the callback function used to handle `data` events.
- */
-export interface dataHandler {
-  /**
-   * @param data The processed chunk of data.
-   */
-  (data: Uint8Array): void;
-}
-
-/**
  * Terminates all the web workers
  */
 export function terminateWorkers(): Promise<void>;
-
-/**
- * Represents event-based implementations used to compress/decompress data.
- */
-export interface EventBasedZipLibrary {
-  /**
-   * The class used to compress data.
-   */
-  Deflate: typeof EventBasedCodec;
-  /**
-   * The class used to decompress data.
-   */
-  Inflate: typeof EventBasedCodec;
-}
-
-/**
- * Represents an event-based implementation of a third-party codec.
- */
-declare class EventBasedCodec {
-  /**
-   * Appends a chunk of data to compress/decompress
-   *
-   * @param data The chunk of data to append.
-   */
-  push(data: Uint8Array): void;
-  /**
-   * The function called when a chunk of data has been compressed/decompressed.
-   *
-   * @param data The chunk of compressed/decompressed data.
-   */
-  ondata(data?: Uint8Array): void;
-}
-
-/**
- * Represents the implementations zip.js uses to compress/decompress data.
- */
-export interface ZipLibrary {
-  /**
-   * The class used to compress data.
-   *
-   * @defaultValue {@link ZipDeflate}
-   */
-  Deflate: typeof ZipDeflate;
-  /**
-   * The class used to decompress data.
-   *
-   * @defaultValue {@link ZipInflate}
-   */
-  Inflate: typeof ZipInflate;
-}
-
-declare class SyncCodec {
-  /**
-   * Appends a chunk of decompressed data to compress
-   *
-   * @param data The chunk of decompressed data to append.
-   * @returns A chunk of compressed data.
-   */
-  append(data: Uint8Array): Uint8Array;
-}
-
-/**
- * Represents an instance used to compress data.
- */
-declare class ZipDeflate extends SyncCodec {
-  /**
-   * Flushes the data
-   *
-   * @returns A chunk of compressed data.
-   */
-  flush(): Uint8Array;
-}
-
-/**
- * Represents a codec used to decompress data.
- */
-declare class ZipInflate extends SyncCodec {
-  /**
-   * Flushes the data
-   */
-  flush(): void;
-}
 
 /**
  * Represents a class implementing `CompressionStream` or `DecompressionStream` interfaces.
@@ -537,13 +401,6 @@ export class Data64URIReader extends Reader<string> {}
  * Represents a {@link Reader} instance used to read data provided as a `Uint8Array` instance.
  */
 export class Uint8ArrayReader extends Reader<Uint8Array> {}
-
-/**
- * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
- *
- * @deprecated Use {@link SplitDataReader} instead.
- */
-export class SplitZipReader extends SplitDataReader {}
 
 /**
  * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
@@ -747,13 +604,6 @@ export class Data64URIWriter extends Writer<string> {
    */
   constructor(mimeString?: string);
 }
-
-/**
- * Represents a {@link Writer} instance used to retrieve the written data from a generator of {@link WritableWriter} instances  (i.e. split zip files).
- *
- * @deprecated Use {@link SplitDataWriter} instead.
- */
-export class SplitZipWriter extends SplitDataWriter {}
 
 /**
  * Represents a {@link Writer}  instance used to retrieve the written data from a generator of {@link WritableWriter}  instances  (i.e. split zip files).
@@ -1046,10 +896,6 @@ export interface EntryMetaData {
    */
   filenameUTF8: boolean;
   /**
-   * `true` if the entry is a directory.
-   */
-  directory: boolean;
-  /**
    * `true` if the entry is an executable file
    */
   executable: boolean;
@@ -1163,12 +1009,17 @@ export interface EntryMetaData {
    */
   compressionMethod: number;
 }
-export interface DirectoryEntry extends Omit<EntryMetaData, "directory"> {
+export interface DirectoryEntry extends EntryMetaData {
+  /**
+   * `true` if the entry is a directory.
+   */
   directory: true;
-  getData?: undefined;
 }
 
-export interface FileEntry extends Omit<EntryMetaData, "directory"> {
+export interface FileEntry extends EntryMetaData {
+  /**
+   * `false` if the entry is a file.
+   */
   directory: false;
   /**
    * Returns the content of the entry

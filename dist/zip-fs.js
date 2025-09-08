@@ -99,58 +99,7 @@
 	const FUNCTION_TYPE = "function";
 
 	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	class StreamAdapter {
-
-		constructor(Codec) {
-			return class extends TransformStream {
-				constructor(_format, options) {
-					const codec = new Codec(options);
-					super({
-						transform(chunk, controller) {
-							controller.enqueue(codec.append(chunk));
-						},
-						flush(controller) {
-							const chunk = codec.flush();
-							if (chunk) {
-								controller.enqueue(chunk);
-							}
-						}
-					});
-				}
-			};
-		}
-	}
-
-	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
 	 modification, are permitted provided that the following conditions are met:
@@ -189,14 +138,15 @@
 		// ignored
 	}
 	const DEFAULT_CONFIGURATION = {
-		chunkSize: 512 * 1024,
+		workerURI: "./core/web-worker.js",
+		wasmURI: "./core/streams/zlib/zlib-streams.wasm",
+		chunkSize: 64 * 1024,
 		maxWorkers,
 		terminateWorkerTimeout: 5000,
 		useWebWorkers: true,
 		useCompressionStream: true,
-		workerScripts: UNDEFINED_VALUE,
-		CompressionStreamNative: typeof CompressionStream != UNDEFINED_TYPE && CompressionStream,
-		DecompressionStreamNative: typeof DecompressionStream != UNDEFINED_TYPE && DecompressionStream
+		CompressionStream: typeof CompressionStream != UNDEFINED_TYPE && CompressionStream,
+		DecompressionStream: typeof DecompressionStream != UNDEFINED_TYPE && DecompressionStream
 	};
 
 	const config = Object.assign({}, DEFAULT_CONFIGURATION);
@@ -211,52 +161,31 @@
 
 	function configure(configuration) {
 		const {
-			baseURL,
+			baseURI,
 			chunkSize,
 			maxWorkers,
 			terminateWorkerTimeout,
 			useCompressionStream,
 			useWebWorkers,
-			Deflate,
-			Inflate,
 			CompressionStream,
 			DecompressionStream,
-			workerScripts
+			CompressionStreamZlib,
+			DecompressionStreamZlib,
+			workerURI,
+			wasmURI
 		} = configuration;
-		setIfDefined("baseURL", baseURL);
+		setIfDefined("baseURI", baseURI);
+		setIfDefined("wasmURI", wasmURI);
+		setIfDefined("workerURI", workerURI);
 		setIfDefined("chunkSize", chunkSize);
 		setIfDefined("maxWorkers", maxWorkers);
 		setIfDefined("terminateWorkerTimeout", terminateWorkerTimeout);
 		setIfDefined("useCompressionStream", useCompressionStream);
 		setIfDefined("useWebWorkers", useWebWorkers);
-		if (Deflate) {
-			config.CompressionStream = new StreamAdapter(Deflate);
-		}
-		if (Inflate) {
-			config.DecompressionStream = new StreamAdapter(Inflate);
-		}
 		setIfDefined("CompressionStream", CompressionStream);
 		setIfDefined("DecompressionStream", DecompressionStream);
-		if (workerScripts !== UNDEFINED_VALUE) {
-			const { deflate, inflate } = workerScripts;
-			if (deflate || inflate) {
-				if (!config.workerScripts) {
-					config.workerScripts = {};
-				}
-			}
-			if (deflate) {
-				if (!Array.isArray(deflate)) {
-					throw new Error("workerScripts.deflate must be an array");
-				}
-				config.workerScripts.deflate = deflate;
-			}
-			if (inflate) {
-				if (!Array.isArray(inflate)) {
-					throw new Error("workerScripts.inflate must be an array");
-				}
-				config.workerScripts.inflate = inflate;
-			}
-		}
+		setIfDefined("CompressionStreamZlib", CompressionStreamZlib);
+		setIfDefined("DecompressionStreamZlib", DecompressionStreamZlib);
 	}
 
 	function setIfDefined(propertyName, propertyValue) {
@@ -265,10 +194,12 @@
 		}
 	}
 
-	function e(e,t={}){const n='const{Array:e,Object:t,Number:n,Math:r,Error:s,Uint8Array:i,Uint16Array:o,Uint32Array:c,Int32Array:f,Map:a,DataView:l,Promise:u,TextEncoder:w,crypto:h,postMessage:d,TransformStream:p,ReadableStream:y,WritableStream:m,CompressionStream:b,DecompressionStream:g}=self,k=void 0,v="undefined",S="function";class z{constructor(e){return class extends p{constructor(t,n){const r=new e(n);super({transform(e,t){t.enqueue(r.append(e))},flush(e){const t=r.flush();t&&e.enqueue(t)}})}}}}const C=[];for(let e=0;256>e;e++){let t=e;for(let e=0;8>e;e++)1&t?t=t>>>1^3988292384:t>>>=1;C[e]=t}class x{constructor(e){this.t=e||-1}append(e){let t=0|this.t;for(let n=0,r=0|e.length;r>n;n++)t=t>>>8^C[255&(t^e[n])];this.t=t}get(){return~this.t}}class A extends p{constructor(){let e;const t=new x;super({transform(e,n){t.append(e),n.enqueue(e)},flush(){const n=new i(4);new l(n.buffer).setUint32(0,t.get()),e.value=n}}),e=this}}const I={concat(e,t){if(0===e.length||0===t.length)return e.concat(t);const n=e[e.length-1],r=I.i(n);return 32===r?e.concat(t):I.o(t,r,0|n,e.slice(0,e.length-1))},l(e){const t=e.length;if(0===t)return 0;const n=e[t-1];return 32*(t-1)+I.i(n)},u(e,t){if(32*e.length<t)return e;const n=(e=e.slice(0,r.ceil(t/32))).length;return t&=31,n>0&&t&&(e[n-1]=I.h(t,e[n-1]&2147483648>>t-1,1)),e},h:(e,t,n)=>32===e?t:(n?0|t:t<<32-e)+1099511627776*e,i:e=>r.round(e/1099511627776)||32,o(e,t,n,r){for(void 0===r&&(r=[]);t>=32;t-=32)r.push(n),n=0;if(0===t)return r.concat(e);for(let s=0;s<e.length;s++)r.push(n|e[s]>>>t),n=e[s]<<32-t;const s=e.length?e[e.length-1]:0,i=I.i(s);return r.push(I.h(t+i&31,t+i>32?n:r.pop(),1)),r}},_={bytes:{p(e){const t=I.l(e)/8,n=new i(t);let r;for(let s=0;t>s;s++)3&s||(r=e[s/4]),n[s]=r>>>24,r<<=8;return n},m(e){const t=[];let n,r=0;for(n=0;n<e.length;n++)r=r<<8|e[n],3&~n||(t.push(r),r=0);return 3&n&&t.push(I.h(8*(3&n),r)),t}}},P=class{constructor(e){const t=this;t.blockSize=512,t.k=[1732584193,4023233417,2562383102,271733878,3285377520],t.v=[1518500249,1859775393,2400959708,3395469782],e?(t.S=e.S.slice(0),t.C=e.C.slice(0),t.A=e.A):t.reset()}reset(){const e=this;return e.S=e.k.slice(0),e.C=[],e.A=0,e}update(e){const t=this;"string"==typeof e&&(e=_.I.m(e));const n=t.C=I.concat(t.C,e),r=t.A,i=t.A=r+I.l(e);if(i>9007199254740991)throw new s("Cannot hash more than 2^53 - 1 bits");const o=new c(n);let f=0;for(let e=t.blockSize+r-(t.blockSize+r&t.blockSize-1);i>=e;e+=t.blockSize)t._(o.subarray(16*f,16*(f+1))),f+=1;return n.splice(0,16*f),t}P(){const e=this;let t=e.C;const n=e.S;t=I.concat(t,[I.h(1,1)]);for(let e=t.length+2;15&e;e++)t.push(0);for(t.push(r.floor(e.A/4294967296)),t.push(0|e.A);t.length;)e._(t.splice(0,16));return e.reset(),n}D(e,t,n,r){return e>19?e>39?e>59?e>79?void 0:t^n^r:t&n|t&r|n&r:t^n^r:t&n|~t&r}V(e,t){return t<<e|t>>>32-e}_(t){const n=this,s=n.S,i=e(80);for(let e=0;16>e;e++)i[e]=t[e];let o=s[0],c=s[1],f=s[2],a=s[3],l=s[4];for(let e=0;79>=e;e++){16>e||(i[e]=n.V(1,i[e-3]^i[e-8]^i[e-14]^i[e-16]));const t=n.V(5,o)+n.D(e,c,f,a)+l+i[e]+n.v[r.floor(e/20)]|0;l=a,a=f,f=n.V(30,c),c=o,o=t}s[0]=s[0]+o|0,s[1]=s[1]+c|0,s[2]=s[2]+f|0,s[3]=s[3]+a|0,s[4]=s[4]+l|0}},D={getRandomValues(e){const t=new c(e.buffer),n=e=>{let t=987654321;const n=4294967295;return()=>(t=36969*(65535&t)+(t>>16)&n,(((t<<16)+(e=18e3*(65535&e)+(e>>16)&n)&n)/4294967296+.5)*(r.random()>.5?1:-1))};for(let s,i=0;i<e.length;i+=4){const e=n(4294967296*(s||r.random()));s=987654071*e(),t[i/4]=4294967296*e()|0}return e}},V={importKey:e=>new V.R(_.bytes.m(e)),B(e,t,n,r){if(n=n||1e4,0>r||0>n)throw new s("invalid params to pbkdf2");const i=1+(r>>5)<<2;let o,c,f,a,u;const w=new ArrayBuffer(i),h=new l(w);let d=0;const p=I;for(t=_.bytes.m(t),u=1;(i||1)>d;u++){for(o=c=e.encrypt(p.concat(t,[u])),f=1;n>f;f++)for(c=e.encrypt(c),a=0;a<c.length;a++)o[a]^=c[a];for(f=0;(i||1)>d&&f<o.length;f++)h.setInt32(d,o[f]),d+=4}return w.slice(0,r/8)},R:class{constructor(e){const t=this,n=t.M=P,r=[[],[]];t.U=[new n,new n];const s=t.U[0].blockSize/32;e.length>s&&(e=(new n).update(e).P());for(let t=0;s>t;t++)r[0][t]=909522486^e[t],r[1][t]=1549556828^e[t];t.U[0].update(r[0]),t.U[1].update(r[1]),t.K=new n(t.U[0])}reset(){const e=this;e.K=new e.M(e.U[0]),e.N=!1}update(e){this.N=!0,this.K.update(e)}digest(){const e=this,t=e.K.P(),n=new e.M(e.U[1]).update(t).P();return e.reset(),n}encrypt(e){if(this.N)throw new s("encrypt on already updated hmac called!");return this.update(e),this.digest(e)}}},R=typeof h!=v&&typeof h.getRandomValues==S,B="Invalid password",E="Invalid signature",M="zipjs-abort-check-password";function U(e){return R?h.getRandomValues(e):D.getRandomValues(e)}const K=16,N={name:"PBKDF2"},O=t.assign({hash:{name:"HMAC"}},N),T=t.assign({iterations:1e3,hash:{name:"SHA-1"}},N),W=["deriveBits"],j=[8,12,16],H=[16,24,32],L=10,F=[0,0,0,0],q=typeof h!=v,G=q&&h.subtle,J=q&&typeof G!=v,Q=_.bytes,X=class{constructor(e){const t=this;t.O=[[[],[],[],[],[]],[[],[],[],[],[]]],t.O[0][0][0]||t.T();const n=t.O[0][4],r=t.O[1],i=e.length;let o,c,f,a=1;if(4!==i&&6!==i&&8!==i)throw new s("invalid aes key size");for(t.v=[c=e.slice(0),f=[]],o=i;4*i+28>o;o++){let e=c[o-1];(o%i===0||8===i&&o%i===4)&&(e=n[e>>>24]<<24^n[e>>16&255]<<16^n[e>>8&255]<<8^n[255&e],o%i===0&&(e=e<<8^e>>>24^a<<24,a=a<<1^283*(a>>7))),c[o]=c[o-i]^e}for(let e=0;o;e++,o--){const t=c[3&e?o:o-4];f[e]=4>=o||4>e?t:r[0][n[t>>>24]]^r[1][n[t>>16&255]]^r[2][n[t>>8&255]]^r[3][n[255&t]]}}encrypt(e){return this.W(e,0)}decrypt(e){return this.W(e,1)}T(){const e=this.O[0],t=this.O[1],n=e[4],r=t[4],s=[],i=[];let o,c,f,a;for(let e=0;256>e;e++)i[(s[e]=e<<1^283*(e>>7))^e]=e;for(let l=o=0;!n[l];l^=c||1,o=i[o]||1){let i=o^o<<1^o<<2^o<<3^o<<4;i=i>>8^255&i^99,n[l]=i,r[i]=l,a=s[f=s[c=s[l]]];let u=16843009*a^65537*f^257*c^16843008*l,w=257*s[i]^16843008*i;for(let n=0;4>n;n++)e[n][l]=w=w<<24^w>>>8,t[n][i]=u=u<<24^u>>>8}for(let n=0;5>n;n++)e[n]=e[n].slice(0),t[n]=t[n].slice(0)}W(e,t){if(4!==e.length)throw new s("invalid aes block size");const n=this.v[t],r=n.length/4-2,i=[0,0,0,0],o=this.O[t],c=o[0],f=o[1],a=o[2],l=o[3],u=o[4];let w,h,d,p=e[0]^n[0],y=e[t?3:1]^n[1],m=e[2]^n[2],b=e[t?1:3]^n[3],g=4;for(let e=0;r>e;e++)w=c[p>>>24]^f[y>>16&255]^a[m>>8&255]^l[255&b]^n[g],h=c[y>>>24]^f[m>>16&255]^a[b>>8&255]^l[255&p]^n[g+1],d=c[m>>>24]^f[b>>16&255]^a[p>>8&255]^l[255&y]^n[g+2],b=c[b>>>24]^f[p>>16&255]^a[y>>8&255]^l[255&m]^n[g+3],g+=4,p=w,y=h,m=d;for(let e=0;4>e;e++)i[t?3&-e:e]=u[p>>>24]<<24^u[y>>16&255]<<16^u[m>>8&255]<<8^u[255&b]^n[g++],w=p,p=y,y=m,m=b,b=w;return i}},Y=class{constructor(e,t){this.j=e,this.H=t,this.L=t}reset(){this.L=this.H}update(e){return this.F(this.j,e,this.L)}q(e){if(255&~(e>>24))e+=1<<24;else{let t=e>>16&255,n=e>>8&255,r=255&e;255===t?(t=0,255===n?(n=0,255===r?r=0:++r):++n):++t,e=0,e+=t<<16,e+=n<<8,e+=r}return e}G(e){0===(e[0]=this.q(e[0]))&&(e[1]=this.q(e[1]))}F(e,t,n){let r;if(!(r=t.length))return[];const s=I.l(t);for(let s=0;r>s;s+=4){this.G(n);const r=e.encrypt(n);t[s]^=r[0],t[s+1]^=r[1],t[s+2]^=r[2],t[s+3]^=r[3]}return I.u(t,s)}},Z=V.R;let $=q&&J&&typeof G.importKey==S,ee=q&&J&&typeof G.deriveBits==S;class te extends p{constructor({password:e,rawPassword:n,signed:r,encryptionStrength:o,checkPasswordOnly:c}){super({start(){t.assign(this,{ready:new u(e=>this.J=e),password:ie(e,n),signed:r,X:o-1,pending:new i})},async transform(e,t){const n=this,{password:r,X:o,J:f,ready:a}=n;r?(await(async(e,t,n,r)=>{const i=await se(e,t,n,ce(r,0,j[t])),o=ce(r,j[t]);if(i[0]!=o[0]||i[1]!=o[1])throw new s(B)})(n,o,r,ce(e,0,j[o]+2)),e=ce(e,j[o]+2),c?t.error(new s(M)):f()):await a;const l=new i(e.length-L-(e.length-L)%K);t.enqueue(re(n,e,l,0,L,!0))},async flush(e){const{signed:t,Y:n,Z:r,pending:o,ready:c}=this;if(r&&n){await c;const f=ce(o,0,o.length-L),a=ce(o,o.length-L);let l=new i;if(f.length){const e=ae(Q,f);r.update(e);const t=n.update(e);l=fe(Q,t)}if(t){const e=ce(fe(Q,r.digest()),0,L);for(let t=0;L>t;t++)if(e[t]!=a[t])throw new s(E)}e.enqueue(l)}}})}}class ne extends p{constructor({password:e,rawPassword:n,encryptionStrength:r}){let s;super({start(){t.assign(this,{ready:new u(e=>this.J=e),password:ie(e,n),X:r-1,pending:new i})},async transform(e,t){const n=this,{password:r,X:s,J:o,ready:c}=n;let f=new i;r?(f=await(async(e,t,n)=>{const r=U(new i(j[t]));return oe(r,await se(e,t,n,r))})(n,s,r),o()):await c;const a=new i(f.length+e.length-e.length%K);a.set(f,0),t.enqueue(re(n,e,a,f.length,0))},async flush(e){const{Y:t,Z:n,pending:r,ready:o}=this;if(n&&t){await o;let c=new i;if(r.length){const e=t.update(ae(Q,r));n.update(e),c=fe(Q,e)}s.signature=fe(Q,n.digest()).slice(0,L),e.enqueue(oe(c,s.signature))}}}),s=this}}function re(e,t,n,r,s,o){const{Y:c,Z:f,pending:a}=e,l=t.length-s;let u;for(a.length&&(t=oe(a,t),n=((e,t)=>{if(t&&t>e.length){const n=e;(e=new i(t)).set(n,0)}return e})(n,l-l%K)),u=0;l-K>=u;u+=K){const e=ae(Q,ce(t,u,u+K));o&&f.update(e);const s=c.update(e);o||f.update(s),n.set(fe(Q,s),u+r)}return e.pending=ce(t,u),n}async function se(n,r,s,o){n.password=null;const c=await(async(e,t,n,r,s)=>{if(!$)return V.importKey(t);try{return await G.importKey("raw",t,n,!1,s)}catch(e){return $=!1,V.importKey(t)}})(0,s,O,0,W),f=await(async(e,t,n)=>{if(!ee)return V.B(t,e.salt,T.iterations,n);try{return await G.deriveBits(e,t,n)}catch(r){return ee=!1,V.B(t,e.salt,T.iterations,n)}})(t.assign({salt:o},T),c,8*(2*H[r]+2)),a=new i(f),l=ae(Q,ce(a,0,H[r])),u=ae(Q,ce(a,H[r],2*H[r])),w=ce(a,2*H[r]);return t.assign(n,{keys:{key:l,$:u,passwordVerification:w},Y:new Y(new X(l),e.from(F)),Z:new Z(u)}),w}function ie(e,t){return t===k?(e=>{if(typeof w==v){const t=new i((e=unescape(encodeURIComponent(e))).length);for(let n=0;n<t.length;n++)t[n]=e.charCodeAt(n);return t}return(new w).encode(e)})(e):t}function oe(e,t){let n=e;return e.length+t.length&&(n=new i(e.length+t.length),n.set(e,0),n.set(t,e.length)),n}function ce(e,t,n){return e.subarray(t,n)}function fe(e,t){return e.p(t)}function ae(e,t){return e.m(t)}class le extends p{constructor({password:e,passwordVerification:n,checkPasswordOnly:r}){super({start(){t.assign(this,{password:e,passwordVerification:n}),de(this,e)},transform(e,t){const n=this;if(n.password){const t=we(n,e.subarray(0,12));if(n.password=null,t.at(-1)!=n.passwordVerification)throw new s(B);e=e.subarray(12)}r?t.error(new s(M)):t.enqueue(we(n,e))}})}}class ue extends p{constructor({password:e,passwordVerification:n}){super({start(){t.assign(this,{password:e,passwordVerification:n}),de(this,e)},transform(e,t){const n=this;let r,s;if(n.password){n.password=null;const t=U(new i(12));t[11]=n.passwordVerification,r=new i(e.length+t.length),r.set(he(n,t),0),s=12}else r=new i(e.length),s=0;r.set(he(n,e),s),t.enqueue(r)}})}}function we(e,t){const n=new i(t.length);for(let r=0;r<t.length;r++)n[r]=ye(e)^t[r],pe(e,n[r]);return n}function he(e,t){const n=new i(t.length);for(let r=0;r<t.length;r++)n[r]=ye(e)^t[r],pe(e,t[r]);return n}function de(e,n){const r=[305419896,591751049,878082192];t.assign(e,{keys:r,ee:new x(r[0]),te:new x(r[2])});for(let t=0;t<n.length;t++)pe(e,n.charCodeAt(t))}function pe(e,t){let[n,s,i]=e.keys;e.ee.append([t]),n=~e.ee.get(),s=be(r.imul(be(s+me(n)),134775813)+1),e.te.append([s>>>24]),i=~e.te.get(),e.keys=[n,s,i]}function ye(e){const t=2|e.keys[2];return me(r.imul(t,1^t)>>>8)}function me(e){return 255&e}function be(e){return 4294967295&e}const ge="deflate-raw";class ke extends p{constructor(e,{chunkSize:t,CompressionStream:n,CompressionStreamNative:r}){super({});const{compressed:s,encrypted:i,useCompressionStream:o,zipCrypto:c,signed:f,level:a}=e,u=this;let w,h,d=super.readable;i&&!c||!f||(w=new A,d=Ce(d,w)),s&&(d=ze(d,o,{level:a,chunkSize:t},r,n)),i&&(c?d=Ce(d,new ue(e)):(h=new ne(e),d=Ce(d,h))),Se(u,d,()=>{let e;i&&!c&&(e=h.signature),i&&!c||!f||(e=new l(w.value.buffer).getUint32(0)),u.signature=e})}}class ve extends p{constructor(e,{chunkSize:t,DecompressionStream:n,DecompressionStreamNative:r}){super({});const{zipCrypto:i,encrypted:o,signed:c,signature:f,compressed:a,useCompressionStream:u}=e;let w,h,d=super.readable;o&&(i?d=Ce(d,new le(e)):(h=new te(e),d=Ce(d,h))),a&&(d=ze(d,u,{chunkSize:t},r,n)),o&&!i||!c||(w=new A,d=Ce(d,w)),Se(this,d,()=>{if((!o||i)&&c){const e=new l(w.value.buffer);if(f!=e.getUint32(0,!1))throw new s(E)}})}}function Se(e,n,r){n=Ce(n,new p({flush:r})),t.defineProperty(e,"readable",{get:()=>n})}function ze(e,t,n,r,s){try{e=Ce(e,new(t&&r?r:s)(ge,n))}catch(r){if(!t)throw r;e=Ce(e,new s(ge,n))}return e}function Ce(e,t){return e.pipeThrough(t)}const xe="data",Ae="close";class Ie extends p{constructor(e,n){super({});const r=this,{codecType:i}=e;let o;i.startsWith("deflate")?o=ke:i.startsWith("inflate")&&(o=ve),r.outputSize=0;let c=0;const f=new o(e,n),a=super.readable,l=new p({transform(e,t){e&&e.length&&(c+=e.length,t.enqueue(e))},flush(){t.assign(r,{inputSize:c})}}),u=new p({transform(t,n){if(t&&t.length&&(n.enqueue(t),r.outputSize+=t.length,e.outputSize&&r.outputSize>e.outputSize))throw new s("Invalid uncompressed size")},flush(){const{signature:e}=f;t.assign(r,{signature:e,inputSize:c})}});t.defineProperty(r,"readable",{get:()=>a.pipeThrough(l).pipeThrough(f).pipeThrough(u)})}}class _e extends p{constructor(e){let t;super({transform:function n(r,s){if(t){const e=new i(t.length+r.length);e.set(t),e.set(r,t.length),r=e,t=null}r.length>e?(s.enqueue(r.slice(0,e)),n(r.slice(e),s)):t=r},flush(e){t&&t.length&&e.enqueue(t)}})}}const Pe=new a,De=new a;let Ve,Re=0,Be=!0;async function Ee(e){try{const{options:t,scripts:r,config:s}=e;if(r&&r.length)try{Be?importScripts.apply(k,r):await Me(r)}catch(e){Be=!1,await Me(r)}self.initCodec&&self.initCodec(),s.CompressionStreamNative=self.CompressionStream,s.DecompressionStreamNative=self.DecompressionStream,self.Deflate&&(s.CompressionStream=new z(self.Deflate)),self.Inflate&&(s.DecompressionStream=new z(self.Inflate));const i={highWaterMark:1},o=e.readable||new y({async pull(e){const t=new u(e=>Pe.set(Re,e));Ue({type:"pull",messageId:Re}),Re=(Re+1)%n.MAX_SAFE_INTEGER;const{value:r,done:s}=await t;e.enqueue(r),s&&e.close()}},i),c=e.writable||new m({async write(e){let t;const r=new u(e=>t=e);De.set(Re,t),Ue({type:xe,value:e,messageId:Re}),Re=(Re+1)%n.MAX_SAFE_INTEGER,await r}},i),f=new Ie(t,s);Ve=new AbortController;const{signal:a}=Ve;await o.pipeThrough(f).pipeThrough(new _e(s.chunkSize)).pipeTo(c,{signal:a,preventClose:!0,preventAbort:!0}),await c.getWriter().close();const{signature:l,inputSize:w,outputSize:h}=f;Ue({type:Ae,result:{signature:l,inputSize:w,outputSize:h}})}catch(e){e.outputSize=0,Ke(e)}}async function Me(e){for(const t of e)await import(t)}function Ue(e){let{value:t}=e;if(t)if(t.length)try{t=new i(t),e.value=t.buffer,d(e,[e.value])}catch(t){d(e)}else d(e);else d(e)}function Ke(e=new s("Unknown error")){const{message:t,stack:n,code:r,name:i,outputSize:o}=e;d({error:{message:t,stack:n,code:r,name:i,outputSize:o}})}addEventListener("message",({data:e})=>{const{type:t,messageId:n,value:r,done:s}=e;try{if("start"==t&&Ee(e),t==xe){const e=Pe.get(n);Pe.delete(n),e({value:new i(r),done:s})}if("ack"==t){const e=De.get(n);De.delete(n),e()}t==Ae&&Ve.abort()}catch(e){Ke(e)}});const Ne=-2;function Oe(t){return Te(t.map(([t,n])=>new e(t).fill(n,0,t)))}function Te(t){return t.reduce((t,n)=>t.concat(e.isArray(n)?Te(n):n),[])}const We=[0,1,2,3].concat(...Oe([[2,4],[2,5],[4,6],[4,7],[8,8],[8,9],[16,10],[16,11],[32,12],[32,13],[64,14],[64,15],[2,0],[1,16],[1,17],[2,18],[2,19],[4,20],[4,21],[8,22],[8,23],[16,24],[16,25],[32,26],[32,27],[64,28],[64,29]]));function je(){const e=this;function t(e,t){let n=0;do{n|=1&e,e>>>=1,n<<=1}while(--t>0);return n>>>1}e.ne=n=>{const s=e.re,i=e.ie.se,o=e.ie.oe;let c,f,a,l=-1;for(n.ce=0,n.fe=573,c=0;o>c;c++)0!==s[2*c]?(n.ae[++n.ce]=l=c,n.le[c]=0):s[2*c+1]=0;for(;2>n.ce;)a=n.ae[++n.ce]=2>l?++l:0,s[2*a]=1,n.le[a]=0,n.ue--,i&&(n.we-=i[2*a+1]);for(e.he=l,c=r.floor(n.ce/2);c>=1;c--)n.de(s,c);a=o;do{c=n.ae[1],n.ae[1]=n.ae[n.ce--],n.de(s,1),f=n.ae[1],n.ae[--n.fe]=c,n.ae[--n.fe]=f,s[2*a]=s[2*c]+s[2*f],n.le[a]=r.max(n.le[c],n.le[f])+1,s[2*c+1]=s[2*f+1]=a,n.ae[1]=a++,n.de(s,1)}while(n.ce>=2);n.ae[--n.fe]=n.ae[1],(t=>{const n=e.re,r=e.ie.se,s=e.ie.pe,i=e.ie.ye,o=e.ie.me;let c,f,a,l,u,w,h=0;for(l=0;15>=l;l++)t.be[l]=0;for(n[2*t.ae[t.fe]+1]=0,c=t.fe+1;573>c;c++)f=t.ae[c],l=n[2*n[2*f+1]+1]+1,l>o&&(l=o,h++),n[2*f+1]=l,f>e.he||(t.be[l]++,u=0,i>f||(u=s[f-i]),w=n[2*f],t.ue+=w*(l+u),r&&(t.we+=w*(r[2*f+1]+u)));if(0!==h){do{for(l=o-1;0===t.be[l];)l--;t.be[l]--,t.be[l+1]+=2,t.be[o]--,h-=2}while(h>0);for(l=o;0!==l;l--)for(f=t.be[l];0!==f;)a=t.ae[--c],a>e.he||(n[2*a+1]!=l&&(t.ue+=(l-n[2*a+1])*n[2*a],n[2*a+1]=l),f--)}})(n),((e,n,r)=>{const s=[];let i,o,c,f=0;for(i=1;15>=i;i++)s[i]=f=f+r[i-1]<<1;for(o=0;n>=o;o++)c=e[2*o+1],0!==c&&(e[2*o]=t(s[c]++,c))})(s,e.he,n.be)}}function He(e,t,n,r,s){const i=this;i.se=e,i.pe=t,i.ye=n,i.oe=r,i.me=s}je.ge=[0,1,2,3,4,5,6,7].concat(...Oe([[2,8],[2,9],[2,10],[2,11],[4,12],[4,13],[4,14],[4,15],[8,16],[8,17],[8,18],[8,19],[16,20],[16,21],[16,22],[16,23],[32,24],[32,25],[32,26],[31,27],[1,28]])),je.ke=[0,1,2,3,4,5,6,7,8,10,12,14,16,20,24,28,32,40,48,56,64,80,96,112,128,160,192,224,0],je.ve=[0,1,2,3,4,6,8,12,16,24,32,48,64,96,128,192,256,384,512,768,1024,1536,2048,3072,4096,6144,8192,12288,16384,24576],je.Se=e=>256>e?We[e]:We[256+(e>>>7)],je.ze=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0],je.Ce=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],je.xe=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,7],je.Ae=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];const Le=Oe([[144,8],[112,9],[24,7],[8,8]]);He.Ie=Te([12,140,76,204,44,172,108,236,28,156,92,220,60,188,124,252,2,130,66,194,34,162,98,226,18,146,82,210,50,178,114,242,10,138,74,202,42,170,106,234,26,154,90,218,58,186,122,250,6,134,70,198,38,166,102,230,22,150,86,214,54,182,118,246,14,142,78,206,46,174,110,238,30,158,94,222,62,190,126,254,1,129,65,193,33,161,97,225,17,145,81,209,49,177,113,241,9,137,73,201,41,169,105,233,25,153,89,217,57,185,121,249,5,133,69,197,37,165,101,229,21,149,85,213,53,181,117,245,13,141,77,205,45,173,109,237,29,157,93,221,61,189,125,253,19,275,147,403,83,339,211,467,51,307,179,435,115,371,243,499,11,267,139,395,75,331,203,459,43,299,171,427,107,363,235,491,27,283,155,411,91,347,219,475,59,315,187,443,123,379,251,507,7,263,135,391,71,327,199,455,39,295,167,423,103,359,231,487,23,279,151,407,87,343,215,471,55,311,183,439,119,375,247,503,15,271,143,399,79,335,207,463,47,303,175,431,111,367,239,495,31,287,159,415,95,351,223,479,63,319,191,447,127,383,255,511,0,64,32,96,16,80,48,112,8,72,40,104,24,88,56,120,4,68,36,100,20,84,52,116,3,131,67,195,35,163,99,227].map((e,t)=>[e,Le[t]]));const Fe=Oe([[30,5]]);function qe(e,t,n,r,s){const i=this;i._e=e,i.Pe=t,i.De=n,i.Ve=r,i.Re=s}He.Be=Te([0,16,8,24,4,20,12,28,2,18,10,26,6,22,14,30,1,17,9,25,5,21,13,29,3,19,11,27,7,23].map((e,t)=>[e,Fe[t]])),He.Ee=new He(He.Ie,je.ze,257,286,15),He.Me=new He(He.Be,je.Ce,0,30,15),He.Ue=new He(null,je.xe,0,19,7);const Ge=[new qe(0,0,0,0,0),new qe(4,4,8,4,1),new qe(4,5,16,8,1),new qe(4,6,32,32,1),new qe(4,4,16,16,2),new qe(8,16,32,32,2),new qe(8,16,128,128,2),new qe(8,32,128,256,2),new qe(32,128,258,1024,2),new qe(32,258,258,4096,2)],Je=["need dictionary","stream end","","","stream error","data error","","buffer error","",""],Qe=113,Xe=666,Ye=262;function Ze(e,t,n,r){const s=e[2*t],i=e[2*n];return i>s||s==i&&r[t]<=r[n]}function $e(){const e=this;let t,n,s,c,f,a,l,u,w,h,d,p,y,m,b,g,k,v,S,z,C,x,A,I,_,P,D,V,R,B,E,M,U;const K=new je,N=new je,O=new je;let T,W,j,H,L,F;function q(){let t;for(t=0;286>t;t++)E[2*t]=0;for(t=0;30>t;t++)M[2*t]=0;for(t=0;19>t;t++)U[2*t]=0;E[512]=1,e.ue=e.we=0,W=j=0}function G(e,t){let n,r=-1,s=e[1],i=0,o=7,c=4;0===s&&(o=138,c=3),e[2*(t+1)+1]=65535;for(let f=0;t>=f;f++)n=s,s=e[2*(f+1)+1],++i<o&&n==s||(c>i?U[2*n]+=i:0!==n?(n!=r&&U[2*n]++,U[32]++):i>10?U[36]++:U[34]++,i=0,r=n,0===s?(o=138,c=3):n==s?(o=6,c=3):(o=7,c=4))}function J(t){e.Ke[e.pending++]=t}function Q(e){J(255&e),J(e>>>8&255)}function X(e,t){let n;const r=t;F>16-r?(n=e,L|=n<<F&65535,Q(L),L=n>>>16-F,F+=r-16):(L|=e<<F&65535,F+=r)}function Y(e,t){const n=2*e;X(65535&t[n],65535&t[n+1])}function Z(e,t){let n,r,s=-1,i=e[1],o=0,c=7,f=4;for(0===i&&(c=138,f=3),n=0;t>=n;n++)if(r=i,i=e[2*(n+1)+1],++o>=c||r!=i){if(f>o)do{Y(r,U)}while(0!==--o);else 0!==r?(r!=s&&(Y(r,U),o--),Y(16,U),X(o-3,2)):o>10?(Y(18,U),X(o-11,7)):(Y(17,U),X(o-3,3));o=0,s=r,0===i?(c=138,f=3):r==i?(c=6,f=3):(c=7,f=4)}}function $(){16==F?(Q(L),L=0,F=0):8>F||(J(255&L),L>>>=8,F-=8)}function ee(t,n){let s,i,o;if(e.Ne[W]=t,e.Oe[W]=255&n,W++,0===t?E[2*n]++:(j++,t--,E[2*(je.ge[n]+256+1)]++,M[2*je.Se(t)]++),!(8191&W)&&D>2){for(s=8*W,i=C-k,o=0;30>o;o++)s+=M[2*o]*(5+je.Ce[o]);if(s>>>=3,j<r.floor(W/2)&&s<r.floor(i/2))return!0}return W==T-1}function te(t,n){let r,s,i,o,c=0;if(0!==W)do{r=e.Ne[c],s=e.Oe[c],c++,0===r?Y(s,t):(i=je.ge[s],Y(i+256+1,t),o=je.ze[i],0!==o&&(s-=je.ke[i],X(s,o)),r--,i=je.Se(r),Y(i,n),o=je.Ce[i],0!==o&&(r-=je.ve[i],X(r,o)))}while(W>c);Y(256,t),H=t[513]}function ne(){F>8?Q(L):F>0&&J(255&L),L=0,F=0}function re(t,n,r){X(0+(r?1:0),3),((t,n)=>{ne(),H=8,Q(n),Q(~n),e.Ke.set(u.subarray(t,t+n),e.pending),e.pending+=n})(t,n)}function se(n){((t,n,r)=>{let s,i,o=0;D>0?(K.ne(e),N.ne(e),o=(()=>{let t;for(G(E,K.he),G(M,N.he),O.ne(e),t=18;t>=3&&0===U[2*je.Ae[t]+1];t--);return e.ue+=14+3*(t+1),t})(),s=e.ue+3+7>>>3,i=e.we+3+7>>>3,i>s||(s=i)):s=i=n+5,n+4>s||-1==t?i==s?(X(2+(r?1:0),3),te(He.Ie,He.Be)):(X(4+(r?1:0),3),((e,t,n)=>{let r;for(X(e-257,5),X(t-1,5),X(n-4,4),r=0;n>r;r++)X(U[2*je.Ae[r]+1],3);Z(E,e-1),Z(M,t-1)})(K.he+1,N.he+1,o+1),te(E,M)):re(t,n,r),q(),r&&ne()})(0>k?-1:k,C-k,n),k=C,t.Te()}function ie(){let e,n,r,s;do{if(s=w-A-C,0===s&&0===C&&0===A)s=f;else if(-1==s)s--;else if(C>=f+f-Ye){u.set(u.subarray(f,f+f),0),x-=f,C-=f,k-=f,e=y,r=e;do{n=65535&d[--r],d[r]=f>n?0:n-f}while(0!==--e);e=f,r=e;do{n=65535&h[--r],h[r]=f>n?0:n-f}while(0!==--e);s+=f}if(0===t.We)return;e=t.je(u,C+A,s),A+=e,3>A||(p=255&u[C],p=(p<<g^255&u[C+1])&b)}while(Ye>A&&0!==t.We)}function oe(e){let t,n,r=_,s=C,i=I;const o=C>f-Ye?C-(f-Ye):0;let c=B;const a=l,w=C+258;let d=u[s+i-1],p=u[s+i];R>I||(r>>=2),c>A&&(c=A);do{if(t=e,u[t+i]==p&&u[t+i-1]==d&&u[t]==u[s]&&u[++t]==u[s+1]){s+=2,t++;do{}while(u[++s]==u[++t]&&u[++s]==u[++t]&&u[++s]==u[++t]&&u[++s]==u[++t]&&u[++s]==u[++t]&&u[++s]==u[++t]&&u[++s]==u[++t]&&u[++s]==u[++t]&&w>s);if(n=258-(w-s),s=w-258,n>i){if(x=e,i=n,n>=c)break;d=u[s+i-1],p=u[s+i]}}}while((e=65535&h[e&a])>o&&0!==--r);return i>A?A:i}e.le=[],e.be=[],e.ae=[],E=[],M=[],U=[],e.de=(t,n)=>{const r=e.ae,s=r[n];let i=n<<1;for(;i<=e.ce&&(i<e.ce&&Ze(t,r[i+1],r[i],e.le)&&i++,!Ze(t,s,r[i],e.le));)r[n]=r[i],n=i,i<<=1;r[n]=s},e.He=(t,S,x,W,j,G)=>(W||(W=8),j||(j=8),G||(G=0),t.Le=null,-1==S&&(S=6),1>j||j>9||8!=W||9>x||x>15||0>S||S>9||0>G||G>2?Ne:(t.Fe=e,a=x,f=1<<a,l=f-1,m=j+7,y=1<<m,b=y-1,g=r.floor((m+3-1)/3),u=new i(2*f),h=[],d=[],T=1<<j+6,e.Ke=new i(4*T),s=4*T,e.Ne=new o(T),e.Oe=new i(T),D=S,V=G,(t=>(t.qe=t.Ge=0,t.Le=null,e.pending=0,e.Je=0,n=Qe,c=0,K.re=E,K.ie=He.Ee,N.re=M,N.ie=He.Me,O.re=U,O.ie=He.Ue,L=0,F=0,H=8,q(),(()=>{w=2*f,d[y-1]=0;for(let e=0;y-1>e;e++)d[e]=0;P=Ge[D].Pe,R=Ge[D]._e,B=Ge[D].De,_=Ge[D].Ve,C=0,k=0,A=0,v=I=2,z=0,p=0})(),0))(t))),e.Qe=()=>42!=n&&n!=Qe&&n!=Xe?Ne:(e.Oe=null,e.Ne=null,e.Ke=null,d=null,h=null,u=null,e.Fe=null,n==Qe?-3:0),e.Xe=(e,t,n)=>{let r=0;return-1==t&&(t=6),0>t||t>9||0>n||n>2?Ne:(Ge[D].Re!=Ge[t].Re&&0!==e.qe&&(r=e.Ye(1)),D!=t&&(D=t,P=Ge[D].Pe,R=Ge[D]._e,B=Ge[D].De,_=Ge[D].Ve),V=n,r)},e.Ze=(e,t,r)=>{let s,i=r,o=0;if(!t||42!=n)return Ne;if(3>i)return 0;for(i>f-Ye&&(i=f-Ye,o=r-i),u.set(t.subarray(o,o+i),0),C=i,k=i,p=255&u[0],p=(p<<g^255&u[1])&b,s=0;i-3>=s;s++)p=(p<<g^255&u[s+2])&b,h[s&l]=d[p],d[p]=s;return 0},e.Ye=(r,i)=>{let o,w,m,_,R;if(i>4||0>i)return Ne;if(!r.$e||!r.et&&0!==r.We||n==Xe&&4!=i)return r.Le=Je[4],Ne;if(0===r.tt)return r.Le=Je[7],-5;var B;if(t=r,_=c,c=i,42==n&&(w=8+(a-8<<4)<<8,m=(D-1&255)>>1,m>3&&(m=3),w|=m<<6,0!==C&&(w|=32),w+=31-w%31,n=Qe,J((B=w)>>8&255),J(255&B)),0!==e.pending){if(t.Te(),0===t.tt)return c=-1,0}else if(0===t.We&&_>=i&&4!=i)return t.Le=Je[7],-5;if(n==Xe&&0!==t.We)return r.Le=Je[7],-5;if(0!==t.We||0!==A||0!=i&&n!=Xe){switch(R=-1,Ge[D].Re){case 0:R=(e=>{let n,r=65535;for(r>s-5&&(r=s-5);;){if(1>=A){if(ie(),0===A&&0==e)return 0;if(0===A)break}if(C+=A,A=0,n=k+r,(0===C||C>=n)&&(A=C-n,C=n,se(!1),0===t.tt))return 0;if(C-k>=f-Ye&&(se(!1),0===t.tt))return 0}return se(4==e),0===t.tt?4==e?2:0:4==e?3:1})(i);break;case 1:R=(e=>{let n,r=0;for(;;){if(Ye>A){if(ie(),Ye>A&&0==e)return 0;if(0===A)break}if(3>A||(p=(p<<g^255&u[C+2])&b,r=65535&d[p],h[C&l]=d[p],d[p]=C),0===r||(C-r&65535)>f-Ye||2!=V&&(v=oe(r)),3>v)n=ee(0,255&u[C]),A--,C++;else if(n=ee(C-x,v-3),A-=v,v>P||3>A)C+=v,v=0,p=255&u[C],p=(p<<g^255&u[C+1])&b;else{v--;do{C++,p=(p<<g^255&u[C+2])&b,r=65535&d[p],h[C&l]=d[p],d[p]=C}while(0!==--v);C++}if(n&&(se(!1),0===t.tt))return 0}return se(4==e),0===t.tt?4==e?2:0:4==e?3:1})(i);break;case 2:R=(e=>{let n,r,s=0;for(;;){if(Ye>A){if(ie(),Ye>A&&0==e)return 0;if(0===A)break}if(3>A||(p=(p<<g^255&u[C+2])&b,s=65535&d[p],h[C&l]=d[p],d[p]=C),I=v,S=x,v=2,0!==s&&P>I&&f-Ye>=(C-s&65535)&&(2!=V&&(v=oe(s)),5>=v&&(1==V||3==v&&C-x>4096)&&(v=2)),3>I||v>I)if(0!==z){if(n=ee(0,255&u[C-1]),n&&se(!1),C++,A--,0===t.tt)return 0}else z=1,C++,A--;else{r=C+A-3,n=ee(C-1-S,I-3),A-=I-1,I-=2;do{++C>r||(p=(p<<g^255&u[C+2])&b,s=65535&d[p],h[C&l]=d[p],d[p]=C)}while(0!==--I);if(z=0,v=2,C++,n&&(se(!1),0===t.tt))return 0}}return 0!==z&&(n=ee(0,255&u[C-1]),z=0),se(4==e),0===t.tt?4==e?2:0:4==e?3:1})(i)}if(2!=R&&3!=R||(n=Xe),0==R||2==R)return 0===t.tt&&(c=-1),0;if(1==R){if(1==i)X(2,3),Y(256,He.Ie),$(),9>1+H+10-F&&(X(2,3),Y(256,He.Ie),$()),H=7;else if(re(0,0,!1),3==i)for(o=0;y>o;o++)d[o]=0;if(t.Te(),0===t.tt)return c=-1,0}}return 4!=i?0:1}}function et(){const e=this;e.nt=0,e.rt=0,e.We=0,e.qe=0,e.tt=0,e.Ge=0}function tt(e){const t=new et,n=(o=e&&e.chunkSize?e.chunkSize:65536)+5*(r.floor(o/16383)+1);var o;const c=new i(n);let f=e?e.level:-1;void 0===f&&(f=-1),t.He(f),t.$e=c,this.append=(e,r)=>{let o,f,a=0,l=0,u=0;const w=[];if(e.length){t.nt=0,t.et=e,t.We=e.length;do{if(t.rt=0,t.tt=n,o=t.Ye(0),0!=o)throw new s("deflating: "+t.Le);t.rt&&(t.rt==n?w.push(new i(c)):w.push(c.subarray(0,t.rt))),u+=t.rt,r&&t.nt>0&&t.nt!=a&&(r(t.nt),a=t.nt)}while(t.We>0||0===t.tt);return w.length>1?(f=new i(u),w.forEach(e=>{f.set(e,l),l+=e.length})):f=w[0]?new i(w[0]):new i,f}},this.flush=()=>{let e,r,o=0,f=0;const a=[];do{if(t.rt=0,t.tt=n,e=t.Ye(4),1!=e&&0!=e)throw new s("deflating: "+t.Le);n-t.tt>0&&a.push(c.slice(0,t.rt)),f+=t.rt}while(t.We>0||0===t.tt);return t.Qe(),r=new i(f),a.forEach(e=>{r.set(e,o),o+=e.length}),r}}et.prototype={He(e,t){const n=this;return n.Fe=new $e,t||(t=15),n.Fe.He(n,e,t)},Ye(e){const t=this;return t.Fe?t.Fe.Ye(t,e):Ne},Qe(){const e=this;if(!e.Fe)return Ne;const t=e.Fe.Qe();return e.Fe=null,t},Xe(e,t){const n=this;return n.Fe?n.Fe.Xe(n,e,t):Ne},Ze(e,t){const n=this;return n.Fe?n.Fe.Ze(n,e,t):Ne},je(e,t,n){const r=this;let s=r.We;return s>n&&(s=n),0===s?0:(r.We-=s,e.set(r.et.subarray(r.nt,r.nt+s),t),r.nt+=s,r.qe+=s,s)},Te(){const e=this;let t=e.Fe.pending;t>e.tt&&(t=e.tt),0!==t&&(e.$e.set(e.Fe.Ke.subarray(e.Fe.Je,e.Fe.Je+t),e.rt),e.rt+=t,e.Fe.Je+=t,e.Ge+=t,e.tt-=t,e.Fe.pending-=t,0===e.Fe.pending&&(e.Fe.Je=0))}};const nt=-2,rt=-3,st=-5,it=[0,1,3,7,15,31,63,127,255,511,1023,2047,4095,8191,16383,32767,65535],ot=[96,7,256,0,8,80,0,8,16,84,8,115,82,7,31,0,8,112,0,8,48,0,9,192,80,7,10,0,8,96,0,8,32,0,9,160,0,8,0,0,8,128,0,8,64,0,9,224,80,7,6,0,8,88,0,8,24,0,9,144,83,7,59,0,8,120,0,8,56,0,9,208,81,7,17,0,8,104,0,8,40,0,9,176,0,8,8,0,8,136,0,8,72,0,9,240,80,7,4,0,8,84,0,8,20,85,8,227,83,7,43,0,8,116,0,8,52,0,9,200,81,7,13,0,8,100,0,8,36,0,9,168,0,8,4,0,8,132,0,8,68,0,9,232,80,7,8,0,8,92,0,8,28,0,9,152,84,7,83,0,8,124,0,8,60,0,9,216,82,7,23,0,8,108,0,8,44,0,9,184,0,8,12,0,8,140,0,8,76,0,9,248,80,7,3,0,8,82,0,8,18,85,8,163,83,7,35,0,8,114,0,8,50,0,9,196,81,7,11,0,8,98,0,8,34,0,9,164,0,8,2,0,8,130,0,8,66,0,9,228,80,7,7,0,8,90,0,8,26,0,9,148,84,7,67,0,8,122,0,8,58,0,9,212,82,7,19,0,8,106,0,8,42,0,9,180,0,8,10,0,8,138,0,8,74,0,9,244,80,7,5,0,8,86,0,8,22,192,8,0,83,7,51,0,8,118,0,8,54,0,9,204,81,7,15,0,8,102,0,8,38,0,9,172,0,8,6,0,8,134,0,8,70,0,9,236,80,7,9,0,8,94,0,8,30,0,9,156,84,7,99,0,8,126,0,8,62,0,9,220,82,7,27,0,8,110,0,8,46,0,9,188,0,8,14,0,8,142,0,8,78,0,9,252,96,7,256,0,8,81,0,8,17,85,8,131,82,7,31,0,8,113,0,8,49,0,9,194,80,7,10,0,8,97,0,8,33,0,9,162,0,8,1,0,8,129,0,8,65,0,9,226,80,7,6,0,8,89,0,8,25,0,9,146,83,7,59,0,8,121,0,8,57,0,9,210,81,7,17,0,8,105,0,8,41,0,9,178,0,8,9,0,8,137,0,8,73,0,9,242,80,7,4,0,8,85,0,8,21,80,8,258,83,7,43,0,8,117,0,8,53,0,9,202,81,7,13,0,8,101,0,8,37,0,9,170,0,8,5,0,8,133,0,8,69,0,9,234,80,7,8,0,8,93,0,8,29,0,9,154,84,7,83,0,8,125,0,8,61,0,9,218,82,7,23,0,8,109,0,8,45,0,9,186,0,8,13,0,8,141,0,8,77,0,9,250,80,7,3,0,8,83,0,8,19,85,8,195,83,7,35,0,8,115,0,8,51,0,9,198,81,7,11,0,8,99,0,8,35,0,9,166,0,8,3,0,8,131,0,8,67,0,9,230,80,7,7,0,8,91,0,8,27,0,9,150,84,7,67,0,8,123,0,8,59,0,9,214,82,7,19,0,8,107,0,8,43,0,9,182,0,8,11,0,8,139,0,8,75,0,9,246,80,7,5,0,8,87,0,8,23,192,8,0,83,7,51,0,8,119,0,8,55,0,9,206,81,7,15,0,8,103,0,8,39,0,9,174,0,8,7,0,8,135,0,8,71,0,9,238,80,7,9,0,8,95,0,8,31,0,9,158,84,7,99,0,8,127,0,8,63,0,9,222,82,7,27,0,8,111,0,8,47,0,9,190,0,8,15,0,8,143,0,8,79,0,9,254,96,7,256,0,8,80,0,8,16,84,8,115,82,7,31,0,8,112,0,8,48,0,9,193,80,7,10,0,8,96,0,8,32,0,9,161,0,8,0,0,8,128,0,8,64,0,9,225,80,7,6,0,8,88,0,8,24,0,9,145,83,7,59,0,8,120,0,8,56,0,9,209,81,7,17,0,8,104,0,8,40,0,9,177,0,8,8,0,8,136,0,8,72,0,9,241,80,7,4,0,8,84,0,8,20,85,8,227,83,7,43,0,8,116,0,8,52,0,9,201,81,7,13,0,8,100,0,8,36,0,9,169,0,8,4,0,8,132,0,8,68,0,9,233,80,7,8,0,8,92,0,8,28,0,9,153,84,7,83,0,8,124,0,8,60,0,9,217,82,7,23,0,8,108,0,8,44,0,9,185,0,8,12,0,8,140,0,8,76,0,9,249,80,7,3,0,8,82,0,8,18,85,8,163,83,7,35,0,8,114,0,8,50,0,9,197,81,7,11,0,8,98,0,8,34,0,9,165,0,8,2,0,8,130,0,8,66,0,9,229,80,7,7,0,8,90,0,8,26,0,9,149,84,7,67,0,8,122,0,8,58,0,9,213,82,7,19,0,8,106,0,8,42,0,9,181,0,8,10,0,8,138,0,8,74,0,9,245,80,7,5,0,8,86,0,8,22,192,8,0,83,7,51,0,8,118,0,8,54,0,9,205,81,7,15,0,8,102,0,8,38,0,9,173,0,8,6,0,8,134,0,8,70,0,9,237,80,7,9,0,8,94,0,8,30,0,9,157,84,7,99,0,8,126,0,8,62,0,9,221,82,7,27,0,8,110,0,8,46,0,9,189,0,8,14,0,8,142,0,8,78,0,9,253,96,7,256,0,8,81,0,8,17,85,8,131,82,7,31,0,8,113,0,8,49,0,9,195,80,7,10,0,8,97,0,8,33,0,9,163,0,8,1,0,8,129,0,8,65,0,9,227,80,7,6,0,8,89,0,8,25,0,9,147,83,7,59,0,8,121,0,8,57,0,9,211,81,7,17,0,8,105,0,8,41,0,9,179,0,8,9,0,8,137,0,8,73,0,9,243,80,7,4,0,8,85,0,8,21,80,8,258,83,7,43,0,8,117,0,8,53,0,9,203,81,7,13,0,8,101,0,8,37,0,9,171,0,8,5,0,8,133,0,8,69,0,9,235,80,7,8,0,8,93,0,8,29,0,9,155,84,7,83,0,8,125,0,8,61,0,9,219,82,7,23,0,8,109,0,8,45,0,9,187,0,8,13,0,8,141,0,8,77,0,9,251,80,7,3,0,8,83,0,8,19,85,8,195,83,7,35,0,8,115,0,8,51,0,9,199,81,7,11,0,8,99,0,8,35,0,9,167,0,8,3,0,8,131,0,8,67,0,9,231,80,7,7,0,8,91,0,8,27,0,9,151,84,7,67,0,8,123,0,8,59,0,9,215,82,7,19,0,8,107,0,8,43,0,9,183,0,8,11,0,8,139,0,8,75,0,9,247,80,7,5,0,8,87,0,8,23,192,8,0,83,7,51,0,8,119,0,8,55,0,9,207,81,7,15,0,8,103,0,8,39,0,9,175,0,8,7,0,8,135,0,8,71,0,9,239,80,7,9,0,8,95,0,8,31,0,9,159,84,7,99,0,8,127,0,8,63,0,9,223,82,7,27,0,8,111,0,8,47,0,9,191,0,8,15,0,8,143,0,8,79,0,9,255],ct=[80,5,1,87,5,257,83,5,17,91,5,4097,81,5,5,89,5,1025,85,5,65,93,5,16385,80,5,3,88,5,513,84,5,33,92,5,8193,82,5,9,90,5,2049,86,5,129,192,5,24577,80,5,2,87,5,385,83,5,25,91,5,6145,81,5,7,89,5,1537,85,5,97,93,5,24577,80,5,4,88,5,769,84,5,49,92,5,12289,82,5,13,90,5,3073,86,5,193,192,5,24577],ft=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,0,0],at=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,112,112],lt=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577],ut=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];function wt(){let e,t,n,r,s,i;function o(e,t,o,c,f,a,l,u,w,h,d){let p,y,m,b,g,k,v,S,z,C,x,A,I,_,P;C=0,g=o;do{n[e[t+C]]++,C++,g--}while(0!==g);if(n[0]==o)return l[0]=-1,u[0]=0,0;for(S=u[0],k=1;15>=k&&0===n[k];k++);for(v=k,k>S&&(S=k),g=15;0!==g&&0===n[g];g--);for(m=g,S>g&&(S=g),u[0]=S,_=1<<k;g>k;k++,_<<=1)if(0>(_-=n[k]))return rt;if(0>(_-=n[g]))return rt;for(n[g]+=_,i[1]=k=0,C=1,I=2;0!==--g;)i[I]=k+=n[C],I++,C++;g=0,C=0;do{0!==(k=e[t+C])&&(d[i[k]++]=g),C++}while(++g<o);for(o=i[m],i[0]=g=0,C=0,b=-1,A=-S,s[0]=0,x=0,P=0;m>=v;v++)for(p=n[v];0!==p--;){for(;v>A+S;){if(b++,A+=S,P=m-A,P=P>S?S:P,(y=1<<(k=v-A))>p+1&&(y-=p+1,I=v,P>k))for(;++k<P&&(y<<=1)>n[++I];)y-=n[I];if(P=1<<k,h[0]+P>1440)return rt;s[b]=x=h[0],h[0]+=P,0!==b?(i[b]=g,r[0]=k,r[1]=S,k=g>>>A-S,r[2]=x-s[b-1]-k,w.set(r,3*(s[b-1]+k))):l[0]=x}for(r[1]=v-A,o>C?d[C]<c?(r[0]=256>d[C]?0:96,r[2]=d[C++]):(r[0]=a[d[C]-c]+16+64,r[2]=f[d[C++]-c]):r[0]=192,y=1<<v-A,k=g>>>A;P>k;k+=y)w.set(r,3*(x+k));for(k=1<<v-1;0!==(g&k);k>>>=1)g^=k;for(g^=k,z=(1<<A)-1;(g&z)!=i[b];)b--,A-=S,z=(1<<A)-1}return 0!==_&&1!=m?st:0}function c(o){let c;for(e||(e=[],t=[],n=new f(16),r=[],s=new f(15),i=new f(16)),t.length<o&&(t=[]),c=0;o>c;c++)t[c]=0;for(c=0;16>c;c++)n[c]=0;for(c=0;3>c;c++)r[c]=0;s.set(n.subarray(0,15),0),i.set(n.subarray(0,16),0)}this.st=(n,r,s,i,f)=>{let a;return c(19),e[0]=0,a=o(n,0,19,19,null,null,s,r,i,e,t),a==rt?f.Le="oversubscribed dynamic bit lengths tree":a!=st&&0!==r[0]||(f.Le="incomplete dynamic bit lengths tree",a=rt),a},this.it=(n,r,s,i,f,a,l,u,w)=>{let h;return c(288),e[0]=0,h=o(s,0,n,257,ft,at,a,i,u,e,t),0!=h||0===i[0]?(h==rt?w.Le="oversubscribed literal/length tree":-4!=h&&(w.Le="incomplete literal/length tree",h=rt),h):(c(288),h=o(s,n,r,0,lt,ut,l,f,u,e,t),0!=h||0===f[0]&&n>257?(h==rt?w.Le="oversubscribed distance tree":h==st?(w.Le="incomplete distance tree",h=rt):-4!=h&&(w.Le="empty distance tree with lengths",h=rt),h):0)}}function ht(){const e=this;let t,n,r,s,i=0,o=0,c=0,f=0,a=0,l=0,u=0,w=0,h=0,d=0;function p(e,t,n,r,s,i,o,c){let f,a,l,u,w,h,d,p,y,m,b,g,k,v,S,z;d=c.nt,p=c.We,w=o.ot,h=o.ct,y=o.write,m=y<o.read?o.read-y-1:o.end-y,b=it[e],g=it[t];do{for(;20>h;)p--,w|=(255&c.ft(d++))<<h,h+=8;if(f=w&b,a=n,l=r,z=3*(l+f),0!==(u=a[z]))for(;;){if(w>>=a[z+1],h-=a[z+1],16&u){for(u&=15,k=a[z+2]+(w&it[u]),w>>=u,h-=u;15>h;)p--,w|=(255&c.ft(d++))<<h,h+=8;for(f=w&g,a=s,l=i,z=3*(l+f),u=a[z];;){if(w>>=a[z+1],h-=a[z+1],16&u){for(u&=15;u>h;)p--,w|=(255&c.ft(d++))<<h,h+=8;if(v=a[z+2]+(w&it[u]),w>>=u,h-=u,m-=k,v>y){S=y-v;do{S+=o.end}while(0>S);if(u=o.end-S,k>u){if(k-=u,y-S>0&&u>y-S)do{o.lt[y++]=o.lt[S++]}while(0!==--u);else o.lt.set(o.lt.subarray(S,S+u),y),y+=u,S+=u,u=0;S=0}}else S=y-v,y-S>0&&2>y-S?(o.lt[y++]=o.lt[S++],o.lt[y++]=o.lt[S++],k-=2):(o.lt.set(o.lt.subarray(S,S+2),y),y+=2,S+=2,k-=2);if(y-S>0&&k>y-S)do{o.lt[y++]=o.lt[S++]}while(0!==--k);else o.lt.set(o.lt.subarray(S,S+k),y),y+=k,S+=k,k=0;break}if(64&u)return c.Le="invalid distance code",k=c.We-p,k=k>h>>3?h>>3:k,p+=k,d-=k,h-=k<<3,o.ot=w,o.ct=h,c.We=p,c.qe+=d-c.nt,c.nt=d,o.write=y,rt;f+=a[z+2],f+=w&it[u],z=3*(l+f),u=a[z]}break}if(64&u)return 32&u?(k=c.We-p,k=k>h>>3?h>>3:k,p+=k,d-=k,h-=k<<3,o.ot=w,o.ct=h,c.We=p,c.qe+=d-c.nt,c.nt=d,o.write=y,1):(c.Le="invalid literal/length code",k=c.We-p,k=k>h>>3?h>>3:k,p+=k,d-=k,h-=k<<3,o.ot=w,o.ct=h,c.We=p,c.qe+=d-c.nt,c.nt=d,o.write=y,rt);if(f+=a[z+2],f+=w&it[u],z=3*(l+f),0===(u=a[z])){w>>=a[z+1],h-=a[z+1],o.lt[y++]=a[z+2],m--;break}}else w>>=a[z+1],h-=a[z+1],o.lt[y++]=a[z+2],m--}while(m>=258&&p>=10);return k=c.We-p,k=k>h>>3?h>>3:k,p+=k,d-=k,h-=k<<3,o.ot=w,o.ct=h,c.We=p,c.qe+=d-c.nt,c.nt=d,o.write=y,0}e.init=(e,i,o,c,f,a)=>{t=0,u=e,w=i,r=o,h=c,s=f,d=a,n=null},e.ut=(e,y,m)=>{let b,g,k,v,S,z,C,x=0,A=0,I=0;for(I=y.nt,v=y.We,x=e.ot,A=e.ct,S=e.write,z=S<e.read?e.read-S-1:e.end-S;;)switch(t){case 0:if(z>=258&&v>=10&&(e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,m=p(u,w,r,h,s,d,e,y),I=y.nt,v=y.We,x=e.ot,A=e.ct,S=e.write,z=S<e.read?e.read-S-1:e.end-S,0!=m)){t=1==m?7:9;break}c=u,n=r,o=h,t=1;case 1:for(b=c;b>A;){if(0===v)return e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);m=0,v--,x|=(255&y.ft(I++))<<A,A+=8}if(g=3*(o+(x&it[b])),x>>>=n[g+1],A-=n[g+1],k=n[g],0===k){f=n[g+2],t=6;break}if(16&k){a=15&k,i=n[g+2],t=2;break}if(!(64&k)){c=k,o=g/3+n[g+2];break}if(32&k){t=7;break}return t=9,y.Le="invalid literal/length code",m=rt,e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);case 2:for(b=a;b>A;){if(0===v)return e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);m=0,v--,x|=(255&y.ft(I++))<<A,A+=8}i+=x&it[b],x>>=b,A-=b,c=w,n=s,o=d,t=3;case 3:for(b=c;b>A;){if(0===v)return e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);m=0,v--,x|=(255&y.ft(I++))<<A,A+=8}if(g=3*(o+(x&it[b])),x>>=n[g+1],A-=n[g+1],k=n[g],16&k){a=15&k,l=n[g+2],t=4;break}if(!(64&k)){c=k,o=g/3+n[g+2];break}return t=9,y.Le="invalid distance code",m=rt,e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);case 4:for(b=a;b>A;){if(0===v)return e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);m=0,v--,x|=(255&y.ft(I++))<<A,A+=8}l+=x&it[b],x>>=b,A-=b,t=5;case 5:for(C=S-l;0>C;)C+=e.end;for(;0!==i;){if(0===z&&(S==e.end&&0!==e.read&&(S=0,z=S<e.read?e.read-S-1:e.end-S),0===z&&(e.write=S,m=e.wt(y,m),S=e.write,z=S<e.read?e.read-S-1:e.end-S,S==e.end&&0!==e.read&&(S=0,z=S<e.read?e.read-S-1:e.end-S),0===z)))return e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);e.lt[S++]=e.lt[C++],z--,C==e.end&&(C=0),i--}t=0;break;case 6:if(0===z&&(S==e.end&&0!==e.read&&(S=0,z=S<e.read?e.read-S-1:e.end-S),0===z&&(e.write=S,m=e.wt(y,m),S=e.write,z=S<e.read?e.read-S-1:e.end-S,S==e.end&&0!==e.read&&(S=0,z=S<e.read?e.read-S-1:e.end-S),0===z)))return e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);m=0,e.lt[S++]=f,z--,t=0;break;case 7:if(A>7&&(A-=8,v++,I--),e.write=S,m=e.wt(y,m),S=e.write,z=S<e.read?e.read-S-1:e.end-S,e.read!=e.write)return e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);t=8;case 8:return m=1,e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);case 9:return m=rt,e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m);default:return m=nt,e.ot=x,e.ct=A,y.We=v,y.qe+=I-y.nt,y.nt=I,e.write=S,e.wt(y,m)}},e.ht=()=>{}}wt.dt=(e,t,n,r)=>(e[0]=9,t[0]=5,n[0]=ot,r[0]=ct,0);const dt=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];function pt(e,t){const n=this;let r,s=0,o=0,c=0,a=0;const l=[0],u=[0],w=new ht;let h=0,d=new f(4320);const p=new wt;n.ct=0,n.ot=0,n.lt=new i(t),n.end=t,n.read=0,n.write=0,n.reset=(e,t)=>{t&&(t[0]=0),6==s&&w.ht(e),s=0,n.ct=0,n.ot=0,n.read=n.write=0},n.reset(e,null),n.wt=(e,t)=>{let r,s,i;return s=e.rt,i=n.read,r=(i>n.write?n.end:n.write)-i,r>e.tt&&(r=e.tt),0!==r&&t==st&&(t=0),e.tt-=r,e.Ge+=r,e.$e.set(n.lt.subarray(i,i+r),s),s+=r,i+=r,i==n.end&&(i=0,n.write==n.end&&(n.write=0),r=n.write-i,r>e.tt&&(r=e.tt),0!==r&&t==st&&(t=0),e.tt-=r,e.Ge+=r,e.$e.set(n.lt.subarray(i,i+r),s),s+=r,i+=r),e.rt=s,n.read=i,t},n.ut=(e,t)=>{let i,f,y,m,b,g,k,v;for(m=e.nt,b=e.We,f=n.ot,y=n.ct,g=n.write,k=g<n.read?n.read-g-1:n.end-g;;){let S,z,C,x,A,I,_,P;switch(s){case 0:for(;3>y;){if(0===b)return n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);t=0,b--,f|=(255&e.ft(m++))<<y,y+=8}switch(i=7&f,h=1&i,i>>>1){case 0:f>>>=3,y-=3,i=7&y,f>>>=i,y-=i,s=1;break;case 1:S=[],z=[],C=[[]],x=[[]],wt.dt(S,z,C,x),w.init(S[0],z[0],C[0],0,x[0],0),f>>>=3,y-=3,s=6;break;case 2:f>>>=3,y-=3,s=3;break;case 3:return f>>>=3,y-=3,s=9,e.Le="invalid block type",t=rt,n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t)}break;case 1:for(;32>y;){if(0===b)return n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);t=0,b--,f|=(255&e.ft(m++))<<y,y+=8}if((~f>>>16&65535)!=(65535&f))return s=9,e.Le="invalid stored block lengths",t=rt,n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);o=65535&f,f=y=0,s=0!==o?2:0!==h?7:0;break;case 2:if(0===b)return n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);if(0===k&&(g==n.end&&0!==n.read&&(g=0,k=g<n.read?n.read-g-1:n.end-g),0===k&&(n.write=g,t=n.wt(e,t),g=n.write,k=g<n.read?n.read-g-1:n.end-g,g==n.end&&0!==n.read&&(g=0,k=g<n.read?n.read-g-1:n.end-g),0===k)))return n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);if(t=0,i=o,i>b&&(i=b),i>k&&(i=k),n.lt.set(e.je(m,i),g),m+=i,b-=i,g+=i,k-=i,0!==(o-=i))break;s=0!==h?7:0;break;case 3:for(;14>y;){if(0===b)return n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);t=0,b--,f|=(255&e.ft(m++))<<y,y+=8}if(c=i=16383&f,(31&i)>29||(i>>5&31)>29)return s=9,e.Le="too many length or distance symbols",t=rt,n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);if(i=258+(31&i)+(i>>5&31),!r||r.length<i)r=[];else for(v=0;i>v;v++)r[v]=0;f>>>=14,y-=14,a=0,s=4;case 4:for(;4+(c>>>10)>a;){for(;3>y;){if(0===b)return n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);t=0,b--,f|=(255&e.ft(m++))<<y,y+=8}r[dt[a++]]=7&f,f>>>=3,y-=3}for(;19>a;)r[dt[a++]]=0;if(l[0]=7,i=p.st(r,l,u,d,e),0!=i)return(t=i)==rt&&(r=null,s=9),n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);a=0,s=5;case 5:for(;i=c,258+(31&i)+(i>>5&31)>a;){let o,w;for(i=l[0];i>y;){if(0===b)return n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);t=0,b--,f|=(255&e.ft(m++))<<y,y+=8}if(i=d[3*(u[0]+(f&it[i]))+1],w=d[3*(u[0]+(f&it[i]))+2],16>w)f>>>=i,y-=i,r[a++]=w;else{for(v=18==w?7:w-14,o=18==w?11:3;i+v>y;){if(0===b)return n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);t=0,b--,f|=(255&e.ft(m++))<<y,y+=8}if(f>>>=i,y-=i,o+=f&it[v],f>>>=v,y-=v,v=a,i=c,v+o>258+(31&i)+(i>>5&31)||16==w&&1>v)return r=null,s=9,e.Le="invalid bit length repeat",t=rt,n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);w=16==w?r[v-1]:0;do{r[v++]=w}while(0!==--o);a=v}}if(u[0]=-1,A=[],I=[],_=[],P=[],A[0]=9,I[0]=6,i=c,i=p.it(257+(31&i),1+(i>>5&31),r,A,I,_,P,d,e),0!=i)return i==rt&&(r=null,s=9),t=i,n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);w.init(A[0],I[0],d,_[0],d,P[0]),s=6;case 6:if(n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,1!=(t=w.ut(n,e,t)))return n.wt(e,t);if(t=0,w.ht(e),m=e.nt,b=e.We,f=n.ot,y=n.ct,g=n.write,k=g<n.read?n.read-g-1:n.end-g,0===h){s=0;break}s=7;case 7:if(n.write=g,t=n.wt(e,t),g=n.write,k=g<n.read?n.read-g-1:n.end-g,n.read!=n.write)return n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);s=8;case 8:return t=1,n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);case 9:return t=rt,n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t);default:return t=nt,n.ot=f,n.ct=y,e.We=b,e.qe+=m-e.nt,e.nt=m,n.write=g,n.wt(e,t)}}},n.ht=e=>{n.reset(e,null),n.lt=null,d=null},n.yt=(e,t,r)=>{n.lt.set(e.subarray(t,t+r),0),n.read=n.write=r},n.bt=()=>1==s?1:0}const yt=13,mt=[0,0,255,255];function bt(){const e=this;function t(e){return e&&e.gt?(e.qe=e.Ge=0,e.Le=null,e.gt.mode=7,e.gt.kt.reset(e,null),0):nt}e.mode=0,e.method=0,e.vt=[0],e.St=0,e.marker=0,e.zt=0,e.Ct=t=>(e.kt&&e.kt.ht(t),e.kt=null,0),e.xt=(n,r)=>(n.Le=null,e.kt=null,8>r||r>15?(e.Ct(n),nt):(e.zt=r,n.gt.kt=new pt(n,1<<r),t(n),0)),e.At=(e,t)=>{let n,r;if(!e||!e.gt||!e.et)return nt;const s=e.gt;for(t=4==t?st:0,n=st;;)switch(s.mode){case 0:if(0===e.We)return n;if(n=t,e.We--,e.qe++,8!=(15&(s.method=e.ft(e.nt++)))){s.mode=yt,e.Le="unknown compression method",s.marker=5;break}if(8+(s.method>>4)>s.zt){s.mode=yt,e.Le="invalid win size",s.marker=5;break}s.mode=1;case 1:if(0===e.We)return n;if(n=t,e.We--,e.qe++,r=255&e.ft(e.nt++),((s.method<<8)+r)%31!=0){s.mode=yt,e.Le="incorrect header check",s.marker=5;break}if(!(32&r)){s.mode=7;break}s.mode=2;case 2:if(0===e.We)return n;n=t,e.We--,e.qe++,s.St=(255&e.ft(e.nt++))<<24&4278190080,s.mode=3;case 3:if(0===e.We)return n;n=t,e.We--,e.qe++,s.St+=(255&e.ft(e.nt++))<<16&16711680,s.mode=4;case 4:if(0===e.We)return n;n=t,e.We--,e.qe++,s.St+=(255&e.ft(e.nt++))<<8&65280,s.mode=5;case 5:return 0===e.We?n:(n=t,e.We--,e.qe++,s.St+=255&e.ft(e.nt++),s.mode=6,2);case 6:return s.mode=yt,e.Le="need dictionary",s.marker=0,nt;case 7:if(n=s.kt.ut(e,n),n==rt){s.mode=yt,s.marker=0;break}if(0==n&&(n=t),1!=n)return n;n=t,s.kt.reset(e,s.vt),s.mode=12;case 12:return e.We=0,1;case yt:return rt;default:return nt}},e.It=(e,t,n)=>{let r=0,s=n;if(!e||!e.gt||6!=e.gt.mode)return nt;const i=e.gt;return s<1<<i.zt||(s=(1<<i.zt)-1,r=n-s),i.kt.yt(t,r,s),i.mode=7,0},e._t=e=>{let n,r,s,i,o;if(!e||!e.gt)return nt;const c=e.gt;if(c.mode!=yt&&(c.mode=yt,c.marker=0),0===(n=e.We))return st;for(r=e.nt,s=c.marker;0!==n&&4>s;)e.ft(r)==mt[s]?s++:s=0!==e.ft(r)?0:4-s,r++,n--;return e.qe+=r-e.nt,e.nt=r,e.We=n,c.marker=s,4!=s?rt:(i=e.qe,o=e.Ge,t(e),e.qe=i,e.Ge=o,c.mode=7,0)},e.Pt=e=>e&&e.gt&&e.gt.kt?e.gt.kt.bt():nt}function gt(){}function kt(e){const t=new gt,n=e&&e.chunkSize?r.floor(2*e.chunkSize):131072,o=new i(n);let c=!1;t.xt(),t.$e=o,this.append=(e,r)=>{const f=[];let a,l,u=0,w=0,h=0;if(0!==e.length){t.nt=0,t.et=e,t.We=e.length;do{if(t.rt=0,t.tt=n,0!==t.We||c||(t.nt=0,c=!0),a=t.At(0),c&&a===st){if(0!==t.We)throw new s("inflating: bad input")}else if(0!==a&&1!==a)throw new s("inflating: "+t.Le);if((c||1===a)&&t.We===e.length)throw new s("inflating: bad input");t.rt&&(t.rt===n?f.push(new i(o)):f.push(o.subarray(0,t.rt))),h+=t.rt,r&&t.nt>0&&t.nt!=u&&(r(t.nt),u=t.nt)}while(t.We>0||0===t.tt);return f.length>1?(l=new i(h),f.forEach(e=>{l.set(e,w),w+=e.length})):l=f[0]?new i(f[0]):new i,l}},this.flush=()=>{t.Ct()}}gt.prototype={xt(e){const t=this;return t.gt=new bt,e||(e=15),t.gt.xt(t,e)},At(e){const t=this;return t.gt?t.gt.At(t,e):nt},Ct(){const e=this;if(!e.gt)return nt;const t=e.gt.Ct(e);return e.gt=null,t},_t(){const e=this;return e.gt?e.gt._t(e):nt},It(e,t){const n=this;return n.gt?n.gt.It(n,e,t):nt},ft(e){return this.et[e]},je(e,t){return this.et.subarray(e,e+t)}},self.initCodec=()=>{self.Deflate=tt,self.Inflate=kt};\n',r=()=>t.useDataURI?"data:text/javascript,"+encodeURIComponent(n):URL.createObjectURL(new Blob([n],{type:"text/javascript"}));e({workerScripts:{inflate:[r],deflate:[r]}});}
+	function t(t){t({workerURI:()=>"data:text/javascript,"+encodeURIComponent('(t=>{"function"==typeof define&&define.amd?define(t):t()})(function(){"use strict";const{Array:t,Object:e,Number:n,Math:s,Error:r,Uint8Array:o,Uint16Array:i,Uint32Array:c,Int32Array:a,Map:h,DataView:l,Promise:u,TextEncoder:f,crypto:w,postMessage:p,TransformStream:d,ReadableStream:y,WritableStream:m,CompressionStream:g,DecompressionStream:b}=self,S=[];for(let t=0;256>t;t++){let e=t;for(let t=0;8>t;t++)1&e?e=e>>>1^3988292384:e>>>=1;S[t]=e}class v{constructor(t){this.t=t||-1}append(t){let e=0|this.t;for(let n=0,s=0|t.length;s>n;n++)e=e>>>8^S[255&(e^t[n])];this.t=e}get(){return~this.t}}class k extends d{constructor(){let t;const e=new v;super({transform(t,n){e.append(t),n.enqueue(t)},flush(){const n=new o(4);new l(n.buffer).setUint32(0,e.get()),t.value=n}}),t=this}}const z="undefined",C="function",A={concat(t,e){if(0===t.length||0===e.length)return t.concat(e);const n=t[t.length-1],s=A.o(n);return 32===s?t.concat(e):A.i(e,s,0|n,t.slice(0,t.length-1))},h(t){const e=t.length;if(0===e)return 0;const n=t[e-1];return 32*(e-1)+A.o(n)},l(t,e){if(32*t.length<e)return t;const n=(t=t.slice(0,s.ceil(e/32))).length;return e&=31,n>0&&e&&(t[n-1]=A.u(e,t[n-1]&2147483648>>e-1,1)),t},u:(t,e,n)=>32===t?e:(n?0|e:e<<32-t)+1099511627776*t,o:t=>s.round(t/1099511627776)||32,i(t,e,n,s){for(void 0===s&&(s=[]);e>=32;e-=32)s.push(n),n=0;if(0===e)return s.concat(t);for(let r=0;r<t.length;r++)s.push(n|t[r]>>>e),n=t[r]<<32-e;const r=t.length?t[t.length-1]:0,o=A.o(r);return s.push(A.u(e+o&31,e+o>32?n:s.pop(),1)),s}},x={bytes:{p(t){const e=A.h(t)/8,n=new o(e);let s;for(let r=0;e>r;r++)3&r||(s=t[r/4]),n[r]=s>>>24,s<<=8;return n},m(t){const e=[];let n,s=0;for(n=0;n<t.length;n++)s=s<<8|t[n],3&~n||(e.push(s),s=0);return 3&n&&e.push(A.u(8*(3&n),s)),e}}},I=class{constructor(t){const e=this;e.blockSize=512,e.S=[1732584193,4023233417,2562383102,271733878,3285377520],e.v=[1518500249,1859775393,2400959708,3395469782],t?(e.k=t.k.slice(0),e.C=t.C.slice(0),e.A=t.A):e.reset()}reset(){const t=this;return t.k=t.S.slice(0),t.C=[],t.A=0,t}update(t){const e=this;"string"==typeof t&&(t=x.I.m(t));const n=e.C=A.concat(e.C,t),s=e.A,o=e.A=s+A.h(t);if(o>9007199254740991)throw new r("Cannot hash more than 2^53 - 1 bits");const i=new c(n);let a=0;for(let t=e.blockSize+s-(e.blockSize+s&e.blockSize-1);o>=t;t+=e.blockSize)e.R(i.subarray(16*a,16*(a+1))),a+=1;return n.splice(0,16*a),e}P(){const t=this;let e=t.C;const n=t.k;e=A.concat(e,[A.u(1,1)]);for(let t=e.length+2;15&t;t++)e.push(0);for(e.push(s.floor(t.A/4294967296)),e.push(0|t.A);e.length;)t.R(e.splice(0,16));return t.reset(),n}U(t,e,n,s){return t>19?t>39?t>59?t>79?void 0:e^n^s:e&n|e&s|n&s:e^n^s:e&n|~e&s}V(t,e){return e<<t|e>>>32-t}R(e){const n=this,r=n.k,o=t(80);for(let t=0;16>t;t++)o[t]=e[t];let i=r[0],c=r[1],a=r[2],h=r[3],l=r[4];for(let t=0;79>=t;t++){16>t||(o[t]=n.V(1,o[t-3]^o[t-8]^o[t-14]^o[t-16]));const e=n.V(5,i)+n.U(t,c,a,h)+l+o[t]+n.v[s.floor(t/20)]|0;l=h,h=a,a=n.V(30,c),c=i,i=e}r[0]=r[0]+i|0,r[1]=r[1]+c|0,r[2]=r[2]+a|0,r[3]=r[3]+h|0,r[4]=r[4]+l|0}},R={getRandomValues(t){const e=new c(t.buffer),n=t=>{let e=987654321;const n=4294967295;return()=>(e=36969*(65535&e)+(e>>16)&n,(((e<<16)+(t=18e3*(65535&t)+(t>>16)&n)&n)/4294967296+.5)*(s.random()>.5?1:-1))};for(let r,o=0;o<t.length;o+=4){const t=n(4294967296*(r||s.random()));r=987654071*t(),e[o/4]=4294967296*t()|0}return t}},P={importKey:t=>new P._(x.bytes.m(t)),B(t,e,n,s){if(n=n||1e4,0>s||0>n)throw new r("invalid params to pbkdf2");const o=1+(s>>5)<<2;let i,c,a,h,u;const f=new ArrayBuffer(o),w=new l(f);let p=0;const d=A;for(e=x.bytes.m(e),u=1;(o||1)>p;u++){for(i=c=t.encrypt(d.concat(e,[u])),a=1;n>a;a++)for(c=t.encrypt(c),h=0;h<c.length;h++)i[h]^=c[h];for(a=0;(o||1)>p&&a<i.length;a++)w.setInt32(p,i[a]),p+=4}return f.slice(0,s/8)},_:class{constructor(t){const e=this,n=e.D=I,s=[[],[]];e.M=[new n,new n];const r=e.M[0].blockSize/32;t.length>r&&(t=(new n).update(t).P());for(let e=0;r>e;e++)s[0][e]=909522486^t[e],s[1][e]=1549556828^t[e];e.M[0].update(s[0]),e.M[1].update(s[1]),e.K=new n(e.M[0])}reset(){const t=this;t.K=new t.D(t.M[0]),t.W=!1}update(t){this.W=!0,this.K.update(t)}digest(){const t=this,e=t.K.P(),n=new t.D(t.M[1]).update(e).P();return t.reset(),n}encrypt(t){if(this.W)throw new r("encrypt on already updated hmac called!");return this.update(t),this.digest(t)}}},U=typeof w!=z&&typeof w.getRandomValues==C,V="Invalid password",_="Invalid signature",B="zipjs-abort-check-password";function D(t){return U?w.getRandomValues(t):R.getRandomValues(t)}const M=16,K={name:"PBKDF2"},W=e.assign({hash:{name:"HMAC"}},K),E=e.assign({iterations:1e3,hash:{name:"SHA-1"}},K),L=["deriveBits"],O=[8,12,16],T=[16,24,32],j=10,H=[0,0,0,0],Z=typeof w!=z,F=Z&&w.subtle,N=Z&&typeof F!=z,q=x.bytes,G=class{constructor(t){const e=this;e.L=[[[],[],[],[],[]],[[],[],[],[],[]]],e.L[0][0][0]||e.O();const n=e.L[0][4],s=e.L[1],o=t.length;let i,c,a,h=1;if(4!==o&&6!==o&&8!==o)throw new r("invalid aes key size");for(e.v=[c=t.slice(0),a=[]],i=o;4*o+28>i;i++){let t=c[i-1];(i%o===0||8===o&&i%o===4)&&(t=n[t>>>24]<<24^n[t>>16&255]<<16^n[t>>8&255]<<8^n[255&t],i%o===0&&(t=t<<8^t>>>24^h<<24,h=h<<1^283*(h>>7))),c[i]=c[i-o]^t}for(let t=0;i;t++,i--){const e=c[3&t?i:i-4];a[t]=4>=i||4>t?e:s[0][n[e>>>24]]^s[1][n[e>>16&255]]^s[2][n[e>>8&255]]^s[3][n[255&e]]}}encrypt(t){return this.T(t,0)}decrypt(t){return this.T(t,1)}O(){const t=this.L[0],e=this.L[1],n=t[4],s=e[4],r=[],o=[];let i,c,a,h;for(let t=0;256>t;t++)o[(r[t]=t<<1^283*(t>>7))^t]=t;for(let l=i=0;!n[l];l^=c||1,i=o[i]||1){let o=i^i<<1^i<<2^i<<3^i<<4;o=o>>8^255&o^99,n[l]=o,s[o]=l,h=r[a=r[c=r[l]]];let u=16843009*h^65537*a^257*c^16843008*l,f=257*r[o]^16843008*o;for(let n=0;4>n;n++)t[n][l]=f=f<<24^f>>>8,e[n][o]=u=u<<24^u>>>8}for(let n=0;5>n;n++)t[n]=t[n].slice(0),e[n]=e[n].slice(0)}T(t,e){if(4!==t.length)throw new r("invalid aes block size");const n=this.v[e],s=n.length/4-2,o=[0,0,0,0],i=this.L[e],c=i[0],a=i[1],h=i[2],l=i[3],u=i[4];let f,w,p,d=t[0]^n[0],y=t[e?3:1]^n[1],m=t[2]^n[2],g=t[e?1:3]^n[3],b=4;for(let t=0;s>t;t++)f=c[d>>>24]^a[y>>16&255]^h[m>>8&255]^l[255&g]^n[b],w=c[y>>>24]^a[m>>16&255]^h[g>>8&255]^l[255&d]^n[b+1],p=c[m>>>24]^a[g>>16&255]^h[d>>8&255]^l[255&y]^n[b+2],g=c[g>>>24]^a[d>>16&255]^h[y>>8&255]^l[255&m]^n[b+3],b+=4,d=f,y=w,m=p;for(let t=0;4>t;t++)o[e?3&-t:t]=u[d>>>24]<<24^u[y>>16&255]<<16^u[m>>8&255]<<8^u[255&g]^n[b++],f=d,d=y,y=m,m=g,g=f;return o}},J=class{constructor(t,e){this.j=t,this.H=e,this.Z=e}reset(){this.Z=this.H}update(t){return this.F(this.j,t,this.Z)}N(t){if(255&~(t>>24))t+=1<<24;else{let e=t>>16&255,n=t>>8&255,s=255&t;255===e?(e=0,255===n?(n=0,255===s?s=0:++s):++n):++e,t=0,t+=e<<16,t+=n<<8,t+=s}return t}q(t){0===(t[0]=this.N(t[0]))&&(t[1]=this.N(t[1]))}F(t,e,n){let s;if(!(s=e.length))return[];const r=A.h(e);for(let r=0;s>r;r+=4){this.q(n);const s=t.encrypt(n);e[r]^=s[0],e[r+1]^=s[1],e[r+2]^=s[2],e[r+3]^=s[3]}return A.l(e,r)}},Q=P._;let X=Z&&N&&typeof F.importKey==C,Y=Z&&N&&typeof F.deriveBits==C;class $ extends d{constructor({password:t,rawPassword:n,signed:s,encryptionStrength:i,checkPasswordOnly:c}){super({start(){e.assign(this,{ready:new u(t=>this.G=t),password:st(t,n),signed:s,J:i-1,pending:new o})},async transform(t,e){const n=this,{password:s,J:i,G:a,ready:h}=n;s?(await(async(t,e,n,s)=>{const o=await nt(t,e,n,ot(s,0,O[e])),i=ot(s,O[e]);if(o[0]!=i[0]||o[1]!=i[1])throw new r(V)})(n,i,s,ot(t,0,O[i]+2)),t=ot(t,O[i]+2),c?e.error(new r(B)):a()):await h;const l=new o(t.length-j-(t.length-j)%M);e.enqueue(et(n,t,l,0,j,!0))},async flush(t){const{signed:e,X:n,Y:s,pending:i,ready:c}=this;if(s&&n){await c;const a=ot(i,0,i.length-j),h=ot(i,i.length-j);let l=new o;if(a.length){const t=ct(q,a);s.update(t);const e=n.update(t);l=it(q,e)}if(e){const t=ot(it(q,s.digest()),0,j);for(let e=0;j>e;e++)if(t[e]!=h[e])throw new r(_)}t.enqueue(l)}}})}}class tt extends d{constructor({password:t,rawPassword:n,encryptionStrength:s}){let r;super({start(){e.assign(this,{ready:new u(t=>this.G=t),password:st(t,n),J:s-1,pending:new o})},async transform(t,e){const n=this,{password:s,J:r,G:i,ready:c}=n;let a=new o;s?(a=await(async(t,e,n)=>{const s=D(new o(O[e]));return rt(s,await nt(t,e,n,s))})(n,r,s),i()):await c;const h=new o(a.length+t.length-t.length%M);h.set(a,0),e.enqueue(et(n,t,h,a.length,0))},async flush(t){const{X:e,Y:n,pending:s,ready:i}=this;if(n&&e){await i;let c=new o;if(s.length){const t=e.update(ct(q,s));n.update(t),c=it(q,t)}r.signature=it(q,n.digest()).slice(0,j),t.enqueue(rt(c,r.signature))}}}),r=this}}function et(t,e,n,s,r,i){const{X:c,Y:a,pending:h}=t,l=e.length-r;let u;for(h.length&&(e=rt(h,e),n=((t,e)=>{if(e&&e>t.length){const n=t;(t=new o(e)).set(n,0)}return t})(n,l-l%M)),u=0;l-M>=u;u+=M){const t=ct(q,ot(e,u,u+M));i&&a.update(t);const r=c.update(t);i||a.update(r),n.set(it(q,r),u+s)}return t.pending=ot(e,u),n}async function nt(n,s,r,i){n.password=null;const c=await(async(t,e,n,s,r)=>{if(!X)return P.importKey(e);try{return await F.importKey("raw",e,n,!1,r)}catch(t){return X=!1,P.importKey(e)}})(0,r,W,0,L),a=await(async(t,e,n)=>{if(!Y)return P.B(e,t.salt,E.iterations,n);try{return await F.deriveBits(t,e,n)}catch(s){return Y=!1,P.B(e,t.salt,E.iterations,n)}})(e.assign({salt:i},E),c,8*(2*T[s]+2)),h=new o(a),l=ct(q,ot(h,0,T[s])),u=ct(q,ot(h,T[s],2*T[s])),f=ot(h,2*T[s]);return e.assign(n,{keys:{key:l,$:u,passwordVerification:f},X:new J(new G(l),t.from(H)),Y:new Q(u)}),f}function st(t,e){return void 0===e?(t=>{if(typeof f==z){const e=new o((t=unescape(encodeURIComponent(t))).length);for(let n=0;n<e.length;n++)e[n]=t.charCodeAt(n);return e}return(new f).encode(t)})(t):e}function rt(t,e){let n=t;return t.length+e.length&&(n=new o(t.length+e.length),n.set(t,0),n.set(e,t.length)),n}function ot(t,e,n){return t.subarray(e,n)}function it(t,e){return t.p(e)}function ct(t,e){return t.m(e)}class at extends d{constructor({password:t,passwordVerification:n,checkPasswordOnly:s}){super({start(){e.assign(this,{password:t,passwordVerification:n}),ft(this,t)},transform(t,e){const n=this;if(n.password){const e=lt(n,t.subarray(0,12));if(n.password=null,e.at(-1)!=n.passwordVerification)throw new r(V);t=t.subarray(12)}s?e.error(new r(B)):e.enqueue(lt(n,t))}})}}class ht extends d{constructor({password:t,passwordVerification:n}){super({start(){e.assign(this,{password:t,passwordVerification:n}),ft(this,t)},transform(t,e){const n=this;let s,r;if(n.password){n.password=null;const e=D(new o(12));e[11]=n.passwordVerification,s=new o(t.length+e.length),s.set(ut(n,e),0),r=12}else s=new o(t.length),r=0;s.set(ut(n,t),r),e.enqueue(s)}})}}function lt(t,e){const n=new o(e.length);for(let s=0;s<e.length;s++)n[s]=pt(t)^e[s],wt(t,n[s]);return n}function ut(t,e){const n=new o(e.length);for(let s=0;s<e.length;s++)n[s]=pt(t)^e[s],wt(t,e[s]);return n}function ft(t,n){const s=[305419896,591751049,878082192];e.assign(t,{keys:s,tt:new v(s[0]),et:new v(s[2])});for(let e=0;e<n.length;e++)wt(t,n.charCodeAt(e))}function wt(t,e){let[n,r,o]=t.keys;t.tt.append([e]),n=~t.tt.get(),r=yt(s.imul(yt(r+dt(n)),134775813)+1),t.et.append([r>>>24]),o=~t.et.get(),t.keys=[n,r,o]}function pt(t){const e=2|t.keys[2];return dt(s.imul(e,1^e)>>>8)}function dt(t){return 255&t}function yt(t){return 4294967295&t}class mt extends d{constructor(t,{chunkSize:e,nt:n,CompressionStream:s}){super({});const{compressed:r,encrypted:o,useCompressionStream:i,zipCrypto:c,signed:a,level:h}=t,u=this;let f,w,p=super.readable;o&&!c||!a||(f=new k,p=vt(p,f)),r&&(p=St(p,i,{level:h,chunkSize:e},s,n,s)),o&&(c?p=vt(p,new ht(t)):(w=new tt(t),p=vt(p,w))),bt(u,p,()=>{let t;o&&!c&&(t=w.signature),o&&!c||!a||(t=new l(f.value.buffer).getUint32(0)),u.signature=t})}}class gt extends d{constructor(t,{chunkSize:e,st:n,DecompressionStream:s}){super({});const{zipCrypto:o,encrypted:i,signed:c,signature:a,compressed:h,useCompressionStream:u,rt:f}=t;let w,p,d=super.readable;i&&(o?d=vt(d,new at(t)):(p=new $(t),d=vt(d,p))),h&&(d=St(d,u,{chunkSize:e,rt:f},s,n,s)),i&&!o||!c||(w=new k,d=vt(d,w)),bt(this,d,()=>{if((!i||o)&&c){const t=new l(w.value.buffer);if(a!=t.getUint32(0,!1))throw new r(_)}})}}function bt(t,n,s){n=vt(n,new d({flush:s})),e.defineProperty(t,"readable",{get:()=>n})}function St(t,e,n,s,r,o){const i=e&&s?s:r||o,c=n.rt?"deflate64-raw":"deflate-raw";try{t=vt(t,new i(c,n))}catch(s){if(!e)throw s;if(r)t=vt(t,new r(c,n));else{if(!o)throw s;t=vt(t,new o(c,n))}}return t}function vt(t,e){return t.pipeThrough(e)}const kt="data",zt="close";class Ct extends d{constructor(t,n){super({});const s=this,{codecType:o}=t;let i;o.startsWith("deflate")?i=mt:o.startsWith("inflate")&&(i=gt),s.outputSize=0;let c=0;const a=new i(t,n),h=super.readable,l=new d({transform(t,e){t&&t.length&&(c+=t.length,e.enqueue(t))},flush(){e.assign(s,{inputSize:c})}}),u=new d({transform(e,n){if(e&&e.length&&(n.enqueue(e),s.outputSize+=e.length,t.outputSize&&s.outputSize>t.outputSize))throw new r("Invalid uncompressed size")},flush(){const{signature:t}=a;e.assign(s,{signature:t,inputSize:c})}});e.defineProperty(s,"readable",{get:()=>h.pipeThrough(l).pipeThrough(a).pipeThrough(u)})}}class At extends d{constructor(t){let e;super({transform:function n(s,r){if(e){const t=new o(e.length+s.length);t.set(e),t.set(s,e.length),s=t,e=null}s.length>t?(r.enqueue(s.slice(0,t)),n(s.slice(t),r)):e=s},flush(t){e&&e.length&&t.enqueue(e)}})}}let xt,It,Rt,Pt;function Ut(t,e,n={}){const i="number"==typeof n.level?n.level:-1,c="number"==typeof n.ot?n.ot:65536,a="number"==typeof n.it?n.it:65536;return new d({start(){let n;if(this.ct=It(c),this.in=It(a),this.it=a,this.ht=new o(c),t?(this.lt=xt.deflate_process,this.ut=xt.deflate_last_consumed,this.ft=xt.deflate_end,this.wt=xt.deflate_new(),n="gzip"===e?xt.deflate_init_gzip(this.wt,i):"deflate-raw"===e?xt.deflate_init_raw(this.wt,i):xt.deflate_init(this.wt,i)):"deflate64-raw"===e?(this.lt=xt.inflate9_process,this.ut=xt.inflate9_last_consumed,this.ft=xt.inflate9_end,this.wt=xt.inflate9_new(),n=xt.inflate9_init_raw(this.wt)):(this.lt=xt.inflate_process,this.ut=xt.inflate_last_consumed,this.ft=xt.inflate_end,this.wt=xt.inflate_new(),n="deflate-raw"===e?xt.inflate_init_raw(this.wt):"gzip"===e?xt.inflate_init_gzip(this.wt):xt.inflate_init(this.wt)),0!==n)throw new r("init failed:"+n)},transform(e,n){try{const i=e,a=new o(Pt.buffer),h=this.lt,l=this.ut,u=this.ct,f=this.ht;let w=0;for(;w<i.length;){const e=s.min(i.length-w,32768);this.in&&this.it>=e||(this.in&&Rt&&Rt(this.in),this.in=It(e),this.it=e),a.set(i.subarray(w,w+e),this.in);const o=h(this.wt,this.in,e,u,c,0);if(!t&&0>o)throw new r("process error:"+o);const p=16777215&o;p&&(f.set(a.subarray(u,u+p),0),n.enqueue(f.slice(0,p)));const d=l(this.wt);if(0===d)break;w+=d}}catch(t){this.ft&&this.wt&&this.ft(this.wt),this.in&&Rt&&Rt(this.in),this.ct&&Rt&&Rt(this.ct),n.error(t)}},flush(e){try{const n=new o(Pt.buffer),s=this.lt,i=this.ct,a=this.ht;for(;;){const o=s(this.wt,0,0,i,c,4);if(!t&&0>o)throw new r("process error:"+o);const h=16777215&o,l=o>>24&255;if(h&&(a.set(n.subarray(i,i+h),0),e.enqueue(a.slice(0,h))),1===l||0===h)break}}catch(t){e.error(t)}finally{if(this.ft&&this.wt){const t=this.ft(this.wt);0!==t&&e.error(new r("end error:"+t))}this.in&&Rt&&Rt(this.in),this.ct&&Rt&&Rt(this.ct)}}})}class Vt{constructor(t="deflate",e){return Ut(!0,t,e)}}class _t{constructor(t="deflate",e){return Ut(!1,t,e)}}let Bt=!1;const Dt=new h,Mt=new h;let Kt,Wt=0;async function Et(t){try{const{options:e,config:s}=t;Bt||e.useCompressionStream||await(async(t,{baseURI:e})=>{if(!Bt){let s,r;try{try{r=new URL(t,e)}catch(t){}const n=await fetch(r);s=await n.arrayBuffer()}catch(e){if(!t.startsWith("data:application/wasm;base64,"))throw e;s=(t=>{const e=t.split(",")[1],n=atob(e),s=n.length,r=new o(s);for(let t=0;s>t;++t)r[t]=n.charCodeAt(t);return r.buffer})(t)}n=(await WebAssembly.instantiate(s)).instance.exports,xt=n,({malloc:It,free:Rt,memory:Pt}=xt),Bt=!0}var n})(t.config.wasmURI,t.config),s.CompressionStream=self.CompressionStream,s.DecompressionStream=self.DecompressionStream,s.nt=Vt,s.st=_t;const r={highWaterMark:1},i=t.readable||new y({async pull(t){const e=new u(t=>Dt.set(Wt,t));Lt({type:"pull",messageId:Wt}),Wt=(Wt+1)%n.MAX_SAFE_INTEGER;const{value:s,done:r}=await e;t.enqueue(s),r&&t.close()}},r),c=t.writable||new m({async write(t){let e;const s=new u(t=>e=t);Mt.set(Wt,e),Lt({type:kt,value:t,messageId:Wt}),Wt=(Wt+1)%n.MAX_SAFE_INTEGER,await s}},r),a=new Ct(e,s);Kt=new AbortController;const{signal:h}=Kt;await i.pipeThrough(a).pipeThrough(new At(s.chunkSize)).pipeTo(c,{signal:h,preventClose:!0,preventAbort:!0}),await c.getWriter().close();const{signature:l,inputSize:f,outputSize:w}=a;Lt({type:zt,result:{signature:l,inputSize:f,outputSize:w}})}catch(t){t.outputSize=0,Ot(t)}}function Lt(t){let{value:e}=t;if(e)if(e.length)try{e=new o(e),t.value=e.buffer,p(t,[t.value])}catch(e){p(t)}else p(t);else p(t)}function Ot(t=new r("Unknown error")){const{message:e,stack:n,code:s,name:o,outputSize:i}=t;p({error:{message:e,stack:n,code:s,name:o,outputSize:i}})}addEventListener("message",({data:t})=>{const{type:e,messageId:n,value:s,done:r}=t;try{if("start"==e&&Et(t),e==kt){const t=Dt.get(n);Dt.delete(n),t({value:new o(s),done:r})}if("ack"==e){const t=Mt.get(n);Mt.delete(n),t()}e==zt&&Kt.abort()}catch(t){Ot(t)}})});\n')});}
+
+	const A="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";function g(g){g({wasmURI:()=>"data:application/wasm;base64,"+(g=>{g=(g=>{const B=(g=(g+"").replace(/[^A-Za-z0-9+/=]/g,"")).length,E=[];for(let I=0;B>I;I+=4){const B=A.indexOf(g[I])<<18|A.indexOf(g[I+1])<<12|(63&A.indexOf(g[I+2]))<<6|63&A.indexOf(g[I+3]);E.push(B>>16&255),"="!==g[I+2]&&E.push(B>>8&255),"="!==g[I+3]&&E.push(255&B);}return new Uint8Array(E)})(g);let B=new Uint8Array(1024),E=0;for(let A=0;A<g.length;){const C=g[A++];if(128&C){const Q=3+(127&C),Y=g[A++]<<8|g[A++],D=E-Y;I(E+Q);for(let A=0;Q>A;A++)B[E++]=B[D+A];}else {const Q=C;I(E+Q);for(let I=0;Q>I&&A<g.length;I++)B[E++]=g[A++];}}return (g=>{let B="";const E=g.length;let I=0;for(;E>I+2;I+=3){const E=g[I]<<16|g[I+1]<<8|g[I+2];B+=A[E>>18&63]+A[E>>12&63]+A[E>>6&63]+A[63&E];}const C=E-I;if(1===C){const E=g[I]<<16;B+=A[E>>18&63]+A[E>>12&63]+"==";}else if(2===C){const E=g[I]<<16|g[I+1]<<8;B+=A[E>>18&63]+A[E>>12&63]+A[E>>6&63]+"=";}return B})(new Uint8Array(B.buffer.slice(0,E)));function I(A){if(B.length<A){let g=2*B.length;for(;A>g;)g*=2;const I=new Uint8Array(g);I.set(B.subarray(0,E)),B=I;}}})("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mYAABAFZgAAEAdmAAAQBOYAABAG5gAAEAXmAAAQB+YAABAEFgAAEAYWAAAQBRYAABAHFgAAEASWAAAQBpYAABAFlgAAEAeWAAAQBFYAABAGVgAAEAVWAAAQB1YAABAE1gAAEAbWAAAQBdYAABAH1gAAEAQ2AAAQBjYAABAFNgAAEAc2AAASAETMCAK2AAAQBbYAABAHtgAAEAR2AAAQBnYAABAFdgAAEAd2AAAQBPYAABAG9gAAEAX2AAAQB/YAABAETgADCBRMBCQCTgAAIAZOAAAgBU4AACAFTgAAIAdOAAAgB04AACAEzgAAIATOAAAgBs4AACAGzgAAIAXOAAAgBc4AACAHzgAAIAfOAAAgBC4AACIAQ2oAEAoAABIAACAFLgAAIAUuAAAgBy4AACAHLgAAIASuAAAgBK4AACAGrgAAIAauAAAgBa4AACAFrgAAIAeuAAAgB64AACAEbgAAIARuAAAgBm4AACAGbgAAIAVuAAAgBW4AACAHbgAAIAduAAAgBO4AACAE7gAAIAbuAAAgBu4AACAF7gAAIAXuAAAgB+4AACAH7gAAIgQO2AQeAAAgBh4AACAGHgAAIAUeAAAgBR4AACAHHgAAIAceAAAgBJ4AACAEngAAIAaeAAAgBp4AACAFngAAIAWeAAAgB54AACAHngAAIAReAAAgBF4AACAGXgAAIAZeAAAgBV4AACAFXgAAIAdeAAAgB14AACAE3gAAIATeAAAgBt4AACAG3gAAIAXeAAAgBd4AACAH3gAAIAfeAAAgBD4AACAEPgAAIAY+AAAgBj4AACAFPgAAIAU+AAAgBz4AACAHPgAAIAS+AAAgBL4AACAGvgAAIAa+AAAgBb4AACAFvgAAIAe+AAAgB74AACAEfgAAIAR+AAAgBn4AACAGfgAAIAV+AAAgBX4AACAHfgAAIAd+AAAgBP4AACAE/gAAIAb+AAAgBv4AACAF/gAAIAX+AAAgB/4AACAH/gAAIgQQKAUCAAAQBIIAABAFggAAEARCAAAQBUIAABAEwgAAEAXCCBVYDBwBIgAAEASiAAAQBaIAABAEYgAAEAViAAAQBOIAABAF4gAAEAQSAAAQBRIAABAEkgAAEAWSAAAQBFIAABAFUgAAEATSAAAQBdIAABAEDgABCAYOAAAQBQ4AABAHDgAAEASOAAAQBo4AABAFjgAAEAeOAAASAveaAAHSBAsYBBYAAXAEFggVKARSAAAQBDIAABAEcgAAEgL34gAREAQWCBgQBGoIF6gEFgAPUAQWAA7gBBYADnIBPdoAABAERgAAEAQmAAAQBGYAABIEAAgEVgAAEAQ2AAAQBHYAABAEDgAAEAROCBkABBYACLIEFpgEFgAG0AQWAPd8DGwtNgx+5hwAEAQKMAASBB1GJAAQBBIwABAEFigAEBEGwHAuAvMWLAEuNADuFAC8BBoQABIEFiIEABIEBCoEABIEBkoEABICEcYIABAELhAAEAQyEAASABduBR3kE4B0LI4UAX4UFywIQEYAFbQYHCQYKBQuAOrgEDQIOAYAHJQSUHgtphQCQhQCIhQCAhQB4gQBogQBcgQYfARCAAAQBFIAABAEYgAAEARyAAAQBIIAABAEogAAEATCAAAQBOIAABAFAgAAEAVCAAASBBr0BcIAABAGAgAAEAaCAAAQBwIAABAHggABvAx8Lco0Ab4EAa4EAZ4EAY4EAX4EAW4EAV4EAU4EAT4EAS4EAR4EAQ4EBPAGArwBBgFHNAgttgQDHAQSAAAIBCIAABIEBM4ECSwEQgAAOgwAMgYVpgKomhAAkgQdzgQBPAQiAAAiBABiFAAyBCLeDAAwBIIEAlIAyhIEAawGAgQgvAQSDAAyAP0gKAQAQDABBkSEL/4AlHwEDgpvTBQgJCQoKgEk3gAABAQ2AAAEBDoAAAQEPgAABARCEAAEBEYQAAQEShAABAROEAAEBFIwAAQEVjAABARaMAAEBF4wAAQEYnAABARmcAAEBGpwAAQEbmwABARyBffsEBAQFBYHBkAEHgAABAQiEAAGAXSqCAAEBCowAAYAnsooAAYEBMJkAAYEBTJkAAYEBaLkAAYEBpLkAAYIDdYABzoUBvI0BqJ0BkLwBgAIbHLwAAQEdvAABgA9PgH05A9AqAQ==")});}
 
 	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
 	 modification, are permitted provided that the following conditions are met:
@@ -295,71 +226,983 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+	/* global TransformStream */
 
-	function getMimeType() {
-		return "application/octet-stream";
+	let wasm, malloc, free, memory;
+
+	function setWasmExports(wasmAPI) {
+		wasm = wasmAPI;
+		({ malloc, free, memory } = wasm);
 	}
 
-	/* eslint-disable no-prototype-builtins */
+	function _make(isCompress, type, options = {}) {
+		const level = (typeof options.level === "number") ? options.level : -1;
+		const outBufferSize = (typeof options.outBuffer === "number") ? options.outBuffer : 64 * 1024;
+		const inBufferSize = (typeof options.inBufferSize === "number") ? options.inBufferSize : 64 * 1024;
 
-
-	function initShimAsyncCodec(library, options = {}, registerDataHandler) {
-		return {
-			Deflate: createCodecClass(library.Deflate, options.deflate, registerDataHandler),
-			Inflate: createCodecClass(library.Inflate, options.inflate, registerDataHandler)
-		};
-	}
-
-	function objectHasOwn(object, propertyName) {
-		return typeof Object.hasOwn === FUNCTION_TYPE ?
-			Object.hasOwn(object, propertyName) :
-			object.hasOwnProperty(propertyName);
-	}
-
-	function createCodecClass(constructor, constructorOptions, registerDataHandler) {
-		return class {
-
-			constructor(options) {
-				const codecAdapter = this;
-				const onData = data => {
-					if (codecAdapter.pendingData) {
-						const previousPendingData = codecAdapter.pendingData;
-						codecAdapter.pendingData = new Uint8Array(previousPendingData.length + data.length);
-						const { pendingData } = codecAdapter;
-						pendingData.set(previousPendingData, 0);
-						pendingData.set(data, previousPendingData.length);
+		return new TransformStream({
+			start() {
+				let result;
+				this.out = malloc(outBufferSize);
+				this.in = malloc(inBufferSize);
+				this.inBufferSize = inBufferSize;
+				this._scratch = new Uint8Array(outBufferSize);
+				if (isCompress) {
+					this._process = wasm.deflate_process;
+					this._last_consumed = wasm.deflate_last_consumed;
+					this._end = wasm.deflate_end;
+					this.streamHandle = wasm.deflate_new();
+					if (type === "gzip") {
+						result = wasm.deflate_init_gzip(this.streamHandle, level);
+					} else if (type === "deflate-raw") {
+						result = wasm.deflate_init_raw(this.streamHandle, level);
 					} else {
-						codecAdapter.pendingData = new Uint8Array(data);
+						result = wasm.deflate_init(this.streamHandle, level);
 					}
-				};
-				if (objectHasOwn(options, "level") && options.level === UNDEFINED_VALUE) {
-					delete options.level;
+				} else {
+					if (type === "deflate64-raw") {
+						this._process = wasm.inflate9_process;
+						this._last_consumed = wasm.inflate9_last_consumed;
+						this._end = wasm.inflate9_end;
+						this.streamHandle = wasm.inflate9_new();
+						result = wasm.inflate9_init_raw(this.streamHandle);
+					} else {
+						this._process = wasm.inflate_process;
+						this._last_consumed = wasm.inflate_last_consumed;
+						this._end = wasm.inflate_end;
+						this.streamHandle = wasm.inflate_new();
+						if (type === "deflate-raw") {
+							result = wasm.inflate_init_raw(this.streamHandle);
+						} else if (type === "gzip") {
+							result = wasm.inflate_init_gzip(this.streamHandle);
+						} else {
+							result = wasm.inflate_init(this.streamHandle);
+						}
+					}
 				}
-				codecAdapter.codec = new constructor(Object.assign({}, constructorOptions, options));
-				registerDataHandler(codecAdapter.codec, onData);
+				if (result !== 0) {
+					throw new Error("init failed:" + result);
+				}
+			},
+			transform(chunk, controller) {
+				try {
+					const buffer = chunk;
+					const heap = new Uint8Array(memory.buffer);
+					const process = this._process;
+					const last_consumed = this._last_consumed;
+					const out = this.out;
+					const scratch = this._scratch;
+					let offset = 0;
+					while (offset < buffer.length) {
+						const toRead = Math.min(buffer.length - offset, 32 * 1024);
+						if (!this.in || this.inBufferSize < toRead) {
+							if (this.in && free) {
+								free(this.in);
+							}
+							this.in = malloc(toRead);
+							this.inBufferSize = toRead;
+						}
+						heap.set(buffer.subarray(offset, offset + toRead), this.in);
+						const result = process(this.streamHandle, this.in, toRead, out, outBufferSize, 0);
+						if (!isCompress && result < 0) {
+							throw new Error("process error:" + result);
+						}
+						const prod = result & 0x00ffffff;
+						if (prod) {
+							scratch.set(heap.subarray(out, out + prod), 0);
+							controller.enqueue(scratch.slice(0, prod));
+						}
+						const consumed = last_consumed(this.streamHandle);
+						if (consumed === 0) {
+							break;
+						}
+						offset += consumed;
+					}
+				} catch (error) {
+					if (this._end && this.streamHandle) {
+						this._end(this.streamHandle);
+					}
+					if (this.in && free) {
+						free(this.in);
+					}
+					if (this.out && free) {
+						free(this.out);
+					}
+					controller.error(error);
+				}
+			},
+			flush(controller) {
+				try {
+					const heap = new Uint8Array(memory.buffer);
+					const process = this._process;
+					const out = this.out;
+					const scratch = this._scratch;
+					while (true) {
+						const result = process(this.streamHandle, 0, 0, out, outBufferSize, 4);
+						if (!isCompress && result < 0) {
+							throw new Error("process error:" + result);
+						}
+						const produced = result & 0x00ffffff;
+						const code = (result >> 24) & 0xff;
+						if (produced) {
+							scratch.set(heap.subarray(out, out + produced), 0);
+							controller.enqueue(scratch.slice(0, produced));
+						}
+						if (code === 1 || produced === 0) {
+							break;
+						}
+					}
+				} catch (error) {
+					controller.error(error);
+				} finally {
+					if (this._end && this.streamHandle) {
+						const result = this._end(this.streamHandle);
+						if (result !== 0) {
+							controller.error(new Error("end error:" + result));
+						}
+					}
+					if (this.in && free) {
+						free(this.in);
+					}
+					if (this.out && free) {
+						free(this.out);
+					}
+				}
 			}
-			append(data) {
-				this.codec.push(data);
-				return getResponse(this);
-			}
-			flush() {
-				this.codec.push(new Uint8Array(), true);
-				return getResponse(this);
-			}
-		};
+		});
+	}
 
-		function getResponse(codec) {
-			if (codec.pendingData) {
-				const output = codec.pendingData;
-				codec.pendingData = null;
-				return output;
-			} else {
-				return new Uint8Array();
-			}
+	class CompressionStreamZlib {
+		constructor(type = "deflate", options) {
+			return _make(true, type, options);
+		}
+	}
+	class DecompressionStreamZlib {
+		constructor(type = "deflate", options) {
+			return _make(false, type, options);
 		}
 	}
 
 	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	let initializedModule = false;
+
+	async function initModule(wasmURI, { baseURI }) {
+		if (!initializedModule) {
+			let arrayBuffer, uri;
+			try {
+				try {
+					uri = new URL(wasmURI, baseURI);
+					// eslint-disable-next-line no-unused-vars
+				} catch (_) {
+					// ignored
+				}
+				const response = await fetch(uri);
+				arrayBuffer = await response.arrayBuffer();
+			} catch (error) {
+				if (wasmURI.startsWith("data:application/wasm;base64,")) {
+					arrayBuffer = arrayBufferFromDataURI(wasmURI);
+				} else {
+					throw error;
+				}
+			}
+			const wasmInstance = await WebAssembly.instantiate(arrayBuffer);
+			setWasmExports(wasmInstance.instance.exports);
+			initializedModule = true;
+		}
+	}
+
+	function resetWasmModule() {
+		initializedModule = false;
+	}
+
+	function arrayBufferFromDataURI(dataURI) {
+		const base64 = dataURI.split(",")[1];
+		const binary = atob(base64);
+		const len = binary.length;
+		const bytes = new Uint8Array(len);
+		for (let i = 0; i < len; ++i) {
+			bytes[i] = binary.charCodeAt(i);
+		}
+		return bytes.buffer;
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const ERR_HTTP_STATUS = "HTTP error ";
+	const ERR_HTTP_RANGE = "HTTP Range not supported";
+	const ERR_ITERATOR_COMPLETED_TOO_SOON = "Writer iterator completed too soon";
+	const ERR_WRITER_NOT_INITIALIZED = "Writer not initialized";
+
+	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
+	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
+	const HTTP_HEADER_CONTENT_RANGE = "Content-Range";
+	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
+	const HTTP_HEADER_RANGE = "Range";
+	const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
+	const HTTP_METHOD_HEAD = "HEAD";
+	const HTTP_METHOD_GET = "GET";
+	const HTTP_RANGE_UNIT = "bytes";
+	const DEFAULT_CHUNK_SIZE = 64 * 1024;
+
+	const PROPERTY_NAME_WRITABLE = "writable";
+
+	class Stream {
+
+		constructor() {
+			this.size = 0;
+		}
+
+		init() {
+			this.initialized = true;
+		}
+	}
+
+	class Reader extends Stream {
+
+		get readable() {
+			const reader = this;
+			const { chunkSize = DEFAULT_CHUNK_SIZE } = reader;
+			const readable = new ReadableStream({
+				start() {
+					this.chunkOffset = 0;
+				},
+				async pull(controller) {
+					const { offset = 0, size, diskNumberStart } = readable;
+					const { chunkOffset } = this;
+					const dataSize = size === UNDEFINED_VALUE ? chunkSize : Math.min(chunkSize, size - chunkOffset);
+					const data = await readUint8Array(reader, offset + chunkOffset, dataSize, diskNumberStart);
+					controller.enqueue(data);
+					if ((chunkOffset + chunkSize > size) || (size === UNDEFINED_VALUE && !data.length && dataSize)) {
+						controller.close();
+					} else {
+						this.chunkOffset += chunkSize;
+					}
+				}
+			});
+			return readable;
+		}
+	}
+
+	class Writer extends Stream {
+
+		constructor() {
+			super();
+			const writer = this;
+			const writable = new WritableStream({
+				write(chunk) {
+					if (!writer.initialized) {
+						throw new Error(ERR_WRITER_NOT_INITIALIZED);
+					}
+					return writer.writeUint8Array(chunk);
+				}
+			});
+			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
+				get() {
+					return writable;
+				}
+			});
+		}
+
+		writeUint8Array() {
+			// abstract
+		}
+	}
+
+	class Data64URIReader extends Reader {
+
+		constructor(dataURI) {
+			super();
+			let dataEnd = dataURI.length;
+			while (dataURI.charAt(dataEnd - 1) == "=") {
+				dataEnd--;
+			}
+			const dataStart = dataURI.indexOf(",") + 1;
+			Object.assign(this, {
+				dataURI,
+				dataStart,
+				size: Math.floor((dataEnd - dataStart) * 0.75)
+			});
+		}
+
+		readUint8Array(offset, length) {
+			const {
+				dataStart,
+				dataURI
+			} = this;
+			const dataArray = new Uint8Array(length);
+			const start = Math.floor(offset / 3) * 4;
+			const bytes = atob(dataURI.substring(start + dataStart, Math.ceil((offset + length) / 3) * 4 + dataStart));
+			const delta = offset - Math.floor(start / 4) * 3;
+			let effectiveLength = 0;
+			for (let indexByte = delta; indexByte < delta + length && indexByte < bytes.length; indexByte++) {
+				dataArray[indexByte - delta] = bytes.charCodeAt(indexByte);
+				effectiveLength++;
+			}
+			if (effectiveLength < dataArray.length) {
+				return dataArray.subarray(0, effectiveLength);
+			} else {
+				return dataArray;
+			}
+		}
+	}
+
+	class Data64URIWriter extends Writer {
+
+		constructor(contentType) {
+			super();
+			Object.assign(this, {
+				data: "data:" + (contentType || "") + ";base64,",
+				pending: []
+			});
+		}
+
+		writeUint8Array(array) {
+			const writer = this;
+			let indexArray = 0;
+			let dataString = writer.pending;
+			const delta = writer.pending.length;
+			writer.pending = "";
+			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
+				dataString += String.fromCharCode(array[indexArray]);
+			}
+			for (; indexArray < array.length; indexArray++) {
+				writer.pending += String.fromCharCode(array[indexArray]);
+			}
+			if (dataString.length) {
+				if (dataString.length > 2) {
+					writer.data += btoa(dataString);
+				} else {
+					writer.pending += dataString;
+				}
+			}
+		}
+
+		getData() {
+			return this.data + btoa(this.pending);
+		}
+	}
+
+	class BlobReader extends Reader {
+
+		constructor(blob) {
+			super();
+			Object.assign(this, {
+				blob,
+				size: blob.size
+			});
+		}
+
+		async readUint8Array(offset, length) {
+			const reader = this;
+			const offsetEnd = offset + length;
+			const blob = offset || offsetEnd < reader.size ? reader.blob.slice(offset, offsetEnd) : reader.blob;
+			let arrayBuffer = await blob.arrayBuffer();
+			if (arrayBuffer.byteLength > length) {
+				arrayBuffer = arrayBuffer.slice(offset, offsetEnd);
+			}
+			return new Uint8Array(arrayBuffer);
+		}
+	}
+
+	class BlobWriter extends Stream {
+
+		constructor(contentType) {
+			super();
+			const writer = this;
+			const transformStream = new TransformStream();
+			const headers = [];
+			if (contentType) {
+				headers.push([HTTP_HEADER_CONTENT_TYPE, contentType]);
+			}
+			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
+				get() {
+					return transformStream.writable;
+				}
+			});
+			writer.blob = new Response(transformStream.readable, { headers }).blob();
+		}
+
+		getData() {
+			return this.blob;
+		}
+	}
+
+	class TextReader extends BlobReader {
+
+		constructor(text) {
+			super(new Blob([text], { type: CONTENT_TYPE_TEXT_PLAIN }));
+		}
+	}
+
+	class TextWriter extends BlobWriter {
+
+		constructor(encoding) {
+			super(encoding);
+			Object.assign(this, {
+				encoding,
+				utf8: !encoding || encoding.toLowerCase() == "utf-8"
+			});
+		}
+
+		async getData() {
+			const {
+				encoding,
+				utf8
+			} = this;
+			const blob = await super.getData();
+			if (blob.text && utf8) {
+				return blob.text();
+			} else {
+				const reader = new FileReader();
+				return new Promise((resolve, reject) => {
+					Object.assign(reader, {
+						onload: ({ target }) => resolve(target.result),
+						onerror: () => reject(reader.error)
+					});
+					reader.readAsText(blob, encoding);
+				});
+			}
+		}
+	}
+
+	class FetchReader extends Reader {
+
+		constructor(url, options) {
+			super();
+			createHttpReader(this, url, options);
+		}
+
+		async init() {
+			await initHttpReader(this, sendFetchRequest, getFetchRequestData);
+			super.init();
+		}
+
+		readUint8Array(index, length) {
+			return readUint8ArrayHttpReader(this, index, length, sendFetchRequest, getFetchRequestData);
+		}
+	}
+
+	class XHRReader extends Reader {
+
+		constructor(url, options) {
+			super();
+			createHttpReader(this, url, options);
+		}
+
+		async init() {
+			await initHttpReader(this, sendXMLHttpRequest, getXMLHttpRequestData);
+			super.init();
+		}
+
+		readUint8Array(index, length) {
+			return readUint8ArrayHttpReader(this, index, length, sendXMLHttpRequest, getXMLHttpRequestData);
+		}
+	}
+
+	function createHttpReader(httpReader, url, options) {
+		const {
+			preventHeadRequest,
+			useRangeHeader,
+			forceRangeRequests,
+			combineSizeEocd
+		} = options;
+		options = Object.assign({}, options);
+		delete options.preventHeadRequest;
+		delete options.useRangeHeader;
+		delete options.forceRangeRequests;
+		delete options.combineSizeEocd;
+		delete options.useXHR;
+		Object.assign(httpReader, {
+			url,
+			options,
+			preventHeadRequest,
+			useRangeHeader,
+			forceRangeRequests,
+			combineSizeEocd
+		});
+	}
+
+	async function initHttpReader(httpReader, sendRequest, getRequestData) {
+		const {
+			url,
+			preventHeadRequest,
+			useRangeHeader,
+			forceRangeRequests,
+			combineSizeEocd
+		} = httpReader;
+		if (isHttpFamily(url) && (useRangeHeader || forceRangeRequests) && (typeof preventHeadRequest == "undefined" || preventHeadRequest)) {
+			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -END_OF_CENTRAL_DIR_LENGTH : undefined));
+			if (!forceRangeRequests && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
+				throw new Error(ERR_HTTP_RANGE);
+			} else {
+				if (combineSizeEocd) {
+					httpReader.eocdCache = new Uint8Array(await response.arrayBuffer());
+				}
+				let contentSize;
+				const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
+				if (contentRangeHeader) {
+					const splitHeader = contentRangeHeader.trim().split(/\s*\/\s*/);
+					if (splitHeader.length) {
+						const headerValue = splitHeader[1];
+						if (headerValue && headerValue != "*") {
+							contentSize = Number(headerValue);
+						}
+					}
+				}
+				if (contentSize === UNDEFINED_VALUE) {
+					await getContentLength(httpReader, sendRequest, getRequestData);
+				} else {
+					httpReader.size = contentSize;
+				}
+			}
+		} else {
+			await getContentLength(httpReader, sendRequest, getRequestData);
+		}
+	}
+
+	async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, getRequestData) {
+		const {
+			useRangeHeader,
+			forceRangeRequests,
+			eocdCache,
+			size,
+			options
+		} = httpReader;
+		if (useRangeHeader || forceRangeRequests) {
+			if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
+				return eocdCache;
+			}
+			if (index >= size) {
+				return new Uint8Array();
+			} else {
+				if (index + length > size) {
+					length = size - index;
+				}
+				const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
+				if (response.status != 206) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+				return new Uint8Array(await response.arrayBuffer());
+			}
+		} else {
+			const { data } = httpReader;
+			if (!data) {
+				await getRequestData(httpReader, options);
+			}
+			return new Uint8Array(httpReader.data.subarray(index, index + length));
+		}
+	}
+
+	function getRangeHeaders(httpReader, index = 0, length = 1) {
+		return Object.assign({}, getHeaders(httpReader), { [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + (index < 0 ? index : index + "-" + (index + length - 1)) });
+	}
+
+	function getHeaders({ options }) {
+		const { headers } = options;
+		if (headers) {
+			if (Symbol.iterator in headers) {
+				return Object.fromEntries(headers);
+			} else {
+				return headers;
+			}
+		}
+	}
+
+	async function getFetchRequestData(httpReader) {
+		await getRequestData(httpReader, sendFetchRequest);
+	}
+
+	async function getXMLHttpRequestData(httpReader) {
+		await getRequestData(httpReader, sendXMLHttpRequest);
+	}
+
+	async function getRequestData(httpReader, sendRequest) {
+		const response = await sendRequest(HTTP_METHOD_GET, httpReader, getHeaders(httpReader));
+		httpReader.data = new Uint8Array(await response.arrayBuffer());
+		if (!httpReader.size) {
+			httpReader.size = httpReader.data.length;
+		}
+	}
+
+	async function getContentLength(httpReader, sendRequest, getRequestData) {
+		if (httpReader.preventHeadRequest) {
+			await getRequestData(httpReader, httpReader.options);
+		} else {
+			const response = await sendRequest(HTTP_METHOD_HEAD, httpReader, getHeaders(httpReader));
+			const contentLength = response.headers.get(HTTP_HEADER_CONTENT_LENGTH);
+			if (contentLength) {
+				httpReader.size = Number(contentLength);
+			} else {
+				await getRequestData(httpReader, httpReader.options);
+			}
+		}
+	}
+
+	async function sendFetchRequest(method, { options, url }, headers) {
+		const response = await fetch(url, Object.assign({}, options, { method, headers }));
+		if (response.status < 400) {
+			return response;
+		} else {
+			throw response.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
+		}
+	}
+
+	function sendXMLHttpRequest(method, { url }, headers) {
+		return new Promise((resolve, reject) => {
+			const request = new XMLHttpRequest();
+			request.addEventListener("load", () => {
+				if (request.status < 400) {
+					const headers = [];
+					request.getAllResponseHeaders().trim().split(/[\r\n]+/).forEach(header => {
+						const splitHeader = header.trim().split(/\s*:\s*/);
+						splitHeader[0] = splitHeader[0].trim().replace(/^[a-z]|-[a-z]/g, value => value.toUpperCase());
+						headers.push(splitHeader);
+					});
+					resolve({
+						status: request.status,
+						arrayBuffer: () => request.response,
+						headers: new Map(headers)
+					});
+				} else {
+					reject(request.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (request.statusText || request.status)));
+				}
+			}, false);
+			request.addEventListener("error", event => reject(event.detail ? event.detail.error : new Error("Network error")), false);
+			request.open(method, url);
+			if (headers) {
+				for (const entry of Object.entries(headers)) {
+					request.setRequestHeader(entry[0], entry[1]);
+				}
+			}
+			request.responseType = "arraybuffer";
+			request.send();
+		});
+	}
+
+	class HttpReader extends Reader {
+
+		constructor(url, options = {}) {
+			super();
+			Object.assign(this, {
+				url,
+				reader: options.useXHR ? new XHRReader(url, options) : new FetchReader(url, options)
+			});
+		}
+
+		set size(value) {
+			// ignored
+		}
+
+		get size() {
+			return this.reader.size;
+		}
+
+		async init() {
+			await this.reader.init();
+			super.init();
+		}
+
+		readUint8Array(index, length) {
+			return this.reader.readUint8Array(index, length);
+		}
+	}
+
+	class HttpRangeReader extends HttpReader {
+
+		constructor(url, options = {}) {
+			options.useRangeHeader = true;
+			super(url, options);
+		}
+	}
+
+
+	class Uint8ArrayReader extends Reader {
+
+		constructor(array) {
+			super();
+			array = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+			Object.assign(this, {
+				array,
+				size: array.length
+			});
+		}
+
+		readUint8Array(index, length) {
+			return this.array.slice(index, index + length);
+		}
+	}
+
+	class Uint8ArrayWriter extends Writer {
+
+		init(initSize = 0) {
+			Object.assign(this, {
+				offset: 0,
+				array: new Uint8Array(initSize)
+			});
+			super.init();
+		}
+
+		writeUint8Array(array) {
+			const writer = this;
+			if (writer.offset + array.length > writer.array.length) {
+				const previousArray = writer.array;
+				writer.array = new Uint8Array(previousArray.length + array.length);
+				writer.array.set(previousArray);
+			}
+			writer.array.set(array, writer.offset);
+			writer.offset += array.length;
+		}
+
+		getData() {
+			return this.array;
+		}
+	}
+
+	class SplitDataReader extends Reader {
+
+		constructor(readers) {
+			super();
+			this.readers = readers;
+		}
+
+		async init() {
+			const reader = this;
+			const { readers } = reader;
+			reader.lastDiskNumber = 0;
+			reader.lastDiskOffset = 0;
+			await Promise.all(readers.map(async (diskReader, indexDiskReader) => {
+				await diskReader.init();
+				if (indexDiskReader != readers.length - 1) {
+					reader.lastDiskOffset += diskReader.size;
+				}
+				reader.size += diskReader.size;
+			}));
+			super.init();
+		}
+
+		async readUint8Array(offset, length, diskNumber = 0) {
+			const reader = this;
+			const { readers } = this;
+			let result;
+			let currentDiskNumber = diskNumber;
+			if (currentDiskNumber == -1) {
+				currentDiskNumber = readers.length - 1;
+			}
+			let currentReaderOffset = offset;
+			while (readers[currentDiskNumber] && currentReaderOffset >= readers[currentDiskNumber].size) {
+				currentReaderOffset -= readers[currentDiskNumber].size;
+				currentDiskNumber++;
+			}
+			const currentReader = readers[currentDiskNumber];
+			if (currentReader) {
+				const currentReaderSize = currentReader.size;
+				if (currentReaderOffset + length <= currentReaderSize) {
+					result = await readUint8Array(currentReader, currentReaderOffset, length);
+				} else {
+					const chunkLength = currentReaderSize - currentReaderOffset;
+					result = new Uint8Array(length);
+					const firstPart = await readUint8Array(currentReader, currentReaderOffset, chunkLength);
+					result.set(firstPart, 0);
+					const secondPart = await reader.readUint8Array(offset + chunkLength, length - chunkLength, diskNumber);
+					result.set(secondPart, chunkLength);
+					if (firstPart.length + secondPart.length < length) {
+						result = result.subarray(0, firstPart.length + secondPart.length);
+					}
+				}
+			} else {
+				result = new Uint8Array();
+			}
+			reader.lastDiskNumber = Math.max(currentDiskNumber, reader.lastDiskNumber);
+			return result;
+		}
+	}
+
+	class SplitDataWriter extends Stream {
+
+		constructor(writerGenerator, maxSize = 4294967295) {
+			super();
+			const writer = this;
+			Object.assign(writer, {
+				diskNumber: 0,
+				diskOffset: 0,
+				size: 0,
+				maxSize,
+				availableSize: maxSize
+			});
+			let diskSourceWriter, diskWritable, diskWriter;
+			const writable = new WritableStream({
+				async write(chunk) {
+					const { availableSize } = writer;
+					if (!diskWriter) {
+						const { value, done } = await writerGenerator.next();
+						if (done && !value) {
+							throw new Error(ERR_ITERATOR_COMPLETED_TOO_SOON);
+						} else {
+							diskSourceWriter = value;
+							diskSourceWriter.size = 0;
+							if (diskSourceWriter.maxSize) {
+								writer.maxSize = diskSourceWriter.maxSize;
+							}
+							writer.availableSize = writer.maxSize;
+							await initStream(diskSourceWriter);
+							diskWritable = value.writable;
+							diskWriter = diskWritable.getWriter();
+						}
+						await this.write(chunk);
+					} else if (chunk.length >= availableSize) {
+						await writeChunk(chunk.subarray(0, availableSize));
+						await closeDisk();
+						writer.diskOffset += diskSourceWriter.size;
+						writer.diskNumber++;
+						diskWriter = null;
+						await this.write(chunk.subarray(availableSize));
+					} else {
+						await writeChunk(chunk);
+					}
+				},
+				async close() {
+					await diskWriter.ready;
+					await closeDisk();
+				}
+			});
+			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
+				get() {
+					return writable;
+				}
+			});
+
+			async function writeChunk(chunk) {
+				const chunkLength = chunk.length;
+				if (chunkLength) {
+					await diskWriter.ready;
+					await diskWriter.write(chunk);
+					diskSourceWriter.size += chunkLength;
+					writer.size += chunkLength;
+					writer.availableSize -= chunkLength;
+				}
+			}
+
+			async function closeDisk() {
+				await diskWriter.close();
+			}
+		}
+	}
+
+	class GenericReader {
+
+		constructor(reader) {
+			if (Array.isArray(reader)) {
+				reader = new SplitDataReader(reader);
+			}
+			if (reader instanceof ReadableStream) {
+				reader = {
+					readable: reader
+				};
+			}
+			return reader;
+		}
+	}
+
+	class GenericWriter {
+
+		constructor(writer) {
+			if (writer.writable === UNDEFINED_VALUE && typeof writer.next == FUNCTION_TYPE) {
+				writer = new SplitDataWriter(writer);
+			}
+			if (writer instanceof WritableStream) {
+				writer = {
+					writable: writer
+				};
+			}
+			if (writer.size === UNDEFINED_VALUE) {
+				writer.size = 0;
+			}
+			if (!(writer instanceof SplitDataWriter)) {
+				Object.assign(writer, {
+					diskNumber: 0,
+					diskOffset: 0,
+					availableSize: Infinity,
+					maxSize: Infinity
+				});
+			}
+			return writer;
+		}
+	}
+
+	function isHttpFamily(url) {
+		const { baseURI } = getConfiguration();
+		const { protocol } = new URL(url, baseURI);
+		return protocol == "http:" || protocol == "https:";
+	}
+
+	async function initStream(stream, initSize) {
+		if (stream.init && !stream.initialized) {
+			await stream.init(initSize);
+		} else {
+			return Promise.resolve();
+		}
+	}
+
+	function readUint8Array(reader, offset, size, diskNumber) {
+		return reader.readUint8Array(offset, size, diskNumber);
+	}
+
+	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
@@ -387,7 +1230,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const table = [];
+	const table$1 = [];
 	for (let i = 0; i < 256; i++) {
 		let t = i;
 		for (let j = 0; j < 8; j++) {
@@ -397,7 +1240,7 @@
 				t = t >>> 1;
 			}
 		}
-		table[i] = t;
+		table$1[i] = t;
 	}
 
 	class Crc32 {
@@ -409,7 +1252,7 @@
 		append(data) {
 			let crc = this.crc | 0;
 			for (let offset = 0, length = data.length | 0; offset < length; offset++) {
-				crc = (crc >>> 8) ^ table[(crc ^ data[offset]) & 0xFF];
+				crc = (crc >>> 8) ^ table$1[(crc ^ data[offset]) & 0xFF];
 			}
 			this.crc = crc;
 		}
@@ -500,6 +1343,7 @@
 
 
 	function encodeText(value) {
+		// deno-lint-ignore valid-typeof
 		if (typeof TextEncoder == UNDEFINED_TYPE) {
 			value = unescape(encodeURIComponent(value));
 			const result = new Uint8Array(value.length);
@@ -1416,6 +2260,7 @@
 	const KEY_LENGTH = [16, 24, 32];
 	const SIGNATURE_LENGTH = 10;
 	const COUNTER_DEFAULT_VALUE = [0, 0, 0, 0];
+	// deno-lint-ignore valid-typeof
 	const CRYPTO_API_SUPPORTED = typeof crypto != UNDEFINED_TYPE;
 	const subtle = CRYPTO_API_SUPPORTED && crypto.subtle;
 	const SUBTLE_API_SUPPORTED = CRYPTO_API_SUPPORTED && typeof subtle != UNDEFINED_TYPE;
@@ -1829,7 +2674,7 @@
 	}
 
 	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
 	 modification, are permitted provided that the following conditions are met:
@@ -1858,11 +2703,12 @@
 
 
 	const ERR_INVALID_UNCOMPRESSED_SIZE = "Invalid uncompressed size";
-	const COMPRESSION_FORMAT = "deflate-raw";
+	const FORMAT_DEFLATE_RAW = "deflate-raw";
+	const FORMAT_DEFLATE64_RAW = "deflate64-raw";
 
 	class DeflateStream extends TransformStream {
 
-		constructor(options, { chunkSize, CompressionStream, CompressionStreamNative }) {
+		constructor(options, { chunkSize, CompressionStreamZlib, CompressionStream }) {
 			super({});
 			const { compressed, encrypted, useCompressionStream, zipCrypto, signed, level } = options;
 			const stream = this;
@@ -1873,7 +2719,7 @@
 				readable = pipeThrough(readable, crc32Stream);
 			}
 			if (compressed) {
-				readable = pipeThroughCommpressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStreamNative, CompressionStream);
+				readable = pipeThroughCommpressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStream, CompressionStreamZlib, CompressionStream);
 			}
 			if (encrypted) {
 				if (zipCrypto) {
@@ -1898,9 +2744,9 @@
 
 	class InflateStream extends TransformStream {
 
-		constructor(options, { chunkSize, DecompressionStream, DecompressionStreamNative }) {
+		constructor(options, { chunkSize, DecompressionStreamZlib, DecompressionStream }) {
 			super({});
-			const { zipCrypto, encrypted, signed, signature, compressed, useCompressionStream } = options;
+			const { zipCrypto, encrypted, signed, signature, compressed, useCompressionStream, deflate64 } = options;
 			let crc32Stream, decryptionStream;
 			let readable = super.readable;
 			if (encrypted) {
@@ -1912,7 +2758,7 @@
 				}
 			}
 			if (compressed) {
-				readable = pipeThroughCommpressionStream(readable, useCompressionStream, { chunkSize }, DecompressionStreamNative, DecompressionStream);
+				readable = pipeThroughCommpressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamZlib, DecompressionStream);
 			}
 			if ((!encrypted || zipCrypto) && signed) {
 				crc32Stream = new Crc32Stream();
@@ -1938,13 +2784,20 @@
 		});
 	}
 
-	function pipeThroughCommpressionStream(readable, useCompressionStream, options, CodecStreamNative, CodecStream) {
+	function pipeThroughCommpressionStream(readable, useCompressionStream, options, CompressionStreamNative, CompressionStreamZlib, CompressionStream) {
+		const Stream = useCompressionStream && CompressionStreamNative ? CompressionStreamNative : CompressionStreamZlib || CompressionStream;
+		const format = options.deflate64 ? FORMAT_DEFLATE64_RAW : FORMAT_DEFLATE_RAW;
 		try {
-			const CompressionStream = useCompressionStream && CodecStreamNative ? CodecStreamNative : CodecStream;
-			readable = pipeThrough(readable, new CompressionStream(COMPRESSION_FORMAT, options));
+			readable = pipeThrough(readable, new Stream(format, options));
 		} catch (error) {
 			if (useCompressionStream) {
-				readable = pipeThrough(readable, new CodecStream(COMPRESSION_FORMAT, options));
+				if (CompressionStreamZlib) {
+					readable = pipeThrough(readable, new CompressionStreamZlib(format, options));
+				} else if (CompressionStream) {
+					readable = pipeThrough(readable, new CompressionStream(format, options));
+				} else {
+					throw error;
+				}
 			} else {
 				throw error;
 			}
@@ -2081,7 +2934,7 @@
 	}
 
 	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
 	 modification, are permitted provided that the following conditions are met:
@@ -2109,11 +2962,12 @@
 	 */
 
 
+	// deno-lint-ignore valid-typeof
 	let WEB_WORKERS_SUPPORTED = typeof Worker != UNDEFINED_TYPE;
 
 	class CodecWorker {
 
-		constructor(workerData, { readable, writable }, { options, config, streamOptions, useWebWorkers, transferStreams, scripts }, onTaskFinished) {
+		constructor(workerData, { readable, writable }, { options, config, streamOptions, useWebWorkers, transferStreams, workerURI }, onTaskFinished) {
 			const { signal } = streamOptions;
 			Object.assign(workerData, {
 				busy: true,
@@ -2122,7 +2976,7 @@
 					.pipeThrough(new ProgressWatcherStream(streamOptions), { signal }),
 				writable,
 				options: Object.assign({}, options),
-				scripts,
+				workerURI,
 				transferStreams,
 				terminate() {
 					return new Promise(resolve => {
@@ -2198,11 +3052,17 @@
 	}
 
 	function createWebWorkerInterface(workerData, config) {
-		const { baseURL, chunkSize } = config;
+		const { baseURI, chunkSize } = config;
+		let { wasmURI } = config;
+
 		if (!workerData.interface) {
+			// deno-lint-ignore valid-typeof
+			if (typeof wasmURI == FUNCTION_TYPE) {
+				wasmURI = wasmURI();
+			}
 			let worker;
 			try {
-				worker = getWebWorker(workerData.scripts[0], baseURL, workerData);
+				worker = getWebWorker(workerData.workerURI, baseURI, workerData);
 				// eslint-disable-next-line no-unused-vars
 			} catch (_) {
 				WEB_WORKERS_SUPPORTED = false;
@@ -2211,7 +3071,7 @@
 			Object.assign(workerData, {
 				worker,
 				interface: {
-					run: () => runWebWorker(workerData, { chunkSize })
+					run: () => runWebWorker(workerData, { chunkSize, wasmURI, baseURI })
 				}
 			});
 		}
@@ -2221,6 +3081,14 @@
 	async function runWorker$1({ options, readable, writable, onTaskFinished }, config) {
 		let codecStream;
 		try {
+			if (!options.useCompressionStream && !initializedModule) {
+				let { wasmURI } = config;
+				// deno-lint-ignore valid-typeof
+				if (typeof wasmURI == FUNCTION_TYPE) {
+					wasmURI = wasmURI();
+				}
+				await initModule(wasmURI, config);
+			}
 			codecStream = new CodecStream(options, config);
 			await readable.pipeThrough(codecStream).pipeTo(writable, { preventClose: true, preventAbort: true });
 			const {
@@ -2256,11 +3124,10 @@
 			rejectResult,
 			result
 		});
-		const { readable, options, scripts } = workerData;
+		const { readable, options } = workerData;
 		const { writable, closed } = watchClosedStream(workerData.writable);
 		const streamsTransferred = sendMessage({
 			type: MESSAGE_START,
-			scripts: scripts.slice(1),
 			options,
 			config,
 			readable,
@@ -2301,30 +3168,29 @@
 		return { writable, closed };
 	}
 
-	let classicWorkersSupported = true;
 	let transferStreamsSupported = true;
 
-	function getWebWorker(url, baseURL, workerData) {
+	function getWebWorker(url, baseURI, workerData) {
 		const workerOptions = { type: "module" };
 		let scriptUrl, worker;
+		// deno-lint-ignore valid-typeof
 		if (typeof url == FUNCTION_TYPE) {
 			url = url();
 		}
-		try {
-			scriptUrl = new URL(url, baseURL);
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
-			scriptUrl = url;
-		}
-		if (classicWorkersSupported) {
+		if (url.startsWith("data:") || url.startsWith("blob:")) {
 			try {
-				worker = new Worker(scriptUrl);
+				worker = new Worker(url);
 				// eslint-disable-next-line no-unused-vars
 			} catch (_) {
-				classicWorkersSupported = false;
-				worker = new Worker(scriptUrl, workerOptions);
+				worker = new Worker(url, workerOptions);
 			}
 		} else {
+			try {
+				scriptUrl = new URL(url, baseURI);
+				// eslint-disable-next-line no-unused-vars
+			} catch (_) {
+				scriptUrl = url;
+			}
 			worker = new Worker(scriptUrl, workerOptions);
 		}
 		worker.addEventListener(MESSAGE_EVENT_TYPE, event => onMessage(event, workerData));
@@ -2418,7 +3284,7 @@
 	}
 
 	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
 	 modification, are permitted provided that the following conditions are met:
@@ -2453,12 +3319,12 @@
 
 	async function runWorker(stream, workerOptions) {
 		const { options, config } = workerOptions;
-		const { transferStreams, useWebWorkers, useCompressionStream, codecType, compressed, signed, encrypted } = options;
-		const { workerScripts, maxWorkers } = config;
+		const { transferStreams, useWebWorkers, useCompressionStream, compressed, signed, encrypted } = options;
+		const { workerURI, maxWorkers } = config;
 		workerOptions.transferStreams = transferStreams || transferStreams === UNDEFINED_VALUE;
 		const streamCopy = !compressed && !signed && !encrypted && !workerOptions.transferStreams;
 		workerOptions.useWebWorkers = !streamCopy && (useWebWorkers || (useWebWorkers === UNDEFINED_VALUE && config.useWebWorkers));
-		workerOptions.scripts = workerOptions.useWebWorkers && workerScripts ? workerScripts[codecType] : [];
+		workerOptions.workerURI = workerOptions.useWebWorkers && workerURI ? workerURI : UNDEFINED_VALUE;
 		options.useCompressionStream = useCompressionStream || (useCompressionStream === UNDEFINED_VALUE && config.useCompressionStream);
 		return (await getWorker()).run();
 
@@ -2524,758 +3390,8 @@
 			clearTerminateTimeout(workerData);
 			return workerData.terminate();
 		}));
+		resetWasmModule();
 	}
-
-	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	const ERR_HTTP_STATUS = "HTTP error ";
-	const ERR_HTTP_RANGE = "HTTP Range not supported";
-	const ERR_ITERATOR_COMPLETED_TOO_SOON = "Writer iterator completed too soon";
-	const ERR_WRITER_NOT_INITIALIZED = "Writer not initialized";
-
-	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
-	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
-	const HTTP_HEADER_CONTENT_RANGE = "Content-Range";
-	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
-	const HTTP_HEADER_RANGE = "Range";
-	const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
-	const HTTP_METHOD_HEAD = "HEAD";
-	const HTTP_METHOD_GET = "GET";
-	const HTTP_RANGE_UNIT = "bytes";
-	const DEFAULT_CHUNK_SIZE = 64 * 1024;
-
-	const PROPERTY_NAME_WRITABLE = "writable";
-
-	class Stream {
-
-		constructor() {
-			this.size = 0;
-		}
-
-		init() {
-			this.initialized = true;
-		}
-	}
-
-	class Reader extends Stream {
-
-		get readable() {
-			const reader = this;
-			const { chunkSize = DEFAULT_CHUNK_SIZE } = reader;
-			const readable = new ReadableStream({
-				start() {
-					this.chunkOffset = 0;
-				},
-				async pull(controller) {
-					const { offset = 0, size, diskNumberStart } = readable;
-					const { chunkOffset } = this;
-					const dataSize = size === UNDEFINED_VALUE ? chunkSize : Math.min(chunkSize, size - chunkOffset);
-					const data = await readUint8Array(reader, offset + chunkOffset, dataSize, diskNumberStart);
-					controller.enqueue(data);
-					if ((chunkOffset + chunkSize > size) || (size === UNDEFINED_VALUE && !data.length && dataSize)) {
-						controller.close();
-					} else {
-						this.chunkOffset += chunkSize;
-					}
-				}
-			});
-			return readable;
-		}
-	}
-
-	class Writer extends Stream {
-
-		constructor() {
-			super();
-			const writer = this;
-			const writable = new WritableStream({
-				write(chunk) {
-					if (!writer.initialized) {
-						throw new Error(ERR_WRITER_NOT_INITIALIZED);
-					}
-					return writer.writeUint8Array(chunk);
-				}
-			});
-			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
-				get() {
-					return writable;
-				}
-			});
-		}
-
-		writeUint8Array() {
-			// abstract
-		}
-	}
-
-	class Data64URIReader extends Reader {
-
-		constructor(dataURI) {
-			super();
-			let dataEnd = dataURI.length;
-			while (dataURI.charAt(dataEnd - 1) == "=") {
-				dataEnd--;
-			}
-			const dataStart = dataURI.indexOf(",") + 1;
-			Object.assign(this, {
-				dataURI,
-				dataStart,
-				size: Math.floor((dataEnd - dataStart) * 0.75)
-			});
-		}
-
-		readUint8Array(offset, length) {
-			const {
-				dataStart,
-				dataURI
-			} = this;
-			const dataArray = new Uint8Array(length);
-			const start = Math.floor(offset / 3) * 4;
-			const bytes = atob(dataURI.substring(start + dataStart, Math.ceil((offset + length) / 3) * 4 + dataStart));
-			const delta = offset - Math.floor(start / 4) * 3;
-			let effectiveLength = 0;
-			for (let indexByte = delta; indexByte < delta + length && indexByte < bytes.length; indexByte++) {
-				dataArray[indexByte - delta] = bytes.charCodeAt(indexByte);
-				effectiveLength++;
-			}
-			if (effectiveLength < dataArray.length) {
-				return dataArray.subarray(0, effectiveLength);
-			} else {
-				return dataArray;
-			}
-		}
-	}
-
-	class Data64URIWriter extends Writer {
-
-		constructor(contentType) {
-			super();
-			Object.assign(this, {
-				data: "data:" + (contentType || "") + ";base64,",
-				pending: []
-			});
-		}
-
-		writeUint8Array(array) {
-			const writer = this;
-			let indexArray = 0;
-			let dataString = writer.pending;
-			const delta = writer.pending.length;
-			writer.pending = "";
-			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
-				dataString += String.fromCharCode(array[indexArray]);
-			}
-			for (; indexArray < array.length; indexArray++) {
-				writer.pending += String.fromCharCode(array[indexArray]);
-			}
-			if (dataString.length) {
-				if (dataString.length > 2) {
-					writer.data += btoa(dataString);
-				} else {
-					writer.pending += dataString;
-				}
-			}
-		}
-
-		getData() {
-			return this.data + btoa(this.pending);
-		}
-	}
-
-	class BlobReader extends Reader {
-
-		constructor(blob) {
-			super();
-			Object.assign(this, {
-				blob,
-				size: blob.size
-			});
-		}
-
-		async readUint8Array(offset, length) {
-			const reader = this;
-			const offsetEnd = offset + length;
-			const blob = offset || offsetEnd < reader.size ? reader.blob.slice(offset, offsetEnd) : reader.blob;
-			let arrayBuffer = await blob.arrayBuffer();
-			if (arrayBuffer.byteLength > length) {
-				arrayBuffer = arrayBuffer.slice(offset, offsetEnd);
-			}
-			return new Uint8Array(arrayBuffer);
-		}
-	}
-
-	class BlobWriter extends Stream {
-
-		constructor(contentType) {
-			super();
-			const writer = this;
-			const transformStream = new TransformStream();
-			const headers = [];
-			if (contentType) {
-				headers.push([HTTP_HEADER_CONTENT_TYPE, contentType]);
-			}
-			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
-				get() {
-					return transformStream.writable;
-				}
-			});
-			writer.blob = new Response(transformStream.readable, { headers }).blob();
-		}
-
-		getData() {
-			return this.blob;
-		}
-	}
-
-	class TextReader extends BlobReader {
-
-		constructor(text) {
-			super(new Blob([text], { type: CONTENT_TYPE_TEXT_PLAIN }));
-		}
-	}
-
-	class TextWriter extends BlobWriter {
-
-		constructor(encoding) {
-			super(encoding);
-			Object.assign(this, {
-				encoding,
-				utf8: !encoding || encoding.toLowerCase() == "utf-8"
-			});
-		}
-
-		async getData() {
-			const {
-				encoding,
-				utf8
-			} = this;
-			const blob = await super.getData();
-			if (blob.text && utf8) {
-				return blob.text();
-			} else {
-				const reader = new FileReader();
-				return new Promise((resolve, reject) => {
-					Object.assign(reader, {
-						onload: ({ target }) => resolve(target.result),
-						onerror: () => reject(reader.error)
-					});
-					reader.readAsText(blob, encoding);
-				});
-			}
-		}
-	}
-
-	class FetchReader extends Reader {
-
-		constructor(url, options) {
-			super();
-			createHttpReader(this, url, options);
-		}
-
-		async init() {
-			await initHttpReader(this, sendFetchRequest, getFetchRequestData);
-			super.init();
-		}
-
-		readUint8Array(index, length) {
-			return readUint8ArrayHttpReader(this, index, length, sendFetchRequest, getFetchRequestData);
-		}
-	}
-
-	class XHRReader extends Reader {
-
-		constructor(url, options) {
-			super();
-			createHttpReader(this, url, options);
-		}
-
-		async init() {
-			await initHttpReader(this, sendXMLHttpRequest, getXMLHttpRequestData);
-			super.init();
-		}
-
-		readUint8Array(index, length) {
-			return readUint8ArrayHttpReader(this, index, length, sendXMLHttpRequest, getXMLHttpRequestData);
-		}
-	}
-
-	function createHttpReader(httpReader, url, options) {
-		const {
-			preventHeadRequest,
-			useRangeHeader,
-			forceRangeRequests,
-			combineSizeEocd
-		} = options;
-		options = Object.assign({}, options);
-		delete options.preventHeadRequest;
-		delete options.useRangeHeader;
-		delete options.forceRangeRequests;
-		delete options.combineSizeEocd;
-		delete options.useXHR;
-		Object.assign(httpReader, {
-			url,
-			options,
-			preventHeadRequest,
-			useRangeHeader,
-			forceRangeRequests,
-			combineSizeEocd
-		});
-	}
-
-	async function initHttpReader(httpReader, sendRequest, getRequestData) {
-		const {
-			url,
-			preventHeadRequest,
-			useRangeHeader,
-			forceRangeRequests,
-			combineSizeEocd
-		} = httpReader;
-		if (isHttpFamily(url) && (useRangeHeader || forceRangeRequests) && (typeof preventHeadRequest == "undefined" || preventHeadRequest)) {
-			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -END_OF_CENTRAL_DIR_LENGTH : undefined));
-			if (!forceRangeRequests && response.headers.get(HTTP_HEADER_ACCEPT_RANGES) != HTTP_RANGE_UNIT) {
-				throw new Error(ERR_HTTP_RANGE);
-			} else {
-				if (combineSizeEocd) {
-					httpReader.eocdCache = new Uint8Array(await response.arrayBuffer());
-				}
-				let contentSize;
-				const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
-				if (contentRangeHeader) {
-					const splitHeader = contentRangeHeader.trim().split(/\s*\/\s*/);
-					if (splitHeader.length) {
-						const headerValue = splitHeader[1];
-						if (headerValue && headerValue != "*") {
-							contentSize = Number(headerValue);
-						}
-					}
-				}
-				if (contentSize === UNDEFINED_VALUE) {
-					await getContentLength(httpReader, sendRequest, getRequestData);
-				} else {
-					httpReader.size = contentSize;
-				}
-			}
-		} else {
-			await getContentLength(httpReader, sendRequest, getRequestData);
-		}
-	}
-
-	async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, getRequestData) {
-		const {
-			useRangeHeader,
-			forceRangeRequests,
-			eocdCache,
-			size,
-			options
-		} = httpReader;
-		if (useRangeHeader || forceRangeRequests) {
-			if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
-				return eocdCache;
-			}
-			if (index >= size) {
-				return new Uint8Array();
-			} else {
-				if (index + length > size) {
-					length = size - index;
-				}
-				const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
-				if (response.status != 206) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-				return new Uint8Array(await response.arrayBuffer());
-			}
-		} else {
-			const { data } = httpReader;
-			if (!data) {
-				await getRequestData(httpReader, options);
-			}
-			return new Uint8Array(httpReader.data.subarray(index, index + length));
-		}
-	}
-
-	function getRangeHeaders(httpReader, index = 0, length = 1) {
-		return Object.assign({}, getHeaders(httpReader), { [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + (index < 0 ? index : index + "-" + (index + length - 1)) });
-	}
-
-	function getHeaders({ options }) {
-		const { headers } = options;
-		if (headers) {
-			if (Symbol.iterator in headers) {
-				return Object.fromEntries(headers);
-			} else {
-				return headers;
-			}
-		}
-	}
-
-	async function getFetchRequestData(httpReader) {
-		await getRequestData(httpReader, sendFetchRequest);
-	}
-
-	async function getXMLHttpRequestData(httpReader) {
-		await getRequestData(httpReader, sendXMLHttpRequest);
-	}
-
-	async function getRequestData(httpReader, sendRequest) {
-		const response = await sendRequest(HTTP_METHOD_GET, httpReader, getHeaders(httpReader));
-		httpReader.data = new Uint8Array(await response.arrayBuffer());
-		if (!httpReader.size) {
-			httpReader.size = httpReader.data.length;
-		}
-	}
-
-	async function getContentLength(httpReader, sendRequest, getRequestData) {
-		if (httpReader.preventHeadRequest) {
-			await getRequestData(httpReader, httpReader.options);
-		} else {
-			const response = await sendRequest(HTTP_METHOD_HEAD, httpReader, getHeaders(httpReader));
-			const contentLength = response.headers.get(HTTP_HEADER_CONTENT_LENGTH);
-			if (contentLength) {
-				httpReader.size = Number(contentLength);
-			} else {
-				await getRequestData(httpReader, httpReader.options);
-			}
-		}
-	}
-
-	async function sendFetchRequest(method, { options, url }, headers) {
-		const response = await fetch(url, Object.assign({}, options, { method, headers }));
-		if (response.status < 400) {
-			return response;
-		} else {
-			throw response.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
-		}
-	}
-
-	function sendXMLHttpRequest(method, { url }, headers) {
-		return new Promise((resolve, reject) => {
-			const request = new XMLHttpRequest();
-			request.addEventListener("load", () => {
-				if (request.status < 400) {
-					const headers = [];
-					request.getAllResponseHeaders().trim().split(/[\r\n]+/).forEach(header => {
-						const splitHeader = header.trim().split(/\s*:\s*/);
-						splitHeader[0] = splitHeader[0].trim().replace(/^[a-z]|-[a-z]/g, value => value.toUpperCase());
-						headers.push(splitHeader);
-					});
-					resolve({
-						status: request.status,
-						arrayBuffer: () => request.response,
-						headers: new Map(headers)
-					});
-				} else {
-					reject(request.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (request.statusText || request.status)));
-				}
-			}, false);
-			request.addEventListener("error", event => reject(event.detail ? event.detail.error : new Error("Network error")), false);
-			request.open(method, url);
-			if (headers) {
-				for (const entry of Object.entries(headers)) {
-					request.setRequestHeader(entry[0], entry[1]);
-				}
-			}
-			request.responseType = "arraybuffer";
-			request.send();
-		});
-	}
-
-	class HttpReader extends Reader {
-
-		constructor(url, options = {}) {
-			super();
-			Object.assign(this, {
-				url,
-				reader: options.useXHR ? new XHRReader(url, options) : new FetchReader(url, options)
-			});
-		}
-
-		set size(value) {
-			// ignored
-		}
-
-		get size() {
-			return this.reader.size;
-		}
-
-		async init() {
-			await this.reader.init();
-			super.init();
-		}
-
-		readUint8Array(index, length) {
-			return this.reader.readUint8Array(index, length);
-		}
-	}
-
-	class HttpRangeReader extends HttpReader {
-
-		constructor(url, options = {}) {
-			options.useRangeHeader = true;
-			super(url, options);
-		}
-	}
-
-
-	class Uint8ArrayReader extends Reader {
-
-		constructor(array) {
-			super();
-			array = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
-			Object.assign(this, {
-				array,
-				size: array.length
-			});
-		}
-
-		readUint8Array(index, length) {
-			return this.array.slice(index, index + length);
-		}
-	}
-
-	class Uint8ArrayWriter extends Writer {
-
-		init(initSize = 0) {
-			Object.assign(this, {
-				offset: 0,
-				array: new Uint8Array(initSize)
-			});
-			super.init();
-		}
-
-		writeUint8Array(array) {
-			const writer = this;
-			if (writer.offset + array.length > writer.array.length) {
-				const previousArray = writer.array;
-				writer.array = new Uint8Array(previousArray.length + array.length);
-				writer.array.set(previousArray);
-			}
-			writer.array.set(array, writer.offset);
-			writer.offset += array.length;
-		}
-
-		getData() {
-			return this.array;
-		}
-	}
-
-	class SplitDataReader extends Reader {
-
-		constructor(readers) {
-			super();
-			this.readers = readers;
-		}
-
-		async init() {
-			const reader = this;
-			const { readers } = reader;
-			reader.lastDiskNumber = 0;
-			reader.lastDiskOffset = 0;
-			await Promise.all(readers.map(async (diskReader, indexDiskReader) => {
-				await diskReader.init();
-				if (indexDiskReader != readers.length - 1) {
-					reader.lastDiskOffset += diskReader.size;
-				}
-				reader.size += diskReader.size;
-			}));
-			super.init();
-		}
-
-		async readUint8Array(offset, length, diskNumber = 0) {
-			const reader = this;
-			const { readers } = this;
-			let result;
-			let currentDiskNumber = diskNumber;
-			if (currentDiskNumber == -1) {
-				currentDiskNumber = readers.length - 1;
-			}
-			let currentReaderOffset = offset;
-			while (readers[currentDiskNumber] && currentReaderOffset >= readers[currentDiskNumber].size) {
-				currentReaderOffset -= readers[currentDiskNumber].size;
-				currentDiskNumber++;
-			}
-			const currentReader = readers[currentDiskNumber];
-			if (currentReader) {
-				const currentReaderSize = currentReader.size;
-				if (currentReaderOffset + length <= currentReaderSize) {
-					result = await readUint8Array(currentReader, currentReaderOffset, length);
-				} else {
-					const chunkLength = currentReaderSize - currentReaderOffset;
-					result = new Uint8Array(length);
-					const firstPart = await readUint8Array(currentReader, currentReaderOffset, chunkLength);
-					result.set(firstPart, 0);
-					const secondPart = await reader.readUint8Array(offset + chunkLength, length - chunkLength, diskNumber);
-					result.set(secondPart, chunkLength);
-					if (firstPart.length + secondPart.length < length) {
-						result = result.subarray(0, firstPart.length + secondPart.length);
-					}
-				}
-			} else {
-				result = new Uint8Array();
-			}
-			reader.lastDiskNumber = Math.max(currentDiskNumber, reader.lastDiskNumber);
-			return result;
-		}
-	}
-
-	class SplitDataWriter extends Stream {
-
-		constructor(writerGenerator, maxSize = 4294967295) {
-			super();
-			const writer = this;
-			Object.assign(writer, {
-				diskNumber: 0,
-				diskOffset: 0,
-				size: 0,
-				maxSize,
-				availableSize: maxSize
-			});
-			let diskSourceWriter, diskWritable, diskWriter;
-			const writable = new WritableStream({
-				async write(chunk) {
-					const { availableSize } = writer;
-					if (!diskWriter) {
-						const { value, done } = await writerGenerator.next();
-						if (done && !value) {
-							throw new Error(ERR_ITERATOR_COMPLETED_TOO_SOON);
-						} else {
-							diskSourceWriter = value;
-							diskSourceWriter.size = 0;
-							if (diskSourceWriter.maxSize) {
-								writer.maxSize = diskSourceWriter.maxSize;
-							}
-							writer.availableSize = writer.maxSize;
-							await initStream(diskSourceWriter);
-							diskWritable = value.writable;
-							diskWriter = diskWritable.getWriter();
-						}
-						await this.write(chunk);
-					} else if (chunk.length >= availableSize) {
-						await writeChunk(chunk.subarray(0, availableSize));
-						await closeDisk();
-						writer.diskOffset += diskSourceWriter.size;
-						writer.diskNumber++;
-						diskWriter = null;
-						await this.write(chunk.subarray(availableSize));
-					} else {
-						await writeChunk(chunk);
-					}
-				},
-				async close() {
-					await diskWriter.ready;
-					await closeDisk();
-				}
-			});
-			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
-				get() {
-					return writable;
-				}
-			});
-
-			async function writeChunk(chunk) {
-				const chunkLength = chunk.length;
-				if (chunkLength) {
-					await diskWriter.ready;
-					await diskWriter.write(chunk);
-					diskSourceWriter.size += chunkLength;
-					writer.size += chunkLength;
-					writer.availableSize -= chunkLength;
-				}
-			}
-
-			async function closeDisk() {
-				await diskWriter.close();
-			}
-		}
-	}
-
-	class GenericReader {
-
-		constructor(reader) {
-			if (Array.isArray(reader)) {
-				reader = new SplitDataReader(reader);
-			}
-			if (reader instanceof ReadableStream) {
-				reader = {
-					readable: reader
-				};
-			}
-			return reader;
-		}
-	}
-
-	class GenericWriter {
-
-		constructor(writer) {
-			if (writer.writable === UNDEFINED_VALUE && typeof writer.next == FUNCTION_TYPE) {
-				writer = new SplitDataWriter(writer);
-			}
-			if (writer instanceof WritableStream) {
-				writer = {
-					writable: writer
-				};
-			}
-			if (writer.size === UNDEFINED_VALUE) {
-				writer.size = 0;
-			}
-			if (!(writer instanceof SplitDataWriter)) {
-				Object.assign(writer, {
-					diskNumber: 0,
-					diskOffset: 0,
-					availableSize: Infinity,
-					maxSize: Infinity
-				});
-			}
-			return writer;
-		}
-	}
-
-	function isHttpFamily(url) {
-		const { baseURL } = getConfiguration();
-		const { protocol } = new URL(url, baseURL);
-		return protocol == "http:" || protocol == "https:";
-	}
-
-	async function initStream(stream, initSize) {
-		if (stream.init && !stream.initialized) {
-			await stream.init(initSize);
-		} else {
-			return Promise.resolve();
-		}
-	}
-
-	function readUint8Array(reader, offset, size, diskNumber) {
-		return reader.readUint8Array(offset, size, diskNumber);
-	}
-
-	const SplitZipReader = SplitDataReader;
-	const SplitZipWriter = SplitDataWriter;
 
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
@@ -3360,7 +3476,7 @@
 	}
 
 	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
 	 modification, are permitted provided that the following conditions are met:
@@ -3401,9 +3517,7 @@
 	const PROPERTY_NAME_RAW_LAST_ACCESS_DATE = "rawLastAccessDate";
 	const PROPERTY_NAME_CREATION_DATE = "creationDate";
 	const PROPERTY_NAME_RAW_CREATION_DATE = "rawCreationDate";
-	const PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE = "internalFileAttribute";
 	const PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES = "internalFileAttributes";
-	const PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE = "externalFileAttribute";
 	const PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES = "externalFileAttributes";
 	const PROPERTY_NAME_MS_DOS_COMPATIBLE = "msDosCompatible";
 	const PROPERTY_NAME_ZIP64 = "zip64";
@@ -3421,8 +3535,8 @@
 		PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, PROPERTY_NAME_COMPRESSED_SIZE, PROPERTY_NAME_UNCOMPRESSED_SIZE,
 		PROPERTY_NAME_LAST_MODIFICATION_DATE, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT,
 		PROPERTY_NAME_LAST_ACCESS_DATE, PROPERTY_NAME_CREATION_DATE, PROPERTY_NAME_OFFSET, PROPERTY_NAME_DISK_NUMBER_START,
-		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES,
-		PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64,
+		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES,
+		PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64,
 		PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY, PROPERTY_NAME_ZIPCRYPTO, PROPERTY_NAME_DIRECTORY,
 		PROPERTY_NAME_EXECUTABLE, PROPERTY_NAME_COMPRESSION_METHOD, PROPERTY_NAME_SIGNATURE, PROPERTY_NAME_EXTRA_FIELD,
 		"bitFlag", "filenameUTF8", "commentUTF8", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment",
@@ -3495,7 +3609,7 @@
 	const OPTION_USDZ = "usdz";
 
 	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
 	 modification, are permitted provided that the following conditions are met:
@@ -3850,7 +3964,7 @@
 					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 				}
 			}
-			if ((compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE) && !passThrough) {
+			if ((compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE && compressionMethod != COMPRESSION_METHOD_DEFLATE_64) && !passThrough) {
 				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 			}
 			if (getUint32(dataView, 0) != LOCAL_FILE_HEADER_SIGNATURE) {
@@ -3896,6 +4010,11 @@
 				checkOverlappingEntry = true;
 			}
 			const { onstart, onprogress, onend } = options;
+			const deflate64 = compressionMethod == COMPRESSION_METHOD_DEFLATE_64;
+			let useCompressionStream = getOptionValue$1(zipEntry, options, OPTION_USE_COMPRESSION_STREAM);
+			if (deflate64) {
+				useCompressionStream = false;
+			}
 			const workerOptions = {
 				options: {
 					codecType: CODEC_INFLATE,
@@ -3910,8 +4029,9 @@
 					compressed: compressionMethod != 0 && !passThrough,
 					encrypted: zipEntry.encrypted && !passThrough,
 					useWebWorkers: getOptionValue$1(zipEntry, options, OPTION_USE_WEB_WORKERS),
-					useCompressionStream: getOptionValue$1(zipEntry, options, OPTION_USE_COMPRESSION_STREAM),
+					useCompressionStream,
 					transferStreams: getOptionValue$1(zipEntry, options, OPTION_TRANSFER_STREAMS),
+					deflate64,
 					checkPasswordOnly
 				},
 				config,
@@ -4298,7 +4418,7 @@
 	}
 
 	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
 	 modification, are permitted provided that the following conditions are met:
@@ -4544,9 +4664,6 @@
 			throw new Error(ERR_INVALID_VERSION);
 		}
 		let externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, 0);
-		if (externalFileAttributes === 0) {
-			externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTE, 0);
-		}
 		if (!options[PROPERTY_NAME_DIRECTORY] && name.endsWith(DIRECTORY_SIGNATURE)) {
 			options[PROPERTY_NAME_DIRECTORY] = true;
 		}
@@ -4591,10 +4708,7 @@
 		const lastModDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE, new Date());
 		const lastAccessDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
 		const creationDate = getOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
-		let internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, 0);
-		if (internalFileAttributes === 0) {
-			internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTE, 0);
-		}
+		const internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, 0);
 		const passThrough = getOptionValue(zipWriter, options, OPTION_PASS_THROUGH);
 		let password, rawPassword;
 		if (!passThrough) {
@@ -4605,20 +4719,26 @@
 		const zipCrypto = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIPCRYPTO);
 		const extendedTimestamp = getOptionValue(zipWriter, options, OPTION_EXTENDED_TIMESTAMP, true);
 		const keepOrder = getOptionValue(zipWriter, options, OPTION_KEEP_ORDER, true);
-		const level = getOptionValue(zipWriter, options, OPTION_LEVEL);
 		const useWebWorkers = getOptionValue(zipWriter, options, OPTION_USE_WEB_WORKERS);
 		const bufferedWrite = getOptionValue(zipWriter, options, OPTION_BUFFERED_WRITE);
 		const dataDescriptorSignature = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR_SIGNATURE, false);
 		const signal = getOptionValue(zipWriter, options, OPTION_SIGNAL);
 		const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES, true);
-		const useCompressionStream = getOptionValue(zipWriter, options, OPTION_USE_COMPRESSION_STREAM);
 		const compressionMethod = getOptionValue(zipWriter, options, PROPERTY_NAME_COMPRESSION_METHOD);
+		let level = getOptionValue(zipWriter, options, OPTION_LEVEL);
+		let useCompressionStream = getOptionValue(zipWriter, options, OPTION_USE_COMPRESSION_STREAM);
 		let dataDescriptor = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR);
 		if (bufferedWrite && dataDescriptor === UNDEFINED_VALUE) {
 			dataDescriptor = false;
 		}
 		if (dataDescriptor === UNDEFINED_VALUE || zipCrypto) {
 			dataDescriptor = true;
+		}
+		if (level !== UNDEFINED_VALUE && level != 6) {
+			useCompressionStream = false;
+		}
+		if (!useCompressionStream && (zipWriter.config.CompressionStream === UNDEFINED_VALUE && zipWriter.config.CompressionStreamZlib === UNDEFINED_VALUE)) {
+			level = 0;
 		}
 		let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
 		if (!zipCrypto && (password !== UNDEFINED_VALUE || rawPassword !== UNDEFINED_VALUE) && !(encryptionStrength >= 1 && encryptionStrength <= 3)) {
@@ -4704,7 +4824,7 @@
 			zip64DiskNumberStart,
 			password,
 			rawPassword,
-			level: !useCompressionStream && (zipWriter.config.CompressionStream === UNDEFINED_VALUE && zipWriter.config.CompressionStreamNative === UNDEFINED_VALUE) ? 0 : level,
+			level,
 			useWebWorkers,
 			encryptionStrength,
 			extendedTimestamp,
@@ -5746,6 +5866,82 @@
 	 */
 
 
+	function getMimeType$1() {
+		return "application/octet-stream";
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	let baseURI;
+	try {
+		baseURI = (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('zip-fs.js', document.baseURI).href));
+		// eslint-disable-next-line no-unused-vars
+	} catch (_) {
+		// ignored
+	}
+
+	configure({
+		baseURI,
+		CompressionStreamZlib,
+		DecompressionStreamZlib
+	});
+
+	/*
+	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
 	class ZipEntry {
 
 		constructor(fs, name, params, parent) {
@@ -6597,6 +6793,1638 @@
 	 1. Redistributions of source code must retain the above copyright notice,
 	 this list of conditions and the following disclaimer.
 
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const table = {
+		"application": {
+			"andrew-inset": "ez",
+			"annodex": "anx",
+			"atom+xml": "atom",
+			"atomcat+xml": "atomcat",
+			"atomserv+xml": "atomsrv",
+			"bbolin": "lin",
+			"cu-seeme": "cu",
+			"davmount+xml": "davmount",
+			"dsptype": "tsp",
+			"ecmascript": [
+				"es",
+				"ecma"
+			],
+			"futuresplash": "spl",
+			"hta": "hta",
+			"java-archive": "jar",
+			"java-serialized-object": "ser",
+			"java-vm": "class",
+			"m3g": "m3g",
+			"mac-binhex40": "hqx",
+			"mathematica": [
+				"nb",
+				"ma",
+				"mb"
+			],
+			"msaccess": "mdb",
+			"msword": [
+				"doc",
+				"dot",
+				"wiz"
+			],
+			"mxf": "mxf",
+			"oda": "oda",
+			"ogg": "ogx",
+			"pdf": "pdf",
+			"pgp-keys": "key",
+			"pgp-signature": [
+				"asc",
+				"sig"
+			],
+			"pics-rules": "prf",
+			"postscript": [
+				"ps",
+				"ai",
+				"eps",
+				"epsi",
+				"epsf",
+				"eps2",
+				"eps3"
+			],
+			"rar": "rar",
+			"rdf+xml": "rdf",
+			"rss+xml": "rss",
+			"rtf": "rtf",
+			"xhtml+xml": [
+				"xhtml",
+				"xht"
+			],
+			"xml": [
+				"xml",
+				"xsl",
+				"xsd",
+				"xpdl"
+			],
+			"xspf+xml": "xspf",
+			"zip": "zip",
+			"vnd.android.package-archive": "apk",
+			"vnd.cinderella": "cdy",
+			"vnd.google-earth.kml+xml": "kml",
+			"vnd.google-earth.kmz": "kmz",
+			"vnd.mozilla.xul+xml": "xul",
+			"vnd.ms-excel": [
+				"xls",
+				"xlb",
+				"xlt",
+				"xlm",
+				"xla",
+				"xlc",
+				"xlw"
+			],
+			"vnd.ms-pki.seccat": "cat",
+			"vnd.ms-pki.stl": "stl",
+			"vnd.ms-powerpoint": [
+				"ppt",
+				"pps",
+				"pot",
+				"ppa",
+				"pwz"
+			],
+			"vnd.oasis.opendocument.chart": "odc",
+			"vnd.oasis.opendocument.database": "odb",
+			"vnd.oasis.opendocument.formula": "odf",
+			"vnd.oasis.opendocument.graphics": "odg",
+			"vnd.oasis.opendocument.graphics-template": "otg",
+			"vnd.oasis.opendocument.image": "odi",
+			"vnd.oasis.opendocument.presentation": "odp",
+			"vnd.oasis.opendocument.presentation-template": "otp",
+			"vnd.oasis.opendocument.spreadsheet": "ods",
+			"vnd.oasis.opendocument.spreadsheet-template": "ots",
+			"vnd.oasis.opendocument.text": "odt",
+			"vnd.oasis.opendocument.text-master": [
+				"odm",
+				"otm"
+			],
+			"vnd.oasis.opendocument.text-template": "ott",
+			"vnd.oasis.opendocument.text-web": "oth",
+			"vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+			"vnd.openxmlformats-officedocument.spreadsheetml.template": "xltx",
+			"vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+			"vnd.openxmlformats-officedocument.presentationml.slideshow": "ppsx",
+			"vnd.openxmlformats-officedocument.presentationml.template": "potx",
+			"vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+			"vnd.openxmlformats-officedocument.wordprocessingml.template": "dotx",
+			"vnd.smaf": "mmf",
+			"vnd.stardivision.calc": "sdc",
+			"vnd.stardivision.chart": "sds",
+			"vnd.stardivision.draw": "sda",
+			"vnd.stardivision.impress": "sdd",
+			"vnd.stardivision.math": [
+				"sdf",
+				"smf"
+			],
+			"vnd.stardivision.writer": [
+				"sdw",
+				"vor"
+			],
+			"vnd.stardivision.writer-global": "sgl",
+			"vnd.sun.xml.calc": "sxc",
+			"vnd.sun.xml.calc.template": "stc",
+			"vnd.sun.xml.draw": "sxd",
+			"vnd.sun.xml.draw.template": "std",
+			"vnd.sun.xml.impress": "sxi",
+			"vnd.sun.xml.impress.template": "sti",
+			"vnd.sun.xml.math": "sxm",
+			"vnd.sun.xml.writer": "sxw",
+			"vnd.sun.xml.writer.global": "sxg",
+			"vnd.sun.xml.writer.template": "stw",
+			"vnd.symbian.install": [
+				"sis",
+				"sisx"
+			],
+			"vnd.visio": [
+				"vsd",
+				"vst",
+				"vss",
+				"vsw",
+				"vsdx",
+				"vssx",
+				"vstx",
+				"vssm",
+				"vstm"
+			],
+			"vnd.wap.wbxml": "wbxml",
+			"vnd.wap.wmlc": "wmlc",
+			"vnd.wap.wmlscriptc": "wmlsc",
+			"vnd.wordperfect": "wpd",
+			"vnd.wordperfect5.1": "wp5",
+			"x-123": "wk",
+			"x-7z-compressed": "7z",
+			"x-abiword": "abw",
+			"x-apple-diskimage": "dmg",
+			"x-bcpio": "bcpio",
+			"x-bittorrent": "torrent",
+			"x-cbr": [
+				"cbr",
+				"cba",
+				"cbt",
+				"cb7"
+			],
+			"x-cbz": "cbz",
+			"x-cdf": [
+				"cdf",
+				"cda"
+			],
+			"x-cdlink": "vcd",
+			"x-chess-pgn": "pgn",
+			"x-cpio": "cpio",
+			"x-csh": "csh",
+			"x-director": [
+				"dir",
+				"dxr",
+				"cst",
+				"cct",
+				"cxt",
+				"w3d",
+				"fgd",
+				"swa"
+			],
+			"x-dms": "dms",
+			"x-doom": "wad",
+			"x-dvi": "dvi",
+			"x-httpd-eruby": "rhtml",
+			"x-font": "pcf.Z",
+			"x-freemind": "mm",
+			"x-gnumeric": "gnumeric",
+			"x-go-sgf": "sgf",
+			"x-graphing-calculator": "gcf",
+			"x-gtar": [
+				"gtar",
+				"taz"
+			],
+			"x-hdf": "hdf",
+			"x-httpd-php": [
+				"phtml",
+				"pht",
+				"php"
+			],
+			"x-httpd-php-source": "phps",
+			"x-httpd-php3": "php3",
+			"x-httpd-php3-preprocessed": "php3p",
+			"x-httpd-php4": "php4",
+			"x-httpd-php5": "php5",
+			"x-ica": "ica",
+			"x-info": "info",
+			"x-internet-signup": [
+				"ins",
+				"isp"
+			],
+			"x-iphone": "iii",
+			"x-iso9660-image": "iso",
+			"x-java-jnlp-file": "jnlp",
+			"x-jmol": "jmz",
+			"x-killustrator": "kil",
+			"x-latex": "latex",
+			"x-lyx": "lyx",
+			"x-lzx": "lzx",
+			"x-maker": [
+				"frm",
+				"fb",
+				"fbdoc"
+			],
+			"x-ms-wmd": "wmd",
+			"x-msdos-program": [
+				"com",
+				"exe",
+				"bat",
+				"dll"
+			],
+			"x-netcdf": [
+				"nc"
+			],
+			"x-ns-proxy-autoconfig": [
+				"pac",
+				"dat"
+			],
+			"x-nwc": "nwc",
+			"x-object": "o",
+			"x-oz-application": "oza",
+			"x-pkcs7-certreqresp": "p7r",
+			"x-python-code": [
+				"pyc",
+				"pyo"
+			],
+			"x-qgis": [
+				"qgs",
+				"shp",
+				"shx"
+			],
+			"x-quicktimeplayer": "qtl",
+			"x-redhat-package-manager": [
+				"rpm",
+				"rpa"
+			],
+			"x-ruby": "rb",
+			"x-sh": "sh",
+			"x-shar": "shar",
+			"x-shockwave-flash": [
+				"swf",
+				"swfl"
+			],
+			"x-silverlight": "scr",
+			"x-stuffit": "sit",
+			"x-sv4cpio": "sv4cpio",
+			"x-sv4crc": "sv4crc",
+			"x-tar": "tar",
+			"x-tex-gf": "gf",
+			"x-tex-pk": "pk",
+			"x-texinfo": [
+				"texinfo",
+				"texi"
+			],
+			"x-trash": [
+				"~",
+				"%",
+				"bak",
+				"old",
+				"sik"
+			],
+			"x-ustar": "ustar",
+			"x-wais-source": "src",
+			"x-wingz": "wz",
+			"x-x509-ca-cert": [
+				"crt",
+				"der",
+				"cer"
+			],
+			"x-xcf": "xcf",
+			"x-xfig": "fig",
+			"x-xpinstall": "xpi",
+			"applixware": "aw",
+			"atomsvc+xml": "atomsvc",
+			"ccxml+xml": "ccxml",
+			"cdmi-capability": "cdmia",
+			"cdmi-container": "cdmic",
+			"cdmi-domain": "cdmid",
+			"cdmi-object": "cdmio",
+			"cdmi-queue": "cdmiq",
+			"docbook+xml": "dbk",
+			"dssc+der": "dssc",
+			"dssc+xml": "xdssc",
+			"emma+xml": "emma",
+			"epub+zip": "epub",
+			"exi": "exi",
+			"font-tdpfr": "pfr",
+			"gml+xml": "gml",
+			"gpx+xml": "gpx",
+			"gxf": "gxf",
+			"hyperstudio": "stk",
+			"inkml+xml": [
+				"ink",
+				"inkml"
+			],
+			"ipfix": "ipfix",
+			"jsonml+json": "jsonml",
+			"lost+xml": "lostxml",
+			"mads+xml": "mads",
+			"marc": "mrc",
+			"marcxml+xml": "mrcx",
+			"mathml+xml": [
+				"mathml",
+				"mml"
+			],
+			"mbox": "mbox",
+			"mediaservercontrol+xml": "mscml",
+			"metalink+xml": "metalink",
+			"metalink4+xml": "meta4",
+			"mets+xml": "mets",
+			"mods+xml": "mods",
+			"mp21": [
+				"m21",
+				"mp21"
+			],
+			"mp4": "mp4s",
+			"oebps-package+xml": "opf",
+			"omdoc+xml": "omdoc",
+			"onenote": [
+				"onetoc",
+				"onetoc2",
+				"onetmp",
+				"onepkg"
+			],
+			"oxps": "oxps",
+			"patch-ops-error+xml": "xer",
+			"pgp-encrypted": "pgp",
+			"pkcs10": "p10",
+			"pkcs7-mime": [
+				"p7m",
+				"p7c"
+			],
+			"pkcs7-signature": "p7s",
+			"pkcs8": "p8",
+			"pkix-attr-cert": "ac",
+			"pkix-crl": "crl",
+			"pkix-pkipath": "pkipath",
+			"pkixcmp": "pki",
+			"pls+xml": "pls",
+			"prs.cww": "cww",
+			"pskc+xml": "pskcxml",
+			"reginfo+xml": "rif",
+			"relax-ng-compact-syntax": "rnc",
+			"resource-lists+xml": "rl",
+			"resource-lists-diff+xml": "rld",
+			"rls-services+xml": "rs",
+			"rpki-ghostbusters": "gbr",
+			"rpki-manifest": "mft",
+			"rpki-roa": "roa",
+			"rsd+xml": "rsd",
+			"sbml+xml": "sbml",
+			"scvp-cv-request": "scq",
+			"scvp-cv-response": "scs",
+			"scvp-vp-request": "spq",
+			"scvp-vp-response": "spp",
+			"sdp": "sdp",
+			"set-payment-initiation": "setpay",
+			"set-registration-initiation": "setreg",
+			"shf+xml": "shf",
+			"sparql-query": "rq",
+			"sparql-results+xml": "srx",
+			"srgs": "gram",
+			"srgs+xml": "grxml",
+			"sru+xml": "sru",
+			"ssdl+xml": "ssdl",
+			"ssml+xml": "ssml",
+			"tei+xml": [
+				"tei",
+				"teicorpus"
+			],
+			"thraud+xml": "tfi",
+			"timestamped-data": "tsd",
+			"vnd.3gpp.pic-bw-large": "plb",
+			"vnd.3gpp.pic-bw-small": "psb",
+			"vnd.3gpp.pic-bw-var": "pvb",
+			"vnd.3gpp2.tcap": "tcap",
+			"vnd.3m.post-it-notes": "pwn",
+			"vnd.accpac.simply.aso": "aso",
+			"vnd.accpac.simply.imp": "imp",
+			"vnd.acucobol": "acu",
+			"vnd.acucorp": [
+				"atc",
+				"acutc"
+			],
+			"vnd.adobe.air-application-installer-package+zip": "air",
+			"vnd.adobe.formscentral.fcdt": "fcdt",
+			"vnd.adobe.fxp": [
+				"fxp",
+				"fxpl"
+			],
+			"vnd.adobe.xdp+xml": "xdp",
+			"vnd.adobe.xfdf": "xfdf",
+			"vnd.ahead.space": "ahead",
+			"vnd.airzip.filesecure.azf": "azf",
+			"vnd.airzip.filesecure.azs": "azs",
+			"vnd.amazon.ebook": "azw",
+			"vnd.americandynamics.acc": "acc",
+			"vnd.amiga.ami": "ami",
+			"vnd.anser-web-certificate-issue-initiation": "cii",
+			"vnd.anser-web-funds-transfer-initiation": "fti",
+			"vnd.antix.game-component": "atx",
+			"vnd.apple.installer+xml": "mpkg",
+			"vnd.apple.mpegurl": "m3u8",
+			"vnd.aristanetworks.swi": "swi",
+			"vnd.astraea-software.iota": "iota",
+			"vnd.audiograph": "aep",
+			"vnd.blueice.multipass": "mpm",
+			"vnd.bmi": "bmi",
+			"vnd.businessobjects": "rep",
+			"vnd.chemdraw+xml": "cdxml",
+			"vnd.chipnuts.karaoke-mmd": "mmd",
+			"vnd.claymore": "cla",
+			"vnd.cloanto.rp9": "rp9",
+			"vnd.clonk.c4group": [
+				"c4g",
+				"c4d",
+				"c4f",
+				"c4p",
+				"c4u"
+			],
+			"vnd.cluetrust.cartomobile-config": "c11amc",
+			"vnd.cluetrust.cartomobile-config-pkg": "c11amz",
+			"vnd.commonspace": "csp",
+			"vnd.contact.cmsg": "cdbcmsg",
+			"vnd.cosmocaller": "cmc",
+			"vnd.crick.clicker": "clkx",
+			"vnd.crick.clicker.keyboard": "clkk",
+			"vnd.crick.clicker.palette": "clkp",
+			"vnd.crick.clicker.template": "clkt",
+			"vnd.crick.clicker.wordbank": "clkw",
+			"vnd.criticaltools.wbs+xml": "wbs",
+			"vnd.ctc-posml": "pml",
+			"vnd.cups-ppd": "ppd",
+			"vnd.curl.car": "car",
+			"vnd.curl.pcurl": "pcurl",
+			"vnd.dart": "dart",
+			"vnd.data-vision.rdz": "rdz",
+			"vnd.dece.data": [
+				"uvf",
+				"uvvf",
+				"uvd",
+				"uvvd"
+			],
+			"vnd.dece.ttml+xml": [
+				"uvt",
+				"uvvt"
+			],
+			"vnd.dece.unspecified": [
+				"uvx",
+				"uvvx"
+			],
+			"vnd.dece.zip": [
+				"uvz",
+				"uvvz"
+			],
+			"vnd.denovo.fcselayout-link": "fe_launch",
+			"vnd.dna": "dna",
+			"vnd.dolby.mlp": "mlp",
+			"vnd.dpgraph": "dpg",
+			"vnd.dreamfactory": "dfac",
+			"vnd.ds-keypoint": "kpxx",
+			"vnd.dvb.ait": "ait",
+			"vnd.dvb.service": "svc",
+			"vnd.dynageo": "geo",
+			"vnd.ecowin.chart": "mag",
+			"vnd.enliven": "nml",
+			"vnd.epson.esf": "esf",
+			"vnd.epson.msf": "msf",
+			"vnd.epson.quickanime": "qam",
+			"vnd.epson.salt": "slt",
+			"vnd.epson.ssf": "ssf",
+			"vnd.eszigno3+xml": [
+				"es3",
+				"et3"
+			],
+			"vnd.ezpix-album": "ez2",
+			"vnd.ezpix-package": "ez3",
+			"vnd.fdf": "fdf",
+			"vnd.fdsn.mseed": "mseed",
+			"vnd.fdsn.seed": [
+				"seed",
+				"dataless"
+			],
+			"vnd.flographit": "gph",
+			"vnd.fluxtime.clip": "ftc",
+			"vnd.framemaker": [
+				"fm",
+				"frame",
+				"maker",
+				"book"
+			],
+			"vnd.frogans.fnc": "fnc",
+			"vnd.frogans.ltf": "ltf",
+			"vnd.fsc.weblaunch": "fsc",
+			"vnd.fujitsu.oasys": "oas",
+			"vnd.fujitsu.oasys2": "oa2",
+			"vnd.fujitsu.oasys3": "oa3",
+			"vnd.fujitsu.oasysgp": "fg5",
+			"vnd.fujitsu.oasysprs": "bh2",
+			"vnd.fujixerox.ddd": "ddd",
+			"vnd.fujixerox.docuworks": "xdw",
+			"vnd.fujixerox.docuworks.binder": "xbd",
+			"vnd.fuzzysheet": "fzs",
+			"vnd.genomatix.tuxedo": "txd",
+			"vnd.geogebra.file": "ggb",
+			"vnd.geogebra.tool": "ggt",
+			"vnd.geometry-explorer": [
+				"gex",
+				"gre"
+			],
+			"vnd.geonext": "gxt",
+			"vnd.geoplan": "g2w",
+			"vnd.geospace": "g3w",
+			"vnd.gmx": "gmx",
+			"vnd.grafeq": [
+				"gqf",
+				"gqs"
+			],
+			"vnd.groove-account": "gac",
+			"vnd.groove-help": "ghf",
+			"vnd.groove-identity-message": "gim",
+			"vnd.groove-injector": "grv",
+			"vnd.groove-tool-message": "gtm",
+			"vnd.groove-tool-template": "tpl",
+			"vnd.groove-vcard": "vcg",
+			"vnd.hal+xml": "hal",
+			"vnd.handheld-entertainment+xml": "zmm",
+			"vnd.hbci": "hbci",
+			"vnd.hhe.lesson-player": "les",
+			"vnd.hp-hpgl": "hpgl",
+			"vnd.hp-hpid": "hpid",
+			"vnd.hp-hps": "hps",
+			"vnd.hp-jlyt": "jlt",
+			"vnd.hp-pcl": "pcl",
+			"vnd.hp-pclxl": "pclxl",
+			"vnd.hydrostatix.sof-data": "sfd-hdstx",
+			"vnd.ibm.minipay": "mpy",
+			"vnd.ibm.modcap": [
+				"afp",
+				"listafp",
+				"list3820"
+			],
+			"vnd.ibm.rights-management": "irm",
+			"vnd.ibm.secure-container": "sc",
+			"vnd.iccprofile": [
+				"icc",
+				"icm"
+			],
+			"vnd.igloader": "igl",
+			"vnd.immervision-ivp": "ivp",
+			"vnd.immervision-ivu": "ivu",
+			"vnd.insors.igm": "igm",
+			"vnd.intercon.formnet": [
+				"xpw",
+				"xpx"
+			],
+			"vnd.intergeo": "i2g",
+			"vnd.intu.qbo": "qbo",
+			"vnd.intu.qfx": "qfx",
+			"vnd.ipunplugged.rcprofile": "rcprofile",
+			"vnd.irepository.package+xml": "irp",
+			"vnd.is-xpr": "xpr",
+			"vnd.isac.fcs": "fcs",
+			"vnd.jam": "jam",
+			"vnd.jcp.javame.midlet-rms": "rms",
+			"vnd.jisp": "jisp",
+			"vnd.joost.joda-archive": "joda",
+			"vnd.kahootz": [
+				"ktz",
+				"ktr"
+			],
+			"vnd.kde.karbon": "karbon",
+			"vnd.kde.kchart": "chrt",
+			"vnd.kde.kformula": "kfo",
+			"vnd.kde.kivio": "flw",
+			"vnd.kde.kontour": "kon",
+			"vnd.kde.kpresenter": [
+				"kpr",
+				"kpt"
+			],
+			"vnd.kde.kspread": "ksp",
+			"vnd.kde.kword": [
+				"kwd",
+				"kwt"
+			],
+			"vnd.kenameaapp": "htke",
+			"vnd.kidspiration": "kia",
+			"vnd.kinar": [
+				"kne",
+				"knp"
+			],
+			"vnd.koan": [
+				"skp",
+				"skd",
+				"skt",
+				"skm"
+			],
+			"vnd.kodak-descriptor": "sse",
+			"vnd.las.las+xml": "lasxml",
+			"vnd.llamagraphics.life-balance.desktop": "lbd",
+			"vnd.llamagraphics.life-balance.exchange+xml": "lbe",
+			"vnd.lotus-1-2-3": "123",
+			"vnd.lotus-approach": "apr",
+			"vnd.lotus-freelance": "pre",
+			"vnd.lotus-notes": "nsf",
+			"vnd.lotus-organizer": "org",
+			"vnd.lotus-screencam": "scm",
+			"vnd.lotus-wordpro": "lwp",
+			"vnd.macports.portpkg": "portpkg",
+			"vnd.mcd": "mcd",
+			"vnd.medcalcdata": "mc1",
+			"vnd.mediastation.cdkey": "cdkey",
+			"vnd.mfer": "mwf",
+			"vnd.mfmp": "mfm",
+			"vnd.micrografx.flo": "flo",
+			"vnd.micrografx.igx": "igx",
+			"vnd.mif": "mif",
+			"vnd.mobius.daf": "daf",
+			"vnd.mobius.dis": "dis",
+			"vnd.mobius.mbk": "mbk",
+			"vnd.mobius.mqy": "mqy",
+			"vnd.mobius.msl": "msl",
+			"vnd.mobius.plc": "plc",
+			"vnd.mobius.txf": "txf",
+			"vnd.mophun.application": "mpn",
+			"vnd.mophun.certificate": "mpc",
+			"vnd.ms-artgalry": "cil",
+			"vnd.ms-cab-compressed": "cab",
+			"vnd.ms-excel.addin.macroenabled.12": "xlam",
+			"vnd.ms-excel.sheet.binary.macroenabled.12": "xlsb",
+			"vnd.ms-excel.sheet.macroenabled.12": "xlsm",
+			"vnd.ms-excel.template.macroenabled.12": "xltm",
+			"vnd.ms-fontobject": "eot",
+			"vnd.ms-htmlhelp": "chm",
+			"vnd.ms-ims": "ims",
+			"vnd.ms-lrm": "lrm",
+			"vnd.ms-officetheme": "thmx",
+			"vnd.ms-powerpoint.addin.macroenabled.12": "ppam",
+			"vnd.ms-powerpoint.presentation.macroenabled.12": "pptm",
+			"vnd.ms-powerpoint.slide.macroenabled.12": "sldm",
+			"vnd.ms-powerpoint.slideshow.macroenabled.12": "ppsm",
+			"vnd.ms-powerpoint.template.macroenabled.12": "potm",
+			"vnd.ms-project": [
+				"mpp",
+				"mpt"
+			],
+			"vnd.ms-word.document.macroenabled.12": "docm",
+			"vnd.ms-word.template.macroenabled.12": "dotm",
+			"vnd.ms-works": [
+				"wps",
+				"wks",
+				"wcm",
+				"wdb"
+			],
+			"vnd.ms-wpl": "wpl",
+			"vnd.ms-xpsdocument": "xps",
+			"vnd.mseq": "mseq",
+			"vnd.musician": "mus",
+			"vnd.muvee.style": "msty",
+			"vnd.mynfc": "taglet",
+			"vnd.neurolanguage.nlu": "nlu",
+			"vnd.nitf": [
+				"ntf",
+				"nitf"
+			],
+			"vnd.noblenet-directory": "nnd",
+			"vnd.noblenet-sealer": "nns",
+			"vnd.noblenet-web": "nnw",
+			"vnd.nokia.n-gage.data": "ngdat",
+			"vnd.nokia.n-gage.symbian.install": "n-gage",
+			"vnd.nokia.radio-preset": "rpst",
+			"vnd.nokia.radio-presets": "rpss",
+			"vnd.novadigm.edm": "edm",
+			"vnd.novadigm.edx": "edx",
+			"vnd.novadigm.ext": "ext",
+			"vnd.oasis.opendocument.chart-template": "otc",
+			"vnd.oasis.opendocument.formula-template": "odft",
+			"vnd.oasis.opendocument.image-template": "oti",
+			"vnd.olpc-sugar": "xo",
+			"vnd.oma.dd2+xml": "dd2",
+			"vnd.openofficeorg.extension": "oxt",
+			"vnd.openxmlformats-officedocument.presentationml.slide": "sldx",
+			"vnd.osgeo.mapguide.package": "mgp",
+			"vnd.osgi.dp": "dp",
+			"vnd.osgi.subsystem": "esa",
+			"vnd.palm": [
+				"pdb",
+				"pqa",
+				"oprc"
+			],
+			"vnd.pawaafile": "paw",
+			"vnd.pg.format": "str",
+			"vnd.pg.osasli": "ei6",
+			"vnd.picsel": "efif",
+			"vnd.pmi.widget": "wg",
+			"vnd.pocketlearn": "plf",
+			"vnd.powerbuilder6": "pbd",
+			"vnd.previewsystems.box": "box",
+			"vnd.proteus.magazine": "mgz",
+			"vnd.publishare-delta-tree": "qps",
+			"vnd.pvi.ptid1": "ptid",
+			"vnd.quark.quarkxpress": [
+				"qxd",
+				"qxt",
+				"qwd",
+				"qwt",
+				"qxl",
+				"qxb"
+			],
+			"vnd.realvnc.bed": "bed",
+			"vnd.recordare.musicxml": "mxl",
+			"vnd.recordare.musicxml+xml": "musicxml",
+			"vnd.rig.cryptonote": "cryptonote",
+			"vnd.rn-realmedia": "rm",
+			"vnd.rn-realmedia-vbr": "rmvb",
+			"vnd.route66.link66+xml": "link66",
+			"vnd.sailingtracker.track": "st",
+			"vnd.seemail": "see",
+			"vnd.sema": "sema",
+			"vnd.semd": "semd",
+			"vnd.semf": "semf",
+			"vnd.shana.informed.formdata": "ifm",
+			"vnd.shana.informed.formtemplate": "itp",
+			"vnd.shana.informed.interchange": "iif",
+			"vnd.shana.informed.package": "ipk",
+			"vnd.simtech-mindmapper": [
+				"twd",
+				"twds"
+			],
+			"vnd.smart.teacher": "teacher",
+			"vnd.solent.sdkm+xml": [
+				"sdkm",
+				"sdkd"
+			],
+			"vnd.spotfire.dxp": "dxp",
+			"vnd.spotfire.sfs": "sfs",
+			"vnd.stepmania.package": "smzip",
+			"vnd.stepmania.stepchart": "sm",
+			"vnd.sus-calendar": [
+				"sus",
+				"susp"
+			],
+			"vnd.svd": "svd",
+			"vnd.syncml+xml": "xsm",
+			"vnd.syncml.dm+wbxml": "bdm",
+			"vnd.syncml.dm+xml": "xdm",
+			"vnd.tao.intent-module-archive": "tao",
+			"vnd.tcpdump.pcap": [
+				"pcap",
+				"cap",
+				"dmp"
+			],
+			"vnd.tmobile-livetv": "tmo",
+			"vnd.trid.tpt": "tpt",
+			"vnd.triscape.mxs": "mxs",
+			"vnd.trueapp": "tra",
+			"vnd.ufdl": [
+				"ufd",
+				"ufdl"
+			],
+			"vnd.uiq.theme": "utz",
+			"vnd.umajin": "umj",
+			"vnd.unity": "unityweb",
+			"vnd.uoml+xml": "uoml",
+			"vnd.vcx": "vcx",
+			"vnd.visionary": "vis",
+			"vnd.vsf": "vsf",
+			"vnd.webturbo": "wtb",
+			"vnd.wolfram.player": "nbp",
+			"vnd.wqd": "wqd",
+			"vnd.wt.stf": "stf",
+			"vnd.xara": "xar",
+			"vnd.xfdl": "xfdl",
+			"vnd.yamaha.hv-dic": "hvd",
+			"vnd.yamaha.hv-script": "hvs",
+			"vnd.yamaha.hv-voice": "hvp",
+			"vnd.yamaha.openscoreformat": "osf",
+			"vnd.yamaha.openscoreformat.osfpvg+xml": "osfpvg",
+			"vnd.yamaha.smaf-audio": "saf",
+			"vnd.yamaha.smaf-phrase": "spf",
+			"vnd.yellowriver-custom-menu": "cmp",
+			"vnd.zul": [
+				"zir",
+				"zirz"
+			],
+			"vnd.zzazz.deck+xml": "zaz",
+			"voicexml+xml": "vxml",
+			"widget": "wgt",
+			"winhlp": "hlp",
+			"wsdl+xml": "wsdl",
+			"wspolicy+xml": "wspolicy",
+			"x-ace-compressed": "ace",
+			"x-authorware-bin": [
+				"aab",
+				"x32",
+				"u32",
+				"vox"
+			],
+			"x-authorware-map": "aam",
+			"x-authorware-seg": "aas",
+			"x-blorb": [
+				"blb",
+				"blorb"
+			],
+			"x-bzip": "bz",
+			"x-bzip2": [
+				"bz2",
+				"boz"
+			],
+			"x-cfs-compressed": "cfs",
+			"x-chat": "chat",
+			"x-conference": "nsc",
+			"x-dgc-compressed": "dgc",
+			"x-dtbncx+xml": "ncx",
+			"x-dtbook+xml": "dtb",
+			"x-dtbresource+xml": "res",
+			"x-eva": "eva",
+			"x-font-bdf": "bdf",
+			"x-font-ghostscript": "gsf",
+			"x-font-linux-psf": "psf",
+			"x-font-pcf": "pcf",
+			"x-font-snf": "snf",
+			"x-font-ttf": [
+				"ttf",
+				"ttc"
+			],
+			"x-font-type1": [
+				"pfa",
+				"pfb",
+				"pfm",
+				"afm"
+			],
+			"x-freearc": "arc",
+			"x-gca-compressed": "gca",
+			"x-glulx": "ulx",
+			"x-gramps-xml": "gramps",
+			"x-install-instructions": "install",
+			"x-lzh-compressed": [
+				"lzh",
+				"lha"
+			],
+			"x-mie": "mie",
+			"x-mobipocket-ebook": [
+				"prc",
+				"mobi"
+			],
+			"x-ms-application": "application",
+			"x-ms-shortcut": "lnk",
+			"x-ms-xbap": "xbap",
+			"x-msbinder": "obd",
+			"x-mscardfile": "crd",
+			"x-msclip": "clp",
+			"application/x-ms-installer": "msi",
+			"x-msmediaview": [
+				"mvb",
+				"m13",
+				"m14"
+			],
+			"x-msmetafile": [
+				"wmf",
+				"wmz",
+				"emf",
+				"emz"
+			],
+			"x-msmoney": "mny",
+			"x-mspublisher": "pub",
+			"x-msschedule": "scd",
+			"x-msterminal": "trm",
+			"x-mswrite": "wri",
+			"x-nzb": "nzb",
+			"x-pkcs12": [
+				"p12",
+				"pfx"
+			],
+			"x-pkcs7-certificates": [
+				"p7b",
+				"spc"
+			],
+			"x-research-info-systems": "ris",
+			"x-silverlight-app": "xap",
+			"x-sql": "sql",
+			"x-stuffitx": "sitx",
+			"x-subrip": "srt",
+			"x-t3vm-image": "t3",
+			"x-tex-tfm": "tfm",
+			"x-tgif": "obj",
+			"x-xliff+xml": "xlf",
+			"x-xz": "xz",
+			"x-zmachine": [
+				"z1",
+				"z2",
+				"z3",
+				"z4",
+				"z5",
+				"z6",
+				"z7",
+				"z8"
+			],
+			"xaml+xml": "xaml",
+			"xcap-diff+xml": "xdf",
+			"xenc+xml": "xenc",
+			"xml-dtd": "dtd",
+			"xop+xml": "xop",
+			"xproc+xml": "xpl",
+			"xslt+xml": "xslt",
+			"xv+xml": [
+				"mxml",
+				"xhvml",
+				"xvml",
+				"xvm"
+			],
+			"yang": "yang",
+			"yin+xml": "yin",
+			"envoy": "evy",
+			"fractals": "fif",
+			"internet-property-stream": "acx",
+			"olescript": "axs",
+			"vnd.ms-outlook": "msg",
+			"vnd.ms-pkicertstore": "sst",
+			"x-compress": "z",
+			"x-perfmon": [
+				"pma",
+				"pmc",
+				"pmr",
+				"pmw"
+			],
+			"ynd.ms-pkipko": "pko",
+			"gzip": [
+				"gz",
+				"tgz"
+			],
+			"smil+xml": [
+				"smi",
+				"smil"
+			],
+			"vnd.debian.binary-package": [
+				"deb",
+				"udeb"
+			],
+			"vnd.hzn-3d-crossword": "x3d",
+			"vnd.sqlite3": [
+				"db",
+				"sqlite",
+				"sqlite3",
+				"db-wal",
+				"sqlite-wal",
+				"db-shm",
+				"sqlite-shm"
+			],
+			"vnd.wap.sic": "sic",
+			"vnd.wap.slc": "slc",
+			"x-krita": [
+				"kra",
+				"krz"
+			],
+			"x-perl": [
+				"pm",
+				"pl"
+			],
+			"yaml": [
+				"yaml",
+				"yml"
+			]
+		},
+		"audio": {
+			"amr": "amr",
+			"amr-wb": "awb",
+			"annodex": "axa",
+			"basic": [
+				"au",
+				"snd"
+			],
+			"flac": "flac",
+			"midi": [
+				"mid",
+				"midi",
+				"kar",
+				"rmi"
+			],
+			"mpeg": [
+				"mpga",
+				"mpega",
+				"mp3",
+				"m4a",
+				"mp2a",
+				"m2a",
+				"m3a"
+			],
+			"mpegurl": "m3u",
+			"ogg": [
+				"oga",
+				"ogg",
+				"spx"
+			],
+			"prs.sid": "sid",
+			"x-aiff": "aifc",
+			"x-gsm": "gsm",
+			"x-ms-wma": "wma",
+			"x-ms-wax": "wax",
+			"x-pn-realaudio": "ram",
+			"x-realaudio": "ra",
+			"x-sd2": "sd2",
+			"adpcm": "adp",
+			"mp4": "mp4a",
+			"s3m": "s3m",
+			"silk": "sil",
+			"vnd.dece.audio": [
+				"uva",
+				"uvva"
+			],
+			"vnd.digital-winds": "eol",
+			"vnd.dra": "dra",
+			"vnd.dts": "dts",
+			"vnd.dts.hd": "dtshd",
+			"vnd.lucent.voice": "lvp",
+			"vnd.ms-playready.media.pya": "pya",
+			"vnd.nuera.ecelp4800": "ecelp4800",
+			"vnd.nuera.ecelp7470": "ecelp7470",
+			"vnd.nuera.ecelp9600": "ecelp9600",
+			"vnd.rip": "rip",
+			"webm": "weba",
+			"x-caf": "caf",
+			"x-matroska": "mka",
+			"x-pn-realaudio-plugin": "rmp",
+			"xm": "xm",
+			"aac": "aac",
+			"aiff": [
+				"aiff",
+				"aif",
+				"aff"
+			],
+			"opus": "opus",
+			"wav": "wav"
+		},
+		"chemical": {
+			"x-alchemy": "alc",
+			"x-cache": [
+				"cac",
+				"cache"
+			],
+			"x-cache-csf": "csf",
+			"x-cactvs-binary": [
+				"cbin",
+				"cascii",
+				"ctab"
+			],
+			"x-cdx": "cdx",
+			"x-chem3d": "c3d",
+			"x-cif": "cif",
+			"x-cmdf": "cmdf",
+			"x-cml": "cml",
+			"x-compass": "cpa",
+			"x-crossfire": "bsd",
+			"x-csml": [
+				"csml",
+				"csm"
+			],
+			"x-ctx": "ctx",
+			"x-cxf": [
+				"cxf",
+				"cef"
+			],
+			"x-embl-dl-nucleotide": [
+				"emb",
+				"embl"
+			],
+			"x-gamess-input": [
+				"inp",
+				"gam",
+				"gamin"
+			],
+			"x-gaussian-checkpoint": [
+				"fch",
+				"fchk"
+			],
+			"x-gaussian-cube": "cub",
+			"x-gaussian-input": [
+				"gau",
+				"gjc",
+				"gjf"
+			],
+			"x-gaussian-log": "gal",
+			"x-gcg8-sequence": "gcg",
+			"x-genbank": "gen",
+			"x-hin": "hin",
+			"x-isostar": [
+				"istr",
+				"ist"
+			],
+			"x-jcamp-dx": [
+				"jdx",
+				"dx"
+			],
+			"x-kinemage": "kin",
+			"x-macmolecule": "mcm",
+			"x-macromodel-input": "mmod",
+			"x-mdl-molfile": "mol",
+			"x-mdl-rdfile": "rd",
+			"x-mdl-rxnfile": "rxn",
+			"x-mdl-sdfile": "sd",
+			"x-mdl-tgf": "tgf",
+			"x-mmcif": "mcif",
+			"x-mol2": "mol2",
+			"x-molconn-Z": "b",
+			"x-mopac-graph": "gpt",
+			"x-mopac-input": [
+				"mop",
+				"mopcrt",
+				"zmt"
+			],
+			"x-mopac-out": "moo",
+			"x-ncbi-asn1": "asn",
+			"x-ncbi-asn1-ascii": [
+				"prt",
+				"ent"
+			],
+			"x-ncbi-asn1-binary": "val",
+			"x-rosdal": "ros",
+			"x-swissprot": "sw",
+			"x-vamas-iso14976": "vms",
+			"x-vmd": "vmd",
+			"x-xtel": "xtel",
+			"x-xyz": "xyz"
+		},
+		"font": {
+			"otf": "otf",
+			"woff": "woff",
+			"woff2": "woff2"
+		},
+		"image": {
+			"gif": "gif",
+			"ief": "ief",
+			"jpeg": [
+				"jpeg",
+				"jpg",
+				"jpe",
+				"jfif",
+				"jfif-tbnl",
+				"jif"
+			],
+			"pcx": "pcx",
+			"png": "png",
+			"svg+xml": [
+				"svg",
+				"svgz"
+			],
+			"tiff": [
+				"tiff",
+				"tif"
+			],
+			"vnd.djvu": [
+				"djvu",
+				"djv"
+			],
+			"vnd.wap.wbmp": "wbmp",
+			"x-canon-cr2": "cr2",
+			"x-canon-crw": "crw",
+			"x-cmu-raster": "ras",
+			"x-coreldraw": "cdr",
+			"x-coreldrawpattern": "pat",
+			"x-coreldrawtemplate": "cdt",
+			"x-corelphotopaint": "cpt",
+			"x-epson-erf": "erf",
+			"x-icon": "ico",
+			"x-jg": "art",
+			"x-jng": "jng",
+			"x-nikon-nef": "nef",
+			"x-olympus-orf": "orf",
+			"x-portable-anymap": "pnm",
+			"x-portable-bitmap": "pbm",
+			"x-portable-graymap": "pgm",
+			"x-portable-pixmap": "ppm",
+			"x-rgb": "rgb",
+			"x-xbitmap": "xbm",
+			"x-xpixmap": "xpm",
+			"x-xwindowdump": "xwd",
+			"bmp": "bmp",
+			"cgm": "cgm",
+			"g3fax": "g3",
+			"ktx": "ktx",
+			"prs.btif": "btif",
+			"sgi": "sgi",
+			"vnd.dece.graphic": [
+				"uvi",
+				"uvvi",
+				"uvg",
+				"uvvg"
+			],
+			"vnd.dwg": "dwg",
+			"vnd.dxf": "dxf",
+			"vnd.fastbidsheet": "fbs",
+			"vnd.fpx": "fpx",
+			"vnd.fst": "fst",
+			"vnd.fujixerox.edmics-mmr": "mmr",
+			"vnd.fujixerox.edmics-rlc": "rlc",
+			"vnd.ms-modi": "mdi",
+			"vnd.ms-photo": "wdp",
+			"vnd.net-fpx": "npx",
+			"vnd.xiff": "xif",
+			"webp": "webp",
+			"x-3ds": "3ds",
+			"x-cmx": "cmx",
+			"x-freehand": [
+				"fh",
+				"fhc",
+				"fh4",
+				"fh5",
+				"fh7"
+			],
+			"x-pict": [
+				"pic",
+				"pct"
+			],
+			"x-tga": "tga",
+			"cis-cod": "cod",
+			"avif": "avifs",
+			"heic": [
+				"heif",
+				"heic"
+			],
+			"pjpeg": [
+				"pjpg"
+			],
+			"vnd.adobe.photoshop": "psd",
+			"x-adobe-dng": "dng",
+			"x-fuji-raf": "raf",
+			"x-icns": "icns",
+			"x-kodak-dcr": "dcr",
+			"x-kodak-k25": "k25",
+			"x-kodak-kdc": "kdc",
+			"x-minolta-mrw": "mrw",
+			"x-panasonic-raw": [
+				"raw",
+				"rw2",
+				"rwl"
+			],
+			"x-pentax-pef": [
+				"pef",
+				"ptx"
+			],
+			"x-sigma-x3f": "x3f",
+			"x-sony-arw": "arw",
+			"x-sony-sr2": "sr2",
+			"x-sony-srf": "srf"
+		},
+		"message": {
+			"rfc822": [
+				"eml",
+				"mime",
+				"mht",
+				"mhtml",
+				"nws"
+			]
+		},
+		"model": {
+			"iges": [
+				"igs",
+				"iges"
+			],
+			"mesh": [
+				"msh",
+				"mesh",
+				"silo"
+			],
+			"vrml": [
+				"wrl",
+				"vrml"
+			],
+			"x3d+vrml": [
+				"x3dv",
+				"x3dvz"
+			],
+			"x3d+xml": "x3dz",
+			"x3d+binary": [
+				"x3db",
+				"x3dbz"
+			],
+			"vnd.collada+xml": "dae",
+			"vnd.dwf": "dwf",
+			"vnd.gdl": "gdl",
+			"vnd.gtw": "gtw",
+			"vnd.mts": "mts",
+			"vnd.usdz+zip": "usdz",
+			"vnd.vtu": "vtu"
+		},
+		"text": {
+			"cache-manifest": [
+				"manifest",
+				"appcache"
+			],
+			"calendar": [
+				"ics",
+				"icz",
+				"ifb"
+			],
+			"css": "css",
+			"csv": "csv",
+			"h323": "323",
+			"html": [
+				"html",
+				"htm",
+				"shtml",
+				"stm"
+			],
+			"iuls": "uls",
+			"plain": [
+				"txt",
+				"text",
+				"brf",
+				"conf",
+				"def",
+				"list",
+				"log",
+				"in",
+				"bas",
+				"diff",
+				"ksh"
+			],
+			"richtext": "rtx",
+			"scriptlet": [
+				"sct",
+				"wsc"
+			],
+			"texmacs": "tm",
+			"tab-separated-values": "tsv",
+			"vnd.sun.j2me.app-descriptor": "jad",
+			"vnd.wap.wml": "wml",
+			"vnd.wap.wmlscript": "wmls",
+			"x-bibtex": "bib",
+			"x-boo": "boo",
+			"x-c++hdr": [
+				"h++",
+				"hpp",
+				"hxx",
+				"hh"
+			],
+			"x-c++src": [
+				"c++",
+				"cpp",
+				"cxx",
+				"cc"
+			],
+			"x-component": "htc",
+			"x-dsrc": "d",
+			"x-diff": "patch",
+			"x-haskell": "hs",
+			"x-java": "java",
+			"x-literate-haskell": "lhs",
+			"x-moc": "moc",
+			"x-pascal": [
+				"p",
+				"pas",
+				"pp",
+				"inc"
+			],
+			"x-pcs-gcd": "gcd",
+			"x-python": "py",
+			"x-scala": "scala",
+			"x-setext": "etx",
+			"x-tcl": [
+				"tcl",
+				"tk"
+			],
+			"x-tex": [
+				"tex",
+				"ltx",
+				"sty",
+				"cls"
+			],
+			"x-vcalendar": "vcs",
+			"x-vcard": "vcf",
+			"n3": "n3",
+			"prs.lines.tag": "dsc",
+			"sgml": [
+				"sgml",
+				"sgm"
+			],
+			"troff": [
+				"t",
+				"tr",
+				"roff",
+				"man",
+				"me",
+				"ms"
+			],
+			"turtle": "ttl",
+			"uri-list": [
+				"uri",
+				"uris",
+				"urls"
+			],
+			"vcard": "vcard",
+			"vnd.curl": "curl",
+			"vnd.curl.dcurl": "dcurl",
+			"vnd.curl.scurl": "scurl",
+			"vnd.curl.mcurl": "mcurl",
+			"vnd.dvb.subtitle": "sub",
+			"vnd.fly": "fly",
+			"vnd.fmi.flexstor": "flx",
+			"vnd.graphviz": "gv",
+			"vnd.in3d.3dml": "3dml",
+			"vnd.in3d.spot": "spot",
+			"x-asm": [
+				"s",
+				"asm"
+			],
+			"x-c": [
+				"c",
+				"h",
+				"dic"
+			],
+			"x-fortran": [
+				"f",
+				"for",
+				"f77",
+				"f90"
+			],
+			"x-opml": "opml",
+			"x-nfo": "nfo",
+			"x-sfv": "sfv",
+			"x-uuencode": "uu",
+			"webviewhtml": "htt",
+			"javascript": "js",
+			"json": "json",
+			"markdown": [
+				"md",
+				"markdown",
+				"mdown",
+				"markdn"
+			],
+			"vnd.wap.si": "si",
+			"vnd.wap.sl": "sl"
+		},
+		"video": {
+			"avif": "avif",
+			"3gpp": "3gp",
+			"annodex": "axv",
+			"dl": "dl",
+			"dv": [
+				"dif",
+				"dv"
+			],
+			"fli": "fli",
+			"gl": "gl",
+			"mpeg": [
+				"mpeg",
+				"mpg",
+				"mpe",
+				"m1v",
+				"m2v",
+				"mp2",
+				"mpa",
+				"mpv2"
+			],
+			"mp4": [
+				"mp4",
+				"mp4v",
+				"mpg4"
+			],
+			"quicktime": [
+				"qt",
+				"mov"
+			],
+			"ogg": "ogv",
+			"vnd.mpegurl": [
+				"mxu",
+				"m4u"
+			],
+			"x-flv": "flv",
+			"x-la-asf": [
+				"lsf",
+				"lsx"
+			],
+			"x-mng": "mng",
+			"x-ms-asf": [
+				"asf",
+				"asx",
+				"asr"
+			],
+			"x-ms-wm": "wm",
+			"x-ms-wmv": "wmv",
+			"x-ms-wmx": "wmx",
+			"x-ms-wvx": "wvx",
+			"x-msvideo": "avi",
+			"x-sgi-movie": "movie",
+			"x-matroska": [
+				"mpv",
+				"mkv",
+				"mk3d",
+				"mks"
+			],
+			"3gpp2": "3g2",
+			"h261": "h261",
+			"h263": "h263",
+			"h264": "h264",
+			"jpeg": "jpgv",
+			"jpm": [
+				"jpm",
+				"jpgm"
+			],
+			"mj2": [
+				"mj2",
+				"mjp2"
+			],
+			"vnd.dece.hd": [
+				"uvh",
+				"uvvh"
+			],
+			"vnd.dece.mobile": [
+				"uvm",
+				"uvvm"
+			],
+			"vnd.dece.pd": [
+				"uvp",
+				"uvvp"
+			],
+			"vnd.dece.sd": [
+				"uvs",
+				"uvvs"
+			],
+			"vnd.dece.video": [
+				"uvv",
+				"uvvv"
+			],
+			"vnd.dvb.file": "dvb",
+			"vnd.fvt": "fvt",
+			"vnd.ms-playready.media.pyv": "pyv",
+			"vnd.uvvu.mp4": [
+				"uvu",
+				"uvvu"
+			],
+			"vnd.vivo": "viv",
+			"webm": "webm",
+			"x-f4v": "f4v",
+			"x-m4v": "m4v",
+			"x-ms-vob": "vob",
+			"x-smv": "smv",
+			"mp2t": "ts"
+		},
+		"x-conference": {
+			"x-cooltalk": "ice"
+		},
+		"x-world": {
+			"x-vrml": [
+				"vrm",
+				"flr",
+				"wrz",
+				"xaf",
+				"xof"
+			]
+		}
+	};
+
+	const mimeTypes = (() => {
+		const mimeTypes = {};
+		for (const type of Object.keys(table)) {
+			for (const subtype of Object.keys(table[type])) {
+				const value = table[type][subtype];
+				if (typeof value == "string") {
+					mimeTypes[value] = type + "/" + subtype;
+				} else {
+					for (let indexMimeType = 0; indexMimeType < value.length; indexMimeType++) {
+						mimeTypes[value[indexMimeType]] = type + "/" + subtype;
+					}
+				}
+			}
+		}
+		return mimeTypes;
+	})();
+
+	function getMimeType(filename) {
+		return filename && mimeTypes[filename.split(".").pop().toLowerCase()] || getMimeType$1();
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
 	 2. Redistributions in binary form must reproduce the above copyright
 	 notice, this list of conditions and the following disclaimer in
 	 the documentation and/or other materials provided with the distribution.
@@ -6617,15 +8445,8 @@
 	 */
 
 
-	let baseURL;
-	try {
-		baseURL = (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('zip-fs.js', document.baseURI).href));
-		// eslint-disable-next-line no-unused-vars
-	} catch (_) {
-		// ignored
-	}
-	configure({ baseURL });
-	e(configure);
+	t(configure);
+	g(configure);
 
 	exports.BlobReader = BlobReader;
 	exports.BlobWriter = BlobWriter;
@@ -6649,7 +8470,6 @@
 	exports.ERR_INVALID_SIGNATURE = ERR_INVALID_SIGNATURE;
 	exports.ERR_INVALID_UNCOMPRESSED_SIZE = ERR_INVALID_UNCOMPRESSED_SIZE;
 	exports.ERR_INVALID_VERSION = ERR_INVALID_VERSION;
-	exports.ERR_ITERATOR_COMPLETED_TOO_SOON = ERR_ITERATOR_COMPLETED_TOO_SOON;
 	exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
 	exports.ERR_OVERLAPPING_ENTRY = ERR_OVERLAPPING_ENTRY;
 	exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
@@ -6657,17 +8477,12 @@
 	exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION;
 	exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
 	exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
-	exports.ERR_WRITER_NOT_INITIALIZED = ERR_WRITER_NOT_INITIALIZED;
 	exports.ERR_ZIP_NOT_EMPTY = ERR_ZIP_NOT_EMPTY;
-	exports.GenericReader = GenericReader;
-	exports.GenericWriter = GenericWriter;
 	exports.HttpRangeReader = HttpRangeReader;
 	exports.HttpReader = HttpReader;
 	exports.Reader = Reader;
 	exports.SplitDataReader = SplitDataReader;
 	exports.SplitDataWriter = SplitDataWriter;
-	exports.SplitZipReader = SplitZipReader;
-	exports.SplitZipWriter = SplitZipWriter;
 	exports.TextReader = TextReader;
 	exports.TextWriter = TextWriter;
 	exports.Uint8ArrayReader = Uint8ArrayReader;
@@ -6680,9 +8495,7 @@
 	exports.configure = configure;
 	exports.fs = fs;
 	exports.getMimeType = getMimeType;
-	exports.initShimAsyncCodec = initShimAsyncCodec;
-	exports.initStream = initStream;
-	exports.readUint8Array = readUint8Array;
+	exports.resetWasmModule = resetWasmModule;
 	exports.terminateWorkers = terminateWorkers;
 
 }));

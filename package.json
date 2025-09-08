@@ -3,7 +3,7 @@
   "description": "A JavaScript library to zip and unzip files in the browser, Deno and Node.js",
   "author": "Gildas Lormeau",
   "license": "BSD-3-Clause",
-  "version": "2.7.73",
+  "version": "2.8.0",
   "type": "module",
   "keywords": [
     "zip",
@@ -34,8 +34,6 @@
   "scripts": {
     "build": "npx rollup -c",
     "build-dev": "npx rollup -c rollup.config.dev.js",
-    "build-fflate": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.js",
-    "build-fflate-dev": "npm i --no-save fflate && npx rollup -c rollup-fflate.config.dev.js",
     "build-doc-api": "npx typedoc",
     "build-doc-markdown": "npx typedoc --plugin typedoc-plugin-markdown --out ./docs",
     "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
@@ -65,12 +63,6 @@
         "default": "./index.min.js"
       }
     },
-    "./data-uri.js": {
-      "import": {
-        "types": "./index.d.ts",
-        "default": "./lib/zip-data-uri.js"
-      }
-    },
     "./lib/zip-fs.js": {
       "import": {
         "types": "./lib/zip-fs.d.ts",
@@ -95,12 +87,6 @@
         "default": "./lib/zip-no-worker-inflate.js"
       }
     },
-    "./lib/zip-no-worker.js": {
-      "import": {
-        "types": "./lib/zip-no-worker.d.ts",
-        "default": "./lib/zip-no-worker.js"
-      }
-    },
     "./lib/zip.js": {
       "import": {
         "types": "./lib/zip.d.ts",
@@ -117,12 +103,11 @@
   },
   "homepage": "https://gildas-lormeau.github.io/zip.js",
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-terser": "^0.4.4",
-    "eslint": "^9.34.0",
+    "eslint": "^9.35.0",
     "http-server": "^14.1.1",
-    "rollup": "^4.50.0",
+    "rollup": "^4.50.1",
     "typedoc": "^0.28.12",
     "typedoc-plugin-markdown": "^4.8.1"
   }
