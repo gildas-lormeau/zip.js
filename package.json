@@ -24,7 +24,8 @@
     "node.js",
     "multi-core",
     "split-zip",
-    "usdz"
+    "usdz",
+    "deflate64"
   ],
   "engines": {
     "deno": ">=1.0.0",
