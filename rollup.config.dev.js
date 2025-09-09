@@ -1,6 +1,6 @@
 import replace from "@rollup/plugin-replace";
 import fs from "node:fs";
-import path from "path";
+import path from "node:path";
 import { fileURLToPath } from "url";
 import { compress } from "./lib/core/util/mini-lz.js";
 

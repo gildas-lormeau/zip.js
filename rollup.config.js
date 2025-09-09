@@ -1,7 +1,7 @@
 import replace from "@rollup/plugin-replace";
 import terser from "@rollup/plugin-terser";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "url";
 import { compress } from "./lib/core/util/mini-lz.js";
 
