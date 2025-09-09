@@ -2877,7 +2877,7 @@
 					if (chunk && chunk.length) {
 						controller.enqueue(chunk);
 						codec.outputSize += chunk.length;
-						if (options.outputSize && codec.outputSize > options.outputSize) {
+						if (options.outputSize !== UNDEFINED_VALUE && codec.outputSize > options.outputSize) {
 							throw new Error(ERR_INVALID_UNCOMPRESSED_SIZE);
 						}
 					}
@@ -4020,7 +4020,7 @@
 					encryptionStrength: extraFieldAES && extraFieldAES.strength,
 					signed: getOptionValue$1(zipEntry, options, OPTION_CHECK_SIGNATURE) && !passThrough,
 					passwordVerification: zipCrypto && (dataDescriptor ? ((rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
-					outputSize: uncompressedSize,
+					outputSize: passThrough ? compressedSize : uncompressedSize,
 					signature,
 					compressed: compressionMethod != 0 && !passThrough,
 					encrypted: zipEntry.encrypted && !passThrough,
