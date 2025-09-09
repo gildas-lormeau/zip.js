@@ -64,6 +64,24 @@
         "default": "./index.min.js"
       }
     },
+    "./lib/zip-core-base.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/zip-core-base.js"
+      }
+    },
+    "./lib/zip-core-reader.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/zip-core-reader.js"
+      }
+    },
+    "./lib/zip-core-writer.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/zip-core-writer.js"
+      }
+    },
     "./lib/zip-fs.js": {
       "import": {
         "types": "./index.d.ts",
