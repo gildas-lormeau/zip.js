@@ -5918,21 +5918,21 @@ function arrayBufferFromDataURI(dataURI) {
  */
 
 
-let initializingModule = false;
+let modulePromise;
 
 g(configure);
 configureWorker({
 	initModule: config => {
-		if (!initializedModule && !initializingModule) {
+		if (!modulePromise) {
 			let { wasmURI } = config;
 			// deno-lint-ignore valid-typeof
 			if (typeof wasmURI == FUNCTION_TYPE) {
 				wasmURI = wasmURI();
 			}
-			initializingModule = false;
-			return initModule(wasmURI, config);
+			modulePromise = initModule(wasmURI, config);
+
 		}
-		initializingModule = true;
+		return modulePromise;
 	}
 });
 configure({
@@ -5941,6 +5941,7 @@ configure({
 });
 
 function terminateWorkersAndModule() {
+	modulePromise = null;
 	terminateWorkers();
 	resetWasmModule();
 }
