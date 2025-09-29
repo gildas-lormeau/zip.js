@@ -133,12 +133,11 @@
 		if (typeof navigator != UNDEFINED_TYPE && navigator.hardwareConcurrency) {
 			maxWorkers = navigator.hardwareConcurrency;
 		}
-		// eslint-disable-next-line no-unused-vars
-	} catch (_) {
+	} catch {
 		// ignored
 	}
 	const DEFAULT_CONFIGURATION = {
-		workerURI: "./core/web-worker.js",
+		workerURI: "./core/web-worker-wasm.js",
 		wasmURI: "./core/streams/zlib/zlib-streams.wasm",
 		chunkSize: 64 * 1024,
 		maxWorkers,
@@ -192,1044 +191,6 @@
 		if (propertyValue !== UNDEFINED_VALUE) {
 			config[propertyName] = propertyValue;
 		}
-	}
-
-	/*
-	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-	/* global TransformStream */
-
-	let wasm, malloc, free, memory;
-
-	function setWasmExports(wasmAPI) {
-		wasm = wasmAPI;
-		({ malloc, free, memory } = wasm);
-	}
-
-	function _make(isCompress, type, options = {}) {
-		const level = (typeof options.level === "number") ? options.level : -1;
-		const outBufferSize = (typeof options.outBuffer === "number") ? options.outBuffer : 64 * 1024;
-		const inBufferSize = (typeof options.inBufferSize === "number") ? options.inBufferSize : 64 * 1024;
-
-		return new TransformStream({
-			start() {
-				let result;
-				this.out = malloc(outBufferSize);
-				this.in = malloc(inBufferSize);
-				this.inBufferSize = inBufferSize;
-				this._scratch = new Uint8Array(outBufferSize);
-				if (isCompress) {
-					this._process = wasm.deflate_process;
-					this._last_consumed = wasm.deflate_last_consumed;
-					this._end = wasm.deflate_end;
-					this.streamHandle = wasm.deflate_new();
-					if (type === "gzip") {
-						result = wasm.deflate_init_gzip(this.streamHandle, level);
-					} else if (type === "deflate-raw") {
-						result = wasm.deflate_init_raw(this.streamHandle, level);
-					} else {
-						result = wasm.deflate_init(this.streamHandle, level);
-					}
-				} else {
-					if (type === "deflate64-raw") {
-						this._process = wasm.inflate9_process;
-						this._last_consumed = wasm.inflate9_last_consumed;
-						this._end = wasm.inflate9_end;
-						this.streamHandle = wasm.inflate9_new();
-						result = wasm.inflate9_init_raw(this.streamHandle);
-					} else {
-						this._process = wasm.inflate_process;
-						this._last_consumed = wasm.inflate_last_consumed;
-						this._end = wasm.inflate_end;
-						this.streamHandle = wasm.inflate_new();
-						if (type === "deflate-raw") {
-							result = wasm.inflate_init_raw(this.streamHandle);
-						} else if (type === "gzip") {
-							result = wasm.inflate_init_gzip(this.streamHandle);
-						} else {
-							result = wasm.inflate_init(this.streamHandle);
-						}
-					}
-				}
-				if (result !== 0) {
-					throw new Error("init failed:" + result);
-				}
-			},
-			transform(chunk, controller) {
-				try {
-					const buffer = chunk;
-					const heap = new Uint8Array(memory.buffer);
-					const process = this._process;
-					const last_consumed = this._last_consumed;
-					const out = this.out;
-					const scratch = this._scratch;
-					let offset = 0;
-					while (offset < buffer.length) {
-						const toRead = Math.min(buffer.length - offset, 32 * 1024);
-						if (!this.in || this.inBufferSize < toRead) {
-							if (this.in && free) {
-								free(this.in);
-							}
-							this.in = malloc(toRead);
-							this.inBufferSize = toRead;
-						}
-						heap.set(buffer.subarray(offset, offset + toRead), this.in);
-						const result = process(this.streamHandle, this.in, toRead, out, outBufferSize, 0);
-						if (!isCompress && result < 0) {
-							throw new Error("process error:" + result);
-						}
-						const prod = result & 0x00ffffff;
-						if (prod) {
-							scratch.set(heap.subarray(out, out + prod), 0);
-							controller.enqueue(scratch.slice(0, prod));
-						}
-						const consumed = last_consumed(this.streamHandle);
-						if (consumed === 0) {
-							break;
-						}
-						offset += consumed;
-					}
-				} catch (error) {
-					if (this._end && this.streamHandle) {
-						this._end(this.streamHandle);
-					}
-					if (this.in && free) {
-						free(this.in);
-					}
-					if (this.out && free) {
-						free(this.out);
-					}
-					controller.error(error);
-				}
-			},
-			flush(controller) {
-				try {
-					const heap = new Uint8Array(memory.buffer);
-					const process = this._process;
-					const out = this.out;
-					const scratch = this._scratch;
-					while (true) {
-						const result = process(this.streamHandle, 0, 0, out, outBufferSize, 4);
-						if (!isCompress && result < 0) {
-							throw new Error("process error:" + result);
-						}
-						const produced = result & 0x00ffffff;
-						const code = (result >> 24) & 0xff;
-						if (produced) {
-							scratch.set(heap.subarray(out, out + produced), 0);
-							controller.enqueue(scratch.slice(0, produced));
-						}
-						if (code === 1 || produced === 0) {
-							break;
-						}
-					}
-				} catch (error) {
-					controller.error(error);
-				} finally {
-					if (this._end && this.streamHandle) {
-						const result = this._end(this.streamHandle);
-						if (result !== 0) {
-							controller.error(new Error("end error:" + result));
-						}
-					}
-					if (this.in && free) {
-						free(this.in);
-					}
-					if (this.out && free) {
-						free(this.out);
-					}
-				}
-			}
-		});
-	}
-
-	class CompressionStreamZlib {
-		constructor(type = "deflate", options) {
-			return _make(true, type, options);
-		}
-	}
-	class DecompressionStreamZlib {
-		constructor(type = "deflate", options) {
-			return _make(false, type, options);
-		}
-	}
-
-	/*
-	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	let initializedModule = false;
-
-	async function initModule(wasmURI, { baseURI }) {
-		if (!initializedModule) {
-			let arrayBuffer, uri;
-			try {
-				try {
-					uri = new URL(wasmURI, baseURI);
-					// eslint-disable-next-line no-unused-vars
-				} catch (_) {
-					// ignored
-				}
-				const response = await fetch(uri);
-				arrayBuffer = await response.arrayBuffer();
-			} catch (error) {
-				if (wasmURI.startsWith("data:application/wasm;base64,")) {
-					arrayBuffer = arrayBufferFromDataURI(wasmURI);
-				} else {
-					throw error;
-				}
-			}
-			const wasmInstance = await WebAssembly.instantiate(arrayBuffer);
-			setWasmExports(wasmInstance.instance.exports);
-			initializedModule = true;
-		}
-	}
-
-	function resetWasmModule() {
-		initializedModule = false;
-	}
-
-	function arrayBufferFromDataURI(dataURI) {
-		const base64 = dataURI.split(",")[1];
-		const binary = atob(base64);
-		const len = binary.length;
-		const bytes = new Uint8Array(len);
-		for (let i = 0; i < len; ++i) {
-			bytes[i] = binary.charCodeAt(i);
-		}
-		return bytes.buffer;
-	}
-
-	/*
-	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	const ERR_HTTP_STATUS = "HTTP error ";
-	const ERR_HTTP_RANGE = "HTTP Range not supported";
-	const ERR_ITERATOR_COMPLETED_TOO_SOON = "Writer iterator completed too soon";
-	const ERR_WRITER_NOT_INITIALIZED = "Writer not initialized";
-
-	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
-	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
-	const HTTP_HEADER_CONTENT_RANGE = "Content-Range";
-	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
-	const HTTP_HEADER_RANGE = "Range";
-	const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
-	const HTTP_METHOD_HEAD = "HEAD";
-	const HTTP_METHOD_GET = "GET";
-	const HTTP_RANGE_UNIT = "bytes";
-	const DEFAULT_CHUNK_SIZE = 64 * 1024;
-
-	const PROPERTY_NAME_WRITABLE = "writable";
-
-	class Stream {
-
-		constructor() {
-			this.size = 0;
-		}
-
-		init() {
-			this.initialized = true;
-		}
-	}
-
-	class Reader extends Stream {
-
-		get readable() {
-			const reader = this;
-			const { chunkSize = DEFAULT_CHUNK_SIZE } = reader;
-			const readable = new ReadableStream({
-				start() {
-					this.chunkOffset = 0;
-				},
-				async pull(controller) {
-					const { offset = 0, size, diskNumberStart } = readable;
-					const { chunkOffset } = this;
-					const dataSize = size === UNDEFINED_VALUE ? chunkSize : Math.min(chunkSize, size - chunkOffset);
-					const data = await readUint8Array(reader, offset + chunkOffset, dataSize, diskNumberStart);
-					controller.enqueue(data);
-					if ((chunkOffset + chunkSize > size) || (size === UNDEFINED_VALUE && !data.length && dataSize)) {
-						controller.close();
-					} else {
-						this.chunkOffset += chunkSize;
-					}
-				}
-			});
-			return readable;
-		}
-	}
-
-	class Writer extends Stream {
-
-		constructor() {
-			super();
-			const writer = this;
-			const writable = new WritableStream({
-				write(chunk) {
-					if (!writer.initialized) {
-						throw new Error(ERR_WRITER_NOT_INITIALIZED);
-					}
-					return writer.writeUint8Array(chunk);
-				}
-			});
-			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
-				get() {
-					return writable;
-				}
-			});
-		}
-
-		writeUint8Array() {
-			// abstract
-		}
-	}
-
-	class Data64URIReader extends Reader {
-
-		constructor(dataURI) {
-			super();
-			let dataEnd = dataURI.length;
-			while (dataURI.charAt(dataEnd - 1) == "=") {
-				dataEnd--;
-			}
-			const dataStart = dataURI.indexOf(",") + 1;
-			Object.assign(this, {
-				dataURI,
-				dataStart,
-				size: Math.floor((dataEnd - dataStart) * 0.75)
-			});
-		}
-
-		readUint8Array(offset, length) {
-			const {
-				dataStart,
-				dataURI
-			} = this;
-			const dataArray = new Uint8Array(length);
-			const start = Math.floor(offset / 3) * 4;
-			const bytes = atob(dataURI.substring(start + dataStart, Math.ceil((offset + length) / 3) * 4 + dataStart));
-			const delta = offset - Math.floor(start / 4) * 3;
-			let effectiveLength = 0;
-			for (let indexByte = delta; indexByte < delta + length && indexByte < bytes.length; indexByte++) {
-				dataArray[indexByte - delta] = bytes.charCodeAt(indexByte);
-				effectiveLength++;
-			}
-			if (effectiveLength < dataArray.length) {
-				return dataArray.subarray(0, effectiveLength);
-			} else {
-				return dataArray;
-			}
-		}
-	}
-
-	class Data64URIWriter extends Writer {
-
-		constructor(contentType) {
-			super();
-			Object.assign(this, {
-				data: "data:" + (contentType || "") + ";base64,",
-				pending: []
-			});
-		}
-
-		writeUint8Array(array) {
-			const writer = this;
-			let indexArray = 0;
-			let dataString = writer.pending;
-			const delta = writer.pending.length;
-			writer.pending = "";
-			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
-				dataString += String.fromCharCode(array[indexArray]);
-			}
-			for (; indexArray < array.length; indexArray++) {
-				writer.pending += String.fromCharCode(array[indexArray]);
-			}
-			if (dataString.length) {
-				if (dataString.length > 2) {
-					writer.data += btoa(dataString);
-				} else {
-					writer.pending += dataString;
-				}
-			}
-		}
-
-		getData() {
-			return this.data + btoa(this.pending);
-		}
-	}
-
-	class BlobReader extends Reader {
-
-		constructor(blob) {
-			super();
-			Object.assign(this, {
-				blob,
-				size: blob.size
-			});
-		}
-
-		async readUint8Array(offset, length) {
-			const reader = this;
-			const offsetEnd = offset + length;
-			const blob = offset || offsetEnd < reader.size ? reader.blob.slice(offset, offsetEnd) : reader.blob;
-			let arrayBuffer = await blob.arrayBuffer();
-			if (arrayBuffer.byteLength > length) {
-				arrayBuffer = arrayBuffer.slice(offset, offsetEnd);
-			}
-			return new Uint8Array(arrayBuffer);
-		}
-	}
-
-	class BlobWriter extends Stream {
-
-		constructor(contentType) {
-			super();
-			const writer = this;
-			const transformStream = new TransformStream();
-			const headers = [];
-			if (contentType) {
-				headers.push([HTTP_HEADER_CONTENT_TYPE, contentType]);
-			}
-			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
-				get() {
-					return transformStream.writable;
-				}
-			});
-			writer.blob = new Response(transformStream.readable, { headers }).blob();
-		}
-
-		getData() {
-			return this.blob;
-		}
-	}
-
-	class TextReader extends BlobReader {
-
-		constructor(text) {
-			super(new Blob([text], { type: CONTENT_TYPE_TEXT_PLAIN }));
-		}
-	}
-
-	class TextWriter extends BlobWriter {
-
-		constructor(encoding) {
-			super(encoding);
-			Object.assign(this, {
-				encoding,
-				utf8: !encoding || encoding.toLowerCase() == "utf-8"
-			});
-		}
-
-		async getData() {
-			const {
-				encoding,
-				utf8
-			} = this;
-			const blob = await super.getData();
-			if (blob.text && utf8) {
-				return blob.text();
-			} else {
-				const reader = new FileReader();
-				return new Promise((resolve, reject) => {
-					Object.assign(reader, {
-						onload: ({ target }) => resolve(target.result),
-						onerror: () => reject(reader.error)
-					});
-					reader.readAsText(blob, encoding);
-				});
-			}
-		}
-	}
-
-	class FetchReader extends Reader {
-
-		constructor(url, options) {
-			super();
-			createHttpReader(this, url, options);
-		}
-
-		async init() {
-			await initHttpReader(this, sendFetchRequest, getFetchRequestData);
-			super.init();
-		}
-
-		readUint8Array(index, length) {
-			return readUint8ArrayHttpReader(this, index, length, sendFetchRequest, getFetchRequestData);
-		}
-	}
-
-	class XHRReader extends Reader {
-
-		constructor(url, options) {
-			super();
-			createHttpReader(this, url, options);
-		}
-
-		async init() {
-			await initHttpReader(this, sendXMLHttpRequest, getXMLHttpRequestData);
-			super.init();
-		}
-
-		readUint8Array(index, length) {
-			return readUint8ArrayHttpReader(this, index, length, sendXMLHttpRequest, getXMLHttpRequestData);
-		}
-	}
-
-	function createHttpReader(httpReader, url, options) {
-		const {
-			preventHeadRequest,
-			useRangeHeader,
-			forceRangeRequests,
-			combineSizeEocd
-		} = options;
-		options = Object.assign({}, options);
-		delete options.preventHeadRequest;
-		delete options.useRangeHeader;
-		delete options.forceRangeRequests;
-		delete options.combineSizeEocd;
-		delete options.useXHR;
-		Object.assign(httpReader, {
-			url,
-			options,
-			preventHeadRequest,
-			useRangeHeader,
-			forceRangeRequests,
-			combineSizeEocd
-		});
-	}
-
-	async function initHttpReader(httpReader, sendRequest, getRequestData) {
-		const {
-			url,
-			preventHeadRequest,
-			useRangeHeader,
-			forceRangeRequests,
-			combineSizeEocd
-		} = httpReader;
-		if (isHttpFamily(url) && (useRangeHeader || forceRangeRequests) && (typeof preventHeadRequest == "undefined" || preventHeadRequest)) {
-			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -END_OF_CENTRAL_DIR_LENGTH : undefined));
-			const acceptRanges = response.headers.get(HTTP_HEADER_ACCEPT_RANGES);
-			if (!forceRangeRequests && (!acceptRanges || acceptRanges.toLowerCase() != HTTP_RANGE_UNIT)) {
-				throw new Error(ERR_HTTP_RANGE);
-			} else {
-				if (combineSizeEocd) {
-					httpReader.eocdCache = new Uint8Array(await response.arrayBuffer());
-				}
-				let contentSize;
-				const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
-				if (contentRangeHeader) {
-					const splitHeader = contentRangeHeader.trim().split(/\s*\/\s*/);
-					if (splitHeader.length) {
-						const headerValue = splitHeader[1];
-						if (headerValue && headerValue != "*") {
-							contentSize = Number(headerValue);
-						}
-					}
-				}
-				if (contentSize === UNDEFINED_VALUE) {
-					await getContentLength(httpReader, sendRequest, getRequestData);
-				} else {
-					httpReader.size = contentSize;
-				}
-			}
-		} else {
-			await getContentLength(httpReader, sendRequest, getRequestData);
-		}
-	}
-
-	async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, getRequestData) {
-		const {
-			useRangeHeader,
-			forceRangeRequests,
-			eocdCache,
-			size,
-			options
-		} = httpReader;
-		if (useRangeHeader || forceRangeRequests) {
-			if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
-				return eocdCache;
-			}
-			if (index >= size) {
-				return new Uint8Array();
-			} else {
-				if (index + length > size) {
-					length = size - index;
-				}
-				const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
-				if (response.status != 206) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-				return new Uint8Array(await response.arrayBuffer());
-			}
-		} else {
-			const { data } = httpReader;
-			if (!data) {
-				await getRequestData(httpReader, options);
-			}
-			return new Uint8Array(httpReader.data.subarray(index, index + length));
-		}
-	}
-
-	function getRangeHeaders(httpReader, index = 0, length = 1) {
-		return Object.assign({}, getHeaders(httpReader), { [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + (index < 0 ? index : index + "-" + (index + length - 1)) });
-	}
-
-	function getHeaders({ options }) {
-		const { headers } = options;
-		if (headers) {
-			if (Symbol.iterator in headers) {
-				return Object.fromEntries(headers);
-			} else {
-				return headers;
-			}
-		}
-	}
-
-	async function getFetchRequestData(httpReader) {
-		await getRequestData(httpReader, sendFetchRequest);
-	}
-
-	async function getXMLHttpRequestData(httpReader) {
-		await getRequestData(httpReader, sendXMLHttpRequest);
-	}
-
-	async function getRequestData(httpReader, sendRequest) {
-		const response = await sendRequest(HTTP_METHOD_GET, httpReader, getHeaders(httpReader));
-		httpReader.data = new Uint8Array(await response.arrayBuffer());
-		if (!httpReader.size) {
-			httpReader.size = httpReader.data.length;
-		}
-	}
-
-	async function getContentLength(httpReader, sendRequest, getRequestData) {
-		if (httpReader.preventHeadRequest) {
-			await getRequestData(httpReader, httpReader.options);
-		} else {
-			const response = await sendRequest(HTTP_METHOD_HEAD, httpReader, getHeaders(httpReader));
-			const contentLength = response.headers.get(HTTP_HEADER_CONTENT_LENGTH);
-			if (contentLength) {
-				httpReader.size = Number(contentLength);
-			} else {
-				await getRequestData(httpReader, httpReader.options);
-			}
-		}
-	}
-
-	async function sendFetchRequest(method, { options, url }, headers) {
-		const response = await fetch(url, Object.assign({}, options, { method, headers }));
-		if (response.status < 400) {
-			return response;
-		} else {
-			throw response.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
-		}
-	}
-
-	function sendXMLHttpRequest(method, { url }, headers) {
-		return new Promise((resolve, reject) => {
-			const request = new XMLHttpRequest();
-			request.addEventListener("load", () => {
-				if (request.status < 400) {
-					const headers = [];
-					request.getAllResponseHeaders().trim().split(/[\r\n]+/).forEach(header => {
-						const splitHeader = header.trim().split(/\s*:\s*/);
-						splitHeader[0] = splitHeader[0].trim().replace(/^[a-z]|-[a-z]/g, value => value.toUpperCase());
-						headers.push(splitHeader);
-					});
-					resolve({
-						status: request.status,
-						arrayBuffer: () => request.response,
-						headers: new Map(headers)
-					});
-				} else {
-					reject(request.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (request.statusText || request.status)));
-				}
-			}, false);
-			request.addEventListener("error", event => reject(event.detail ? event.detail.error : new Error("Network error")), false);
-			request.open(method, url);
-			if (headers) {
-				for (const entry of Object.entries(headers)) {
-					request.setRequestHeader(entry[0], entry[1]);
-				}
-			}
-			request.responseType = "arraybuffer";
-			request.send();
-		});
-	}
-
-	class HttpReader extends Reader {
-
-		constructor(url, options = {}) {
-			super();
-			Object.assign(this, {
-				url,
-				reader: options.useXHR ? new XHRReader(url, options) : new FetchReader(url, options)
-			});
-		}
-
-		set size(value) {
-			// ignored
-		}
-
-		get size() {
-			return this.reader.size;
-		}
-
-		async init() {
-			await this.reader.init();
-			super.init();
-		}
-
-		readUint8Array(index, length) {
-			return this.reader.readUint8Array(index, length);
-		}
-	}
-
-	class HttpRangeReader extends HttpReader {
-
-		constructor(url, options = {}) {
-			options.useRangeHeader = true;
-			super(url, options);
-		}
-	}
-
-
-	class Uint8ArrayReader extends Reader {
-
-		constructor(array) {
-			super();
-			array = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
-			Object.assign(this, {
-				array,
-				size: array.length
-			});
-		}
-
-		readUint8Array(index, length) {
-			return this.array.slice(index, index + length);
-		}
-	}
-
-	class Uint8ArrayWriter extends Writer {
-
-		init(initSize = 0) {
-			Object.assign(this, {
-				offset: 0,
-				array: new Uint8Array(initSize)
-			});
-			super.init();
-		}
-
-		writeUint8Array(array) {
-			const writer = this;
-			if (writer.offset + array.length > writer.array.length) {
-				const previousArray = writer.array;
-				writer.array = new Uint8Array(previousArray.length + array.length);
-				writer.array.set(previousArray);
-			}
-			writer.array.set(array, writer.offset);
-			writer.offset += array.length;
-		}
-
-		getData() {
-			return this.array;
-		}
-	}
-
-	class SplitDataReader extends Reader {
-
-		constructor(readers) {
-			super();
-			this.readers = readers;
-		}
-
-		async init() {
-			const reader = this;
-			const { readers } = reader;
-			reader.lastDiskNumber = 0;
-			reader.lastDiskOffset = 0;
-			await Promise.all(readers.map(async (diskReader, indexDiskReader) => {
-				await diskReader.init();
-				if (indexDiskReader != readers.length - 1) {
-					reader.lastDiskOffset += diskReader.size;
-				}
-				reader.size += diskReader.size;
-			}));
-			super.init();
-		}
-
-		async readUint8Array(offset, length, diskNumber = 0) {
-			const reader = this;
-			const { readers } = this;
-			let result;
-			let currentDiskNumber = diskNumber;
-			if (currentDiskNumber == -1) {
-				currentDiskNumber = readers.length - 1;
-			}
-			let currentReaderOffset = offset;
-			while (readers[currentDiskNumber] && currentReaderOffset >= readers[currentDiskNumber].size) {
-				currentReaderOffset -= readers[currentDiskNumber].size;
-				currentDiskNumber++;
-			}
-			const currentReader = readers[currentDiskNumber];
-			if (currentReader) {
-				const currentReaderSize = currentReader.size;
-				if (currentReaderOffset + length <= currentReaderSize) {
-					result = await readUint8Array(currentReader, currentReaderOffset, length);
-				} else {
-					const chunkLength = currentReaderSize - currentReaderOffset;
-					result = new Uint8Array(length);
-					const firstPart = await readUint8Array(currentReader, currentReaderOffset, chunkLength);
-					result.set(firstPart, 0);
-					const secondPart = await reader.readUint8Array(offset + chunkLength, length - chunkLength, diskNumber);
-					result.set(secondPart, chunkLength);
-					if (firstPart.length + secondPart.length < length) {
-						result = result.subarray(0, firstPart.length + secondPart.length);
-					}
-				}
-			} else {
-				result = new Uint8Array();
-			}
-			reader.lastDiskNumber = Math.max(currentDiskNumber, reader.lastDiskNumber);
-			return result;
-		}
-	}
-
-	class SplitDataWriter extends Stream {
-
-		constructor(writerGenerator, maxSize = 4294967295) {
-			super();
-			const writer = this;
-			Object.assign(writer, {
-				diskNumber: 0,
-				diskOffset: 0,
-				size: 0,
-				maxSize,
-				availableSize: maxSize
-			});
-			let diskSourceWriter, diskWritable, diskWriter;
-			const writable = new WritableStream({
-				async write(chunk) {
-					const { availableSize } = writer;
-					if (!diskWriter) {
-						const { value, done } = await writerGenerator.next();
-						if (done && !value) {
-							throw new Error(ERR_ITERATOR_COMPLETED_TOO_SOON);
-						} else {
-							diskSourceWriter = value;
-							diskSourceWriter.size = 0;
-							if (diskSourceWriter.maxSize) {
-								writer.maxSize = diskSourceWriter.maxSize;
-							}
-							writer.availableSize = writer.maxSize;
-							await initStream(diskSourceWriter);
-							diskWritable = value.writable;
-							diskWriter = diskWritable.getWriter();
-						}
-						await this.write(chunk);
-					} else if (chunk.length >= availableSize) {
-						await writeChunk(chunk.subarray(0, availableSize));
-						await closeDisk();
-						writer.diskOffset += diskSourceWriter.size;
-						writer.diskNumber++;
-						diskWriter = null;
-						await this.write(chunk.subarray(availableSize));
-					} else {
-						await writeChunk(chunk);
-					}
-				},
-				async close() {
-					await diskWriter.ready;
-					await closeDisk();
-				}
-			});
-			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
-				get() {
-					return writable;
-				}
-			});
-
-			async function writeChunk(chunk) {
-				const chunkLength = chunk.length;
-				if (chunkLength) {
-					await diskWriter.ready;
-					await diskWriter.write(chunk);
-					diskSourceWriter.size += chunkLength;
-					writer.size += chunkLength;
-					writer.availableSize -= chunkLength;
-				}
-			}
-
-			async function closeDisk() {
-				await diskWriter.close();
-			}
-		}
-	}
-
-	class GenericReader {
-
-		constructor(reader) {
-			if (Array.isArray(reader)) {
-				reader = new SplitDataReader(reader);
-			}
-			if (reader instanceof ReadableStream) {
-				reader = {
-					readable: reader
-				};
-			}
-			return reader;
-		}
-	}
-
-	class GenericWriter {
-
-		constructor(writer) {
-			if (writer.writable === UNDEFINED_VALUE && typeof writer.next == FUNCTION_TYPE) {
-				writer = new SplitDataWriter(writer);
-			}
-			if (writer instanceof WritableStream) {
-				writer = {
-					writable: writer
-				};
-			}
-			if (writer.size === UNDEFINED_VALUE) {
-				writer.size = 0;
-			}
-			if (!(writer instanceof SplitDataWriter)) {
-				Object.assign(writer, {
-					diskNumber: 0,
-					diskOffset: 0,
-					availableSize: Infinity,
-					maxSize: Infinity
-				});
-			}
-			return writer;
-		}
-	}
-
-	function isHttpFamily(url) {
-		const { baseURI } = getConfiguration();
-		const { protocol } = new URL(url, baseURI);
-		return protocol == "http:" || protocol == "https:";
-	}
-
-	async function initStream(stream, initSize) {
-		if (stream.init && !stream.initialized) {
-			await stream.init(initSize);
-		} else {
-			return Promise.resolve();
-		}
-	}
-
-	function readUint8Array(reader, offset, size, diskNumber) {
-		return reader.readUint8Array(offset, size, diskNumber);
-	}
-
-	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	function getMimeType() {
-		return "application/octet-stream";
 	}
 
 	/*
@@ -2493,8 +1454,7 @@
 		if (IMPORT_KEY_SUPPORTED) {
 			try {
 				return await subtle.importKey(format, password, algorithm, extractable, keyUsages);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				IMPORT_KEY_SUPPORTED = false;
 				return misc.importKey(password);
 			}
@@ -2507,8 +1467,7 @@
 		if (DERIVE_BITS_SUPPORTED) {
 			try {
 				return await subtle.deriveBits(algorithm, baseKey, length);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				DERIVE_BITS_SUPPORTED = false;
 				return misc.pbkdf2(baseKey, algorithm.salt, DERIVED_BITS_ALGORITHM.iterations, length);
 			}
@@ -2994,6 +1953,7 @@
 
 	// deno-lint-ignore valid-typeof
 	let WEB_WORKERS_SUPPORTED = typeof Worker != UNDEFINED_TYPE;
+	let initModule = () => { };
 
 	class CodecWorker {
 
@@ -3069,8 +2029,7 @@
 	async function callHandler(handler, ...parameters) {
 		try {
 			await handler(...parameters);
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
+		} catch {
 			// ignored
 		}
 	}
@@ -3093,8 +2052,7 @@
 			let worker;
 			try {
 				worker = getWebWorker(workerData.workerURI, baseURI, workerData);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				WEB_WORKERS_SUPPORTED = false;
 				return createWorkerInterface(workerData, config);
 			}
@@ -3111,13 +2069,12 @@
 	async function runWorker$1({ options, readable, writable, onTaskFinished }, config) {
 		let codecStream;
 		try {
-			if (!options.useCompressionStream && !initializedModule) {
-				let { wasmURI } = config;
-				// deno-lint-ignore valid-typeof
-				if (typeof wasmURI == FUNCTION_TYPE) {
-					wasmURI = wasmURI();
+			if (!options.useCompressionStream) {
+				try {
+					await initModule(config);
+				} catch {
+					options.useCompressionStream = true;
 				}
-				await initModule(wasmURI, config);
 			}
 			codecStream = new CodecStream(options, config);
 			await readable.pipeThrough(codecStream).pipeTo(writable, { preventClose: true, preventAbort: true });
@@ -3210,15 +2167,13 @@
 		if (url.startsWith("data:") || url.startsWith("blob:")) {
 			try {
 				worker = new Worker(url);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				worker = new Worker(url, workerOptions);
 			}
 		} else {
 			try {
 				scriptUrl = new URL(url, baseURI);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				scriptUrl = url;
 			}
 			worker = new Worker(scriptUrl, workerOptions);
@@ -3254,8 +2209,7 @@
 				try {
 					worker.postMessage(message, transferables);
 					return true;
-					// eslint-disable-next-line no-unused-vars
-				} catch (_) {
+				} catch {
 					transferStreamsSupported = false;
 					message.readable = message.writable = null;
 					worker.postMessage(message);
@@ -3398,8 +2352,7 @@
 					pool = pool.filter(data => data != workerData);
 					try {
 						await workerData.terminate();
-						// eslint-disable-next-line no-unused-vars
-					} catch (_) {
+					} catch {
 						// ignored
 					}
 				}, terminateWorkerTimeout);
@@ -3420,7 +2373,755 @@
 			clearTerminateTimeout(workerData);
 			return workerData.terminate();
 		}));
-		resetWasmModule();
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const ERR_HTTP_STATUS = "HTTP error ";
+	const ERR_HTTP_RANGE = "HTTP Range not supported";
+	const ERR_ITERATOR_COMPLETED_TOO_SOON = "Writer iterator completed too soon";
+	const ERR_WRITER_NOT_INITIALIZED = "Writer not initialized";
+
+	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
+	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
+	const HTTP_HEADER_CONTENT_RANGE = "Content-Range";
+	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
+	const HTTP_HEADER_RANGE = "Range";
+	const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
+	const HTTP_METHOD_HEAD = "HEAD";
+	const HTTP_METHOD_GET = "GET";
+	const HTTP_RANGE_UNIT = "bytes";
+	const DEFAULT_CHUNK_SIZE = 64 * 1024;
+
+	const PROPERTY_NAME_WRITABLE = "writable";
+
+	class Stream {
+
+		constructor() {
+			this.size = 0;
+		}
+
+		init() {
+			this.initialized = true;
+		}
+	}
+
+	class Reader extends Stream {
+
+		get readable() {
+			const reader = this;
+			const { chunkSize = DEFAULT_CHUNK_SIZE } = reader;
+			const readable = new ReadableStream({
+				start() {
+					this.chunkOffset = 0;
+				},
+				async pull(controller) {
+					const { offset = 0, size, diskNumberStart } = readable;
+					const { chunkOffset } = this;
+					const dataSize = size === UNDEFINED_VALUE ? chunkSize : Math.min(chunkSize, size - chunkOffset);
+					const data = await readUint8Array(reader, offset + chunkOffset, dataSize, diskNumberStart);
+					controller.enqueue(data);
+					if ((chunkOffset + chunkSize > size) || (size === UNDEFINED_VALUE && !data.length && dataSize)) {
+						controller.close();
+					} else {
+						this.chunkOffset += chunkSize;
+					}
+				}
+			});
+			return readable;
+		}
+	}
+
+	class Writer extends Stream {
+
+		constructor() {
+			super();
+			const writer = this;
+			const writable = new WritableStream({
+				write(chunk) {
+					if (!writer.initialized) {
+						throw new Error(ERR_WRITER_NOT_INITIALIZED);
+					}
+					return writer.writeUint8Array(chunk);
+				}
+			});
+			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
+				get() {
+					return writable;
+				}
+			});
+		}
+
+		writeUint8Array() {
+			// abstract
+		}
+	}
+
+	class Data64URIReader extends Reader {
+
+		constructor(dataURI) {
+			super();
+			let dataEnd = dataURI.length;
+			while (dataURI.charAt(dataEnd - 1) == "=") {
+				dataEnd--;
+			}
+			const dataStart = dataURI.indexOf(",") + 1;
+			Object.assign(this, {
+				dataURI,
+				dataStart,
+				size: Math.floor((dataEnd - dataStart) * 0.75)
+			});
+		}
+
+		readUint8Array(offset, length) {
+			const {
+				dataStart,
+				dataURI
+			} = this;
+			const dataArray = new Uint8Array(length);
+			const start = Math.floor(offset / 3) * 4;
+			const bytes = atob(dataURI.substring(start + dataStart, Math.ceil((offset + length) / 3) * 4 + dataStart));
+			const delta = offset - Math.floor(start / 4) * 3;
+			let effectiveLength = 0;
+			for (let indexByte = delta; indexByte < delta + length && indexByte < bytes.length; indexByte++) {
+				dataArray[indexByte - delta] = bytes.charCodeAt(indexByte);
+				effectiveLength++;
+			}
+			if (effectiveLength < dataArray.length) {
+				return dataArray.subarray(0, effectiveLength);
+			} else {
+				return dataArray;
+			}
+		}
+	}
+
+	class Data64URIWriter extends Writer {
+
+		constructor(contentType) {
+			super();
+			Object.assign(this, {
+				data: "data:" + (contentType || "") + ";base64,",
+				pending: []
+			});
+		}
+
+		writeUint8Array(array) {
+			const writer = this;
+			let indexArray = 0;
+			let dataString = writer.pending;
+			const delta = writer.pending.length;
+			writer.pending = "";
+			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
+				dataString += String.fromCharCode(array[indexArray]);
+			}
+			for (; indexArray < array.length; indexArray++) {
+				writer.pending += String.fromCharCode(array[indexArray]);
+			}
+			if (dataString.length) {
+				if (dataString.length > 2) {
+					writer.data += btoa(dataString);
+				} else {
+					writer.pending += dataString;
+				}
+			}
+		}
+
+		getData() {
+			return this.data + btoa(this.pending);
+		}
+	}
+
+	class BlobReader extends Reader {
+
+		constructor(blob) {
+			super();
+			Object.assign(this, {
+				blob,
+				size: blob.size
+			});
+		}
+
+		async readUint8Array(offset, length) {
+			const reader = this;
+			const offsetEnd = offset + length;
+			const blob = offset || offsetEnd < reader.size ? reader.blob.slice(offset, offsetEnd) : reader.blob;
+			let arrayBuffer = await blob.arrayBuffer();
+			if (arrayBuffer.byteLength > length) {
+				arrayBuffer = arrayBuffer.slice(offset, offsetEnd);
+			}
+			return new Uint8Array(arrayBuffer);
+		}
+	}
+
+	class BlobWriter extends Stream {
+
+		constructor(contentType) {
+			super();
+			const writer = this;
+			const transformStream = new TransformStream();
+			const headers = [];
+			if (contentType) {
+				headers.push([HTTP_HEADER_CONTENT_TYPE, contentType]);
+			}
+			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
+				get() {
+					return transformStream.writable;
+				}
+			});
+			writer.blob = new Response(transformStream.readable, { headers }).blob();
+		}
+
+		getData() {
+			return this.blob;
+		}
+	}
+
+	class TextReader extends BlobReader {
+
+		constructor(text) {
+			super(new Blob([text], { type: CONTENT_TYPE_TEXT_PLAIN }));
+		}
+	}
+
+	class TextWriter extends BlobWriter {
+
+		constructor(encoding) {
+			super(encoding);
+			Object.assign(this, {
+				encoding,
+				utf8: !encoding || encoding.toLowerCase() == "utf-8"
+			});
+		}
+
+		async getData() {
+			const {
+				encoding,
+				utf8
+			} = this;
+			const blob = await super.getData();
+			if (blob.text && utf8) {
+				return blob.text();
+			} else {
+				const reader = new FileReader();
+				return new Promise((resolve, reject) => {
+					Object.assign(reader, {
+						onload: ({ target }) => resolve(target.result),
+						onerror: () => reject(reader.error)
+					});
+					reader.readAsText(blob, encoding);
+				});
+			}
+		}
+	}
+
+	class FetchReader extends Reader {
+
+		constructor(url, options) {
+			super();
+			createHttpReader(this, url, options);
+		}
+
+		async init() {
+			await initHttpReader(this, sendFetchRequest, getFetchRequestData);
+			super.init();
+		}
+
+		readUint8Array(index, length) {
+			return readUint8ArrayHttpReader(this, index, length, sendFetchRequest, getFetchRequestData);
+		}
+	}
+
+	class XHRReader extends Reader {
+
+		constructor(url, options) {
+			super();
+			createHttpReader(this, url, options);
+		}
+
+		async init() {
+			await initHttpReader(this, sendXMLHttpRequest, getXMLHttpRequestData);
+			super.init();
+		}
+
+		readUint8Array(index, length) {
+			return readUint8ArrayHttpReader(this, index, length, sendXMLHttpRequest, getXMLHttpRequestData);
+		}
+	}
+
+	function createHttpReader(httpReader, url, options) {
+		const {
+			preventHeadRequest,
+			useRangeHeader,
+			forceRangeRequests,
+			combineSizeEocd
+		} = options;
+		options = Object.assign({}, options);
+		delete options.preventHeadRequest;
+		delete options.useRangeHeader;
+		delete options.forceRangeRequests;
+		delete options.combineSizeEocd;
+		delete options.useXHR;
+		Object.assign(httpReader, {
+			url,
+			options,
+			preventHeadRequest,
+			useRangeHeader,
+			forceRangeRequests,
+			combineSizeEocd
+		});
+	}
+
+	async function initHttpReader(httpReader, sendRequest, getRequestData) {
+		const {
+			url,
+			preventHeadRequest,
+			useRangeHeader,
+			forceRangeRequests,
+			combineSizeEocd
+		} = httpReader;
+		if (isHttpFamily(url) && (useRangeHeader || forceRangeRequests) && (typeof preventHeadRequest == "undefined" || preventHeadRequest)) {
+			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -END_OF_CENTRAL_DIR_LENGTH : undefined));
+			const acceptRanges = response.headers.get(HTTP_HEADER_ACCEPT_RANGES);
+			if (!forceRangeRequests && (!acceptRanges || acceptRanges.toLowerCase() != HTTP_RANGE_UNIT)) {
+				throw new Error(ERR_HTTP_RANGE);
+			} else {
+				if (combineSizeEocd) {
+					httpReader.eocdCache = new Uint8Array(await response.arrayBuffer());
+				}
+				let contentSize;
+				const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
+				if (contentRangeHeader) {
+					const splitHeader = contentRangeHeader.trim().split(/\s*\/\s*/);
+					if (splitHeader.length) {
+						const headerValue = splitHeader[1];
+						if (headerValue && headerValue != "*") {
+							contentSize = Number(headerValue);
+						}
+					}
+				}
+				if (contentSize === UNDEFINED_VALUE) {
+					await getContentLength(httpReader, sendRequest, getRequestData);
+				} else {
+					httpReader.size = contentSize;
+				}
+			}
+		} else {
+			await getContentLength(httpReader, sendRequest, getRequestData);
+		}
+	}
+
+	async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, getRequestData) {
+		const {
+			useRangeHeader,
+			forceRangeRequests,
+			eocdCache,
+			size,
+			options
+		} = httpReader;
+		if (useRangeHeader || forceRangeRequests) {
+			if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
+				return eocdCache;
+			}
+			if (index >= size) {
+				return new Uint8Array();
+			} else {
+				if (index + length > size) {
+					length = size - index;
+				}
+				const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
+				if (response.status != 206) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+				return new Uint8Array(await response.arrayBuffer());
+			}
+		} else {
+			const { data } = httpReader;
+			if (!data) {
+				await getRequestData(httpReader, options);
+			}
+			return new Uint8Array(httpReader.data.subarray(index, index + length));
+		}
+	}
+
+	function getRangeHeaders(httpReader, index = 0, length = 1) {
+		return Object.assign({}, getHeaders(httpReader), { [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + (index < 0 ? index : index + "-" + (index + length - 1)) });
+	}
+
+	function getHeaders({ options }) {
+		const { headers } = options;
+		if (headers) {
+			if (Symbol.iterator in headers) {
+				return Object.fromEntries(headers);
+			} else {
+				return headers;
+			}
+		}
+	}
+
+	async function getFetchRequestData(httpReader) {
+		await getRequestData(httpReader, sendFetchRequest);
+	}
+
+	async function getXMLHttpRequestData(httpReader) {
+		await getRequestData(httpReader, sendXMLHttpRequest);
+	}
+
+	async function getRequestData(httpReader, sendRequest) {
+		const response = await sendRequest(HTTP_METHOD_GET, httpReader, getHeaders(httpReader));
+		httpReader.data = new Uint8Array(await response.arrayBuffer());
+		if (!httpReader.size) {
+			httpReader.size = httpReader.data.length;
+		}
+	}
+
+	async function getContentLength(httpReader, sendRequest, getRequestData) {
+		if (httpReader.preventHeadRequest) {
+			await getRequestData(httpReader, httpReader.options);
+		} else {
+			const response = await sendRequest(HTTP_METHOD_HEAD, httpReader, getHeaders(httpReader));
+			const contentLength = response.headers.get(HTTP_HEADER_CONTENT_LENGTH);
+			if (contentLength) {
+				httpReader.size = Number(contentLength);
+			} else {
+				await getRequestData(httpReader, httpReader.options);
+			}
+		}
+	}
+
+	async function sendFetchRequest(method, { options, url }, headers) {
+		const response = await fetch(url, Object.assign({}, options, { method, headers }));
+		if (response.status < 400) {
+			return response;
+		} else {
+			throw response.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
+		}
+	}
+
+	function sendXMLHttpRequest(method, { url }, headers) {
+		return new Promise((resolve, reject) => {
+			const request = new XMLHttpRequest();
+			request.addEventListener("load", () => {
+				if (request.status < 400) {
+					const headers = [];
+					request.getAllResponseHeaders().trim().split(/[\r\n]+/).forEach(header => {
+						const splitHeader = header.trim().split(/\s*:\s*/);
+						splitHeader[0] = splitHeader[0].trim().replace(/^[a-z]|-[a-z]/g, value => value.toUpperCase());
+						headers.push(splitHeader);
+					});
+					resolve({
+						status: request.status,
+						arrayBuffer: () => request.response,
+						headers: new Map(headers)
+					});
+				} else {
+					reject(request.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (request.statusText || request.status)));
+				}
+			}, false);
+			request.addEventListener("error", event => reject(event.detail ? event.detail.error : new Error("Network error")), false);
+			request.open(method, url);
+			if (headers) {
+				for (const entry of Object.entries(headers)) {
+					request.setRequestHeader(entry[0], entry[1]);
+				}
+			}
+			request.responseType = "arraybuffer";
+			request.send();
+		});
+	}
+
+	class HttpReader extends Reader {
+
+		constructor(url, options = {}) {
+			super();
+			Object.assign(this, {
+				url,
+				reader: options.useXHR ? new XHRReader(url, options) : new FetchReader(url, options)
+			});
+		}
+
+		set size(value) {
+			// ignored
+		}
+
+		get size() {
+			return this.reader.size;
+		}
+
+		async init() {
+			await this.reader.init();
+			super.init();
+		}
+
+		readUint8Array(index, length) {
+			return this.reader.readUint8Array(index, length);
+		}
+	}
+
+	class HttpRangeReader extends HttpReader {
+
+		constructor(url, options = {}) {
+			options.useRangeHeader = true;
+			super(url, options);
+		}
+	}
+
+
+	class Uint8ArrayReader extends Reader {
+
+		constructor(array) {
+			super();
+			array = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+			Object.assign(this, {
+				array,
+				size: array.length
+			});
+		}
+
+		readUint8Array(index, length) {
+			return this.array.slice(index, index + length);
+		}
+	}
+
+	class Uint8ArrayWriter extends Writer {
+
+		init(initSize = 0) {
+			Object.assign(this, {
+				offset: 0,
+				array: new Uint8Array(initSize)
+			});
+			super.init();
+		}
+
+		writeUint8Array(array) {
+			const writer = this;
+			if (writer.offset + array.length > writer.array.length) {
+				const previousArray = writer.array;
+				writer.array = new Uint8Array(previousArray.length + array.length);
+				writer.array.set(previousArray);
+			}
+			writer.array.set(array, writer.offset);
+			writer.offset += array.length;
+		}
+
+		getData() {
+			return this.array;
+		}
+	}
+
+	class SplitDataReader extends Reader {
+
+		constructor(readers) {
+			super();
+			this.readers = readers;
+		}
+
+		async init() {
+			const reader = this;
+			const { readers } = reader;
+			reader.lastDiskNumber = 0;
+			reader.lastDiskOffset = 0;
+			await Promise.all(readers.map(async (diskReader, indexDiskReader) => {
+				await diskReader.init();
+				if (indexDiskReader != readers.length - 1) {
+					reader.lastDiskOffset += diskReader.size;
+				}
+				reader.size += diskReader.size;
+			}));
+			super.init();
+		}
+
+		async readUint8Array(offset, length, diskNumber = 0) {
+			const reader = this;
+			const { readers } = this;
+			let result;
+			let currentDiskNumber = diskNumber;
+			if (currentDiskNumber == -1) {
+				currentDiskNumber = readers.length - 1;
+			}
+			let currentReaderOffset = offset;
+			while (readers[currentDiskNumber] && currentReaderOffset >= readers[currentDiskNumber].size) {
+				currentReaderOffset -= readers[currentDiskNumber].size;
+				currentDiskNumber++;
+			}
+			const currentReader = readers[currentDiskNumber];
+			if (currentReader) {
+				const currentReaderSize = currentReader.size;
+				if (currentReaderOffset + length <= currentReaderSize) {
+					result = await readUint8Array(currentReader, currentReaderOffset, length);
+				} else {
+					const chunkLength = currentReaderSize - currentReaderOffset;
+					result = new Uint8Array(length);
+					const firstPart = await readUint8Array(currentReader, currentReaderOffset, chunkLength);
+					result.set(firstPart, 0);
+					const secondPart = await reader.readUint8Array(offset + chunkLength, length - chunkLength, diskNumber);
+					result.set(secondPart, chunkLength);
+					if (firstPart.length + secondPart.length < length) {
+						result = result.subarray(0, firstPart.length + secondPart.length);
+					}
+				}
+			} else {
+				result = new Uint8Array();
+			}
+			reader.lastDiskNumber = Math.max(currentDiskNumber, reader.lastDiskNumber);
+			return result;
+		}
+	}
+
+	class SplitDataWriter extends Stream {
+
+		constructor(writerGenerator, maxSize = 4294967295) {
+			super();
+			const writer = this;
+			Object.assign(writer, {
+				diskNumber: 0,
+				diskOffset: 0,
+				size: 0,
+				maxSize,
+				availableSize: maxSize
+			});
+			let diskSourceWriter, diskWritable, diskWriter;
+			const writable = new WritableStream({
+				async write(chunk) {
+					const { availableSize } = writer;
+					if (!diskWriter) {
+						const { value, done } = await writerGenerator.next();
+						if (done && !value) {
+							throw new Error(ERR_ITERATOR_COMPLETED_TOO_SOON);
+						} else {
+							diskSourceWriter = value;
+							diskSourceWriter.size = 0;
+							if (diskSourceWriter.maxSize) {
+								writer.maxSize = diskSourceWriter.maxSize;
+							}
+							writer.availableSize = writer.maxSize;
+							await initStream(diskSourceWriter);
+							diskWritable = value.writable;
+							diskWriter = diskWritable.getWriter();
+						}
+						await this.write(chunk);
+					} else if (chunk.length >= availableSize) {
+						await writeChunk(chunk.subarray(0, availableSize));
+						await closeDisk();
+						writer.diskOffset += diskSourceWriter.size;
+						writer.diskNumber++;
+						diskWriter = null;
+						await this.write(chunk.subarray(availableSize));
+					} else {
+						await writeChunk(chunk);
+					}
+				},
+				async close() {
+					await diskWriter.ready;
+					await closeDisk();
+				}
+			});
+			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
+				get() {
+					return writable;
+				}
+			});
+
+			async function writeChunk(chunk) {
+				const chunkLength = chunk.length;
+				if (chunkLength) {
+					await diskWriter.ready;
+					await diskWriter.write(chunk);
+					diskSourceWriter.size += chunkLength;
+					writer.size += chunkLength;
+					writer.availableSize -= chunkLength;
+				}
+			}
+
+			async function closeDisk() {
+				await diskWriter.close();
+			}
+		}
+	}
+
+	class GenericReader {
+
+		constructor(reader) {
+			if (Array.isArray(reader)) {
+				reader = new SplitDataReader(reader);
+			}
+			if (reader instanceof ReadableStream) {
+				reader = {
+					readable: reader
+				};
+			}
+			return reader;
+		}
+	}
+
+	class GenericWriter {
+
+		constructor(writer) {
+			if (writer.writable === UNDEFINED_VALUE && typeof writer.next == FUNCTION_TYPE) {
+				writer = new SplitDataWriter(writer);
+			}
+			if (writer instanceof WritableStream) {
+				writer = {
+					writable: writer
+				};
+			}
+			if (writer.size === UNDEFINED_VALUE) {
+				writer.size = 0;
+			}
+			if (!(writer instanceof SplitDataWriter)) {
+				Object.assign(writer, {
+					diskNumber: 0,
+					diskOffset: 0,
+					availableSize: Infinity,
+					maxSize: Infinity
+				});
+			}
+			return writer;
+		}
+	}
+
+	function isHttpFamily(url) {
+		const { baseURI } = getConfiguration();
+		const { protocol } = new URL(url, baseURI);
+		return protocol == "http:" || protocol == "https:";
+	}
+
+	async function initStream(stream, initSize) {
+		if (stream.init && !stream.initialized) {
+			await stream.init(initSize);
+		} else {
+			return Promise.resolve();
+		}
+	}
+
+	function readUint8Array(reader, offset, size, diskNumber) {
+		return reader.readUint8Array(offset, size, diskNumber);
 	}
 
 	/*
@@ -3893,8 +3594,7 @@
 				if (onprogress) {
 					try {
 						await onprogress(indexFile + 1, filesLength, new Entry(fileEntry));
-						// eslint-disable-next-line no-unused-vars
-					} catch (_) {
+					} catch {
 						// ignored
 					}
 				}
@@ -4148,8 +3848,7 @@
 				});
 				offsetExtraField += 4 + size;
 			}
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
+		} catch {
 			// ignored
 		}
 		const compressionMethod = getUint16(dataView, offset + 4);
@@ -4256,8 +3955,7 @@
 				}
 				offsetExtraField += 4 + attributeSize;
 			}
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
+		} catch {
 			// ignored
 		}
 		try {
@@ -4278,8 +3976,7 @@
 				Object.assign(extraFieldNTFS, extraFieldData);
 				Object.assign(directory, extraFieldData);
 			}
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
+		} catch {
 			// ignored
 		}
 	}
@@ -4413,8 +4110,7 @@
 		const date = (timeRaw & 0xffff0000) >> 16, time = timeRaw & 0x0000ffff;
 		try {
 			return new Date(1980 + ((date & 0xFE00) >> 9), ((date & 0x01E0) >> 5) - 1, date & 0x001F, (time & 0xF800) >> 11, (time & 0x07E0) >> 5, (time & 0x001F) * 2, 0);
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
+		} catch {
 			// ignored
 		}
 	}
@@ -5003,8 +4699,7 @@
 				if (error) {
 					try {
 						error.corruptedEntry = true;
-						// eslint-disable-next-line no-unused-vars
-					} catch (_) {
+					} catch {
 						// ignored
 					}
 				}
@@ -5321,8 +5016,7 @@
 				setBigUint64(extraFieldNTFSView, 12, lastModTimeNTFS);
 				setBigUint64(extraFieldNTFSView, 20, getTimeNTFS(lastAccessDate) || lastModTimeNTFS);
 				setBigUint64(extraFieldNTFSView, 28, getTimeNTFS(creationDate) || lastModTimeNTFS);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				rawExtraFieldNTFS = new Uint8Array();
 			}
 		} else {
@@ -5679,8 +5373,7 @@
 			if (options.onprogress) {
 				try {
 					await options.onprogress(indexFileEntry + 1, files.size, new Entry(fileEntry));
-					// eslint-disable-next-line no-unused-vars
-				} catch (_) {
+				} catch {
 					// ignored
 				}
 			}
@@ -5868,6 +5561,39 @@
 	}
 
 	/*
+	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	function getMimeType() {
+		return "application/octet-stream";
+	}
+
+	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
@@ -5896,19 +5622,11 @@
 	 */
 
 
-	let baseURI;
 	try {
-		baseURI = (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('zip-core.js', document.baseURI).href));
-		// eslint-disable-next-line no-unused-vars
-	} catch (_) {
+		configure({ baseURI: (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('zip-core.js', document.baseURI).href)) });
+	} catch {
 		// ignored
 	}
-
-	configure({
-		baseURI,
-		CompressionStreamZlib,
-		DecompressionStreamZlib
-	});
 
 	exports.BlobReader = BlobReader;
 	exports.BlobWriter = BlobWriter;
@@ -5956,7 +5674,6 @@
 	exports.ZipWriterStream = ZipWriterStream;
 	exports.configure = configure;
 	exports.getMimeType = getMimeType;
-	exports.resetWasmModule = resetWasmModule;
 	exports.terminateWorkers = terminateWorkers;
 
 }));

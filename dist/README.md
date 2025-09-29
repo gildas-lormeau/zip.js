@@ -8,3 +8,7 @@ Contents:
 - `zip-fs.js` / `zip-fs.min.js`: Full `ZipWriter` / `ZipReader` plus virtual file system (`fs`), with embedded Web Worker code and WASM.
 - `zip-core.js` / `zip-core.min.js`: Minimal `ZipWriter` / `ZipReader`.
 - `zip-fs-core.js` / `zip-fs-core.min.js`: Minimal `ZipWriter` / `ZipReader` plus virtual file system (`fs`).
+
+Notes:
+- Files suffixed with `-native` relies on a JavaScript implementation of Compression Streams instead of a WASM module.
+- `zip-legacy.min.js` is the equivalent of `zip.min.js` before zip.js 2.8 (it relies on the JavaScript implementation of Compression Streams)

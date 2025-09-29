@@ -6,7 +6,6 @@
 
 	const { Array, Object, String, Number, BigInt, Math, Date, Map, Set, Response, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, document, crypto, btoa, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream, navigator, Worker } = typeof globalThis !== 'undefined' ? globalThis : this || self;
 
-	var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
@@ -133,12 +132,11 @@
 		if (typeof navigator != UNDEFINED_TYPE && navigator.hardwareConcurrency) {
 			maxWorkers = navigator.hardwareConcurrency;
 		}
-		// eslint-disable-next-line no-unused-vars
-	} catch (_) {
+	} catch {
 		// ignored
 	}
 	const DEFAULT_CONFIGURATION = {
-		workerURI: "./core/web-worker.js",
+		workerURI: "./core/web-worker-wasm.js",
 		wasmURI: "./core/streams/zlib/zlib-streams.wasm",
 		chunkSize: 64 * 1024,
 		maxWorkers,
@@ -157,297 +155,6 @@
 
 	function getChunkSize(config) {
 		return Math.max(config.chunkSize, MINIMUM_CHUNK_SIZE);
-	}
-
-	function configure(configuration) {
-		const {
-			baseURI,
-			chunkSize,
-			maxWorkers,
-			terminateWorkerTimeout,
-			useCompressionStream,
-			useWebWorkers,
-			CompressionStream,
-			DecompressionStream,
-			CompressionStreamZlib,
-			DecompressionStreamZlib,
-			workerURI,
-			wasmURI
-		} = configuration;
-		setIfDefined("baseURI", baseURI);
-		setIfDefined("wasmURI", wasmURI);
-		setIfDefined("workerURI", workerURI);
-		setIfDefined("chunkSize", chunkSize);
-		setIfDefined("maxWorkers", maxWorkers);
-		setIfDefined("terminateWorkerTimeout", terminateWorkerTimeout);
-		setIfDefined("useCompressionStream", useCompressionStream);
-		setIfDefined("useWebWorkers", useWebWorkers);
-		setIfDefined("CompressionStream", CompressionStream);
-		setIfDefined("DecompressionStream", DecompressionStream);
-		setIfDefined("CompressionStreamZlib", CompressionStreamZlib);
-		setIfDefined("DecompressionStreamZlib", DecompressionStreamZlib);
-	}
-
-	function setIfDefined(propertyName, propertyValue) {
-		if (propertyValue !== UNDEFINED_VALUE) {
-			config[propertyName] = propertyValue;
-		}
-	}
-
-	/*
-	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-	/* global TransformStream */
-
-	let wasm, malloc, free, memory;
-
-	function setWasmExports(wasmAPI) {
-		wasm = wasmAPI;
-		({ malloc, free, memory } = wasm);
-	}
-
-	function _make(isCompress, type, options = {}) {
-		const level = (typeof options.level === "number") ? options.level : -1;
-		const outBufferSize = (typeof options.outBuffer === "number") ? options.outBuffer : 64 * 1024;
-		const inBufferSize = (typeof options.inBufferSize === "number") ? options.inBufferSize : 64 * 1024;
-
-		return new TransformStream({
-			start() {
-				let result;
-				this.out = malloc(outBufferSize);
-				this.in = malloc(inBufferSize);
-				this.inBufferSize = inBufferSize;
-				this._scratch = new Uint8Array(outBufferSize);
-				if (isCompress) {
-					this._process = wasm.deflate_process;
-					this._last_consumed = wasm.deflate_last_consumed;
-					this._end = wasm.deflate_end;
-					this.streamHandle = wasm.deflate_new();
-					if (type === "gzip") {
-						result = wasm.deflate_init_gzip(this.streamHandle, level);
-					} else if (type === "deflate-raw") {
-						result = wasm.deflate_init_raw(this.streamHandle, level);
-					} else {
-						result = wasm.deflate_init(this.streamHandle, level);
-					}
-				} else {
-					if (type === "deflate64-raw") {
-						this._process = wasm.inflate9_process;
-						this._last_consumed = wasm.inflate9_last_consumed;
-						this._end = wasm.inflate9_end;
-						this.streamHandle = wasm.inflate9_new();
-						result = wasm.inflate9_init_raw(this.streamHandle);
-					} else {
-						this._process = wasm.inflate_process;
-						this._last_consumed = wasm.inflate_last_consumed;
-						this._end = wasm.inflate_end;
-						this.streamHandle = wasm.inflate_new();
-						if (type === "deflate-raw") {
-							result = wasm.inflate_init_raw(this.streamHandle);
-						} else if (type === "gzip") {
-							result = wasm.inflate_init_gzip(this.streamHandle);
-						} else {
-							result = wasm.inflate_init(this.streamHandle);
-						}
-					}
-				}
-				if (result !== 0) {
-					throw new Error("init failed:" + result);
-				}
-			},
-			transform(chunk, controller) {
-				try {
-					const buffer = chunk;
-					const heap = new Uint8Array(memory.buffer);
-					const process = this._process;
-					const last_consumed = this._last_consumed;
-					const out = this.out;
-					const scratch = this._scratch;
-					let offset = 0;
-					while (offset < buffer.length) {
-						const toRead = Math.min(buffer.length - offset, 32 * 1024);
-						if (!this.in || this.inBufferSize < toRead) {
-							if (this.in && free) {
-								free(this.in);
-							}
-							this.in = malloc(toRead);
-							this.inBufferSize = toRead;
-						}
-						heap.set(buffer.subarray(offset, offset + toRead), this.in);
-						const result = process(this.streamHandle, this.in, toRead, out, outBufferSize, 0);
-						if (!isCompress && result < 0) {
-							throw new Error("process error:" + result);
-						}
-						const prod = result & 0x00ffffff;
-						if (prod) {
-							scratch.set(heap.subarray(out, out + prod), 0);
-							controller.enqueue(scratch.slice(0, prod));
-						}
-						const consumed = last_consumed(this.streamHandle);
-						if (consumed === 0) {
-							break;
-						}
-						offset += consumed;
-					}
-				} catch (error) {
-					if (this._end && this.streamHandle) {
-						this._end(this.streamHandle);
-					}
-					if (this.in && free) {
-						free(this.in);
-					}
-					if (this.out && free) {
-						free(this.out);
-					}
-					controller.error(error);
-				}
-			},
-			flush(controller) {
-				try {
-					const heap = new Uint8Array(memory.buffer);
-					const process = this._process;
-					const out = this.out;
-					const scratch = this._scratch;
-					while (true) {
-						const result = process(this.streamHandle, 0, 0, out, outBufferSize, 4);
-						if (!isCompress && result < 0) {
-							throw new Error("process error:" + result);
-						}
-						const produced = result & 0x00ffffff;
-						const code = (result >> 24) & 0xff;
-						if (produced) {
-							scratch.set(heap.subarray(out, out + produced), 0);
-							controller.enqueue(scratch.slice(0, produced));
-						}
-						if (code === 1 || produced === 0) {
-							break;
-						}
-					}
-				} catch (error) {
-					controller.error(error);
-				} finally {
-					if (this._end && this.streamHandle) {
-						const result = this._end(this.streamHandle);
-						if (result !== 0) {
-							controller.error(new Error("end error:" + result));
-						}
-					}
-					if (this.in && free) {
-						free(this.in);
-					}
-					if (this.out && free) {
-						free(this.out);
-					}
-				}
-			}
-		});
-	}
-
-	class CompressionStreamZlib {
-		constructor(type = "deflate", options) {
-			return _make(true, type, options);
-		}
-	}
-	class DecompressionStreamZlib {
-		constructor(type = "deflate", options) {
-			return _make(false, type, options);
-		}
-	}
-
-	/*
-	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	let initializedModule = false;
-
-	async function initModule(wasmURI, { baseURI }) {
-		if (!initializedModule) {
-			let arrayBuffer, uri;
-			try {
-				try {
-					uri = new URL(wasmURI, baseURI);
-					// eslint-disable-next-line no-unused-vars
-				} catch (_) {
-					// ignored
-				}
-				const response = await fetch(uri);
-				arrayBuffer = await response.arrayBuffer();
-			} catch (error) {
-				if (wasmURI.startsWith("data:application/wasm;base64,")) {
-					arrayBuffer = arrayBufferFromDataURI(wasmURI);
-				} else {
-					throw error;
-				}
-			}
-			const wasmInstance = await WebAssembly.instantiate(arrayBuffer);
-			setWasmExports(wasmInstance.instance.exports);
-			initializedModule = true;
-		}
-	}
-
-	function resetWasmModule() {
-		initializedModule = false;
-	}
-
-	function arrayBufferFromDataURI(dataURI) {
-		const base64 = dataURI.split(",")[1];
-		const binary = atob(base64);
-		const len = binary.length;
-		const bytes = new Uint8Array(len);
-		for (let i = 0; i < len; ++i) {
-			bytes[i] = binary.charCodeAt(i);
-		}
-		return bytes.buffer;
 	}
 
 	/*
@@ -959,14 +666,6 @@
 		}
 	}
 
-	class HttpRangeReader extends HttpReader {
-
-		constructor(url, options = {}) {
-			options.useRangeHeader = true;
-			super(url, options);
-		}
-	}
-
 
 	class Uint8ArrayReader extends Reader {
 
@@ -1197,39 +896,6 @@
 
 	function readUint8Array(reader, offset, size, diskNumber) {
 		return reader.readUint8Array(offset, size, diskNumber);
-	}
-
-	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	function getMimeType() {
-		return "application/octet-stream";
 	}
 
 	/*
@@ -2493,8 +2159,7 @@
 		if (IMPORT_KEY_SUPPORTED) {
 			try {
 				return await subtle.importKey(format, password, algorithm, extractable, keyUsages);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				IMPORT_KEY_SUPPORTED = false;
 				return misc.importKey(password);
 			}
@@ -2507,8 +2172,7 @@
 		if (DERIVE_BITS_SUPPORTED) {
 			try {
 				return await subtle.deriveBits(algorithm, baseKey, length);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				DERIVE_BITS_SUPPORTED = false;
 				return misc.pbkdf2(baseKey, algorithm.salt, DERIVED_BITS_ALGORITHM.iterations, length);
 			}
@@ -2994,6 +2658,7 @@
 
 	// deno-lint-ignore valid-typeof
 	let WEB_WORKERS_SUPPORTED = typeof Worker != UNDEFINED_TYPE;
+	let initModule = () => { };
 
 	class CodecWorker {
 
@@ -3069,8 +2734,7 @@
 	async function callHandler(handler, ...parameters) {
 		try {
 			await handler(...parameters);
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
+		} catch {
 			// ignored
 		}
 	}
@@ -3093,8 +2757,7 @@
 			let worker;
 			try {
 				worker = getWebWorker(workerData.workerURI, baseURI, workerData);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				WEB_WORKERS_SUPPORTED = false;
 				return createWorkerInterface(workerData, config);
 			}
@@ -3111,13 +2774,12 @@
 	async function runWorker$1({ options, readable, writable, onTaskFinished }, config) {
 		let codecStream;
 		try {
-			if (!options.useCompressionStream && !initializedModule) {
-				let { wasmURI } = config;
-				// deno-lint-ignore valid-typeof
-				if (typeof wasmURI == FUNCTION_TYPE) {
-					wasmURI = wasmURI();
+			if (!options.useCompressionStream) {
+				try {
+					await initModule(config);
+				} catch {
+					options.useCompressionStream = true;
 				}
-				await initModule(wasmURI, config);
 			}
 			codecStream = new CodecStream(options, config);
 			await readable.pipeThrough(codecStream).pipeTo(writable, { preventClose: true, preventAbort: true });
@@ -3210,15 +2872,13 @@
 		if (url.startsWith("data:") || url.startsWith("blob:")) {
 			try {
 				worker = new Worker(url);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				worker = new Worker(url, workerOptions);
 			}
 		} else {
 			try {
 				scriptUrl = new URL(url, baseURI);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				scriptUrl = url;
 			}
 			worker = new Worker(scriptUrl, workerOptions);
@@ -3254,8 +2914,7 @@
 				try {
 					worker.postMessage(message, transferables);
 					return true;
-					// eslint-disable-next-line no-unused-vars
-				} catch (_) {
+				} catch {
 					transferStreamsSupported = false;
 					message.readable = message.writable = null;
 					worker.postMessage(message);
@@ -3398,8 +3057,7 @@
 					pool = pool.filter(data => data != workerData);
 					try {
 						await workerData.terminate();
-						// eslint-disable-next-line no-unused-vars
-					} catch (_) {
+					} catch {
 						// ignored
 					}
 				}, terminateWorkerTimeout);
@@ -3413,14 +3071,6 @@
 			clearTimeout(terminateTimeout);
 			workerData.terminateTimeout = null;
 		}
-	}
-
-	async function terminateWorkers() {
-		await Promise.allSettled(pool.map(workerData => {
-			clearTerminateTimeout(workerData);
-			return workerData.terminate();
-		}));
-		resetWasmModule();
 	}
 
 	/*
@@ -3893,8 +3543,7 @@
 				if (onprogress) {
 					try {
 						await onprogress(indexFile + 1, filesLength, new Entry(fileEntry));
-						// eslint-disable-next-line no-unused-vars
-					} catch (_) {
+					} catch {
 						// ignored
 					}
 				}
@@ -3921,34 +3570,6 @@
 		}
 
 		async close() {
-		}
-	}
-
-	class ZipReaderStream {
-
-		constructor(options = {}) {
-			const { readable, writable } = new TransformStream();
-			const gen = new ZipReader(readable, options).getEntriesGenerator();
-			this.readable = new ReadableStream({
-				async pull(controller) {
-					const { done, value } = await gen.next();
-					if (done)
-						return controller.close();
-					const chunk = {
-						...value,
-						readable: (function () {
-							const { readable, writable } = new TransformStream();
-							if (value.getData) {
-								value.getData(writable);
-								return readable;
-							}
-						})()
-					};
-					delete chunk.getData;
-					controller.enqueue(chunk);
-				}
-			});
-			this.writable = writable;
 		}
 	}
 
@@ -4148,8 +3769,7 @@
 				});
 				offsetExtraField += 4 + size;
 			}
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
+		} catch {
 			// ignored
 		}
 		const compressionMethod = getUint16(dataView, offset + 4);
@@ -4256,8 +3876,7 @@
 				}
 				offsetExtraField += 4 + attributeSize;
 			}
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
+		} catch {
 			// ignored
 		}
 		try {
@@ -4278,8 +3897,7 @@
 				Object.assign(extraFieldNTFS, extraFieldData);
 				Object.assign(directory, extraFieldData);
 			}
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
+		} catch {
 			// ignored
 		}
 	}
@@ -4413,8 +4031,7 @@
 		const date = (timeRaw & 0xffff0000) >> 16, time = timeRaw & 0x0000ffff;
 		try {
 			return new Date(1980 + ((date & 0xFE00) >> 9), ((date & 0x01E0) >> 5) - 1, date & 0x001F, (time & 0xF800) >> 11, (time & 0x07E0) >> 5, (time & 0x001F) * 2, 0);
-			// eslint-disable-next-line no-unused-vars
-		} catch (_) {
+		} catch {
 			// ignored
 		}
 	}
@@ -4655,33 +4272,6 @@
 				await writable.getWriter().close();
 			}
 			return writer.getData ? writer.getData() : writable;
-		}
-	}
-
-	class ZipWriterStream {
-
-		constructor(options = {}) {
-			const { readable, writable } = new TransformStream();
-			this.readable = readable;
-			this.zipWriter = new ZipWriter(writable, options);
-		}
-
-		transform(path) {
-			const { readable, writable } = new TransformStream({
-				flush: () => { this.zipWriter.close(); }
-			});
-			this.zipWriter.add(path, readable);
-			return { readable: this.readable, writable };
-		}
-
-		writable(path) {
-			const { readable, writable } = new TransformStream();
-			this.zipWriter.add(path, readable);
-			return writable;
-		}
-
-		close(comment = undefined, options = {}) {
-			return this.zipWriter.close(comment, options);
 		}
 	}
 
@@ -5003,8 +4593,7 @@
 				if (error) {
 					try {
 						error.corruptedEntry = true;
-						// eslint-disable-next-line no-unused-vars
-					} catch (_) {
+					} catch {
 						// ignored
 					}
 				}
@@ -5321,8 +4910,7 @@
 				setBigUint64(extraFieldNTFSView, 12, lastModTimeNTFS);
 				setBigUint64(extraFieldNTFSView, 20, getTimeNTFS(lastAccessDate) || lastModTimeNTFS);
 				setBigUint64(extraFieldNTFSView, 28, getTimeNTFS(creationDate) || lastModTimeNTFS);
-				// eslint-disable-next-line no-unused-vars
-			} catch (_) {
+			} catch {
 				rawExtraFieldNTFS = new Uint8Array();
 			}
 		} else {
@@ -5679,8 +5267,7 @@
 			if (options.onprogress) {
 				try {
 					await options.onprogress(indexFileEntry + 1, files.size, new Entry(fileEntry));
-					// eslint-disable-next-line no-unused-vars
-				} catch (_) {
+				} catch {
 					// ignored
 				}
 			}
@@ -5866,49 +5453,6 @@
 		}
 		return bitFlag;
 	}
-
-	/*
-	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright
-	 notice, this list of conditions and the following disclaimer in
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	let baseURI;
-	try {
-		baseURI = (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('zip-fs-core.js', document.baseURI).href));
-		// eslint-disable-next-line no-unused-vars
-	} catch (_) {
-		// ignored
-	}
-
-	configure({
-		baseURI,
-		CompressionStreamZlib,
-		DecompressionStreamZlib
-	});
 
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
@@ -6314,8 +5858,7 @@
 						error.cause = {
 							entry
 						};
-						// eslint-disable-next-line no-unused-vars
-					} catch (_) {
+					} catch {
 						// ignored
 					}
 					throw error;
@@ -6572,8 +6115,7 @@
 							error.cause = {
 								entry: child
 							};
-							// eslint-disable-next-line no-unused-vars
-						} catch (_) {
+						} catch {
 							// ignored
 						}
 						throw error;
@@ -6667,8 +6209,7 @@
 							entryOffsets.set(name, indexProgress);
 							try {
 								await options.onprogress(Array.from(entryOffsets.values()).reduce((previousValue, currentValue) => previousValue + currentValue), totalSize);
-								// eslint-disable-next-line no-unused-vars
-							} catch (_) {
+							} catch {
 								// ignored
 							}
 						}
@@ -6781,54 +6322,6 @@
 		}
 	}
 
-	exports.BlobReader = BlobReader;
-	exports.BlobWriter = BlobWriter;
-	exports.Data64URIReader = Data64URIReader;
-	exports.Data64URIWriter = Data64URIWriter;
-	exports.ERR_BAD_FORMAT = ERR_BAD_FORMAT;
-	exports.ERR_CENTRAL_DIRECTORY_NOT_FOUND = ERR_CENTRAL_DIRECTORY_NOT_FOUND;
-	exports.ERR_DUPLICATED_NAME = ERR_DUPLICATED_NAME;
-	exports.ERR_ENCRYPTED = ERR_ENCRYPTED;
-	exports.ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND;
-	exports.ERR_EOCDR_NOT_FOUND = ERR_EOCDR_NOT_FOUND;
-	exports.ERR_EXTRAFIELD_ZIP64_NOT_FOUND = ERR_EXTRAFIELD_ZIP64_NOT_FOUND;
-	exports.ERR_HTTP_RANGE = ERR_HTTP_RANGE;
-	exports.ERR_INVALID_COMMENT = ERR_INVALID_COMMENT;
-	exports.ERR_INVALID_ENCRYPTION_STRENGTH = ERR_INVALID_ENCRYPTION_STRENGTH;
-	exports.ERR_INVALID_ENTRY_COMMENT = ERR_INVALID_ENTRY_COMMENT;
-	exports.ERR_INVALID_ENTRY_NAME = ERR_INVALID_ENTRY_NAME;
-	exports.ERR_INVALID_EXTRAFIELD_DATA = ERR_INVALID_EXTRAFIELD_DATA;
-	exports.ERR_INVALID_EXTRAFIELD_TYPE = ERR_INVALID_EXTRAFIELD_TYPE;
-	exports.ERR_INVALID_PASSWORD = ERR_INVALID_PASSWORD;
-	exports.ERR_INVALID_SIGNATURE = ERR_INVALID_SIGNATURE;
-	exports.ERR_INVALID_UNCOMPRESSED_SIZE = ERR_INVALID_UNCOMPRESSED_SIZE;
-	exports.ERR_INVALID_VERSION = ERR_INVALID_VERSION;
-	exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
-	exports.ERR_OVERLAPPING_ENTRY = ERR_OVERLAPPING_ENTRY;
-	exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
-	exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
-	exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION;
-	exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
-	exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
-	exports.ERR_ZIP_NOT_EMPTY = ERR_ZIP_NOT_EMPTY;
-	exports.HttpRangeReader = HttpRangeReader;
-	exports.HttpReader = HttpReader;
-	exports.Reader = Reader;
-	exports.SplitDataReader = SplitDataReader;
-	exports.SplitDataWriter = SplitDataWriter;
-	exports.TextReader = TextReader;
-	exports.TextWriter = TextWriter;
-	exports.Uint8ArrayReader = Uint8ArrayReader;
-	exports.Uint8ArrayWriter = Uint8ArrayWriter;
-	exports.Writer = Writer;
-	exports.ZipReader = ZipReader;
-	exports.ZipReaderStream = ZipReaderStream;
-	exports.ZipWriter = ZipWriter;
-	exports.ZipWriterStream = ZipWriterStream;
-	exports.configure = configure;
 	exports.fs = fs;
-	exports.getMimeType = getMimeType;
-	exports.resetWasmModule = resetWasmModule;
-	exports.terminateWorkers = terminateWorkers;
 
 }));

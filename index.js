@@ -28,4 +28,4 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export * from "./lib/zip-fs.js";
+export * from "./lib/zip-fs-wasm.js";
