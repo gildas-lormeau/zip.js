@@ -11,4 +11,4 @@ Contents:
 
 Notes:
 - Files suffixed with `-native` relies on a JavaScript implementation of Compression Streams instead of a WASM module.
-- `zip-legacy.min.js` is the equivalent of `zip.min.js` before zip.js 2.8 (it relies on the JavaScript implementation of Compression Streams)
+- `zip-legacy.min.js` is the equivalent of `zip.min.js` before zip.js 2.8: it relies on the JavaScript implementation of Compression Streams (if used) but only in web workers.
