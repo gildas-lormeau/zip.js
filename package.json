@@ -3,7 +3,7 @@
   "description": "A JavaScript library to zip and unzip files in the browser, Deno and Node.js",
   "author": "Gildas Lormeau",
   "license": "BSD-3-Clause",
-  "version": "2.8.2",
+  "version": "2.8.3",
   "type": "module",
   "keywords": [
     "zip",
@@ -25,7 +25,8 @@
     "multi-core",
     "split-zip",
     "usdz",
-    "deflate64"
+    "deflate64",
+    "wasm"
   ],
   "engines": {
     "deno": ">=1.0.0",
@@ -152,10 +153,10 @@
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-terser": "^0.4.4",
-    "eslint": "^9.35.0",
+    "eslint": "^9.36.0",
     "http-server": "^14.1.1",
-    "rollup": "^4.50.1",
-    "typedoc": "^0.28.12",
-    "typedoc-plugin-markdown": "^4.8.1"
+    "rollup": "^4.52.3",
+    "typedoc": "^0.28.13",
+    "typedoc-plugin-markdown": "^4.9.0"
   }
 }
