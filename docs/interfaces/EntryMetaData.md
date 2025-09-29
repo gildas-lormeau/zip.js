@@ -6,7 +6,7 @@
 
 # Interface: EntryMetaData
 
-Defined in: [index.d.ts:881](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L881)
+Defined in: [index.d.ts:881](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L881)
 
 Represents the metadata of an entry in a zip file (Core API).
 
@@ -21,7 +21,7 @@ Represents the metadata of an entry in a zip file (Core API).
 
 > **comment**: `string`
 
-Defined in: [index.d.ts:945](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L945)
+Defined in: [index.d.ts:945](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L945)
 
 The comment of the entry.
 
@@ -31,7 +31,7 @@ The comment of the entry.
 
 > **commentUTF8**: `boolean`
 
-Defined in: [index.d.ts:953](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L953)
+Defined in: [index.d.ts:953](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L953)
 
 `true` if the comment is encoded in UTF-8.
 
@@ -41,7 +41,7 @@ Defined in: [index.d.ts:953](https://github.com/gildas-lormeau/zip.js/blob/3fe97
 
 > **compressedSize**: `number`
 
-Defined in: [index.d.ts:913](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L913)
+Defined in: [index.d.ts:913](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L913)
 
 The size of the compressed data in bytes.
 
@@ -51,7 +51,7 @@ The size of the compressed data in bytes.
 
 > **compressionMethod**: `number`
 
-Defined in: [index.d.ts:1010](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L1010)
+Defined in: [index.d.ts:1010](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L1010)
 
 The compression method.
 
@@ -61,7 +61,7 @@ The compression method.
 
 > `optional` **creationDate**: `Date`
 
-Defined in: [index.d.ts:929](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L929)
+Defined in: [index.d.ts:929](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L929)
 
 The creation date.
 
@@ -71,7 +71,7 @@ The creation date.
 
 > **diskNumberStart**: `number`
 
-Defined in: [index.d.ts:1006](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L1006)
+Defined in: [index.d.ts:1006](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L1006)
 
 The number of the disk where the entry data starts.
 
@@ -81,7 +81,7 @@ The number of the disk where the entry data starts.
 
 > **encrypted**: `boolean`
 
-Defined in: [index.d.ts:905](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L905)
+Defined in: [index.d.ts:905](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L905)
 
 `true` if the content of the entry is encrypted.
 
@@ -91,7 +91,7 @@ Defined in: [index.d.ts:905](https://github.com/gildas-lormeau/zip.js/blob/3fe97
 
 > **executable**: `boolean`
 
-Defined in: [index.d.ts:901](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L901)
+Defined in: [index.d.ts:901](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L901)
 
 `true` if the entry is an executable file
 
@@ -101,7 +101,7 @@ Defined in: [index.d.ts:901](https://github.com/gildas-lormeau/zip.js/blob/3fe97
 
 > **externalFileAttribute**: `number`
 
-Defined in: [index.d.ts:1002](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L1002)
+Defined in: [index.d.ts:1002](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L1002)
 
 The external file attribute (raw).
 
@@ -115,7 +115,7 @@ Use [EntryMetaData#externalFileAttributes](#externalfileattributes) instead.
 
 > **externalFileAttributes**: `number`
 
-Defined in: [index.d.ts:989](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L989)
+Defined in: [index.d.ts:989](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L989)
 
 The external file attributes (raw).
 
@@ -125,7 +125,7 @@ The external file attributes (raw).
 
 > `optional` **extraField**: `Map`\<`number`, \{ `data`: `Uint8Array`; `type`: `number`; \}\>
 
-Defined in: [index.d.ts:961](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L961)
+Defined in: [index.d.ts:961](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L961)
 
 The extra field.
 
@@ -135,7 +135,7 @@ The extra field.
 
 > **filename**: `string`
 
-Defined in: [index.d.ts:889](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L889)
+Defined in: [index.d.ts:889](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L889)
 
 The filename of the entry.
 
@@ -145,7 +145,7 @@ The filename of the entry.
 
 > **filenameUTF8**: `boolean`
 
-Defined in: [index.d.ts:897](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L897)
+Defined in: [index.d.ts:897](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L897)
 
 `true` if the filename is encoded in UTF-8.
 
@@ -155,7 +155,7 @@ Defined in: [index.d.ts:897](https://github.com/gildas-lormeau/zip.js/blob/3fe97
 
 > **internalFileAttribute**: `number`
 
-Defined in: [index.d.ts:997](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L997)
+Defined in: [index.d.ts:997](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L997)
 
 The internal file attribute (raw).
 
@@ -169,7 +169,7 @@ Use [EntryMetaData#internalFileAttributes](#internalfileattributes) instead.
 
 > **internalFileAttributes**: `number`
 
-Defined in: [index.d.ts:985](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L985)
+Defined in: [index.d.ts:985](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L985)
 
 The internal file attributes (raw).
 
@@ -179,7 +179,7 @@ The internal file attributes (raw).
 
 > `optional` **lastAccessDate**: `Date`
 
-Defined in: [index.d.ts:925](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L925)
+Defined in: [index.d.ts:925](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L925)
 
 The last access date.
 
@@ -189,7 +189,7 @@ The last access date.
 
 > **lastModDate**: `Date`
 
-Defined in: [index.d.ts:921](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L921)
+Defined in: [index.d.ts:921](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L921)
 
 The last modification date.
 
@@ -199,7 +199,7 @@ The last modification date.
 
 > **msDosCompatible**: `boolean`
 
-Defined in: [index.d.ts:981](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L981)
+Defined in: [index.d.ts:981](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L981)
 
 `true` if `internalFileAttributes` and `externalFileAttributes` are compatible with MS-DOS format.
 
@@ -209,7 +209,7 @@ Defined in: [index.d.ts:981](https://github.com/gildas-lormeau/zip.js/blob/3fe97
 
 > **offset**: `number`
 
-Defined in: [index.d.ts:885](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L885)
+Defined in: [index.d.ts:885](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L885)
 
 The byte offset of the entry.
 
@@ -219,7 +219,7 @@ The byte offset of the entry.
 
 > **rawComment**: `Uint8Array`
 
-Defined in: [index.d.ts:949](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L949)
+Defined in: [index.d.ts:949](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L949)
 
 The comment of the entry (raw).
 
@@ -229,7 +229,7 @@ The comment of the entry (raw).
 
 > `optional` **rawCreationDate**: `number` \| `bigint`
 
-Defined in: [index.d.ts:941](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L941)
+Defined in: [index.d.ts:941](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L941)
 
 The creation date (raw).
 
@@ -239,7 +239,7 @@ The creation date (raw).
 
 > **rawExtraField**: `Uint8Array`
 
-Defined in: [index.d.ts:965](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L965)
+Defined in: [index.d.ts:965](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L965)
 
 The extra field (raw).
 
@@ -249,7 +249,7 @@ The extra field (raw).
 
 > **rawFilename**: `Uint8Array`
 
-Defined in: [index.d.ts:893](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L893)
+Defined in: [index.d.ts:893](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L893)
 
 The filename of the entry (raw).
 
@@ -259,7 +259,7 @@ The filename of the entry (raw).
 
 > `optional` **rawLastAccessDate**: `number` \| `bigint`
 
-Defined in: [index.d.ts:937](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L937)
+Defined in: [index.d.ts:937](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L937)
 
 The last access date (raw).
 
@@ -269,7 +269,7 @@ The last access date (raw).
 
 > **rawLastModDate**: `number` \| `bigint`
 
-Defined in: [index.d.ts:933](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L933)
+Defined in: [index.d.ts:933](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L933)
 
 The last modification date (raw).
 
@@ -279,7 +279,7 @@ The last modification date (raw).
 
 > **signature**: `number`
 
-Defined in: [index.d.ts:957](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L957)
+Defined in: [index.d.ts:957](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L957)
 
 The signature (CRC32 checksum) of the content.
 
@@ -289,7 +289,7 @@ The signature (CRC32 checksum) of the content.
 
 > **uncompressedSize**: `number`
 
-Defined in: [index.d.ts:917](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L917)
+Defined in: [index.d.ts:917](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L917)
 
 The size of the decompressed data in bytes.
 
@@ -299,7 +299,7 @@ The size of the decompressed data in bytes.
 
 > **version**: `number`
 
-Defined in: [index.d.ts:973](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L973)
+Defined in: [index.d.ts:973](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L973)
 
 The "Version" field.
 
@@ -309,7 +309,7 @@ The "Version" field.
 
 > **versionMadeBy**: `number`
 
-Defined in: [index.d.ts:977](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L977)
+Defined in: [index.d.ts:977](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L977)
 
 The "Version made by" field.
 
@@ -319,7 +319,7 @@ The "Version made by" field.
 
 > **zip64**: `boolean`
 
-Defined in: [index.d.ts:969](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L969)
+Defined in: [index.d.ts:969](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L969)
 
 `true` if the entry is using Zip64.
 
@@ -329,6 +329,6 @@ Defined in: [index.d.ts:969](https://github.com/gildas-lormeau/zip.js/blob/3fe97
 
 > **zipCrypto**: `boolean`
 
-Defined in: [index.d.ts:909](https://github.com/gildas-lormeau/zip.js/blob/3fe977a027ef9183833f51be22c11dda80bcb12f/index.d.ts#L909)
+Defined in: [index.d.ts:909](https://github.com/gildas-lormeau/zip.js/blob/02ec02f1298ff2b603f1b86ee545b4d21af7b520/index.d.ts#L909)
 
 `true` if the content of the entry is encrypted with the ZipCrypto algorithm.
