@@ -49,6 +49,8 @@
   "types": "./index.d.ts",
   "exports": {
     "./package.json": "./package.json",
+    "./dist/zip-web-worker.js": "./dist/zip-web-worker.js",
+    "./dist/zip-module.wasm": "./dist/zip-module.wasm",
     ".": {
       "import": {
         "types": "./index.d.ts",
