@@ -50,6 +50,7 @@
   "exports": {
     "./package.json": "./package.json",
     "./dist/zip-web-worker.js": "./dist/zip-web-worker.js",
+    "./dist/zip-web-worker-native.js": "./dist/zip-web-worker-native.js",
     "./dist/zip-module.wasm": "./dist/zip-module.wasm",
     ".": {
       "import": {
