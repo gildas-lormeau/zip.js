@@ -87,7 +87,7 @@ export default [{
 		terser(bundledTerserOptions)
 	]
 }, {
-	input: "lib/core/web-worker-inline-template.js",
+	input: "lib/core/web-worker-inline-template-native.js",
 	output: [{
 		file: "lib/core/web-worker-inline-native.js",
 		format: "es"
@@ -95,7 +95,7 @@ export default [{
 	plugins: [
 		replace({
 			preventAssignment: true,
-			"__workerCode__": () => fs.readFileSync("lib/core/web-worker-inline-native.js").toString()
+			"__workerCode__": () => compress(fs.readFileSync("lib/core/web-worker-inline-native.js"))
 		}),
 		terser(bundledTerserOptions)
 	]
