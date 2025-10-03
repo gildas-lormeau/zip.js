@@ -2188,7 +2188,7 @@ function sendMessage(message, { worker, writer, onTaskFinished, transferStreams 
 		const transferables = [];
 		if (value) {
 			if (value.byteLength < value.buffer.byteLength) {
-				message.value = value.buffer.slice(0, value.byteLength);
+				message.value = value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
 			}
 			else {
 				message.value = value.buffer;
