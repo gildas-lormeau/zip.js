@@ -169,7 +169,7 @@ The URI of the WebAssembly module used by default implementations to compress/de
 #### Default Value
 
 ```ts
-"./core/streams/zlib/zlib-streams.wasm"
+"./core/streams/zlib-wasm/zlib-streams.wasm"
 ```
 
 ***

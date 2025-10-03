@@ -2,7 +2,7 @@
 
 "use strict";
 
-importScripts("./../../dist/zip-full.js");
+importScripts("./../../dist/zip.js");
 self.addEventListener("fetch", event => {
 	const matchZipEntry = event.request.url.match(/.zip#(.+)$/i);
 	if (matchZipEntry) {

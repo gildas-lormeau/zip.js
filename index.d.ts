@@ -231,7 +231,7 @@ export interface Configuration extends WorkerConfiguration {
   /**
    * The URI of the WebAssembly module used by default implementations to compress/decompress data. It is ignored if `useCompressionStream` is set to `true` and `CompressionStream`/`DecompressionStream` are supported by the environment.
    *
-   * @defaultValue "./core/streams/zlib/zlib-streams.wasm"
+   * @defaultValue "./core/streams/zlib-wasm/zlib-streams.wasm"
    */
   wasmURI?: string;
   /**
