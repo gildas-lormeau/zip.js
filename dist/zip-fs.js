@@ -2193,13 +2193,8 @@
 			const { value, readable, writable } = message;
 			const transferables = [];
 			if (value) {
-				if (value.byteLength < value.buffer.byteLength) {
-					message.value = value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
-				}
-				else {
-					message.value = value.buffer;
-				}
-				transferables.push(message.value);
+				message.value = value;
+				transferables.push(message.value.buffer);
 			}
 			if (transferStreams && transferStreamsSupported) {
 				if (readable) {
