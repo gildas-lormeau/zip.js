@@ -987,13 +987,77 @@ export interface EntryMetaData {
    */
   msDosCompatible: boolean;
   /**
+   * Note (MS-DOS / Unix attributes):
+   *
+   * - The single source of truth for on-disk metadata is the 32-bit `externalFileAttributes` value stored in
+   *   the ZIP headers. The upper 16 bits are commonly used for Unix `st_mode` (type/permissions/special bits)
+   *   and the low 8 bits for MS-DOS attribute flags.
+   *
+   * - Writer vs Reader:
+   *   - The writer composes `externalFileAttributes` from the provided options (`externalFileAttributes`,
+   *     `unixMode`/special flags, `msdosAttributesRaw`/`msdosAttributes`).
+   *   - The reader decodes the stored `externalFileAttributes` and exposes convenience fields such as
+   *     `msdosAttributesRaw`, `msdosAttributes`, `unixExternalUpper`, and `unixMode`.
+   *
+   * - Practical rule: treat `externalFileAttributes` as authoritative; other fields are conveniences derived
+   *   from it. If you need a specific on-disk value, set `externalFileAttributes` explicitly.
+   */
+  /**
+   * The MS-DOS attributes low byte (raw).
+   * This is the low 8 bits of {@link EntryMetaData#externalFileAttributes} when present.
+   */
+  msdosAttributesRaw?: number;
+  /**
+   * The MS-DOS attribute flags exposed as booleans.
+   */
+  msdosAttributes?: {
+    readOnly: boolean;
+    hidden: boolean;
+    system: boolean;
+    directory: boolean;
+    archive: boolean;
+  };
+  /**
+   * Unix owner id when available.
+   */
+  uid?: number;
+  /**
+   * Unix group id when available.
+   */
+  gid?: number;
+  /**
+   * Unix mode (st_mode) when available.
+   */
+  unixMode?: number;
+  /**
+   * `true` if the setuid bit is set on the entry.
+   */
+  setuid?: boolean;
+  /**
+   * `true` if the setgid bit is set on the entry.
+   */
+  setgid?: boolean;
+  /**
+   * `true` if the sticky bit is set on the entry.
+   */
+  sticky?: boolean;
+  /**
    * The internal file attributes (raw).
    */
   internalFileAttributes: number;
   /**
-   * The external file attributes (raw).
+   * The 32-bit `externalFileAttributes` field is the authoritative on-disk metadata for each entry.
+   * - Upper 16 bits: Unix mode/type (e.g., permissions, file type)
+   * - Low 8 bits: MS-DOS file attributes (e.g., directory, read-only)
+   *
+   * When writing, all provided options are merged into this field. When reading, convenience fields are decoded from it.
+   * For most use cases, prefer the high-level options and fields; only advanced users need to manipulate the raw value directly.
    */
   externalFileAttributes: number;
+  /**
+   * The upper 16-bit portion of {@link EntryMetaData#externalFileAttributes} when it represents Unix mode bits.
+   */
+  unixExternalUpper?: number;
   /**
    * The number of the disk where the entry data starts.
    */
@@ -1479,11 +1543,56 @@ export interface ZipWriterConstructorOptions {
    */
   externalFileAttributes?: number;
   /**
+   * The Unix owner id to write in the Unix extra field or as part of the external attributes.
+   */
+  uid?: number;
+  /**
+   * The Unix group id to write in the Unix extra field or as part of the external attributes.
+   */
+  gid?: number;
+  /**
+   * The Unix mode (st_mode bits) to use when writing external attributes.
+   */
+  unixMode?: number;
+  /**
+   * `true` to set the setuid bit when writing the Unix mode.
+   */
+  setuid?: boolean;
+  /**
+   * `true` to set the setgid bit when writing the Unix mode.
+   */
+  setgid?: boolean;
+  /**
+   * `true` to set the sticky bit when writing the Unix mode.
+   */
+  sticky?: boolean;
+  /**
+   * Which Unix extra field format to write when creating entries that include Unix metadata.
+   * - "infozip": use Info-ZIP New Unix extra field
+   * - "unix": use the traditional Unix extra field format
+   */
+  unixExtraFieldType?: "infozip" | "unix";
+  /**
    * The internal file attribute.
    *
    * @defaultValue 0
    */
   internalFileAttributes?: number;
+  /**
+   * When provided, the low 8-bit MS-DOS attributes to write into external file attributes.
+   * Must be an integer between 0 and 255.
+   */
+  msdosAttributesRaw?: number;
+  /**
+   * When provided, MS-DOS attribute flags (boolean object) to write into external file attributes low byte.
+   */
+  msdosAttributes?: {
+    readOnly?: boolean;
+    hidden?: boolean;
+    system?: boolean;
+    directory?: boolean;
+    archive?: boolean;
+  };
   /**
    * `false` to never write disk numbers in zip64 data.
    *
