@@ -37,6 +37,7 @@
 
 	const MAX_32_BITS = 0xffffffff;
 	const MAX_16_BITS = 0xffff;
+	const MAX_8_BITS = 0xff;
 	const COMPRESSION_METHOD_DEFLATE = 0x08;
 	const COMPRESSION_METHOD_DEFLATE_64 = 0x09;
 	const COMPRESSION_METHOD_STORE = 0x00;
@@ -66,6 +67,8 @@
 	const EXTRAFIELD_TYPE_UNICODE_PATH = 0x7075;
 	const EXTRAFIELD_TYPE_UNICODE_COMMENT = 0x6375;
 	const EXTRAFIELD_TYPE_USDZ = 0x1986;
+	const EXTRAFIELD_TYPE_INFOZIP = 0x7875;
+	const EXTRAFIELD_TYPE_UNIX = 0x7855;
 
 	const BITFLAG_ENCRYPTED = 0b1;
 	const BITFLAG_LEVEL = 0b0110;
@@ -75,10 +78,17 @@
 	const BITFLAG_DATA_DESCRIPTOR = 0b1000;
 	const BITFLAG_LANG_ENCODING_FLAG = 0b100000000000;
 	const FILE_ATTR_MSDOS_DIR_MASK = 0b10000;
+	const FILE_ATTR_MSDOS_READONLY_MASK = 0x01;
+	const FILE_ATTR_MSDOS_HIDDEN_MASK = 0x02;
+	const FILE_ATTR_MSDOS_SYSTEM_MASK = 0x04;
+	const FILE_ATTR_MSDOS_ARCHIVE_MASK = 0x20;
 	const FILE_ATTR_UNIX_TYPE_MASK = 0o170000;
 	const FILE_ATTR_UNIX_TYPE_DIR = 0o040000;
 	const FILE_ATTR_UNIX_EXECUTABLE_MASK = 0o111;
 	const FILE_ATTR_UNIX_DEFAULT_MASK = 0o644;
+	const FILE_ATTR_UNIX_SETUID_MASK = 0o4000;
+	const FILE_ATTR_UNIX_SETGID_MASK = 0o2000;
+	const FILE_ATTR_UNIX_STICKY_MASK = 0o1000;
 
 	const VERSION_DEFLATE = 0x14;
 	const VERSION_ZIP64 = 0x2D;
@@ -97,6 +107,7 @@
 	const UNDEFINED_VALUE = undefined;
 	const UNDEFINED_TYPE = "undefined";
 	const FUNCTION_TYPE = "function";
+	const OBJECT_TYPE = "object";
 
 	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
@@ -2414,6 +2425,7 @@
 	const HTTP_METHOD_GET = "GET";
 	const HTTP_RANGE_UNIT = "bytes";
 	const DEFAULT_CHUNK_SIZE = 64 * 1024;
+	const DEFAULT_BUFFER_SIZE = 256 * 1024;
 
 	const PROPERTY_NAME_WRITABLE = "writable";
 
@@ -2906,19 +2918,29 @@
 
 	class Uint8ArrayWriter extends Writer {
 
+		constructor(defaultBufferSize) {
+			super();
+			this.defaultBufferSize = defaultBufferSize || DEFAULT_BUFFER_SIZE;
+		}
+
 		init(initSize = 0) {
 			Object.assign(this, {
 				offset: 0,
-				array: new Uint8Array(initSize)
+				array: new Uint8Array(initSize > 0 ? initSize : this.defaultBufferSize)
 			});
 			super.init();
 		}
 
 		writeUint8Array(array) {
 			const writer = this;
-			if (writer.offset + array.length > writer.array.length) {
+			const requiredLength = writer.offset + array.length;
+			if (requiredLength > writer.array.length) {
+				let newLength = writer.array.length ? writer.array.length * 2 : writer.defaultBufferSize;
+				while (newLength < requiredLength) {
+					newLength *= 2;
+				}
 				const previousArray = writer.array;
-				writer.array = new Uint8Array(previousArray.length + array.length);
+				writer.array = new Uint8Array(newLength);
 				writer.array.set(previousArray);
 			}
 			writer.array.set(array, writer.offset);
@@ -2926,7 +2948,11 @@
 		}
 
 		getData() {
-			return this.array;
+			if (this.offset === this.array.length) {
+				return this.array;
+			} else {
+				return this.array.slice(0, this.offset);
+			}
 		}
 	}
 
@@ -3245,6 +3271,8 @@
 	const PROPERTY_NAME_RAW_CREATION_DATE = "rawCreationDate";
 	const PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES = "internalFileAttributes";
 	const PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES = "externalFileAttributes";
+	const PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW = "msdosAttributesRaw";
+	const PROPERTY_NAME_MSDOS_ATTRIBUTES = "msdosAttributes";
 	const PROPERTY_NAME_MS_DOS_COMPATIBLE = "msDosCompatible";
 	const PROPERTY_NAME_ZIP64 = "zip64";
 	const PROPERTY_NAME_ENCRYPTED = "encrypted";
@@ -3256,17 +3284,73 @@
 	const PROPERTY_NAME_COMPRESSION_METHOD = "compressionMethod";
 	const PROPERTY_NAME_SIGNATURE = "signature";
 	const PROPERTY_NAME_EXTRA_FIELD = "extraField";
+	const PROPERTY_NAME_EXTRA_FIELD_INFOZIP = "extraFieldInfoZip";
+	const PROPERTY_NAME_EXTRA_FIELD_UNIX = "extraFieldUnix";
+	const PROPERTY_NAME_UID = "uid";
+	const PROPERTY_NAME_GID = "gid";
+	const PROPERTY_NAME_UNIX_MODE = "unixMode";
+	const PROPERTY_NAME_SETUID = "setuid";
+	const PROPERTY_NAME_SETGID = "setgid";
+	const PROPERTY_NAME_STICKY = "sticky";
+	const PROPERTY_NAME_BITFLAG = "bitFlag";
+	const PROPERTY_NAME_FILENAME_UTF8 = "filenameUTF8";
+	const PROPERTY_NAME_COMMENT_UTF8 = "commentUTF8";
+	const PROPERTY_NAME_RAW_EXTRA_FIELD = "rawExtraField";
+	const PROPERTY_NAME_EXTRA_FIELD_ZIP64 = "extraFieldZip64";
+	const PROPERTY_NAME_EXTRA_FIELD_UNICODE_PATH = "extraFieldUnicodePath";
+	const PROPERTY_NAME_EXTRA_FIELD_UNICODE_COMMENT = "extraFieldUnicodeComment";
+	const PROPERTY_NAME_EXTRA_FIELD_AES = "extraFieldAES";
+	const PROPERTY_NAME_EXTRA_FIELD_NTFS = "extraFieldNTFS";
+	const PROPERTY_NAME_EXTRA_FIELD_EXTENDED_TIMESTAMP = "extraFieldExtendedTimestamp";
 
 	const PROPERTY_NAMES = [
-		PROPERTY_NAME_FILENAME, PROPERTY_NAME_RAW_FILENAME, PROPERTY_NAME_COMPRESSED_SIZE, PROPERTY_NAME_UNCOMPRESSED_SIZE,
-		PROPERTY_NAME_LAST_MODIFICATION_DATE, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE, PROPERTY_NAME_COMMENT, PROPERTY_NAME_RAW_COMMENT,
-		PROPERTY_NAME_LAST_ACCESS_DATE, PROPERTY_NAME_CREATION_DATE, PROPERTY_NAME_OFFSET, PROPERTY_NAME_DISK_NUMBER_START,
-		PROPERTY_NAME_DISK_NUMBER_START, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES,
-		PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_MS_DOS_COMPATIBLE, PROPERTY_NAME_ZIP64,
-		PROPERTY_NAME_ENCRYPTED, PROPERTY_NAME_VERSION, PROPERTY_NAME_VERSION_MADE_BY, PROPERTY_NAME_ZIPCRYPTO, PROPERTY_NAME_DIRECTORY,
-		PROPERTY_NAME_EXECUTABLE, PROPERTY_NAME_COMPRESSION_METHOD, PROPERTY_NAME_SIGNATURE, PROPERTY_NAME_EXTRA_FIELD,
-		"bitFlag", "filenameUTF8", "commentUTF8", "rawExtraField", "extraFieldZip64", "extraFieldUnicodePath", "extraFieldUnicodeComment",
-		"extraFieldAES", "extraFieldNTFS", "extraFieldExtendedTimestamp"];
+		PROPERTY_NAME_FILENAME,
+		PROPERTY_NAME_RAW_FILENAME,
+		PROPERTY_NAME_UNCOMPRESSED_SIZE,
+		PROPERTY_NAME_COMPRESSED_SIZE,
+		PROPERTY_NAME_LAST_MODIFICATION_DATE,
+		PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE,
+		PROPERTY_NAME_COMMENT,
+		PROPERTY_NAME_RAW_COMMENT,
+		PROPERTY_NAME_LAST_ACCESS_DATE,
+		PROPERTY_NAME_CREATION_DATE,
+		PROPERTY_NAME_RAW_CREATION_DATE,
+		PROPERTY_NAME_OFFSET,
+		PROPERTY_NAME_DISK_NUMBER_START,
+		PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES,
+		PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES,
+		PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW,
+		PROPERTY_NAME_MSDOS_ATTRIBUTES,
+		PROPERTY_NAME_MS_DOS_COMPATIBLE,
+		PROPERTY_NAME_ZIP64,
+		PROPERTY_NAME_ENCRYPTED,
+		PROPERTY_NAME_VERSION,
+		PROPERTY_NAME_VERSION_MADE_BY,
+		PROPERTY_NAME_ZIPCRYPTO,
+		PROPERTY_NAME_DIRECTORY,
+		PROPERTY_NAME_EXECUTABLE,
+		PROPERTY_NAME_COMPRESSION_METHOD,
+		PROPERTY_NAME_SIGNATURE,
+		PROPERTY_NAME_EXTRA_FIELD,
+		PROPERTY_NAME_EXTRA_FIELD_UNIX,
+		PROPERTY_NAME_EXTRA_FIELD_INFOZIP,
+		PROPERTY_NAME_UID,
+		PROPERTY_NAME_GID,
+		PROPERTY_NAME_UNIX_MODE,
+		PROPERTY_NAME_SETUID,
+		PROPERTY_NAME_SETGID,
+		PROPERTY_NAME_STICKY,
+		PROPERTY_NAME_BITFLAG,
+		PROPERTY_NAME_FILENAME_UTF8,
+		PROPERTY_NAME_COMMENT_UTF8,
+		PROPERTY_NAME_RAW_EXTRA_FIELD,
+		PROPERTY_NAME_EXTRA_FIELD_ZIP64,
+		PROPERTY_NAME_EXTRA_FIELD_UNICODE_PATH,
+		PROPERTY_NAME_EXTRA_FIELD_UNICODE_COMMENT,
+		PROPERTY_NAME_EXTRA_FIELD_AES,
+		PROPERTY_NAME_EXTRA_FIELD_NTFS,
+		PROPERTY_NAME_EXTRA_FIELD_EXTENDED_TIMESTAMP
+	];
 
 	class Entry {
 
@@ -3333,6 +3417,7 @@
 	const OPTION_ENCODE_TEXT = "encodeText";
 	const OPTION_OFFSET = "offset";
 	const OPTION_USDZ = "usdz";
+	const OPTION_UNIX_EXTRA_FIELD_TYPE = "unixExtraFieldType";
 
 	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
@@ -3375,6 +3460,7 @@
 	const ERR_SPLIT_ZIP_FILE = "Split zip file";
 	const ERR_OVERLAPPING_ENTRY = "Overlapping entry found";
 	const CHARSET_UTF8 = "utf-8";
+	const PROPERTY_NAME_UTF8_SUFFIX = "UTF8";
 	const CHARSET_CP437 = "cp437";
 	const ZIP64_PROPERTIES = [
 		[PROPERTY_NAME_UNCOMPRESSED_SIZE, MAX_32_BITS],
@@ -3530,31 +3616,15 @@
 				const filenameUTF8 = languageEncodingFlag;
 				const commentUTF8 = languageEncodingFlag;
 				const externalFileAttributes = getUint32(directoryView, offset + 38);
-				const directory =
-					(msDosCompatible && ((getUint8(directoryView, offset + 38) & FILE_ATTR_MSDOS_DIR_MASK) == FILE_ATTR_MSDOS_DIR_MASK)) ||
-					(unixCompatible && (((externalFileAttributes >> 16) & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_DIR)) ||
-					(rawFilename.length && rawFilename.at(-1) == DIRECTORY_SIGNATURE.charCodeAt(0));
-				const executable = (unixCompatible && (((externalFileAttributes >> 16) & FILE_ATTR_UNIX_EXECUTABLE_MASK) != 0));
+				const msdosAttributesRaw = externalFileAttributes & MAX_8_BITS;
+				const msdosAttributes = {
+					readOnly: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_READONLY_MASK),
+					hidden: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_HIDDEN_MASK),
+					system: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_SYSTEM_MASK),
+					directory: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_DIR_MASK),
+					archive: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_ARCHIVE_MASK)
+				};
 				const offsetFileEntry = getUint32(directoryView, offset + 42) + prependedDataLength;
-				Object.assign(fileEntry, {
-					versionMadeBy,
-					msDosCompatible,
-					compressedSize: 0,
-					uncompressedSize: 0,
-					commentLength,
-					directory,
-					offset: offsetFileEntry,
-					diskNumberStart: getUint16(directoryView, offset + 34),
-					internalFileAttributes: getUint16(directoryView, offset + 36),
-					externalFileAttributes,
-					rawFilename,
-					filenameUTF8,
-					commentUTF8,
-					rawExtraField: directoryArray.subarray(extraFieldOffset, commentOffset),
-					executable
-				});
-				fileEntry.internalFileAttribute = fileEntry.internalFileAttributes;
-				fileEntry.externalFileAttribute = fileEntry.externalFileAttributes;
 				const decode = getOptionValue$1(zipReader, options, OPTION_DECODE_TEXT) || decodeText;
 				const rawFilenameEncoding = filenameUTF8 ? CHARSET_UTF8 : filenameEncoding || CHARSET_CP437;
 				const rawCommentEncoding = commentUTF8 ? CHARSET_UTF8 : commentEncoding || CHARSET_CP437;
@@ -3567,14 +3637,50 @@
 					comment = decodeText(rawComment, rawCommentEncoding);
 				}
 				Object.assign(fileEntry, {
+					versionMadeBy,
+					msDosCompatible,
+					compressedSize: 0,
+					uncompressedSize: 0,
+					commentLength,
+					offset: offsetFileEntry,
+					diskNumberStart: getUint16(directoryView, offset + 34),
+					internalFileAttributes: getUint16(directoryView, offset + 36),
+					externalFileAttributes,
+					msdosAttributesRaw,
+					msdosAttributes,
+					rawFilename,
+					filenameUTF8,
+					commentUTF8,
+					rawExtraField: directoryArray.subarray(extraFieldOffset, commentOffset),
 					rawComment,
 					filename,
-					comment,
-					directory: directory || filename.endsWith(DIRECTORY_SIGNATURE)
+					comment
 				});
 				startOffset = Math.max(offsetFileEntry, startOffset);
 				readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
-				fileEntry.zipCrypto = fileEntry.encrypted && !fileEntry.extraFieldAES;
+				const unixExternalUpper = (fileEntry.externalFileAttributes >> 16) & MAX_16_BITS;
+				if (fileEntry.unixMode === UNDEFINED_VALUE && (unixExternalUpper & (FILE_ATTR_UNIX_DEFAULT_MASK | FILE_ATTR_UNIX_EXECUTABLE_MASK | FILE_ATTR_UNIX_TYPE_DIR)) != 0) {
+					fileEntry.unixMode = unixExternalUpper;
+				}
+				const setuid = Boolean(fileEntry.unixMode & FILE_ATTR_UNIX_SETUID_MASK);
+				const setgid = Boolean(fileEntry.unixMode & FILE_ATTR_UNIX_SETGID_MASK);
+				const sticky = Boolean(fileEntry.unixMode & FILE_ATTR_UNIX_STICKY_MASK);
+				const executable = (fileEntry.unixMode !== UNDEFINED_VALUE)
+					? ((fileEntry.unixMode & FILE_ATTR_UNIX_EXECUTABLE_MASK) != 0)
+					: (unixCompatible && ((unixExternalUpper & FILE_ATTR_UNIX_EXECUTABLE_MASK) != 0));
+				const modeIsDir = fileEntry.unixMode !== UNDEFINED_VALUE && ((fileEntry.unixMode & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_DIR);
+				const upperIsDir = ((unixExternalUpper & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_DIR);
+				Object.assign(fileEntry, {
+					setuid,
+					setgid,
+					sticky,
+					unixExternalUpper,
+					internalFileAttribute: fileEntry.internalFileAttributes,
+					externalFileAttribute: fileEntry.externalFileAttributes,
+					executable,
+					directory: modeIsDir || upperIsDir || (msDosCompatible && msdosAttributes.directory) || (filename.endsWith(DIRECTORY_SIGNATURE) && !fileEntry.uncompressedSize),
+					zipCrypto: fileEntry.encrypted && !fileEntry.extraFieldAES
+				});
 				const entry = new Entry(fileEntry);
 				entry.getData = (writer, options) => fileEntry.getData(writer, entry, zipReader.readRanges, options);
 				entry.arrayBuffer = async options => {
@@ -3748,7 +3854,7 @@
 					zipCrypto,
 					encryptionStrength: extraFieldAES && extraFieldAES.strength,
 					signed: getOptionValue$1(zipEntry, options, OPTION_CHECK_SIGNATURE) && !passThrough,
-					passwordVerification: zipCrypto && (dataDescriptor ? ((rawLastModDate >>> 8) & 0xFF) : ((signature >>> 24) & 0xFF)),
+					passwordVerification: zipCrypto && (dataDescriptor ? ((rawLastModDate >>> 8) & MAX_8_BITS) : ((signature >>> 24) & MAX_8_BITS)),
 					outputSize: passThrough ? compressedSize : uncompressedSize,
 					signature,
 					compressed: compressionMethod != 0 && !passThrough,
@@ -3879,6 +3985,17 @@
 			readExtraFieldNTFS(extraFieldNTFS, directory);
 			directory.extraFieldNTFS = extraFieldNTFS;
 		}
+		const extraFieldUnix = extraField.get(EXTRAFIELD_TYPE_UNIX);
+		if (extraFieldUnix) {
+			readExtraFieldUnix(extraFieldUnix, directory, false);
+			directory.extraFieldUnix = extraFieldUnix;
+		} else {
+			const extraFieldInfoZip = extraField.get(EXTRAFIELD_TYPE_INFOZIP);
+			if (extraFieldInfoZip) {
+				readExtraFieldUnix(extraFieldInfoZip, directory, true);
+				directory.extraFieldInfoZip = extraFieldInfoZip;
+			}
+		}
 		const extraFieldExtendedTimestamp = extraField.get(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 		if (extraFieldExtendedTimestamp) {
 			readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory, localDirectory);
@@ -3920,7 +4037,7 @@
 		});
 		if (extraFieldUnicode.valid) {
 			directory[propertyName] = extraFieldUnicode[propertyName];
-			directory[propertyName + "UTF8"] = true;
+			directory[propertyName + PROPERTY_NAME_UTF8_SUFFIX] = true;
 		}
 	}
 
@@ -3974,6 +4091,47 @@
 		} catch {
 			// ignored
 		}
+	}
+
+	function readExtraFieldUnix(extraField, directory, isInfoZip) {
+		try {
+			const view = getDataView$1(new Uint8Array(extraField.data));
+			let offset = 0;
+			const version = getUint8(view, offset++);
+			const uidSize = getUint8(view, offset++);
+			const uidBytes = extraField.data.subarray(offset, offset + uidSize);
+			offset += uidSize;
+			const uid = unpackUnixId(uidBytes);
+			const gidSize = getUint8(view, offset++);
+			const gidBytes = extraField.data.subarray(offset, offset + gidSize);
+			offset += gidSize;
+			const gid = unpackUnixId(gidBytes);
+			let unixMode = UNDEFINED_VALUE;
+			if (!isInfoZip && offset + 2 <= extraField.data.length) {
+				const base = extraField.data;
+				const modeView = new DataView(base.buffer, base.byteOffset + offset, 2);
+				unixMode = modeView.getUint16(0, true);
+			}
+			Object.assign(extraField, { version, uid, gid, unixMode });
+			if (uid !== UNDEFINED_VALUE) {
+				directory.uid = uid;
+			}
+			if (gid !== UNDEFINED_VALUE) {
+				directory.gid = gid;
+			}
+			if (unixMode !== UNDEFINED_VALUE) {
+				directory.unixMode = unixMode;
+			}
+		} catch {
+			// ignored
+		}
+	}
+
+	function unpackUnixId(bytes) {
+		const buffer = new Uint8Array(4);
+		buffer.set(bytes, 0);
+		const view = new DataView(buffer.buffer, buffer.byteOffset, 4);
+		return view.getUint32(0, true);
 	}
 
 	function readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory, localDirectory) {
@@ -4102,7 +4260,7 @@
 	}
 
 	function getDate(timeRaw) {
-		const date = (timeRaw & 0xffff0000) >> 16, time = timeRaw & 0x0000ffff;
+		const date = (timeRaw & 0xffff0000) >> 16, time = timeRaw & MAX_16_BITS;
 		try {
 			return new Date(1980 + ((date & 0xFE00) >> 9), ((date & 0x01E0) >> 5) - 1, date & 0x001F, (time & 0xF800) >> 11, (time & 0x07E0) >> 5, (time & 0x001F) * 2, 0);
 		} catch {
@@ -4178,8 +4336,16 @@
 	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (make sure 'keepOrder' is set to 'true')";
 	const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
 	const ERR_ZIP_NOT_EMPTY = "Zip file not empty";
+	const ERR_INVALID_UID = "Invalid uid (must be integer 0..2^32-1)";
+	const ERR_INVALID_GID = "Invalid gid (must be integer 0..2^32-1)";
+	const ERR_INVALID_UNIX_MODE = "Invalid UNIX mode (must be integer 0..65535)";
+	const ERR_INVALID_UNIX_EXTRA_FIELD_TYPE = "Invalid unixExtraFieldType (must be 'infozip' or 'unix')";
+	const ERR_INVALID_MSDOS_ATTRIBUTES = "Invalid msdosAttributesRaw (must be integer 0..255)";
+	const ERR_INVALID_MSDOS_DATA = "Invalid msdosAttributes (must be an object with boolean flags)";
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
+	const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
+	const UNIX_EXTRA_FIELD_TYPE = "unix";
 
 	let workers = 0;
 	const pendingEntries = [];
@@ -4237,15 +4403,17 @@
 					rawExtraFieldAES,
 					rawExtraFieldExtendedTimestamp,
 					rawExtraFieldNTFS,
-					rawExtraField
+					rawExtraFieldUnix,
+					rawExtraField,
 				} = entry;
 				const { level, languageEncodingFlag, dataDescriptor } = bitFlag;
 				rawExtraFieldZip64 = rawExtraFieldZip64 || new Uint8Array();
 				rawExtraFieldAES = rawExtraFieldAES || new Uint8Array();
 				rawExtraFieldExtendedTimestamp = rawExtraFieldExtendedTimestamp || new Uint8Array();
 				rawExtraFieldNTFS = rawExtraFieldNTFS || new Uint8Array();
+				rawExtraFieldUnix = entry.rawExtraFieldUnix || new Uint8Array();
 				rawExtraField = rawExtraField || new Uint8Array();
-				const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
+				const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
 				const zip64UncompressedSize = zip64 && uncompressedSize > MAX_32_BITS;
 				const zip64CompressedSize = zip64 && compressedSize > MAX_32_BITS;
 				const {
@@ -4272,6 +4440,7 @@
 					rawExtraFieldAES,
 					rawExtraFieldExtendedTimestamp,
 					rawExtraFieldNTFS,
+					rawExtraFieldUnix,
 					rawExtraField,
 					extendedTimestamp: rawExtraFieldExtendedTimestamp.length > 0 || rawExtraFieldNTFS.length > 0,
 					extraFieldExtendedTimestampFlag: 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0),
@@ -4340,7 +4509,7 @@
 			while (pendingAddFileCalls.size) {
 				await Promise.allSettled(Array.from(pendingAddFileCalls));
 			}
-			await closeFile(this, comment, options);
+			await closeFile(zipWriter, comment, options);
 			const preventClose = getOptionValue(zipWriter, options, OPTION_PREVENT_CLOSE);
 			if (!preventClose) {
 				await writable.getWriter().close();
@@ -4371,16 +4540,52 @@
 			return writable;
 		}
 
-		close(comment = undefined, options = {}) {
+		close(comment = UNDEFINED_VALUE, options = {}) {
 			return this.zipWriter.close(comment, options);
 		}
 	}
 
 	async function addFile(zipWriter, name, reader, options) {
 		name = name.trim();
-		const msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE);
-		const versionMadeBy = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION_MADE_BY, msDosCompatible ? 20 : 768);
+		let msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE);
+		let versionMadeBy = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION_MADE_BY, msDosCompatible ? 20 : 768);
 		const executable = getOptionValue(zipWriter, options, PROPERTY_NAME_EXECUTABLE);
+		const uid = getOptionValue(zipWriter, options, PROPERTY_NAME_UID);
+		const gid = getOptionValue(zipWriter, options, PROPERTY_NAME_GID);
+		let unixMode = getOptionValue(zipWriter, options, PROPERTY_NAME_UNIX_MODE);
+		const unixExtraFieldType = getOptionValue(zipWriter, options, OPTION_UNIX_EXTRA_FIELD_TYPE);
+		let setuid = getOptionValue(zipWriter, options, PROPERTY_NAME_SETUID);
+		let setgid = getOptionValue(zipWriter, options, PROPERTY_NAME_SETGID);
+		let sticky = getOptionValue(zipWriter, options, PROPERTY_NAME_STICKY);
+		if (uid !== UNDEFINED_VALUE && (uid < 0 || uid > MAX_32_BITS)) {
+			throw new Error(ERR_INVALID_UID);
+		}
+		if (gid !== UNDEFINED_VALUE && (gid < 0 || gid > MAX_32_BITS)) {
+			throw new Error(ERR_INVALID_GID);
+		}
+		if (unixMode !== UNDEFINED_VALUE && (unixMode < 0 || unixMode > MAX_16_BITS)) {
+			throw new Error(ERR_INVALID_UNIX_MODE);
+		}
+		if (unixExtraFieldType !== UNDEFINED_VALUE && unixExtraFieldType !== INFOZIP_EXTRA_FIELD_TYPE && unixExtraFieldType !== UNIX_EXTRA_FIELD_TYPE) {
+			throw new Error(ERR_INVALID_UNIX_EXTRA_FIELD_TYPE);
+		}
+		let msdosAttributesRaw = getOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW);
+		let msdosAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES);
+		const hasUnixMetadata = uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE || unixMode !== UNDEFINED_VALUE || unixExtraFieldType;
+		const hasMsDosProvided = msdosAttributesRaw !== UNDEFINED_VALUE || msdosAttributes !== UNDEFINED_VALUE;
+		if (hasUnixMetadata) {
+			msDosCompatible = false;
+			versionMadeBy = (versionMadeBy & MAX_16_BITS) | (3 << 8);
+		} else if (hasMsDosProvided) {
+			msDosCompatible = true;
+			versionMadeBy = (versionMadeBy & MAX_8_BITS);
+		}
+		if (msdosAttributesRaw !== UNDEFINED_VALUE && (msdosAttributesRaw < 0 || msdosAttributesRaw > MAX_8_BITS)) {
+			throw new Error(ERR_INVALID_MSDOS_ATTRIBUTES);
+		}
+		if (msdosAttributes && typeof msdosAttributes !== OBJECT_TYPE) {
+			throw new Error(ERR_INVALID_MSDOS_DATA);
+		}
 		if (versionMadeBy > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_VERSION);
 		}
@@ -4405,6 +4610,34 @@
 			} else {
 				externalFileAttributes = FILE_ATTR_UNIX_DEFAULT_MASK << 16;
 			}
+		}
+		let unixExternalUpper;
+		if (!msDosCompatible) {
+			unixExternalUpper = (externalFileAttributes >> 16) & MAX_16_BITS;
+			unixMode = unixMode === UNDEFINED_VALUE ? unixExternalUpper : (unixMode & MAX_16_BITS);
+			if (setuid) {
+				unixMode |= FILE_ATTR_UNIX_SETUID_MASK;
+			} else {
+				setuid = Boolean(unixMode & FILE_ATTR_UNIX_SETUID_MASK);
+			}
+			if (setgid) {
+				unixMode |= FILE_ATTR_UNIX_SETGID_MASK;
+			} else {
+				setgid = Boolean(unixMode & FILE_ATTR_UNIX_SETGID_MASK);
+			}
+			if (sticky) {
+				unixMode |= FILE_ATTR_UNIX_STICKY_MASK;
+			} else {
+				sticky = Boolean(unixMode & FILE_ATTR_UNIX_STICKY_MASK);
+			}
+			if (directory) {
+				unixMode |= FILE_ATTR_UNIX_TYPE_DIR;
+			}
+			externalFileAttributes = ((unixMode & MAX_16_BITS) << 16) | (externalFileAttributes & MAX_8_BITS);
+		}
+		({ msdosAttributesRaw, msdosAttributes } = normalizeMsdosAttributes(msdosAttributesRaw, msdosAttributes));
+		if (hasMsDosProvided) {
+			externalFileAttributes = (externalFileAttributes & MAX_32_BITS) | (msdosAttributesRaw & MAX_8_BITS);
 		}
 		const encode = getOptionValue(zipWriter, options, OPTION_ENCODE_TEXT, encodeText);
 		let rawFilename = encode(name);
@@ -4568,7 +4801,16 @@
 			compressionMethod,
 			uncompressedSize,
 			offset: zipWriter.offset - diskOffset,
-			diskNumberStart: diskNumber
+			diskNumberStart: diskNumber,
+			uid,
+			gid,
+			setuid,
+			setgid,
+			sticky,
+			unixMode,
+			msdosAttributesRaw,
+			msdosAttributes,
+			unixExternalUpper
 		});
 		const headerInfo = getHeaderInfo(options);
 		const dataDescriptorInfo = getDataDescriptorInfo(options);
@@ -4760,7 +5002,8 @@
 			rawExtraFieldExtendedTimestamp,
 			extraFieldExtendedTimestampFlag,
 			rawExtraFieldNTFS,
-			rawExtraFieldAES
+			rawExtraFieldUnix,
+			rawExtraFieldAES,
 		} = headerInfo;
 		const { dataDescriptorArray } = dataDescriptorInfo;
 		const {
@@ -4792,6 +5035,15 @@
 			msDosCompatible,
 			internalFileAttributes,
 			externalFileAttributes,
+			uid,
+			gid,
+			unixMode,
+			setuid,
+			setgid,
+			sticky,
+			unixExternalUpper,
+			msdosAttributesRaw,
+			msdosAttributes,
 			useCompressionStream,
 			passThrough
 		} = options;
@@ -4809,13 +5061,23 @@
 			localExtraFieldZip64Length,
 			rawExtraFieldExtendedTimestamp,
 			rawExtraFieldNTFS,
+			rawExtraFieldUnix,
 			rawExtraFieldAES,
 			rawExtraField,
 			extendedTimestamp,
 			msDosCompatible,
 			internalFileAttributes,
 			externalFileAttributes,
-			diskNumberStart
+			diskNumberStart,
+			uid,
+			gid,
+			unixMode,
+			setuid,
+			setgid,
+			sticky,
+			unixExternalUpper,
+			msdosAttributesRaw,
+			msdosAttributes
 		};
 		let {
 			signature,
@@ -4838,7 +5100,7 @@
 					password,
 					encryptionStrength,
 					zipCrypto: encrypted && zipCrypto,
-					passwordVerification: encrypted && zipCrypto && (rawLastModDate >> 8) & 0xFF,
+					passwordVerification: encrypted && zipCrypto && (rawLastModDate >> 8) & MAX_8_BITS,
 					signed: !passThrough,
 					compressed: compressed && !passThrough,
 					encrypted: encrypted && !passThrough,
@@ -5017,6 +5279,49 @@
 		} else {
 			rawExtraFieldNTFS = rawExtraFieldExtendedTimestamp = new Uint8Array();
 		}
+		let rawExtraFieldUnix;
+		try {
+			const { uid, gid, unixMode, setuid, setgid, sticky, unixExtraFieldType } = options;
+			if (unixExtraFieldType && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE || unixMode !== UNDEFINED_VALUE)) {
+				const uidBytes = packUnixId(uid);
+				const gidBytes = packUnixId(gid);
+				let modeArray = new Uint8Array();
+				if (unixExtraFieldType == UNIX_EXTRA_FIELD_TYPE && unixMode !== UNDEFINED_VALUE) {
+					let modeToWrite = unixMode & MAX_16_BITS;
+					if (setuid) {
+						modeToWrite |= FILE_ATTR_UNIX_SETUID_MASK;
+					}
+					if (setgid) {
+						modeToWrite |= FILE_ATTR_UNIX_SETGID_MASK;
+					}
+					if (sticky) {
+						modeToWrite |= FILE_ATTR_UNIX_STICKY_MASK;
+					}
+					modeArray = new Uint8Array(2);
+					const modeDataView = new DataView(modeArray.buffer);
+					modeDataView.setUint16(0, modeToWrite, true);
+				}
+				const payloadLength = 3 + uidBytes.length + gidBytes.length + modeArray.length;
+				rawExtraFieldUnix = new Uint8Array(4 + payloadLength);
+				const rawExtraFieldUnixView = getDataView(rawExtraFieldUnix);
+				setUint16(rawExtraFieldUnixView, 0, unixExtraFieldType == INFOZIP_EXTRA_FIELD_TYPE ? EXTRAFIELD_TYPE_INFOZIP : EXTRAFIELD_TYPE_UNIX);
+				setUint16(rawExtraFieldUnixView, 2, payloadLength);
+				setUint8(rawExtraFieldUnixView, 4, 1);
+				setUint8(rawExtraFieldUnixView, 5, uidBytes.length);
+				let offset = 6;
+				arraySet(rawExtraFieldUnix, uidBytes, offset);
+				offset += uidBytes.length;
+				setUint8(rawExtraFieldUnixView, offset, gidBytes.length);
+				offset++;
+				arraySet(rawExtraFieldUnix, gidBytes, offset);
+				offset += gidBytes.length;
+				arraySet(rawExtraFieldUnix, modeArray, offset);
+			} else {
+				rawExtraFieldUnix = new Uint8Array();
+			}
+		} catch {
+			rawExtraFieldUnix = new Uint8Array();
+		}
 		if (compressionMethod === UNDEFINED_VALUE) {
 			compressionMethod = compressed ? COMPRESSION_METHOD_DEFLATE : COMPRESSION_METHOD_STORE;
 		}
@@ -5029,7 +5334,7 @@
 			compressionMethod = COMPRESSION_METHOD_AES;
 		}
 		const localExtraFieldZip64Length = zip64ExtraFieldComplete ? getLength(rawExtraFieldZip64) : 0;
-		const extraFieldLength = localExtraFieldZip64Length + getLength(rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
+		const extraFieldLength = localExtraFieldZip64Length + getLength(rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
 		const {
 			headerArray,
 			headerView,
@@ -5062,6 +5367,8 @@
 		localHeaderOffset += getLength(rawExtraFieldExtendedTimestamp);
 		arraySet(localHeaderArray, rawExtraFieldNTFS, localHeaderOffset);
 		localHeaderOffset += getLength(rawExtraFieldNTFS);
+		arraySet(localHeaderArray, rawExtraFieldUnix, localHeaderOffset);
+		localHeaderOffset += getLength(rawExtraFieldUnix);
 		arraySet(localHeaderArray, rawExtraField, localHeaderOffset);
 		if (dataDescriptor) {
 			setUint32(localHeaderView, HEADER_OFFSET_COMPRESSED_SIZE + 4, 0);
@@ -5083,6 +5390,7 @@
 			localExtraFieldZip64Length,
 			rawExtraFieldExtendedTimestamp,
 			rawExtraFieldNTFS,
+			rawExtraFieldUnix,
 			rawExtraFieldAES,
 			extraFieldLength
 		};
@@ -5107,6 +5415,46 @@
 		localHeaderArrayView = getDataView(localHeaderArray);
 		setUint16(localHeaderArrayView, 28, extraFieldLength + extraBytesLength);
 		entryInfo.metadataSize += extraBytesLength;
+	}
+
+	function packUnixId(id) {
+		if (id === UNDEFINED_VALUE) {
+			return new Uint8Array();
+		} else {
+			const dataArray = new Uint8Array(4);
+			const dataView = getDataView(dataArray);
+			dataView.setUint32(0, id, true);
+			let length = 4;
+			while (length > 1 && dataArray[length - 1] === 0) {
+				length--;
+			}
+			return dataArray.subarray(0, length);
+		}
+	}
+
+	function normalizeMsdosAttributes(msdosAttributesRaw, msdosAttributes) {
+		if (msdosAttributesRaw !== UNDEFINED_VALUE) {
+			msdosAttributesRaw = msdosAttributesRaw & MAX_8_BITS;
+		} else if (msdosAttributes !== UNDEFINED_VALUE) {
+			const { readOnly, hidden, system, directory: msdDir, archive } = msdosAttributes;
+			let raw = 0;
+			if (readOnly) raw |= FILE_ATTR_MSDOS_READONLY_MASK;
+			if (hidden) raw |= FILE_ATTR_MSDOS_HIDDEN_MASK;
+			if (system) raw |= FILE_ATTR_MSDOS_SYSTEM_MASK;
+			if (msdDir) raw |= FILE_ATTR_MSDOS_DIR_MASK;
+			if (archive) raw |= FILE_ATTR_MSDOS_ARCHIVE_MASK;
+			msdosAttributesRaw = raw & MAX_8_BITS;
+		}
+		if (msdosAttributes === UNDEFINED_VALUE) {
+			msdosAttributes = {
+				readOnly: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_READONLY_MASK),
+				hidden: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_HIDDEN_MASK),
+				system: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_SYSTEM_MASK),
+				directory: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_DIR_MASK),
+				archive: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_ARCHIVE_MASK)
+			};
+		}
+		return { msdosAttributesRaw, msdosAttributes };
 	}
 
 	function getDataDescriptorInfo({
@@ -5266,6 +5614,7 @@
 				rawExtraFieldAES,
 				rawComment,
 				rawExtraFieldNTFS,
+				rawExtraFieldUnix,
 				rawExtraField,
 				extendedTimestamp,
 				extraFieldExtendedTimestampFlag,
@@ -5290,6 +5639,7 @@
 					rawExtraFieldZip64,
 					rawExtraFieldAES,
 					rawExtraFieldNTFS,
+					rawExtraFieldUnix,
 					rawExtraFieldTimestamp,
 					rawExtraField);
 		}
@@ -5305,6 +5655,7 @@
 				rawExtraFieldAES,
 				rawExtraFieldExtendedTimestamp,
 				rawExtraFieldNTFS,
+				rawExtraFieldUnix,
 				rawExtraField,
 				rawComment,
 				versionMadeBy,
@@ -5321,7 +5672,7 @@
 				uncompressedSize,
 				compressedSize
 			} = fileEntry;
-			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraField);
+			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
 			setUint32(directoryView, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 			setUint16(directoryView, offset + 4, versionMadeBy);
 			if (!zip64UncompressedSize) {
@@ -5356,9 +5707,12 @@
 			directoryOffset += getLength(rawExtraFieldExtendedTimestamp);
 			arraySet(directoryArray, rawExtraFieldNTFS, directoryOffset);
 			directoryOffset += getLength(rawExtraFieldNTFS);
+			arraySet(directoryArray, rawExtraFieldUnix, directoryOffset);
+			directoryOffset += getLength(rawExtraFieldUnix);
 			arraySet(directoryArray, rawExtraField, directoryOffset);
 			directoryOffset += getLength(rawExtraField);
 			arraySet(directoryArray, rawComment, directoryOffset);
+			directoryOffset += getLength(rawComment);
 			if (offset - directoryDiskOffset > writer.availableSize) {
 				writer.availableSize = 0;
 				await writeData(writer, directoryArray.slice(directoryDiskOffset, offset));
