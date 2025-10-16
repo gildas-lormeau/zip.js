@@ -635,7 +635,14 @@ export class SplitDataWriter implements Initializable, WritableWriter {
 /**
  * Represents a {@link Writer} instance used to retrieve the written data as a `Uint8Array` instance.
  */
-export class Uint8ArrayWriter extends Writer<Uint8Array<ArrayBuffer>> {}
+export class Uint8ArrayWriter extends Writer<Uint8Array<ArrayBuffer>> {
+  /**
+   * Creates the {@link Uint8ArrayWriter} instance
+   *
+   * @param defaultBufferSize The initial size of the internal buffer (default: 256KB).
+   */
+  constructor(defaultBufferSize?: number);
+}
 
 /**
  * Represents an instance used to create an unzipped stream.
