@@ -1396,7 +1396,7 @@ export interface ZipWriterCloseOptions extends EntryOnprogressOptions {
 /**
  * Represents options passed to the constructor of {@link ZipWriter}, {@link ZipWriter#add} and `{@link ZipDirectoryEntry}#export*`.
  */
-export interface ZipWriterConstructorOptions {
+export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   /**
    * `true` to use Zip64 to store the entry.
    *
