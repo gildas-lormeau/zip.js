@@ -30,7 +30,7 @@ import {
   TextWriter,
   ZipReader,
   ZipWriter,
-} from "https://deno.land/x/zipjs/index.js";
+} from "https://jsr.io/@zip-js/zip-js";
 
 // ----
 // Write the zip file
@@ -84,7 +84,7 @@ import {
   BlobReader,
   ZipReader,
   ZipWriter,
-} from "https://deno.land/x/zipjs/index.js";
+} from "https://jsr.io/@zip-js/zip-js";
 
 // ----
 // Write the zip file
