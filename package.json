@@ -154,11 +154,11 @@
   },
   "homepage": "https://gildas-lormeau.github.io/zip.js",
   "devDependencies": {
-    "@rollup/plugin-replace": "^6.0.2",
+    "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-terser": "^0.4.4",
-    "eslint": "^9.37.0",
+    "eslint": "^9.39.1",
     "http-server": "^14.1.1",
-    "rollup": "^4.52.4",
+    "rollup": "^4.53.2",
     "typedoc": "^0.28.14",
     "typedoc-plugin-markdown": "^4.9.0"
   }
