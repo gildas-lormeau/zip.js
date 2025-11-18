@@ -26,7 +26,7 @@ import {
   TextWriter,
   ZipReader,
   ZipWriter,
-} from "https://jsr.io/@zip-js/zip-js";
+} from "jsr:@zip-js/zip-js";
 
 // ----
 // Write the zip file
@@ -71,7 +71,7 @@ await zipReader.close();
 console.log(helloWorldText);
 ```
 
-Run the code on JSFiddle: https://jsfiddle.net/dns7pkxt/
+Run the code on JSFiddle: https://jsfiddle.net/tdjxLcu9/
 
 ## Hello world with Streams
 
@@ -80,7 +80,7 @@ import {
   BlobReader,
   ZipReader,
   ZipWriter,
-} from "https://jsr.io/@zip-js/zip-js";
+} from "jsr:@zip-js/zip-js";
 
 // ----
 // Write the zip file
