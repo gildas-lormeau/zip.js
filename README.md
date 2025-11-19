@@ -19,14 +19,8 @@ See here for more info: https://gildas-lormeau.github.io/zip.js/
 ## Hello world
 
 ```js
-import {
-  BlobReader,
-  BlobWriter,
-  TextReader,
-  TextWriter,
-  ZipReader,
-  ZipWriter,
-} from "jsr:@zip-js/zip-js";
+import { BlobReader, BlobWriter, TextReader, TextWriter, ZipReader, ZipWriter } from "jsr:@zip-js/zip-js";
+// for NPM: import { BlobReader, BlobWriter, TextReader, TextWriter, ZipReader, ZipWriter } from "@zip-js/zip-js";
 
 // ----
 // Write the zip file
@@ -76,11 +70,8 @@ Run the code on JSFiddle: https://jsfiddle.net/tdjxLcu9/
 ## Hello world with Streams
 
 ```js
-import {
-  BlobReader,
-  ZipReader,
-  ZipWriter,
-} from "jsr:@zip-js/zip-js";
+import { BlobReader, ZipReader, ZipWriter } from "jsr:@zip-js/zip-js";
+// for NPM: import { BlobReader, ZipReader, ZipWriter } from "@zip-js/zip-js";
 
 // ----
 // Write the zip file
