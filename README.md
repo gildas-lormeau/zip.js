@@ -133,7 +133,7 @@ import {
   HttpReader,
   TextReader,
   ZipWriter,
-} from "https://unpkg.com/@zip.js/zip.js/index.js";
+} from "jsr:@zip-js/zip-js";
 
 const README_URL = "https://unpkg.com/@zip.js/zip.js/README.md";
 getZipFileBlob()
