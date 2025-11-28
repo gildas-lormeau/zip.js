@@ -20,7 +20,7 @@ See here for more info: https://gildas-lormeau.github.io/zip.js/
 
 ```js
 import { BlobReader, BlobWriter, TextReader, TextWriter, ZipReader, ZipWriter } from "@zip-js/zip-js";
-// Prefix @zip-js/zip-js" with "jsr:" for Deno
+// Prefix "@zip-js/zip-js" with "jsr:" for Deno
 
 // ----
 // Write the zip file
@@ -71,7 +71,7 @@ Run the code on JSFiddle: https://jsfiddle.net/tm9fhvab/
 
 ```js
 import { BlobReader, ZipReader, ZipWriter } from "@zip-js/zip-js";
-// Prefix @zip-js/zip-js" with "jsr:" for Deno
+// Prefix "@zip-js/zip-js" with "jsr:" for Deno
 
 // ----
 // Write the zip file
@@ -134,7 +134,7 @@ import {
   TextReader,
   ZipWriter,
 } from "@zip-js/zip-js";
-// Prefix @zip-js/zip-js" with "jsr:" for Deno
+// Prefix "@zip-js/zip-js" with "jsr:" for Deno
 
 const README_URL = "https://unpkg.com/@zip.js/zip.js/README.md";
 getZipFileBlob()
