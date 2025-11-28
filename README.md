@@ -19,7 +19,14 @@ See here for more info: https://gildas-lormeau.github.io/zip.js/
 ## Hello world
 
 ```js
-import { BlobReader, BlobWriter, TextReader, TextWriter, ZipReader, ZipWriter } from "@zip-js/zip-js";
+import {
+  BlobReader,
+  BlobWriter,
+  TextReader,
+  TextWriter,
+  ZipReader,
+  ZipWriter
+} from "@zip-js/zip-js";
 // Prefix "@zip-js/zip-js" with "jsr:" for Deno
 
 // ----
@@ -70,7 +77,11 @@ Run the code on JSFiddle: https://jsfiddle.net/tm9fhvab/
 ## Hello world with Streams
 
 ```js
-import { BlobReader, ZipReader, ZipWriter } from "@zip-js/zip-js";
+import {
+  BlobReader,
+  ZipReader,
+  ZipWriter
+} from "@zip-js/zip-js";
 // Prefix "@zip-js/zip-js" with "jsr:" for Deno
 
 // ----
