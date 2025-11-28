@@ -19,8 +19,8 @@ See here for more info: https://gildas-lormeau.github.io/zip.js/
 ## Hello world
 
 ```js
-import { BlobReader, BlobWriter, TextReader, TextWriter, ZipReader, ZipWriter } from "jsr:@zip-js/zip-js";
-// for NPM: import { BlobReader, BlobWriter, TextReader, TextWriter, ZipReader, ZipWriter } from "@zip-js/zip-js";
+import { BlobReader, BlobWriter, TextReader, TextWriter, ZipReader, ZipWriter } from "@zip-js/zip-js";
+// Prefix @zip-js/zip-js" with "jsr:" for Deno
 
 // ----
 // Write the zip file
@@ -65,13 +65,13 @@ await zipReader.close();
 console.log(helloWorldText);
 ```
 
-Run the code on JSFiddle: https://jsfiddle.net/tdjxLcu9/
+Run the code on JSFiddle: https://jsfiddle.net/tm9fhvab/
 
 ## Hello world with Streams
 
 ```js
-import { BlobReader, ZipReader, ZipWriter } from "jsr:@zip-js/zip-js";
-// for NPM: import { BlobReader, ZipReader, ZipWriter } from "@zip-js/zip-js";
+import { BlobReader, ZipReader, ZipWriter } from "@zip-js/zip-js";
+// Prefix @zip-js/zip-js" with "jsr:" for Deno
 
 // ----
 // Write the zip file
@@ -123,7 +123,7 @@ const helloWorldText = await helloWorldTextPromise;
 console.log(helloWorldText);
 ```
 
-Run the code on JSFiddle: https://jsfiddle.net/exnyq1ft/
+Run the code on JSFiddle: https://jsfiddle.net/aw3d6f4o/
 
 ## Adding concurrently multiple entries in a zip file
 
@@ -133,7 +133,8 @@ import {
   HttpReader,
   TextReader,
   ZipWriter,
-} from "jsr:@zip-js/zip-js";
+} from "@zip-js/zip-js";
+// Prefix @zip-js/zip-js" with "jsr:" for Deno
 
 const README_URL = "https://unpkg.com/@zip.js/zip.js/README.md";
 getZipFileBlob()
