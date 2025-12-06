@@ -218,10 +218,12 @@ export interface Configuration extends WorkerConfiguration {
    *
    * It allows using alternative deflate implementations or specifying a URL to the worker script if the CSP of the page blocks scripts imported from a Data URI.
    *
-   * Here is an example:
+   * Here is an example to import the worker module as a URL (see `?url`) and avoid CSP issues:
    * ```
+   * import workerURI from "@zip.js/zip.js/dist/zip-web-worker.js?url";
+   *
    * configure({
-   *   workerURI: "./custom-deflate.js"
+   *   workerURI
    * });
    * ```
    *
@@ -230,6 +232,15 @@ export interface Configuration extends WorkerConfiguration {
   workerURI?: string;
   /**
    * The URI of the WebAssembly module used by default implementations to compress/decompress data. It is ignored if `useCompressionStream` is set to `true` and `CompressionStream`/`DecompressionStream` are supported by the environment.
+   *
+   * Here is an example to import the WASM module as a URL (see `?url`) and avoid CSP issues:
+   * ```
+   * import wasmURI from "@zip.js/zip.js/dist/zip-module.wasm?url";
+   *
+   * configure({
+   *   wasmURI
+   * });
+   * ```
    *
    * @defaultValue "./core/streams/zlib-wasm/zlib-streams.wasm"
    */

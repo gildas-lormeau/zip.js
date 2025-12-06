@@ -6,7 +6,7 @@
 
 # Interface: EntryDataOnprogressOptions
 
-Defined in: [index.d.ts:1636](https://github.com/gildas-lormeau/zip.js/blob/ade268faf16563c7a33ab45fce2e8761620ea353/index.d.ts#L1636)
+Defined in: [index.d.ts:1647](https://github.com/gildas-lormeau/zip.js/blob/cce2671ac9ac6b49852f46809c21939db1e14fd4/index.d.ts#L1647)
 
 Represents options passed to [FileEntry#getData](FileEntry.md#getdata), [ZipWriter.add](../classes/ZipWriter.md#add) and `{@link ZipDirectory}.export*`.
 
@@ -20,9 +20,9 @@ Represents options passed to [FileEntry#getData](FileEntry.md#getdata), [ZipWrit
 
 ### onend()?
 
-> `optional` **onend**(`computedSize`): `undefined` \| `Promise`\<`void`\>
+> `optional` **onend**(`computedSize`): `Promise`\<`void`\> \| `undefined`
 
-Defined in: [index.d.ts:1658](https://github.com/gildas-lormeau/zip.js/blob/ade268faf16563c7a33ab45fce2e8761620ea353/index.d.ts#L1658)
+Defined in: [index.d.ts:1669](https://github.com/gildas-lormeau/zip.js/blob/cce2671ac9ac6b49852f46809c21939db1e14fd4/index.d.ts#L1669)
 
 The function called when ending compression/decompression.
 
@@ -36,7 +36,7 @@ The total number of bytes (computed).
 
 #### Returns
 
-`undefined` \| `Promise`\<`void`\>
+`Promise`\<`void`\> \| `undefined`
 
 An empty promise or `undefined`.
 
@@ -44,9 +44,9 @@ An empty promise or `undefined`.
 
 ### onprogress()?
 
-> `optional` **onprogress**(`progress`, `total`): `undefined` \| `Promise`\<`void`\>
+> `optional` **onprogress**(`progress`, `total`): `Promise`\<`void`\> \| `undefined`
 
-Defined in: [index.d.ts:1651](https://github.com/gildas-lormeau/zip.js/blob/ade268faf16563c7a33ab45fce2e8761620ea353/index.d.ts#L1651)
+Defined in: [index.d.ts:1662](https://github.com/gildas-lormeau/zip.js/blob/cce2671ac9ac6b49852f46809c21939db1e14fd4/index.d.ts#L1662)
 
 The function called during compression/decompression.
 
@@ -66,7 +66,7 @@ The total number of bytes.
 
 #### Returns
 
-`undefined` \| `Promise`\<`void`\>
+`Promise`\<`void`\> \| `undefined`
 
 An empty promise or `undefined`.
 
@@ -74,9 +74,9 @@ An empty promise or `undefined`.
 
 ### onstart()?
 
-> `optional` **onstart**(`total`): `undefined` \| `Promise`\<`void`\>
+> `optional` **onstart**(`total`): `Promise`\<`void`\> \| `undefined`
 
-Defined in: [index.d.ts:1643](https://github.com/gildas-lormeau/zip.js/blob/ade268faf16563c7a33ab45fce2e8761620ea353/index.d.ts#L1643)
+Defined in: [index.d.ts:1654](https://github.com/gildas-lormeau/zip.js/blob/cce2671ac9ac6b49852f46809c21939db1e14fd4/index.d.ts#L1654)
 
 The function called when starting compression/decompression.
 
@@ -90,6 +90,6 @@ The total number of bytes.
 
 #### Returns
 
-`undefined` \| `Promise`\<`void`\>
+`Promise`\<`void`\> \| `undefined`
 
 An empty promise or `undefined`.

@@ -6,7 +6,7 @@
 
 # Interface: GetEntriesOptions
 
-Defined in: [index.d.ts:803](https://github.com/gildas-lormeau/zip.js/blob/ade268faf16563c7a33ab45fce2e8761620ea353/index.d.ts#L803)
+Defined in: [index.d.ts:814](https://github.com/gildas-lormeau/zip.js/blob/cce2671ac9ac6b49852f46809c21939db1e14fd4/index.d.ts#L814)
 
 Represents options passed to the constructor of [ZipReader](../classes/ZipReader.md), [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
@@ -21,7 +21,7 @@ Represents options passed to the constructor of [ZipReader](../classes/ZipReader
 
 > `optional` **commentEncoding**: `string`
 
-Defined in: [index.d.ts:811](https://github.com/gildas-lormeau/zip.js/blob/ade268faf16563c7a33ab45fce2e8761620ea353/index.d.ts#L811)
+Defined in: [index.d.ts:822](https://github.com/gildas-lormeau/zip.js/blob/cce2671ac9ac6b49852f46809c21939db1e14fd4/index.d.ts#L822)
 
 The encoding of the comment of the entry.
 
@@ -31,7 +31,7 @@ The encoding of the comment of the entry.
 
 > `optional` **filenameEncoding**: `string`
 
-Defined in: [index.d.ts:807](https://github.com/gildas-lormeau/zip.js/blob/ade268faf16563c7a33ab45fce2e8761620ea353/index.d.ts#L807)
+Defined in: [index.d.ts:818](https://github.com/gildas-lormeau/zip.js/blob/cce2671ac9ac6b49852f46809c21939db1e14fd4/index.d.ts#L818)
 
 The encoding of the filename of the entry.
 
@@ -39,9 +39,9 @@ The encoding of the filename of the entry.
 
 ### decodeText()?
 
-> `optional` **decodeText**(`value`, `encoding`): `undefined` \| `string`
+> `optional` **decodeText**(`value`, `encoding`): `string` \| `undefined`
 
-Defined in: [index.d.ts:819](https://github.com/gildas-lormeau/zip.js/blob/ade268faf16563c7a33ab45fce2e8761620ea353/index.d.ts#L819)
+Defined in: [index.d.ts:830](https://github.com/gildas-lormeau/zip.js/blob/cce2671ac9ac6b49852f46809c21939db1e14fd4/index.d.ts#L830)
 
 The function called for decoding the filename and the comment of the entry.
 
@@ -61,6 +61,6 @@ The encoding of the text.
 
 #### Returns
 
-`undefined` \| `string`
+`string` \| `undefined`
 
 The decoded text value or `undefined` if the raw text value should be decoded by zip.js.

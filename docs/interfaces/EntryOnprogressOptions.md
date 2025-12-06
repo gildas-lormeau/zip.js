@@ -6,7 +6,7 @@
 
 # Interface: EntryOnprogressOptions
 
-Defined in: [index.d.ts:1664](https://github.com/gildas-lormeau/zip.js/blob/ade268faf16563c7a33ab45fce2e8761620ea353/index.d.ts#L1664)
+Defined in: [index.d.ts:1675](https://github.com/gildas-lormeau/zip.js/blob/cce2671ac9ac6b49852f46809c21939db1e14fd4/index.d.ts#L1675)
 
 Represents options passed to [ZipReader#getEntries](../classes/ZipReader.md#getentries), [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator), and [ZipWriter#close](../classes/ZipWriter.md#close).
 
@@ -19,9 +19,9 @@ Represents options passed to [ZipReader#getEntries](../classes/ZipReader.md#gete
 
 ### onprogress()?
 
-> `optional` **onprogress**(`progress`, `total`, `entry`): `undefined` \| `Promise`\<`void`\>
+> `optional` **onprogress**(`progress`, `total`, `entry`): `Promise`\<`void`\> \| `undefined`
 
-Defined in: [index.d.ts:1673](https://github.com/gildas-lormeau/zip.js/blob/ade268faf16563c7a33ab45fce2e8761620ea353/index.d.ts#L1673)
+Defined in: [index.d.ts:1684](https://github.com/gildas-lormeau/zip.js/blob/cce2671ac9ac6b49852f46809c21939db1e14fd4/index.d.ts#L1684)
 
 The function called each time an entry is read/written.
 
@@ -47,6 +47,6 @@ The entry being read/written.
 
 #### Returns
 
-`undefined` \| `Promise`\<`void`\>
+`Promise`\<`void`\> \| `undefined`
 
 An empty promise or `undefined`.
