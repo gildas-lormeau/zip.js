@@ -5582,8 +5582,12 @@
 	function updateZip64ExtraField({
 		compressedSize,
 		uncompressedSize,
+		offset,
+		diskNumberStart,
 		zip64UncompressedSize,
 		zip64CompressedSize,
+		zip64Offset,
+		zip64DiskNumberStart,
 		rawExtraFieldZip64
 	}) {
 		const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
@@ -5595,6 +5599,13 @@
 		if (zip64CompressedSize) {
 			setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(compressedSize));
 			rawExtraFieldZip64Offset += 8;
+		}
+		if (zip64Offset) {
+			setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(offset));
+			rawExtraFieldZip64Offset += 8;
+		}
+		if (zip64DiskNumberStart) {
+			setUint32(rawExtraFieldZip64View, rawExtraFieldZip64Offset, diskNumberStart);
 		}
 	}
 
