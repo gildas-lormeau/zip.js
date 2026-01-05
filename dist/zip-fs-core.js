@@ -5083,15 +5083,19 @@
 		let { version, compressionMethod } = options;
 		const compressed = !directory && (level > 0 || (level === UNDEFINED_VALUE && compressionMethod !== 0));
 		let rawExtraFieldZip64;
+		let rawLocalExtraFieldZip64;
 		const uncompressedFile = passThrough || !compressed;
 		const zip64ExtraFieldComplete = zip64 && (options.bufferedWrite || ((!zip64UncompressedSize && !zip64CompressedSize) || uncompressedFile));
 		if (zip64) {
 			let rawExtraFieldZip64Length = 4;
+			let rawLocalExtraFieldZip64Length = 4;
 			if (zip64UncompressedSize) {
 				rawExtraFieldZip64Length += 8;
+				rawLocalExtraFieldZip64Length += 8;
 			}
 			if (zip64CompressedSize) {
 				rawExtraFieldZip64Length += 8;
+				rawLocalExtraFieldZip64Length += 8;
 			}
 			if (zip64Offset) {
 				rawExtraFieldZip64Length += 8;
@@ -5101,18 +5105,28 @@
 			}
 			rawExtraFieldZip64 = new Uint8Array(rawExtraFieldZip64Length);
 			const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
+			rawLocalExtraFieldZip64 = new Uint8Array(rawLocalExtraFieldZip64Length);
+			const rawLocalExtraFieldZip64View = getDataView(rawLocalExtraFieldZip64);
 			setUint16(rawExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
 			setUint16(rawExtraFieldZip64View, 2, getLength(rawExtraFieldZip64) - 4);
+			setUint16(rawLocalExtraFieldZip64View, 0, EXTRAFIELD_TYPE_ZIP64);
+			setUint16(rawLocalExtraFieldZip64View, 2, getLength(rawLocalExtraFieldZip64) - 4);
 			if (zip64ExtraFieldComplete) {
 				const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
+				const rawLocalExtraFieldZip64View = getDataView(rawLocalExtraFieldZip64);
 				let rawExtraFieldZip64Offset = 4;
+				let rawLocalExtraFieldZip64Offset = 4;
 				if (zip64UncompressedSize) {
 					setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(uncompressedSize));
 					rawExtraFieldZip64Offset += 8;
+					setBigUint64(rawLocalExtraFieldZip64View, rawLocalExtraFieldZip64Offset, BigInt(uncompressedSize));
+					rawLocalExtraFieldZip64Offset += 8;
 				}
 				if (zip64CompressedSize && uncompressedFile) {
 					setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(uncompressedSize));
 					rawExtraFieldZip64Offset += 8;
+					setBigUint64(rawLocalExtraFieldZip64View, rawLocalExtraFieldZip64Offset, BigInt(uncompressedSize));
+					rawLocalExtraFieldZip64Offset += 8;
 				}
 				if (zip64Offset) {
 					setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(offset));
@@ -5125,6 +5139,7 @@
 			}
 		} else {
 			rawExtraFieldZip64 = new Uint8Array();
+			rawLocalExtraFieldZip64 = new Uint8Array();
 		}
 		let rawExtraFieldAES;
 		if (encrypted && !zipCrypto) {
@@ -5227,7 +5242,7 @@
 			rawExtraFieldAES[9] = compressionMethod;
 			compressionMethod = COMPRESSION_METHOD_AES;
 		}
-		const localExtraFieldZip64Length = zip64ExtraFieldComplete ? getLength(rawExtraFieldZip64) : 0;
+		const localExtraFieldZip64Length = zip64ExtraFieldComplete ? getLength(rawLocalExtraFieldZip64) : 0;
 		const extraFieldLength = localExtraFieldZip64Length + getLength(rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
 		const {
 			headerArray,
@@ -5252,7 +5267,7 @@
 		arraySet(localHeaderArray, rawFilename, localHeaderOffset);
 		localHeaderOffset += getLength(rawFilename);
 		if (zip64ExtraFieldComplete) {
-			arraySet(localHeaderArray, rawExtraFieldZip64, localHeaderOffset);
+			arraySet(localHeaderArray, rawLocalExtraFieldZip64, localHeaderOffset);
 		}
 		localHeaderOffset += localExtraFieldZip64Length;
 		arraySet(localHeaderArray, rawExtraFieldAES, localHeaderOffset);
@@ -5425,12 +5440,8 @@
 		signature,
 		compressedSize,
 		uncompressedSize,
-		offset,
-		diskNumberStart,
 		zip64UncompressedSize,
-		zip64CompressedSize,
-		zip64Offset,
-		zip64DiskNumberStart
+		zip64CompressedSize
 	}, localHeaderView, { dataDescriptor }) {
 		if (!dataDescriptor) {
 			if (!encrypted) {
@@ -5452,13 +5463,6 @@
 					setBigUint64(localHeaderView, localHeaderOffset, BigInt(compressedSize));
 					localHeaderOffset += 8;
 				}
-				if (zip64Offset) {
-					setBigUint64(localHeaderView, localHeaderOffset, BigInt(offset));
-					localHeaderOffset += 8;
-				}
-				if (zip64DiskNumberStart) {
-					setUint32(localHeaderView, localHeaderOffset, diskNumberStart);
-				}
 			}
 		}
 	}
@@ -5466,12 +5470,8 @@
 	function updateZip64ExtraField({
 		compressedSize,
 		uncompressedSize,
-		offset,
-		diskNumberStart,
 		zip64UncompressedSize,
 		zip64CompressedSize,
-		zip64Offset,
-		zip64DiskNumberStart,
 		rawExtraFieldZip64
 	}) {
 		const rawExtraFieldZip64View = getDataView(rawExtraFieldZip64);
@@ -5483,13 +5483,6 @@
 		if (zip64CompressedSize) {
 			setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(compressedSize));
 			rawExtraFieldZip64Offset += 8;
-		}
-		if (zip64Offset) {
-			setBigUint64(rawExtraFieldZip64View, rawExtraFieldZip64Offset, BigInt(offset));
-			rawExtraFieldZip64Offset += 8;
-		}
-		if (zip64DiskNumberStart) {
-			setUint32(rawExtraFieldZip64View, rawExtraFieldZip64Offset, diskNumberStart);
 		}
 	}
 
