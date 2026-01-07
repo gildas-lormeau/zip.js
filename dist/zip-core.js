@@ -5242,6 +5242,9 @@
 					setUint32(rawExtraFieldZip64View, rawExtraFieldZip64Offset, diskNumberStart);
 					rawExtraFieldZip64Offset += 4;
 				}
+				if (rawLocalExtraFieldZip64Offset == 4) {
+					rawLocalExtraFieldZip64 = new Uint8Array();
+				}
 			}
 		} else {
 			rawExtraFieldZip64 = new Uint8Array();
@@ -5553,22 +5556,22 @@
 			if (!encrypted) {
 				setUint32(localHeaderView, HEADER_OFFSET_SIGNATURE + 4, signature);
 			}
-			if (!zip64) {
+			if (!zip64CompressedSize) {
 				setUint32(localHeaderView, HEADER_OFFSET_COMPRESSED_SIZE + 4, compressedSize);
+			}
+			if (!zip64UncompressedSize) {
 				setUint32(localHeaderView, HEADER_OFFSET_UNCOMPRESSED_SIZE + 4, uncompressedSize);
 			}
 		}
-		if (zip64) {
-			if (localExtraFieldZip64Length) {
-				let localHeaderOffset = HEADER_SIZE + getLength(rawFilename) + 4;
-				if (zip64UncompressedSize) {
-					setBigUint64(localHeaderView, localHeaderOffset, BigInt(uncompressedSize));
-					localHeaderOffset += 8;
-				}
-				if (zip64CompressedSize) {
-					setBigUint64(localHeaderView, localHeaderOffset, BigInt(compressedSize));
-					localHeaderOffset += 8;
-				}
+		if (zip64 && localExtraFieldZip64Length) {
+			let localHeaderOffset = HEADER_SIZE + getLength(rawFilename) + 4;
+			if (zip64UncompressedSize) {
+				setBigUint64(localHeaderView, localHeaderOffset, BigInt(uncompressedSize));
+				localHeaderOffset += 8;
+			}
+			if (zip64CompressedSize) {
+				setBigUint64(localHeaderView, localHeaderOffset, BigInt(compressedSize));
+				localHeaderOffset += 8;
 			}
 		}
 	}
