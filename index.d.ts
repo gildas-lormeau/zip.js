@@ -1331,8 +1331,8 @@ export class ZipWriter<Type> {
   ): Promise<EntryMetaData>;
 
   /**
-   * Removes an entry from the zip file. Note that the entry is not removed from the zip file, but it
-   * is not written to the entries directory.
+   * Removes an entry from the central directory that will be written for the zip file. The entry
+   * data itself cannot be removed because it has already been streamed to the output.
    *
    * @param entry The entry to remove. This can be an {@link Entry} instance or the filename of the entry.
    * @returns `true` if the entry has been removed, `false` otherwise.
