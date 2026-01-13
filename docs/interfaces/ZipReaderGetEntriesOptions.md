@@ -6,7 +6,7 @@
 
 # Interface: ZipReaderGetEntriesOptions
 
-Defined in: [index.d.ts:807](https://github.com/gildas-lormeau/zip.js/blob/9e05e905fd552b90cd16ecfb1b87e46e6d293ef1/index.d.ts#L807)
+Defined in: [index.d.ts:807](https://github.com/gildas-lormeau/zip.js/blob/b0d2edeb9f9c810cf7711e73ade564e6a0c204f6/index.d.ts#L807)
 
 Represents the options passed to [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
@@ -20,7 +20,7 @@ Represents the options passed to [ZipReader#getEntries](../classes/ZipReader.md#
 
 > `optional` **commentEncoding**: `string`
 
-Defined in: [index.d.ts:822](https://github.com/gildas-lormeau/zip.js/blob/9e05e905fd552b90cd16ecfb1b87e46e6d293ef1/index.d.ts#L822)
+Defined in: [index.d.ts:822](https://github.com/gildas-lormeau/zip.js/blob/b0d2edeb9f9c810cf7711e73ade564e6a0c204f6/index.d.ts#L822)
 
 The encoding of the comment of the entry.
 
@@ -34,7 +34,7 @@ The encoding of the comment of the entry.
 
 > `optional` **filenameEncoding**: `string`
 
-Defined in: [index.d.ts:818](https://github.com/gildas-lormeau/zip.js/blob/9e05e905fd552b90cd16ecfb1b87e46e6d293ef1/index.d.ts#L818)
+Defined in: [index.d.ts:818](https://github.com/gildas-lormeau/zip.js/blob/b0d2edeb9f9c810cf7711e73ade564e6a0c204f6/index.d.ts#L818)
 
 The encoding of the filename of the entry.
 
@@ -48,7 +48,7 @@ The encoding of the filename of the entry.
 
 > `optional` **decodeText**(`value`, `encoding`): `string` \| `undefined`
 
-Defined in: [index.d.ts:830](https://github.com/gildas-lormeau/zip.js/blob/9e05e905fd552b90cd16ecfb1b87e46e6d293ef1/index.d.ts#L830)
+Defined in: [index.d.ts:830](https://github.com/gildas-lormeau/zip.js/blob/b0d2edeb9f9c810cf7711e73ade564e6a0c204f6/index.d.ts#L830)
 
 The function called for decoding the filename and the comment of the entry.
 
@@ -82,7 +82,7 @@ The decoded text value or `undefined` if the raw text value should be decoded by
 
 > `optional` **onprogress**(`progress`, `total`, `entry`): `Promise`\<`void`\> \| `undefined`
 
-Defined in: [index.d.ts:1684](https://github.com/gildas-lormeau/zip.js/blob/9e05e905fd552b90cd16ecfb1b87e46e6d293ef1/index.d.ts#L1684)
+Defined in: [index.d.ts:1684](https://github.com/gildas-lormeau/zip.js/blob/b0d2edeb9f9c810cf7711e73ade564e6a0c204f6/index.d.ts#L1684)
 
 The function called each time an entry is read/written.
 
