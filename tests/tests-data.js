@@ -25,6 +25,7 @@ export default ([
 	{ title: "Empty zip file", script: "./test-empty.js" },
 	{ title: "Extended timestamp", script: "./test-extended-timestamp.js" },
 	{ title: "Extra field", script: "./test-extra-field.js" },
+	{ title: "File handle writer", script: "./test-file-handle-writer.js", env: ["node"] },
 	{ title: "Filesystem base 64", script: "./test-fs-base64.js" },
 	{ title: "Filesystem check password", script: "./test-fs-check-password.js", env: ["deno", "node", "browser"] },
 	{ title: "Filesystem export", script: "./test-fs-export-options.js" },

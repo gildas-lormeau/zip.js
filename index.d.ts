@@ -727,6 +727,53 @@ export class Uint8ArraySeekableWriter extends SeekableWriter<Uint8Array> {
 }
 
 /**
+ * Represents a {@link SeekableWriter} instance that writes data to a Node.js file handle.
+ *
+ * This implementation enables in-place ZIP modification on real files using Node.js
+ * fs.promises file handles. The file handle must be opened with read/write access.
+ *
+ * @example
+ * ```ts
+ * import { open } from 'node:fs/promises';
+ * import { FileHandleWriter, ZipWriter, TextReader } from '@zip.js/zip.js';
+ *
+ * const handle = await open('archive.zip', 'w+');
+ * const writer = new FileHandleWriter(handle);
+ * await writer.init();
+ *
+ * const zipWriter = new ZipWriter(writer);
+ * await zipWriter.add('file.txt', new TextReader('content'));
+ * await zipWriter.close();
+ * await handle.close();
+ * ```
+ */
+export class FileHandleWriter extends SeekableWriter<Uint8Array> {
+  /**
+   * Creates the {@link FileHandleWriter} instance
+   *
+   * @param fileHandle A Node.js file handle opened with fs.promises.open().
+   */
+  constructor(fileHandle: FileHandle);
+  /**
+   * Initializes the writer by reading the current file size.
+   *
+   * @returns A promise that resolves when initialization is complete.
+   */
+  init(): Promise<void>;
+}
+
+/**
+ * Represents a Node.js file handle from fs.promises.open().
+ * This is a minimal type definition for the FileHandleWriter constructor parameter.
+ */
+interface FileHandle {
+  stat(): Promise<{ size: number }>;
+  write(buffer: Uint8Array, offset: number, length: number, position: number): Promise<{ bytesWritten: number }>;
+  read(buffer: Uint8Array, offset: number, length: number, position: number): Promise<{ bytesRead: number }>;
+  truncate(length: number): Promise<void>;
+}
+
+/**
  * Represents an instance used to create an unzipped stream.
  *
  * @example
