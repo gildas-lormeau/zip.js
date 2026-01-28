@@ -7,6 +7,7 @@ export default ([
 	{ title: "Base 64", script: "./test-base64.js" },
 	{ title: "Blob", script: "./test-blob.js" },
 	{ title: "Comments", script: "./test-comments.js" },
+	{ title: "Compact", script: "./test-compact.js", env: ["deno", "node", "browser"] },
 	{ title: "Common JS", script: "./test-common-js.cjs", env: ["node"] },
 	{ title: "Core", script: "./test-core.js" },
 	{ title: "Crypto", script: "./test-crypto.js", env: ["deno", "node", "browser"] },
