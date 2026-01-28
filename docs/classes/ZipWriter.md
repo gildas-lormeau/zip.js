@@ -491,3 +491,69 @@ await writer.seek(2);
 await writer.truncate();
 console.log(writer.size); // 2
 ```
+
+### FileSystemAccessSeekableWriter (Browser)
+
+The library provides [`FileSystemAccessSeekableWriter`](FileSystemAccessSeekableWriter.md), a browser implementation of [`SeekableWriter`](SeekableWriter.md) that uses the [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API) (Chrome/Edge). This enables in-place modification of real files in the browser.
+
+#### Example
+
+```js
+// Get a file handle from the user (browser-only)
+const fileHandle = await window.showSaveFilePicker({
+  suggestedName: 'archive.zip',
+  types: [{ description: 'ZIP files', accept: { 'application/zip': ['.zip'] } }]
+});
+
+// Create writable stream
+const writableStream = await fileHandle.createWritable();
+
+// Create writer (pass fileHandle for readAt support in openExisting)
+const writer = new zip.FileSystemAccessSeekableWriter(writableStream, fileHandle);
+await writer.init();
+
+// Create a new archive
+const zipWriter = new zip.ZipWriter(writer);
+await zipWriter.add("file.txt", new zip.TextReader("Hello World"));
+await zipWriter.close();
+
+// Close the writable stream
+await writer.close();
+```
+
+#### Opening an Existing File
+
+```js
+// Let user pick an existing file
+const [fileHandle] = await window.showOpenFilePicker({
+  types: [{ description: 'ZIP files', accept: { 'application/zip': ['.zip'] } }]
+});
+
+// Get file for reading
+const file = await fileHandle.getFile();
+const existingSize = file.size;
+
+// Create writable stream (keeps existing content)
+const writableStream = await fileHandle.createWritable({ keepExistingData: true });
+
+// Create writer with existing file size
+const writer = new zip.FileSystemAccessSeekableWriter(writableStream, fileHandle);
+await writer.init(existingSize);
+
+// Open existing archive
+await writer.seek(0);
+const zipWriter = await zip.ZipWriter.openExisting(writer);
+
+// Add new files to existing archive
+await zipWriter.add("new-file.txt", new zip.TextReader("New content"));
+await zipWriter.close();
+
+await writer.close();
+```
+
+#### Requirements
+
+- Browser must support the File System Access API (Chrome 86+, Edge 86+, Opera 72+)
+- Not available in Firefox or Safari as of 2025
+- Requires secure context (HTTPS or localhost)
+- User must grant permission via file picker dialog

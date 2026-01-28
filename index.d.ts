@@ -774,6 +774,59 @@ interface FileHandle {
 }
 
 /**
+ * Represents a {@link SeekableWriter} instance that writes data using the browser
+ * File System Access API (Chrome/Edge).
+ *
+ * This implementation enables in-place ZIP modification on real files in the browser
+ * using `showSaveFilePicker()` and `FileSystemWritableFileStream`.
+ *
+ * @example
+ * ```ts
+ * import { FileSystemAccessSeekableWriter, ZipWriter, TextReader } from '@zip.js/zip.js';
+ *
+ * // Get a file handle from the user
+ * const fileHandle = await window.showSaveFilePicker({
+ *   suggestedName: 'archive.zip',
+ *   types: [{ description: 'ZIP files', accept: { 'application/zip': ['.zip'] } }]
+ * });
+ *
+ * // Create writable stream
+ * const writableStream = await fileHandle.createWritable();
+ *
+ * // Create writer (pass fileHandle for readAt support)
+ * const writer = new FileSystemAccessSeekableWriter(writableStream, fileHandle);
+ * await writer.init();
+ *
+ * const zipWriter = new ZipWriter(writer);
+ * await zipWriter.add('file.txt', new TextReader('content'));
+ * await zipWriter.close();
+ * await writer.close();
+ * ```
+ */
+export class FileSystemAccessSeekableWriter extends SeekableWriter<Uint8Array> {
+  /**
+   * Creates the {@link FileSystemAccessSeekableWriter} instance
+   *
+   * @param writableFileStream A FileSystemWritableFileStream from createWritable().
+   * @param fileHandle Optional FileSystemFileHandle for readAt() support.
+   */
+  constructor(writableFileStream: FileSystemWritableFileStream, fileHandle?: FileSystemFileHandle);
+  /**
+   * Initializes the writer.
+   *
+   * @param size Optional initial size of the file.
+   * @returns A promise that resolves when initialization is complete.
+   */
+  init(size?: number): Promise<void>;
+  /**
+   * Closes the underlying writable stream.
+   *
+   * @returns A promise that resolves when the stream is closed.
+   */
+  close(): Promise<void>;
+}
+
+/**
  * Represents an instance used to create an unzipped stream.
  *
  * @example
