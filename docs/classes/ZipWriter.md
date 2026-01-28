@@ -529,16 +529,12 @@ const [fileHandle] = await window.showOpenFilePicker({
   types: [{ description: 'ZIP files', accept: { 'application/zip': ['.zip'] } }]
 });
 
-// Get file for reading
-const file = await fileHandle.getFile();
-const existingSize = file.size;
-
 // Create writable stream (keeps existing content)
 const writableStream = await fileHandle.createWritable({ keepExistingData: true });
 
-// Create writer with existing file size
+// Create writer - size is auto-detected when fileHandle is provided
 const writer = new zip.FileSystemAccessSeekableWriter(writableStream, fileHandle);
-await writer.init(existingSize);
+await writer.init();
 
 // Open existing archive
 await writer.seek(0);

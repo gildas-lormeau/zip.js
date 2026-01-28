@@ -814,7 +814,10 @@ export class FileSystemAccessSeekableWriter extends SeekableWriter<Uint8Array> {
   /**
    * Initializes the writer.
    *
-   * @param size Optional initial size of the file.
+   * If `fileHandle` was provided in the constructor and `size` is omitted,
+   * the file size is automatically detected.
+   *
+   * @param size Optional initial size of the file. Auto-detected if fileHandle provided.
    * @returns A promise that resolves when initialization is complete.
    */
   init(size?: number): Promise<void>;
