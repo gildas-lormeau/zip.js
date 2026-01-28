@@ -57,6 +57,7 @@ export default ([
 	{ title: "Pass through uncompressed data", script: "./test-passthrough-uncompressed.js" },
 	{ title: "Pass through zipcrypto", script: "./test-passthrough-zipcrypto.js" },
 	{ title: "Pass through zstd", script: "./test-passthrough-zstd.js" },
+	{ title: "Prepend zip regression", script: "./test-prepend-zip-regression.js", env: ["deno", "node", "browser"] },
 	{ title: "Props", script: "./test-props.js" },
 	{ title: "Readable Stream", script: "./test-readable-stream.js" },
 	{ title: "Readable Zip Stream", script: "./test-readable-zip-stream.js" },
