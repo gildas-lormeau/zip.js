@@ -63,6 +63,7 @@ export default ([
 	{ title: "Remove entry", script: "./test-remove-entry.js" },
 	{ title: "Replace entry", script: "./test-replace-entry.js" },
 	{ title: "Safe closing", script: "./test-safe-closing.js" },
+	{ title: "Seekable writer", script: "./test-seekable-writer.js" },
 	{ title: "Service worker", script: "./test-sw.js", env: ["browser"] },
 	{ title: "Signature CRC32", script: "./test-crc.js" },
 	{ title: "Split data", script: "./test-split-data.js" },
