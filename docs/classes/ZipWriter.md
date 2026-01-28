@@ -199,3 +199,295 @@ The entry to remove. This can be an [Entry](../type-aliases/Entry.md) instance o
 `boolean`
 
 `true` if the entry has been removed, `false` otherwise.
+
+***
+
+### updateEntry()
+
+> **updateEntry**(`entry`, `metadata`): `boolean`
+
+Updates the metadata of an existing entry without rewriting the entry data.
+
+This method allows you to modify certain metadata fields of an entry that was imported
+via [`openExisting()`](#openexisting). It operates in-place when possible, making it efficient
+for metadata-only updates.
+
+#### Parameters
+
+##### entry
+
+`string` | [`Entry`](../type-aliases/Entry.md)
+
+The entry to update. This can be an [Entry](../type-aliases/Entry.md) instance or the filename of the entry.
+
+##### metadata
+
+[`EntryMetadataUpdate`](../interfaces/EntryMetadataUpdate.md)
+
+The metadata fields to update.
+
+#### Returns
+
+`boolean`
+
+`true` if the entry was successfully updated, `false` if the entry was not found
+or if the comment update failed due to length constraints.
+
+#### Updatable Fields
+
+- `lastModDate` - The last modification date
+- `lastAccessDate` - The last access date
+- `creationDate` - The creation date
+- `externalFileAttributes` - The external file attributes (raw)
+- `internalFileAttributes` - The internal file attributes (raw)
+- `comment` - The entry comment (new comment must be equal to or shorter than the existing comment)
+
+#### Example
+
+```js
+// Open an existing archive
+const writer = new zip.Uint8ArraySeekableWriter(4096);
+// ... assume writer contains an existing archive
+await writer.seek(0);
+const zipWriter = await zip.ZipWriter.openExisting(writer);
+
+// Update the last modification date
+const updated = zipWriter.updateEntry("file.txt", {
+  lastModDate: new Date("2025-06-15T12:00:00Z")
+});
+
+if (updated) {
+  console.log("Entry metadata updated successfully");
+} else {
+  console.log("Entry not found or update failed");
+}
+
+await zipWriter.close();
+```
+
+***
+
+### compact()
+
+> **compact**(`options?`): `Promise`\<[`CompactResult`](../interfaces/CompactResult.md)\>
+
+Compacts the zip archive by removing gaps left by deleted entries.
+
+This method requires a [`SeekableWriter`](SeekableWriter.md) and will move entry data to eliminate
+fragmentation in the archive. After entries are removed using [`remove()`](#remove), their data
+remains in the file until `compact()` is called to reclaim the space.
+
+#### Parameters
+
+##### options?
+
+[`CompactOptions`](../interfaces/CompactOptions.md)
+
+The options.
+
+#### Returns
+
+`Promise`\<[`CompactResult`](../interfaces/CompactResult.md)\>
+
+A promise resolving to a [`CompactResult`](../interfaces/CompactResult.md) with:
+- `reclaimedBytes` - The total number of bytes reclaimed
+- `entriesMoved` - The number of entries that were moved to fill gaps
+
+#### Performance Considerations
+
+- The compact operation reads and rewrites entry data to fill gaps, which can be I/O intensive for large archives
+- Use the `dryRun` option to preview space savings without modifying the archive
+- Consider batching multiple removals before a single compact operation
+- The `onProgress` callback can be used to track progress for large archives
+
+#### Example
+
+```js
+// Create archive with multiple files
+const writer = new zip.Uint8ArraySeekableWriter(16384);
+await writer.init();
+const zipWriter = new zip.ZipWriter(writer, { level: 0 });
+await zipWriter.add("file1.txt", new zip.TextReader("Content 1"));
+await zipWriter.add("file2.txt", new zip.TextReader("Content 2"));
+await zipWriter.add("file3.txt", new zip.TextReader("Content 3"));
+await zipWriter.close();
+
+// Reopen, remove middle file, and compact
+await writer.seek(0);
+const zipWriter2 = await zip.ZipWriter.openExisting(writer);
+zipWriter2.remove("file2.txt");
+
+// Preview space savings with dryRun
+const preview = await zipWriter2.compact({ dryRun: true });
+console.log(`Would reclaim ${preview.reclaimedBytes} bytes`);
+
+// Actually compact the archive
+const result = await zipWriter2.compact();
+console.log(`Reclaimed ${result.reclaimedBytes} bytes, moved ${result.entriesMoved} entries`);
+
+await zipWriter2.close();
+```
+
+## Static Methods
+
+### openExisting()
+
+> `static` **openExisting**\<`WriterType`\>(`writer`, `options?`): `Promise`\<`ZipWriter`\<`WriterType`\>\>
+
+Opens an existing zip archive for incremental updates.
+
+This static factory method reads an existing zip file and creates a [`ZipWriter`](ZipWriter.md)
+positioned to append new entries while preserving all existing entries. It enables efficient
+incremental updates to zip archives without rewriting the entire file.
+
+#### Type Parameters
+
+##### WriterType
+
+`WriterType`
+
+#### Parameters
+
+##### writer
+
+[`SeekableWriter`](SeekableWriter.md)\<`WriterType`\>
+
+A [`SeekableWriter`](SeekableWriter.md) instance containing the existing zip archive.
+
+##### options?
+
+[`ZipWriterConstructorOptions`](../interfaces/ZipWriterConstructorOptions.md)
+
+The options.
+
+#### Returns
+
+`Promise`\<`ZipWriter`\<`WriterType`\>\>
+
+A promise resolving to a [`ZipWriter`](ZipWriter.md) instance ready for incremental updates.
+
+#### Requirements
+
+- The writer must implement the [`SeekableWriter`](SeekableWriter.md) interface
+- The writer must contain a valid zip archive (can be empty)
+- The writer should be seeked to position 0 before calling this method
+
+#### Capabilities
+
+After opening an existing archive, you can:
+- Add new entries using [`add()`](#add)
+- Remove entries using [`remove()`](#remove)
+- Update entry metadata using [`updateEntry()`](#updateentry)
+- Reclaim space from removed entries using [`compact()`](#compact)
+
+#### Example
+
+```js
+// Create an initial archive
+const writer = new zip.Uint8ArraySeekableWriter(4096);
+await writer.init();
+const zipWriter1 = new zip.ZipWriter(writer);
+await zipWriter1.add("file1.txt", new zip.TextReader("Hello World"));
+await zipWriter1.close();
+
+// Reopen and add another file
+await writer.seek(0); // Reset position for reading
+const zipWriter2 = await zip.ZipWriter.openExisting(writer);
+await zipWriter2.add("file2.txt", new zip.TextReader("Second file"));
+await zipWriter2.close();
+
+// Verify both files exist
+const data = writer.getData();
+const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+const entries = await zipReader.getEntries();
+console.log(entries.length); // 2
+await zipReader.close();
+```
+
+#### Advanced Example: Remove and Compact
+
+```js
+// Open archive, remove an entry, and reclaim space
+await writer.seek(0);
+const zipWriter = await zip.ZipWriter.openExisting(writer);
+
+// Remove an entry (marks it for removal but doesn't reclaim space yet)
+zipWriter.remove("obsolete-file.txt");
+
+// Compact to actually reclaim the space
+const result = await zipWriter.compact();
+console.log(`Reclaimed ${result.reclaimedBytes} bytes`);
+
+await zipWriter.close();
+```
+
+---
+
+## SeekableWriter Interface
+
+The incremental update APIs require a writer that supports random-access operations. The [`SeekableWriter`](SeekableWriter.md) class extends [`Writer`](Writer.md) with the following capabilities:
+
+### Properties
+
+- `position` (readonly) - The current write position in bytes
+- `size` - The total size of the written data in bytes
+- `isSeekable` (readonly) - Always `true` for seekable writers
+
+### Methods
+
+- `seek(offset)` - Moves the write position to a specific offset
+- `truncate()` - Truncates the data at the current position
+- `readAt(offset, length)` - Reads data from a specific position without changing the write position
+
+### Uint8ArraySeekableWriter
+
+The library provides [`Uint8ArraySeekableWriter`](Uint8ArraySeekableWriter.md), an in-memory implementation of [`SeekableWriter`](SeekableWriter.md) that stores data as a `Uint8Array`. This is useful for testing and scenarios where the archive fits in memory.
+
+#### Example
+
+```js
+// Create an in-memory seekable writer with initial 1KB buffer
+const writer = new zip.Uint8ArraySeekableWriter(1024);
+await writer.init();
+
+// Use with ZipWriter for creating archives
+const zipWriter = new zip.ZipWriter(writer);
+await zipWriter.add("test.txt", new zip.TextReader("Hello"));
+await zipWriter.close();
+
+// Get the resulting data
+const data = writer.getData();
+
+// The writer can be reused with openExisting for incremental updates
+await writer.seek(0);
+const zipWriter2 = await zip.ZipWriter.openExisting(writer);
+// ... add more files
+await zipWriter2.close();
+```
+
+#### SeekableWriter Operations
+
+```js
+const writer = new zip.Uint8ArraySeekableWriter(1024);
+await writer.init();
+
+// Write some data
+await writer.writeUint8Array(new Uint8Array([1, 2, 3, 4]));
+console.log(writer.position); // 4
+
+// Seek to a specific position
+await writer.seek(2);
+console.log(writer.position); // 2
+
+// Overwrite data at current position
+await writer.writeUint8Array(new Uint8Array([10, 11]));
+
+// Read data from a specific position (without moving write position)
+const data = await writer.readAt(0, 4);
+console.log(data); // Uint8Array [1, 2, 10, 11]
+
+// Truncate at current position
+await writer.seek(2);
+await writer.truncate();
+console.log(writer.size); // 2
+```
