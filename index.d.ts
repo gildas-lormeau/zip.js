@@ -656,6 +656,77 @@ export class Uint8ArrayWriter extends Writer<Uint8Array<ArrayBuffer>> {
 }
 
 /**
+ * Represents an instance used to write data with random access (seeking) capabilities.
+ *
+ * SeekableWriter extends the basic Writer interface with seek, truncate, and readAt
+ * operations, enabling incremental updates to existing zip archives.
+ */
+export class SeekableWriter<Type> extends Writer<Type> {
+  /**
+   * The current write position in bytes.
+   */
+  readonly position: number;
+  /**
+   * `true` to indicate this writer supports seeking operations.
+   */
+  readonly isSeekable: true;
+  /**
+   * The total size of the written data in bytes.
+   */
+  size: number;
+  /**
+   * Moves the write position to a specific offset.
+   *
+   * @param offset The byte offset to seek to.
+   * @returns A promise that resolves when the seek is complete.
+   */
+  seek(offset: number): Promise<void>;
+  /**
+   * Truncates the data at the current position.
+   *
+   * @returns A promise that resolves when truncation is complete.
+   */
+  truncate(): Promise<void>;
+  /**
+   * Reads data from a specific position without changing the current write position.
+   *
+   * @param offset The byte offset to read from.
+   * @param length The number of bytes to read.
+   * @returns A promise resolving to the data read.
+   */
+  readAt(offset: number, length: number): Promise<Uint8Array>;
+}
+
+/**
+ * Represents a {@link SeekableWriter} instance that stores data in memory as a `Uint8Array`.
+ *
+ * This implementation automatically grows its internal buffer as needed and supports
+ * all seekable operations required for incremental zip archive updates.
+ */
+export class Uint8ArraySeekableWriter extends SeekableWriter<Uint8Array> {
+  /**
+   * Creates the {@link Uint8ArraySeekableWriter} instance
+   *
+   * @param initialSize The initial size of the internal buffer (default: 1024 bytes).
+   */
+  constructor(initialSize?: number);
+  /**
+   * Initializes the writer.
+   *
+   * @returns A promise that resolves when initialization is complete.
+   */
+  init(): Promise<void>;
+  /**
+   * Retrieves the written data as a `Uint8Array`.
+   *
+   * @returns The data written to the buffer, truncated to the actual size.
+   * Note: The implementation is synchronous but returns a Promise-compatible type
+   * to match the Writer base class signature.
+   */
+  getData(): Promise<Uint8Array>;
+}
+
+/**
  * Represents an instance used to create an unzipped stream.
  *
  * @example
@@ -1289,9 +1360,27 @@ export class ZipWriter<Type> {
     options?: ZipWriterConstructorOptions
   );
   /**
+   * Opens an existing zip archive for incremental updates.
+   *
+   * This static factory method reads an existing zip file and creates a {@link ZipWriter}
+   * positioned to append new entries while preserving all existing entries.
+   *
+   * @param writer A {@link SeekableWriter} instance containing the existing zip archive.
+   * @param options The options.
+   * @returns A promise resolving to a {@link ZipWriter} instance ready for incremental updates.
+   */
+  static openExisting<WriterType>(
+    writer: SeekableWriter<WriterType>,
+    options?: ZipWriterConstructorOptions
+  ): Promise<ZipWriter<WriterType>>;
+  /**
    * `true` if the zip contains at least one entry that has been partially written.
    */
   readonly hasCorruptedEntries?: boolean;
+  /**
+   * `true` if the underlying writer supports seeking operations (is a {@link SeekableWriter}).
+   */
+  readonly isSeekable: boolean;
 
   /**
    * Adds an existing zip file at the beginning of the current zip. This method
@@ -1338,6 +1427,32 @@ export class ZipWriter<Type> {
    * @returns `true` if the entry has been removed, `false` otherwise.
    */
   remove(entry: Entry | string): boolean;
+
+  /**
+   * Updates the metadata of an existing entry in the zip file.
+   *
+   * This method allows modifying certain metadata fields of an entry that has already been added
+   * to the archive. Note that the comment can only be updated if the new comment is equal to or
+   * shorter than the existing comment.
+   *
+   * @param entry The entry to update. This can be an {@link Entry} instance or the filename of the entry.
+   * @param metadata The metadata fields to update.
+   * @returns `true` if the entry was successfully updated, `false` if the entry was not found
+   *          or if the comment update failed due to length constraints.
+   */
+  updateEntry(entry: Entry | string, metadata: EntryMetadataUpdate): boolean;
+
+  /**
+   * Compacts the zip archive by removing gaps left by deleted entries.
+   *
+   * This method requires a {@link SeekableWriter} and will move entry data to eliminate
+   * fragmentation in the archive. Use the `dryRun` option to preview space savings without
+   * modifying the archive.
+   *
+   * @param options The options.
+   * @returns A promise resolving to the compact result with space savings information.
+   */
+  compact(options?: CompactOptions): Promise<CompactResult>;
 
   /**
    * Writes the entries directory, writes the global comment, and returns the content of the zip file
@@ -1402,6 +1517,95 @@ export interface ZipWriterCloseOptions extends EntryOnprogressOptions {
    * @defaultValue false
    */
   preventClose?: boolean;
+}
+
+/**
+ * Represents the options passed to {@link ZipWriter#compact}.
+ */
+export interface CompactOptions {
+  /**
+   * The `AbortSignal` instance used to cancel the compact operation.
+   */
+  signal?: AbortSignal;
+  /**
+   * The function called during the compact operation to report progress.
+   *
+   * @param progress The progress information.
+   */
+  onProgress?(progress: CompactProgress): void;
+  /**
+   * `true` to calculate space savings without actually moving data.
+   *
+   * When set to `true`, the compact operation will analyze the archive and return
+   * how much space could be reclaimed without modifying the archive.
+   *
+   * @defaultValue false
+   */
+  dryRun?: boolean;
+}
+
+/**
+ * Represents the progress information passed to {@link CompactOptions#onProgress}.
+ */
+export interface CompactProgress {
+  /**
+   * The number of entries processed so far.
+   */
+  entriesProcessed: number;
+  /**
+   * The total number of entries to process.
+   */
+  totalEntries: number;
+  /**
+   * The number of bytes reclaimed so far.
+   */
+  reclaimedBytes: number;
+}
+
+/**
+ * Represents the result returned by {@link ZipWriter#compact}.
+ */
+export interface CompactResult {
+  /**
+   * The total number of bytes reclaimed by the compact operation.
+   */
+  reclaimedBytes: number;
+  /**
+   * The number of entries that were moved to fill gaps.
+   */
+  entriesMoved: number;
+}
+
+/**
+ * Represents the metadata fields that can be updated via {@link ZipWriter#updateEntry}.
+ */
+export interface EntryMetadataUpdate {
+  /**
+   * The last modification date.
+   */
+  lastModDate?: Date;
+  /**
+   * The last access date.
+   */
+  lastAccessDate?: Date;
+  /**
+   * The creation date.
+   */
+  creationDate?: Date;
+  /**
+   * The external file attributes (raw).
+   */
+  externalFileAttributes?: number;
+  /**
+   * The internal file attributes (raw).
+   */
+  internalFileAttributes?: number;
+  /**
+   * The comment of the entry.
+   *
+   * Note: The new comment must be equal to or shorter than the existing comment.
+   */
+  comment?: string;
 }
 
 /**
