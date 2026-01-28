@@ -2682,8 +2682,7 @@
 	 */
 
 
-	// deno-lint-ignore valid-typeof
-	let WEB_WORKERS_SUPPORTED = typeof Worker != UNDEFINED_TYPE;
+	let WEB_WORKERS_SUPPORTED;
 	let initModule = () => { };
 
 	class CodecWorker {
@@ -2727,6 +2726,10 @@
 					onTaskFinished(workerData);
 				}
 			});
+			if (WEB_WORKERS_SUPPORTED === UNDEFINED_VALUE) {
+				// deno-lint-ignore valid-typeof
+				WEB_WORKERS_SUPPORTED = typeof Worker != UNDEFINED_TYPE;
+			}
 			return (useWebWorkers && WEB_WORKERS_SUPPORTED ? createWebWorkerInterface : createWorkerInterface)(workerData, config);
 		}
 	}
