@@ -60,5 +60,38 @@ async function test() {
   }
 
   await zipReader.close();
+
+  // Test dryRun option - should report stats without modifying
+
+  // Dry run shouldn't actually be useful on an already-compacted archive,
+  // so let's test on a fresh archive with a removed entry
+  const writer2 = new zip.Uint8ArraySeekableWriter(16384);
+  await writer2.init();
+  const zipWriter4 = new zip.ZipWriter(writer2, { level: 0 });
+  await zipWriter4.add("a.txt", new zip.TextReader(CONTENT));
+  await zipWriter4.add("b.txt", new zip.TextReader(CONTENT));
+  await zipWriter4.close();
+
+  await writer2.seek(0);
+  const zipWriter5 = await zip.ZipWriter.openExisting(writer2);
+  zipWriter5.remove("a.txt");
+
+  const sizeBefore = writer2.size;
+  const dryRunResult = await zipWriter5.compact({ dryRun: true });
+  const sizeAfterDryRun = writer2.size;
+
+  // Size should NOT change with dryRun
+  if (sizeAfterDryRun !== sizeBefore) {
+    throw new Error("dryRun should not modify file size");
+  }
+
+  // But should still report what would be reclaimed
+  if (dryRunResult.reclaimedBytes < 900) {
+    throw new Error(`dryRun should report reclaimable space, got ${dryRunResult.reclaimedBytes}`);
+  }
+
+  console.log("dryRun result:", dryRunResult);
+
+  await zipWriter5.close();
   await zip.terminateWorkers();
 }
