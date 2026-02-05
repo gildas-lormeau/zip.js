@@ -1962,7 +1962,8 @@
 	 */
 
 
-	let WEB_WORKERS_SUPPORTED;
+	let webWorkerSupported, webWorkerURI, webWorkerOptions;
+	let transferStreamsSupported = true;
 	let initModule = () => { };
 
 	class CodecWorker {
@@ -2006,11 +2007,11 @@
 					onTaskFinished(workerData);
 				}
 			});
-			if (WEB_WORKERS_SUPPORTED === UNDEFINED_VALUE) {
+			if (webWorkerSupported === UNDEFINED_VALUE) {
 				// deno-lint-ignore valid-typeof
-				WEB_WORKERS_SUPPORTED = typeof Worker != UNDEFINED_TYPE;
+				webWorkerSupported = typeof Worker != UNDEFINED_TYPE;
 			}
-			return (useWebWorkers && WEB_WORKERS_SUPPORTED ? createWebWorkerInterface : createWorkerInterface)(workerData, config);
+			return (useWebWorkers && webWorkerSupported ? createWebWorkerInterface : createWorkerInterface)(workerData, config);
 		}
 	}
 
@@ -2067,7 +2068,7 @@
 			try {
 				worker = getWebWorker(workerData.workerURI, baseURI, workerData);
 			} catch {
-				WEB_WORKERS_SUPPORTED = false;
+				webWorkerSupported = false;
 				return createWorkerInterface(workerData, config);
 			}
 			Object.assign(workerData, {
@@ -2169,28 +2170,60 @@
 		return { writable, closed };
 	}
 
-	let transferStreamsSupported = true;
-
-	function getWebWorker(url, baseURI, workerData) {
-		const workerOptions = { type: "module" };
-		let scriptUrl, worker;
-		// deno-lint-ignore valid-typeof
-		if (typeof url == FUNCTION_TYPE) {
-			url = url();
+	function getWebWorker(url, baseURI, workerData, isModuleType = false, useBlobURI = true) {
+		let worker, resolvedURI, resolvedOptions;
+		if (isModuleType) {
+			resolvedOptions = { type: "module" };
 		}
-		if (url.startsWith("data:") || url.startsWith("blob:")) {
-			try {
-				worker = new Worker(url);
-			} catch {
-				worker = new Worker(url, workerOptions);
+		if (webWorkerURI === UNDEFINED_VALUE) {
+			// deno-lint-ignore valid-typeof
+			const isFunctionURI = typeof url == FUNCTION_TYPE;
+			if (isFunctionURI) {
+				resolvedURI = url(useBlobURI);
+			} else {
+				resolvedURI = url;
 			}
+			const isDataURI = resolvedURI.startsWith("data:");
+			const isBlobURI = resolvedURI.startsWith("blob:");
+			if (isDataURI || isBlobURI) {
+				try {
+					worker = new Worker(resolvedURI, resolvedOptions);
+				} catch (error) {
+					if (isBlobURI) {
+						try {
+							URL.revokeObjectURL(resolvedURI);
+						} catch {
+							// ignored
+						}
+					}
+					if (isFunctionURI && isBlobURI) {
+						return getWebWorker(url, baseURI, workerData, isModuleType, false);
+					} else if (!isModuleType) {
+						return getWebWorker(url, baseURI, workerData, true, false);
+					} else {
+						throw error;
+					}
+				}
+			} else {
+				try {
+					resolvedURI = new URL(resolvedURI, baseURI);
+				} catch {
+					// ignored
+				}
+				try {
+					worker = new Worker(resolvedURI, resolvedOptions);
+				} catch (error) {
+					if (!isModuleType) {
+						return getWebWorker(url, baseURI, workerData, true, useBlobURI);
+					} else {
+						throw error;
+					}
+				}
+			}
+			webWorkerURI = resolvedURI;
+			webWorkerOptions = resolvedOptions;
 		} else {
-			try {
-				scriptUrl = new URL(url, baseURI);
-			} catch {
-				scriptUrl = url;
-			}
-			worker = new Worker(scriptUrl, workerOptions);
+			worker = new Worker(webWorkerURI, webWorkerOptions);
 		}
 		worker.addEventListener(MESSAGE_EVENT_TYPE, event => onMessage(event, workerData));
 		return worker;
