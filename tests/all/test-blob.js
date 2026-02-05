@@ -9,7 +9,7 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 export { test };
 
 async function test() {
-	zip.configure({ chunkSize: 128, useWebWorkers: false });
+	zip.configure({ chunkSize: 128 });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	const entry = await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { level: 3 });
