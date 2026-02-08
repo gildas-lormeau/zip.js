@@ -1439,6 +1439,13 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    */
   bufferedWrite?: boolean;
   /**
+   * An async factory function that returns a `TransformStream`-like object (`{ writable, readable }`) used as a temporary buffer when entries are written in parallel.
+   *
+   * When provided, this replaces the default in-memory `TransformStream` buffer, allowing data to be stored externally (e.g. filesystem, OPFS, network).
+   * The `writable` side receives compressed entry data. The `readable` side is consumed when the entry is replayed into the final zip stream.
+   */
+  createTempStream?: () => Promise<{ writable: WritableStream; readable: ReadableStream }>;
+  /**
    * `true` to keep the order of the entry physically in the zip file.
    *
    * When set to `true`, the use of web workers will be improved. However, it also prevents files larger than 4GB from being created without setting the `zip64` option to `true` explicitly.
