@@ -2682,6 +2682,8 @@
 	 */
 
 
+	const MODULE_WORKER_OPTIONS = { type: "module" };
+
 	let webWorkerSupported, webWorkerURI, webWorkerOptions;
 	let transferStreamsSupported = true;
 	let initModule = () => { };
@@ -2890,11 +2892,8 @@
 		return { writable, closed };
 	}
 
-	function getWebWorker(url, baseURI, workerData, isModuleType = false, useBlobURI = true) {
+	function getWebWorker(url, baseURI, workerData, isModuleType, useBlobURI = true) {
 		let worker, resolvedURI, resolvedOptions;
-		if (isModuleType) {
-			resolvedOptions = { type: "module" };
-		}
 		if (webWorkerURI === UNDEFINED_VALUE) {
 			// deno-lint-ignore valid-typeof
 			const isFunctionURI = typeof url == FUNCTION_TYPE;
@@ -2906,6 +2905,12 @@
 			const isDataURI = resolvedURI.startsWith("data:");
 			const isBlobURI = resolvedURI.startsWith("blob:");
 			if (isDataURI || isBlobURI) {
+				if (isModuleType === UNDEFINED_VALUE) {
+					isModuleType = false;
+				}
+				if (isModuleType) {
+					resolvedOptions = MODULE_WORKER_OPTIONS;
+				}
 				try {
 					worker = new Worker(resolvedURI, resolvedOptions);
 				} catch (error) {
@@ -2925,6 +2930,12 @@
 					}
 				}
 			} else {
+				if (isModuleType === UNDEFINED_VALUE) {
+					isModuleType = true;
+				}
+				if (isModuleType) {
+					resolvedOptions = MODULE_WORKER_OPTIONS;
+				}
 				try {
 					resolvedURI = new URL(resolvedURI, baseURI);
 				} catch {
@@ -2934,7 +2945,7 @@
 					worker = new Worker(resolvedURI, resolvedOptions);
 				} catch (error) {
 					if (!isModuleType) {
-						return getWebWorker(url, baseURI, workerData, true, useBlobURI);
+						return getWebWorker(url, baseURI, workerData, false, useBlobURI);
 					} else {
 						throw error;
 					}
@@ -4822,16 +4833,18 @@
 				await skipDiskIfNeeded(writable);
 			}
 			const { diskNumber } = writer;
-			writingEntryData = true;
 			fileEntry.diskNumberStart = diskNumber;
 			if (bufferedWrite) {
 				blobPromise = new Response(fileWriter.readable).blob();
 			} else {
+				writingEntryData = true;
 				await writeData(fileWriter, localHeaderArray);
 			}
 			fileEntry = await createFileEntry(reader, fileWriter, fileEntry, entryInfo, zipWriter.config, options);
 			const { zip64 } = fileEntry;
-			writingEntryData = false;
+			if (!bufferedWrite) {
+				writingEntryData = false;
+			}
 			files.set(name, fileEntry);
 			fileEntry.filename = name;
 			if (bufferedWrite) {
@@ -4861,7 +4874,7 @@
 			zipWriter.offset += fileEntry.size;
 			return fileEntry;
 		} catch (error) {
-			if ((bufferedWrite && writingBufferedEntryData) || (!bufferedWrite && writingEntryData)) {
+			if (writingBufferedEntryData || writingEntryData) {
 				zipWriter.hasCorruptedEntries = true;
 				if (error) {
 					try {
