@@ -4905,7 +4905,6 @@
 		let writingBufferedEntryData;
 		let writingEntryData;
 		let fileWriter;
-		let blobPromise;
 		files.set(name, fileEntry);
 		try {
 			let lockPreviousFileEntry;
@@ -4914,7 +4913,7 @@
 				requestLockCurrentFileEntry();
 			}
 			if ((options.bufferedWrite || zipWriter.writerLocked || (zipWriter.bufferedWrites && keepOrder) || !dataDescriptor) && !usdz) {
-				fileWriter = new TransformStream();
+				fileWriter = new TransformStream(undefined, undefined, { highWaterMark: Infinity });
 				fileWriter.size = 0;
 				bufferedWrite = true;
 				zipWriter.bufferedWrites++;
@@ -4946,9 +4945,7 @@
 			}
 			const { diskNumber } = writer;
 			fileEntry.diskNumberStart = diskNumber;
-			if (bufferedWrite) {
-				blobPromise = new Response(fileWriter.readable).blob();
-			} else {
+			if (!bufferedWrite) {
 				writingEntryData = true;
 				await writeData(fileWriter, localHeaderArray);
 			}
@@ -4960,7 +4957,7 @@
 			files.set(name, fileEntry);
 			fileEntry.filename = name;
 			if (bufferedWrite) {
-				const [blob] = await Promise.all([blobPromise, fileWriter.writable.getWriter().close(), lockPreviousFileEntry]);
+				await Promise.all([fileWriter.writable.getWriter().close(), lockPreviousFileEntry]);
 				await requestLockWriter();
 				writingBufferedEntryData = true;
 				fileEntry.diskNumberStart = writer.diskNumber;
@@ -4971,7 +4968,7 @@
 				updateLocalHeader(fileEntry, localHeaderView, options);
 				await skipDiskIfNeeded(writable);
 				await writeData(writer, localHeaderArray);
-				await blob.stream().pipeTo(writable, { preventClose: true, preventAbort: true, signal });
+				await fileWriter.readable.pipeTo(writable, { preventClose: true, preventAbort: true, signal });
 				writer.size += fileWriter.size;
 				writingBufferedEntryData = false;
 			} else {
