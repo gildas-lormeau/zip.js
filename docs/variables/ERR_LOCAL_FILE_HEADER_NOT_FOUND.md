@@ -8,6 +8,6 @@
 
 > `const` **ERR\_LOCAL\_FILE\_HEADER\_NOT\_FOUND**: `string`
 
-Defined in: [index.d.ts:2261](https://github.com/gildas-lormeau/zip.js/blob/b0d2edeb9f9c810cf7711e73ade564e6a0c204f6/index.d.ts#L2261)
+Defined in: [index.d.ts:2268](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L2268)
 
 Local file header not found error

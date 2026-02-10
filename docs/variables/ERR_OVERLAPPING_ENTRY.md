@@ -8,6 +8,6 @@
 
 > `const` **ERR\_OVERLAPPING\_ENTRY**: `string`
 
-Defined in: [index.d.ts:2333](https://github.com/gildas-lormeau/zip.js/blob/b0d2edeb9f9c810cf7711e73ade564e6a0c204f6/index.d.ts#L2333)
+Defined in: [index.d.ts:2340](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L2340)
 
 Overlapping entry error

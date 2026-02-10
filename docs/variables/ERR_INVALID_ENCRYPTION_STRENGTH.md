@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_ENCRYPTION\_STRENGTH**: `string`
 
-Defined in: [index.d.ts:2321](https://github.com/gildas-lormeau/zip.js/blob/b0d2edeb9f9c810cf7711e73ade564e6a0c204f6/index.d.ts#L2321)
+Defined in: [index.d.ts:2328](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L2328)
 
 Invalid encryption strength error

@@ -8,7 +8,7 @@
 
 > `const` **fs**: `object`
 
-Defined in: [index.d.ts:2216](https://github.com/gildas-lormeau/zip.js/blob/b0d2edeb9f9c810cf7711e73ade564e6a0c204f6/index.d.ts#L2216)
+Defined in: [index.d.ts:2223](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L2223)
 
 The Filesystem API.
 
