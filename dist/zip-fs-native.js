@@ -105,6 +105,7 @@
 	const MIN_DATE = new Date(1980, 0, 1);
 
 	const UNDEFINED_VALUE = undefined;
+	const INFINITY_VALUE = Infinity;
 	const UNDEFINED_TYPE = "undefined";
 	const FUNCTION_TYPE = "function";
 	const OBJECT_TYPE = "object";
@@ -3168,8 +3169,8 @@
 				Object.assign(writer, {
 					diskNumber: 0,
 					diskOffset: 0,
-					availableSize: Infinity,
-					maxSize: Infinity
+					availableSize: INFINITY_VALUE,
+					maxSize: INFINITY_VALUE
 				});
 			}
 			return writer;
@@ -4404,8 +4405,8 @@
 		constructor(writer, options = {}) {
 			writer = new GenericWriter(writer);
 			const addSplitZipSignature =
-				writer.availableSize !== UNDEFINED_VALUE && writer.availableSize > 0 && writer.availableSize !== Infinity &&
-				writer.maxSize !== UNDEFINED_VALUE && writer.maxSize > 0 && writer.maxSize !== Infinity;
+				writer.availableSize !== UNDEFINED_VALUE && writer.availableSize > 0 && writer.availableSize !== INFINITY_VALUE &&
+				writer.maxSize !== UNDEFINED_VALUE && writer.maxSize > 0 && writer.maxSize !== INFINITY_VALUE;
 			Object.assign(this, {
 				writer,
 				addSplitZipSignature,
@@ -4909,7 +4910,7 @@
 				requestLockCurrentFileEntry();
 			}
 			if ((options.bufferedWrite || zipWriter.writerLocked || (zipWriter.bufferedWrites && keepOrder) || !dataDescriptor) && !usdz) {
-				fileWriter = new TransformStream(undefined, undefined, { highWaterMark: Infinity });
+				fileWriter = new TransformStream(UNDEFINED_VALUE, UNDEFINED_VALUE, { highWaterMark: INFINITY_VALUE });
 				fileWriter.size = 0;
 				bufferedWrite = true;
 				zipWriter.bufferedWrites++;
