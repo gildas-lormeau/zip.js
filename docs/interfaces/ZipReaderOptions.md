@@ -6,7 +6,7 @@
 
 # Interface: ZipReaderOptions
 
-Defined in: [index.d.ts:836](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L836)
+Defined in: [index.d.ts:842](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L842)
 
 Represents options passed to the constructor of [ZipReader](../classes/ZipReader.md) and [FileEntry#getData](FileEntry.md#getdata).
 
@@ -21,7 +21,7 @@ Represents options passed to the constructor of [ZipReader](../classes/ZipReader
 
 > `optional` **checkOverlappingEntry**: `boolean`
 
-Defined in: [index.d.ts:856](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L856)
+Defined in: [index.d.ts:862](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L862)
 
 `true` to throw an [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the entry
  overlaps with another entry on which [FileEntry#getData](FileEntry.md#getdata) has already been called (with the option
@@ -39,7 +39,7 @@ false
 
 > `optional` **checkOverlappingEntryOnly**: `boolean`
 
-Defined in: [index.d.ts:865](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L865)
+Defined in: [index.d.ts:871](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L871)
 
 `true` to throw an [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the entry
  overlaps with another entry on which [FileEntry#getData](FileEntry.md#getdata) has already been called (with the option
@@ -58,7 +58,7 @@ false
 
 > `optional` **checkPasswordOnly**: `boolean`
 
-Defined in: [index.d.ts:842](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L842)
+Defined in: [index.d.ts:848](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L848)
 
 `true` to check only if the password is valid.
 
@@ -74,7 +74,7 @@ false
 
 > `optional` **checkSignature**: `boolean`
 
-Defined in: [index.d.ts:848](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L848)
+Defined in: [index.d.ts:854](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L854)
 
 `true` to check the signature of the entry.
 
@@ -90,7 +90,7 @@ false
 
 > `optional` **passThrough**: `boolean`
 
-Defined in: [index.d.ts:873](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L873)
+Defined in: [index.d.ts:879](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L879)
 
 `true` to read the data as-is without decompressing it and without decrypting it.
 
@@ -100,7 +100,7 @@ Defined in: [index.d.ts:873](https://github.com/gildas-lormeau/zip.js/blob/b608f
 
 > `optional` **password**: `string`
 
-Defined in: [index.d.ts:869](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L869)
+Defined in: [index.d.ts:875](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L875)
 
 The password used to decrypt the content of the entry.
 
@@ -110,7 +110,7 @@ The password used to decrypt the content of the entry.
 
 > `optional` **preventClose**: `boolean`
 
-Defined in: [index.d.ts:887](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L887)
+Defined in: [index.d.ts:893](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L893)
 
 `true` to prevent closing of [Writer#writable](../classes/Writer.md#writable) when calling [FileEntry#getData](FileEntry.md#getdata).
 
@@ -126,7 +126,7 @@ false
 
 > `optional` **rawPassword**: `Uint8Array`\<`ArrayBufferLike`\>
 
-Defined in: [index.d.ts:877](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L877)
+Defined in: [index.d.ts:883](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L883)
 
 The password used to encrypt the content of the entry (raw).
 
@@ -136,22 +136,6 @@ The password used to encrypt the content of the entry (raw).
 
 > `optional` **signal**: `AbortSignal`
 
-Defined in: [index.d.ts:881](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L881)
+Defined in: [index.d.ts:887](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L887)
 
 The `AbortSignal` instance used to cancel the decompression.
-
-***
-
-### transferStreams?
-
-> `optional` **transferStreams**: `boolean`
-
-Defined in: [index.d.ts:893](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L893)
-
-`true` to transfer streams to web workers when decompressing data.
-
-#### Default Value
-
-```ts
-true
-```

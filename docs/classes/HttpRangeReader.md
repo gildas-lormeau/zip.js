@@ -6,7 +6,7 @@
 
 # Class: HttpRangeReader
 
-Defined in: [index.d.ts:444](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L444)
+Defined in: [index.d.ts:450](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L450)
 
 Represents a [Reader](Reader.md) instance used to fetch data from servers returning `Accept-Ranges` headers.
 
@@ -20,7 +20,7 @@ Represents a [Reader](Reader.md) instance used to fetch data from servers return
 
 > **new HttpRangeReader**(`url`, `options?`): `HttpRangeReader`
 
-Defined in: [index.d.ts:453](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L453)
+Defined in: [index.d.ts:459](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L459)
 
 Creates the HttpRangeReader instance.  It is particularly useful for reading ZIP files via HTTP.
 If you just want to add content retrieved via HTTP to a ZIP file, you can simply use
@@ -54,7 +54,7 @@ The options.
 
 > **readable**: `ReadableStream`
 
-Defined in: [index.d.ts:377](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L377)
+Defined in: [index.d.ts:383](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L383)
 
 The `ReadableStream` instance.
 
@@ -68,7 +68,7 @@ The `ReadableStream` instance.
 
 > **size**: `number`
 
-Defined in: [index.d.ts:381](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L381)
+Defined in: [index.d.ts:387](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L387)
 
 The total size of the data in bytes.
 
@@ -82,7 +82,7 @@ The total size of the data in bytes.
 
 > `optional` **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:385](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L385)
+Defined in: [index.d.ts:391](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L391)
 
 Initializes the instance asynchronously
 
@@ -100,7 +100,7 @@ Initializes the instance asynchronously
 
 > **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [index.d.ts:393](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L393)
+Defined in: [index.d.ts:399](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L399)
 
 Reads a chunk of data
 

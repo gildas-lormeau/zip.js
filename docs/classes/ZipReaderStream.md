@@ -6,7 +6,7 @@
 
 # Class: ZipReaderStream\<T\>
 
-Defined in: [index.d.ts:679](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L679)
+Defined in: [index.d.ts:685](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L685)
 
 Represents an instance used to create an unzipped stream.
 
@@ -41,7 +41,7 @@ for await (const entry of (await fetch(urlToZippedFile)).body.pipeThrough(new Zi
 
 > **new ZipReaderStream**\<`T`\>(`options?`): `ZipReaderStream`\<`T`\>
 
-Defined in: [index.d.ts:685](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L685)
+Defined in: [index.d.ts:691](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L691)
 
 Creates the stream.
 
@@ -63,7 +63,7 @@ The options.
 
 > **readable**: `ReadableStream`\<`Omit`\<[`Entry`](../type-aliases/Entry.md), `"getData"`\> & `object`\>
 
-Defined in: [index.d.ts:690](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L690)
+Defined in: [index.d.ts:696](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L696)
 
 The readable stream.
 
@@ -73,6 +73,6 @@ The readable stream.
 
 > **writable**: `WritableStream`\<`T`\>
 
-Defined in: [index.d.ts:697](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L697)
+Defined in: [index.d.ts:703](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L703)
 
 The writable stream.

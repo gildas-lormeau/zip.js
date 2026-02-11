@@ -6,7 +6,7 @@
 
 # Class: Writer\<Type\>
 
-Defined in: [index.d.ts:542](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L542)
+Defined in: [index.d.ts:548](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L548)
 
 Represents an instance used to write unknown type of data.
 
@@ -66,7 +66,7 @@ class BinaryStringWriter extends Writer {
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:546](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L546)
+Defined in: [index.d.ts:552](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L552)
 
 The `WritableStream` instance.
 
@@ -80,7 +80,7 @@ The `WritableStream` instance.
 
 > **getData**(): `Promise`\<`Type`\>
 
-Defined in: [index.d.ts:566](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L566)
+Defined in: [index.d.ts:572](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L572)
 
 Retrieves all the written data
 
@@ -96,7 +96,7 @@ A promise resolving to the written data.
 
 > `optional` **init**(`size?`): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:552](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L552)
+Defined in: [index.d.ts:558](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L558)
 
 Initializes the instance asynchronously
 
@@ -122,7 +122,7 @@ the total size of the written data in bytes.
 
 > **writeUint8Array**(`array`): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:560](https://github.com/gildas-lormeau/zip.js/blob/b608fddabb61e5afd1bc745020be38a96affbdb8/index.d.ts#L560)
+Defined in: [index.d.ts:566](https://github.com/gildas-lormeau/zip.js/blob/59561e3822efa5891fc25e4e415d5888da8f660a/index.d.ts#L566)
 
 Appends a chunk of data
 
