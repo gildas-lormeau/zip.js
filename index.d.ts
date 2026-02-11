@@ -293,6 +293,12 @@ export interface WorkerConfiguration {
    * @defaultValue true
    */
   useCompressionStream?: boolean;
+  /**
+   * `true` to transfer stream ownership to web workers.
+   *
+   * @defaultValue true
+   */
+  transferStreams?: boolean;
 }
 
 /**
@@ -885,12 +891,6 @@ export interface ZipReaderOptions {
    * @defaultValue false
    */
   preventClose?: boolean;
-  /**
-   * `true` to transfer streams to web workers when decompressing data.
-   *
-   * @defaultValue true
-   */
-  transferStreams?: boolean;
 }
 
 /**
