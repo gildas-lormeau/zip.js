@@ -2873,23 +2873,8 @@
 	}
 
 	function watchClosedStream(writableSource) {
-		let resolveStreamClosed;
-		const closed = new Promise(resolve => resolveStreamClosed = resolve);
-		const writable = new WritableStream({
-			async write(chunk) {
-				const writer = writableSource.getWriter();
-				await writer.ready;
-				await writer.write(chunk);
-				writer.releaseLock();
-			},
-			close() {
-				resolveStreamClosed();
-			},
-			abort(reason) {
-				const writer = writableSource.getWriter();
-				return writer.abort(reason);
-			}
-		});
+		const { writable, readable } = new TransformStream();
+		const closed = readable.pipeTo(writableSource, { preventClose: true });
 		return { writable, closed };
 	}
 
@@ -3407,6 +3392,7 @@
 	const OPTION_KEEP_ORDER = "keepOrder";
 	const OPTION_LEVEL = "level";
 	const OPTION_BUFFERED_WRITE = "bufferedWrite";
+	const OPTION_CREATE_TEMP_STREAM = "createTempStream";
 	const OPTION_DATA_DESCRIPTOR_SIGNATURE = "dataDescriptorSignature";
 	const OPTION_USE_UNICODE_FILE_NAMES = "useUnicodeFileNames";
 	const OPTION_DATA_DESCRIPTOR = "dataDescriptor";
@@ -4616,7 +4602,9 @@
 		const extendedTimestamp = getOptionValue(zipWriter, options, OPTION_EXTENDED_TIMESTAMP, true);
 		const keepOrder = getOptionValue(zipWriter, options, OPTION_KEEP_ORDER, true);
 		const useWebWorkers = getOptionValue(zipWriter, options, OPTION_USE_WEB_WORKERS);
+		const transferStreams = getOptionValue(zipWriter, options, OPTION_TRANSFER_STREAMS, true);
 		const bufferedWrite = getOptionValue(zipWriter, options, OPTION_BUFFERED_WRITE);
+		const createTempStream = getOptionValue(zipWriter, options, OPTION_CREATE_TEMP_STREAM);
 		const dataDescriptorSignature = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR_SIGNATURE, false);
 		const signal = getOptionValue(zipWriter, options, OPTION_SIGNAL);
 		const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES, true);
@@ -4722,10 +4710,12 @@
 			rawPassword,
 			level,
 			useWebWorkers,
+			transferStreams,
 			encryptionStrength,
 			extendedTimestamp,
 			zipCrypto,
 			bufferedWrite,
+			createTempStream,
 			keepOrder,
 			useUnicodeFileNames,
 			dataDescriptor,
@@ -4802,7 +4792,11 @@
 				requestLockCurrentFileEntry();
 			}
 			if ((options.bufferedWrite || zipWriter.writerLocked || (zipWriter.bufferedWrites && keepOrder) || !dataDescriptor) && !usdz) {
-				fileWriter = new TransformStream(UNDEFINED_VALUE, UNDEFINED_VALUE, { highWaterMark: INFINITY_VALUE });
+				if (options.createTempStream) {
+					fileWriter = await options.createTempStream();
+				} else {
+					fileWriter = new TransformStream(UNDEFINED_VALUE, UNDEFINED_VALUE, { highWaterMark: INFINITY_VALUE });
+				}
 				fileWriter.size = 0;
 				bufferedWrite = true;
 				zipWriter.bufferedWrites++;
@@ -4967,6 +4961,7 @@
 			rawComment,
 			rawExtraField,
 			useWebWorkers,
+			transferStreams,
 			onstart,
 			onprogress,
 			onend,
@@ -5047,7 +5042,7 @@
 					encrypted: encrypted && !passThrough,
 					useWebWorkers,
 					useCompressionStream,
-					transferStreams: false
+					transferStreams
 				},
 				config,
 				streamOptions: { signal, size, onstart, onprogress, onend }
