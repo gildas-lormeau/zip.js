@@ -75,6 +75,54 @@
             padding-top: 10px;
         }
 
+        .pref-header {
+            display: flex;
+            align-items: center;
+        }
+
+        .info-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            min-height: 18px;
+            flex-shrink: 0;
+            padding: 0;
+            background: #6c757d;
+            color: white;
+            border-radius: 50%;
+            font-size: 13px;
+            margin-left: 8px;
+            cursor: pointer;
+            border: none;
+            font-family: "Times New Roman", Times, serif;
+            font-style: italic;
+            font-weight: bold;
+            line-height: normal;
+            text-align: center;
+        }
+
+        .info-btn:hover {
+            background: #495057;
+        }
+
+        .info-panel {
+            display: none;
+            margin-top: 8px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #495057;
+            border-left: 4px solid #6c757d;
+        }
+
+        .info-panel.visible {
+            display: block;
+        }
+
         #status {
             margin-top: 10px;
             font-weight: bold;
@@ -95,12 +143,34 @@
     <section class="options">
         <h3>Configuration</h3>
         <div>
-            <label>
-                <input type="checkbox" id="useWorkers"> Use Web Workers (Inline)
-            </label>
+            <div class="pref-header">
+                <label>
+                    <input type="checkbox" id="useWorkers"> Use Web Workers (Inline)
+                </label>
+                <button class="info-btn" onclick="toggleInfo('info-workers')">i</button>
+            </div>
+            <div id="info-workers" class="info-panel">
+                <strong>Speed & RAM:</strong> Improves responsiveness by running compression on background threads
+                (multi-core support).
+                Consumes more RAM only when compressing multiple entries in parallel.
+            </div>
         </div>
         <div>
-            <strong>Compression/Decompression Implementation:</strong><br>
+            <div class="pref-header">
+                <strong>Compression Implementation:</strong><button class="info-btn"
+                    onclick="toggleInfo('info-comp')">i</button>
+            </div>
+            <div id="info-comp" class="info-panel">
+                <strong>Features vs Compatibility:</strong>
+                <ul>
+                    <li><strong>WASM/JS:</strong> Supports custom compression levels, deflate64 decompression, and older
+                        environments (requires no browser-native streams support).</li>
+                    <li><strong>None (Native):</strong> Smallest size but relies on modern
+                        <code>CompressionStream</code>/<code>DecompressionStream</code> APIs (only 'deflate' and no
+                        custom levels).
+                    </li>
+                </ul>
+            </div>
             <label title="Highest performance, requires WASM support."><input type="radio" name="comp" value="wasm">
                 WASM (zlib-wasm)</label><br>
             <label title="Full compatibility, no WASM required."><input type="radio" name="comp" value="js"> JS
@@ -108,15 +178,28 @@
             <label title="Minimal size. Uses browser's native CompressionStream/DecompressionStream APIs."><input
                     type="radio" name="comp" value="none" checked> None (Native Streams Only)</label>
         </div>
-        <div id="fallbackWrapper">
-            <label
-                title="If unchecked, the codecs are ONLY included in the worker thread. This saves space but compression will fail if Web Workers are not available.">
-                <input type="checkbox" id="useFallback" checked> Support fallback to main thread
-            </label>
-            <div class="note">Uncheck to save space (codecs will only be included in workers).</div>
+        <div id="fallbackWrapper" class="divider">
+            <div class="pref-header">
+                <label
+                    title="If unchecked, the codecs are ONLY included in the worker thread. This saves space but compression will fail if Web Workers are not available.">
+                    <input type="checkbox" id="useFallback" checked> Support fallback to main thread
+                </label>
+                <button class="info-btn" onclick="toggleInfo('info-fallback')">i</button>
+            </div>
+            <div id="info-fallback" class="info-panel">
+                <strong>Impact:</strong> If unchecked, space is saved but compression will fail if Web
+                Workers are not available or fail to start.
+            </div>
         </div>
         <div>
-            <strong>File System API (fs):</strong><br>
+            <div class="pref-header">
+                <strong>File System API (fs):</strong><button class="info-btn"
+                    onclick="toggleInfo('info-fs')">i</button>
+            </div>
+            <div id="info-fs" class="info-panel">
+                <strong>Rich Management:</strong> Higher-level API that allows editing, adding, and removing files from
+                ZIP archives in a virtual file system.
+            </div>
             <label>
                 <input type="checkbox" id="useFS"> Include API
             </label>
@@ -144,6 +227,11 @@
     <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
 
     <script>
+        const toggleInfo = (id) => {
+            const panel = document.getElementById(id);
+            panel.classList.toggle('visible');
+        };
+
         const buildBtn = document.getElementById('buildBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const output = document.getElementById('output');
