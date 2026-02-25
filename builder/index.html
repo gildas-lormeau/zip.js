@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Builder for zip.js</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            line-height: 1.6;
+        }
+
+        section {
+            margin-bottom: 2rem;
+            border: 1px solid #ccc;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        h3 {
+            margin-top: 0rem;
+            margin-bottom: 1rem;
+        }
+
+        .options div {
+            margin-bottom: 0.5rem;
+        }
+
+        #output {
+            width: 100%;
+            height: 100px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            background: #f4f4f4;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            overflow-y: auto;
+            display: block;
+            margin-top: 1rem;
+        }
+
+        button {
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button:disabled {
+            background: #ccc;
+        }
+
+        label {
+            cursor: pointer;
+        }
+
+        .secondary-option {
+            margin-left: 10px;
+        }
+
+        .divider {
+            margin-top: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        #downloadBtn {
+            display: none;
+            margin-top: 10px;
+            background: #28a745;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Custom Builder for zip.js</h1>
+    <p>Select your preferred settings to generate a customized, standalone build of zip.js</p>
+
+    <section class="options">
+        <h3>Configuration</h3>
+        <div>
+            <label>
+                <input type="checkbox" id="useWorkers"> Use Web Workers (Inline)
+            </label>
+        </div>
+        <div>
+            <strong>Compression/Decompression Implementation:</strong><br>
+            <label title="Highest performance, requires WASM support."><input type="radio" name="comp" value="wasm">
+                WASM (zlib-wasm)</label><br>
+            <label title="Full compatibility, no WASM required."><input type="radio" name="comp" value="js"> JS
+                (zlib-js)</label><br>
+            <label title="Minimal size. Uses browser's native CompressionStream/DecompressionStream APIs."><input
+                    type="radio" name="comp" value="none" checked> None (Native Streams Only)</label>
+        </div>
+        <div id="fallbackWrapper">
+            <label
+                title="If unchecked, the codecs are ONLY included in the worker thread. This saves space but compression will fail if Web Workers are not available.">
+                <input type="checkbox" id="useFallback" checked> Support fallback to main thread
+            </label>
+            <div class="note">Uncheck to save space (codecs will only be included in workers).</div>
+        </div>
+        <div>
+            <strong>File System API (fs):</strong><br>
+            <label>
+                <input type="checkbox" id="useFS"> Include API
+            </label>
+        </div>
+        <div>
+            <strong>Output Format:</strong><br>
+            <label><input type="radio" name="format" value="umd" checked> UMD (Global window.zip)</label>
+            <label class="secondary-option"><input type="radio" name="format" value="es"> ESM (Modern Modules)</label>
+        </div>
+        <div class="divider">
+            <label>
+                <input type="checkbox" id="minify" checked> Minify with Terser
+            </label>
+        </div>
+    </section>
+
+    <button id="buildBtn">Build zip.js</button>
+
+    <div id="status"></div>
+    <textarea id="output" readonly placeholder="Build output will appear here..."></textarea>
+    <button id="downloadBtn">Download zip-custom.js</button>
+
+    <!-- Load Rollup and Terser from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@rollup/browser@4.34.8/dist/rollup.browser.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
+
+    <script>
+        const buildBtn = document.getElementById('buildBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const output = document.getElementById('output');
+        const status = document.getElementById('status');
+        const useWorkersCheckbox = document.getElementById('useWorkers');
+        const compRadios = document.querySelectorAll('input[name="comp"]');
+        const fallbackWrapper = document.getElementById('fallbackWrapper');
+        const useFallbackCheckbox = document.getElementById('useFallback');
+
+        let buildResult = '';
+
+        const updateUI = () => {
+            const useWorkers = useWorkersCheckbox.checked;
+            const comp = document.querySelector('input[name="comp"]:checked').value;
+            // The fallback option is only useful for the 'js' or 'wasm' implementation with workers.
+            // If workers are off, you MUST have the codecs in the main thread (fallback).
+            const isRelevant = useWorkers && comp !== 'none';
+            useFallbackCheckbox.disabled = !isRelevant;
+            if (!isRelevant) {
+                useFallbackCheckbox.checked = true;
+            }
+            fallbackWrapper.style.opacity = isRelevant ? '1' : '0.5';
+            fallbackWrapper.style.pointerEvents = isRelevant ? 'auto' : 'none';
+        };
+
+        useWorkersCheckbox.onchange = updateUI;
+        compRadios.forEach(radio => radio.onchange = updateUI);
+        updateUI();
+
+        const GLOBALS = "const { Array, Object, String, Number, BigInt, Math, Date, Map, Set, Response, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, document, crypto, btoa, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream, navigator, Worker } = typeof globalThis !== 'undefined' ? globalThis : this || self;";
+
+        buildBtn.onclick = async () => {
+            const useWorkers = useWorkersCheckbox.checked;
+            const comp = document.querySelector('input[name="comp"]:checked').value;
+            const useFS = document.getElementById('useFS').checked;
+            const format = document.querySelector('input[name="format"]:checked').value;
+            const minify = document.getElementById('minify').checked;
+            // Fallback is required if workers are disabled.
+            const useFallback = !useWorkers || useFallbackCheckbox.checked;
+
+            buildBtn.disabled = true;
+            status.textContent = 'Building... Fetching sources from unpkg...';
+            output.value = '';
+            downloadBtn.style.display = 'none';
+
+            try {
+                // 1. Determine Virtual Entry Point Content
+                const baseUrl = 'https://unpkg.com/@zip.js/zip.js@2.8.21/lib/';
+                let entryCode = `/* 
+    zip.js customized build 
+    Workers: ${useWorkers}
+    Compression: ${comp}
+    Fallback to main thread: ${useFallback}
+    FS API: ${useFS}
+*/\n`;
+
+                // Mapping for internal zip.js filenames
+                // WASM uses 'wasm' suffix. 
+                // JS uses 'native' suffix (in zip.js naming convention).
+                const suffix = comp === 'wasm' ? 'wasm' : 'native';
+
+                entryCode += `import { configure } from "${baseUrl}core/configuration.js";\n`;
+
+                if (comp === 'none') {
+                    // Core only
+                    if (useWorkers) {
+                        entryCode += `import { configureWebWorker } from "${baseUrl}core/web-worker-inline-native.js";\n`;
+                        entryCode += `configureWebWorker(configure);\n`;
+                    }
+                    entryCode += `configure({ wasmURI: null });\n`;
+                    entryCode += `export * from "${baseUrl}zip-core-base.js";\n`;
+                    entryCode += `export { terminateWorkers } from "${baseUrl}core/codec-pool.js";\n`;
+                } else if (useWorkers && !useFallback) {
+                    // Optimized build: Worker only, no main-thread fallback (saves space)
+                    entryCode += `import { configureWebWorker } from "${baseUrl}core/web-worker-inline-${suffix}.js";\n`;
+                    entryCode += `configureWebWorker(configure);\n`;
+                    if (comp === 'js') entryCode += `configure({ wasmURI: null });\n`;
+                    entryCode += `export * from "${baseUrl}zip-core-base.js";\n`;
+                    entryCode += `export { terminateWorkers } from "${baseUrl}core/codec-pool.js";\n`;
+                } else {
+                    // Standard build with fallback
+                    if (useWorkers) {
+                        entryCode += `import { configureWebWorker } from "${baseUrl}core/web-worker-inline-${suffix}.js";\n`;
+                        entryCode += `configureWebWorker(configure);\n`;
+                    }
+                    entryCode += `export * from "${baseUrl}zip-core-${suffix}.js";\n`;
+                    entryCode += `export * from "${baseUrl}zip-module-${suffix}.js";\n`;
+                }
+
+                if (useFS) {
+                    entryCode += `export * from "${baseUrl}core/zip-fs.js";\n`;
+                }
+
+                // 2. Setup Rollup Plugin for unpkg
+                const unpkgPlugin = {
+                    name: 'unpkg-plugin',
+                    resolveId(source, importer) {
+                        if (source === 'virtual-entry') return source;
+                        if (source.startsWith('./') || source.startsWith('../')) {
+                            return new URL(source, importer).href;
+                        }
+                        if (source.startsWith('https://')) return source;
+                        // For safety, resolve relative to baseUrl if not found
+                        if (!importer || importer === 'virtual-entry') {
+                            return new URL(source, baseUrl).href;
+                        }
+                        return null;
+                    },
+                    async load(id) {
+                        if (id === 'virtual-entry') return entryCode;
+                        console.log(`Fetching: ${id}`);
+                        const response = await fetch(id);
+                        if (!response.ok) throw new Error(`Could not fetch ${id}`);
+                        return await response.text();
+                    }
+                };
+
+                // 3. Run Rollup
+                const bundle = await rollup.rollup({
+                    input: 'virtual-entry',
+                    plugins: [unpkgPlugin]
+                });
+
+                const { output: bundleOutput } = await bundle.generate({
+                    format: format,
+                    name: 'zip',
+                    noConflict: false,
+                    intro: format === 'umd' ? GLOBALS : '',
+                    banner: `/* 
+ * zip.js - customized build (https://github.com/gildas-lormeau/zip.js)
+ * Version: 2.8.21
+ * License: BSD-3-Clause
+ * Date: ${new Date().toISOString()}
+ * Options: Workers=${useWorkers}, Comp=${comp}, FS=${useFS}
+ */`
+                });
+
+                buildResult = bundleOutput[0].code;
+
+                // 4. Optionally Minify with Terser
+                if (minify) {
+                    status.textContent = 'Minifying with Terser... (this may take a few seconds)';
+                    try {
+                        const terserOptions = {
+                            compress: {
+                                unsafe: true,
+                                unsafe_arrows: true,
+                                unsafe_comps: true,
+                                unsafe_symbols: true,
+                                unsafe_proto: true,
+                                keep_fargs: false,
+                                passes: 3,
+                                ecma: 2020
+                            },
+                            mangle: true,
+                            module: format === 'es'
+                        };
+                        const minified = await Terser.minify(buildResult, terserOptions);
+                        if (minified.error) throw minified.error;
+                        buildResult = minified.code;
+                    } catch (err) {
+                        console.warn('Terser minification failed, falling back to unminified code:', err);
+                        status.textContent = '⚠️ Minification failed. Unminified build complete.';
+                        // We still show the unminified result
+                    }
+                }
+
+                output.value = buildResult;
+                if (!status.textContent.startsWith('⚠️')) {
+                    status.textContent = '✅ Build Complete!';
+                }
+                downloadBtn.style.display = 'inline-block';
+
+            } catch (err) {
+                console.error(err);
+                status.textContent = '❌ Build Failed: ' + err.message;
+            } finally {
+                buildBtn.disabled = false;
+            }
+        };
+
+        downloadBtn.onclick = () => {
+            const blob = new Blob([buildResult], { type: 'application/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'zip-custom.js';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+    </script>
+</body>
+
+</html>
