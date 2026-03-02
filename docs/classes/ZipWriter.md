@@ -6,7 +6,7 @@
 
 # Class: ZipWriter\<Type\>
 
-Defined in: [index.d.ts:1273](https://github.com/gildas-lormeau/zip.js/blob/8fe2192a48c7c99d13246dba5b4851a2878c7475/index.d.ts#L1273)
+Defined in: [index.d.ts:1273](https://github.com/gildas-lormeau/zip.js/blob/cb98d947a8c3e1ef844312562441b85f96dc3463/index.d.ts#L1273)
 
 Represents an instance used to create a zip file.
 
@@ -40,7 +40,7 @@ const blob = await blobWriter.getData();
 
 > **new ZipWriter**\<`Type`\>(`writer`, `options?`): `ZipWriter`\<`Type`\>
 
-Defined in: [index.d.ts:1280](https://github.com/gildas-lormeau/zip.js/blob/8fe2192a48c7c99d13246dba5b4851a2878c7475/index.d.ts#L1280)
+Defined in: [index.d.ts:1280](https://github.com/gildas-lormeau/zip.js/blob/cb98d947a8c3e1ef844312562441b85f96dc3463/index.d.ts#L1280)
 
 Creates the ZipWriter instance
 
@@ -68,7 +68,7 @@ The options.
 
 > `readonly` `optional` **hasCorruptedEntries**: `boolean`
 
-Defined in: [index.d.ts:1294](https://github.com/gildas-lormeau/zip.js/blob/8fe2192a48c7c99d13246dba5b4851a2878c7475/index.d.ts#L1294)
+Defined in: [index.d.ts:1294](https://github.com/gildas-lormeau/zip.js/blob/cb98d947a8c3e1ef844312562441b85f96dc3463/index.d.ts#L1294)
 
 `true` if the zip contains at least one entry that has been partially written.
 
@@ -78,7 +78,7 @@ Defined in: [index.d.ts:1294](https://github.com/gildas-lormeau/zip.js/blob/8fe2
 
 > **add**\<`ReaderType`\>(`filename`, `reader?`, `options?`): `Promise`\<[`EntryMetaData`](../interfaces/EntryMetaData.md)\>
 
-Defined in: [index.d.ts:1321](https://github.com/gildas-lormeau/zip.js/blob/8fe2192a48c7c99d13246dba5b4851a2878c7475/index.d.ts#L1321)
+Defined in: [index.d.ts:1321](https://github.com/gildas-lormeau/zip.js/blob/cb98d947a8c3e1ef844312562441b85f96dc3463/index.d.ts#L1321)
 
 Adds an entry into the zip file
 
@@ -120,7 +120,7 @@ A promise resolving to an [EntryMetaData](../interfaces/EntryMetaData.md) instan
 
 > **close**(`comment?`, `options?`): `Promise`\<`Type`\>
 
-Defined in: [index.d.ts:1349](https://github.com/gildas-lormeau/zip.js/blob/8fe2192a48c7c99d13246dba5b4851a2878c7475/index.d.ts#L1349)
+Defined in: [index.d.ts:1349](https://github.com/gildas-lormeau/zip.js/blob/cb98d947a8c3e1ef844312562441b85f96dc3463/index.d.ts#L1349)
 
 Writes the entries directory, writes the global comment, and returns the content of the zip file
 
@@ -150,7 +150,7 @@ The content of the zip file.
 
 > **prependZip**\<`ReaderType`\>(`reader`): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:1303](https://github.com/gildas-lormeau/zip.js/blob/8fe2192a48c7c99d13246dba5b4851a2878c7475/index.d.ts#L1303)
+Defined in: [index.d.ts:1303](https://github.com/gildas-lormeau/zip.js/blob/cb98d947a8c3e1ef844312562441b85f96dc3463/index.d.ts#L1303)
 
 Adds an existing zip file at the beginning of the current zip. This method
 cannot be called after the first call to [ZipWriter#add](#add).
@@ -181,7 +181,7 @@ A promise resolving when the zip file has been added.
 
 > **remove**(`entry`): `boolean`
 
-Defined in: [index.d.ts:1340](https://github.com/gildas-lormeau/zip.js/blob/8fe2192a48c7c99d13246dba5b4851a2878c7475/index.d.ts#L1340)
+Defined in: [index.d.ts:1340](https://github.com/gildas-lormeau/zip.js/blob/cb98d947a8c3e1ef844312562441b85f96dc3463/index.d.ts#L1340)
 
 Removes an entry from the central directory that will be written for the zip file. The entry
 data itself cannot be removed because it has already been streamed to the output.
