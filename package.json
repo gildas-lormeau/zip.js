@@ -156,9 +156,9 @@
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-terser": "^0.4.4",
-    "eslint": "^10.0.0",
+    "eslint": "^10.0.2",
     "http-server": "^14.1.1",
-    "rollup": "^4.57.1",
+    "rollup": "^4.59.0",
     "typedoc": "^0.28.17",
     "typedoc-plugin-markdown": "^4.10.0"
   }
