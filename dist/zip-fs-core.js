@@ -4796,7 +4796,7 @@
 				lockPreviousFileEntry = previousFileEntry && previousFileEntry.lock;
 				requestLockCurrentFileEntry();
 			}
-			if ((options.bufferedWrite || zipWriter.writerLocked || (zipWriter.bufferedWrites && keepOrder) || !dataDescriptor) && !usdz) {
+			if ((options.bufferedWrite || !keepOrder || zipWriter.writerLocked || zipWriter.bufferedWrites || !dataDescriptor) && !usdz) {
 				if (options.createTempStream) {
 					fileWriter = await options.createTempStream();
 				} else {
