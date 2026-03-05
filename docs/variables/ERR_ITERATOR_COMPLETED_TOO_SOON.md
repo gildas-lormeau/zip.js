@@ -8,6 +8,6 @@
 
 > `const` **ERR\_ITERATOR\_COMPLETED\_TOO\_SOON**: `string`
 
-Defined in: [index.d.ts:2344](https://github.com/gildas-lormeau/zip.js/blob/cb98d947a8c3e1ef844312562441b85f96dc3463/index.d.ts#L2344)
+Defined in: [index.d.ts:2343](https://github.com/gildas-lormeau/zip.js/blob/e33c46e1397305c8ad40070485a20385c5c01618/index.d.ts#L2343)
 
 Iteration completed too soon error

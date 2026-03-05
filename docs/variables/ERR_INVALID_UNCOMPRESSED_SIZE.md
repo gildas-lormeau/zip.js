@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_UNCOMPRESSED\_SIZE**: `string`
 
-Defined in: [index.d.ts:2292](https://github.com/gildas-lormeau/zip.js/blob/cb98d947a8c3e1ef844312562441b85f96dc3463/index.d.ts#L2292)
+Defined in: [index.d.ts:2291](https://github.com/gildas-lormeau/zip.js/blob/e33c46e1397305c8ad40070485a20385c5c01618/index.d.ts#L2291)
 
 Invalid uncompressed size error
