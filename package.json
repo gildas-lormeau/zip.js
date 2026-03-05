@@ -155,7 +155,7 @@
   "homepage": "https://gildas-lormeau.github.io/zip.js",
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.3",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "eslint": "^10.0.2",
     "http-server": "^14.1.1",
     "rollup": "^4.59.0",
