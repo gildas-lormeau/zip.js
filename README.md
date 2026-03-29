@@ -26,8 +26,8 @@ import {
   TextWriter,
   ZipReader,
   ZipWriter
-} from "@zip-js/zip-js";
-// Prefix "@zip-js/zip-js" with "jsr:" for Deno
+} from "@zip.js/zip.js";
+// "jsr:@zip-js/zip-js" for Deno
 
 // ----
 // Write the zip file
