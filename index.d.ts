@@ -1657,7 +1657,7 @@ export interface EntryDataOnprogressOptions {
    * @param total The total number of bytes.
    * @returns An empty promise or `undefined`.
    */
-  onstart?(total: number): Promise<void> | undefined;
+  onstart?(total: number): Promise<void> | void;
   /**
    * The function called during compression/decompression.
    *
@@ -1665,14 +1665,14 @@ export interface EntryDataOnprogressOptions {
    * @param total The total number of bytes.
    * @returns An empty promise or `undefined`.
    */
-  onprogress?(progress: number, total: number): Promise<void> | undefined;
+  onprogress?(progress: number, total: number): Promise<void> | void;
   /**
    * The function called when ending compression/decompression.
    *
    * @param computedSize The total number of bytes (computed).
    * @returns An empty promise or `undefined`.
    */
-  onend?(computedSize: number): Promise<void> | undefined;
+  onend?(computedSize: number): Promise<void> | void;
 }
 
 /**
@@ -1691,7 +1691,7 @@ export interface EntryOnprogressOptions {
     progress: number,
     total: number,
     entry: EntryMetaData
-  ): Promise<void> | undefined;
+  ): Promise<void> | void;
 }
 
 /**
