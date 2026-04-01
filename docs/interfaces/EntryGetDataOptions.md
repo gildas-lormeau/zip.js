@@ -6,7 +6,7 @@
 
 # Interface: EntryGetDataOptions
 
-Defined in: [index.d.ts:1157](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L1157)
+Defined in: [index.d.ts:1157](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L1157)
 
 Represents the options passed to [FileEntry#getData](FileEntry.md#getdata) and `{@link ZipFileEntry}.get*`.
 
@@ -24,7 +24,7 @@ Represents the options passed to [FileEntry#getData](FileEntry.md#getdata) and `
 
 > `optional` **checkOverlappingEntry?**: `boolean`
 
-Defined in: [index.d.ts:862](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L862)
+Defined in: [index.d.ts:862](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L862)
 
 `true` to throw an [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the entry
  overlaps with another entry on which [FileEntry#getData](FileEntry.md#getdata) has already been called (with the option
@@ -46,7 +46,7 @@ false
 
 > `optional` **checkOverlappingEntryOnly?**: `boolean`
 
-Defined in: [index.d.ts:871](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L871)
+Defined in: [index.d.ts:871](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L871)
 
 `true` to throw an [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the entry
  overlaps with another entry on which [FileEntry#getData](FileEntry.md#getdata) has already been called (with the option
@@ -69,7 +69,7 @@ false
 
 > `optional` **checkPasswordOnly?**: `boolean`
 
-Defined in: [index.d.ts:848](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L848)
+Defined in: [index.d.ts:848](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L848)
 
 `true` to check only if the password is valid.
 
@@ -89,7 +89,7 @@ false
 
 > `optional` **checkSignature?**: `boolean`
 
-Defined in: [index.d.ts:854](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L854)
+Defined in: [index.d.ts:854](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L854)
 
 `true` to check the signature of the entry.
 
@@ -109,7 +109,7 @@ false
 
 > `optional` **passThrough?**: `boolean`
 
-Defined in: [index.d.ts:879](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L879)
+Defined in: [index.d.ts:879](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L879)
 
 `true` to read the data as-is without decompressing it and without decrypting it.
 
@@ -123,7 +123,7 @@ Defined in: [index.d.ts:879](https://github.com/gildas-lormeau/zip.js/blob/5c4c7
 
 > `optional` **password?**: `string`
 
-Defined in: [index.d.ts:875](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L875)
+Defined in: [index.d.ts:875](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L875)
 
 The password used to decrypt the content of the entry.
 
@@ -137,7 +137,7 @@ The password used to decrypt the content of the entry.
 
 > `optional` **preventClose?**: `boolean`
 
-Defined in: [index.d.ts:893](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L893)
+Defined in: [index.d.ts:893](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L893)
 
 `true` to prevent closing of [Writer#writable](../classes/Writer.md#writable) when calling [FileEntry#getData](FileEntry.md#getdata).
 
@@ -157,7 +157,7 @@ false
 
 > `optional` **rawPassword?**: `Uint8Array`\<`ArrayBufferLike`\>
 
-Defined in: [index.d.ts:883](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L883)
+Defined in: [index.d.ts:883](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L883)
 
 The password used to encrypt the content of the entry (raw).
 
@@ -171,7 +171,7 @@ The password used to encrypt the content of the entry (raw).
 
 > `optional` **signal?**: `AbortSignal`
 
-Defined in: [index.d.ts:887](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L887)
+Defined in: [index.d.ts:887](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L887)
 
 The `AbortSignal` instance used to cancel the decompression.
 
@@ -185,7 +185,7 @@ The `AbortSignal` instance used to cancel the decompression.
 
 > `optional` **transferStreams?**: `boolean`
 
-Defined in: [index.d.ts:301](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L301)
+Defined in: [index.d.ts:301](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L301)
 
 `true` to transfer stream ownership to web workers.
 
@@ -205,7 +205,7 @@ true
 
 > `optional` **useCompressionStream?**: `boolean`
 
-Defined in: [index.d.ts:295](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L295)
+Defined in: [index.d.ts:295](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L295)
 
 `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
 
@@ -225,7 +225,7 @@ true
 
 > `optional` **useWebWorkers?**: `boolean`
 
-Defined in: [index.d.ts:289](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L289)
+Defined in: [index.d.ts:289](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L289)
 
 `true` to use web workers to compress/decompress data in non-blocking background processes.
 
@@ -243,9 +243,9 @@ true
 
 ### onend()?
 
-> `optional` **onend**(`computedSize`): `Promise`\<`void`\> \| `undefined`
+> `optional` **onend**(`computedSize`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:1675](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L1675)
+Defined in: [index.d.ts:1675](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L1675)
 
 The function called when ending compression/decompression.
 
@@ -259,7 +259,7 @@ The total number of bytes (computed).
 
 #### Returns
 
-`Promise`\<`void`\> \| `undefined`
+`void` \| `Promise`\<`void`\>
 
 An empty promise or `undefined`.
 
@@ -271,9 +271,9 @@ An empty promise or `undefined`.
 
 ### onprogress()?
 
-> `optional` **onprogress**(`progress`, `total`): `Promise`\<`void`\> \| `undefined`
+> `optional` **onprogress**(`progress`, `total`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:1668](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L1668)
+Defined in: [index.d.ts:1668](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L1668)
 
 The function called during compression/decompression.
 
@@ -293,7 +293,7 @@ The total number of bytes.
 
 #### Returns
 
-`Promise`\<`void`\> \| `undefined`
+`void` \| `Promise`\<`void`\>
 
 An empty promise or `undefined`.
 
@@ -305,9 +305,9 @@ An empty promise or `undefined`.
 
 ### onstart()?
 
-> `optional` **onstart**(`total`): `Promise`\<`void`\> \| `undefined`
+> `optional` **onstart**(`total`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:1660](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L1660)
+Defined in: [index.d.ts:1660](https://github.com/gildas-lormeau/zip.js/blob/5484569bd1fe28423166efd99cd7ee7147ada8d8/index.d.ts#L1660)
 
 The function called when starting compression/decompression.
 
@@ -321,7 +321,7 @@ The total number of bytes.
 
 #### Returns
 
-`Promise`\<`void`\> \| `undefined`
+`void` \| `Promise`\<`void`\>
 
 An empty promise or `undefined`.
 
