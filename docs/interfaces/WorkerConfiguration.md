@@ -6,7 +6,7 @@
 
 # Interface: WorkerConfiguration
 
-Defined in: [index.d.ts:283](https://github.com/gildas-lormeau/zip.js/blob/e33c46e1397305c8ad40070485a20385c5c01618/index.d.ts#L283)
+Defined in: [index.d.ts:283](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L283)
 
 Represents configuration passed to [configure](../functions/configure.md), the constructor of [ZipReader](../classes/ZipReader.md), [FileEntry#getData](FileEntry.md#getdata), the constructor of [ZipWriter](../classes/ZipWriter.md), and [ZipWriter#add](../classes/ZipWriter.md#add).
 
@@ -22,9 +22,9 @@ Represents configuration passed to [configure](../functions/configure.md), the c
 
 ### transferStreams?
 
-> `optional` **transferStreams**: `boolean`
+> `optional` **transferStreams?**: `boolean`
 
-Defined in: [index.d.ts:301](https://github.com/gildas-lormeau/zip.js/blob/e33c46e1397305c8ad40070485a20385c5c01618/index.d.ts#L301)
+Defined in: [index.d.ts:301](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L301)
 
 `true` to transfer stream ownership to web workers.
 
@@ -38,9 +38,9 @@ true
 
 ### useCompressionStream?
 
-> `optional` **useCompressionStream**: `boolean`
+> `optional` **useCompressionStream?**: `boolean`
 
-Defined in: [index.d.ts:295](https://github.com/gildas-lormeau/zip.js/blob/e33c46e1397305c8ad40070485a20385c5c01618/index.d.ts#L295)
+Defined in: [index.d.ts:295](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L295)
 
 `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
 
@@ -54,9 +54,9 @@ true
 
 ### useWebWorkers?
 
-> `optional` **useWebWorkers**: `boolean`
+> `optional` **useWebWorkers?**: `boolean`
 
-Defined in: [index.d.ts:289](https://github.com/gildas-lormeau/zip.js/blob/e33c46e1397305c8ad40070485a20385c5c01618/index.d.ts#L289)
+Defined in: [index.d.ts:289](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L289)
 
 `true` to use web workers to compress/decompress data in non-blocking background processes.
 

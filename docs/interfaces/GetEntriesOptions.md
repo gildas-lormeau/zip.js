@@ -6,7 +6,7 @@
 
 # Interface: GetEntriesOptions
 
-Defined in: [index.d.ts:820](https://github.com/gildas-lormeau/zip.js/blob/e33c46e1397305c8ad40070485a20385c5c01618/index.d.ts#L820)
+Defined in: [index.d.ts:820](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L820)
 
 Represents options passed to the constructor of [ZipReader](../classes/ZipReader.md), [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
@@ -19,9 +19,9 @@ Represents options passed to the constructor of [ZipReader](../classes/ZipReader
 
 ### commentEncoding?
 
-> `optional` **commentEncoding**: `string`
+> `optional` **commentEncoding?**: `string`
 
-Defined in: [index.d.ts:828](https://github.com/gildas-lormeau/zip.js/blob/e33c46e1397305c8ad40070485a20385c5c01618/index.d.ts#L828)
+Defined in: [index.d.ts:828](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L828)
 
 The encoding of the comment of the entry.
 
@@ -29,9 +29,9 @@ The encoding of the comment of the entry.
 
 ### filenameEncoding?
 
-> `optional` **filenameEncoding**: `string`
+> `optional` **filenameEncoding?**: `string`
 
-Defined in: [index.d.ts:824](https://github.com/gildas-lormeau/zip.js/blob/e33c46e1397305c8ad40070485a20385c5c01618/index.d.ts#L824)
+Defined in: [index.d.ts:824](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L824)
 
 The encoding of the filename of the entry.
 
@@ -41,7 +41,7 @@ The encoding of the filename of the entry.
 
 > `optional` **decodeText**(`value`, `encoding`): `string` \| `undefined`
 
-Defined in: [index.d.ts:836](https://github.com/gildas-lormeau/zip.js/blob/e33c46e1397305c8ad40070485a20385c5c01618/index.d.ts#L836)
+Defined in: [index.d.ts:836](https://github.com/gildas-lormeau/zip.js/blob/5c4c70530bd9d879d516e190202125e09cc8106f/index.d.ts#L836)
 
 The function called for decoding the filename and the comment of the entry.
 
