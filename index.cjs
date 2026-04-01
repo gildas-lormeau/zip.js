@@ -2794,7 +2794,7 @@ async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, 
 		if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
 			return eocdCache;
 		}
-		if (index >= size) {
+		if (index >= size || length === 0) {
 			return new Uint8Array();
 		} else {
 			if (index + length > size) {
