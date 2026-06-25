@@ -1908,29 +1908,28 @@
 		constructor(chunkSize) {
 			let pendingChunk;
 			super({
-				transform,
+				transform(chunk, controller) {
+					if (pendingChunk) {
+						const newChunk = new Uint8Array(pendingChunk.length + chunk.length);
+						newChunk.set(pendingChunk);
+						newChunk.set(chunk, pendingChunk.length);
+						chunk = newChunk;
+						pendingChunk = null;
+					}
+					while (chunk.length >= chunkSize) {
+						controller.enqueue(chunk.slice(0, chunkSize));
+						chunk = chunk.subarray(chunkSize);
+					}
+					if (chunk.length) {
+						pendingChunk = chunk.slice();
+					}
+				},
 				flush(controller) {
-					if (pendingChunk && pendingChunk.length) {
+					if (pendingChunk) {
 						controller.enqueue(pendingChunk);
 					}
 				}
 			});
-
-			function transform(chunk, controller) {
-				if (pendingChunk) {
-					const newChunk = new Uint8Array(pendingChunk.length + chunk.length);
-					newChunk.set(pendingChunk);
-					newChunk.set(chunk, pendingChunk.length);
-					chunk = newChunk;
-					pendingChunk = null;
-				}
-				if (chunk.length > chunkSize) {
-					controller.enqueue(chunk.slice(0, chunkSize));
-					transform(chunk.slice(chunkSize), controller);
-				} else {
-					pendingChunk = chunk;
-				}
-			}
 		}
 	}
 
