@@ -19,7 +19,7 @@
 <li><a href="../interfaces/Initializable.html" class="tsd-signature-type tsd-kind-interface">Initializable</a></li>
 <li><a href="../interfaces/WritableWriter.html" class="tsd-signature-type tsd-kind-interface">WritableWriter</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/035705c5459fc1f25930826ed97791164f0700af/index.d.ts#L698">index.d.ts:698</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L702">index.d.ts:702</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -31,7 +31,11 @@
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-index-list"><a href="#writable" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>writable</span></a>
+<div class="tsd-index-list"><a href="#availablesize" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>available<wbr/>Size</span></a>
+<a href="#disknumber" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>disk<wbr/>Number</span></a>
+<a href="#diskoffset" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>disk<wbr/>Offset</span></a>
+<a href="#maxsize" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Size</span></a>
+<a href="#writable" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>writable</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
@@ -59,10 +63,39 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">SplitDataWriter</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/035705c5459fc1f25930826ed97791164f0700af/index.d.ts#L713">index.d.ts:713</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L733">index.d.ts:733</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="availablesize"><span>available<wbr/>Size</span><a href="#availablesize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">availableSize</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>The number of bytes still available on the disk being written.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L722">index.d.ts:722</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="disknumber"><span>disk<wbr/>Number</span><a href="#disknumber" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">diskNumber</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>The number of the disk being written.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L710">index.d.ts:710</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="diskoffset"><span>disk<wbr/>Offset</span><a href="#diskoffset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">diskOffset</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>The byte offset of the disk being written.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L714">index.d.ts:714</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="maxsize"><span>max<wbr/>Size</span><a href="#maxsize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxSize</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>The maximum size of each disk in bytes.</p>
+</div><aside class="tsd-sources">
+<p>Implementation of <a href="../interfaces/WritableWriter.html">WritableWriter</a>.<a href="../interfaces/WritableWriter.html#maxsize">maxSize</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L718">index.d.ts:718</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="writable"><span>writable</span><a href="#writable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">writable</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">WritableStream</span></div>
@@ -70,7 +103,7 @@
 </div><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/WritableWriter.html">WritableWriter</a>.<a href="../interfaces/WritableWriter.html#writable">writable</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/035705c5459fc1f25930826ed97791164f0700af/index.d.ts#L702">index.d.ts:702</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L706">index.d.ts:706</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -85,7 +118,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Initializable.html">Initializable</a>.<a href="../interfaces/Initializable.html#init">init</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/035705c5459fc1f25930826ed97791164f0700af/index.d.ts#L706">index.d.ts:706</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L726">index.d.ts:726</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -104,7 +137,7 @@
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
 <div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
-<div><a href="#writable"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>writable</span></a></div></details>
+<div><a href="#availablesize"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>available<wbr/>Size</span></a><a href="#disknumber"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>disk<wbr/>Number</span></a><a href="#diskoffset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>disk<wbr/>Offset</span></a><a href="#maxsize"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Size</span></a><a href="#writable"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>writable</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
 <div><a href="#init"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>init</span></a></div></details></div></details></div>
 <div class="site-menu">
