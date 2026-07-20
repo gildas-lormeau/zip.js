@@ -15,7 +15,7 @@
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">LocalDirectory</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#bitflag">bitFlag</a><span class="tsd-signature-symbol">:</span> <a href="EntryBitFlag.html" class="tsd-signature-type tsd-kind-interface">EntryBitFlag</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#compressedsize">compressedSize</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#compressionmethod">compressionMethod</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#encrypted">encrypted</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafield">extraField</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafieldaes">extraFieldAES</a><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraFieldAES.html" class="tsd-signature-type tsd-kind-interface">EntryExtraFieldAES</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafieldextendedtimestamp">extraFieldExtendedTimestamp</a><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafieldinfozip">extraFieldInfoZip</a><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafieldlength">extraFieldLength</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafieldntfs">extraFieldNTFS</a><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafieldunicodecomment">extraFieldUnicodeComment</a><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraFieldUnicode.html" class="tsd-signature-type tsd-kind-interface">EntryExtraFieldUnicode</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafieldunicodepath">extraFieldUnicodePath</a><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraFieldUnicode.html" class="tsd-signature-type tsd-kind-interface">EntryExtraFieldUnicode</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafieldunix">extraFieldUnix</a><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafieldusdz">extraFieldUSDZ</a><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extrafieldzip64">extraFieldZip64</a><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#filenamelength">filenameLength</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#lastmoddate">lastModDate</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rawbitflag">rawBitFlag</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rawextrafield">rawExtraField</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rawlastmoddate">rawLastModDate</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#signature">signature</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#uncompressedsize">uncompressedSize</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#version">version</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1106">index.d.ts:1106</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1145">index.d.ts:1145</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -56,161 +56,161 @@
 <div class="tsd-comment tsd-typography"><p>The general purpose bit flag.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1122">index.d.ts:1122</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1161">index.d.ts:1161</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="compressedsize"><code class="tsd-tag">Optional</code><span>compressed<wbr/>Size</span><a href="#compressedsize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">compressedSize</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The compressed size of the content.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1154">index.d.ts:1154</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1193">index.d.ts:1193</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="compressionmethod"><code class="tsd-tag">Optional</code><span>compression<wbr/>Method</span><a href="#compressionmethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">compressionMethod</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The compression method.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1162">index.d.ts:1162</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1201">index.d.ts:1201</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="encrypted"><span>encrypted</span><a href="#encrypted" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">encrypted</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p><code>true</code> if the entry is encrypted.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1114">index.d.ts:1114</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1153">index.d.ts:1153</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafield"><code class="tsd-tag">Optional</code><span>extra<wbr/>Field</span><a href="#extrafield" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraField</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography"><p>The extra field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1146">index.d.ts:1146</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1185">index.d.ts:1185</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafieldaes"><code class="tsd-tag">Optional</code><span>extra<wbr/>Field<wbr/>AES</span><a href="#extrafieldaes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraFieldAES</span><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraFieldAES.html" class="tsd-signature-type tsd-kind-interface">EntryExtraFieldAES</a></div>
 <div class="tsd-comment tsd-typography"><p>The AES extra field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1170">index.d.ts:1170</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1209">index.d.ts:1209</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafieldextendedtimestamp"><code class="tsd-tag">Optional</code><span>extra<wbr/>Field<wbr/>Extended<wbr/>Timestamp</span><a href="#extrafieldextendedtimestamp" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraFieldExtendedTimestamp</span><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a></div>
 <div class="tsd-comment tsd-typography"><p>The extended timestamp extra field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1186">index.d.ts:1186</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1225">index.d.ts:1225</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafieldinfozip"><code class="tsd-tag">Optional</code><span>extra<wbr/>Field<wbr/>Info<wbr/>Zip</span><a href="#extrafieldinfozip" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraFieldInfoZip</span><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a></div>
 <div class="tsd-comment tsd-typography"><p>The Info-ZIP Unix extra field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1182">index.d.ts:1182</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1221">index.d.ts:1221</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafieldlength"><span>extra<wbr/>Field<wbr/>Length</span><a href="#extrafieldlength" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraFieldLength</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The length of the extra field in bytes.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1138">index.d.ts:1138</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1177">index.d.ts:1177</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafieldntfs"><code class="tsd-tag">Optional</code><span>extra<wbr/>Field<wbr/>NTFS</span><a href="#extrafieldntfs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraFieldNTFS</span><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a></div>
 <div class="tsd-comment tsd-typography"><p>The NTFS extra field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1174">index.d.ts:1174</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1213">index.d.ts:1213</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafieldunicodecomment"><code class="tsd-tag">Optional</code><span>extra<wbr/>Field<wbr/>Unicode<wbr/>Comment</span><a href="#extrafieldunicodecomment" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraFieldUnicodeComment</span><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraFieldUnicode.html" class="tsd-signature-type tsd-kind-interface">EntryExtraFieldUnicode</a></div>
 <div class="tsd-comment tsd-typography"><p>The Unicode comment extra field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1194">index.d.ts:1194</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1233">index.d.ts:1233</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafieldunicodepath"><code class="tsd-tag">Optional</code><span>extra<wbr/>Field<wbr/>Unicode<wbr/>Path</span><a href="#extrafieldunicodepath" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraFieldUnicodePath</span><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraFieldUnicode.html" class="tsd-signature-type tsd-kind-interface">EntryExtraFieldUnicode</a></div>
 <div class="tsd-comment tsd-typography"><p>The Unicode path extra field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1190">index.d.ts:1190</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1229">index.d.ts:1229</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafieldunix"><code class="tsd-tag">Optional</code><span>extra<wbr/>Field<wbr/>Unix</span><a href="#extrafieldunix" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraFieldUnix</span><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a></div>
 <div class="tsd-comment tsd-typography"><p>The Unix extra field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1178">index.d.ts:1178</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1217">index.d.ts:1217</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafieldusdz"><code class="tsd-tag">Optional</code><span>extra<wbr/>Field<wbr/>USDZ</span><a href="#extrafieldusdz" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraFieldUSDZ</span><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a></div>
 <div class="tsd-comment tsd-typography"><p>The USDZ extra field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1198">index.d.ts:1198</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1237">index.d.ts:1237</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extrafieldzip64"><code class="tsd-tag">Optional</code><span>extra<wbr/>Field<wbr/>Zip64</span><a href="#extrafieldzip64" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extraFieldZip64</span><span class="tsd-signature-symbol">?:</span> <a href="EntryExtraField.html" class="tsd-signature-type tsd-kind-interface">EntryExtraField</a></div>
 <div class="tsd-comment tsd-typography"><p>The Zip64 extra field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1166">index.d.ts:1166</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1205">index.d.ts:1205</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="filenamelength"><span>filename<wbr/>Length</span><a href="#filenamelength" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">filenameLength</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The length of the filename in bytes.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1134">index.d.ts:1134</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1173">index.d.ts:1173</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="lastmoddate"><span>last<wbr/>Mod<wbr/>Date</span><a href="#lastmoddate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">lastModDate</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span></div>
 <div class="tsd-comment tsd-typography"><p>The last modification date.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1130">index.d.ts:1130</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1169">index.d.ts:1169</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="rawbitflag"><span>raw<wbr/>Bit<wbr/>Flag</span><a href="#rawbitflag" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">rawBitFlag</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The general purpose bit flag (raw).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1118">index.d.ts:1118</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1157">index.d.ts:1157</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="rawextrafield"><span>raw<wbr/>Extra<wbr/>Field</span><a href="#rawextrafield" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">rawExtraField</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span></div>
 <div class="tsd-comment tsd-typography"><p>The extra field (raw).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1142">index.d.ts:1142</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1181">index.d.ts:1181</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="rawlastmoddate"><span>raw<wbr/>Last<wbr/>Mod<wbr/>Date</span><a href="#rawlastmoddate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">rawLastModDate</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The last modification date (raw).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1126">index.d.ts:1126</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1165">index.d.ts:1165</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="signature"><code class="tsd-tag">Optional</code><span>signature</span><a href="#signature" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">signature</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The signature (CRC32 checksum) of the content.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1150">index.d.ts:1150</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1189">index.d.ts:1189</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="uncompressedsize"><code class="tsd-tag">Optional</code><span>uncompressed<wbr/>Size</span><a href="#uncompressedsize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">uncompressedSize</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The uncompressed size of the content.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1158">index.d.ts:1158</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1197">index.d.ts:1197</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="version"><span>version</span><a href="#version" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">version</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The &quot;Version&quot; field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/7ed62c8fbcbe078056faadfcec17ee6f25ad1747/index.d.ts#L1110">index.d.ts:1110</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/430b26aa741652bb730a319c4680f0026111f13d/index.d.ts#L1149">index.d.ts:1149</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
