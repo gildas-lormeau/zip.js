@@ -1,4 +1,4 @@
-/* global Blob, ReadableStream, WritableStream, crypto, Uint8Array */
+/* global Blob, WritableStream, crypto */
 
 // Exercises `createOPFSTempStream` end-to-end against an in-memory mock of the OPFS API (no runtime
 // in the headless matrix exposes OPFS). It checks the hybrid behaviour: a small entry stays in

@@ -1,4 +1,4 @@
-/* global navigator, Blob, crypto, Uint8Array */
+/* global navigator, Blob, crypto */
 
 // End-to-end test of createOPFSTempStream against the real Origin Private File System. Runs in a
 // browser only (no headless JS runtime exposes OPFS). A small entry stays in memory, a large

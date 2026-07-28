@@ -1,4 +1,4 @@
-/* global navigator, Uint8Array, TextEncoder, TextDecoder */
+/* global navigator, TextEncoder */
 
 // End-to-end test of FS#exportFileSystemHandle against the real Origin Private File System (browser
 // only). It builds a tree, exports it to an OPFS directory, then re-imports that directory with

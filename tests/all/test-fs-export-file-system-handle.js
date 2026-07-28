@@ -1,4 +1,4 @@
-/* global WritableStream, Uint8Array, TextEncoder, TextDecoder */
+/* global WritableStream, TextEncoder, TextDecoder */
 
 // Exercises FS#exportFileSystemHandle against an in-memory mock of the File System Access / OPFS
 // write surface (no headless runtime exposes OPFS). It builds a small tree, exports it, and checks
