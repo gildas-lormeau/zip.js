@@ -617,6 +617,15 @@ export interface HttpRangeOptions {
    * The HTTP headers.
    */
   headers?: Iterable<[string, string]> | Map<string, string>;
+  /**
+   * `true` to throw an {@link ERR_HTTP_RESOURCE_CHANGED} error when the `ETag`, `Last-Modified` or total size headers
+   * returned by a range request differ from the ones returned by the first range request, i.e. when the resource has
+   * been modified while being read. Headers missing from the responses are ignored, note that `Access-Control-Expose-Headers`
+   * must include them when the resource is fetched cross-origin.
+   *
+   * @defaultValue true
+   */
+  checkResourceChanges?: boolean;
 }
 
 /**
@@ -2729,6 +2738,10 @@ export const fs: {
  * HTTP range error
  */
 export const ERR_HTTP_RANGE: string;
+/**
+ * HTTP resource changed while being read error
+ */
+export const ERR_HTTP_RESOURCE_CHANGED: string;
 /**
  * Zip format error
  */
