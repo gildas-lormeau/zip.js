@@ -20,6 +20,7 @@
 		".vscode",
 		".eslintrc.json",
 		"benchmarks",
-		"docs"
+		"docs",
+		".github"
 	]
 }
