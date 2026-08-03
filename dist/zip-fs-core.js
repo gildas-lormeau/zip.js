@@ -272,7 +272,8 @@
 					if (!writer.initialized) {
 						throw new Error(ERR_WRITER_NOT_INITIALIZED);
 					}
-					return writer.writeUint8Array(chunk);
+					const exactView = !chunk.byteOffset && chunk.byteLength == chunk.buffer.byteLength;
+					return writer.writeUint8Array(exactView ? chunk : new Uint8Array(chunk));
 				}
 			});
 			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
@@ -372,9 +373,11 @@
 		async readUint8Array(offset, length) {
 			const reader = this;
 			const offsetEnd = offset + length;
-			const blob = offset || offsetEnd < reader.size ? reader.blob.slice(offset, offsetEnd) : reader.blob;
+			const readsWholeBlob = !offset && offsetEnd >= reader.size;
+			const blob = readsWholeBlob ? reader.blob : reader.blob.slice(offset, offsetEnd);
 			let arrayBuffer = await blob.arrayBuffer();
-			if (arrayBuffer.byteLength > length) {
+			const sliceIgnoredByBuggyImplementation = arrayBuffer.byteLength > length;
+			if (sliceIgnoredByBuggyImplementation) {
 				arrayBuffer = arrayBuffer.slice(offset, offsetEnd);
 			}
 			return new Uint8Array(arrayBuffer);
@@ -581,7 +584,7 @@
 			if (!data) {
 				await getRequestData(httpReader, options);
 			}
-			return new Uint8Array(httpReader.data.subarray(index, index + length));
+			return httpReader.data.subarray(index, index + length);
 		}
 	}
 
@@ -2171,7 +2174,7 @@
 							encryptedChunkArray = fromBits(codecBytes, encryptedChunk);
 						}
 						stream.signature = fromBits(codecBytes, hmac.digest()).slice(0, SIGNATURE_LENGTH);
-						controller.enqueue(concat(encryptedChunkArray, stream.signature));
+						controller.enqueue(concat$1(encryptedChunkArray, stream.signature));
 					}
 				}
 			});
@@ -2195,7 +2198,7 @@
 			pending
 		} = aesCrypto;
 		if (pending.length) {
-			input = concat(pending, input);
+			input = concat$1(pending, input);
 		}
 		const inputLength = input.length - paddingEnd;
 		output = expand(output, paddingStart + (inputLength - (inputLength % BLOCK_LENGTH)));
@@ -2226,7 +2229,7 @@
 	async function createEncryptionKeys(encrypt, strength, password) {
 		const salt = getRandomValues(new Uint8Array(SALT_LENGTH[strength]));
 		const passwordVerification = await createKeys$1(encrypt, strength, password, salt);
-		return concat(salt, passwordVerification);
+		return concat$1(salt, passwordVerification);
 	}
 
 	async function createKeys$1(aesCrypto, strength, password, salt) {
@@ -2283,7 +2286,7 @@
 		}
 	}
 
-	function concat(leftArray, rightArray) {
+	function concat$1(leftArray, rightArray) {
 		let array = leftArray;
 		if (leftArray.length + rightArray.length) {
 			array = new Uint8Array(leftArray.length + rightArray.length);
@@ -2554,44 +2557,34 @@
 		constructor() {
 			// deno-lint-ignore prefer-const
 			let stream;
-			let headerLeft = GZIP_HEADER_LENGTH;
-			let tail = new Uint8Array(0);
+			let headerBytesLeft = GZIP_HEADER_LENGTH;
+			let trailerCandidate = new Uint8Array(0);
 			super({
 				transform(chunk, controller) {
-					if (headerLeft) {
-						const dropped = Math.min(headerLeft, chunk.length);
-						headerLeft -= dropped;
-						chunk = chunk.subarray(dropped);
+					if (headerBytesLeft) {
+						const droppedLength = Math.min(headerBytesLeft, chunk.length);
+						headerBytesLeft -= droppedLength;
+						chunk = chunk.subarray(droppedLength);
 						if (!chunk.length) {
 							return;
 						}
 					}
-					const available = tail.length + chunk.length;
-					if (available <= GZIP_TRAILER_LENGTH) {
-						const pending = new Uint8Array(available);
-						pending.set(tail);
-						pending.set(chunk, tail.length);
-						tail = pending;
+					const availableLength = trailerCandidate.length + chunk.length;
+					if (availableLength <= GZIP_TRAILER_LENGTH) {
+						trailerCandidate = concat(trailerCandidate, chunk);
 						return;
 					}
-					const emitLength = available - GZIP_TRAILER_LENGTH;
-					const output = new Uint8Array(emitLength);
-					const fromTail = Math.min(emitLength, tail.length);
-					output.set(tail.subarray(0, fromTail), 0);
-					if (emitLength > fromTail) {
-						output.set(chunk.subarray(0, emitLength - fromTail), fromTail);
-					}
-					controller.enqueue(output);
-					const nextTail = new Uint8Array(GZIP_TRAILER_LENGTH);
-					const tailRemaining = tail.length - fromTail;
-					if (tailRemaining) {
-						nextTail.set(tail.subarray(fromTail), 0);
-					}
-					nextTail.set(chunk.subarray(emitLength - fromTail), tailRemaining);
-					tail = nextTail;
+					const emitLength = availableLength - GZIP_TRAILER_LENGTH;
+					const emittedFromTrailer = Math.min(emitLength, trailerCandidate.length);
+					controller.enqueue(concat(
+						trailerCandidate.subarray(0, emittedFromTrailer),
+						chunk.subarray(0, emitLength - emittedFromTrailer)));
+					trailerCandidate = concat(
+						trailerCandidate.subarray(emittedFromTrailer),
+						chunk.subarray(emitLength - emittedFromTrailer));
 				},
 				flush() {
-					const dataView = new DataView(tail.buffer, tail.byteOffset, tail.byteLength);
+					const dataView = new DataView(trailerCandidate.buffer, trailerCandidate.byteOffset, trailerCandidate.byteLength);
 					stream.signature = dataView.getUint32(0, true);
 					stream.uncompressedSize = dataView.getUint32(4, true);
 				}
@@ -2663,6 +2656,13 @@
 			}
 		}
 		return pipeThroughBackpressured(readable, codecStream);
+	}
+
+	function concat(first, second) {
+		const result = new Uint8Array(first.length + second.length);
+		result.set(first);
+		result.set(second, first.length);
+		return result;
 	}
 
 	function pipeThrough(readable, transformStream) {
@@ -4304,7 +4304,7 @@
 	function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory) {
 		const { rawExtraField } = directory;
 		const extraField = directory.extraField = new Map();
-		const rawExtraFieldView = getDataView$1(new Uint8Array(rawExtraField));
+		const rawExtraFieldView = getDataView$1(rawExtraField);
 		let offsetExtraField = 0;
 		try {
 			while (offsetExtraField < rawExtraField.length) {
@@ -4466,7 +4466,7 @@
 
 	function readExtraFieldUnix(extraField, directory, isInfoZip) {
 		try {
-			const view = getDataView$1(new Uint8Array(extraField.data));
+			const view = getDataView$1(extraField.data);
 			let uid, gid;
 			if (isInfoZip) {
 				let offset = 0;
