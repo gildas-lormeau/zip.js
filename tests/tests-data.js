@@ -86,6 +86,7 @@ export default ([
 	{ title: "HTTP zip64", script: "./test-http-zip64.js" },
 	{ title: "HTTP reader (custom fetch)", script: "./test-http-reader-custom-fetch.js" },
 	{ title: "HTTP reader (resource changed)", script: "./test-http-reader-resource-changed.js" },
+	{ title: "Writer exact chunks", script: "./test-writer-exact-chunks.js" },
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js" },
 	{ title: "Invalid uncompressed size", script: "./test-invalid-uncompressed-size.js", sanitizeResources: false },
 	{ title: "Multiple writers", script: "./test-multiple-writers.js" },
