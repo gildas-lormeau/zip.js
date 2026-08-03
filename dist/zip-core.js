@@ -2570,7 +2570,7 @@
 		const { transferStreams, useWebWorkers, useCompressionStream, compressed, signed, encrypted } = options;
 		const { workerURI, maxWorkers } = config;
 		workerOptions.transferStreams = transferStreams || transferStreams === UNDEFINED_VALUE;
-		const streamCopy = !compressed && !signed && !encrypted && !workerOptions.transferStreams;
+		const streamCopy = !compressed && !signed && !encrypted;
 		workerOptions.useWebWorkers = !streamCopy && (useWebWorkers || (useWebWorkers === UNDEFINED_VALUE && config.useWebWorkers));
 		workerOptions.workerURI = workerOptions.useWebWorkers && workerURI ? workerURI : UNDEFINED_VALUE;
 		options.useCompressionStream = useCompressionStream || (useCompressionStream === UNDEFINED_VALUE && config.useCompressionStream);
@@ -2704,6 +2704,7 @@
 
 	const ERR_HTTP_STATUS = "HTTP error ";
 	const ERR_HTTP_RANGE = "HTTP Range not supported";
+	const ERR_HTTP_RESOURCE_CHANGED = "HTTP resource changed";
 	const ERR_ITERATOR_COMPLETED_TOO_SOON = "Writer iterator completed too soon";
 	const ERR_WRITER_NOT_INITIALIZED = "Writer not initialized";
 
@@ -2714,6 +2715,8 @@
 	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
 	const HTTP_HEADER_RANGE = "Range";
 	const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
+	const HTTP_HEADER_ETAG = "Etag";
+	const HTTP_HEADER_LAST_MODIFIED = "Last-Modified";
 	const HTTP_METHOD_HEAD = "HEAD";
 	const HTTP_METHOD_GET = "GET";
 	const HTTP_RANGE_UNIT = "bytes";
@@ -2978,6 +2981,7 @@
 			useRangeHeader,
 			forceRangeRequests,
 			combineSizeEocd,
+			checkResourceChanges = true,
 			fetch
 		} = options;
 		options = Object.assign({}, options);
@@ -2985,6 +2989,7 @@
 		delete options.useRangeHeader;
 		delete options.forceRangeRequests;
 		delete options.combineSizeEocd;
+		delete options.checkResourceChanges;
 		delete options.useXHR;
 		delete options.fetch;
 		Object.assign(httpReader, {
@@ -2994,6 +2999,7 @@
 			useRangeHeader,
 			forceRangeRequests,
 			combineSizeEocd,
+			checkResourceChanges,
 			fetch
 		});
 	}
@@ -3018,17 +3024,8 @@
 						httpReader.eocdCache = eocdCache;
 					}
 				}
-				let contentSize;
-				const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
-				if (contentRangeHeader) {
-					const splitHeader = contentRangeHeader.trim().split(/\s*\/\s*/);
-					if (splitHeader.length) {
-						const headerValue = splitHeader[1];
-						if (headerValue && headerValue != "*") {
-							contentSize = Number(headerValue);
-						}
-					}
-				}
+				setResourceValidators(httpReader, response);
+				const contentSize = getContentRangeSize(response);
 				if (contentSize === UNDEFINED_VALUE) {
 					await getContentLength(httpReader, sendRequest, getRequestData);
 				} else {
@@ -3069,6 +3066,8 @@
 						throw new Error(ERR_HTTP_RANGE);
 					}
 				}
+				checkResourceValidators(httpReader, response);
+				setResourceValidators(httpReader, response);
 				const data = new Uint8Array(await response.arrayBuffer());
 				if (data.length != length) {
 					throw new Error(ERR_HTTP_RANGE);
@@ -3081,6 +3080,51 @@
 				await getRequestData(httpReader, options);
 			}
 			return new Uint8Array(httpReader.data.subarray(index, index + length));
+		}
+	}
+
+	function getContentRangeSize(response) {
+		const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
+		if (contentRangeHeader) {
+			const headerValue = contentRangeHeader.trim().split(/\s*\/\s*/)[1];
+			if (headerValue && headerValue != "*") {
+				const contentSize = Number(headerValue);
+				if (!Number.isNaN(contentSize)) {
+					return contentSize;
+				}
+			}
+		}
+	}
+
+	function getResourceValidators({ headers }) {
+		return {
+			etag: headers.get(HTTP_HEADER_ETAG) || UNDEFINED_VALUE,
+			lastModified: headers.get(HTTP_HEADER_LAST_MODIFIED) || UNDEFINED_VALUE
+		};
+	}
+
+	function setResourceValidators(httpReader, response) {
+		const { checkResourceChanges, resourceValidators } = httpReader;
+		if (checkResourceChanges && !resourceValidators && response.status == 206) {
+			httpReader.resourceValidators = getResourceValidators(response);
+		}
+	}
+
+	function checkResourceValidators(httpReader, response) {
+		const { checkResourceChanges, resourceValidators, size } = httpReader;
+		if (checkResourceChanges) {
+			const contentRangeSize = getContentRangeSize(response);
+			if (contentRangeSize !== UNDEFINED_VALUE && size !== UNDEFINED_VALUE && contentRangeSize != size) {
+				throw new Error(ERR_HTTP_RESOURCE_CHANGED);
+			}
+			if (resourceValidators) {
+				const validators = getResourceValidators(response);
+				const changed = Object.entries(resourceValidators).some(([name, value]) =>
+					value !== UNDEFINED_VALUE && validators[name] !== UNDEFINED_VALUE && value != validators[name]);
+				if (changed) {
+					throw new Error(ERR_HTTP_RESOURCE_CHANGED);
+				}
+			}
 		}
 	}
 
@@ -7063,6 +7107,7 @@
 	exports.ERR_EOCDR_NOT_FOUND = ERR_EOCDR_NOT_FOUND;
 	exports.ERR_EXTRAFIELD_ZIP64_NOT_FOUND = ERR_EXTRAFIELD_ZIP64_NOT_FOUND;
 	exports.ERR_HTTP_RANGE = ERR_HTTP_RANGE;
+	exports.ERR_HTTP_RESOURCE_CHANGED = ERR_HTTP_RESOURCE_CHANGED;
 	exports.ERR_INVALID_COMMENT = ERR_INVALID_COMMENT;
 	exports.ERR_INVALID_COMPRESSED_DATA = ERR_INVALID_COMPRESSED_DATA;
 	exports.ERR_INVALID_ENCRYPTION_STRENGTH = ERR_INVALID_ENCRYPTION_STRENGTH;
