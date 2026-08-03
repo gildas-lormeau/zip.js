@@ -5,3 +5,4 @@ tsconfig.json
 .vscode
 .eslintrc.json
 docs
+.github
