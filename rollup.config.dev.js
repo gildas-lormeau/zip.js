@@ -2,7 +2,22 @@ import replace from "@rollup/plugin-replace";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "url";
-import { compress } from "./lib/core/util/mini-lz.js";
+import { deflateRawSync } from "node:zlib";
+import { Buffer } from "node:buffer";
+import { inflateRaw } from "./lib/core/util/inflate.js";
+
+function deflatePayload(data) {
+	const deflated = deflateRawSync(data, { level: 9 });
+	const restored = Buffer.from(inflateRaw(new Uint8Array(deflated)));
+	if (Buffer.compare(restored, Buffer.from(data)) != 0) {
+		throw new Error("deflated payload round-trip failed");
+	}
+	return deflated.toString("base64");
+}
+
+function escapeTemplateLiteral(code) {
+	return code.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${");
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -49,7 +64,7 @@ export default [{
 	plugins: [
 		replace({
 			preventAssignment: true,
-			"__workerCode__": () => fs.readFileSync("lib/core/web-worker-inline-wasm.js").toString()
+			"__workerCode__": () => escapeTemplateLiteral(fs.readFileSync("lib/core/web-worker-inline-wasm.js").toString())
 		}),
 
 	]
@@ -62,7 +77,7 @@ export default [{
 	plugins: [
 		replace({
 			preventAssignment: true,
-			"__workerCode__": () => compress(fs.readFileSync("lib/core/web-worker-inline-native.js"))
+			"__workerCode__": () => deflatePayload(fs.readFileSync("lib/core/web-worker-inline-native.js"))
 		}),
 
 	]
@@ -76,7 +91,7 @@ export default [{
 		copyWasmModule(),
 		replace({
 			preventAssignment: true,
-			"__wasmBinary__": () => compress(fs.readFileSync("lib/core/streams/zlib-wasm/zlib-streams.wasm"))
+			"__wasmBinary__": () => deflatePayload(fs.readFileSync("lib/core/streams/zlib-wasm/zlib-streams.wasm"))
 		}),
 
 	]
