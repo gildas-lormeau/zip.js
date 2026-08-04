@@ -267,7 +267,6 @@
 	const HTTP_METHOD_HEAD = "HEAD";
 	const HTTP_METHOD_GET = "GET";
 	const HTTP_RANGE_UNIT = "bytes";
-	const DEFAULT_CHUNK_SIZE$1 = 64 * 1024;
 	const DEFAULT_BUFFER_SIZE = 256 * 1024;
 
 	const PROPERTY_NAME_WRITABLE = "writable";
@@ -289,13 +288,13 @@
 			return this.createReadable();
 		}
 
-		createReadable({ offset = 0, size, diskNumberStart, chunkSize = DEFAULT_CHUNK_SIZE$1 } = {}) {
+		createReadable({ offset = 0, size, chunkSize = getChunkSize(getConfiguration()) } = {}) {
 			const reader = this;
 			let chunkOffset = 0;
 			return new ReadableStream({
 				async pull(controller) {
 					const dataSize = size === UNDEFINED_VALUE ? chunkSize : Math.min(chunkSize, size - chunkOffset);
-					const data = await readUint8Array(reader, offset + chunkOffset, dataSize, diskNumberStart);
+					const data = await readUint8Array(reader, offset + chunkOffset, dataSize);
 					controller.enqueue(data);
 					if ((chunkOffset + chunkSize > size) || (size === UNDEFINED_VALUE && !data.length && dataSize)) {
 						controller.close();
@@ -404,6 +403,27 @@
 		}
 	}
 
+	let blobSliceReliable;
+	let blobSliceProbe;
+
+	function probeBlobSliceReliability() {
+		blobSliceProbe = (async () => {
+			try {
+				const slicedBlob = new Blob([new Uint8Array(3)]).slice(1, 2);
+				const streamReader = slicedBlob.stream().getReader();
+				let streamedLength = 0;
+				let result = await streamReader.read();
+				while (!result.done) {
+					streamedLength += result.value.length;
+					result = await streamReader.read();
+				}
+				blobSliceReliable = streamedLength == 1;
+			} catch {
+				blobSliceReliable = false;
+			}
+		})();
+	}
+
 	class BlobReader extends Reader {
 
 		constructor(blob) {
@@ -412,6 +432,22 @@
 				blob,
 				size: blob.size
 			});
+			if (!blobSliceProbe) {
+				probeBlobSliceReliability();
+			}
+		}
+
+		createReadable(options) {
+			const reader = this;
+			const { blob, size } = reader;
+			const { offset = 0, size: readSize = size - offset } = options || {};
+			if (!offset && readSize >= size) {
+				return blob.stream();
+			}
+			if (blobSliceReliable) {
+				return blob.slice(offset, offset + readSize).stream();
+			}
+			return super.createReadable(options);
 		}
 
 		async readUint8Array(offset, length) {
@@ -500,6 +536,18 @@
 		async init() {
 			await initHttpReader(this, sendFetchRequest, getFetchRequestData);
 			super.init();
+		}
+
+		createReadable(options) {
+			const reader = this;
+			const { useRangeHeader, forceRangeRequests, size } = reader;
+			if ((useRangeHeader || forceRangeRequests) && size !== UNDEFINED_VALUE) {
+				const { offset = 0, size: readSize = size - offset } = options || {};
+				if (readSize > 0 && offset < size) {
+					return createRangeReadable(reader, offset, Math.min(readSize, size - offset));
+				}
+			}
+			return super.createReadable(options);
 		}
 
 		readUint8Array(index, length) {
@@ -630,6 +678,51 @@
 			}
 			return httpReader.data.subarray(index, index + length);
 		}
+	}
+
+	function createRangeReadable(httpReader, offset, size) {
+		let bodyReader;
+		let remainingLength = size;
+		return new ReadableStream({
+			async start() {
+				const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, offset, size));
+				if (response.status != 206) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+				const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
+				if (contentRangeHeader) {
+					const rangeStart = Number(contentRangeHeader.trim().split(/[\s-]+/)[1]);
+					if (!Number.isNaN(rangeStart) && rangeStart != offset) {
+						throw new Error(ERR_HTTP_RANGE);
+					}
+				}
+				checkResourceValidators(httpReader, response);
+				setResourceValidators(httpReader, response);
+				bodyReader = response.body.getReader();
+			},
+			async pull(controller) {
+				const { value, done } = await bodyReader.read();
+				if (done) {
+					if (remainingLength) {
+						throw new Error(ERR_HTTP_RANGE);
+					}
+					controller.close();
+				} else {
+					const chunk = value.length > remainingLength ? value.subarray(0, remainingLength) : value;
+					remainingLength -= chunk.length;
+					if (chunk.length) {
+						controller.enqueue(chunk);
+					}
+					if (!remainingLength) {
+						controller.close();
+						await bodyReader.cancel();
+					}
+				}
+			},
+			cancel(reason) {
+				return bodyReader && bodyReader.cancel(reason);
+			}
+		});
 	}
 
 	function getContentRangeSize(response) {
@@ -784,6 +877,10 @@
 			super.init();
 		}
 
+		createReadable(options) {
+			return this.reader.createReadable(options);
+		}
+
 		readUint8Array(index, length) {
 			return this.reader.readUint8Array(index, length);
 		}
@@ -857,25 +954,26 @@
 			const reader = this;
 			const { readers } = reader;
 			reader.lastDiskNumber = 0;
-			reader.lastDiskOffset = 0;
-			await Promise.all(readers.map(async (diskReader, indexDiskReader) => {
-				await initStream(diskReader);
-				if (indexDiskReader != readers.length - 1) {
-					reader.lastDiskOffset += diskReader.size;
-				}
+			await Promise.all(readers.map(diskReader => initStream(diskReader)));
+			reader.diskOffsets = readers.map(diskReader => {
+				const diskOffset = reader.size;
 				reader.size += diskReader.size;
-			}));
+				return diskOffset;
+			});
 			super.init();
 		}
 
-		async readUint8Array(offset, length, diskNumber = 0) {
+		getDiskOffset(diskNumber) {
+			const { diskOffsets, size } = this;
+			const diskOffset = diskOffsets.at(diskNumber);
+			return diskOffset === UNDEFINED_VALUE ? size : diskOffset;
+		}
+
+		async readUint8Array(offset, length) {
 			const reader = this;
 			const { readers } = this;
 			let result;
-			let currentDiskNumber = diskNumber;
-			if (currentDiskNumber == -1) {
-				currentDiskNumber = readers.length - 1;
-			}
+			let currentDiskNumber = 0;
 			let currentReaderOffset = offset;
 			while (readers[currentDiskNumber] && currentReaderOffset >= readers[currentDiskNumber].size) {
 				currentReaderOffset -= readers[currentDiskNumber].size;
@@ -889,7 +987,7 @@
 				} else {
 					const chunkLength = currentReaderSize - currentReaderOffset;
 					const firstPart = await readUint8Array(currentReader, currentReaderOffset, chunkLength);
-					const secondPart = await reader.readUint8Array(offset + chunkLength, length - chunkLength, diskNumber);
+					const secondPart = await reader.readUint8Array(offset + chunkLength, length - chunkLength);
 					result = concat(firstPart, secondPart);
 				}
 			} else {
@@ -1035,8 +1133,8 @@
 		}
 	}
 
-	function readUint8Array(reader, offset, size, diskNumber) {
-		return reader.readUint8Array(offset, size, diskNumber);
+	function readUint8Array(reader, offset, size) {
+		return reader.readUint8Array(offset, size);
 	}
 
 	/*
@@ -2856,30 +2954,54 @@
 	class ChunkStream extends TransformStream {
 
 		constructor(chunkSize) {
-			let pendingChunk;
+			const pendingChunks = [];
+			let pendingLength = 0;
 			if (!(chunkSize >= 1)) {
 				chunkSize = DEFAULT_CHUNK_SIZE;
 			}
 			super({
-				transform,
+				transform(chunk, controller) {
+					pendingChunks.push(chunk);
+					pendingLength += chunk.length;
+					while (pendingLength > chunkSize) {
+						controller.enqueue(shiftChunk());
+					}
+				},
 				flush(controller) {
-					if (pendingChunk && pendingChunk.length) {
-						controller.enqueue(pendingChunk);
+					if (pendingLength) {
+						controller.enqueue(concatChunks(pendingChunks, pendingLength));
 					}
 				}
 			});
 
-			function transform(chunk, controller) {
-				if (pendingChunk) {
-					chunk = concat(pendingChunk, chunk);
-					pendingChunk = null;
+			function shiftChunk() {
+				const result = new Uint8Array(chunkSize);
+				let resultOffset = 0;
+				while (resultOffset < chunkSize) {
+					const firstChunk = pendingChunks[0];
+					const remainingLength = chunkSize - resultOffset;
+					if (firstChunk.length <= remainingLength) {
+						result.set(firstChunk, resultOffset);
+						resultOffset += firstChunk.length;
+						pendingChunks.shift();
+					} else {
+						result.set(firstChunk.subarray(0, remainingLength), resultOffset);
+						pendingChunks[0] = firstChunk.subarray(remainingLength);
+						resultOffset += remainingLength;
+					}
 				}
+				pendingLength -= chunkSize;
+				return result;
+			}
+
+			function concatChunks(chunks, length) {
+				const result = new Uint8Array(length);
 				let offset = 0;
-				while (chunk.length - offset > chunkSize) {
-					controller.enqueue(chunk.slice(offset, offset + chunkSize));
-					offset += chunkSize;
+				for (const chunk of chunks) {
+					result.set(chunk, offset);
+					offset += chunk.length;
 				}
-				pendingChunk = offset ? chunk.slice(offset) : chunk;
+				return result;
 			}
 		}
 	}
@@ -3061,7 +3183,10 @@
 				}
 			}
 			codecStream = new CodecStream(options, config);
-			await readable.pipeThrough(codecStream).pipeTo(writable, { preventClose: true, preventAbort: true });
+			await readable
+				.pipeThrough(codecStream)
+				.pipeThrough(new ChunkStream(getChunkSize(config)))
+				.pipeTo(writable, { preventClose: true, preventAbort: true });
 			const {
 				signature,
 				inputSize,
@@ -3880,17 +4005,21 @@
 			let prependedDataLength = 0;
 			let startOffset;
 			let zip64EndOfDirectory;
-			if (directoryDataOffset == MAX_32_BITS || directoryDataLength == MAX_32_BITS || filesLength == MAX_16_BITS || diskNumber == MAX_16_BITS) {
+			const requiresZip64 = directoryDataOffset == MAX_32_BITS || directoryDataLength == MAX_32_BITS || filesLength == MAX_16_BITS || diskNumber == MAX_16_BITS;
+			if (directoryDataOffset != MAX_32_BITS && diskNumber != MAX_16_BITS) {
+				directoryDataOffset += getDiskOffset(reader, diskNumber);
+			}
+			if (requiresZip64) {
 				const endOfDirectoryLocatorArray = endOfDirectoryInfo.offset >= ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH ?
 					await readUint8Array(reader, endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH) :
 					EMPTY_UINT8_ARRAY;
 				const endOfDirectoryLocatorView = getDataView(endOfDirectoryLocatorArray);
 				if (endOfDirectoryLocatorArray.length == ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH &&
 					getUint32(endOfDirectoryLocatorView, 0) == ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE) {
-					directoryDataOffset = getBigUint64(endOfDirectoryLocatorView, 8);
-					let endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH, -1);
+					directoryDataOffset = getDiskOffset(reader, getUint32(endOfDirectoryLocatorView, 4)) + getBigUint64(endOfDirectoryLocatorView, 8);
+					let endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
 					let endOfDirectoryView = getDataView(endOfDirectoryArray);
-					const expectedDirectoryDataOffset = endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH - ZIP64_END_OF_CENTRAL_DIR_LENGTH - (reader.lastDiskOffset || 0);
+					const expectedDirectoryDataOffset = endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH - ZIP64_END_OF_CENTRAL_DIR_LENGTH;
 					if ((endOfDirectoryArray.length < ZIP64_END_OF_CENTRAL_DIR_LENGTH || getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) &&
 						directoryDataOffset != expectedDirectoryDataOffset && expectedDirectoryDataOffset >= 0) {
 						const originalDirectoryDataOffset = directoryDataOffset;
@@ -3898,7 +4027,7 @@
 						if (directoryDataOffset > originalDirectoryDataOffset) {
 							prependedDataLength = directoryDataOffset - originalDirectoryDataOffset;
 						}
-						endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH, -1);
+						endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
 						endOfDirectoryView = getDataView(endOfDirectoryArray);
 					}
 					if (endOfDirectoryArray.length < ZIP64_END_OF_CENTRAL_DIR_LENGTH || getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
@@ -3925,7 +4054,7 @@
 					} else if (checkAmbiguity && directoryDataLength != getBigUint64(endOfDirectoryView, 40)) {
 						throwAmbiguousArchive("mismatched zip64 end of central directory record");
 					}
-					directoryDataOffset = getBigUint64(endOfDirectoryView, 48) + prependedDataLength;
+					directoryDataOffset = getDiskOffset(reader, diskNumber) + getBigUint64(endOfDirectoryView, 48) + prependedDataLength;
 				}
 			}
 			const declaredDirectoryDataLength = directoryDataLength;
@@ -3942,18 +4071,18 @@
 				throw new Error(ERR_BAD_FORMAT);
 			}
 			let offset = 0;
-			let directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength, diskNumber);
+			let directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
 			let directoryView = getDataView(directoryArray);
 			if (directoryDataLength) {
 				if (directoryArray.length < 4) {
 					throw new Error(ERR_BAD_FORMAT);
 				}
-				const expectedDirectoryDataOffset = centralDirectoryEndOffset - directoryDataLength - (reader.lastDiskOffset || 0);
+				const expectedDirectoryDataOffset = centralDirectoryEndOffset - directoryDataLength;
 				if (directoryDataOffset != expectedDirectoryDataOffset && diskNumber == lastDiskNumber) {
 					const storedPointsAtDirectory = getUint32(directoryView, offset) == CENTRAL_FILE_HEADER_SIGNATURE;
 					let reconcile = !storedPointsAtDirectory;
 					if (!reconcile && expectedDirectoryDataOffset >= 0 && expectedDirectoryDataOffset + 4 <= reader.size) {
-						const expectedSignatureArray = await readUint8Array(reader, expectedDirectoryDataOffset, 4, diskNumber);
+						const expectedSignatureArray = await readUint8Array(reader, expectedDirectoryDataOffset, 4);
 						reconcile = getUint32(getDataView(expectedSignatureArray), 0) == CENTRAL_FILE_HEADER_SIGNATURE;
 					}
 					if (reconcile) {
@@ -3962,15 +4091,15 @@
 						if (directoryDataOffset > originalDirectoryDataOffset) {
 							prependedDataLength += directoryDataOffset - originalDirectoryDataOffset;
 						}
-						directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength, diskNumber);
+						directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
 						directoryView = getDataView(directoryArray);
 					}
 				}
 			}
-			const expectedDirectoryDataLength = centralDirectoryEndOffset - directoryDataOffset - (reader.lastDiskOffset || 0);
+			const expectedDirectoryDataLength = centralDirectoryEndOffset - directoryDataOffset;
 			if (directoryDataLength != expectedDirectoryDataLength && expectedDirectoryDataLength >= 0 && diskNumber == lastDiskNumber) {
 				directoryDataLength = expectedDirectoryDataLength;
-				directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength, diskNumber);
+				directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
 				directoryView = getDataView(directoryArray);
 			}
 			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
@@ -4044,7 +4173,7 @@
 				});
 				readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
 				fileEntry.offset += prependedDataLength;
-				startOffset = Math.min(fileEntry.offset, startOffset);
+				startOffset = Math.min(getDiskOffset(reader, fileEntry.diskNumberStart) + fileEntry.offset, startOffset);
 				if (checkAmbiguity) {
 					if (filenames.has(fileEntry.filename)) {
 						duplicateFilename = true;
@@ -4158,7 +4287,8 @@
 				dataDescriptor
 			} = bitFlag;
 			const localDirectory = fileEntry.localDirectory = {};
-			const dataArray = await readUint8Array(reader, offset, HEADER_SIZE, diskNumberStart);
+			const localHeaderOffset = getDiskOffset(reader, diskNumberStart) + offset;
+			const dataArray = await readUint8Array(reader, localHeaderOffset, HEADER_SIZE);
 			const dataView = getDataView(dataArray);
 			let password = getOptionValue$1(zipEntry, options, OPTION_PASSWORD);
 			let rawPassword = getOptionValue$1(zipEntry, options, OPTION_RAW_PASSWORD);
@@ -4184,12 +4314,12 @@
 			const checkAmbiguity = getStrictness(getOptionValue$1(zipEntry, options, OPTION_STRICTNESS), getOptionValue$1(zipEntry, options, OPTION_CHECK_AMBIGUITY)) == STRICTNESS_STRICT;
 			let rawLocalFilename = EMPTY_UINT8_ARRAY;
 			if (checkAmbiguity && (filenameLength || extraFieldLength)) {
-				const trailingDataArray = await readUint8Array(reader, offset + HEADER_SIZE, filenameLength + extraFieldLength, diskNumberStart);
+				const trailingDataArray = await readUint8Array(reader, localHeaderOffset + HEADER_SIZE, filenameLength + extraFieldLength);
 				rawLocalFilename = trailingDataArray.subarray(0, filenameLength);
 				localDirectory.rawExtraField = trailingDataArray.subarray(filenameLength);
 			} else {
 				localDirectory.rawExtraField = extraFieldLength ?
-					await readUint8Array(reader, offset + HEADER_SIZE + filenameLength, extraFieldLength, diskNumberStart) :
+					await readUint8Array(reader, localHeaderOffset + HEADER_SIZE + filenameLength, extraFieldLength) :
 					EMPTY_UINT8_ARRAY;
 			}
 			readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
@@ -4215,9 +4345,9 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const dataOffset = offset + HEADER_SIZE + filenameLength + extraFieldLength;
+			const dataOffset = localHeaderOffset + HEADER_SIZE + filenameLength + extraFieldLength;
 			const size = compressedSize;
-			const readable = reader.createReadable({ offset: dataOffset, size, diskNumberStart, chunkSize: getChunkSize(config) });
+			const readable = reader.createReadable({ offset: dataOffset, size });
 			const signal = getOptionValue$1(zipEntry, options, OPTION_SIGNAL);
 			const checkPasswordOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_PASSWORD_ONLY);
 			let checkOverlappingEntry = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY);
@@ -4258,8 +4388,7 @@
 					reader,
 					fileEntry,
 					index,
-					offset,
-					diskNumberStart,
+					offset: localHeaderOffset,
 					signature,
 					compressedSize,
 					uncompressedSize,
@@ -4561,7 +4690,6 @@
 		fileEntry,
 		index,
 		offset,
-		diskNumberStart,
 		signature,
 		compressedSize,
 		uncompressedSize,
@@ -4570,12 +4698,6 @@
 		extraFieldZip64,
 		readRanges
 	}) {
-		let diskOffset = 0;
-		if (diskNumberStart && reader.readers) {
-			for (let indexReader = 0; indexReader < Math.min(diskNumberStart, reader.readers.length); indexReader++) {
-				diskOffset += reader.readers[indexReader].size;
-			}
-		}
 		let dataDescriptorLength = 0;
 		if (dataDescriptor) {
 			if (extraFieldZip64) {
@@ -4585,7 +4707,7 @@
 			}
 		}
 		if (dataDescriptorLength) {
-			const dataDescriptorArray = await readUint8Array(reader, dataOffset + compressedSize, dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH, diskNumberStart);
+			const dataDescriptorArray = await readUint8Array(reader, dataOffset + compressedSize, dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH);
 			const dataDescriptorSignature = dataDescriptorArray.length == dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH &&
 				getUint32(getDataView(dataDescriptorArray), 0) == DATA_DESCRIPTOR_RECORD_SIGNATURE;
 			if (dataDescriptorSignature) {
@@ -4608,8 +4730,8 @@
 			}
 		}
 		const range = {
-			start: diskOffset + offset,
-			end: diskOffset + dataOffset + compressedSize + dataDescriptorLength,
+			start: offset,
+			end: dataOffset + compressedSize + dataDescriptorLength,
 			fileEntry
 		};
 		for (const [otherIndex, otherRange] of readRanges) {
@@ -4620,6 +4742,10 @@
 			}
 		}
 		readRanges.set(index, range);
+	}
+
+	function getDiskOffset(reader, diskNumber) {
+		return reader.getDiskOffset ? reader.getDiskOffset(diskNumber) : 0;
 	}
 
 	function getStrictness(strictness, checkAmbiguity) {
@@ -4728,7 +4854,8 @@
 		if (!filesLength && !directoryDataLength) {
 			return CENTRAL_DIRECTORY_PLAUSIBLE;
 		}
-		for (const centralDirectoryOffset of [offset - directoryDataLength, directoryDataOffset]) {
+		const directoryDiskNumber = getUint16(view, indexByte + 6);
+		for (const centralDirectoryOffset of [offset - directoryDataLength, getDiskOffset(reader, directoryDiskNumber) + directoryDataOffset]) {
 			if (await readSignature(reader, view, anchoredOffset, centralDirectoryOffset, size, remoteProbeBudget) == CENTRAL_FILE_HEADER_SIGNATURE) {
 				return CENTRAL_DIRECTORY_REACHABLE;
 			}
@@ -4916,8 +5043,6 @@
 					encrypted,
 					uncompressedSize,
 					compressedSize,
-					diskOffset,
-					diskNumber,
 					zip64
 				} = entry;
 				let {
@@ -4965,8 +5090,9 @@
 				Object.assign(entry, {
 					zip64UncompressedSize,
 					zip64CompressedSize,
-					zip64Offset: zip64 && this.offset - diskOffset >= MAX_32_BITS,
-					zip64DiskNumberStart: zip64 && diskNumber >= MAX_16_BITS,
+					zip64Offset: zip64 && entry.offset >= MAX_32_BITS,
+					diskNumberStart: 0,
+					zip64DiskNumberStart: false,
 					rawExtraFieldZip64,
 					rawExtraFieldAES,
 					rawExtraFieldExtendedTimestamp,
@@ -5665,7 +5791,7 @@
 		}
 		const { writable } = writer;
 		if (reader) {
-			const readable = reader.createReadable ? reader.createReadable({ chunkSize: getChunkSize(config) }) : reader.readable;
+			const readable = reader.createReadable ? reader.createReadable() : reader.readable;
 			const size = reader.size;
 			const workerOptions = {
 				options: {
