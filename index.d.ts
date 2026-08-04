@@ -500,6 +500,16 @@ export class Reader<Type> implements Initializable, ReadableReader {
    */
   init?(): Promise<void>;
   /**
+   * Creates a `ReadableStream` of the data, optionally restricted to a byte range.
+   *
+   * The default implementation reads the data with {@link Reader#readUint8Array}. Custom readers can
+   * override this method to return a stream provided natively by the underlying data source.
+   *
+   * @param options The options.
+   * @returns The `ReadableStream` instance.
+   */
+  createReadable(options?: CreateReadableOptions): ReadableStream<Uint8Array>;
+  /**
    * Reads a chunk of data
    *
    * @param index The byte index of the data to read.
@@ -507,6 +517,28 @@ export class Reader<Type> implements Initializable, ReadableReader {
    * @returns A promise resolving to a chunk of data. The data must be trucated to the remaining size if the requested length is larger than the remaining size.
    */
   readUint8Array(index: number, length: number): Promise<Uint8Array>;
+}
+
+/**
+ * Represents the options passed to {@link Reader#createReadable}.
+ */
+export interface CreateReadableOptions {
+  /**
+   * The byte offset of the start of the range to read.
+   *
+   * @defaultValue 0
+   */
+  offset?: number;
+  /**
+   * The size of the range to read in bytes (until the end of the data by default).
+   */
+  size?: number;
+  /**
+   * The size in bytes of the chunks emitted by the default implementation.
+   *
+   * @defaultValue 65536
+   */
+  chunkSize?: number;
 }
 
 /**
