@@ -201,6 +201,23 @@
 		}
 	}
 
+	function setDefaultConfiguration(configuration) {
+		for (const propertyName of CONFIGURABLE_PROPERTY_NAMES) {
+			const propertyValue = configuration[propertyName];
+			if (propertyValue !== UNDEFINED_VALUE) {
+				DEFAULT_CONFIGURATION[propertyName] = propertyValue;
+			}
+		}
+		configure(configuration);
+	}
+
+	function resetConfiguration() {
+		for (const propertyName of CONFIGURABLE_PROPERTY_NAMES) {
+			delete config[propertyName];
+		}
+		Object.assign(config, DEFAULT_CONFIGURATION);
+	}
+
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
@@ -7089,7 +7106,7 @@
 
 
 	try {
-		configure({ baseURI: (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('zip-core.js', document.baseURI).href)) });
+		setDefaultConfiguration({ baseURI: (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('zip-core.js', document.baseURI).href)) });
 	} catch {
 		// ignored
 	}
@@ -7149,6 +7166,7 @@
 	exports.createOPFSTempStream = createOPFSTempStream;
 	exports.createSyncAccessHandleTempStream = createSyncAccessHandleTempStream;
 	exports.getMimeType = getMimeType;
+	exports.resetConfiguration = resetConfiguration;
 	exports.terminateWorkers = terminateWorkers;
 
 }));

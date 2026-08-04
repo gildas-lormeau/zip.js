@@ -198,6 +198,11 @@ declare class TransformStreamLike {
 export function configure(configuration: Configuration): void;
 
 /**
+ * Restores the default configuration of zip.js
+ */
+export function resetConfiguration(): void;
+
+/**
  * Represents the configuration passed to {@link configure}.
  */
 export interface Configuration extends WorkerConfiguration {
