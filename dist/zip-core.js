@@ -219,6 +219,50 @@
 	}
 
 	/*
+	 Copyright (c) 2026 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	function concat(first, second) {
+		const result = new Uint8Array(first.length + second.length);
+		result.set(first);
+		result.set(second, first.length);
+		return result;
+	}
+
+	function toExactUint8Array(array) {
+		return array.byteOffset || array.byteLength != array.buffer.byteLength ? new Uint8Array(array) : array;
+	}
+
+	function getDataView(array) {
+		return new DataView(array.buffer, array.byteOffset, array.byteLength);
+	}
+
+	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
@@ -1392,7 +1436,7 @@
 							encryptedChunkArray = fromBits(codecBytes, encryptedChunk);
 						}
 						stream.signature = fromBits(codecBytes, hmac.digest()).slice(0, SIGNATURE_LENGTH);
-						controller.enqueue(concat$1(encryptedChunkArray, stream.signature));
+						controller.enqueue(concat(encryptedChunkArray, stream.signature));
 					}
 				}
 			});
@@ -1416,7 +1460,7 @@
 			pending
 		} = aesCrypto;
 		if (pending.length) {
-			input = concat$1(pending, input);
+			input = concat(pending, input);
 		}
 		const inputLength = input.length - paddingEnd;
 		output = expand(output, paddingStart + (inputLength - (inputLength % BLOCK_LENGTH)));
@@ -1447,7 +1491,7 @@
 	async function createEncryptionKeys(encrypt, strength, password) {
 		const salt = getRandomValues(new Uint8Array(SALT_LENGTH[strength]));
 		const passwordVerification = await createKeys$1(encrypt, strength, password, salt);
-		return concat$1(salt, passwordVerification);
+		return concat(salt, passwordVerification);
 	}
 
 	async function createKeys$1(aesCrypto, strength, password, salt) {
@@ -1502,16 +1546,6 @@
 		} else {
 			return rawPassword;
 		}
-	}
-
-	function concat$1(leftArray, rightArray) {
-		let array = leftArray;
-		if (leftArray.length + rightArray.length) {
-			array = new Uint8Array(leftArray.length + rightArray.length);
-			array.set(leftArray, 0);
-			array.set(rightArray, leftArray.length);
-		}
-		return array;
 	}
 
 	function expand(inputArray, length) {
@@ -1802,7 +1836,7 @@
 						chunk.subarray(emitLength - emittedFromTrailer));
 				},
 				flush() {
-					const dataView = new DataView(trailerCandidate.buffer, trailerCandidate.byteOffset, trailerCandidate.byteLength);
+					const dataView = getDataView(trailerCandidate);
 					stream.signature = dataView.getUint32(0, true);
 					stream.uncompressedSize = dataView.getUint32(4, true);
 				}
@@ -1874,13 +1908,6 @@
 			}
 		}
 		return pipeThroughBackpressured(readable, codecStream);
-	}
-
-	function concat(first, second) {
-		const result = new Uint8Array(first.length + second.length);
-		result.set(first);
-		result.set(second, first.length);
-		return result;
 	}
 
 	function pipeThrough(readable, transformStream) {
@@ -2067,10 +2094,7 @@
 
 			function transform(chunk, controller) {
 				if (pendingChunk) {
-					const newChunk = new Uint8Array(pendingChunk.length + chunk.length);
-					newChunk.set(pendingChunk);
-					newChunk.set(chunk, pendingChunk.length);
-					chunk = newChunk;
+					chunk = concat(pendingChunk, chunk);
 					pendingChunk = null;
 				}
 				let offset = 0;
@@ -2459,7 +2483,7 @@
 			const { value, readable, writable } = message;
 			const transferables = [];
 			if (value) {
-				message.value = value.byteOffset || value.byteLength != value.buffer.byteLength ? new Uint8Array(value) : value;
+				message.value = toExactUint8Array(value);
 				transferables.push(message.value.buffer);
 			}
 			if (transferStreams && transferStreamsSupported) {
@@ -2784,8 +2808,7 @@
 					if (!writer.initialized) {
 						throw new Error(ERR_WRITER_NOT_INITIALIZED);
 					}
-					const exactView = !chunk.byteOffset && chunk.byteLength == chunk.buffer.byteLength;
-					return writer.writeUint8Array(exactView ? chunk : new Uint8Array(chunk));
+					return writer.writeUint8Array(toExactUint8Array(chunk));
 				}
 			});
 			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
@@ -3363,14 +3386,9 @@
 					result = await readUint8Array(currentReader, currentReaderOffset, length);
 				} else {
 					const chunkLength = currentReaderSize - currentReaderOffset;
-					result = new Uint8Array(length);
 					const firstPart = await readUint8Array(currentReader, currentReaderOffset, chunkLength);
-					result.set(firstPart, 0);
 					const secondPart = await reader.readUint8Array(offset + chunkLength, length - chunkLength, diskNumber);
-					result.set(secondPart, chunkLength);
-					if (firstPart.length + secondPart.length < length) {
-						result = result.subarray(0, firstPart.length + secondPart.length);
-					}
+					result = concat(firstPart, secondPart);
 				}
 			} else {
 				result = EMPTY_UINT8_ARRAY;
@@ -3892,7 +3910,7 @@
 			const { endOfDirectoryInfo, endOfDirectoryReachingEndCount } = await findEndOfCentralDirectory(reader, rejectAmbiguousEndOfDirectory, maxAppendedDataSize);
 			if (!endOfDirectoryInfo) {
 				const signatureArray = await readUint8Array(reader, 0, 4);
-				const signatureView = getDataView$1(signatureArray);
+				const signatureView = getDataView(signatureArray);
 				if (getUint32(signatureView) == SPLIT_ZIP_FILE_SIGNATURE) {
 					throw new Error(ERR_SPLIT_ZIP_FILE);
 				} else {
@@ -3902,7 +3920,7 @@
 			if (rejectAmbiguousEndOfDirectory && endOfDirectoryReachingEndCount > 1) {
 				throwAmbiguousArchive("multiple end of central directory records");
 			}
-			const endOfDirectoryView = getDataView$1(endOfDirectoryInfo);
+			const endOfDirectoryView = getDataView(endOfDirectoryInfo);
 			let directoryDataLength = getUint32(endOfDirectoryView, 12);
 			let directoryDataOffset = getUint32(endOfDirectoryView, 16);
 			const commentOffset = endOfDirectoryInfo.offset;
@@ -3922,12 +3940,12 @@
 				const endOfDirectoryLocatorArray = endOfDirectoryInfo.offset >= ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH ?
 					await readUint8Array(reader, endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH, ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH) :
 					EMPTY_UINT8_ARRAY;
-				const endOfDirectoryLocatorView = getDataView$1(endOfDirectoryLocatorArray);
+				const endOfDirectoryLocatorView = getDataView(endOfDirectoryLocatorArray);
 				if (endOfDirectoryLocatorArray.length == ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH &&
 					getUint32(endOfDirectoryLocatorView, 0) == ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE) {
 					directoryDataOffset = getBigUint64(endOfDirectoryLocatorView, 8);
 					let endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH, -1);
-					let endOfDirectoryView = getDataView$1(endOfDirectoryArray);
+					let endOfDirectoryView = getDataView(endOfDirectoryArray);
 					const expectedDirectoryDataOffset = endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH - ZIP64_END_OF_CENTRAL_DIR_LENGTH - (reader.lastDiskOffset || 0);
 					if ((endOfDirectoryArray.length < ZIP64_END_OF_CENTRAL_DIR_LENGTH || getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) &&
 						directoryDataOffset != expectedDirectoryDataOffset && expectedDirectoryDataOffset >= 0) {
@@ -3937,7 +3955,7 @@
 							prependedDataLength = directoryDataOffset - originalDirectoryDataOffset;
 						}
 						endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH, -1);
-						endOfDirectoryView = getDataView$1(endOfDirectoryArray);
+						endOfDirectoryView = getDataView(endOfDirectoryArray);
 					}
 					if (endOfDirectoryArray.length < ZIP64_END_OF_CENTRAL_DIR_LENGTH || getUint32(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
 						throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
@@ -3981,7 +3999,7 @@
 			}
 			let offset = 0;
 			let directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength, diskNumber);
-			let directoryView = getDataView$1(directoryArray);
+			let directoryView = getDataView(directoryArray);
 			if (directoryDataLength) {
 				if (directoryArray.length < 4) {
 					throw new Error(ERR_BAD_FORMAT);
@@ -3992,7 +4010,7 @@
 					let reconcile = !storedPointsAtDirectory;
 					if (!reconcile && expectedDirectoryDataOffset >= 0 && expectedDirectoryDataOffset + 4 <= reader.size) {
 						const expectedSignatureArray = await readUint8Array(reader, expectedDirectoryDataOffset, 4, diskNumber);
-						reconcile = getUint32(getDataView$1(expectedSignatureArray), 0) == CENTRAL_FILE_HEADER_SIGNATURE;
+						reconcile = getUint32(getDataView(expectedSignatureArray), 0) == CENTRAL_FILE_HEADER_SIGNATURE;
 					}
 					if (reconcile) {
 						const originalDirectoryDataOffset = directoryDataOffset;
@@ -4001,7 +4019,7 @@
 							prependedDataLength += directoryDataOffset - originalDirectoryDataOffset;
 						}
 						directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength, diskNumber);
-						directoryView = getDataView$1(directoryArray);
+						directoryView = getDataView(directoryArray);
 					}
 				}
 			}
@@ -4009,7 +4027,7 @@
 			if (directoryDataLength != expectedDirectoryDataLength && expectedDirectoryDataLength >= 0 && diskNumber == lastDiskNumber) {
 				directoryDataLength = expectedDirectoryDataLength;
 				directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength, diskNumber);
-				directoryView = getDataView$1(directoryArray);
+				directoryView = getDataView(directoryArray);
 			}
 			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
 				throw new Error(ERR_BAD_FORMAT);
@@ -4237,7 +4255,7 @@
 			} = bitFlag;
 			const localDirectory = fileEntry.localDirectory = {};
 			const dataArray = await readUint8Array(reader, offset, HEADER_SIZE, diskNumberStart);
-			const dataView = getDataView$1(dataArray);
+			const dataView = getDataView(dataArray);
 			let password = getOptionValue$1(zipEntry, options, OPTION_PASSWORD);
 			let rawPassword = getOptionValue$1(zipEntry, options, OPTION_RAW_PASSWORD);
 			const passThrough = getOptionValue$1(zipEntry, options, OPTION_PASS_THROUGH);
@@ -4401,7 +4419,7 @@
 	function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory) {
 		const { rawExtraField } = directory;
 		const extraField = directory.extraField = new Map();
-		const rawExtraFieldView = getDataView$1(rawExtraField);
+		const rawExtraFieldView = getDataView(rawExtraField);
 		let offsetExtraField = 0;
 		try {
 			while (offsetExtraField < rawExtraField.length) {
@@ -4473,7 +4491,7 @@
 
 	function readExtraFieldZip64(extraFieldZip64, directory) {
 		directory.zip64 = true;
-		const extraFieldView = getDataView$1(extraFieldZip64.data);
+		const extraFieldView = getDataView(extraFieldZip64.data);
 		const missingProperties = ZIP64_PROPERTIES.filter(([propertyName, max]) => directory[propertyName] == max);
 		const requiredLength = missingProperties.reduce((length, [, max]) => length + ZIP64_EXTRACTION[max].bytes, 0);
 		if (extraFieldZip64.data.length < requiredLength) {
@@ -4492,10 +4510,10 @@
 			extraFieldUnicode.valid = false;
 			return;
 		}
-		const extraFieldView = getDataView$1(extraFieldUnicode.data);
+		const extraFieldView = getDataView(extraFieldUnicode.data);
 		const crc32 = new Crc32();
 		crc32.append(fileEntry[rawPropertyName]);
-		const dataViewSignature = getDataView$1(new Uint8Array(4));
+		const dataViewSignature = getDataView(new Uint8Array(4));
 		dataViewSignature.setUint32(0, crc32.get(), true);
 		const signature = getUint32(extraFieldView, 1);
 		Object.assign(extraFieldUnicode, {
@@ -4510,7 +4528,7 @@
 	}
 
 	function readExtraFieldAES(extraFieldAES, directory, compressionMethod) {
-		const extraFieldView = getDataView$1(extraFieldAES.data);
+		const extraFieldView = getDataView(extraFieldAES.data);
 		const strength = getUint8(extraFieldView, 4);
 		Object.assign(extraFieldAES, {
 			vendorVersion: getUint8(extraFieldView, 0),
@@ -4523,7 +4541,7 @@
 	}
 
 	function readExtraFieldNTFS(extraFieldNTFS, directory) {
-		const extraFieldView = getDataView$1(extraFieldNTFS.data);
+		const extraFieldView = getDataView(extraFieldNTFS.data);
 		let offsetExtraField = 4;
 		let tag1Data;
 		try {
@@ -4540,7 +4558,7 @@
 		}
 		try {
 			if (tag1Data && tag1Data.length == 24) {
-				const tag1View = getDataView$1(tag1Data);
+				const tag1View = getDataView(tag1Data);
 				const rawLastModDate = tag1View.getBigUint64(0, true);
 				const rawLastAccessDate = tag1View.getBigUint64(8, true);
 				const rawCreationDate = tag1View.getBigUint64(16, true);
@@ -4563,7 +4581,7 @@
 
 	function readExtraFieldUnix(extraField, directory, isInfoZip) {
 		try {
-			const view = getDataView$1(extraField.data);
+			const view = getDataView(extraField.data);
 			let uid, gid;
 			if (isInfoZip) {
 				let offset = 0;
@@ -4601,7 +4619,7 @@
 		if (!extraFieldExtendedTimestamp.data.length) {
 			return;
 		}
-		const extraFieldView = getDataView$1(extraFieldExtendedTimestamp.data);
+		const extraFieldView = getDataView(extraFieldExtendedTimestamp.data);
 		const flags = getUint8(extraFieldView, 0);
 		const timeProperties = [];
 		const timeRawProperties = [];
@@ -4665,17 +4683,17 @@
 		if (dataDescriptorLength) {
 			const dataDescriptorArray = await readUint8Array(reader, dataOffset + compressedSize, dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH, diskNumberStart);
 			const dataDescriptorSignature = dataDescriptorArray.length == dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH &&
-				getUint32(getDataView$1(dataDescriptorArray), 0) == DATA_DESCRIPTOR_RECORD_SIGNATURE;
+				getUint32(getDataView(dataDescriptorArray), 0) == DATA_DESCRIPTOR_RECORD_SIGNATURE;
 			if (dataDescriptorSignature) {
-				const readSignature = getUint32(getDataView$1(dataDescriptorArray), 4);
+				const readSignature = getUint32(getDataView(dataDescriptorArray), 4);
 				let readCompressedSize;
 				let readUncompressedSize;
 				if (extraFieldZip64) {
-					readCompressedSize = getBigUint64(getDataView$1(dataDescriptorArray), 8);
-					readUncompressedSize = getBigUint64(getDataView$1(dataDescriptorArray), 16);
+					readCompressedSize = getBigUint64(getDataView(dataDescriptorArray), 8);
+					readUncompressedSize = getBigUint64(getDataView(dataDescriptorArray), 16);
 				} else {
-					readCompressedSize = getUint32(getDataView$1(dataDescriptorArray), 8);
-					readUncompressedSize = getUint32(getDataView$1(dataDescriptorArray), 12);
+					readCompressedSize = getUint32(getDataView(dataDescriptorArray), 8);
+					readUncompressedSize = getUint32(getDataView(dataDescriptorArray), 12);
 				}
 				const matchSignature = (fileEntry.encrypted && !fileEntry.zipCrypto) || readSignature == signature;
 				if (matchSignature &&
@@ -4783,7 +4801,7 @@
 	async function* scanEndOfCentralDirectory(reader, scanLength) {
 		const scanOffset = reader.size - scanLength;
 		const scanArray = await readUint8Array(reader, scanOffset, scanLength);
-		const scanView = getDataView$1(scanArray);
+		const scanView = getDataView(scanArray);
 		for (let indexByte = scanArray.length - END_OF_CENTRAL_DIR_LENGTH; indexByte >= 0; indexByte--) {
 			if (getUint32(scanView, indexByte) == END_OF_CENTRAL_DIR_SIGNATURE) {
 				yield [scanView, scanOffset, scanArray, indexByte, scanOffset + indexByte];
@@ -4824,7 +4842,7 @@
 		if (remoteProbeBudget.count > 0) {
 			remoteProbeBudget.count--;
 			const signatureArray = await readUint8Array(reader, signatureOffset, 4);
-			return getUint32(getDataView$1(signatureArray), 0);
+			return getUint32(getDataView(signatureArray), 0);
 		}
 		return UNDEFINED_VALUE;
 	}
@@ -4887,10 +4905,6 @@
 
 	function getBigUint64(view, offset) {
 		return Number(view.getBigUint64(offset, true));
-	}
-
-	function getDataView$1(array) {
-		return new DataView(array.buffer, array.byteOffset, array.byteLength);
 	}
 
 	/*
@@ -6563,9 +6577,6 @@
 		array.set(typedArray, offset);
 	}
 
-	function getDataView(array) {
-		return new DataView(array.buffer, array.byteOffset, array.byteLength);
-	}
 
 	function getLength(...arrayLikes) {
 		let result = 0;
