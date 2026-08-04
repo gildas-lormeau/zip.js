@@ -809,6 +809,10 @@ export class SplitDataWriter implements Initializable, WritableWriter {
    */
   init(): Promise<void>;
   /**
+   * Closes the disk being written, the next disk being opened when more data is written
+   */
+  closeDisk(): Promise<void>;
+  /**
    * Creates the {@link SplitDataWriter} instance
    *
    * @param writerGenerator A generator of Writer instances.
