@@ -11,6 +11,7 @@ export { test };
 async function test() {
 	await testSplitDataWriterExactFill();
 	await testSplitDataWriterEmpty();
+	await testSplitStateNotLeakedOnWriters();
 	await testHttpReaderIgnoredRangeRequest();
 }
 
@@ -38,6 +39,27 @@ async function testSplitDataWriterEmpty() {
 	await splitDataWriter.init();
 	await splitDataWriter.writable.getWriter().close();
 	if (writers.length != 0) {
+		throw new Error();
+	}
+}
+
+// internal split bookkeeping must not be stamped onto user-provided writers,
+// neither by ZipWriter nor by Entry#getData
+async function testSplitStateNotLeakedOnWriters() {
+	const SPLIT_STATE_PROPERTY_NAMES = ["diskNumber", "diskOffset", "availableSize", "maxSize"];
+	const blobWriter = new zip.BlobWriter("application/zip");
+	const zipWriter = new zip.ZipWriter(blobWriter);
+	await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT));
+	await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
+	const entries = await zipReader.getEntries();
+	const textWriter = new zip.TextWriter();
+	const text = await entries[0].getData(textWriter);
+	await zipReader.close();
+	await zip.terminateWorkers();
+	if (text != TEXT_CONTENT ||
+		SPLIT_STATE_PROPERTY_NAMES.some(name => name in blobWriter) ||
+		SPLIT_STATE_PROPERTY_NAMES.some(name => name in textWriter)) {
 		throw new Error();
 	}
 }
