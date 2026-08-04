@@ -11,6 +11,7 @@ export { test };
 async function test() {
 	await testSplitDataWriterExactFill();
 	await testSplitDataWriterEmpty();
+	await testSplitDataWriterCloseDisk();
 	await testSplitStateNotLeakedOnWriters();
 	await testHttpReaderIgnoredRangeRequest();
 }
@@ -39,6 +40,30 @@ async function testSplitDataWriterEmpty() {
 	await splitDataWriter.init();
 	await splitDataWriter.writable.getWriter().close();
 	if (writers.length != 0) {
+		throw new Error();
+	}
+}
+
+// closeDisk() must end the disk being written after the pending data, open the
+// next disk lazily when more data arrives, and be a no-op when no disk is open
+async function testSplitDataWriterCloseDisk() {
+	const writers = [];
+	const splitDataWriter = new zip.SplitDataWriter(blobWriterGenerator(writers, 2), SEGMENT_SIZE);
+	await splitDataWriter.init();
+	const firstDiskWriter = splitDataWriter.writable.getWriter();
+	await firstDiskWriter.write(new Uint8Array(10).fill(1));
+	firstDiskWriter.releaseLock();
+	await splitDataWriter.closeDisk();
+	await splitDataWriter.closeDisk();
+	if (writers.length != 1 || splitDataWriter.diskNumber != 1 || splitDataWriter.availableSize != SEGMENT_SIZE) {
+		throw new Error();
+	}
+	const secondDiskWriter = splitDataWriter.writable.getWriter();
+	await secondDiskWriter.write(new Uint8Array(20).fill(2));
+	await secondDiskWriter.close();
+	const blobs = await Promise.all(writers.map(writer => writer.getData()));
+	if (writers.length != 2 || splitDataWriter.diskNumber != 1 ||
+		blobs[0].size != 10 || blobs[1].size != 20) {
 		throw new Error();
 	}
 }
