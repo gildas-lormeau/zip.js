@@ -3,6 +3,7 @@ import { setMaxListeners } from "node:events";
 import { openAsBlob } from "node:fs";
 
 import tests from "./tests-data.js";
+import { resetConfiguration } from "./zip-lib.js";
 
 setMaxListeners(100);
 
@@ -19,7 +20,13 @@ for (const testData of tests) {
 	if (!testData.env || testData.env.includes("node")) {
 		test({
 			name: testData.title,
-			fn: async () => (await import("./all/" + testData.script)).test()
+			fn: async () => {
+				try {
+					await (await import("./all/" + testData.script)).test();
+				} finally {
+					resetConfiguration();
+				}
+			}
 		});
 	}
 }

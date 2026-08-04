@@ -70,7 +70,6 @@ async function test() {
 			await zipReader.close();
 		}
 	} finally {
-		zip.configure({ useWebWorkers: true });
 		await zip.terminateWorkers();
 	}
 }

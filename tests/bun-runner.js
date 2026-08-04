@@ -3,6 +3,7 @@
 import { test, beforeEach } from "bun:test";
 
 import tests from "./tests-data.js";
+import { resetConfiguration } from "./zip-lib.js";
 
 beforeEach(() => globalThis.fetch = async url => {
 	const file = await Bun.file("." + url.toString().match(/(\/data\/.*)/)[1]);
@@ -15,6 +16,12 @@ beforeEach(() => globalThis.fetch = async url => {
 
 for (const testData of tests) {
 	if (!testData.env || testData.env.includes("bun")) {
-		test(testData.title, async () => (await import("./all/" + testData.script)).test());
+		test(testData.title, async () => {
+			try {
+				await (await import("./all/" + testData.script)).test();
+			} finally {
+				resetConfiguration();
+			}
+		});
 	}
 }
