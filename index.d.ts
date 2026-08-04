@@ -534,9 +534,8 @@ export interface CreateReadableOptions {
    */
   size?: number;
   /**
-   * The size in bytes of the chunks emitted by the default implementation.
-   *
-   * @defaultValue 65536
+   * The size in bytes of the chunks emitted by the default implementation (the `chunkSize` value
+   * of the global configuration by default).
    */
   chunkSize?: number;
 }
