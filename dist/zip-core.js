@@ -162,6 +162,7 @@
 		workerStarvationTimeout: 5000,
 		useWebWorkers: true,
 		useCompressionStream: true,
+		transferStreams: true,
 		CompressionStream: typeof CompressionStream != UNDEFINED_TYPE && CompressionStream,
 		DecompressionStream: typeof DecompressionStream != UNDEFINED_TYPE && DecompressionStream
 	};
@@ -176,6 +177,7 @@
 		"workerStarvationTimeout",
 		"useCompressionStream",
 		"useWebWorkers",
+		"transferStreams",
 		"CompressionStream",
 		"DecompressionStream",
 		"CompressionStreamZlib",
@@ -2607,7 +2609,7 @@
 		const { options, config } = workerOptions;
 		const { transferStreams, useWebWorkers, useCompressionStream, compressed, signed, encrypted } = options;
 		const { workerURI, maxWorkers } = config;
-		workerOptions.transferStreams = transferStreams || transferStreams === UNDEFINED_VALUE;
+		workerOptions.transferStreams = transferStreams || (transferStreams === UNDEFINED_VALUE && config.transferStreams);
 		const streamCopy = !compressed && !signed && !encrypted;
 		workerOptions.useWebWorkers = !streamCopy && (useWebWorkers || (useWebWorkers === UNDEFINED_VALUE && config.useWebWorkers));
 		workerOptions.workerURI = workerOptions.useWebWorkers && workerURI ? workerURI : UNDEFINED_VALUE;
@@ -5406,7 +5408,7 @@
 		const extendedTimestamp = getOptionValue(zipWriter, options, OPTION_EXTENDED_TIMESTAMP, true);
 		const keepOrder = getOptionValue(zipWriter, options, OPTION_KEEP_ORDER, true);
 		const useWebWorkers = getOptionValue(zipWriter, options, OPTION_USE_WEB_WORKERS);
-		const transferStreams = getOptionValue(zipWriter, options, OPTION_TRANSFER_STREAMS, true);
+		const transferStreams = getOptionValue(zipWriter, options, OPTION_TRANSFER_STREAMS);
 		const bufferedWrite = getOptionValue(zipWriter, options, OPTION_BUFFERED_WRITE);
 		const createTempStream = getOptionValue(zipWriter, options, OPTION_CREATE_TEMP_STREAM);
 		const dataDescriptorSignature = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR_SIGNATURE, true);
