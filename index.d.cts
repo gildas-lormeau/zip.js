@@ -662,6 +662,14 @@ export interface HttpRangeOptions {
    * @defaultValue true
    */
   checkResourceChanges?: boolean;
+  /**
+   * The maximum size in bytes of the range requests sent to read the data of an entry. The data is
+   * read with as many range requests as necessary, each response body being streamed, so that the
+   * size of a request never depends on the size of the entry.
+   *
+   * @defaultValue 16777216
+   */
+  maximumRangeSize?: number;
 }
 
 /**

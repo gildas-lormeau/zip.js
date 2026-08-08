@@ -268,7 +268,7 @@
 	const HTTP_METHOD_GET = "GET";
 	const HTTP_RANGE_UNIT = "bytes";
 	const DEFAULT_BUFFER_SIZE = 256 * 1024;
-	const MAXIMUM_RANGE_REQUEST_SIZE = 16 * 1024 * 1024;
+	const DEFAULT_MAXIMUM_RANGE_SIZE = 16 * 1024 * 1024;
 
 	const PROPERTY_NAME_WRITABLE = "writable";
 	const DISK_BOUNDARY = Symbol();
@@ -581,6 +581,7 @@
 			forceRangeRequests,
 			combineSizeEocd,
 			checkResourceChanges = true,
+			maximumRangeSize = DEFAULT_MAXIMUM_RANGE_SIZE,
 			fetch
 		} = options;
 		options = Object.assign({}, options);
@@ -589,6 +590,7 @@
 		delete options.forceRangeRequests;
 		delete options.combineSizeEocd;
 		delete options.checkResourceChanges;
+		delete options.maximumRangeSize;
 		delete options.useXHR;
 		delete options.fetch;
 		Object.assign(httpReader, {
@@ -599,6 +601,7 @@
 			forceRangeRequests,
 			combineSizeEocd,
 			checkResourceChanges,
+			maximumRangeSize,
 			fetch
 		});
 	}
@@ -718,7 +721,7 @@
 		});
 
 		async function openWindow() {
-			const windowLength = Math.min(MAXIMUM_RANGE_REQUEST_SIZE, remainingLength);
+			const windowLength = Math.min(httpReader.maximumRangeSize, remainingLength);
 			const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, windowOffset, windowLength));
 			if (response.status != 206) {
 				throw new Error(ERR_HTTP_RANGE);
