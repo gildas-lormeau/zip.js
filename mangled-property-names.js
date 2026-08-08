@@ -32,6 +32,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"busy",
 	"calculate",
 	"clamp",
+	"codecVersionNeeded",
 	"commentLength",
 	"crc",
 	"crcKey0",
