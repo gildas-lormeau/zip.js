@@ -96,6 +96,12 @@
 				</ul>
 			</li>
 		</ul>
+		<p><strong>Note:</strong> <code>import * as zip</code> imports the whole library. Import named identifiers
+			instead, e.g. <code>import { ZipReader, BlobReader, TextWriter } from "@zip.js/zip.js";</code>, to let your
+			bundler remove the code you do not use, e.g. the whole write path if you only read zip files. See the
+			<a href="https://github.com/gildas-lormeau/zip.js#bundle-size">Bundle size</a> section for the measured
+			sizes and the smaller entry points.
+		</p>
 		<p>You can also install manually the library by adding <code>zip.min.js</code> from the
 			<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
 			directory in your project. Then, include <code>zip.min.js</code>in your HTML page:
