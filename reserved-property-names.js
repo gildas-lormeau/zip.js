@@ -10,9 +10,12 @@ const WORKER_BOUNDARY_PROPERTY_NAMES = ["codecType", "config", "salt", "iteratio
 
 const AUDITED_KEEP_PROPERTY_NAMES = ["instance", "zip"];
 
+const HOST_API_PROPERTY_NAMES_MISSING_FROM_DOMPROPS = ["createSyncAccessHandle"];
+
 export {
 	WORKER_BOUNDARY_PROPERTY_NAMES,
 	AUDITED_KEEP_PROPERTY_NAMES,
+	HOST_API_PROPERTY_NAMES_MISSING_FROM_DOMPROPS,
 	collectDeclarationNames,
 	getReservedPropertyNames
 };
@@ -23,6 +26,9 @@ function getReservedPropertyNames() {
 		names.add(name);
 	}
 	for (const name of AUDITED_KEEP_PROPERTY_NAMES) {
+		names.add(name);
+	}
+	for (const name of HOST_API_PROPERTY_NAMES_MISSING_FROM_DOMPROPS) {
 		names.add(name);
 	}
 	for (const name of domprops) {
