@@ -1,6 +1,6 @@
 {
 	"name": "@zip-js/zip-js",
-	"version": "2.8.35",
+	"version": "2.8.36",
 	"exports": {
 		".": "./index.js"
 	},
