@@ -264,6 +264,7 @@
         const directionRadios = document.querySelectorAll('input[name="direction"]');
         const directionWrapper = document.getElementById('directionWrapper');
         const sources = new Map();
+        const PACKAGE_URL = 'https://unpkg.com/@zip.js/zip.js';
 
         let buildResult = '';
 
@@ -303,6 +304,10 @@
             }
             return sources.get(url);
         };
+
+        // The version is resolved once and then used for every fetch, so that a build cannot mix
+        // sources coming from different versions.
+        const getPackageVersion = async () => JSON.parse(await fetchSource(`${PACKAGE_URL}/package.json`)).version;
 
         // Names re-exported by zip-core-base.js which belong to neither ZipReader nor ZipWriter
         // (readers, writers, configuration, etc.). ZipReader and ZipWriter are re-exported there
@@ -350,9 +355,11 @@ export { ZipReader };
 
             try {
                 // 1. Determine Virtual Entry Point Content
-                const baseUrl = 'https://unpkg.com/@zip.js/zip.js@2.8.21/lib/';
+                const version = await getPackageVersion();
+                const baseUrl = `${PACKAGE_URL}@${version}/lib/`;
                 let entryCode = `/*
     zip.js customized build
+    Version: ${version}
     API: ${direction}
     Workers: ${useWorkers}
     Compression: ${comp}
@@ -443,11 +450,10 @@ export { ZipReader };
                     name: 'zip',
                     noConflict: false,
                     intro: format === 'umd' ? GLOBALS : '',
-                    banner: `/* 
+                    banner: `/*
  * zip.js - customized build (https://github.com/gildas-lormeau/zip.js)
- * Version: 2.8.21
+ * Version: ${version}
  * License: BSD-3-Clause
- * Date: ${new Date().toISOString()}
  * Options: API=${direction}, Workers=${useWorkers}, Comp=${comp}, FS=${useFS}
  */`
                 });
@@ -484,7 +490,7 @@ export { ZipReader };
 
                 output.value = buildResult;
                 if (!status.textContent.startsWith('⚠️')) {
-                    status.textContent = '✅ Build Complete!';
+                    status.textContent = `✅ Build Complete! (zip.js ${version})`;
                 }
                 downloadBtn.style.display = 'inline-block';
 
