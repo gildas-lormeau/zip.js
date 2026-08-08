@@ -2083,7 +2083,7 @@
 		constructor(chunkSize) {
 			const pendingChunks = [];
 			let pendingLength = 0;
-			if (!(chunkSize >= 1)) {
+			if (!Number.isFinite(chunkSize) || chunkSize < 1) {
 				chunkSize = DEFAULT_CHUNK_SIZE;
 			}
 			super({
