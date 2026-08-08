@@ -4951,6 +4951,27 @@
 		return Number(view.getBigUint64(offset, true));
 	}
 
+	var zipReader = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		ERR_AMBIGUOUS_ARCHIVE: ERR_AMBIGUOUS_ARCHIVE,
+		ERR_BAD_FORMAT: ERR_BAD_FORMAT,
+		ERR_CENTRAL_DIRECTORY_NOT_FOUND: ERR_CENTRAL_DIRECTORY_NOT_FOUND,
+		ERR_ENCRYPTED: ERR_ENCRYPTED,
+		ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND: ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND,
+		ERR_EOCDR_NOT_FOUND: ERR_EOCDR_NOT_FOUND,
+		ERR_EXTRAFIELD_ZIP64_NOT_FOUND: ERR_EXTRAFIELD_ZIP64_NOT_FOUND,
+		ERR_INVALID_COMPRESSED_DATA: ERR_INVALID_COMPRESSED_DATA,
+		ERR_INVALID_PASSWORD: ERR_INVALID_PASSWORD,
+		ERR_INVALID_SIGNATURE: ERR_INVALID_SIGNATURE,
+		ERR_INVALID_UNCOMPRESSED_SIZE: ERR_INVALID_UNCOMPRESSED_SIZE,
+		ERR_LOCAL_FILE_HEADER_NOT_FOUND: ERR_LOCAL_FILE_HEADER_NOT_FOUND,
+		ERR_OVERLAPPING_ENTRY: ERR_OVERLAPPING_ENTRY,
+		ERR_SPLIT_ZIP_FILE: ERR_SPLIT_ZIP_FILE,
+		ERR_UNSUPPORTED_COMPRESSION: ERR_UNSUPPORTED_COMPRESSION$1,
+		ERR_UNSUPPORTED_ENCRYPTION: ERR_UNSUPPORTED_ENCRYPTION,
+		ZipReader: ZipReader
+	});
+
 	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
@@ -5039,9 +5060,10 @@
 			}
 			reader = new GenericReader(reader);
 			await initStream(reader);
-			const zipReader = new ZipReader(reader.readable);
-			const entries = await zipReader.getEntries();
-			await zipReader.close();
+			const { ZipReader } = await Promise.resolve().then(function () { return zipReader; });
+			const zipReader$1 = new ZipReader(reader.readable);
+			const entries = await zipReader$1.getEntries();
+			await zipReader$1.close();
 			await initStream(this.writer);
 			await reader.readable.pipeTo(this.writer.writable, { preventClose: true, preventAbort: true });
 			this.writer.size = this.offset = reader.size;
