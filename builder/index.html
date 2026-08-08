@@ -264,7 +264,10 @@
         const directionRadios = document.querySelectorAll('input[name="direction"]');
         const directionWrapper = document.getElementById('directionWrapper');
         const sources = new Map();
-        const PACKAGE_URL = 'https://unpkg.com/@zip.js/zip.js';
+        // the modules are read from the package downloaded once from the registry, these ids are
+        // never fetched: they only give Rollup absolute ids to resolve relative imports against
+        const PACKAGE_URL = 'https://npm.invalid/@zip.js/zip.js';
+        const REGISTRY_URL = 'https://registry.npmjs.org/@zip.js/zip.js';
 
         let buildResult = '';
 
@@ -295,25 +298,68 @@
         useFSCheckbox.onchange = updateUI;
         updateUI();
 
-        const fetchSource = async (url) => {
+        const getSource = (url) => {
             if (!sources.has(url)) {
-                console.log(`Fetching: ${url}`);
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Could not fetch ${url}`);
-                sources.set(url, await response.text());
+                throw new Error(`Could not find ${url} in the package`);
             }
             return sources.get(url);
         };
 
-        // The version is resolved once and then used for every fetch, so that a build cannot mix
-        // sources coming from different versions.
-        const getPackageVersion = async () => JSON.parse(await fetchSource(`${PACKAGE_URL}/package.json`)).version;
+        const readTarEntries = (data) => {
+            const entries = new Map();
+            const decoder = new TextDecoder();
+            const readString = (offset, length) => decoder.decode(data.subarray(offset, offset + length)).replace(/\0.*$/, '');
+            let offset = 0;
+            let pendingName;
+            while (offset + 512 <= data.length) {
+                const name = readString(offset, 100);
+                const size = parseInt(readString(offset + 124, 12).trim(), 8) || 0;
+                const type = readString(offset + 156, 1);
+                const contentOffset = offset + 512;
+                offset = contentOffset + Math.ceil(size / 512) * 512;
+                if (!name) {
+                    continue;
+                }
+                const content = data.subarray(contentOffset, contentOffset + size);
+                if (type == 'L') {
+                    pendingName = decoder.decode(content).replace(/\0.*$/, '');
+                } else if (type == 'x' || type == 'g') {
+                    const record = decoder.decode(content).match(/\d+ path=(.*)\n/);
+                    if (record) {
+                        pendingName = record[1];
+                    }
+                } else {
+                    if (type == '0' || type == '') {
+                        entries.set(pendingName || name, decoder.decode(content));
+                    }
+                    pendingName = undefined;
+                }
+            }
+            return entries;
+        };
+
+        // The whole package is downloaded once instead of fetching every module separately: a build
+        // used to send one request per module, i.e. more than 50 requests, which the CDN throttled.
+        // The version comes from the same manifest as the tarball, so a build cannot mix sources
+        // coming from different versions.
+        const loadPackage = async () => {
+            const manifest = await (await fetch(`${REGISTRY_URL}/latest`)).json();
+            const { version, dist: { tarball } } = manifest;
+            const response = await fetch(tarball);
+            if (!response.ok) throw new Error(`Could not fetch ${tarball}`);
+            const data = new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+            const packageUrl = `${PACKAGE_URL}@${version}/`;
+            for (const [name, content] of readTarEntries(data)) {
+                sources.set(packageUrl + name.replace(/^[^/]+\//, ''), content);
+            }
+            return { version, baseUrl: `${packageUrl}lib/` };
+        };
 
         // Names re-exported by zip-core-base.js which belong to neither ZipReader nor ZipWriter
         // (readers, writers, configuration, etc.). ZipReader and ZipWriter are re-exported there
         // with `export *`, so the named blocks are exactly the part both directions need.
-        const getSharedExports = async (baseUrl) => {
-            const source = await fetchSource(`${baseUrl}zip-core-base.js`);
+        const getSharedExports = (baseUrl) => {
+            const source = getSource(`${baseUrl}zip-core-base.js`);
             const names = [];
             for (const [, block] of source.matchAll(/export\s*\{([^}]*)\}\s*from/g)) {
                 block.split(',').forEach(specifier => {
@@ -349,14 +395,13 @@ export { ZipReader };
             const useFallback = !useWorkers || useFallbackCheckbox.checked;
 
             buildBtn.disabled = true;
-            status.textContent = 'Building... Fetching sources from unpkg...';
+            status.textContent = 'Building... Downloading the package from the npm registry...';
             output.value = '';
             downloadBtn.style.display = 'none';
 
             try {
                 // 1. Determine Virtual Entry Point Content
-                const version = await getPackageVersion();
-                const baseUrl = `${PACKAGE_URL}@${version}/lib/`;
+                const { version, baseUrl } = await loadPackage();
                 let entryCode = `/*
     zip.js customized build
     Version: ${version}
@@ -379,7 +424,7 @@ export { ZipReader };
                         return `export * from "${baseUrl}zip-core-base.js";\n`;
                     } else {
                         return `export * from "${baseUrl}zip-core-${direction}.js";\n` +
-                            `export { ${await getSharedExports(baseUrl)} } from "${baseUrl}zip-core-base.js";\n`;
+                            `export { ${getSharedExports(baseUrl)} } from "${baseUrl}zip-core-base.js";\n`;
                     }
                 };
 
@@ -417,9 +462,9 @@ export { ZipReader };
                     entryCode += `export * from "${baseUrl}core/zip-fs.js";\n`;
                 }
 
-                // 2. Setup Rollup Plugin for unpkg
-                const unpkgPlugin = {
-                    name: 'unpkg-plugin',
+                // 2. Setup Rollup Plugin reading the modules of the downloaded package
+                const packagePlugin = {
+                    name: 'package-plugin',
                     resolveId(source, importer) {
                         if (source === 'virtual-entry') return source;
                         if (source.startsWith('./') || source.startsWith('../')) {
@@ -435,14 +480,14 @@ export { ZipReader };
                     async load(id) {
                         if (id === 'virtual-entry') return entryCode;
                         if (direction === 'writer' && id.endsWith('core/zip-reader.js')) return ZIP_READER_STUB;
-                        return await fetchSource(id);
+                        return getSource(id);
                     }
                 };
 
                 // 3. Run Rollup
                 const bundle = await rollup.rollup({
                     input: 'virtual-entry',
-                    plugins: [unpkgPlugin]
+                    plugins: [packagePlugin]
                 });
 
                 const { output: bundleOutput } = await bundle.generate({
