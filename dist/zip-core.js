@@ -184,7 +184,7 @@
 		"DecompressionStreamZlib"
 	];
 
-	const config = Object.assign({}, DEFAULT_CONFIGURATION);
+	const config = { ...DEFAULT_CONFIGURATION };
 
 	function getConfiguration() {
 		return config;

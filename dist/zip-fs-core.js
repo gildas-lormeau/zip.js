@@ -166,7 +166,7 @@
 		DecompressionStream: typeof DecompressionStream != UNDEFINED_TYPE && DecompressionStream
 	};
 
-	const config = Object.assign({}, DEFAULT_CONFIGURATION);
+	const config = { ...DEFAULT_CONFIGURATION };
 
 	function getConfiguration() {
 		return config;
