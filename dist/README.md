@@ -2,6 +2,8 @@
 
 **Note**: These bundles are not ES module compatible (you cannot `import` them directly). Use `index.js` at the project root or one of the `zip-*.js` files in [`/lib`](../lib) (e.g. `/lib/zip-core.js`) for ESM usage.
 
+**Note**: These bundles are standalone and always contain both `ZipReader` and `ZipWriter`, they are not tree-shaken. With a bundler, importing named identifiers from `index.js` already removes the direction you do not use.
+
 Contents:
 
 - `zip.js` / `zip.min.js`: Full `ZipWriter` / `ZipReader` bundles with embedded Web Worker code and WASM.
