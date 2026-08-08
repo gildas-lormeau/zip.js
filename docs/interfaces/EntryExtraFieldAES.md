@@ -6,7 +6,7 @@
 
 # Interface: EntryExtraFieldAES
 
-Defined in: [index.d.ts:1172](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1172)
+Defined in: [index.d.ts:1180](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1180)
 
 Represents the AES extra field record of an entry.
 
@@ -20,7 +20,7 @@ Represents the AES extra field record of an entry.
 
 > **data**: `Uint8Array`
 
-Defined in: [index.d.ts:1167](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1167)
+Defined in: [index.d.ts:1175](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1175)
 
 The data of the extra field.
 
@@ -34,7 +34,7 @@ The data of the extra field.
 
 > `optional` **originalCompressionMethod?**: `number`
 
-Defined in: [index.d.ts:1180](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1180)
+Defined in: [index.d.ts:1188](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1188)
 
 The compression method stored in the AES extra field.
 
@@ -44,7 +44,7 @@ The compression method stored in the AES extra field.
 
 > `optional` **strength?**: `number`
 
-Defined in: [index.d.ts:1176](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1176)
+Defined in: [index.d.ts:1184](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1184)
 
 The encryption strength (1, 2 or 3).
 
@@ -54,7 +54,7 @@ The encryption strength (1, 2 or 3).
 
 > **type**: `number`
 
-Defined in: [index.d.ts:1163](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1163)
+Defined in: [index.d.ts:1171](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1171)
 
 The type (header id) of the extra field.
 

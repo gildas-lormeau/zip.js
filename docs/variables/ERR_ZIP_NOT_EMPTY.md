@@ -8,6 +8,6 @@
 
 > `const` **ERR\_ZIP\_NOT\_EMPTY**: `string`
 
-Defined in: [index.d.ts:2906](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L2906)
+Defined in: [index.d.ts:2914](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L2914)
 
 Zip file not empty error
