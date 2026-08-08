@@ -1,7 +1,6 @@
 /* global URL, setTimeout, clearTimeout */
 
 import * as zip from "../zip-lib.js";
-import { getConfiguration } from "../../lib/core/configuration.js";
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.";
 const FILENAME = "lorem.txt";
@@ -18,7 +17,6 @@ async function test() {
 	await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT));
 	await zipWriter.close();
 	const blob = await blobWriter.getData();
-	const { workerURI } = getConfiguration();
 	try {
 		// a worker script that fails to run must make the operation fail
 		// (or run inline without workers) instead of hanging forever
@@ -34,7 +32,7 @@ async function test() {
 		}
 	} finally {
 		await zip.terminateWorkers();
-		zip.configure({ workerURI });
+		zip.resetConfiguration();
 	}
 	// the restored worker configuration must be effective
 	const text = await readEntry(blob);

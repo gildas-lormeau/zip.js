@@ -5,8 +5,9 @@
 // to the native CompressionStream, silently discarding the explicitly provided JS codec. It must now
 // keep that codec, because — unlike the WASM codec — it does not depend on the module.
 
+/* global CompressionStream, DecompressionStream */
+
 import * as zip from "../zip-lib.js";
-import { getConfiguration } from "../../lib/core/configuration.js";
 import {
 	CompressionStreamZlib as JsDeflate,
 	DecompressionStreamZlib as JsInflate
@@ -17,12 +18,11 @@ const CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. ".rep
 export { test };
 
 async function test() {
-	const savedConfig = { ...getConfiguration() };
 	let jsDeflateUsed = false;
 	let jsInflateUsed = false;
 	let nativeUsed = false;
-	const NativeCompression = savedConfig.CompressionStream;
-	const NativeDecompression = savedConfig.DecompressionStream;
+	const NativeCompression = CompressionStream;
+	const NativeDecompression = DecompressionStream;
 	// Spies: flag which codec the pipeline actually constructs. Each returns a real instance so the
 	// round-trip still works; the assertions below check that the JS port ran and native did not.
 	function SpyJsDeflate(format, options) { jsDeflateUsed = true; return new JsDeflate(format, options); }
@@ -64,7 +64,7 @@ async function test() {
 			throw new Error("the native CompressionStream was used despite an explicitly provided JS codec");
 		}
 	} finally {
-		zip.configure(savedConfig);
+		zip.resetConfiguration();
 		await zip.terminateWorkers();
 	}
 }
