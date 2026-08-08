@@ -108,6 +108,7 @@ export default ([
 	{ title: "Prepended data with zip64 offsets", script: "./test-prepended-data-zip64.js" },
 	{ title: "Zip64 offset boundaries", script: "./test-zip64-offset-boundary.js" },
 	{ title: "Worker loading error", script: "./test-worker-error.js", sanitizeResources: false },
+	{ title: "Worker message properties", script: "./test-worker-message-properties.js", env: ["deno", "bun", "browser"] },
 	{ title: "Props", script: "./test-props.js" },
 	{ title: "Readable Stream", script: "./test-readable-stream.js" },
 	{ title: "Readable Zip Stream", script: "./test-readable-zip-stream.js" },
