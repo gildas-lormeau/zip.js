@@ -2902,6 +2902,17 @@ export const ERR_INVALID_SIGNATURE: string;
 export const ERR_INVALID_UNCOMPRESSED_SIZE: string;
 /**
  * Invalid compressed data error
+ *
+ * @remarks
+ * The way malformed compressed data is reported is not uniform across codec
+ * backends. Bytes trailing a complete DEFLATE stream (e.g. a wrong
+ * `compressedSize`) are tolerated by the bundled WASM and pure-JS codecs, which
+ * decompress the valid data and ignore the extra bytes, but are rejected by the
+ * native `DecompressionStream` with its own `TypeError` (on Node,
+ * `ERR_TRAILING_JUNK_AFTER_STREAM_END`) rather than this error. Any data that is
+ * returned is always validated against the entry's uncompressed size (and CRC
+ * when `checkSignature` is set), so it is never silently truncated; the backends
+ * differ only in whether trailing bytes are ignored or raised as an error.
  */
 export const ERR_INVALID_COMPRESSED_DATA: string;
 /**
