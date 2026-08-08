@@ -2788,6 +2788,7 @@ const HTTP_METHOD_HEAD = "HEAD";
 const HTTP_METHOD_GET = "GET";
 const HTTP_RANGE_UNIT = "bytes";
 const DEFAULT_BUFFER_SIZE = 256 * 1024;
+const MAXIMUM_RANGE_REQUEST_SIZE = 16 * 1024 * 1024;
 
 const PROPERTY_NAME_WRITABLE = "writable";
 const DISK_BOUNDARY = Symbol();
@@ -3203,40 +3204,31 @@ async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, 
 
 function createRangeReadable(httpReader, offset, size) {
 	let bodyReader;
+	let windowOffset = offset;
+	let windowRemainingLength = 0;
 	let remainingLength = size;
 	return new ReadableStream({
-		async start() {
-			const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, offset, size));
-			if (response.status != 206) {
-				throw new Error(ERR_HTTP_RANGE);
-			}
-			const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
-			if (contentRangeHeader) {
-				const rangeStart = Number(contentRangeHeader.trim().split(/[\s-]+/)[1]);
-				if (!Number.isNaN(rangeStart) && rangeStart != offset) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-			}
-			checkResourceValidators(httpReader, response);
-			setResourceValidators(httpReader, response);
-			bodyReader = response.body.getReader();
+		start() {
+			return openWindow();
 		},
 		async pull(controller) {
+			if (!bodyReader) {
+				await openWindow();
+			}
 			const { value, done } = await bodyReader.read();
 			if (done) {
-				if (remainingLength) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-				controller.close();
-			} else {
-				const chunk = value.length > remainingLength ? value.subarray(0, remainingLength) : value;
-				remainingLength -= chunk.length;
-				if (chunk.length) {
-					controller.enqueue(chunk);
-				}
+				throw new Error(ERR_HTTP_RANGE);
+			}
+			const chunk = value.length > windowRemainingLength ? value.subarray(0, windowRemainingLength) : value;
+			windowRemainingLength -= chunk.length;
+			remainingLength -= chunk.length;
+			if (chunk.length) {
+				controller.enqueue(chunk);
+			}
+			if (!windowRemainingLength) {
+				await closeWindow();
 				if (!remainingLength) {
 					controller.close();
-					await bodyReader.cancel();
 				}
 			}
 		},
@@ -3244,6 +3236,32 @@ function createRangeReadable(httpReader, offset, size) {
 			return bodyReader && bodyReader.cancel(reason);
 		}
 	});
+
+	async function openWindow() {
+		const windowLength = Math.min(MAXIMUM_RANGE_REQUEST_SIZE, remainingLength);
+		const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, windowOffset, windowLength));
+		if (response.status != 206) {
+			throw new Error(ERR_HTTP_RANGE);
+		}
+		const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
+		if (contentRangeHeader) {
+			const rangeStart = Number(contentRangeHeader.trim().split(/[\s-]+/)[1]);
+			if (!Number.isNaN(rangeStart) && rangeStart != windowOffset) {
+				throw new Error(ERR_HTTP_RANGE);
+			}
+		}
+		checkResourceValidators(httpReader, response);
+		setResourceValidators(httpReader, response);
+		windowOffset += windowLength;
+		windowRemainingLength = windowLength;
+		bodyReader = response.body.getReader();
+	}
+
+	async function closeWindow() {
+		const currentBodyReader = bodyReader;
+		bodyReader = UNDEFINED_VALUE;
+		await currentBodyReader.cancel();
+	}
 }
 
 function getContentRangeSize(response) {
