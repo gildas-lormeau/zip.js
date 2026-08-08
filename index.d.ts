@@ -721,6 +721,14 @@ export interface HttpRangeOptions {
    * read with as many range requests as necessary, each response body being streamed, so that the
    * size of a request never depends on the size of the entry.
    *
+   * @remarks
+   * Because response bodies are streamed with backpressure, this value does not bound how much data
+   * is buffered in memory; it bounds the byte span, and therefore the lifetime, of each individual
+   * range request. Smaller windows keep each request short-lived, which avoids the idle or duration
+   * timeouts enforced by servers, CDNs and proxies when a slow consumer holds a connection open, and
+   * avoids relying on the server honoring very large ranges. Set it to `Infinity` to disable windowing
+   * and read each entry with a single range request covering its whole remaining length.
+   *
    * @defaultValue 16777216
    */
   maximumRangeSize?: number;
