@@ -221,6 +221,103 @@
 	}
 
 	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const ERR_INVALID_CODEC_DEFINITION = "Invalid codec definition";
+	const ERR_RESERVED_COMPRESSION_METHOD = "Reserved compression method";
+	const ERR_INVALID_CODEC_MODULE = "Invalid codec module";
+
+	const STRING_TYPE = "string";
+	const RESERVED_COMPRESSION_METHODS = [
+		COMPRESSION_METHOD_STORE,
+		COMPRESSION_METHOD_DEFLATE,
+		COMPRESSION_METHOD_DEFLATE_64,
+		COMPRESSION_METHOD_AES
+	];
+
+	const registeredCodecs = new Map();
+	const codecStreams = new Map();
+
+	function registerCodec(codec = {}) {
+		const { compressionMethod, format, codecURI, CompressionStream, DecompressionStream, versionNeeded } = codec;
+		if (!Number.isInteger(compressionMethod) || compressionMethod < 0 || compressionMethod > MAX_16_BITS ||
+			typeof format != STRING_TYPE || !format.length) {
+			throw new Error(ERR_INVALID_CODEC_DEFINITION);
+		}
+		if (RESERVED_COMPRESSION_METHODS.includes(compressionMethod)) {
+			throw new Error(ERR_RESERVED_COMPRESSION_METHOD);
+		}
+		const hasStreams = typeof CompressionStream == FUNCTION_TYPE || typeof DecompressionStream == FUNCTION_TYPE;
+		if (!hasStreams && (typeof codecURI != STRING_TYPE || !codecURI.length)) {
+			throw new Error(ERR_INVALID_CODEC_DEFINITION);
+		}
+		registeredCodecs.set(compressionMethod, { compressionMethod, format, codecURI, versionNeeded });
+		if (hasStreams) {
+			setCodecStreams(format, { CompressionStream, DecompressionStream });
+		}
+	}
+
+	function unregisterCodec(compressionMethod) {
+		const codec = registeredCodecs.get(compressionMethod);
+		if (codec) {
+			registeredCodecs.delete(compressionMethod);
+			let formatUsed;
+			registeredCodecs.forEach(otherCodec => formatUsed = formatUsed || otherCodec.format == codec.format);
+			if (!formatUsed) {
+				codecStreams.delete(codec.format);
+			}
+		}
+	}
+
+	function getRegisteredCodec(compressionMethod) {
+		return registeredCodecs.get(compressionMethod);
+	}
+
+	function getCodecStreams(format) {
+		return codecStreams.get(format);
+	}
+
+	function setCodecStreams(format, streams) {
+		const { CompressionStream, DecompressionStream } = streams;
+		if (typeof CompressionStream != FUNCTION_TYPE && typeof DecompressionStream != FUNCTION_TYPE) {
+			throw new Error(ERR_INVALID_CODEC_MODULE);
+		}
+		codecStreams.set(format, { CompressionStream, DecompressionStream });
+	}
+
+	async function ensureCodecStreams(format, codecURI) {
+		if (!codecStreams.has(format) && codecURI) {
+			setCodecStreams(format, await import(codecURI));
+		}
+	}
+
+	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
@@ -1756,6 +1853,7 @@
 
 	const ERR_INVALID_UNCOMPRESSED_SIZE = "Invalid uncompressed size";
 	const ERR_INVALID_COMPRESSED_DATA = "Invalid compressed data";
+	const ERR_UNSUPPORTED_COMPRESSION$2 = "Compression method not supported";
 	const FORMAT_DEFLATE_RAW = "deflate-raw";
 	const FORMAT_DEFLATE64_RAW = "deflate64-raw";
 	const FORMAT_GZIP = "gzip";
@@ -1766,18 +1864,21 @@
 
 		constructor(options, { chunkSize, CompressionStreamZlib, CompressionStream }) {
 			super({});
-			const { compressed, encrypted, useCompressionStream, zipCrypto, signed, level, deflate64 } = options;
+			const { compressed, encrypted, useCompressionStream, zipCrypto, signed, level, deflate64, format } = options;
 			const stream = this;
 			let crc32Stream, encryptionStream, gzipCrc32Stream;
 			let readable = super.readable;
-			const useGzipCrc32 = signed && compressed && !deflate64 && (!encrypted || zipCrypto) &&
+			const codecStreams = format && getCodecStreams(format);
+			const useGzipCrc32 = signed && compressed && !deflate64 && !codecStreams && (!encrypted || zipCrypto) &&
 				Boolean(useCompressionStream && CompressionStream);
 			if ((!encrypted || zipCrypto) && signed && !useGzipCrc32) {
 				crc32Stream = new Crc32Stream();
 				readable = pipeThrough(readable, crc32Stream);
 			}
 			if (compressed) {
-				if (useGzipCrc32) {
+				if (codecStreams) {
+					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.CompressionStream, format, { level, chunkSize }));
+				} else if (useGzipCrc32) {
 					gzipCrc32Stream = new GzipToRawDeflateStream();
 					readable = pipeThroughBackpressured(readable, new CompressionStream(FORMAT_GZIP));
 					readable = pipeThrough(readable, gzipCrc32Stream);
@@ -1851,7 +1952,7 @@
 
 		constructor(options, { chunkSize, DecompressionStreamZlib, DecompressionStream }) {
 			super({});
-			const { zipCrypto, encrypted, signed, signature, compressed, useCompressionStream, deflate64 } = options;
+			const { zipCrypto, encrypted, signed, signature, compressed, useCompressionStream, deflate64, format } = options;
 			let crc32Stream, decryptionStream;
 			let readable = super.readable;
 			if (encrypted) {
@@ -1863,7 +1964,12 @@
 				}
 			}
 			if (compressed) {
-				readable = pipeThroughCommpressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamZlib, DecompressionStream);
+				const codecStreams = format && getCodecStreams(format);
+				if (codecStreams) {
+					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.DecompressionStream, format, { chunkSize }));
+				} else {
+					readable = pipeThroughCommpressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamZlib, DecompressionStream);
+				}
 				readable = mapInflateStreamError(readable);
 			}
 			if ((!encrypted || zipCrypto) && signed) {
@@ -1888,6 +1994,13 @@
 				return readable;
 			}
 		});
+	}
+
+	function createCodecStream(CodecStreamClass, format, options) {
+		if (!CodecStreamClass) {
+			throw new Error(ERR_UNSUPPORTED_COMPRESSION$2);
+		}
+		return new CodecStreamClass(format, options);
 	}
 
 	function pipeThroughCommpressionStream(readable, useCompressionStream, options, CompressionStreamNative, CompressionStreamZlib, CompressionStream) {
@@ -2634,11 +2747,18 @@
 
 	async function runWorker(stream, workerOptions) {
 		const { options, config } = workerOptions;
-		const { transferStreams, useWebWorkers, useCompressionStream, compressed, signed, encrypted } = options;
+		const { transferStreams, useWebWorkers, useCompressionStream, compressed, signed, encrypted, format, codecURI } = options;
 		const { workerURI, maxWorkers } = config;
+		if (format) {
+			if (codecURI) {
+				options.codecURI = resolveCodecURI(codecURI, config.baseURI);
+			}
+			await ensureCodecStreams(format, options.codecURI);
+		}
 		workerOptions.transferStreams = transferStreams || (transferStreams === UNDEFINED_VALUE && config.transferStreams);
 		const streamCopy = !compressed && !signed && !encrypted;
-		workerOptions.useWebWorkers = !streamCopy && (useWebWorkers || (useWebWorkers === UNDEFINED_VALUE && config.useWebWorkers));
+		const workerSupported = format === UNDEFINED_VALUE || Boolean(options.codecURI);
+		workerOptions.useWebWorkers = !streamCopy && workerSupported && (useWebWorkers || (useWebWorkers === UNDEFINED_VALUE && config.useWebWorkers));
 		workerOptions.workerURI = workerOptions.useWebWorkers && workerURI ? workerURI : UNDEFINED_VALUE;
 		options.useCompressionStream = useCompressionStream || (useCompressionStream === UNDEFINED_VALUE && config.useCompressionStream);
 		return (await getWorker()).run();
@@ -2675,6 +2795,14 @@
 			} else {
 				pool = pool.filter(data => data != workerData);
 			}
+		}
+	}
+
+	function resolveCodecURI(codecURI, baseURI) {
+		try {
+			return new URL(codecURI, baseURI).toString();
+		} catch {
+			return codecURI;
 		}
 	}
 
@@ -4432,7 +4560,8 @@
 					throw new Error(ERR_UNSUPPORTED_COMPRESSION$1);
 				}
 			}
-			if ((compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE && compressionMethod != COMPRESSION_METHOD_DEFLATE_64) && !passThrough) {
+			const registeredCodec = passThrough ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
+			if ((compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE && compressionMethod != COMPRESSION_METHOD_DEFLATE_64 && !registeredCodec) && !passThrough) {
 				throw new Error(ERR_UNSUPPORTED_COMPRESSION$1);
 			}
 			if (dataArray.length < HEADER_SIZE || getUint32(dataView, 0) != LOCAL_FILE_HEADER_SIGNATURE) {
@@ -4510,6 +4639,8 @@
 					useCompressionStream,
 					transferStreams: getOptionValue$1(zipEntry, options, OPTION_TRANSFER_STREAMS),
 					deflate64,
+					format: registeredCodec ? registeredCodec.format : UNDEFINED_VALUE,
+					codecURI: registeredCodec ? registeredCodec.codecURI : UNDEFINED_VALUE,
 					checkPasswordOnly
 				},
 				config,
@@ -5600,8 +5731,9 @@
 		const signal = getOptionValue(zipWriter, options, OPTION_SIGNAL);
 		const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES, true);
 		const compressionMethod = getOptionValue(zipWriter, options, PROPERTY_NAME_COMPRESSION_METHOD);
+		const registeredCodec = passThrough || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
 		if (!passThrough && compressionMethod !== UNDEFINED_VALUE &&
-			compressionMethod !== COMPRESSION_METHOD_STORE && compressionMethod !== COMPRESSION_METHOD_DEFLATE) {
+			compressionMethod !== COMPRESSION_METHOD_STORE && compressionMethod !== COMPRESSION_METHOD_DEFLATE && !registeredCodec) {
 			throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 		}
 		let level = getOptionValue(zipWriter, options, OPTION_LEVEL);
@@ -5616,7 +5748,7 @@
 		if (level !== UNDEFINED_VALUE && level != 6) {
 			useCompressionStream = false;
 		}
-		if (!useCompressionStream && (zipWriter.config.CompressionStream === UNDEFINED_VALUE && zipWriter.config.CompressionStreamZlib === UNDEFINED_VALUE)) {
+		if (!useCompressionStream && !registeredCodec && (zipWriter.config.CompressionStream === UNDEFINED_VALUE && zipWriter.config.CompressionStreamZlib === UNDEFINED_VALUE)) {
 			level = 0;
 		}
 		const zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
@@ -5669,6 +5801,9 @@
 				signal,
 				useUnicodeFileNames,
 				compressionMethod,
+				format: registeredCodec ? registeredCodec.format : UNDEFINED_VALUE,
+				codecURI: registeredCodec ? registeredCodec.codecURI : UNDEFINED_VALUE,
+				codecVersionNeeded: registeredCodec ? registeredCodec.versionNeeded : UNDEFINED_VALUE,
 				level,
 				useCompressionStream,
 				dataDescriptor,
@@ -5965,7 +6100,9 @@
 			msdosAttributesRaw,
 			msdosAttributes,
 			useCompressionStream,
-			passThrough
+			passThrough,
+			format,
+			codecURI
 		} = options;
 		const fileEntry = {
 			lock,
@@ -6025,7 +6162,9 @@
 					encrypted: encrypted && !passThrough,
 					useWebWorkers,
 					useCompressionStream,
-					transferStreams
+					transferStreams,
+					format,
+					codecURI
 				},
 				config,
 				streamOptions: { signal, size, onstart, onprogress, onend }
@@ -6209,6 +6348,10 @@
 		}
 		if (compressionMethod === UNDEFINED_VALUE) {
 			compressionMethod = compressed ? COMPRESSION_METHOD_DEFLATE : COMPRESSION_METHOD_STORE;
+		}
+		const { codecVersionNeeded } = options;
+		if (compressed && codecVersionNeeded !== UNDEFINED_VALUE) {
+			version = version > codecVersionNeeded ? version : codecVersionNeeded;
 		}
 		if (zip64) {
 			version = version > VERSION_ZIP64 ? version : VERSION_ZIP64;
@@ -7335,6 +7478,8 @@
 	exports.ERR_EXTRAFIELD_ZIP64_NOT_FOUND = ERR_EXTRAFIELD_ZIP64_NOT_FOUND;
 	exports.ERR_HTTP_RANGE = ERR_HTTP_RANGE;
 	exports.ERR_HTTP_RESOURCE_CHANGED = ERR_HTTP_RESOURCE_CHANGED;
+	exports.ERR_INVALID_CODEC_DEFINITION = ERR_INVALID_CODEC_DEFINITION;
+	exports.ERR_INVALID_CODEC_MODULE = ERR_INVALID_CODEC_MODULE;
 	exports.ERR_INVALID_COMMENT = ERR_INVALID_COMMENT;
 	exports.ERR_INVALID_COMPRESSED_DATA = ERR_INVALID_COMPRESSED_DATA;
 	exports.ERR_INVALID_ENCRYPTION_STRENGTH = ERR_INVALID_ENCRYPTION_STRENGTH;
@@ -7349,6 +7494,7 @@
 	exports.ERR_ITERATOR_COMPLETED_TOO_SOON = ERR_ITERATOR_COMPLETED_TOO_SOON;
 	exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
 	exports.ERR_OVERLAPPING_ENTRY = ERR_OVERLAPPING_ENTRY;
+	exports.ERR_RESERVED_COMPRESSION_METHOD = ERR_RESERVED_COMPRESSION_METHOD;
 	exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
 	exports.ERR_UNDEFINED_READER = ERR_UNDEFINED_READER;
 	exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
@@ -7376,7 +7522,9 @@
 	exports.createOPFSTempStream = createOPFSTempStream;
 	exports.createSyncAccessHandleTempStream = createSyncAccessHandleTempStream;
 	exports.getMimeType = getMimeType;
+	exports.registerCodec = registerCodec;
 	exports.resetConfiguration = resetConfiguration;
 	exports.terminateWorkers = terminateWorkers;
+	exports.unregisterCodec = unregisterCodec;
 
 }));

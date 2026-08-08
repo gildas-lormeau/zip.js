@@ -203,6 +203,60 @@ export function configure(configuration: Configuration): void;
 export function resetConfiguration(): void;
 
 /**
+ * Registers a codec for a custom compression method (e.g. Zstandard, method 93). Entries using a
+ * registered method can then be written with `ZipWriter#add` and read with `FileEntry#getData`.
+ *
+ * Codecs registered with `CompressionStream`/`DecompressionStream` classes run on the main thread.
+ * Codecs registered with a `codecURI` module URL also run in web workers: the module is imported
+ * dynamically on both sides of the worker boundary.
+ *
+ * @param codec The codec definition.
+ */
+export function registerCodec(codec: CodecDefinition): void;
+
+/**
+ * Unregisters a codec previously registered with {@link registerCodec}.
+ *
+ * @param compressionMethod The compression method of the codec.
+ */
+export function unregisterCodec(compressionMethod: number): void;
+
+/**
+ * Represents a codec definition passed to {@link registerCodec}.
+ */
+export interface CodecDefinition {
+  /**
+   * The compression method stored in zip entry headers (e.g. `93` for Zstandard). The values `0`
+   * (store), `8` (deflate), `9` (deflate64) and `99` (AES) are reserved.
+   */
+  compressionMethod: number;
+  /**
+   * The format name identifying the codec (e.g. `"zstd"`). It is passed as the first argument to
+   * the constructors of `CompressionStream` and `DecompressionStream`.
+   */
+  format: string;
+  /**
+   * The URL of a module exporting the `CompressionStream` and/or `DecompressionStream` classes of
+   * the codec. Relative URLs are resolved against `Configuration#baseURI`; passing an absolute URL
+   * (e.g. via `import.meta.resolve()`) is recommended.
+   */
+  codecURI?: string;
+  /**
+   * The stream implementation used to compress data, constructed with `(format, { level, chunkSize })`.
+   */
+  CompressionStream?: typeof TransformStreamLike;
+  /**
+   * The stream implementation used to decompress data, constructed with `(format, { chunkSize })`.
+   */
+  DecompressionStream?: typeof TransformStreamLike;
+  /**
+   * The minimum "version needed to extract" value written in zip entry headers (e.g. `63` for
+   * Zstandard).
+   */
+  versionNeeded?: number;
+}
+
+/**
  * Represents the configuration passed to {@link configure}.
  */
 export interface Configuration extends WorkerConfiguration {
@@ -2826,6 +2880,18 @@ export const ERR_UNSUPPORTED_ENCRYPTION: string;
  * Unsupported compression error
  */
 export const ERR_UNSUPPORTED_COMPRESSION: string;
+/**
+ * Invalid codec definition error
+ */
+export const ERR_INVALID_CODEC_DEFINITION: string;
+/**
+ * Reserved compression method error
+ */
+export const ERR_RESERVED_COMPRESSION_METHOD: string;
+/**
+ * Invalid codec module error
+ */
+export const ERR_INVALID_CODEC_MODULE: string;
 /**
  * Invalid signature error
  */
