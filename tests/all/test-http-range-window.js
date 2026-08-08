@@ -4,9 +4,10 @@ import * as zip from "../zip-lib.js";
 
 const CONTENT_URL = "https://range-window.invalid/data.zip";
 const FILENAME = "data.bin";
-const MAXIMUM_RANGE_REQUEST_SIZE = 16 * 1024 * 1024;
+const DEFAULT_MAXIMUM_RANGE_SIZE = 16 * 1024 * 1024;
 const PAYLOAD_LENGTH = 17 * 1024 * 1024;
 const PATTERN_LENGTH = 64 * 1024;
+const MINIMUM_DATA_REQUEST_LENGTH = 1024;
 
 export { test };
 
@@ -41,29 +42,39 @@ async function test() {
 			});
 		}
 
-		const zipReader = new zip.ZipReader(new zip.HttpReader(CONTENT_URL, { fetch: fetchContent, useRangeHeader: true }));
-		try {
-			const entries = await zipReader.getEntries();
-			const requestCountBeforeData = rangeRequests.length;
-			const result = await entries[0].getData(new zip.Uint8ArrayWriter());
-			const dataRequests = rangeRequests.slice(requestCountBeforeData);
-			const requestLengths = dataRequests.map(([rangeStart, rangeEnd]) => rangeEnd - rangeStart + 1);
-			const oversizedLengths = requestLengths.filter(requestLength => requestLength > MAXIMUM_RANGE_REQUEST_SIZE);
-			if (oversizedLengths.length) {
-				throw new Error("range requests larger than " + MAXIMUM_RANGE_REQUEST_SIZE + " bytes: " + oversizedLengths.join(", "));
-			}
-			const windowRequestCount = requestLengths.filter(requestLength => requestLength >= 1024 * 1024).length;
-			if (windowRequestCount < 2) {
-				throw new Error("expected the entry data to be read with several range requests, got " + windowRequestCount);
-			}
-			if (result.length != payload.length || result.some((value, index) => value != payload[index])) {
-				throw new Error("invalid data");
-			}
-		} finally {
-			await zipReader.close();
-		}
+		await testMaximumRangeSize(fetchContent, rangeRequests, payload, DEFAULT_MAXIMUM_RANGE_SIZE);
+		await testMaximumRangeSize(fetchContent, rangeRequests, payload, 2 * 1024 * 1024);
 	} finally {
 		await zip.terminateWorkers();
+	}
+}
+
+async function testMaximumRangeSize(fetchContent, rangeRequests, payload, maximumRangeSize) {
+	const readerOptions = { fetch: fetchContent, useRangeHeader: true };
+	if (maximumRangeSize != DEFAULT_MAXIMUM_RANGE_SIZE) {
+		readerOptions.maximumRangeSize = maximumRangeSize;
+	}
+	const zipReader = new zip.ZipReader(new zip.HttpReader(CONTENT_URL, readerOptions));
+	try {
+		const entries = await zipReader.getEntries();
+		const requestCountBeforeData = rangeRequests.length;
+		const result = await entries[0].getData(new zip.Uint8ArrayWriter());
+		const requestLengths = rangeRequests.slice(requestCountBeforeData)
+			.map(([rangeStart, rangeEnd]) => rangeEnd - rangeStart + 1);
+		const oversizedLengths = requestLengths.filter(requestLength => requestLength > maximumRangeSize);
+		if (oversizedLengths.length) {
+			throw new Error("range requests larger than " + maximumRangeSize + " bytes: " + oversizedLengths.join(", "));
+		}
+		const expectedWindowCount = Math.ceil(payload.length / maximumRangeSize);
+		const windowRequestCount = requestLengths.filter(requestLength => requestLength > MINIMUM_DATA_REQUEST_LENGTH).length;
+		if (windowRequestCount != expectedWindowCount) {
+			throw new Error("expected " + expectedWindowCount + " range requests for the entry data, got " + windowRequestCount);
+		}
+		if (result.length != payload.length || result.some((value, index) => value != payload[index])) {
+			throw new Error("invalid data");
+		}
+	} finally {
+		await zipReader.close();
 	}
 }
 
