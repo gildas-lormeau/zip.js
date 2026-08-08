@@ -144,6 +144,25 @@
         <h3>Configuration</h3>
         <div>
             <div class="pref-header">
+                <strong>API:</strong><button class="info-btn" onclick="toggleInfo('info-direction')">i</button>
+            </div>
+            <div id="info-direction" class="info-panel">
+                <strong>Size:</strong> A read-only build removes <code>ZipWriter</code> and the whole write path, a
+                write-only build removes <code>ZipReader</code> and the whole read path. In a write-only build,
+                <code>ZipWriter#prependZip()</code> throws an exception, prepending an existing zip file requires a
+                reader. Not available with the File System API, which relies on both.
+            </div>
+            <div id="directionWrapper">
+                <label title="Includes ZipReader and ZipWriter."><input type="radio" name="direction" value="both"
+                        checked> Read &amp; write</label>
+                <label class="secondary-option" title="Includes ZipReader only."><input type="radio" name="direction"
+                        value="reader"> Read only</label>
+                <label class="secondary-option" title="Includes ZipWriter only."><input type="radio" name="direction"
+                        value="writer"> Write only</label>
+            </div>
+        </div>
+        <div class="divider">
+            <div class="pref-header">
                 <label>
                     <input type="checkbox" id="useWorkers"> Use Web Workers (Inline)
                 </label>
@@ -240,6 +259,10 @@
         const compRadios = document.querySelectorAll('input[name="comp"]');
         const fallbackWrapper = document.getElementById('fallbackWrapper');
         const useFallbackCheckbox = document.getElementById('useFallback');
+        const useFSCheckbox = document.getElementById('useFS');
+        const directionRadios = document.querySelectorAll('input[name="direction"]');
+        const directionWrapper = document.getElementById('directionWrapper');
+        const sources = new Map();
 
         let buildResult = '';
 
@@ -255,18 +278,65 @@
             }
             fallbackWrapper.style.opacity = isRelevant ? '1' : '0.5';
             fallbackWrapper.style.pointerEvents = isRelevant ? 'auto' : 'none';
+            // The File System API relies on ZipReader and ZipWriter, it cannot be built read-only or write-only.
+            const useFS = useFSCheckbox.checked;
+            directionRadios.forEach(radio => radio.disabled = useFS);
+            if (useFS) {
+                document.querySelector('input[name="direction"][value="both"]').checked = true;
+            }
+            directionWrapper.style.opacity = useFS ? '0.5' : '1';
+            directionWrapper.style.pointerEvents = useFS ? 'none' : 'auto';
         };
 
         useWorkersCheckbox.onchange = updateUI;
         compRadios.forEach(radio => radio.onchange = updateUI);
+        useFSCheckbox.onchange = updateUI;
         updateUI();
 
+        const fetchSource = async (url) => {
+            if (!sources.has(url)) {
+                console.log(`Fetching: ${url}`);
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Could not fetch ${url}`);
+                sources.set(url, await response.text());
+            }
+            return sources.get(url);
+        };
+
+        // Names re-exported by zip-core-base.js which belong to neither ZipReader nor ZipWriter
+        // (readers, writers, configuration, etc.). ZipReader and ZipWriter are re-exported there
+        // with `export *`, so the named blocks are exactly the part both directions need.
+        const getSharedExports = async (baseUrl) => {
+            const source = await fetchSource(`${baseUrl}zip-core-base.js`);
+            const names = [];
+            for (const [, block] of source.matchAll(/export\s*\{([^}]*)\}\s*from/g)) {
+                block.split(',').forEach(specifier => {
+                    const name = specifier.trim().split(/\s+as\s+/).pop();
+                    if (name) {
+                        names.push(name);
+                    }
+                });
+            }
+            return names.join(', ');
+        };
+
         const GLOBALS = "const { Array, Object, String, Number, BigInt, Math, Date, Map, Set, Response, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, document, crypto, btoa, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream, navigator, Worker } = typeof globalThis !== 'undefined' ? globalThis : this || self;";
+
+        // ZipWriter#prependZip is the only part of the write path depending on ZipReader. Replacing
+        // the reader with this stub in write-only builds removes the whole read path.
+        const ZIP_READER_STUB = `const ZipReader = class {
+	constructor() {
+		throw new Error("ZipReader is not included in this build");
+	}
+};
+export { ZipReader };
+`;
 
         buildBtn.onclick = async () => {
             const useWorkers = useWorkersCheckbox.checked;
             const comp = document.querySelector('input[name="comp"]:checked').value;
-            const useFS = document.getElementById('useFS').checked;
+            const useFS = useFSCheckbox.checked;
+            const direction = document.querySelector('input[name="direction"]:checked').value;
             const format = document.querySelector('input[name="format"]:checked').value;
             const minify = document.getElementById('minify').checked;
             // Fallback is required if workers are disabled.
@@ -280,8 +350,9 @@
             try {
                 // 1. Determine Virtual Entry Point Content
                 const baseUrl = 'https://unpkg.com/@zip.js/zip.js@2.8.21/lib/';
-                let entryCode = `/* 
-    zip.js customized build 
+                let entryCode = `/*
+    zip.js customized build
+    API: ${direction}
     Workers: ${useWorkers}
     Compression: ${comp}
     Fallback to main thread: ${useFallback}
@@ -289,9 +360,20 @@
 */\n`;
 
                 // Mapping for internal zip.js filenames
-                // WASM uses 'wasm' suffix. 
+                // WASM uses 'wasm' suffix.
                 // JS uses 'native' suffix (in zip.js naming convention).
                 const suffix = comp === 'wasm' ? 'wasm' : 'native';
+
+                // 'both' re-exports everything. A single direction re-exports ZipReader or ZipWriter
+                // and the shared names only, so the other half is removed by Rollup.
+                const exportCore = async () => {
+                    if (direction === 'both') {
+                        return `export * from "${baseUrl}zip-core-base.js";\n`;
+                    } else {
+                        return `export * from "${baseUrl}zip-core-${direction}.js";\n` +
+                            `export { ${await getSharedExports(baseUrl)} } from "${baseUrl}zip-core-base.js";\n`;
+                    }
+                };
 
                 entryCode += `import { configure } from "${baseUrl}core/configuration.js";\n`;
 
@@ -302,14 +384,14 @@
                         entryCode += `configureWebWorker(configure);\n`;
                     }
                     entryCode += `configure({ wasmURI: null });\n`;
-                    entryCode += `export * from "${baseUrl}zip-core-base.js";\n`;
+                    entryCode += await exportCore();
                     entryCode += `export { terminateWorkers } from "${baseUrl}core/codec-pool.js";\n`;
                 } else if (useWorkers && !useFallback) {
                     // Optimized build: Worker only, no main-thread fallback (saves space)
                     entryCode += `import { configureWebWorker } from "${baseUrl}core/web-worker-inline-${suffix}.js";\n`;
                     entryCode += `configureWebWorker(configure);\n`;
                     if (comp === 'js') entryCode += `configure({ wasmURI: null });\n`;
-                    entryCode += `export * from "${baseUrl}zip-core-base.js";\n`;
+                    entryCode += await exportCore();
                     entryCode += `export { terminateWorkers } from "${baseUrl}core/codec-pool.js";\n`;
                 } else {
                     // Standard build with fallback
@@ -317,7 +399,7 @@
                         entryCode += `import { configureWebWorker } from "${baseUrl}core/web-worker-inline-${suffix}.js";\n`;
                         entryCode += `configureWebWorker(configure);\n`;
                     }
-                    entryCode += `export * from "${baseUrl}zip-core-${suffix}.js";\n`;
+                    entryCode += await exportCore();
                     entryCode += `export * from "${baseUrl}zip-module-${suffix}.js";\n`;
                 }
 
@@ -342,10 +424,8 @@
                     },
                     async load(id) {
                         if (id === 'virtual-entry') return entryCode;
-                        console.log(`Fetching: ${id}`);
-                        const response = await fetch(id);
-                        if (!response.ok) throw new Error(`Could not fetch ${id}`);
-                        return await response.text();
+                        if (direction === 'writer' && id.endsWith('core/zip-reader.js')) return ZIP_READER_STUB;
+                        return await fetchSource(id);
                     }
                 };
 
@@ -365,7 +445,7 @@
  * Version: 2.8.21
  * License: BSD-3-Clause
  * Date: ${new Date().toISOString()}
- * Options: Workers=${useWorkers}, Comp=${comp}, FS=${useFS}
+ * Options: API=${direction}, Workers=${useWorkers}, Comp=${comp}, FS=${useFS}
  */`
                 });
 
