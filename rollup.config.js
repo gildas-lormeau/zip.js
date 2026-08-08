@@ -2,11 +2,13 @@ import replace from "@rollup/plugin-replace";
 import terser from "@rollup/plugin-terser";
 import fs from "node:fs";
 import path from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "url";
 import { deflateRawSync } from "node:zlib";
 import { Buffer } from "node:buffer";
 import { inflateRaw } from "./lib/core/util/inflate.js";
 import { getReservedPropertyNames } from "./reserved-property-names.js";
+import { MANGLED_PROPERTY_NAMES } from "./mangled-property-names.js";
 
 function deflatePayload(data) {
 	const deflated = deflateRawSync(data, { level: 9 });
@@ -50,6 +52,45 @@ function copyCjsTypes() {
 }
 
 const reservedPropertyNames = getReservedPropertyNames();
+const MANGLED_PROPERTY_NAMES_PATH = path.resolve(__dirname, "mangled-property-names.js");
+const UPDATE_MANGLED_PROPERTY_NAMES = Boolean(process.env.UPDATE_MANGLED_PROPERTY_NAMES);
+const mangledPropertyNameCaches = [];
+
+function terserMangler(options) {
+	const nameCache = { props: {} };
+	mangledPropertyNameCaches.push(nameCache);
+	return terser({ ...options, nameCache });
+}
+
+function checkMangledPropertyNames() {
+	return {
+		name: "check-mangled-property-names",
+		closeBundle() {
+			const names = new Set();
+			for (const { props } of mangledPropertyNameCaches) {
+				for (const name of Object.keys(props.props || {})) {
+					names.add(name.slice(1));
+				}
+			}
+			const mangledNames = [...names].sort();
+			if (UPDATE_MANGLED_PROPERTY_NAMES) {
+				const entries = mangledNames.map(name => `\t${JSON.stringify(name)}`).join(",\n");
+				fs.writeFileSync(MANGLED_PROPERTY_NAMES_PATH, `const MANGLED_PROPERTY_NAMES = [\n${entries}\n];\n\nexport { MANGLED_PROPERTY_NAMES };\n`);
+			} else {
+				const addedNames = mangledNames.filter(name => !MANGLED_PROPERTY_NAMES.includes(name));
+				const removedNames = MANGLED_PROPERTY_NAMES.filter(name => !names.has(name));
+				if (addedNames.length || removedNames.length) {
+					throw new Error("mangled property names changed" +
+						(addedNames.length ? "\n  added: " + addedNames.join(" ") : "") +
+						(removedNames.length ? "\n  removed: " + removedNames.join(" ") : "") +
+						"\n  an added name must be created and read inside the bundle only, never on an object" +
+						" coming from the host, from a user or from a worker message" +
+						"\n  once audited, run UPDATE_MANGLED_PROPERTY_NAMES=1 npm run build");
+				}
+			}
+		}
+	};
+}
 
 const bundledTerserOptions = {
 	compress: {
@@ -98,7 +139,7 @@ export default [{
 		intro: GLOBALS_WORKER,
 		file: "lib/core/web-worker-inline-wasm.js",
 		format: "umd",
-		plugins: [terser(inlineTerserOptions)]
+		plugins: [terserMangler(inlineTerserOptions)]
 	}]
 }, {
 	input: "lib/core/web-worker-native.js",
@@ -119,7 +160,7 @@ export default [{
 			preventAssignment: true,
 			"__workerCode__": () => fs.readFileSync("lib/core/web-worker-inline-wasm.js").toString()
 		}),
-		terser(bundledTerserOptions)
+		terserMangler(bundledTerserOptions)
 	]
 }, {
 	input: "lib/core/web-worker-inline-template-native.js",
@@ -132,7 +173,7 @@ export default [{
 			preventAssignment: true,
 			"__workerCode__": () => deflatePayload(fs.readFileSync("lib/core/web-worker-inline-native.js"))
 		}),
-		terser(bundledTerserOptions)
+		terserMangler(bundledTerserOptions)
 	]
 }, {
 	input: "lib/core/zlib-streams-inline-template.js",
@@ -147,7 +188,7 @@ export default [{
 			preventAssignment: true,
 			"__wasmBinary__": () => deflatePayload(fs.readFileSync("lib/core/streams/zlib-wasm/zlib-streams.wasm"))
 		}),
-		terser(bundledTerserOptions)
+		terserMangler(bundledTerserOptions)
 	]
 }, {
 	input: ["lib/zip-wasm.js"],
@@ -156,7 +197,7 @@ export default [{
 		file: "dist/zip.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(bundledTerserOptions)]
+		plugins: [terserMangler(bundledTerserOptions)]
 	}, {
 		intro: GLOBALS,
 		file: "dist/zip.js",
@@ -198,7 +239,7 @@ export default [{
 		file: "dist/zip-core.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(bundledTerserOptions)]
+		plugins: [terserMangler(bundledTerserOptions)]
 	}, {
 		intro: GLOBALS,
 		file: "dist/zip-core.js",
@@ -212,7 +253,7 @@ export default [{
 		file: "dist/zip-fs-core.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(bundledTerserOptions)]
+		plugins: [terserMangler(bundledTerserOptions)]
 	}, {
 		intro: GLOBALS,
 		file: "dist/zip-fs-core.js",
@@ -226,7 +267,7 @@ export default [{
 		file: "dist/zip-fs.min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terser(bundledTerserOptions)]
+		plugins: [terserMangler(bundledTerserOptions)]
 	}, {
 		intro: GLOBALS,
 		file: "dist/zip-fs.js",
@@ -238,7 +279,7 @@ export default [{
 	}, {
 		file: "index.min.js",
 		format: "es",
-		plugins: [terser(bundledTerserOptions)]
+		plugins: [terserMangler(bundledTerserOptions)]
 	}]
 }, {
 	input: "lib/zip-fs-native.js",
@@ -267,7 +308,7 @@ export default [{
 		intro: GLOBALS_WORKER,
 		file: "dist/zip-web-worker.js",
 		format: "iife",
-		plugins: [terser(bundledTerserOptions)]
+		plugins: [terserMangler(bundledTerserOptions)]
 	}]
 }, {
 	input: "lib/core/web-worker-native.js",
@@ -276,5 +317,6 @@ export default [{
 		file: "dist/zip-web-worker-native.js",
 		format: "iife",
 		plugins: [terser(bundledTerserOptions)]
-	}]
+	}],
+	plugins: [checkMangledPropertyNames()]
 }];
