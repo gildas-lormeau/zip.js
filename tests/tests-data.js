@@ -28,6 +28,7 @@ export default ([
 	{ title: "Malformed: local file header signature", script: "./test-malformed-local-header.js" },
 	{ title: "Malformed: uncompressed size under-run", script: "./test-malformed-uncompressed-size-under.js" },
 	{ title: "Malformed: AES extra field on non-AES method", script: "./test-malformed-aes-method.js" },
+	{ title: "Malformed: unsupported AES strength", script: "./test-malformed-aes-strength.js" },
 	{ title: "Invalid chunk size configuration", script: "./test-config-chunk-size.js" },
 	{ title: "Writer edge cases", script: "./test-writer-edge-cases.js" },
 	{ title: "Writer streaming backpressure", script: "./test-writer-backpressure.js" },
