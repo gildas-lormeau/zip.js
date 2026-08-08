@@ -4,7 +4,8 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { domprops } from "../node_modules/terser/tools/domprops.js";
-import { WORKER_BOUNDARY_PROPERTY_NAMES, collectDeclarationNames } from "../reserved-property-names.js";
+import { collectDeclarationNames, collectWasmExportNames } from "../reserved-property-names.js";
+import { WORKER_MESSAGE_PROPERTY_NAMES } from "../worker-message-property-names.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MAX_TOKENIZED_STRING_LENGTH = 200;
@@ -24,7 +25,7 @@ for (const artifact of WORKER_ARTIFACTS) {
 	}
 }
 const publicNames = collectDeclarationNames(path.join(ROOT, "index.d.ts"));
-const boundaryNames = new Set(WORKER_BOUNDARY_PROPERTY_NAMES);
+const boundaryNames = new Set([...WORKER_MESSAGE_PROPERTY_NAMES, ...collectWasmExportNames()]);
 const builtinNames = new Set(domprops);
 const quotedSourceKeys = collectQuotedSourceKeys(path.join(ROOT, "lib"));
 

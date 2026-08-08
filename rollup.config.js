@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import { deflateRawSync } from "node:zlib";
 import { Buffer } from "node:buffer";
 import { inflateRaw } from "./lib/core/util/inflate.js";
-import { WORKER_BOUNDARY_PROPERTY_NAMES, getReservedPropertyNames } from "./reserved-property-names.js";
+import { getReservedPropertyNames } from "./reserved-property-names.js";
 
 function deflatePayload(data) {
 	const deflated = deflateRawSync(data, { level: 9 });
@@ -49,6 +49,8 @@ function copyCjsTypes() {
 	};
 }
 
+const reservedPropertyNames = getReservedPropertyNames();
+
 const bundledTerserOptions = {
 	compress: {
 		unsafe: true,
@@ -63,7 +65,7 @@ const bundledTerserOptions = {
 	mangle: {
 		properties: {
 			keep_quoted: "strict",
-			reserved: getReservedPropertyNames()
+			reserved: reservedPropertyNames
 		}
 	}
 };
@@ -82,7 +84,7 @@ const inlineTerserOptions = {
 	},
 	mangle: {
 		properties: {
-			reserved: WORKER_BOUNDARY_PROPERTY_NAMES
+			reserved: reservedPropertyNames
 		}
 	}
 };
