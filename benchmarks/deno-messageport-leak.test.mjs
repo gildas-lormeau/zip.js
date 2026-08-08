@@ -13,8 +13,9 @@
 // WritableStream is fine. The port is never closed afterwards (a delay before the test ends does not
 // clear it), and there is no MessagePort exposed to JS to close() manually.
 //
-// deno --version : deno 2.9.2 (stable, release, aarch64-apple-darwin), v8 14.9.207.2-rusty
-// Run           : deno test --allow-read deno-messageport-leak.mjs
+// deno --version : still reproduced with deno 2.9.5, reported with deno 2.9.2
+// Run           : deno test --allow-read --no-config benchmarks/deno-messageport-leak.test.mjs
+//                 (--no-config because deno.json excludes benchmarks/ from the published package)
 const workerCode = `
 self.onmessage = async (e) => {
 	const { readable, action, reads } = e.data;

@@ -3,7 +3,7 @@
 // transferred ReadableStream's underlying MessagePort on cancel (draining to completion does not
 // leak). It is a Deno resource-sanitizer bug, not a zip.js one — nothing in JS closes the port —
 // so the sanitizer is opted out only for the affected tests. See denoland/deno#36015 (repro in
-// benchmarks/deno-messageport-leak.mjs).
+// benchmarks/deno-messageport-leak.test.mjs, still reproduced with deno 2.9.5).
 export default ([
 	{ title: "Abort signal (read)", script: "./test-abort-signal-read.js" },
 	{ title: "Abort signal (worker reuse)", script: "./test-worker-reuse-after-abort.js" },
