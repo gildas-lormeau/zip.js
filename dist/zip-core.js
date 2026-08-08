@@ -4600,7 +4600,7 @@
 				fileEntry.zipCrypto = zipCrypto;
 			}
 			if (encrypted) {
-				if (!zipCrypto && extraFieldAES.strength === UNDEFINED_VALUE) {
+				if (!zipCrypto && (extraFieldAES.strength < 1 || extraFieldAES.strength > 3)) {
 					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
 				} else if (!password && !rawPassword) {
 					throw new Error(ERR_ENCRYPTED);
