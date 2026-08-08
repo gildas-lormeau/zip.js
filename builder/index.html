@@ -180,21 +180,22 @@
                     onclick="toggleInfo('info-comp')">i</button>
             </div>
             <div id="info-comp" class="info-panel">
-                <strong>Features vs Compatibility:</strong>
+                <strong>Features vs Compatibility:</strong> every build uses the native
+                <code>CompressionStream</code>/<code>DecompressionStream</code> APIs when the environment supports them.
+                This option selects the implementation embedded in the build for everything else.
                 <ul>
                     <li><strong>WASM/JS:</strong> Supports custom compression levels, deflate64 decompression, and older
                         environments (requires no browser-native streams support).</li>
-                    <li><strong>None (Native):</strong> Smallest size but relies on modern
-                        <code>CompressionStream</code>/<code>DecompressionStream</code> APIs (only 'deflate' and no
-                        custom levels).
+                    <li><strong>None:</strong> Smallest size, no implementation is embedded. Only 'deflate' with the
+                        default compression level, and browser-native streams support is required.
                     </li>
                 </ul>
             </div>
-            <label title="Highest performance, requires WASM support."><input type="radio" name="comp" value="wasm">
-                WASM (zlib-wasm)</label><br>
-            <label title="Full compatibility, no WASM required."><input type="radio" name="comp" value="js"> JS
-                (zlib-js)</label><br>
-            <label title="Minimal size. Uses browser's native CompressionStream/DecompressionStream APIs."><input
+            <label title="Embeds the WASM implementation, highest performance."><input type="radio" name="comp"
+                    value="wasm"> WASM (zlib-wasm)</label><br>
+            <label title="Embeds the JavaScript implementation, no WASM support required."><input type="radio"
+                    name="comp" value="js"> JS (zlib-js)</label><br>
+            <label title="Embeds no implementation, requires CompressionStream/DecompressionStream support."><input
                     type="radio" name="comp" value="none" checked> None (Native Streams Only)</label>
         </div>
         <div id="fallbackWrapper" class="divider">
@@ -380,7 +381,9 @@ export { ZipReader };
                 if (comp === 'none') {
                     // Core only
                     if (useWorkers) {
-                        entryCode += `import { configureWebWorker } from "${baseUrl}core/web-worker-inline-native.js";\n`;
+                        // The wasm worker embeds the module loader only, the native worker would embed the
+                        // whole JavaScript implementation of the compression streams.
+                        entryCode += `import { configureWebWorker } from "${baseUrl}core/web-worker-inline-wasm.js";\n`;
                         entryCode += `configureWebWorker(configure);\n`;
                     }
                     entryCode += `configure({ wasmURI: null });\n`;
