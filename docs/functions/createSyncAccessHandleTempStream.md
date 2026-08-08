@@ -8,7 +8,7 @@
 
 > **createSyncAccessHandleTempStream**(`options?`): () => [`TempStream`](../interfaces/TempStream.md)
 
-Defined in: [index.d.ts:421](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L421)
+Defined in: [index.d.ts:426](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L426)
 
 Builds a [ZipWriterConstructorOptions.createTempStream](../interfaces/ZipWriterConstructorOptions.md#createtempstream) factory that spills the data of buffered entries to the Origin Private File System (OPFS) via `FileSystemSyncAccessHandle` instead of keeping it in memory.
 

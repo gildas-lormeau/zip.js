@@ -8,6 +8,6 @@
 
 > `const` **ERR\_UNSUPPORTED\_COMPRESSION**: `string`
 
-Defined in: [index.d.ts:2767](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L2767)
+Defined in: [index.d.ts:2820](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L2820)
 
 Unsupported compression error

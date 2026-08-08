@@ -6,7 +6,7 @@
 
 # Class: CodecStream
 
-Defined in: [index.d.ts:320](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L320)
+Defined in: [index.d.ts:325](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L325)
 
 Represents a class implementing `CompressionStream` or `DecompressionStream` interfaces.
 

@@ -35,6 +35,7 @@
 
 - [BlobTempStreamOptions](interfaces/BlobTempStreamOptions.md)
 - [Configuration](interfaces/Configuration.md)
+- [CreateReadableOptions](interfaces/CreateReadableOptions.md)
 - [DirectoryEntry](interfaces/DirectoryEntry.md)
 - [EntryBitFlag](interfaces/EntryBitFlag.md)
 - [EntryDataOnprogressOptions](interfaces/EntryDataOnprogressOptions.md)
@@ -85,6 +86,7 @@
 - [ERR\_EOCDR\_NOT\_FOUND](variables/ERR_EOCDR_NOT_FOUND.md)
 - [ERR\_EXTRAFIELD\_ZIP64\_NOT\_FOUND](variables/ERR_EXTRAFIELD_ZIP64_NOT_FOUND.md)
 - [ERR\_HTTP\_RANGE](variables/ERR_HTTP_RANGE.md)
+- [ERR\_HTTP\_RESOURCE\_CHANGED](variables/ERR_HTTP_RESOURCE_CHANGED.md)
 - [ERR\_INVALID\_COMMENT](variables/ERR_INVALID_COMMENT.md)
 - [ERR\_INVALID\_COMPRESSED\_DATA](variables/ERR_INVALID_COMPRESSED_DATA.md)
 - [ERR\_INVALID\_ENCRYPTION\_STRENGTH](variables/ERR_INVALID_ENCRYPTION_STRENGTH.md)
@@ -116,4 +118,5 @@
 - [createOPFSTempStream](functions/createOPFSTempStream.md)
 - [createSyncAccessHandleTempStream](functions/createSyncAccessHandleTempStream.md)
 - [getMimeType](functions/getMimeType.md)
+- [resetConfiguration](functions/resetConfiguration.md)
 - [terminateWorkers](functions/terminateWorkers.md)

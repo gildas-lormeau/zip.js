@@ -6,7 +6,7 @@
 
 # Class: ZipWriterStream
 
-Defined in: [index.d.ts:1615](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L1615)
+Defined in: [index.d.ts:1664](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1664)
 
 Represents an instance used to create a zipped stream.
 
@@ -49,7 +49,7 @@ zipper.close()
 
 > **new ZipWriterStream**(`options?`): `ZipWriterStream`
 
-Defined in: [index.d.ts:1621](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L1621)
+Defined in: [index.d.ts:1670](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1670)
 
 Creates the stream.
 
@@ -71,7 +71,7 @@ The options.
 
 > **readable**: `ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [index.d.ts:1626](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L1626)
+Defined in: [index.d.ts:1675](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1675)
 
 The readable stream.
 
@@ -81,7 +81,7 @@ The readable stream.
 
 > **zipWriter**: [`ZipWriter`](ZipWriter.md)\<`unknown`\>
 
-Defined in: [index.d.ts:1631](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L1631)
+Defined in: [index.d.ts:1680](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1680)
 
 The ZipWriter property.
 
@@ -91,7 +91,7 @@ The ZipWriter property.
 
 > **close**(`comment?`, `options?`): `Promise`\<`unknown`\>
 
-Defined in: [index.d.ts:1661](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L1661)
+Defined in: [index.d.ts:1710](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1710)
 
 Writes the entries directory, writes the global comment, and returns the content of the zipped file.
 
@@ -121,7 +121,7 @@ The content of the zip file.
 
 > **transform**\<`T`\>(`path`): `object`
 
-Defined in: [index.d.ts:1640](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L1640)
+Defined in: [index.d.ts:1689](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1689)
 
 Returns an object containing a readable and writable property for the .pipeThrough method
 
@@ -160,7 +160,7 @@ An object containing readable and writable properties
 
 > **writable**\<`T`\>(`path`): `WritableStream`\<`T`\>
 
-Defined in: [index.d.ts:1652](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L1652)
+Defined in: [index.d.ts:1701](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1701)
 
 Returns a WritableStream for the .pipeTo method
 

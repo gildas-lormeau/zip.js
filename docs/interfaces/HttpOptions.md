@@ -6,7 +6,7 @@
 
 # Interface: HttpOptions
 
-Defined in: [index.d.ts:570](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L570)
+Defined in: [index.d.ts:606](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L606)
 
 Represents the options passed to the constructor of [HttpReader](../classes/HttpReader.md).
 
@@ -20,11 +20,34 @@ Represents the options passed to the constructor of [HttpReader](../classes/Http
 
 ## Properties
 
+### checkResourceChanges?
+
+> `optional` **checkResourceChanges?**: `boolean`
+
+Defined in: [index.d.ts:664](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L664)
+
+`true` to throw an [ERR\_HTTP\_RESOURCE\_CHANGED](../variables/ERR_HTTP_RESOURCE_CHANGED.md) error when the `ETag`, `Last-Modified` or total size headers
+returned by a range request differ from the ones returned by the first range request, i.e. when the resource has
+been modified while being read. Headers missing from the responses are ignored, note that `Access-Control-Expose-Headers`
+must include them when the resource is fetched cross-origin.
+
+#### Default Value
+
+```ts
+true
+```
+
+#### Inherited from
+
+[`HttpRangeOptions`](HttpRangeOptions.md).[`checkResourceChanges`](HttpRangeOptions.md#checkresourcechanges)
+
+***
+
 ### combineSizeEocd?
 
 > `optional` **combineSizeEocd?**: `boolean`
 
-Defined in: [index.d.ts:595](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L595)
+Defined in: [index.d.ts:631](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L631)
 
 `true` to use `Range: bytes=-22` on the first request and cache the EOCD, make sure beforehand that the server supports a suffix range request.
 
@@ -40,7 +63,7 @@ false
 
 > `optional` **forceRangeRequests?**: `boolean`
 
-Defined in: [index.d.ts:582](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L582)
+Defined in: [index.d.ts:618](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L618)
 
 `true` to always use `Range` headers when fetching data.
 
@@ -56,7 +79,7 @@ false
 
 > `optional` **headers?**: `Iterable`\<\[`string`, `string`\], `any`, `any`\> \| `Map`\<`string`, `string`\>
 
-Defined in: [index.d.ts:619](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L619)
+Defined in: [index.d.ts:655](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L655)
 
 The HTTP headers.
 
@@ -70,7 +93,7 @@ The HTTP headers.
 
 > `optional` **preventHeadRequest?**: `boolean`
 
-Defined in: [index.d.ts:589](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L589)
+Defined in: [index.d.ts:625](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L625)
 
 `true` to prevent using `HEAD` HTTP request in order the get the size of the content.
 `false` to explicitly use `HEAD`, this is useful in case of CORS where `Access-Control-Expose-Headers: Content-Range` is not returned by the server.
@@ -87,7 +110,7 @@ false
 
 > `optional` **useRangeHeader?**: `boolean`
 
-Defined in: [index.d.ts:576](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L576)
+Defined in: [index.d.ts:612](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L612)
 
 `true` to use `Range` headers when fetching data from servers returning `Accept-Ranges` headers.
 
@@ -103,7 +126,7 @@ false
 
 > `optional` **useXHR?**: `boolean`
 
-Defined in: [index.d.ts:607](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L607)
+Defined in: [index.d.ts:643](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L643)
 
 `true` to rely `XMLHttpRequest` instead of `fetch` to fetch data.
 
@@ -123,7 +146,7 @@ false
 
 > `optional` **fetch**(`input`, `init?`): `Promise`\<`Response`\>
 
-Defined in: [index.d.ts:615](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L615)
+Defined in: [index.d.ts:651](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L651)
 
 The function used to fetch the data. It takes precedence over [HttpRangeOptions#useXHR](HttpRangeOptions.md#usexhr)
 when set. The returned object must expose the `status`, `statusText` and `headers` properties,

@@ -6,7 +6,7 @@
 
 # Interface: GetEntriesOptions
 
-Defined in: [index.d.ts:949](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L949)
+Defined in: [index.d.ts:998](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L998)
 
 Represents options passed to the constructor of [ZipReader](../classes/ZipReader.md), [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
@@ -21,7 +21,7 @@ Represents options passed to the constructor of [ZipReader](../classes/ZipReader
 
 > `optional` **checkAmbiguity?**: `boolean`
 
-Defined in: [index.d.ts:976](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L976)
+Defined in: [index.d.ts:1025](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1025)
 
 `true` to throw an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error when the archive could be parsed differently by other
 tools. This detects data before or after the zip structure (e.g. a self-extracting archive stub or a
@@ -42,7 +42,7 @@ false
 
 > `optional` **commentEncoding?**: `string`
 
-Defined in: [index.d.ts:957](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L957)
+Defined in: [index.d.ts:1006](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1006)
 
 The encoding of the comment of the entry.
 
@@ -52,7 +52,7 @@ The encoding of the comment of the entry.
 
 > `optional` **filenameEncoding?**: `string`
 
-Defined in: [index.d.ts:953](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L953)
+Defined in: [index.d.ts:1002](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1002)
 
 The encoding of the filename of the entry.
 
@@ -62,7 +62,7 @@ The encoding of the filename of the entry.
 
 > `optional` **maxAppendedDataSize?**: `number`
 
-Defined in: [index.d.ts:1010](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L1010)
+Defined in: [index.d.ts:1059](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1059)
 
 The maximum number of bytes tolerated after the zip structure before the archive is rejected. Defaults to
 `0` when [GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strictness) is `"strict"`, `65535` when it is `"balanced"`, and `Infinity`
@@ -80,7 +80,7 @@ record is searched for, so a value smaller than the amount of data actually appe
 
 > `optional` **strictness?**: `"balanced"` \| `"strict"` \| `"tolerant"`
 
-Defined in: [index.d.ts:998](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L998)
+Defined in: [index.d.ts:1047](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1047)
 
 How tolerant the reader should be when the archive can be parsed in more than one way.
 
@@ -112,7 +112,7 @@ of the file).
 
 > `optional` **decodeText**(`value`, `encoding`): `string` \| `undefined`
 
-Defined in: [index.d.ts:965](https://github.com/gildas-lormeau/zip.js/blob/ae37f1a6c766aac973c08b8689ebda97872e7dd2/index.d.ts#L965)
+Defined in: [index.d.ts:1014](https://github.com/gildas-lormeau/zip.js/blob/747cb1893fc85594e9e97cc23afe3497dc9b1888/index.d.ts#L1014)
 
 The function called for decoding the filename and the comment of the entry.
 
