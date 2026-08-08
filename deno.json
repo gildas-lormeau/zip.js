@@ -23,6 +23,7 @@
 		".eslintrc.json",
 		"benchmarks",
 		"docs",
-		".github"
+		".github",
+		"tests/corpus"
 	]
 }

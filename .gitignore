@@ -2,3 +2,4 @@ node_modules
 .vscode
 .DS_Store
 benchmarks/.corpus
+tests/corpus
