@@ -2044,6 +2044,16 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    */
   extendedTimestamp?: boolean;
   /**
+   * `true` to always store the NTFS extra field, `false` to never store it.
+   *
+   * By default, the NTFS extra field is stored only when it preserves information the extended timestamp extra field cannot
+   * represent: a last modification date outside its supported range, or explicit {@link ZipWriterConstructorOptions#lastAccessDate}
+   * or {@link ZipWriterConstructorOptions#creationDate} values.
+   *
+   * This option is ignored if the {@link ZipWriterConstructorOptions#extendedTimestamp} option is set to `false`.
+   */
+  ntfsTimestamp?: boolean;
+  /**
    * `true` to use the ZipCrypto algorithm to encrypt the content of the entry. Setting it to `true` will also
    * set the {@link ZipWriterConstructorOptions#dataDescriptor} to `true`.
    *
