@@ -224,7 +224,7 @@ Defined in: [index.d.ts:1983](https://github.com/gildas-lormeau/zip.js/blob/e409
 
 `true` to store extended timestamp extra fields.
 
-When set to `false`, the maximum last modification date cannot exceed November 31, 2107 and the maximum accuracy is 2 seconds.
+When set to `false`, the maximum last modification date cannot exceed December 31, 2107 and the maximum accuracy is 2 seconds.
 
 #### Default Value
 
