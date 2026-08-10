@@ -123,6 +123,40 @@
 &lt;/script&gt;</code></pre>
 			</li>
 		</ul>
+		<h2>Library variants</h2>
+		<p>
+			The library comes in two variants. The default variant embeds a WebAssembly build of zlib, while the
+			"native" variant embeds a JavaScript port of zlib instead. This embedded code is used when compressing
+			data with a non-default <code>level</code>, when decompressing Deflate64 entries, when the
+			<code>useCompressionStream</code> option is set to <code>false</code>, or when the Compression Streams
+			API is unavailable. Otherwise, both variants rely on the Compression Streams API and behave identically.
+		</p>
+		<p>
+			zip.js uses WebAssembly by default for more flexibility: the embedded zlib module works inside a web
+			worker or in the main thread, and the same binary is shared between both contexts without duplicating
+			any code. This also
+			makes the default variant smaller. The "native" variant does not depend on WebAssembly, e.g. for React
+			Native or pages with a Content Security Policy which does not allow <code>wasm-unsafe-eval</code>. React
+			Native resolves the main entry point of the package to the "native" variant automatically.
+		</p>
+		<p>You can import the "native" variant:</p>
+		<ul>
+			<li>as an ECMAScript module:
+				<pre><code class="prettyprint">import * as zip from "@zip.js/zip.js/index-native.js";</code></pre>
+			</li>
+			<li>or as a CommonJS module:
+				<pre><code class="prettyprint">const zip = require("@zip.js/zip.js/index-native.js");</code></pre>
+			</li>
+			<li>or manually by adding <code>zip-native.min.js</code> from the
+				<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
+				directory in your project, as an AMD module or a regular script exposing the <code>zip</code> global
+				variable.
+			</li>
+		</ul>
+		<p>
+			The smaller entry points also have a "native" twin, e.g. <code>@zip.js/zip.js/lib/zip-core-native.js</code>
+			instead of <code>@zip.js/zip.js/lib/zip-core.js</code>. The "native" variant is not available on JSR.
+		</p>
 		<div class="footer">
 			Get the source code on GitHub : <a href="https://github.com/gildas-lormeau/zip.js">gildas-lormeau/zip.js</a>
 			- contact: gildas.lormeau &lt;at&gt; gmail.com
