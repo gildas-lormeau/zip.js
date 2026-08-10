@@ -69,6 +69,7 @@ export default ([
 	{ title: "Entry count from total field", script: "./test-entry-count-total.js" },
 	{ title: "Extended timestamp", script: "./test-extended-timestamp.js" },
 	{ title: "NTFS timestamp", script: "./test-ntfs-timestamp.js" },
+	{ title: "Empty entry deflate", script: "./test-empty-entry-deflate.js" },
 	{ title: "Extra field", script: "./test-extra-field.js" },
 	{ title: "Last access date and creation date", script: "./test-last-access-date.js" },
 	{ title: "Filesystem base 64", script: "./test-fs-base64.js" },
