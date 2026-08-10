@@ -162,9 +162,6 @@ function planEntry(entry, leg) {
 		if ((cd.versionMadeBy >> 8) != 3) {
 			fail("unix extra field without unix versionMadeBy");
 		}
-		if (cd.externalFileAttributes & 0xff00) {
-			fail("unix extra field with reserved external attribute bits");
-		}
 		Object.assign(options, fields.unix);
 	}
 	if (fields.user.length) {

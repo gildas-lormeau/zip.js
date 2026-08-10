@@ -30,9 +30,10 @@ Zip64 and split archives are out of scope for now and reported as unreproducible
 
 ## Cross-writer status (2026-08-11)
 
-Byte-identical: all Python zipfile archives, all Info-ZIP archives except `-9`
+Byte-identical: all Python zipfile, jar and Info-ZIP archives except Info-ZIP `-9`
 (the uid/gid fallback passes non-minimally encoded 0x7875 fields through `extraField`
-instead of the `uid`/`gid` options).
+instead of the `uid`/`gid` options; jar required explicit `externalFileAttributes: 0`
+support, added right after the first sweep).
 
 Known unreproducible classes, i.e. states the writer cannot express:
 
@@ -41,5 +42,3 @@ Known unreproducible classes, i.e. states the writer cannot express:
    the NTFS field in the central directory only. zip.js always mirrors extra fields.
 2. Compression level bit flags (bits 1-2) on stored entries: Info-ZIP `-9` keeps the flags
    when it falls back to store; zip.js only sets them for deflate.
-3. `externalFileAttributes` equal to 0 on directory entries (jar): the writer treats 0 as
-   unset and substitutes the MS-DOS directory attribute.

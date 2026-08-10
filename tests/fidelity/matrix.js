@@ -52,6 +52,17 @@ const cases = [
 	},
 	{ name: "executable", writerOptions: { useCompressionStream: false }, entries: [textEntry("run.sh", 21, { executable: true })] },
 	{
+		name: "explicit-zero-attributes", writerOptions: { useCompressionStream: false },
+		entries: [{ name: "bare/", options: { externalFileAttributes: 0 } }, textEntry("bare.txt", 32, { externalFileAttributes: 0 })]
+	},
+	{
+		name: "reserved-attribute-bits", writerOptions: { useCompressionStream: false },
+		entries: [
+			textEntry("verbatim.txt", 33, { externalFileAttributes: (0o100600 << 16) | 0x4100 }),
+			textEntry("composed.txt", 34, { externalFileAttributes: (0o100644 << 16) | 0x0120, sticky: true })
+		]
+	},
+	{
 		name: "mixed", writerOptions: { useCompressionStream: false }, comment: "mixed archive",
 		entries: [
 			textEntry("first.txt", 22),
