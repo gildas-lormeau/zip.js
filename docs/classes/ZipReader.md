@@ -6,7 +6,7 @@
 
 # Class: ZipReader\<Type\>
 
-Defined in: [index.d.ts:986](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L986)
+Defined in: [index.d.ts:986](https://github.com/gildas-lormeau/zip.js/blob/6fc5ad99d22ab1d46e0da07f84168596974a964b/index.d.ts#L986)
 
 Represents an instance used to read a zip file.
 
@@ -52,7 +52,7 @@ await reader.close();
 
 > **new ZipReader**\<`Type`\>(`reader`, `options?`): `ZipReader`\<`Type`\>
 
-Defined in: [index.d.ts:993](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L993)
+Defined in: [index.d.ts:993](https://github.com/gildas-lormeau/zip.js/blob/6fc5ad99d22ab1d46e0da07f84168596974a964b/index.d.ts#L993)
 
 Creates the instance
 
@@ -80,7 +80,7 @@ The options.
 
 > `optional` **appendedData?**: `Uint8Array`\<`ArrayBufferLike`\>
 
-Defined in: [index.d.ts:1014](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1014)
+Defined in: [index.d.ts:1014](https://github.com/gildas-lormeau/zip.js/blob/6fc5ad99d22ab1d46e0da07f84168596974a964b/index.d.ts#L1014)
 
 The data appended after the zip file.
 
@@ -90,7 +90,7 @@ The data appended after the zip file.
 
 > **comment**: `Uint8Array`
 
-Defined in: [index.d.ts:1006](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1006)
+Defined in: [index.d.ts:1006](https://github.com/gildas-lormeau/zip.js/blob/6fc5ad99d22ab1d46e0da07f84168596974a964b/index.d.ts#L1006)
 
 The global comment of the zip file.
 
@@ -100,7 +100,7 @@ The global comment of the zip file.
 
 > `optional` **prependedData?**: `Uint8Array`\<`ArrayBufferLike`\>
 
-Defined in: [index.d.ts:1010](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1010)
+Defined in: [index.d.ts:1010](https://github.com/gildas-lormeau/zip.js/blob/6fc5ad99d22ab1d46e0da07f84168596974a964b/index.d.ts#L1010)
 
 The data prepended before the zip file.
 
@@ -110,7 +110,7 @@ The data prepended before the zip file.
 
 > **close**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:1034](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1034)
+Defined in: [index.d.ts:1034](https://github.com/gildas-lormeau/zip.js/blob/6fc5ad99d22ab1d46e0da07f84168596974a964b/index.d.ts#L1034)
 
 Closes the zip file
 
@@ -124,7 +124,7 @@ Closes the zip file
 
 > **getEntries**(`options?`): `Promise`\<[`Entry`](../type-aliases/Entry.md)[]\>
 
-Defined in: [index.d.ts:1021](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1021)
+Defined in: [index.d.ts:1021](https://github.com/gildas-lormeau/zip.js/blob/6fc5ad99d22ab1d46e0da07f84168596974a964b/index.d.ts#L1021)
 
 Returns all the entries in the zip file
 
@@ -148,7 +148,7 @@ A promise resolving to an `array` of [Entry](../type-aliases/Entry.md) instances
 
 > **getEntriesGenerator**(`options?`): `AsyncGenerator`\<[`Entry`](../type-aliases/Entry.md), `boolean`\>
 
-Defined in: [index.d.ts:1028](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1028)
+Defined in: [index.d.ts:1028](https://github.com/gildas-lormeau/zip.js/blob/6fc5ad99d22ab1d46e0da07f84168596974a964b/index.d.ts#L1028)
 
 Returns a generator used to iterate on all the entries in the zip file
 

@@ -6,7 +6,7 @@
 
 # Interface: FileSystemHandleLike
 
-Defined in: [index.d.ts:175](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L175)
+Defined in: [index.d.ts:175](https://github.com/gildas-lormeau/zip.js/blob/6fc5ad99d22ab1d46e0da07f84168596974a964b/index.d.ts#L175)
 
 Represents the `FileSystemHandle` class.
 
