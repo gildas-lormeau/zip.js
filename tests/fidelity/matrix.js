@@ -36,6 +36,10 @@ const cases = [
 		name: "odd-seconds-date", writerOptions: { useCompressionStream: false },
 		entries: [textEntry("odd.txt", 38, { lastModDate: new Date(2023, 4, 15, 10, 20, 31) })]
 	},
+	{
+		name: "fractional-seconds-date", writerOptions: { useCompressionStream: false },
+		entries: [textEntry("fractional.txt", 39, { lastModDate: new Date(2023, 4, 15, 10, 20, 30, 500) })]
+	},
 	{ name: "empty-deflate", writerOptions: { level: 9, useCompressionStream: false }, entries: [{ name: "empty.bin", data: new Uint8Array(0) }] },
 	{ name: "empty-store", writerOptions: { level: 0 }, entries: [{ name: "empty.bin", data: new Uint8Array(0) }] },
 	{

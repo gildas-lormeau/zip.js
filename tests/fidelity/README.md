@@ -53,10 +53,14 @@ Known unreproducible classes, i.e. states the writer cannot express:
    zip.js always mirrors extra fields.
 2. Compression level bit flags (bits 1-2) on stored entries: Info-ZIP `-9` keeps the flags
    when it falls back to store; zip.js only sets them for deflate.
-3. DOS times rounded up: Info-ZIP rounds the mtime up to the next 2-second boundary
-   (including fractional seconds) while the extended timestamp keeps the floored value;
-   zip.js derives both fields from `lastModDate` by truncation. Only observable when a
-   0x5455/NTFS field exposes the exact mtime.
+3. DOS timestamp skew, observable only when a 0x5455/NTFS field exposes the exact mtime:
+   - Rounding: FIXED — zip.js now rounds the DOS time up to the next 2-second boundary,
+     matching Info-ZIP, 7-Zip, ditto and GitHub (it previously truncated, a minority
+     behavior). Archives written by older zip.js versions with odd-second mtimes are now
+     the unreproducible ones.
+   - Timezone: the DOS field is writer-local wall-clock time; archives written in another
+     timezone (GitHub zipballs, Internet Archive uploads) cannot be reproduced unless the
+     harness runs with the writer's TZ.
 4. Populated local CRC/sizes together with bit 3: Info-ZIP fills the local header even
    when it writes a data descriptor; zip.js zeroes those fields per APPNOTE 4.4.4.
 5. ZipCrypto without a data descriptor (7-Zip): zip.js always sets bit 3 for ZipCrypto
