@@ -28,6 +28,13 @@ Files:
 
 Zip64 and split archives are out of scope for now and reported as unreproducible.
 
+Coverage: `deno test -A --coverage=.cov coverage.js && deno coverage .cov` runs the matrix
+and the corpus sweep under coverage. The uncovered writer code is dominated by
+out-of-scope paths (zip64, split archives, usdz alignment), alternate APIs
+(`prependZip`, `ZipWriterStream`, `remove`) and error branches, which are the standard
+test suite's job; the serialization paths the harness targets sit at ~86% branch
+coverage in zip-writer.js.
+
 ## Cross-writer status (2026-08-11)
 
 Byte-identical: all Python zipfile, jar and Info-ZIP archives except Info-ZIP `-9`

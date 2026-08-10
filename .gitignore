@@ -4,3 +4,4 @@ node_modules
 benchmarks/.corpus
 tests/corpus
 tests/fidelity/corpus
+tests/fidelity/.cov

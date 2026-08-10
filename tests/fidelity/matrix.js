@@ -75,6 +75,14 @@ const cases = [
 			textEntry("plain.txt", 27, { extendedTimestamp: false })
 		]
 	},
+	{
+		name: "multi-chunk", writerOptions: { useCompressionStream: false },
+		entries: [
+			{ name: "large.txt", data: pseudoLargeText(35, 1024 * 1024) },
+			{ name: "large.bin", data: pseudoBinary(36, 512 * 1024) },
+			{ name: "large-stored.bin", data: pseudoBinary(37, 256 * 1024), options: { level: 0 } }
+		]
+	},
 	{ name: "aes", writerOptions: { password: "correct horse", useCompressionStream: false }, entries: textEntries(2, 28) },
 	{ name: "aes-strength-1", writerOptions: { password: "correct horse", encryptionStrength: 1, useCompressionStream: false }, entries: textEntries(2, 29) },
 	{ name: "aes-store", writerOptions: { password: "correct horse", level: 0 }, entries: textEntries(2, 30) },
@@ -109,6 +117,14 @@ function textEntry(name, seed, options) {
 function pseudoText(seed) {
 	const random = mulberry32(seed);
 	const length = 200 + Math.floor(random() * 2000);
+	return buildText(random, length);
+}
+
+function pseudoLargeText(seed, length) {
+	return buildText(mulberry32(seed), length);
+}
+
+function buildText(random, length) {
 	const parts = [];
 	let currentLength = 0;
 	while (currentLength < length) {
@@ -117,6 +133,15 @@ function pseudoText(seed) {
 		currentLength += word.length + 1;
 	}
 	return new TextEncoder().encode(parts.join(" "));
+}
+
+function pseudoBinary(seed, length) {
+	const random = mulberry32(seed);
+	const data = new Uint8Array(length);
+	for (let indexByte = 0; indexByte < length; indexByte++) {
+		data[indexByte] = Math.floor(random() * 256);
+	}
+	return data;
 }
 
 function mulberry32(seed) {
