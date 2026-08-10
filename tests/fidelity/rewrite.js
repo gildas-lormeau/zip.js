@@ -44,7 +44,22 @@ async function rewriteZip(zip, data, { leg = "codec" } = {}) {
 	if (parsed.eocd.diskNumber != 0 || parsed.eocd.directoryDiskNumber != 0) {
 		throw new UnreproducibleError("split archive");
 	}
-	const plans = parsed.entries.map(entry => planEntry(entry, leg));
+	const plans = [];
+	const failures = [];
+	for (const entry of parsed.entries) {
+		try {
+			plans.push(planEntry(entry, leg));
+		} catch (error) {
+			if (error.unreproducible) {
+				failures.push(error.message);
+			} else {
+				throw error;
+			}
+		}
+	}
+	if (failures.length) {
+		throw new UnreproducibleError([...new Set(failures)].join("; "));
+	}
 	if (plans.some(plan => plan.mode == "codec")) {
 		await extractPayloads(zip, data, parsed, plans);
 	}
@@ -129,7 +144,13 @@ function planEntry(entry, leg) {
 		compressionMethod = fields.aes.compressionMethod;
 		encryptionOptions = { encryptionStrength: fields.aes.strength };
 	} else if (encrypted) {
+		if (!dataDescriptor) {
+			fail("zipcrypto without data descriptor");
+		}
 		encryptionOptions = { zipCrypto: true };
+	}
+	if (dataDescriptor && (local.crc32 || local.compressedSize || local.uncompressedSize)) {
+		fail("populated local header with data descriptor");
 	}
 	if (compressionMethod == COMPRESSION_METHOD_DEFLATE) {
 		level = LEVEL_BY_BITFLAG.get(bitFlag & BITFLAG_LEVEL);

@@ -31,6 +31,11 @@ const cases = [
 	},
 	{ name: "unicode-name", writerOptions: { useCompressionStream: false }, entries: [textEntry("héllo wörld ✓.txt", 14)] },
 	{ name: "ascii-flag-off", writerOptions: { useUnicodeFileNames: false, useCompressionStream: false }, entries: textEntries(2, 15) },
+	{ name: "empty-archive", writerOptions: { useCompressionStream: false }, entries: [] },
+	{
+		name: "odd-seconds-date", writerOptions: { useCompressionStream: false },
+		entries: [textEntry("odd.txt", 38, { lastModDate: new Date(2023, 4, 15, 10, 20, 31) })]
+	},
 	{ name: "empty-deflate", writerOptions: { level: 9, useCompressionStream: false }, entries: [{ name: "empty.bin", data: new Uint8Array(0) }] },
 	{ name: "empty-store", writerOptions: { level: 0 }, entries: [{ name: "empty.bin", data: new Uint8Array(0) }] },
 	{
