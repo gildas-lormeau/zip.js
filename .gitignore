@@ -3,3 +3,4 @@ node_modules
 .DS_Store
 benchmarks/.corpus
 tests/corpus
+tests/fidelity/corpus

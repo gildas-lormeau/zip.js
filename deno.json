@@ -24,6 +24,7 @@
 		"benchmarks",
 		"docs",
 		".github",
-		"tests/corpus"
+		"tests/corpus",
+		"tests/fidelity/corpus"
 	]
 }
