@@ -8,6 +8,6 @@
 
 > `const` **ERR\_CENTRAL\_DIRECTORY\_NOT\_FOUND**: `string`
 
-Defined in: [index.d.ts:2808](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L2808)
+Defined in: [index.d.ts:2883](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L2883)
 
 Central Directory not found error

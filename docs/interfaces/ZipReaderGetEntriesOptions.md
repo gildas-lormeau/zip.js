@@ -6,7 +6,7 @@
 
 # Interface: ZipReaderGetEntriesOptions
 
-Defined in: [index.d.ts:999](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L999)
+Defined in: [index.d.ts:1061](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1061)
 
 Represents the options passed to [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
@@ -20,7 +20,7 @@ Represents the options passed to [ZipReader#getEntries](../classes/ZipReader.md#
 
 > `optional` **checkAmbiguity?**: `boolean`
 
-Defined in: [index.d.ts:1033](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1033)
+Defined in: [index.d.ts:1095](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1095)
 
 `true` to throw an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error when the archive could be parsed differently by other
 tools. This detects data before or after the zip structure (e.g. a self-extracting archive stub or a
@@ -45,7 +45,7 @@ false
 
 > `optional` **commentEncoding?**: `string`
 
-Defined in: [index.d.ts:1014](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1014)
+Defined in: [index.d.ts:1076](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1076)
 
 The encoding of the comment of the entry.
 
@@ -59,7 +59,7 @@ The encoding of the comment of the entry.
 
 > `optional` **filenameEncoding?**: `string`
 
-Defined in: [index.d.ts:1010](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1010)
+Defined in: [index.d.ts:1072](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1072)
 
 The encoding of the filename of the entry.
 
@@ -73,7 +73,7 @@ The encoding of the filename of the entry.
 
 > `optional` **maxAppendedDataSize?**: `number`
 
-Defined in: [index.d.ts:1067](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1067)
+Defined in: [index.d.ts:1129](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1129)
 
 The maximum number of bytes tolerated after the zip structure before the archive is rejected. Defaults to
 `0` when [GetEntriesOptions#strictness](#strictness) is `"strict"`, `65535` when it is `"balanced"`, and `Infinity`
@@ -95,7 +95,7 @@ record is searched for, so a value smaller than the amount of data actually appe
 
 > `optional` **strictness?**: `"balanced"` \| `"strict"` \| `"tolerant"`
 
-Defined in: [index.d.ts:1055](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1055)
+Defined in: [index.d.ts:1117](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1117)
 
 How tolerant the reader should be when the archive can be parsed in more than one way.
 
@@ -131,7 +131,7 @@ of the file).
 
 > `optional` **decodeText**(`value`, `encoding`): `string` \| `undefined`
 
-Defined in: [index.d.ts:1022](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L1022)
+Defined in: [index.d.ts:1084](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L1084)
 
 The function called for decoding the filename and the comment of the entry.
 
@@ -165,7 +165,7 @@ The decoded text value or `undefined` if the raw text value should be decoded by
 
 > `optional` **onprogress**(`progress`, `total`, `entry`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:2169](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L2169)
+Defined in: [index.d.ts:2244](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L2244)
 
 The function called each time an entry is read/written.
 

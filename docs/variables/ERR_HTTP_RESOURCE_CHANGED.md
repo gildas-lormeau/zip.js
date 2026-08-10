@@ -8,6 +8,6 @@
 
 > `const` **ERR\_HTTP\_RESOURCE\_CHANGED**: `string`
 
-Defined in: [index.d.ts:2792](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L2792)
+Defined in: [index.d.ts:2867](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L2867)
 
 HTTP resource changed while being read error

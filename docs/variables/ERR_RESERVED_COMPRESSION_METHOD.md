@@ -8,6 +8,6 @@
 
 > `const` **ERR\_RESERVED\_COMPRESSION\_METHOD**: `string`
 
-Defined in: [index.d.ts:2898](https://github.com/gildas-lormeau/zip.js/blob/26f5bafb8ecbf6d9e0357295d3526c95bd62bf2b/index.d.ts#L2898)
+Defined in: [index.d.ts:2911](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L2911)
 
 Reserved compression method error

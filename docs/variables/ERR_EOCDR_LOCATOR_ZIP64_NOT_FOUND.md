@@ -8,6 +8,6 @@
 
 > `const` **ERR\_EOCDR\_LOCATOR\_ZIP64\_NOT\_FOUND**: `string`
 
-Defined in: [index.d.ts:2804](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L2804)
+Defined in: [index.d.ts:2879](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L2879)
 
 Zip64 End of Central Directory Locator not found error

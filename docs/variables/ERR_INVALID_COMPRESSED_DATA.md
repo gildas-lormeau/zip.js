@@ -8,6 +8,18 @@
 
 > `const` **ERR\_INVALID\_COMPRESSED\_DATA**: `string`
 
-Defined in: [index.d.ts:2840](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L2840)
+Defined in: [index.d.ts:2938](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L2938)
 
 Invalid compressed data error
+
+## Remarks
+
+The way malformed compressed data is reported is not uniform across codec
+backends. Bytes trailing a complete DEFLATE stream (e.g. a wrong
+`compressedSize`) are tolerated by the bundled WASM and pure-JS codecs, which
+decompress the valid data and ignore the extra bytes, but are rejected by the
+native `DecompressionStream` with its own `TypeError` (on Node,
+`ERR_TRAILING_JUNK_AFTER_STREAM_END`) rather than this error. Any data that is
+returned is always validated against the entry's uncompressed size (and CRC
+when `checkSignature` is set), so it is never silently truncated; the backends
+differ only in whether trailing bytes are ignored or raised as an error.

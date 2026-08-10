@@ -6,7 +6,7 @@
 
 # Interface: EntryDataOnprogressOptions
 
-Defined in: [index.d.ts:2132](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L2132)
+Defined in: [index.d.ts:2207](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L2207)
 
 Represents options passed to [FileEntry#getData](FileEntry.md#getdata), [ZipWriter.add](../classes/ZipWriter.md#add) and `{@link ZipDirectory}.export*`.
 
@@ -22,7 +22,7 @@ Represents options passed to [FileEntry#getData](FileEntry.md#getdata), [ZipWrit
 
 > `optional` **onend**(`computedSize`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:2154](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L2154)
+Defined in: [index.d.ts:2229](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L2229)
 
 The function called when ending compression/decompression.
 
@@ -46,7 +46,7 @@ An empty promise or `undefined`.
 
 > `optional` **onprogress**(`progress`, `total`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:2147](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L2147)
+Defined in: [index.d.ts:2222](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L2222)
 
 The function called during compression/decompression.
 
@@ -76,7 +76,7 @@ An empty promise or `undefined`.
 
 > `optional` **onstart**(`total`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:2139](https://github.com/gildas-lormeau/zip.js/blob/e4091a97773d5a308751de1bef94f6a14eacbd39/index.d.ts#L2139)
+Defined in: [index.d.ts:2214](https://github.com/gildas-lormeau/zip.js/blob/ee7e86965087fc3e435df2616f5e02e56e6fab15/index.d.ts#L2214)
 
 The function called when starting compression/decompression.
 
