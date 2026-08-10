@@ -2168,7 +2168,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    */
   supportZip64SplitFile?: boolean;
   /**
-   * `true`to produce zip files compatible with the USDZ specification.
+   * `true`to produce zip files compatible with the USDZ specification: the data of the entries is aligned on 64-byte
+   * boundaries and stored uncompressed unless the {@link ZipWriterConstructorOptions#level} or
+   * {@link ZipWriterAddDataOptions#compressionMethod} options are set explicitly. Setting the
+   * {@link ZipWriterConstructorOptions#password} option throws an {@link ERR_UNSUPPORTED_ENCRYPTION_USDZ} error.
    *
    * @defaultValue false
    */
@@ -2969,6 +2972,10 @@ export const ERR_INVALID_EXTRAFIELD_DATA: string;
  * Invalid encryption strength error
  */
 export const ERR_INVALID_ENCRYPTION_STRENGTH: string;
+/**
+ * Unsupported encryption in USDZ files error
+ */
+export const ERR_UNSUPPORTED_ENCRYPTION_USDZ: string;
 /**
  * Invalid format error
  */

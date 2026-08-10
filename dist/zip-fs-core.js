@@ -5118,6 +5118,7 @@
 	const ERR_INVALID_ENTRY_NAME = "File entry name exceeds 64KB";
 	const ERR_INVALID_VERSION = "Version exceeds 65535";
 	const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
+	const ERR_UNSUPPORTED_ENCRYPTION_USDZ = "Encryption is not supported in USDZ files";
 	const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
 	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
 	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
@@ -5536,6 +5537,14 @@
 			throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 		}
 		let level = getOptionValue(zipWriter, options, OPTION_LEVEL);
+		if (zipWriter.options[OPTION_USDZ]) {
+			if (password !== UNDEFINED_VALUE || rawPassword !== UNDEFINED_VALUE) {
+				throw new Error(ERR_UNSUPPORTED_ENCRYPTION_USDZ);
+			}
+			if (level === UNDEFINED_VALUE && compressionMethod === UNDEFINED_VALUE) {
+				level = 0;
+			}
+		}
 		let useCompressionStream = getOptionValue(zipWriter, options, OPTION_USE_COMPRESSION_STREAM);
 		let dataDescriptor = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR);
 		if (bufferedWrite && dataDescriptor === UNDEFINED_VALUE) {
