@@ -104,7 +104,7 @@
 	const HEADER_OFFSET_UNCOMPRESSED_SIZE = 18;
 	const LOCAL_HEADER_COMMON_OFFSET = 4;
 
-	const MAX_DATE = new Date(2107, 11, 31);
+	const MAX_DATE = new Date(2107, 11, 31, 23, 59, 58);
 	const MIN_DATE = new Date(1980, 0, 1);
 
 	const UNDEFINED_VALUE = undefined;
@@ -4089,6 +4089,7 @@
 	const OPTION_PREVENT_CLOSE = "preventClose";
 	const OPTION_ENCRYPTION_STRENGTH = "encryptionStrength";
 	const OPTION_EXTENDED_TIMESTAMP = "extendedTimestamp";
+	const OPTION_NTFS_TIMESTAMP = "ntfsTimestamp";
 	const OPTION_KEEP_ORDER = "keepOrder";
 	const OPTION_LEVEL = "level";
 	const OPTION_BUFFERED_WRITE = "bufferedWrite";
@@ -5722,6 +5723,7 @@
 		const encryptionStrength = getOptionValue(zipWriter, options, OPTION_ENCRYPTION_STRENGTH, 3);
 		const zipCrypto = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIPCRYPTO);
 		const extendedTimestamp = getOptionValue(zipWriter, options, OPTION_EXTENDED_TIMESTAMP, true);
+		const ntfsTimestamp = getOptionValue(zipWriter, options, OPTION_NTFS_TIMESTAMP);
 		const keepOrder = getOptionValue(zipWriter, options, OPTION_KEEP_ORDER, true);
 		const useWebWorkers = getOptionValue(zipWriter, options, OPTION_USE_WEB_WORKERS);
 		const transferStreams = getOptionValue(zipWriter, options, OPTION_TRANSFER_STREAMS);
@@ -5792,6 +5794,7 @@
 				encryptionStrength,
 				zipCrypto,
 				extendedTimestamp,
+				ntfsTimestamp,
 				keepOrder,
 				useWebWorkers,
 				transferStreams,
@@ -6236,6 +6239,7 @@
 			rawExtraField,
 			encryptionStrength,
 			extendedTimestamp,
+			ntfsTimestamp,
 			passThrough,
 			encrypted,
 			zip64UncompressedSize,
@@ -6281,7 +6285,8 @@
 		let extraFieldExtendedTimestampFlag;
 		if (extendedTimestamp) {
 			const lastModTimeUnix = getTimeUnix(lastModDate);
-			if (inUnixTimeRange(lastModTimeUnix)) {
+			const lastModTimeUnixInRange = inUnixTimeRange(lastModTimeUnix);
+			if (lastModTimeUnixInRange) {
 				const extraFieldTimestampLength = 9 + (lastAccessDate ? 4 : 0) + (creationDate ? 4 : 0);
 				const extraFieldTimestamp = createRecordWriter(extraFieldTimestampLength);
 				extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0);
@@ -6299,19 +6304,26 @@
 			} else {
 				rawExtraFieldExtendedTimestamp = EMPTY_UINT8_ARRAY;
 			}
-			try {
-				const lastModTimeNTFS = getTimeNTFS(lastModDate);
-				const extraFieldNTFS = createRecordWriter(36);
-				extraFieldNTFS.uint16(EXTRAFIELD_TYPE_NTFS);
-				extraFieldNTFS.uint16(32);
-				extraFieldNTFS.skip(4);
-				extraFieldNTFS.uint16(EXTRAFIELD_TYPE_NTFS_TAG1);
-				extraFieldNTFS.uint16(24);
-				extraFieldNTFS.uint64(lastModTimeNTFS);
-				extraFieldNTFS.uint64(getTimeNTFS(lastAccessDate) || lastModTimeNTFS);
-				extraFieldNTFS.uint64(getTimeNTFS(creationDate) || lastModTimeNTFS);
-				rawExtraFieldNTFS = extraFieldNTFS.array;
-			} catch {
+			const writeExtraFieldNTFS = ntfsTimestamp === UNDEFINED_VALUE ?
+				!lastModTimeUnixInRange || Boolean(lastAccessDate || creationDate) :
+				ntfsTimestamp;
+			if (writeExtraFieldNTFS) {
+				try {
+					const lastModTimeNTFS = getTimeNTFS(lastModDate);
+					const extraFieldNTFS = createRecordWriter(36);
+					extraFieldNTFS.uint16(EXTRAFIELD_TYPE_NTFS);
+					extraFieldNTFS.uint16(32);
+					extraFieldNTFS.skip(4);
+					extraFieldNTFS.uint16(EXTRAFIELD_TYPE_NTFS_TAG1);
+					extraFieldNTFS.uint16(24);
+					extraFieldNTFS.uint64(lastModTimeNTFS);
+					extraFieldNTFS.uint64(getTimeNTFS(lastAccessDate) || lastModTimeNTFS);
+					extraFieldNTFS.uint64(getTimeNTFS(creationDate) || lastModTimeNTFS);
+					rawExtraFieldNTFS = extraFieldNTFS.array;
+				} catch {
+					rawExtraFieldNTFS = EMPTY_UINT8_ARRAY;
+				}
+			} else {
 				rawExtraFieldNTFS = EMPTY_UINT8_ARRAY;
 			}
 		} else {
