@@ -12,7 +12,7 @@ export { test };
 
 async function test() {
 	const blobWriter = new zip.BlobWriter("model/vnd.usdz+zip");
-	const zipWriter = new zip.ZipWriter(blobWriter, { usdz: true, level: 0 });
+	const zipWriter = new zip.ZipWriter(blobWriter, { usdz: true });
 	for (const entryData of ENTRIES_DATA) {
 		await zipWriter.add(entryData.name, new zip.BlobReader(entryData.blob));
 	}
@@ -25,11 +25,19 @@ async function test() {
 		const blob = await entry.getData(new zip.BlobWriter("application/octet-stream"));
 		const testDataAlignment = ((entry.localDirectory.filenameLength + entry.localDirectory.rawExtraField.length + entry.offset + 30) % 64) == 0;
 		const testExtraField = Boolean(entry.localDirectory.extraFieldUSDZ);
-		testOK = testOK && testDataAlignment && testExtraField && compareResult(blob, indexEntry);
+		const testStored = entry.compressionMethod == 0;
+		testOK = testOK && testDataAlignment && testExtraField && testStored && compareResult(blob, indexEntry);
 		indexEntry++;
 	}
+	let testPasswordRejected = false;
+	const encryptedZipWriter = new zip.ZipWriter(new zip.BlobWriter("model/vnd.usdz+zip"), { usdz: true, password: "password" });
+	try {
+		await encryptedZipWriter.add(ENTRIES_DATA[0].name, new zip.BlobReader(ENTRIES_DATA[0].blob));
+	} catch (error) {
+		testPasswordRejected = error.message == zip.ERR_UNSUPPORTED_ENCRYPTION_USDZ;
+	}
 	await zip.terminateWorkers();
-	if (!testOK) {
+	if (!testOK || !testPasswordRejected) {
 		throw new Error();
 	}
 }
