@@ -63,5 +63,21 @@ Known unreproducible classes, i.e. states the writer cannot express:
    because its password verification byte is derived from the DOS time.
 6. Compression methods without a registered codec: bzip2 (12) and LZMA (14) from Python.
    Closable with `registerCodec` replay codecs if ever needed.
-7. Non-UTF-8 (cp437/ANSI) filenames: the writer always encodes names as UTF-8; no local
-   generator produces such archives, so this class is latent until wild files are added.
+7. Non-UTF-8 (cp437/ANSI) filenames: the writer always encodes names as UTF-8. Confirmed
+   in the wild by a GitHub release asset with GBK-encoded names.
+8. Deflated directory entries: some Java tools write directory entries as deflate with a
+   2-byte empty payload; zip.js always stores directory entries without data.
+
+## Wild tier
+
+`deno run -A fetch-wild.js [--count=N] [--seed=S] [--sources=a,b]` randomly samples
+public indexes (Project Gutenberg epubs, Maven Central jars, PyPI wheels, NuGet nupkgs,
+Internet Archive zips and Office documents, GitHub release assets and zipballs) into
+`corpus/wild/` with a manifest recording url, size, sha256 and seed. `deno run -A
+wild-run.js` sweeps them and prints a histogram of failure classes.
+
+First sweep (23 files, seeds 20260811/20260812): 14 byte-identical — every epub
+(calibre/epubmaker), wheel (Python), nupkg (.NET) and half the jars — and 9
+unreproducible, all in the classes above. Findings: the DOS rounding class (3) also
+covers GitHub zipballs and 1980s-era archives; Word writes its 0xA220 grow-hint padding
+field in the local header only (class 1); classes 7 and 8 were discovered by this tier.
