@@ -990,7 +990,7 @@
 
 		getDiskOffset(diskNumber) {
 			const { diskOffsets, size } = this;
-			const diskOffset = diskOffsets.at(diskNumber);
+			const diskOffset = diskOffsets[diskNumber];
 			return diskOffset === UNDEFINED_VALUE ? size : diskOffset;
 		}
 
@@ -2578,7 +2578,7 @@
 					if (zipCrypto.password || zipCrypto.rawPassword) {
 						const decryptedHeader = decrypt(zipCrypto, chunk.subarray(0, HEADER_LENGTH));
 						zipCrypto.password = zipCrypto.rawPassword = null;
-						if ((decryptedHeader.at(-1) ^ zipCrypto.passwordVerification) != 0) {
+						if ((decryptedHeader[HEADER_LENGTH - 1] ^ zipCrypto.passwordVerification) != 0) {
 							throw new Error(ERR_INVALID_PASSWORD);
 						}
 						chunk = chunk.subarray(HEADER_LENGTH);
