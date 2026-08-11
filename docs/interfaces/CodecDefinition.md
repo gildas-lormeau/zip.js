@@ -6,7 +6,7 @@
 
 # Interface: CodecDefinition
 
-Defined in: [index.d.ts:227](https://github.com/gildas-lormeau/zip.js/blob/6a2b06eb4f439b1463374b63dabc0480c3b8753a/index.d.ts#L227)
+Defined in: [index.d.ts:227](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L227)
 
 Represents a codec definition passed to [registerCodec](../functions/registerCodec.md).
 
@@ -16,7 +16,7 @@ Represents a codec definition passed to [registerCodec](../functions/registerCod
 
 > `optional` **codecURI?**: `string`
 
-Defined in: [index.d.ts:243](https://github.com/gildas-lormeau/zip.js/blob/6a2b06eb4f439b1463374b63dabc0480c3b8753a/index.d.ts#L243)
+Defined in: [index.d.ts:243](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L243)
 
 The URL of a module exporting the `CompressionStream` and/or `DecompressionStream` classes of
 the codec. Relative URLs are resolved against `Configuration#baseURI`; passing an absolute URL
@@ -28,7 +28,7 @@ the codec. Relative URLs are resolved against `Configuration#baseURI`; passing a
 
 > **compressionMethod**: `number`
 
-Defined in: [index.d.ts:232](https://github.com/gildas-lormeau/zip.js/blob/6a2b06eb4f439b1463374b63dabc0480c3b8753a/index.d.ts#L232)
+Defined in: [index.d.ts:232](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L232)
 
 The compression method stored in zip entry headers (e.g. `93` for Zstandard). The values `0`
 (store), `8` (deflate), `9` (deflate64) and `99` (AES) are reserved.
@@ -39,7 +39,7 @@ The compression method stored in zip entry headers (e.g. `93` for Zstandard). Th
 
 > `optional` **CompressionStream?**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
 
-Defined in: [index.d.ts:247](https://github.com/gildas-lormeau/zip.js/blob/6a2b06eb4f439b1463374b63dabc0480c3b8753a/index.d.ts#L247)
+Defined in: [index.d.ts:247](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L247)
 
 The stream implementation used to compress data, constructed with `(format, { level, chunkSize })`.
 
@@ -49,7 +49,7 @@ The stream implementation used to compress data, constructed with `(format, { le
 
 > `optional` **DecompressionStream?**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
 
-Defined in: [index.d.ts:251](https://github.com/gildas-lormeau/zip.js/blob/6a2b06eb4f439b1463374b63dabc0480c3b8753a/index.d.ts#L251)
+Defined in: [index.d.ts:251](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L251)
 
 The stream implementation used to decompress data, constructed with `(format, { chunkSize })`.
 
@@ -59,7 +59,7 @@ The stream implementation used to decompress data, constructed with `(format, { 
 
 > **format**: `string`
 
-Defined in: [index.d.ts:237](https://github.com/gildas-lormeau/zip.js/blob/6a2b06eb4f439b1463374b63dabc0480c3b8753a/index.d.ts#L237)
+Defined in: [index.d.ts:237](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L237)
 
 The format name identifying the codec (e.g. `"zstd"`). It is passed as the first argument to
 the constructors of `CompressionStream` and `DecompressionStream`.
@@ -70,7 +70,7 @@ the constructors of `CompressionStream` and `DecompressionStream`.
 
 > `optional` **versionNeeded?**: `number`
 
-Defined in: [index.d.ts:256](https://github.com/gildas-lormeau/zip.js/blob/6a2b06eb4f439b1463374b63dabc0480c3b8753a/index.d.ts#L256)
+Defined in: [index.d.ts:256](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L256)
 
 The minimum "version needed to extract" value written in zip entry headers (e.g. `63` for
 Zstandard).

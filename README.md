@@ -14,18 +14,6 @@ See https://gildas-lormeau.github.io/zip-manager
 
 See here for more info: https://gildas-lormeau.github.io/zip.js/
 
-# Bundle size
-
-zip.js is tree-shakeable: import named identifiers and your bundler removes what you do
-not use, e.g. the whole write path if you only read zip files. `import * as zip from
-"@zip.js/zip.js"` keeps everything.
-
-Smaller entry points are also available, e.g. `@zip.js/zip.js/lib/zip-core.js` embeds
-neither the Web Worker code nor the WASM module, pass `workerURI` and `wasmURI` to
-`configure()` instead. The prebuilt bundles in
-[`/dist`](https://github.com/gildas-lormeau/zip.js/tree/master/dist) are standalone files
-for script tags and AMD loaders, they are not tree-shaken.
-
 # Examples
 
 ## Hello world
