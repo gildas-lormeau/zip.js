@@ -70,6 +70,7 @@ export default ([
 	{ title: "Extended timestamp", script: "./test-extended-timestamp.js" },
 	{ title: "NTFS timestamp", script: "./test-ntfs-timestamp.js" },
 	{ title: "Encrypted central directory", script: "./test-encrypted-central-directory.js" },
+	{ title: "SecureZIP archives", script: "./test-securezip-archives.js" },
 	{ title: "Empty entry deflate", script: "./test-empty-entry-deflate.js" },
 	{ title: "Extra field", script: "./test-extra-field.js" },
 	{ title: "Last access date and creation date", script: "./test-last-access-date.js" },
