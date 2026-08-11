@@ -126,6 +126,7 @@ export default ([
 	{ title: "Read zstd with registered codec", script: "./test-zstd-codec.js", sanitizeResources: false },
 	{ title: "DCL implode with registered codec", script: "./test-dcl-implode-codec.js", sanitizeResources: false },
 	{ title: "Implode with registered codec", script: "./test-implode-codec.js", sanitizeResources: false },
+	{ title: "Shrink with registered codec", script: "./test-shrink-codec.js", sanitizeResources: false },
 	{ title: "Prepended data with zip64 offsets", script: "./test-prepended-data-zip64.js" },
 	{ title: "Zip64 offset boundaries", script: "./test-zip64-offset-boundary.js" },
 	{ title: "Worker loading error", script: "./test-worker-error.js", sanitizeResources: false },
