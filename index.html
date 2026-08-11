@@ -50,7 +50,68 @@
 		<h2>Compatibility</h2>
 		<p>
 			This library works fully with the latest versions of Chrome, Firefox, Safari, Microsoft Edge, Node.js, Deno, and Bun.
+			The minimum supported versions depend on the imported build, cf. the
+			<a href="#library-variants">Library variants</a> and <a href="#bundle-size">Bundle size</a> sections:
 		</p>
+		<table>
+			<tr>
+				<th>Build</th>
+				<th>Chrome, Edge</th>
+				<th>Firefox</th>
+				<th>Safari</th>
+				<th>Node.js</th>
+				<th>Deno</th>
+				<th>Bun</th>
+			</tr>
+			<tr>
+				<td>WebAssembly builds: <code>index.js</code> (default), <code>lib/zip-core-wasm.js</code>,
+					<code>dist/zip.min.js</code>, <code>dist/zip-fs.min.js</code></td>
+				<td>75</td>
+				<td>102</td>
+				<td>15.1</td>
+				<td>18</td>
+				<td>1.0</td>
+				<td>0.7</td>
+			</tr>
+			<tr>
+				<td>"native" JavaScript builds: <code>index-native.js</code>, <code>lib/zip-core-native.js</code>,
+					<code>dist/zip-native.min.js</code>, <code>dist/zip-fs-native.min.js</code></td>
+				<td>67</td>
+				<td>102</td>
+				<td>14.1</td>
+				<td>18</td>
+				<td>1.0</td>
+				<td>0.7</td>
+			</tr>
+			<tr>
+				<td>"core" builds: <code>lib/zip-core.js</code>, <code>lib/zip-core-reader.js</code>,
+					<code>lib/zip-core-writer.js</code>, <code>dist/zip-core.min.js</code>,
+					<code>dist/zip-fs-core.min.js</code></td>
+				<td>103</td>
+				<td>113</td>
+				<td>16.4</td>
+				<td>20.12</td>
+				<td>1.23</td>
+				<td>1.3.3</td>
+			</tr>
+		</table>
+		<ul>
+			<li>The requirements depend on how data is compressed and decompressed: the "core" builds rely on the
+				<code>"deflate-raw"</code> format of the Compression Streams API, while the other builds fall back on
+				their embedded deflate implementation when this format is unavailable. The embedded WebAssembly module
+				uses bulk memory operations, hence the higher requirements of the WebAssembly builds compared to the
+				"native" JavaScript builds.</li>
+			<li>Uncompressed entries only require the Streams API, i.e. Chrome 67, Firefox 102, Safari 14.1, and
+				Node.js 18, with any build. A worker script embedding the codecs passed via <code>workerURI</code>
+				also lifts the requirements of the "core" builds.</li>
+			<li>Deflate64 decompression and custom compression <code>level</code> values require an embedded deflate
+				implementation, they are not available with the "core" builds.</li>
+			<li>Reading and writing Zip64 files requires Safari 15 or higher.</li>
+			<li>AES encryption and decryption rely on the Web Crypto API, only available in secure contexts (HTTPS)
+				in browsers and exposed globally since version 19 in Node.js.</li>
+			<li>The WebAssembly builds require, on pages with a Content Security Policy, the
+				<code>'wasm-unsafe-eval'</code> source. Use the "native" builds otherwise.</li>
+		</ul>
 
 		<h2>Demos</h2>
 		<ul>
@@ -96,11 +157,9 @@
 				</ul>
 			</li>
 		</ul>
-		<p><strong>Note:</strong> <code>import * as zip</code> imports the whole library. Import named identifiers
-			instead, e.g. <code>import { ZipReader, BlobReader, TextWriter } from "@zip.js/zip.js";</code>, to let your
-			bundler remove the code you do not use, e.g. the whole write path if you only read zip files. See the
-			<a href="https://github.com/gildas-lormeau/zip.js#bundle-size">Bundle size</a> section for the measured
-			sizes and the smaller entry points.
+		<p><strong>Note:</strong> <code>import * as zip</code> imports the whole library. See the
+			<a href="#bundle-size">Bundle size</a> section below to reduce the footprint of zip.js in your
+			application.
 		</p>
 		<p>You can also install manually the library by adding <code>zip.min.js</code> from the
 			<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
@@ -123,7 +182,20 @@
 &lt;/script&gt;</code></pre>
 			</li>
 		</ul>
-		<h2>Library variants</h2>
+		<h2 id="bundle-size">Bundle size</h2>
+		<p>
+			zip.js is tree-shakeable: import named identifiers, e.g.
+			<code>import { ZipReader, BlobReader, TextWriter } from "@zip.js/zip.js";</code>, and your bundler
+			removes what you do not use, e.g. the whole write path if you only read zip files.
+		</p>
+		<p>
+			Smaller entry points are also available, e.g. <code>@zip.js/zip.js/lib/zip-core.js</code> embeds
+			neither the Web Worker code nor the WebAssembly module, pass <code>workerURI</code> and
+			<code>wasmURI</code> to <code>configure()</code> instead. The prebuilt bundles in
+			<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
+			are standalone files for script tags and AMD loaders, they are not tree-shaken.
+		</p>
+		<h2 id="library-variants">Library variants</h2>
 		<p>
 			The library comes in two variants. The default variant embeds a WebAssembly build of zlib, while the
 			"native" variant embeds a JavaScript port of zlib instead. This embedded code is used when compressing

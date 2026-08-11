@@ -76,6 +76,25 @@ hr {
 	border-bottom: 1px solid #aaa;
 }
 
+table {
+	border-collapse: collapse;
+	background: white;
+	box-shadow: 0px 0px 10px #ccc;
+	margin: 1em 0;
+}
+
+th,
+td {
+	padding: 8px 12px;
+	border: 1px solid #ddd;
+	text-align: left;
+	vertical-align: top;
+}
+
+th {
+	color: #3e5763;
+}
+
 .footer {
 	text-align: center;
 	padding-top: 30px;
@@ -149,5 +168,16 @@ p {
 	}
 	pre .typ {
 		color: #ffc9ff;
+	}
+	table {
+		background: black;
+		box-shadow: 0px 0px 10px #393939;
+	}
+	th,
+	td {
+		border-color: #444;
+	}
+	th {
+		color: #80afc6;
 	}
 }
