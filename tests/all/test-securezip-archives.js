@@ -15,6 +15,19 @@ async function test() {
 	testOK = testOK && await testDeflate64();
 	testOK = testOK && await testError("lorem-bzip2.zip", {}, zip.ERR_UNSUPPORTED_COMPRESSION);
 	testOK = testOK && await testError("lorem-lzma.zip", {}, zip.ERR_UNSUPPORTED_COMPRESSION);
+	testOK = testOK && await testError("lorem-lzma-eos.zip", {}, zip.ERR_UNSUPPORTED_COMPRESSION);
+	testOK = testOK && await testError("lorem-ppmd.zip", {}, zip.ERR_UNSUPPORTED_COMPRESSION);
+	testOK = testOK && await testError("lorem-big-bzip2.zip", {}, zip.ERR_UNSUPPORTED_COMPRESSION);
+	for (const variant of ["a1", "a2", "a3", "b1", "b2", "b3"]) {
+		testOK = testOK && await testError(`lorem-dcl-implode-${variant}.zip`, {}, zip.ERR_UNSUPPORTED_COMPRESSION);
+	}
+	for (const method of ["bzip2", "lzma", "ppmd", "dcl-implode"]) {
+		testOK = testOK && await testError(`lorem-${method}-encrypted.zip`, { password: PASSWORD }, zip.ERR_UNSUPPORTED_ENCRYPTION);
+	}
+	for (const method of ["bzip2", "lzma", "ppmd"]) {
+		testOK = testOK && await testError(`lorem-${method}-aes.zip`, { password: PASSWORD }, zip.ERR_UNSUPPORTED_COMPRESSION);
+	}
+	testOK = testOK && await testSelfExtracting();
 	testOK = testOK && await testSigned();
 	testOK = testOK && await testError("lorem-secure.zip", { password: PASSWORD }, zip.ERR_UNSUPPORTED_ENCRYPTION);
 	testOK = testOK && await testText("lorem-secure-traditional-full.zip", "lorem.txt", { password: PASSWORD });
@@ -40,6 +53,12 @@ async function testText(name, filename, options = {}) {
 async function testDeflate64() {
 	const entry = await getFirstEntry("lorem-securezip-deflate64.zip");
 	const text = await entry.getData(new zip.TextWriter());
+	return entry.compressionMethod == 9 && text.startsWith(LOREM_PREFIX);
+}
+
+async function testSelfExtracting() {
+	const entry = await getFirstEntry("lorem.exe.zip");
+	const text = await entry.getData(new zip.TextWriter(), { checkSignature: true });
 	return entry.compressionMethod == 9 && text.startsWith(LOREM_PREFIX);
 }
 

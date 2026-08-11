@@ -4661,10 +4661,6 @@
 					throw new Error(ERR_UNSUPPORTED_COMPRESSION$1);
 				}
 			}
-			const registeredCodec = passThrough ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
-			if ((compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE && compressionMethod != COMPRESSION_METHOD_DEFLATE_64 && !registeredCodec) && !passThrough) {
-				throw new Error(ERR_UNSUPPORTED_COMPRESSION$1);
-			}
 			if (dataArray.length < HEADER_SIZE || getUint32(dataView, 0) != LOCAL_FILE_HEADER_SIGNATURE) {
 				throw new Error(ERR_LOCAL_FILE_HEADER_NOT_FOUND);
 			}
@@ -4700,10 +4696,14 @@
 			if (!passThrough) {
 				fileEntry.zipCrypto = zipCrypto;
 			}
+			if (encrypted && (localDirectory.rawBitFlag & BITFLAG_STRONG_ENCRYPTION) == BITFLAG_STRONG_ENCRYPTION) {
+				throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
+			}
+			const registeredCodec = passThrough ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
+			if (compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE && compressionMethod != COMPRESSION_METHOD_DEFLATE_64 && !registeredCodec && !passThrough) {
+				throw new Error(ERR_UNSUPPORTED_COMPRESSION$1);
+			}
 			if (encrypted) {
-				if ((localDirectory.rawBitFlag & BITFLAG_STRONG_ENCRYPTION) == BITFLAG_STRONG_ENCRYPTION) {
-					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
-				}
 				if (!zipCrypto && (extraFieldAES.strength < 1 || extraFieldAES.strength > 3)) {
 					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
 				} else if (!password && !rawPassword) {
