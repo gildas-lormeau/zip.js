@@ -313,7 +313,7 @@ function setCodecStreams(format, streams) {
 
 async function ensureCodecStreams(format, codecURI) {
 	if (!codecStreams.has(format) && codecURI) {
-		setCodecStreams(format, await import(codecURI));
+		setCodecStreams(format, await import(/* webpackIgnore: true */ /* @vite-ignore */ codecURI));
 	}
 }
 

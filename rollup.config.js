@@ -108,6 +108,9 @@ const bundledTerserOptions = {
 			keep_quoted: "strict",
 			reserved: reservedPropertyNames
 		}
+	},
+	format: {
+		comments: /webpackIgnore|@vite-ignore/
 	}
 };
 
