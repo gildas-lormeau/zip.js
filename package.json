@@ -39,6 +39,7 @@
     "build-doc-api": "npx typedoc",
     "build-doc-markdown": "npx typedoc --plugin typedoc-plugin-markdown --out ./docs",
     "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
+    "test-web-streams-polyfill": "cd ./tests && deno run --allow-read ./web-streams-polyfill-runner.js",
     "test-node": "cd ./tests && node ./node-runner.js",
     "test-bun": "cd ./tests && bun test ./bun-runner.js --timeout 30000",
     "test-deno-dist": "./tests/dist-runner.sh deno",
@@ -177,6 +178,7 @@
     "http-server": "^14.1.1",
     "rollup": "^4.62.4",
     "typedoc": "^0.28.20",
-    "typedoc-plugin-markdown": "^4.12.0"
+    "typedoc-plugin-markdown": "^4.12.0",
+    "web-streams-polyfill": "^4.3.0"
   }
 }

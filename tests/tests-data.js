@@ -16,6 +16,7 @@ export default ([
 	{ title: "Arraybuffer", script: "./test-arrayBuffer.js" },
 	{ title: "Filesystem getArrayBuffer", script: "./test-fs-array-buffer.js" },
 	{ title: "Base 64", script: "./test-base64.js" },
+	{ title: "Foreign streams", script: "./test-foreign-streams.js" },
 	{ title: "Ambiguity check", script: "./test-check-ambiguity.js" },
 	{ title: "End of central directory selection", script: "./test-end-of-central-directory.js" },
 	{ title: "Malformed zip files", script: "./test-malformed-zip.js" },

@@ -1827,6 +1827,73 @@
 	}
 
 	/*
+	 Copyright (c) 2026 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	function toCompatibleReadable(readable) {
+		if (readable instanceof ReadableStream) {
+			return readable;
+		}
+		const reader = readable.getReader();
+		return new ReadableStream({
+			async pull(controller) {
+				const { value, done } = await reader.read();
+				if (done) {
+					controller.close();
+				} else {
+					controller.enqueue(value);
+				}
+			},
+			cancel(reason) {
+				return reader.cancel(reason);
+			}
+		});
+	}
+
+	function toCompatibleWritable(writable) {
+		if (writable instanceof WritableStream) {
+			return writable;
+		}
+		const writer = writable.getWriter();
+		return new WritableStream({
+			write(chunk) {
+				return writer.write(chunk);
+			},
+			close() {
+				return writer.close();
+			},
+			abort(reason) {
+				return writer.abort(reason);
+			}
+		});
+	}
+
+	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
@@ -2045,7 +2112,7 @@
 	}
 
 	function pipeThrough(readable, transformStream) {
-		return readable.pipeThrough(transformStream);
+		return toCompatibleReadable(readable).pipeThrough(transformStream);
 	}
 
 	function pipeThroughBackpressured(readable, transformStream) {
@@ -3186,10 +3253,10 @@
 			const { blob, size } = reader;
 			const { offset = 0, size: readSize = size - offset } = options || {};
 			if (!offset && readSize >= size) {
-				return blob.stream();
+				return toCompatibleReadable(blob.stream());
 			}
 			if (blobSliceReliable) {
-				return blob.slice(offset, offset + readSize).stream();
+				return toCompatibleReadable(blob.slice(offset, offset + readSize).stream());
 			}
 			return super.createReadable(options);
 		}
@@ -3208,22 +3275,37 @@
 		}
 	}
 
+	function responseSupportsGlobalReadable() {
+		return typeof Blob.prototype.stream != FUNCTION_TYPE || new Blob([]).stream() instanceof ReadableStream;
+	}
+
 	class BlobWriter extends Stream {
 
 		constructor(contentType) {
 			super();
 			const writer = this;
 			const transformStream = new TransformStream();
-			const headers = [];
-			if (contentType) {
-				headers.push([HTTP_HEADER_CONTENT_TYPE, contentType]);
-			}
 			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
 				get() {
 					return transformStream.writable;
 				}
 			});
-			writer.blob = new Response(transformStream.readable, { headers }).blob();
+			if (responseSupportsGlobalReadable()) {
+				const headers = [];
+				if (contentType) {
+					headers.push([HTTP_HEADER_CONTENT_TYPE, contentType]);
+				}
+				writer.blob = new Response(transformStream.readable, { headers }).blob();
+			} else {
+				const chunks = [];
+				writer.blob = transformStream.readable
+					.pipeTo(new WritableStream({
+						write(chunk) {
+							chunks.push(chunk);
+						}
+					}))
+					.then(() => new Blob(chunks, { type: contentType }));
+			}
 			writer.blob.catch(() => { });
 		}
 
@@ -3875,9 +3957,9 @@
 			if (Array.isArray(reader)) {
 				reader = new SplitDataReader(reader);
 			}
-			if (reader instanceof ReadableStream) {
+			if (reader instanceof ReadableStream || typeof reader.getReader == FUNCTION_TYPE) {
 				reader = {
-					readable: reader
+					readable: toCompatibleReadable(reader)
 				};
 			}
 			return reader;
@@ -3890,9 +3972,9 @@
 			if (writer.writable === UNDEFINED_VALUE && typeof writer.next == FUNCTION_TYPE) {
 				writer = new SplitDataWriter(writer);
 			}
-			if (writer instanceof WritableStream) {
+			if (writer instanceof WritableStream || typeof writer.getWriter == FUNCTION_TYPE) {
 				writer = {
-					writable: writer
+					writable: toCompatibleWritable(writer)
 				};
 			}
 			if (writer.size === UNDEFINED_VALUE) {
@@ -4713,7 +4795,7 @@
 			}
 			const dataOffset = localHeaderOffset + HEADER_SIZE + filenameLength + extraFieldLength;
 			const size = compressedSize;
-			const readable = reader.createReadable({ offset: dataOffset, size });
+			const readable = toCompatibleReadable(reader.createReadable({ offset: dataOffset, size }));
 			const signal = getOptionValue$1(zipEntry, options, OPTION_SIGNAL);
 			const checkPasswordOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_PASSWORD_ONLY);
 			let checkOverlappingEntry = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY);
@@ -6282,7 +6364,7 @@
 		}
 		const { writable } = writer;
 		if (reader) {
-			const readable = reader.createReadable ? reader.createReadable() : reader.readable;
+			const readable = toCompatibleReadable(reader.createReadable ? reader.createReadable() : reader.readable);
 			const size = reader.size;
 			const workerOptions = {
 				options: {
