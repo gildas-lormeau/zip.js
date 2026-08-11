@@ -1868,7 +1868,7 @@
 
 		constructor(options, { chunkSize, CompressionStreamZlib, CompressionStream }) {
 			super({});
-			const { compressed, encrypted, useCompressionStream, zipCrypto, signed, level, deflate64, format } = options;
+			const { compressed, encrypted, useCompressionStream, zipCrypto, signed, level, deflate64, format, compressionMethod } = options;
 			const stream = this;
 			let crc32Stream, encryptionStream, gzipCrc32Stream;
 			let readable = super.readable;
@@ -1881,7 +1881,7 @@
 			}
 			if (compressed) {
 				if (codecStreams) {
-					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.CompressionStream, format, { level, chunkSize }));
+					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.CompressionStream, format, { level, chunkSize, compressionMethod }));
 				} else if (useGzipCrc32) {
 					gzipCrc32Stream = new GzipToRawDeflateStream();
 					readable = pipeThroughBackpressured(readable, new CompressionStream(FORMAT_GZIP));
@@ -1956,7 +1956,7 @@
 
 		constructor(options, { chunkSize, DecompressionStreamZlib, DecompressionStream }) {
 			super({});
-			const { zipCrypto, encrypted, signed, signature, compressed, useCompressionStream, deflate64, format } = options;
+			const { zipCrypto, encrypted, signed, signature, compressed, useCompressionStream, deflate64, format, compressionMethod, rawBitFlag, outputSize } = options;
 			let crc32Stream, decryptionStream;
 			let readable = super.readable;
 			if (encrypted) {
@@ -1970,7 +1970,7 @@
 			if (compressed) {
 				const codecStreams = format && getCodecStreams(format);
 				if (codecStreams) {
-					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.DecompressionStream, format, { chunkSize }));
+					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.DecompressionStream, format, { chunkSize, compressionMethod, rawBitFlag, uncompressedSize: outputSize }));
 				} else {
 					readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamZlib);
 				}
@@ -4639,6 +4639,7 @@
 				compressionMethod,
 				config,
 				bitFlag,
+				rawBitFlag,
 				signature,
 				rawLastModDate,
 				uncompressedSize,
@@ -4745,6 +4746,8 @@
 					deflate64,
 					format: registeredCodec ? registeredCodec.format : UNDEFINED_VALUE,
 					codecURI: registeredCodec ? registeredCodec.codecURI : UNDEFINED_VALUE,
+					compressionMethod,
+					rawBitFlag,
 					checkPasswordOnly
 				},
 				config,
@@ -6297,7 +6300,8 @@
 					useCompressionStream,
 					transferStreams,
 					format,
-					codecURI
+					codecURI,
+					compressionMethod
 				},
 				config,
 				streamOptions: { signal, size, onstart, onprogress, onend }

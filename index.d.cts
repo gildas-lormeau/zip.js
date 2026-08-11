@@ -242,11 +242,20 @@ export interface CodecDefinition {
    */
   codecURI?: string;
   /**
-   * The stream implementation used to compress data, constructed with `(format, { level, chunkSize })`.
+   * The stream implementation used to compress data, constructed with
+   * `(format, { level, chunkSize, compressionMethod })`.
    */
   CompressionStream?: typeof TransformStreamLike;
   /**
-   * The stream implementation used to decompress data, constructed with `(format, { chunkSize })`.
+   * The stream implementation used to decompress data, constructed with
+   * `(format, { chunkSize, compressionMethod, rawBitFlag, uncompressedSize })`.
+   *
+   * `compressionMethod` allows codecs registered for multiple methods with the same format to
+   * distinguish them (e.g. Reduce, methods 2 to 5). `rawBitFlag` exposes the general purpose bit
+   * flag of the entry, which some methods need to decode the data (e.g. the dictionary size and
+   * number of trees of Implode, or the end-of-stream marker presence of LZMA). `uncompressedSize`
+   * allows size-driven decoders (e.g. Shrink, Reduce, Implode, LZMA without end-of-stream marker)
+   * to stop at the exact output size instead of decoding trailing padding bits.
    */
   DecompressionStream?: typeof TransformStreamLike;
   /**

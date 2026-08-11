@@ -1,8 +1,15 @@
-/* global Blob, TransformStream, Uint8Array, DataView, btoa */
+/* global Blob, TransformStream, Uint8Array, DataView, btoa, URL, fetch */
 
 import * as zip from "../zip-lib.js";
 
 export { test };
+
+const COMPRESSION_METHOD_LZMA = 14;
+const COMPRESSION_METHOD_PPMD = 98;
+const FORMAT_FAKE = "fake-test";
+const BITFLAG_LZMA_EOS = 0x2;
+const FIXTURE_PASSWORD = "lorem.txt";
+const LOREM_PREFIX = "Lorem ipsum";
 
 const TEXT_CONTENT = "The quick brown fox jumps over the lazy dog. ".repeat(40);
 const COMPRESSION_METHOD_XOR = 93;
@@ -61,9 +68,114 @@ async function test() {
 			versionNeeded: VERSION_NEEDED_XOR
 		});
 		await checkRoundTrip();
+		await checkDecompressionOptions();
+		await checkWorkerDecompressionOptions();
 	} finally {
 		zip.unregisterCodec(COMPRESSION_METHOD_XOR);
 		await zip.terminateWorkers();
+	}
+}
+
+async function checkDecompressionOptions() {
+	const loremBytes = new Uint8Array(await (await fetch(fixtureURL("lorem.txt"))).arrayBuffer());
+	const constructorArgs = [];
+	class FakeDecompressionStream extends TransformStream {
+		constructor(format, options) {
+			super({
+				transform() { },
+				flush(controller) {
+					controller.enqueue(loremBytes.slice());
+				}
+			});
+			constructorArgs.push({ format, options });
+		}
+	}
+	try {
+		zip.registerCodec({ compressionMethod: COMPRESSION_METHOD_PPMD, format: FORMAT_FAKE, DecompressionStream: FakeDecompressionStream });
+		zip.registerCodec({ compressionMethod: COMPRESSION_METHOD_LZMA, format: FORMAT_FAKE, DecompressionStream: FakeDecompressionStream });
+		const contentPpmd = await readFixtureEntry("lorem-ppmd.zip", { checkSignature: true });
+		const contentAes = await readFixtureEntry("lorem-ppmd-aes.zip", { checkSignature: true, password: FIXTURE_PASSWORD });
+		await readFixtureEntry("lorem-lzma.zip", {});
+		await readFixtureEntry("lorem-lzma-eos.zip", {});
+		if (!contentPpmd.startsWith(LOREM_PREFIX) || !contentAes.startsWith(LOREM_PREFIX)) {
+			throw new Error("fake codec output did not round-trip");
+		}
+		const [ppmd, ppmdAES, lzma, lzmaEOS] = constructorArgs;
+		checkDecompressionArgs(ppmd, COMPRESSION_METHOD_PPMD, loremBytes.length);
+		checkDecompressionArgs(ppmdAES, COMPRESSION_METHOD_PPMD, loremBytes.length);
+		checkDecompressionArgs(lzma, COMPRESSION_METHOD_LZMA, loremBytes.length);
+		checkDecompressionArgs(lzmaEOS, COMPRESSION_METHOD_LZMA, loremBytes.length);
+		if ((ppmd.options.rawBitFlag & BITFLAG_LZMA_EOS) || (lzma.options.rawBitFlag & BITFLAG_LZMA_EOS)) {
+			throw new Error("unexpected end-of-stream marker bit");
+		}
+		if (!(lzmaEOS.options.rawBitFlag & BITFLAG_LZMA_EOS)) {
+			throw new Error("missing end-of-stream marker bit");
+		}
+	} finally {
+		zip.unregisterCodec(COMPRESSION_METHOD_PPMD);
+		zip.unregisterCodec(COMPRESSION_METHOD_LZMA);
+	}
+}
+
+function checkDecompressionArgs({ format, options }, expectedMethod, expectedUncompressedSize) {
+	if (format != FORMAT_FAKE) {
+		throw new Error("unexpected codec format " + format);
+	}
+	if (options.compressionMethod != expectedMethod) {
+		throw new Error("unexpected codec compressionMethod " + options.compressionMethod);
+	}
+	if (options.uncompressedSize != expectedUncompressedSize) {
+		throw new Error("unexpected codec uncompressedSize " + options.uncompressedSize);
+	}
+	if (typeof options.rawBitFlag != "number") {
+		throw new Error("missing codec rawBitFlag");
+	}
+	if (typeof options.chunkSize != "number") {
+		throw new Error("missing codec chunkSize");
+	}
+}
+
+async function checkWorkerDecompressionOptions() {
+	const moduleCode = `class EchoOptionsStream extends TransformStream {
+	constructor(format, { compressionMethod, rawBitFlag, uncompressedSize }) {
+		super({
+			transform() { },
+			flush(controller) {
+				const output = new Uint8Array(uncompressedSize).fill(32);
+				output.set(new TextEncoder().encode(JSON.stringify({ compressionMethod, rawBitFlag, uncompressedSize })));
+				controller.enqueue(output);
+			}
+		});
+	}
+}
+export { EchoOptionsStream as DecompressionStream };`;
+	try {
+		zip.registerCodec({
+			compressionMethod: COMPRESSION_METHOD_LZMA,
+			format: "echo-options-test",
+			codecURI: "data:text/javascript;base64," + btoa(moduleCode)
+		});
+		const content = await readFixtureEntry("lorem-lzma-eos.zip", {});
+		const { compressionMethod, rawBitFlag, uncompressedSize } = JSON.parse(content);
+		if (compressionMethod != COMPRESSION_METHOD_LZMA || !(rawBitFlag & BITFLAG_LZMA_EOS) || !(uncompressedSize > 0)) {
+			throw new Error("codec options not transmitted to workers: " + content);
+		}
+	} finally {
+		zip.unregisterCodec(COMPRESSION_METHOD_LZMA);
+	}
+}
+
+function fixtureURL(name) {
+	return new URL(`./../data/${name}`, import.meta.url).href;
+}
+
+async function readFixtureEntry(name, options) {
+	const reader = new zip.ZipReader(new zip.HttpReader(fixtureURL(name), { preventHeadRequest: true }));
+	try {
+		const [entry] = await reader.getEntries();
+		return await entry.getData(new zip.TextWriter(), options);
+	} finally {
+		await reader.close();
 	}
 }
 
