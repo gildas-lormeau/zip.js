@@ -8,7 +8,7 @@
 
 > **registerCodec**(`codec`): `void`
 
-Defined in: [index.d.ts:215](https://github.com/gildas-lormeau/zip.js/blob/6fc5ad99d22ab1d46e0da07f84168596974a964b/index.d.ts#L215)
+Defined in: [index.d.ts:215](https://github.com/gildas-lormeau/zip.js/blob/6a2b06eb4f439b1463374b63dabc0480c3b8753a/index.d.ts#L215)
 
 Registers a codec for a custom compression method (e.g. Zstandard, method 93). Entries using a
 registered method can then be written with `ZipWriter#add` and read with `FileEntry#getData`.
