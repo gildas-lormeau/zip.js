@@ -458,6 +458,12 @@ export { ZipReader };
                     entryCode += `export * from "${baseUrl}zip-module-${suffix}.js";\n`;
                 }
 
+                if (!useWorkers) {
+                    // Without this, the default configuration still tries to spawn a worker
+                    // from the default workerURI, which does not exist in a custom build.
+                    entryCode += `configure({ useWebWorkers: false });\n`;
+                }
+
                 if (useFS) {
                     entryCode += `export * from "${baseUrl}core/zip-fs.js";\n`;
                 }
