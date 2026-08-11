@@ -2750,7 +2750,7 @@
 					readable = pipeThroughBackpressured(readable, new CompressionStream(FORMAT_GZIP));
 					readable = pipeThrough(readable, gzipCrc32Stream);
 				} else {
-					readable = pipeThroughCommpressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStream, CompressionStreamZlib, CompressionStream);
+					readable = pipeThroughCompressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStream, CompressionStreamZlib);
 				}
 			}
 			if (encrypted) {
@@ -2835,7 +2835,7 @@
 				if (codecStreams) {
 					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.DecompressionStream, format, { chunkSize }));
 				} else {
-					readable = pipeThroughCommpressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamZlib, DecompressionStream);
+					readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamZlib);
 				}
 				readable = mapInflateStreamError(readable);
 			}
@@ -2889,21 +2889,17 @@
 		return new CodecStreamClass(format, options);
 	}
 
-	function pipeThroughCommpressionStream(readable, useCompressionStream, options, CompressionStreamNative, CompressionStreamZlib, CompressionStream) {
-		const Stream = useCompressionStream && CompressionStreamNative ? CompressionStreamNative : CompressionStreamZlib || CompressionStream;
+	function pipeThroughCompressionStream(readable, useCompressionStream, options, CompressionStreamNative, CompressionStreamZlib) {
+		const Stream = useCompressionStream && CompressionStreamNative ?
+			CompressionStreamNative :
+			CompressionStreamZlib || CompressionStreamNative;
 		const format = options.deflate64 ? FORMAT_DEFLATE64_RAW : FORMAT_DEFLATE_RAW;
 		let codecStream;
 		try {
 			codecStream = new Stream(format, options);
 		} catch (error) {
-			if (useCompressionStream) {
-				if (CompressionStreamZlib) {
-					codecStream = new CompressionStreamZlib(format, options);
-				} else if (CompressionStream) {
-					codecStream = new CompressionStream(format, options);
-				} else {
-					throw error;
-				}
+			if (useCompressionStream && CompressionStreamZlib && Stream != CompressionStreamZlib) {
+				codecStream = new CompressionStreamZlib(format, options);
 			} else {
 				throw error;
 			}
@@ -3296,22 +3292,19 @@
 	async function runWorker$1({ options, readable, writable, onTaskFinished }, config) {
 		let codecStream;
 		try {
-			if (!options.useCompressionStream) {
-				try {
-					await initModule(config);
-				} catch {
-					const ZlibStream = options.codecType.startsWith(CODEC_DEFLATE) ?
-						config.CompressionStreamZlib :
-						config.DecompressionStreamZlib;
-					if (!ZlibStream || ZlibStream.requiresModule) {
-						options.useCompressionStream = true;
-					}
-				}
-			} else if (options.compressed && !options.format) {
+			if (options.compressed && !options.format) {
 				const deflate = options.codecType.startsWith(CODEC_DEFLATE);
 				const ZlibStream = deflate ? config.CompressionStreamZlib : config.DecompressionStreamZlib;
 				const NativeStream = deflate ? config.CompressionStream : config.DecompressionStream;
-				if (ZlibStream && ZlibStream.requiresModule && !supportsDeflateRaw(NativeStream)) {
+				if (!options.useCompressionStream) {
+					try {
+						await initModule(config);
+					} catch {
+						if (!ZlibStream || ZlibStream.requiresModule) {
+							options.useCompressionStream = true;
+						}
+					}
+				} else if (ZlibStream && ZlibStream.requiresModule && !supportsDeflateRaw(NativeStream)) {
 					try {
 						await initModule(config);
 					} catch {
