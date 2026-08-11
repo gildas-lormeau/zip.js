@@ -46,6 +46,7 @@
 	const LOCAL_FILE_HEADER_SIGNATURE = 0x04034b50;
 	const SPLIT_ZIP_FILE_SIGNATURE = 0x08074b50;
 	const DATA_DESCRIPTOR_RECORD_SIGNATURE = SPLIT_ZIP_FILE_SIGNATURE;
+	const ARCHIVE_EXTRA_DATA_SIGNATURE = 0x08064b50;
 	const CENTRAL_FILE_HEADER_SIGNATURE = 0x02014b50;
 	const END_OF_CENTRAL_DIR_SIGNATURE = 0x06054b50;
 	const ZIP64_END_OF_CENTRAL_DIR_SIGNATURE = 0x06064b50;
@@ -77,6 +78,7 @@
 	const BITFLAG_LEVEL_FAST_MASK = 0b100;
 	const BITFLAG_LEVEL_SUPER_FAST_MASK = 0b110;
 	const BITFLAG_DATA_DESCRIPTOR = 0b1000;
+	const BITFLAG_STRONG_ENCRYPTION = 0b1000000;
 	const BITFLAG_LANG_ENCODING_FLAG = 0b100000000000;
 	const FILE_ATTR_MSDOS_DIR_MASK = 0b10000;
 	const FILE_ATTR_MSDOS_READONLY_MASK = 0x01;
@@ -1987,6 +1989,25 @@
 		}
 	}
 
+	const deflateRawSupportByStream = new Map();
+
+	function supportsDeflateRaw(StreamClass) {
+		if (!StreamClass) {
+			return false;
+		}
+		let supported = deflateRawSupportByStream.get(StreamClass);
+		if (supported === UNDEFINED_VALUE) {
+			try {
+				new StreamClass(FORMAT_DEFLATE_RAW);
+				supported = true;
+			} catch {
+				supported = false;
+			}
+			deflateRawSupportByStream.set(StreamClass, supported);
+		}
+		return supported;
+	}
+
 	function setReadable(stream, readable, flush) {
 		readable = pipeThrough(readable, new TransformStream({ flush }));
 		Object.defineProperty(stream, "readable", {
@@ -2419,6 +2440,17 @@
 						config.DecompressionStreamZlib;
 					if (!ZlibStream || ZlibStream.requiresModule) {
 						options.useCompressionStream = true;
+					}
+				}
+			} else if (options.compressed && !options.format) {
+				const deflate = options.codecType.startsWith(CODEC_DEFLATE);
+				const ZlibStream = deflate ? config.CompressionStreamZlib : config.DecompressionStreamZlib;
+				const NativeStream = deflate ? config.CompressionStream : config.DecompressionStream;
+				if (ZlibStream && ZlibStream.requiresModule && !supportsDeflateRaw(NativeStream)) {
+					try {
+						await initModule(config);
+					} catch {
+						// ignored
 					}
 				}
 			}
@@ -4149,6 +4181,7 @@
 	const ERR_SPLIT_ZIP_FILE = "Split zip file";
 	const ERR_OVERLAPPING_ENTRY = "Overlapping entry found";
 	const ERR_AMBIGUOUS_ARCHIVE = "Ambiguous archive";
+	const ERR_ENCRYPTED_CENTRAL_DIRECTORY = "Encrypted central directory is not supported";
 	const CHARSET_UTF8 = "utf-8";
 	const PROPERTY_NAME_UTF8_SUFFIX = "UTF8";
 	const CHARSET_CP437 = "cp437";
@@ -4226,6 +4259,7 @@
 			let prependedDataLength = 0;
 			let startOffset;
 			let zip64EndOfDirectory;
+			let zip64EndOfDirectoryVersion2;
 			const requiresZip64 = directoryDataOffset == MAX_32_BITS || directoryDataLength == MAX_32_BITS || filesLength == MAX_16_BITS || diskNumber == MAX_16_BITS;
 			if (directoryDataOffset != MAX_32_BITS && diskNumber != MAX_16_BITS) {
 				directoryDataOffset += getDiskOffset$1(reader, diskNumber);
@@ -4255,6 +4289,7 @@
 						throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
 					}
 					zip64EndOfDirectory = true;
+					zip64EndOfDirectoryVersion2 = getBigUint64(endOfDirectoryView, 4) > ZIP64_END_OF_CENTRAL_DIR_LENGTH - 12;
 					if (lastDiskNumber == MAX_16_BITS) {
 						lastDiskNumber = getUint32(endOfDirectoryView, 16);
 					} else if (checkAmbiguity && lastDiskNumber != getUint32(endOfDirectoryView, 16)) {
@@ -4334,6 +4369,9 @@
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
 				const fileEntry = new ZipEntry(reader, config, zipReader.options);
 				if (offset + CENTRAL_FILE_HEADER_LENGTH > directoryArray.length || getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE) {
+					if (indexFile == 0 && (zip64EndOfDirectoryVersion2 || detectEncryptedCentralDirectory(directoryView))) {
+						throw new Error(ERR_ENCRYPTED_CENTRAL_DIRECTORY);
+					}
 					throw new Error(ERR_CENTRAL_DIRECTORY_NOT_FOUND);
 				}
 				readCommonHeader(fileEntry, directoryView, offset + 6);
@@ -4601,6 +4639,9 @@
 				fileEntry.zipCrypto = zipCrypto;
 			}
 			if (encrypted) {
+				if ((localDirectory.rawBitFlag & BITFLAG_STRONG_ENCRYPTION) == BITFLAG_STRONG_ENCRYPTION) {
+					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
+				}
 				if (!zipCrypto && (extraFieldAES.strength < 1 || extraFieldAES.strength > 3)) {
 					throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
 				} else if (!password && !rawPassword) {
@@ -4692,6 +4733,16 @@
 			}
 			return checkPasswordOnly || checkOverlappingEntryOnly ? UNDEFINED_VALUE : writer.getData ? writer.getData() : writable;
 		}
+	}
+
+	function detectEncryptedCentralDirectory(directoryView) {
+		const maxOffset = Math.min(directoryView.byteLength, 1024) - 3;
+		for (let offset = 0; offset < maxOffset; offset++) {
+			if (getUint32(directoryView, offset) == ARCHIVE_EXTRA_DATA_SIGNATURE) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	function readCommonHeader(directory, dataView, offset) {
@@ -5208,6 +5259,7 @@
 		ERR_BAD_FORMAT: ERR_BAD_FORMAT,
 		ERR_CENTRAL_DIRECTORY_NOT_FOUND: ERR_CENTRAL_DIRECTORY_NOT_FOUND,
 		ERR_ENCRYPTED: ERR_ENCRYPTED,
+		ERR_ENCRYPTED_CENTRAL_DIRECTORY: ERR_ENCRYPTED_CENTRAL_DIRECTORY,
 		ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND: ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND,
 		ERR_EOCDR_NOT_FOUND: ERR_EOCDR_NOT_FOUND,
 		ERR_EXTRAFIELD_ZIP64_NOT_FOUND: ERR_EXTRAFIELD_ZIP64_NOT_FOUND,
@@ -5620,7 +5672,11 @@
 		if (versionMadeBy > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_VERSION);
 		}
-		let externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, 0);
+		let externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES);
+		const externalFileAttributesProvided = externalFileAttributes !== UNDEFINED_VALUE;
+		if (!externalFileAttributesProvided) {
+			externalFileAttributes = 0;
+		}
 		if (!options[PROPERTY_NAME_DIRECTORY] && name.endsWith(DIRECTORY_SIGNATURE)) {
 			options[PROPERTY_NAME_DIRECTORY] = true;
 		}
@@ -5629,13 +5685,13 @@
 			if (!name.endsWith(DIRECTORY_SIGNATURE)) {
 				name += DIRECTORY_SIGNATURE;
 			}
-			if (externalFileAttributes === 0) {
+			if (!externalFileAttributesProvided) {
 				externalFileAttributes = FILE_ATTR_MSDOS_DIR_MASK;
 				if (!msDosCompatible) {
 					externalFileAttributes |= (FILE_ATTR_UNIX_TYPE_DIR | FILE_ATTR_UNIX_EXECUTABLE_MASK | FILE_ATTR_UNIX_DEFAULT_MASK) << 16;
 				}
 			}
-		} else if (!msDosCompatible && externalFileAttributes === 0) {
+		} else if (!msDosCompatible && !externalFileAttributesProvided) {
 			if (executable) {
 				externalFileAttributes = (FILE_ATTR_UNIX_EXECUTABLE_MASK | FILE_ATTR_UNIX_DEFAULT_MASK) << 16;
 			} else {
@@ -5644,6 +5700,7 @@
 		}
 		let unixExternalUpper;
 		if (!msDosCompatible) {
+			const unixModeProvided = unixMode !== UNDEFINED_VALUE || Boolean(setuid || setgid || sticky);
 			unixExternalUpper = (externalFileAttributes >> 16) & MAX_16_BITS;
 			unixMode = unixMode === UNDEFINED_VALUE ? unixExternalUpper : (unixMode & MAX_16_BITS);
 			if (setuid) {
@@ -5661,10 +5718,12 @@
 			} else {
 				sticky = Boolean(unixMode & FILE_ATTR_UNIX_STICKY_MASK);
 			}
-			if (directory) {
-				unixMode |= FILE_ATTR_UNIX_TYPE_DIR;
+			if (!externalFileAttributesProvided || unixModeProvided) {
+				if (directory) {
+					unixMode |= FILE_ATTR_UNIX_TYPE_DIR;
+				}
+				externalFileAttributes = ((unixMode & MAX_16_BITS) << 16) | (externalFileAttributes & MAX_16_BITS);
 			}
-			externalFileAttributes = ((unixMode & MAX_16_BITS) << 16) | (externalFileAttributes & MAX_8_BITS);
 		}
 		({ msdosAttributesRaw, msdosAttributes } = normalizeMsdosAttributes(msdosAttributesRaw, msdosAttributes));
 		if (hasMsDosProvided) {
@@ -6387,6 +6446,7 @@
 		if (extraFieldLength > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
 		}
+		const dosLastModDate = new Date(Math.ceil(lastModDate.getTime() / 2000) * 2000);
 		const {
 			headerArray,
 			headerView,
@@ -6396,7 +6456,7 @@
 			bitFlag: getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted, compressionMethod),
 			compressionMethod,
 			uncompressedSize,
-			lastModDate: lastModDate < MIN_DATE ? MIN_DATE : lastModDate > MAX_DATE ? MAX_DATE : lastModDate,
+			lastModDate: dosLastModDate < MIN_DATE ? MIN_DATE : dosLastModDate > MAX_DATE ? MAX_DATE : dosLastModDate,
 			rawFilename,
 			zip64CompressedSize,
 			zip64UncompressedSize,
@@ -7494,6 +7554,7 @@
 	exports.ERR_CENTRAL_DIRECTORY_NOT_FOUND = ERR_CENTRAL_DIRECTORY_NOT_FOUND;
 	exports.ERR_DUPLICATED_NAME = ERR_DUPLICATED_NAME;
 	exports.ERR_ENCRYPTED = ERR_ENCRYPTED;
+	exports.ERR_ENCRYPTED_CENTRAL_DIRECTORY = ERR_ENCRYPTED_CENTRAL_DIRECTORY;
 	exports.ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND;
 	exports.ERR_EOCDR_NOT_FOUND = ERR_EOCDR_NOT_FOUND;
 	exports.ERR_EXTRAFIELD_ZIP64_NOT_FOUND = ERR_EXTRAFIELD_ZIP64_NOT_FOUND;

@@ -37,6 +37,7 @@ export default ([
 	{ title: "Blob", script: "./test-blob.js" },
 	{ title: "Comments", script: "./test-comments.js" },
 	{ title: "Compression method and level", script: "./test-compression-method-level.js" },
+	{ title: "Compression stream fallback", script: "./test-compression-stream-fallback.js" },
 	{ title: "Custom codec registration", script: "./test-register-codec.js" },
 	{ title: "Common JS", script: "./test-common-js.cjs", env: ["node"] },
 	{ title: "Core", script: "./test-core.js" },

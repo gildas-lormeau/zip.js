@@ -1481,7 +1481,9 @@ export interface EntryMetaData {
    *
    * - Writer vs Reader:
    *   - The writer composes `externalFileAttributes` from the provided options (`externalFileAttributes`,
-   *     `unixMode`/special flags, `msdosAttributesRaw`/`msdosAttributes`).
+   *     `unixMode`/special flags, `msdosAttributesRaw`/`msdosAttributes`). An explicitly provided
+   *     `externalFileAttributes` value is written verbatim (including `0`) unless mode-affecting options
+   *     are also set.
    *   - The reader decodes the stored `externalFileAttributes` and exposes convenience fields such as
    *     `msdosAttributesRaw`, `msdosAttributes`, `unixExternalUpper`, and `unixMode`.
    *
@@ -2105,7 +2107,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   /**
    * The external file attribute.
    *
-   * @defaultValue 0
+   * When set explicitly, the value is written verbatim (including `0`), unless `unixMode`, `setuid`, `setgid`
+   * or `sticky` is also set, in which case these options override the upper 16 bits while the lower 16 bits
+   * are preserved. When omitted, the value is derived from the other options (e.g. the MS-DOS directory
+   * attribute for folder entries, Unix default permissions when `msDosCompatible` is `false`).
    */
   externalFileAttributes?: number;
   /**
@@ -2994,6 +2999,13 @@ export const ERR_OVERLAPPING_ENTRY: string;
  * @remarks The thrown error carries a `reason` property describing the ambiguity: `"appended data"`, `"prepended data"`, `"trailing central directory data"`, `"mismatched zip64 end of central directory record"`, or `"duplicate filename"`.
  */
 export const ERR_AMBIGUOUS_ARCHIVE: string;
+/**
+ * Encrypted central directory error
+ *
+ * @remarks Thrown when reading an archive using the Central Directory Encryption feature of the PKWARE Strong
+ * Encryption Specification, which is not supported.
+ */
+export const ERR_ENCRYPTED_CENTRAL_DIRECTORY: string;
 /**
  * Iteration completed too soon error
  */
