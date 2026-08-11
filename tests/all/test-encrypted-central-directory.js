@@ -1,20 +1,26 @@
+/* global URL */
+
 import * as zip from "../zip-lib.js";
+
+const secureZipUrl = new URL("./../data/lorem-secure-full.zip", import.meta.url).href;
 
 export { test };
 
 async function test() {
-	const errorEncrypted = await getEntriesError(buildArchive(true));
-	const errorCorrupted = await getEntriesError(buildArchive(false));
+	const errorEncrypted = await getEntriesError(new zip.Uint8ArrayReader(buildArchive(true)));
+	const errorCorrupted = await getEntriesError(new zip.Uint8ArrayReader(buildArchive(false)));
+	const errorSecureZip = await getEntriesError(new zip.HttpReader(secureZipUrl, { preventHeadRequest: true }));
 	await zip.terminateWorkers();
 	if (!errorEncrypted || errorEncrypted.message != zip.ERR_ENCRYPTED_CENTRAL_DIRECTORY ||
-		!errorCorrupted || errorCorrupted.message != zip.ERR_CENTRAL_DIRECTORY_NOT_FOUND) {
+		!errorCorrupted || errorCorrupted.message != zip.ERR_CENTRAL_DIRECTORY_NOT_FOUND ||
+		!errorSecureZip || errorSecureZip.message != zip.ERR_ENCRYPTED_CENTRAL_DIRECTORY) {
 		throw new Error();
 	}
 }
 
-async function getEntriesError(data) {
+async function getEntriesError(reader) {
 	try {
-		await new zip.ZipReader(new zip.Uint8ArrayReader(data)).getEntries();
+		await new zip.ZipReader(reader).getEntries();
 	} catch (error) {
 		return error;
 	}
