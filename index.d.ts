@@ -3000,6 +3000,13 @@ export const ERR_OVERLAPPING_ENTRY: string;
  */
 export const ERR_AMBIGUOUS_ARCHIVE: string;
 /**
+ * Encrypted central directory error
+ *
+ * @remarks Thrown when reading an archive using the Central Directory Encryption feature of the PKWARE Strong
+ * Encryption Specification, which is not supported.
+ */
+export const ERR_ENCRYPTED_CENTRAL_DIRECTORY: string;
+/**
  * Iteration completed too soon error
  */
 export const ERR_ITERATOR_COMPLETED_TOO_SOON: string;
