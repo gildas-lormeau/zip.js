@@ -281,6 +281,14 @@ export interface Configuration extends WorkerConfiguration {
    */
   workerStarvationTimeout?: number;
   /**
+   * The delay in milliseconds before a newly created web worker which has not sent any message is considered dead, terminated, and replaced with inline processing.
+   *
+   * It allows recovering from environments where web workers fail silently, e.g. extension pages blocking worker scripts via their Content Security Policy.
+   *
+   * @defaultValue 5000
+   */
+  workerStartupTimeout?: number;
+  /**
    * The URI of the web worker.
    *
    * It allows using alternative deflate implementations or specifying a URL to the worker script if the CSP of the page blocks scripts imported from a Data URI.

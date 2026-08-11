@@ -161,6 +161,7 @@
 		maxWorkers,
 		terminateWorkerTimeout: 5000,
 		workerStarvationTimeout: 5000,
+		workerStartupTimeout: 5000,
 		useWebWorkers: true,
 		useCompressionStream: true,
 		transferStreams: true,
@@ -3160,6 +3161,7 @@
 	const MODULE_WORKER_OPTIONS = { type: "module" };
 	const ERROR_EVENT_TYPE = "error";
 	const MESSAGE_ERROR_EVENT_TYPE = "messageerror";
+	const ERR_WORKER_STARTUP_TIMEOUT = "Worker startup timeout";
 
 	let webWorkerSupported, webWorkerSource, webWorkerURI, webWorkerOptions;
 	let transferStreamsSupported = true;
@@ -3263,7 +3265,7 @@
 	}
 
 	function createWebWorkerInterface(workerData, config) {
-		const { baseURI, chunkSize } = config;
+		const { baseURI, chunkSize, workerStartupTimeout } = config;
 		let { wasmURI } = config;
 
 		if (!workerData.interface) {
@@ -3280,9 +3282,26 @@
 			}
 			Object.assign(workerData, {
 				worker,
+				workerAlive: false,
 				terminated: false,
 				interface: {
-					run: () => runWebWorker(workerData, { chunkSize, wasmURI, baseURI })
+					run: async () => {
+						try {
+							return await runWebWorker(workerData, { chunkSize, wasmURI, baseURI, workerStartupTimeout });
+						} catch (error) {
+							if (error && error.workerStartupFailed) {
+								webWorkerSupported = false;
+								const { reader } = workerData;
+								if (reader) {
+									reader.releaseLock();
+								}
+								workerData.reader = null;
+								workerData.writer = null;
+								return runWorker$1(workerData, config);
+							}
+							throw error;
+						}
+					}
 				}
 			});
 		}
@@ -3376,6 +3395,10 @@
 				reader: readable.getReader(),
 				writer: writable.getWriter()
 			});
+		}
+		const { workerStartupTimeout } = config;
+		if (!workerData.workerAlive && Number.isFinite(workerStartupTimeout) && workerStartupTimeout >= 0) {
+			workerData.startupTimeout = setTimeout(() => onStartupTimeout(workerData), workerStartupTimeout);
 		}
 		try {
 			const resultValue = await result;
@@ -3489,28 +3512,68 @@
 		} else {
 			worker = new Worker(webWorkerURI, webWorkerOptions);
 		}
-		worker.addEventListener(MESSAGE_EVENT_TYPE, event => onMessage(event, workerData));
+		worker.addEventListener(MESSAGE_EVENT_TYPE, event => {
+			workerData.workerAlive = true;
+			clearStartupTimeout(workerData);
+			onMessage(event, workerData);
+		});
 		worker.addEventListener(ERROR_EVENT_TYPE, event => onWorkerError(event, workerData));
 		worker.addEventListener(MESSAGE_ERROR_EVENT_TYPE, event => onWorkerError(event, workerData));
 		return worker;
+	}
+
+	function onStartupTimeout(workerData) {
+		workerData.startupTimeout = null;
+		if (workerData.workerAlive) {
+			return;
+		}
+		const { rejectResult, writer } = workerData;
+		terminateWorker$1(workerData);
+		workerData.worker = null;
+		if (rejectResult) {
+			const error = new Error(ERR_WORKER_STARTUP_TIMEOUT);
+			error.workerStartupFailed = true;
+			rejectResult(error);
+			if (writer) {
+				writer.releaseLock();
+			}
+		}
+	}
+
+	function clearStartupTimeout(workerData) {
+		const { startupTimeout } = workerData;
+		if (startupTimeout) {
+			clearTimeout(startupTimeout);
+			workerData.startupTimeout = null;
+		}
 	}
 
 	function onWorkerError(event, workerData) {
 		if (event.preventDefault) {
 			event.preventDefault();
 		}
-		const { rejectResult, writer, onTaskFinished } = workerData;
+		clearStartupTimeout(workerData);
+		const { workerAlive, rejectResult, writer, onTaskFinished } = workerData;
 		terminateWorker$1(workerData);
+		if (!workerAlive) {
+			workerData.worker = null;
+		}
 		if (rejectResult) {
-			rejectResult(event.error || new Error(event.message || ERROR_EVENT_TYPE));
+			let error = event.error || new Error(event.message || ERROR_EVENT_TYPE);
+			if (!workerAlive) {
+				error = Object.assign(new Error(error.message || ERROR_EVENT_TYPE), { workerStartupFailed: true });
+			}
+			rejectResult(error);
 			if (writer) {
 				writer.releaseLock();
 			}
-			onTaskFinished();
+			if (workerAlive) {
+				onTaskFinished();
+			}
 		}
 	}
 
-	function sendMessage(message, { worker, writer, transferStreams }) {
+	function sendMessage(message, { worker, writer, transferStreams, workerAlive }) {
 		try {
 			const { value, readable, writable } = message;
 			const transferables = [];
@@ -3518,7 +3581,7 @@
 				message.value = toExactUint8Array(value);
 				transferables.push(message.value.buffer);
 			}
-			if (transferStreams && transferStreamsSupported) {
+			if (transferStreams && transferStreamsSupported && workerAlive) {
 				if (readable) {
 					transferables.push(readable);
 				}
