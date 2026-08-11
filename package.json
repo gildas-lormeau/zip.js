@@ -179,6 +179,7 @@
     "rollup": "^4.62.4",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.12.0",
-    "web-streams-polyfill": "^4.3.0"
+    "web-streams-polyfill": "^4.3.0",
+    "web-worker": "^1.5.0"
   }
 }
