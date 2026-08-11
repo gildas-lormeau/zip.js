@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_CODEC\_DEFINITION**: `string`
 
-Defined in: [index.d.ts:2920](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L2920)
+Defined in: [index.d.ts:2929](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L2929)
 
 Invalid codec definition error

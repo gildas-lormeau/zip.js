@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_CODEC\_MODULE**: `string`
 
-Defined in: [index.d.ts:2928](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L2928)
+Defined in: [index.d.ts:2937](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L2937)
 
 Invalid codec module error

@@ -6,7 +6,7 @@
 
 # Interface: EntryGetDataCheckPasswordOptions
 
-Defined in: [index.d.ts:1706](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1706)
+Defined in: [index.d.ts:1715](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1715)
 
 Represents the options passed to [FileEntry#getData](FileEntry.md#getdata) and `{@link ZipFileEntry}.get*`.
 
@@ -20,7 +20,7 @@ Represents the options passed to [FileEntry#getData](FileEntry.md#getdata) and `
 
 > `optional` **checkAmbiguity?**: `boolean`
 
-Defined in: [index.d.ts:1163](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1163)
+Defined in: [index.d.ts:1172](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1172)
 
 `true` to throw an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the local
 file header of the entry disagrees with its central directory record in a way that could make other tools
@@ -45,7 +45,7 @@ false
 
 > `optional` **checkOverlappingEntry?**: `boolean`
 
-Defined in: [index.d.ts:1183](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1183)
+Defined in: [index.d.ts:1192](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1192)
 
 `true` to throw an [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the entry
  overlaps with another entry on which [FileEntry#getData](FileEntry.md#getdata) has already been called (with the option
@@ -67,7 +67,7 @@ false
 
 > `optional` **checkOverlappingEntryOnly?**: `boolean`
 
-Defined in: [index.d.ts:1192](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1192)
+Defined in: [index.d.ts:1201](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1201)
 
 `true` to throw an [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the entry
  overlaps with another entry on which [FileEntry#getData](FileEntry.md#getdata) has already been called (with the option
@@ -90,7 +90,7 @@ false
 
 > `optional` **checkPasswordOnly?**: `boolean`
 
-Defined in: [index.d.ts:1169](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1169)
+Defined in: [index.d.ts:1178](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1178)
 
 `true` to check only if the password is valid.
 
@@ -110,7 +110,7 @@ false
 
 > `optional` **checkSignature?**: `boolean`
 
-Defined in: [index.d.ts:1175](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1175)
+Defined in: [index.d.ts:1184](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1184)
 
 `true` to check the signature of the entry.
 
@@ -130,7 +130,7 @@ false
 
 > `optional` **passThrough?**: `boolean`
 
-Defined in: [index.d.ts:1200](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1200)
+Defined in: [index.d.ts:1209](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1209)
 
 `true` to read the data as-is without decompressing it and without decrypting it.
 
@@ -144,7 +144,7 @@ Defined in: [index.d.ts:1200](https://github.com/gildas-lormeau/zip.js/blob/baad
 
 > `optional` **password?**: `string`
 
-Defined in: [index.d.ts:1196](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1196)
+Defined in: [index.d.ts:1205](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1205)
 
 The password used to decrypt the content of the entry.
 
@@ -158,7 +158,7 @@ The password used to decrypt the content of the entry.
 
 > `optional` **preventClose?**: `boolean`
 
-Defined in: [index.d.ts:1214](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1214)
+Defined in: [index.d.ts:1223](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1223)
 
 `true` to prevent closing of [Writer#writable](../classes/Writer.md#writable) when calling [FileEntry#getData](FileEntry.md#getdata).
 
@@ -178,7 +178,7 @@ false
 
 > `optional` **rawPassword?**: `Uint8Array`\<`ArrayBufferLike`\>
 
-Defined in: [index.d.ts:1204](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1204)
+Defined in: [index.d.ts:1213](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1213)
 
 The password used to encrypt the content of the entry (raw).
 
@@ -192,7 +192,7 @@ The password used to encrypt the content of the entry (raw).
 
 > `optional` **signal?**: `AbortSignal`
 
-Defined in: [index.d.ts:1208](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1208)
+Defined in: [index.d.ts:1217](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1217)
 
 The `AbortSignal` instance used to cancel the decompression.
 
@@ -206,7 +206,7 @@ The `AbortSignal` instance used to cancel the decompression.
 
 > `optional` **strictness?**: `"balanced"` \| `"strict"` \| `"tolerant"`
 
-Defined in: [index.d.ts:1152](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1152)
+Defined in: [index.d.ts:1161](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1161)
 
 How tolerant the reader should be when the local file header of an entry disagrees with its central
 directory record. `"strict"` throws an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error (equivalent to
@@ -229,7 +229,7 @@ directory record.
 
 > `optional` **transferStreams?**: `boolean`
 
-Defined in: [index.d.ts:376](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L376)
+Defined in: [index.d.ts:385](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L385)
 
 `true` to transfer stream ownership to web workers.
 
@@ -249,7 +249,7 @@ true
 
 > `optional` **useCompressionStream?**: `boolean`
 
-Defined in: [index.d.ts:370](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L370)
+Defined in: [index.d.ts:379](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L379)
 
 `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
 
@@ -269,7 +269,7 @@ true
 
 > `optional` **useWebWorkers?**: `boolean`
 
-Defined in: [index.d.ts:364](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L364)
+Defined in: [index.d.ts:373](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L373)
 
 `true` to use web workers to compress/decompress data in non-blocking background processes.
 
@@ -289,7 +289,7 @@ true
 
 > `optional` **onend**(`computedSize`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:2242](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L2242)
+Defined in: [index.d.ts:2251](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L2251)
 
 The function called when ending compression/decompression.
 
@@ -317,7 +317,7 @@ An empty promise or `undefined`.
 
 > `optional` **onprogress**(`progress`, `total`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:2235](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L2235)
+Defined in: [index.d.ts:2244](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L2244)
 
 The function called during compression/decompression.
 
@@ -351,7 +351,7 @@ An empty promise or `undefined`.
 
 > `optional` **onstart**(`total`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:2227](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L2227)
+Defined in: [index.d.ts:2236](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L2236)
 
 The function called when starting compression/decompression.
 

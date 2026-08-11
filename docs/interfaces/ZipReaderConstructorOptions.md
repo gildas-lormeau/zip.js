@@ -6,7 +6,7 @@
 
 # Interface: ZipReaderConstructorOptions
 
-Defined in: [index.d.ts:1048](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1048)
+Defined in: [index.d.ts:1057](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1057)
 
 Represents the options passed to the constructor of [ZipReader](../classes/ZipReader.md), and `{@link ZipDirectory}#import*`.
 
@@ -24,7 +24,7 @@ Represents the options passed to the constructor of [ZipReader](../classes/ZipRe
 
 > `optional` **checkAmbiguity?**: `boolean`
 
-Defined in: [index.d.ts:1163](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1163)
+Defined in: [index.d.ts:1172](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1172)
 
 `true` to throw an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the local
 file header of the entry disagrees with its central directory record in a way that could make other tools
@@ -49,7 +49,7 @@ false
 
 > `optional` **checkOverlappingEntry?**: `boolean`
 
-Defined in: [index.d.ts:1183](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1183)
+Defined in: [index.d.ts:1192](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1192)
 
 `true` to throw an [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the entry
  overlaps with another entry on which [FileEntry#getData](FileEntry.md#getdata) has already been called (with the option
@@ -71,7 +71,7 @@ false
 
 > `optional` **checkOverlappingEntryOnly?**: `boolean`
 
-Defined in: [index.d.ts:1192](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1192)
+Defined in: [index.d.ts:1201](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1201)
 
 `true` to throw an [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the entry
  overlaps with another entry on which [FileEntry#getData](FileEntry.md#getdata) has already been called (with the option
@@ -94,7 +94,7 @@ false
 
 > `optional` **checkPasswordOnly?**: `boolean`
 
-Defined in: [index.d.ts:1169](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1169)
+Defined in: [index.d.ts:1178](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1178)
 
 `true` to check only if the password is valid.
 
@@ -114,7 +114,7 @@ false
 
 > `optional` **checkSignature?**: `boolean`
 
-Defined in: [index.d.ts:1175](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1175)
+Defined in: [index.d.ts:1184](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1184)
 
 `true` to check the signature of the entry.
 
@@ -134,7 +134,7 @@ false
 
 > `optional` **commentEncoding?**: `string`
 
-Defined in: [index.d.ts:1084](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1084)
+Defined in: [index.d.ts:1093](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1093)
 
 The encoding of the comment of the entry.
 
@@ -148,7 +148,7 @@ The encoding of the comment of the entry.
 
 > `optional` **extractAppendedData?**: `boolean`
 
-Defined in: [index.d.ts:1063](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1063)
+Defined in: [index.d.ts:1072](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1072)
 
 `true` to extract the appended data into [ZipReader#appendedData](../classes/ZipReader.md#appendeddata).
 
@@ -164,7 +164,7 @@ false
 
 > `optional` **extractPrependedData?**: `boolean`
 
-Defined in: [index.d.ts:1057](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1057)
+Defined in: [index.d.ts:1066](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1066)
 
 `true` to extract the prepended data into [ZipReader#prependedData](../classes/ZipReader.md#prependeddata).
 
@@ -180,7 +180,7 @@ false
 
 > `optional` **filenameEncoding?**: `string`
 
-Defined in: [index.d.ts:1080](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1080)
+Defined in: [index.d.ts:1089](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1089)
 
 The encoding of the filename of the entry.
 
@@ -194,7 +194,7 @@ The encoding of the filename of the entry.
 
 > `optional` **maxAppendedDataSize?**: `number`
 
-Defined in: [index.d.ts:1137](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1137)
+Defined in: [index.d.ts:1146](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1146)
 
 The maximum number of bytes tolerated after the zip structure before the archive is rejected. Defaults to
 `0` when [GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strictness) is `"strict"`, `65535` when it is `"balanced"`, and `Infinity`
@@ -216,7 +216,7 @@ record is searched for, so a value smaller than the amount of data actually appe
 
 > `optional` **passThrough?**: `boolean`
 
-Defined in: [index.d.ts:1200](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1200)
+Defined in: [index.d.ts:1209](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1209)
 
 `true` to read the data as-is without decompressing it and without decrypting it.
 
@@ -230,7 +230,7 @@ Defined in: [index.d.ts:1200](https://github.com/gildas-lormeau/zip.js/blob/baad
 
 > `optional` **password?**: `string`
 
-Defined in: [index.d.ts:1196](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1196)
+Defined in: [index.d.ts:1205](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1205)
 
 The password used to decrypt the content of the entry.
 
@@ -244,7 +244,7 @@ The password used to decrypt the content of the entry.
 
 > `optional` **preventClose?**: `boolean`
 
-Defined in: [index.d.ts:1214](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1214)
+Defined in: [index.d.ts:1223](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1223)
 
 `true` to prevent closing of [Writer#writable](../classes/Writer.md#writable) when calling [FileEntry#getData](FileEntry.md#getdata).
 
@@ -264,7 +264,7 @@ false
 
 > `optional` **rawPassword?**: `Uint8Array`\<`ArrayBufferLike`\>
 
-Defined in: [index.d.ts:1204](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1204)
+Defined in: [index.d.ts:1213](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1213)
 
 The password used to encrypt the content of the entry (raw).
 
@@ -278,7 +278,7 @@ The password used to encrypt the content of the entry (raw).
 
 > `optional` **signal?**: `AbortSignal`
 
-Defined in: [index.d.ts:1208](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1208)
+Defined in: [index.d.ts:1217](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1217)
 
 The `AbortSignal` instance used to cancel the decompression.
 
@@ -292,7 +292,7 @@ The `AbortSignal` instance used to cancel the decompression.
 
 > `optional` **strictness?**: `"balanced"` \| `"strict"` \| `"tolerant"`
 
-Defined in: [index.d.ts:1152](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1152)
+Defined in: [index.d.ts:1161](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1161)
 
 How tolerant the reader should be when the local file header of an entry disagrees with its central
 directory record. `"strict"` throws an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error (equivalent to
@@ -315,7 +315,7 @@ directory record.
 
 > `optional` **transferStreams?**: `boolean`
 
-Defined in: [index.d.ts:376](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L376)
+Defined in: [index.d.ts:385](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L385)
 
 `true` to transfer stream ownership to web workers.
 
@@ -335,7 +335,7 @@ true
 
 > `optional` **useCompressionStream?**: `boolean`
 
-Defined in: [index.d.ts:370](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L370)
+Defined in: [index.d.ts:379](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L379)
 
 `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
 
@@ -355,7 +355,7 @@ true
 
 > `optional` **useWebWorkers?**: `boolean`
 
-Defined in: [index.d.ts:364](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L364)
+Defined in: [index.d.ts:373](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L373)
 
 `true` to use web workers to compress/decompress data in non-blocking background processes.
 
@@ -375,7 +375,7 @@ true
 
 > `optional` **decodeText**(`value`, `encoding`): `string` \| `undefined`
 
-Defined in: [index.d.ts:1092](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1092)
+Defined in: [index.d.ts:1101](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1101)
 
 The function called for decoding the filename and the comment of the entry.
 

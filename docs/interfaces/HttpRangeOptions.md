@@ -6,7 +6,7 @@
 
 # Interface: HttpRangeOptions
 
-Defined in: [index.d.ts:699](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L699)
+Defined in: [index.d.ts:708](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L708)
 
 Represents options passed to the constructor of [HttpRangeReader](../classes/HttpRangeReader.md) and [HttpReader](../classes/HttpReader.md).
 
@@ -20,7 +20,7 @@ Represents options passed to the constructor of [HttpRangeReader](../classes/Htt
 
 > `optional` **checkResourceChanges?**: `boolean`
 
-Defined in: [index.d.ts:726](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L726)
+Defined in: [index.d.ts:735](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L735)
 
 `true` to throw an [ERR\_HTTP\_RESOURCE\_CHANGED](../variables/ERR_HTTP_RESOURCE_CHANGED.md) error when the `ETag`, `Last-Modified` or total size headers
 returned by a range request differ from the ones returned by the first range request, i.e. when the resource has
@@ -39,7 +39,7 @@ true
 
 > `optional` **headers?**: `Iterable`\<\[`string`, `string`\], `any`, `any`\> \| `Map`\<`string`, `string`\>
 
-Defined in: [index.d.ts:717](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L717)
+Defined in: [index.d.ts:726](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L726)
 
 The HTTP headers.
 
@@ -49,7 +49,7 @@ The HTTP headers.
 
 > `optional` **maximumRangeSize?**: `number`
 
-Defined in: [index.d.ts:742](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L742)
+Defined in: [index.d.ts:751](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L751)
 
 The maximum size in bytes of the range requests sent to read the data of an entry. The data is
 read with as many range requests as necessary, each response body being streamed, so that the
@@ -76,7 +76,7 @@ and read each entry with a single range request covering its whole remaining len
 
 > `optional` **useXHR?**: `boolean`
 
-Defined in: [index.d.ts:705](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L705)
+Defined in: [index.d.ts:714](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L714)
 
 `true` to rely `XMLHttpRequest` instead of `fetch` to fetch data.
 
@@ -92,7 +92,7 @@ false
 
 > `optional` **fetch**(`input`, `init?`): `Promise`\<`Response`\>
 
-Defined in: [index.d.ts:713](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L713)
+Defined in: [index.d.ts:722](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L722)
 
 The function used to fetch the data. It takes precedence over [HttpRangeOptions#useXHR](#usexhr)
 when set. The returned object must expose the `status`, `statusText` and `headers` properties,

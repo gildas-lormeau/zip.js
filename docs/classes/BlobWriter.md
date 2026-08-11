@@ -6,7 +6,7 @@
 
 # Class: BlobWriter
 
-Defined in: [index.d.ts:826](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L826)
+Defined in: [index.d.ts:835](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L835)
 
 Represents a [WritableWriter](../interfaces/WritableWriter.md) instance used to retrieve the written data as a `Blob` instance.
 
@@ -21,7 +21,7 @@ Represents a [WritableWriter](../interfaces/WritableWriter.md) instance used to 
 
 > **new BlobWriter**(`mimeString?`): `BlobWriter`
 
-Defined in: [index.d.ts:840](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L840)
+Defined in: [index.d.ts:849](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L849)
 
 Creates the BlobWriter instance
 
@@ -43,7 +43,7 @@ The MIME type of the content.
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:830](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L830)
+Defined in: [index.d.ts:839](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L839)
 
 The `WritableStream` instance.
 
@@ -57,7 +57,7 @@ The `WritableStream` instance.
 
 > **getData**(): `Promise`\<`Blob`\>
 
-Defined in: [index.d.ts:846](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L846)
+Defined in: [index.d.ts:855](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L855)
 
 Retrieves all the written data
 
@@ -73,7 +73,7 @@ A promise resolving to the written data.
 
 > **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:834](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L834)
+Defined in: [index.d.ts:843](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L843)
 
 Initializes the instance asynchronously
 

@@ -6,7 +6,7 @@
 
 # Interface: EntryExtraField
 
-Defined in: [index.d.ts:1237](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1237)
+Defined in: [index.d.ts:1246](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1246)
 
 Represents an extra field record of an entry.
 
@@ -21,7 +21,7 @@ Represents an extra field record of an entry.
 
 > **data**: `Uint8Array`
 
-Defined in: [index.d.ts:1245](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1245)
+Defined in: [index.d.ts:1254](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1254)
 
 The data of the extra field.
 
@@ -31,6 +31,6 @@ The data of the extra field.
 
 > **type**: `number`
 
-Defined in: [index.d.ts:1241](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L1241)
+Defined in: [index.d.ts:1250](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L1250)
 
 The type (header id) of the extra field.

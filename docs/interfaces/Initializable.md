@@ -6,7 +6,7 @@
 
 # Interface: Initializable
 
-Defined in: [index.d.ts:496](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L496)
+Defined in: [index.d.ts:505](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L505)
 
 Represents an instance used to read or write unknown type of data.
 
@@ -19,7 +19,7 @@ The classes inheriting from [Reader](../classes/Reader.md) help to read data fro
 
 > `optional` **initialized?**: `boolean`
 
-Defined in: [index.d.ts:504](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L504)
+Defined in: [index.d.ts:513](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L513)
 
 `true` if the instance is initialized.
 
@@ -29,7 +29,7 @@ Defined in: [index.d.ts:504](https://github.com/gildas-lormeau/zip.js/blob/baadd
 
 > `optional` **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:500](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L500)
+Defined in: [index.d.ts:509](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L509)
 
 Initializes the instance asynchronously
 

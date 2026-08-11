@@ -6,7 +6,7 @@
 
 # Class: Reader\<Type\>
 
-Defined in: [index.d.ts:545](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L545)
+Defined in: [index.d.ts:554](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L554)
 
 Represents an instance used to read unknown type of data.
 
@@ -62,7 +62,7 @@ class BinaryStringReader extends Reader {
 
 > **new Reader**\<`Type`\>(`value`): `Reader`\<`Type`\>
 
-Defined in: [index.d.ts:551](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L551)
+Defined in: [index.d.ts:560](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L560)
 
 Creates the Reader instance
 
@@ -84,7 +84,7 @@ The data to read.
 
 > **readable**: `ReadableStream`
 
-Defined in: [index.d.ts:555](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L555)
+Defined in: [index.d.ts:564](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L564)
 
 The `ReadableStream` instance.
 
@@ -98,7 +98,7 @@ The `ReadableStream` instance.
 
 > **size**: `number`
 
-Defined in: [index.d.ts:559](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L559)
+Defined in: [index.d.ts:568](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L568)
 
 The total size of the data in bytes.
 
@@ -108,7 +108,7 @@ The total size of the data in bytes.
 
 > **createReadable**(`options?`): `ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [index.d.ts:573](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L573)
+Defined in: [index.d.ts:582](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L582)
 
 Creates a `ReadableStream` of the data, optionally restricted to a byte range.
 
@@ -135,7 +135,7 @@ The `ReadableStream` instance.
 
 > `optional` **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:563](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L563)
+Defined in: [index.d.ts:572](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L572)
 
 Initializes the instance asynchronously
 
@@ -153,7 +153,7 @@ Initializes the instance asynchronously
 
 > **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [index.d.ts:581](https://github.com/gildas-lormeau/zip.js/blob/baaddb7e6aba37205dc795434806b5fab87a2090/index.d.ts#L581)
+Defined in: [index.d.ts:590](https://github.com/gildas-lormeau/zip.js/blob/75e141ac3560996eb2d3371351eecbf5dcff9262/index.d.ts#L590)
 
 Reads a chunk of data
 
