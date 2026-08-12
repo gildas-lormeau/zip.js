@@ -2809,6 +2809,7 @@
 	const FORMAT_GZIP = "gzip";
 	const GZIP_HEADER_LENGTH = 10;
 	const GZIP_TRAILER_LENGTH = 8;
+	const GZIP_HEADER_BYTES = [0x1f, 0x8b, 0x08];
 
 	class DeflateStream extends TransformStream {
 
@@ -2833,7 +2834,18 @@
 					readable = pipeThroughBackpressured(readable, new CompressionStream(FORMAT_GZIP));
 					readable = pipeThrough(readable, gzipCrc32Stream);
 				} else {
-					readable = pipeThroughCompressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStream, CompressionStreamZlib);
+					try {
+						readable = pipeThroughCompressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStream, CompressionStreamZlib);
+					} catch (error) {
+						let gzipStream;
+						try {
+							gzipStream = new CompressionStream(FORMAT_GZIP);
+						} catch {
+							throw error;
+						}
+						readable = pipeThroughBackpressured(readable, gzipStream);
+						readable = pipeThrough(readable, new GzipToRawDeflateStream());
+					}
 				}
 			}
 			if (encrypted) {
@@ -2898,6 +2910,29 @@
 		}
 	}
 
+	class RawDeflateToGzipStream extends TransformStream {
+
+		constructor(signature, uncompressedSize) {
+			super({
+				start(controller) {
+					const header = new Uint8Array(GZIP_HEADER_LENGTH);
+					header.set(GZIP_HEADER_BYTES);
+					controller.enqueue(header);
+				},
+				transform(chunk, controller) {
+					controller.enqueue(chunk);
+				},
+				flush(controller) {
+					const trailer = new Uint8Array(GZIP_TRAILER_LENGTH);
+					const dataView = getDataView(trailer);
+					dataView.setUint32(0, signature, true);
+					dataView.setUint32(4, uncompressedSize, true);
+					controller.enqueue(trailer);
+				}
+			});
+		}
+	}
+
 	class InflateStream extends TransformStream {
 
 		constructor(options, { chunkSize, DecompressionStreamZlib, DecompressionStream }) {
@@ -2918,7 +2953,21 @@
 				if (codecStreams) {
 					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.DecompressionStream, format, { chunkSize, compressionMethod, rawBitFlag, uncompressedSize: outputSize }));
 				} else {
-					readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamZlib);
+					try {
+						readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamZlib);
+					} catch (error) {
+						if (deflate64 || (encrypted && !zipCrypto) || signature === UNDEFINED_VALUE || outputSize === UNDEFINED_VALUE) {
+							throw error;
+						}
+						let gzipStream;
+						try {
+							gzipStream = new DecompressionStream(FORMAT_GZIP);
+						} catch {
+							throw error;
+						}
+						readable = pipeThrough(readable, new RawDeflateToGzipStream(signature, outputSize));
+						readable = pipeThroughBackpressured(readable, gzipStream);
+					}
 				}
 				readable = mapInflateStreamError(readable);
 			}
