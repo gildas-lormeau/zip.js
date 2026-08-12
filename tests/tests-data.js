@@ -36,6 +36,7 @@ export default ([
 	{ title: "Writer JS codec fallback on WASM load failure", script: "./test-writer-js-codec-fallback.js" },
 	{ title: "WASM module load error", script: "./test-wasm-module-error.js" },
 	{ title: "Gzip fallback on missing deflate-raw", script: "./test-gzip-fallback.js" },
+	{ title: "Store fallback on missing codecs", script: "./test-store-fallback.js" },
 	{ title: "IO edge cases", script: "./test-io-edge-cases.js" },
 	{ title: "Blob", script: "./test-blob.js" },
 	{ title: "Comments", script: "./test-comments.js" },

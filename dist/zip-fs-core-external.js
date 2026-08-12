@@ -1958,6 +1958,7 @@ const FORMAT_GZIP = "gzip";
 const GZIP_HEADER_LENGTH = 10;
 const GZIP_TRAILER_LENGTH = 8;
 const GZIP_HEADER_BYTES = [0x1f, 0x8b, 0x08];
+const GZIP_OUTPUT_STALL_TIMEOUT = 5000;
 
 class DeflateStream extends TransformStream {
 
@@ -2058,26 +2059,73 @@ class GzipToRawDeflateStream extends TransformStream {
 	}
 }
 
-class RawDeflateToGzipStream extends TransformStream {
-
-	constructor(signature, uncompressedSize) {
-		super({
-			start(controller) {
-				const header = new Uint8Array(GZIP_HEADER_LENGTH);
-				header.set(GZIP_HEADER_BYTES);
-				controller.enqueue(header);
-			},
-			transform(chunk, controller) {
-				controller.enqueue(chunk);
-			},
-			flush(controller) {
-				const trailer = new Uint8Array(GZIP_TRAILER_LENGTH);
-				const dataView = getDataView(trailer);
-				dataView.setUint32(0, signature, true);
-				dataView.setUint32(4, uncompressedSize, true);
-				controller.enqueue(trailer);
+function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize) {
+	const crc32 = new Crc32();
+	let outputLength = 0;
+	let inputDone = false;
+	let watchdogTimeout;
+	let resolveTrailerReady, rejectTrailerReady;
+	const trailerReady = new Promise((resolve, reject) => {
+		resolveTrailerReady = resolve;
+		rejectTrailerReady = reject;
+	});
+	trailerReady.catch(() => { });
+	if (!outputSize) {
+		resolveTrailerReady();
+	}
+	const gzipWrapStream = new TransformStream({
+		start(controller) {
+			const header = new Uint8Array(GZIP_HEADER_LENGTH);
+			header.set(GZIP_HEADER_BYTES);
+			controller.enqueue(header);
+		},
+		transform(chunk, controller) {
+			controller.enqueue(chunk);
+		},
+		async flush(controller) {
+			inputDone = true;
+			startWatchdog();
+			try {
+				await trailerReady;
+			} finally {
+				stopWatchdog();
 			}
-		});
+			const trailer = new Uint8Array(GZIP_TRAILER_LENGTH);
+			const dataView = getDataView(trailer);
+			dataView.setUint32(0, crc32.get(), true);
+			dataView.setUint32(4, outputSize, true);
+			controller.enqueue(trailer);
+		},
+		cancel(reason) {
+			rejectTrailerReady(reason);
+		}
+	});
+	const outputStream = new TransformStream({
+		transform(chunk, controller) {
+			crc32.append(chunk);
+			outputLength += chunk.length;
+			if (outputLength >= outputSize) {
+				resolveTrailerReady();
+			} else if (inputDone) {
+				startWatchdog();
+			}
+			controller.enqueue(chunk);
+		},
+		cancel(reason) {
+			rejectTrailerReady(reason);
+		}
+	});
+	readable = pipeThrough(readable, gzipWrapStream);
+	readable = pipeThroughBackpressured(readable, gzipStream);
+	return pipeThrough(readable, outputStream);
+
+	function startWatchdog() {
+		stopWatchdog();
+		watchdogTimeout = setTimeout(() => rejectTrailerReady(new Error(ERR_INVALID_UNCOMPRESSED_SIZE)), GZIP_OUTPUT_STALL_TIMEOUT);
+	}
+
+	function stopWatchdog() {
+		clearTimeout(watchdogTimeout);
 	}
 }
 
@@ -2104,7 +2152,7 @@ class InflateStream extends TransformStream {
 				try {
 					readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamZlib);
 				} catch (error) {
-					if (deflate64 || (encrypted && !zipCrypto) || signature === UNDEFINED_VALUE || outputSize === UNDEFINED_VALUE) {
+					if (deflate64 || outputSize === UNDEFINED_VALUE) {
 						throw error;
 					}
 					let gzipStream;
@@ -2113,8 +2161,7 @@ class InflateStream extends TransformStream {
 					} catch {
 						throw error;
 					}
-					readable = pipeThrough(readable, new RawDeflateToGzipStream(signature, outputSize));
-					readable = pipeThroughBackpressured(readable, gzipStream);
+					readable = pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize);
 				}
 			}
 			readable = mapInflateStreamError(readable);
@@ -2134,23 +2181,36 @@ class InflateStream extends TransformStream {
 	}
 }
 
-const deflateRawSupportByStream = new Map();
+const formatSupportByStream = new Map();
 
-function supportsDeflateRaw(StreamClass) {
+function supportsFormat(StreamClass, format) {
 	if (!StreamClass) {
 		return false;
 	}
-	let supported = deflateRawSupportByStream.get(StreamClass);
+	let supportByFormat = formatSupportByStream.get(StreamClass);
+	if (!supportByFormat) {
+		supportByFormat = new Map();
+		formatSupportByStream.set(StreamClass, supportByFormat);
+	}
+	let supported = supportByFormat.get(format);
 	if (supported === UNDEFINED_VALUE) {
 		try {
-			new StreamClass(FORMAT_DEFLATE_RAW);
+			new StreamClass(format);
 			supported = true;
 		} catch {
 			supported = false;
 		}
-		deflateRawSupportByStream.set(StreamClass, supported);
+		supportByFormat.set(format, supported);
 	}
 	return supported;
+}
+
+function supportsDeflateRaw(StreamClass) {
+	return supportsFormat(StreamClass, FORMAT_DEFLATE_RAW);
+}
+
+function supportsGzip(StreamClass) {
+	return supportsFormat(StreamClass, FORMAT_GZIP);
 }
 
 function setReadable(stream, readable, flush) {
@@ -2453,6 +2513,25 @@ let initModule$1 = () => { };
 
 function configureWorker({ initModule: initModuleFunction }) {
 	initModule$1 = initModuleFunction;
+}
+
+async function supportsDeflate(config) {
+	const { CompressionStream: NativeStream, CompressionStreamZlib: ZlibStream } = config;
+	if (ZlibStream && !ZlibStream.requiresModule) {
+		return true;
+	}
+	if (supportsDeflateRaw(NativeStream) || supportsGzip(NativeStream)) {
+		return true;
+	}
+	if (ZlibStream) {
+		try {
+			await initModule$1(config);
+			return true;
+		} catch {
+			return false;
+		}
+	}
+	return false;
 }
 
 function resetWebWorkerSupport() {
@@ -5828,6 +5907,11 @@ async function addFile(zipWriter, name, reader, options) {
 	zipWriter.files.set(name, UNDEFINED_VALUE);
 	let fileEntry;
 	try {
+		const { resolvedOptions } = metadataInfo;
+		if (resolvedOptions.level != 0 && resolvedOptions.compressionMethod === UNDEFINED_VALUE &&
+			!resolvedOptions.passThrough && !(await supportsDeflate(zipWriter.config))) {
+			resolvedOptions.level = 0;
+		}
 		const sizesInfo = await resolveSizes(zipWriter, reader, metadataInfo, options);
 		({ reader } = sizesInfo);
 		const diskOffset = getDiskOffset(zipWriter.writer);
@@ -6047,9 +6131,6 @@ function resolveMetadata(zipWriter, name, options) {
 	}
 	if (level !== UNDEFINED_VALUE && level != 6) {
 		useCompressionStream = false;
-	}
-	if (!useCompressionStream && !registeredCodec && (zipWriter.config.CompressionStream === UNDEFINED_VALUE && zipWriter.config.CompressionStreamZlib === UNDEFINED_VALUE)) {
-		level = 0;
 	}
 	const zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
 	if (!zipCrypto && (password !== UNDEFINED_VALUE || rawPassword !== UNDEFINED_VALUE) && !(encryptionStrength >= 1 && encryptionStrength <= 3)) {
