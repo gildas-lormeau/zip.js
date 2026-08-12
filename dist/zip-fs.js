@@ -5657,7 +5657,7 @@
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
 	const EXTRAFIELD_OFFSET_AES_VENDOR_VERSION = 4;
 	const VENDOR_VERSION_AE_1 = 1;
-	const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
+	const INFOZIP_EXTRA_FIELD_TYPE$1 = "infozip";
 	const UNIX_EXTRA_FIELD_TYPE = "unix";
 
 	let workers = 0;
@@ -5975,7 +5975,7 @@
 		if (unixMode !== UNDEFINED_VALUE && (unixMode < 0 || unixMode > MAX_16_BITS)) {
 			throw new Error(ERR_INVALID_UNIX_MODE);
 		}
-		if (unixExtraFieldType !== UNDEFINED_VALUE && unixExtraFieldType !== INFOZIP_EXTRA_FIELD_TYPE && unixExtraFieldType !== UNIX_EXTRA_FIELD_TYPE) {
+		if (unixExtraFieldType !== UNDEFINED_VALUE && unixExtraFieldType !== INFOZIP_EXTRA_FIELD_TYPE$1 && unixExtraFieldType !== UNIX_EXTRA_FIELD_TYPE) {
 			throw new Error(ERR_INVALID_UNIX_EXTRA_FIELD_TYPE);
 		}
 		if (unixExtraFieldType === UNIX_EXTRA_FIELD_TYPE &&
@@ -5983,7 +5983,7 @@
 			throw new Error(ERR_INVALID_UNIX_ID_SIZE);
 		}
 		if (unixExtraFieldType === UNDEFINED_VALUE && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
-			unixExtraFieldType = INFOZIP_EXTRA_FIELD_TYPE;
+			unixExtraFieldType = INFOZIP_EXTRA_FIELD_TYPE$1;
 		}
 		let msdosAttributesRaw = getOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW);
 		let msdosAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES);
@@ -6742,7 +6742,7 @@
 		let rawExtraFieldUnix;
 		try {
 			const { uid, gid, unixExtraFieldType } = options;
-			if (unixExtraFieldType == INFOZIP_EXTRA_FIELD_TYPE && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
+			if (unixExtraFieldType == INFOZIP_EXTRA_FIELD_TYPE$1 && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
 				const uidBytes = packUnixId(uid);
 				const gidBytes = packUnixId(gid);
 				const payloadLength = 3 + uidBytes.length + gidBytes.length;
@@ -8327,6 +8327,20 @@
 
 	const ERR_ENTRY_EXISTS = "Entry filename already exists";
 	const ERR_READABLE_CONSUMED = "Readable stream already consumed";
+	const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
+	const INTERPRETED_EXTRA_FIELD_TYPES = new Set([
+		EXTRAFIELD_TYPE_ZIP64,
+		EXTRAFIELD_TYPE_AES,
+		EXTRAFIELD_TYPE_NTFS,
+		EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP,
+		EXTRAFIELD_TYPE_UNICODE_PATH,
+		EXTRAFIELD_TYPE_UNICODE_COMMENT,
+		EXTRAFIELD_TYPE_USDZ,
+		EXTRAFIELD_TYPE_INFOZIP,
+		EXTRAFIELD_TYPE_UNIX,
+		EXTRAFIELD_TYPE_UNIX_TYPE1,
+		EXTRAFIELD_TYPE_PKWARE_UNIX
+	]);
 
 	class ZipEntry {
 
@@ -9064,6 +9078,20 @@
 		}
 	}
 
+	function getUserExtraField(extraField) {
+		if (extraField) {
+			const userExtraField = new Map();
+			extraField.forEach((field, type) => {
+				if (!INTERPRETED_EXTRA_FIELD_TYPES.has(type)) {
+					userExtraField.set(type, field.data);
+				}
+			});
+			if (userExtraField.size) {
+				return userExtraField;
+			}
+		}
+	}
+
 	async function exportZip(zipWriter, entry, totalSize, options, readers) {
 		const selectedEntry = entry;
 		const entryOffsets = new Map();
@@ -9103,7 +9131,11 @@
 						zipCrypto,
 						crc32,
 						compressionMethod,
-						extraFieldAES
+						extraFieldAES,
+						internalFileAttributes,
+						extraField,
+						uid,
+						gid
 					} = child.data;
 					zipEntryOptions = {
 						externalFileAttributes,
@@ -9111,8 +9143,20 @@
 						comment,
 						lastModDate,
 						creationDate,
-						lastAccessDate
+						lastAccessDate,
+						internalFileAttributes
 					};
+					const userExtraField = getUserExtraField(extraField);
+					if (userExtraField) {
+						zipEntryOptions.extraField = userExtraField;
+					}
+					if (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE) {
+						Object.assign(zipEntryOptions, {
+							uid,
+							gid,
+							unixExtraFieldType: options.unixExtraFieldType || INFOZIP_EXTRA_FIELD_TYPE
+						});
+					}
 					if (child.passThrough) {
 						let level, encryptionStrength;
 						if (compressionMethod === 0) {

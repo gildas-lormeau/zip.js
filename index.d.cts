@@ -2021,6 +2021,10 @@ export interface ZipWriterAddDataOptions
   uncompressedSize?: number;
   /**
    * The CRC-32 checksum of the content. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
+   *
+   * When the entry is AES-encrypted (see {@link ZipWriterConstructorOptions#encrypted}), setting this option marks the entry as AE-1
+   * and stores the checksum in the entry headers, e.g. when copying an AE-1 entry read with the
+   * {@link ZipReaderOptions#passThrough} option. Otherwise, the entry is marked as AE-2 and the checksum fields are set to 0.
    */
   crc32?: number;
   /**
