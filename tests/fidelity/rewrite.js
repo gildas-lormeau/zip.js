@@ -460,7 +460,7 @@ function decodeDosDateTime(rawValue) {
 }
 
 function encodeDosDateTime(date) {
-	const ceiledDate = new Date(Math.ceil(date.getTime() / 2000) * 2000);
+	const ceiledDate = new Date(Math.ceil(Math.floor(date.getTime() / 1000) / 2) * 2000);
 	const clampedDate = ceiledDate < MIN_DATE ? MIN_DATE : ceiledDate > MAX_DATE ? MAX_DATE : ceiledDate;
 	const time = (clampedDate.getHours() << 11) | (clampedDate.getMinutes() << 5) | (clampedDate.getSeconds() >> 1);
 	const day = (((clampedDate.getFullYear() - 1980) << 4) | (clampedDate.getMonth() + 1)) << 5 | clampedDate.getDate();

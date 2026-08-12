@@ -6537,7 +6537,7 @@
 		if (extraFieldLength > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
 		}
-		const dosLastModDate = new Date(Math.ceil(lastModDate.getTime() / 2000) * 2000);
+		const dosLastModDate = new Date(Math.ceil(Math.floor(lastModDate.getTime() / 1000) / 2) * 2000);
 		const {
 			headerArray,
 			headerView,

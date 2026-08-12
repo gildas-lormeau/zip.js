@@ -2110,7 +2110,7 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   /**
    * `true` to store extended timestamp extra fields.
    *
-   * When set to `false`, the maximum last modification date cannot exceed December 31, 2107 and the maximum accuracy is 2 seconds.
+   * When set to `false`, the maximum last modification date cannot exceed December 31, 2107 and the maximum accuracy is 2 seconds, dates being truncated to the whole second and odd seconds rounded up to the next even second.
    *
    * @defaultValue true
    */

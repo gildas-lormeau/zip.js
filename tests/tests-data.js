@@ -79,6 +79,7 @@ export default ([
 	{ title: "Entry count from total field", script: "./test-entry-count-total.js" },
 	{ title: "Extended timestamp", script: "./test-extended-timestamp.js" },
 	{ title: "NTFS timestamp", script: "./test-ntfs-timestamp.js" },
+	{ title: "DOS date rounding", script: "./test-dos-date-rounding.js" },
 	{ title: "Encrypted central directory", script: "./test-encrypted-central-directory.js" },
 	{ title: "SecureZIP archives", script: "./test-securezip-archives.js" },
 	{ title: "Empty entry deflate", script: "./test-empty-entry-deflate.js" },

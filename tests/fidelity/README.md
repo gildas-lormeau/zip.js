@@ -54,10 +54,12 @@ Known unreproducible classes, i.e. states the writer cannot express:
 2. Compression level bit flags (bits 1-2) on stored entries: Info-ZIP `-9` keeps the flags
    when it falls back to store; zip.js only sets them for deflate.
 3. DOS timestamp skew, observable only when a 0x5455/NTFS field exposes the exact mtime:
-   - Rounding: FIXED — zip.js now rounds the DOS time up to the next 2-second boundary,
-     matching Info-ZIP, 7-Zip, ditto and GitHub (it previously truncated, a minority
-     behavior). Archives written by older zip.js versions with odd-second mtimes are now
-     the unreproducible ones.
+   - Rounding: FIXED — zip.js now floors the mtime to the whole second, then rounds odd
+     seconds up to the next 2-second boundary, matching Info-ZIP, ditto and GitHub
+     (it previously truncated, a minority behavior). Fractional seconds floor, like
+     Info-ZIP and ditto whose stat calls only see whole seconds; 7-Zip and Windows FAT
+     ceil them instead. Archives written by older zip.js versions with odd-second mtimes
+     are now the unreproducible ones.
    - Timezone: the DOS field is writer-local wall-clock time; archives written in another
      timezone (GitHub zipballs, Internet Archive uploads) cannot be reproduced unless the
      harness runs with the writer's TZ.
