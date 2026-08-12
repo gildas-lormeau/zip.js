@@ -306,6 +306,24 @@ export default [{
 		plugins: [terser(bundledTerserOptions)]
 	}]
 }, {
+	input: "lib/zip-fs-external.js",
+	plugins: [
+		replace({
+			preventAssignment: true,
+			delimiters: ["", ""],
+			"../dist/zip-web-worker.js": "./zip-web-worker.js",
+			"../dist/zip-module.wasm": "./zip-module.wasm"
+		})
+	],
+	output: [{
+		file: "dist/zip-fs-external.min.js",
+		format: "es",
+		plugins: [terserMangler(bundledTerserOptions)]
+	}, {
+		file: "dist/zip-fs-external.js",
+		format: "es"
+	}]
+}, {
 	input: "lib/core/web-worker-wasm.js",
 	output: [{
 		intro: GLOBALS_WORKER,

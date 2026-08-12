@@ -71,6 +71,24 @@
         "default": "./index.cjs"
       }
     },
+    "./external": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/zip-fs-external.js"
+      }
+    },
+    "./dist/zip-fs-external.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./dist/zip-fs-external.js"
+      }
+    },
+    "./dist/zip-fs-external.min.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./dist/zip-fs-external.min.js"
+      }
+    },
     "./index-native.js": {
       "import": {
         "types": "./index.d.ts",
