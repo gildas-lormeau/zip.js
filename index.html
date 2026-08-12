@@ -195,6 +195,17 @@
 			<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
 			are standalone files for script tags and AMD loaders, they are not tree-shaken.
 		</p>
+		<p>
+			The <code>@zip.js/zip.js/external</code> entry point offers the full API but references the Web
+			Worker code and the WebAssembly module as external files instead of embedding them. Bundlers like
+			webpack and Vite detect these references, emit <code>zip-web-worker.js</code> and
+			<code>zip-module.wasm</code> as separate assets, and remove approximately 45KB of embedded
+			payloads from the main bundle. The worker also runs from a real file URL. This avoids
+			<code>blob:</code> restrictions on pages and browser extensions with a strict Content Security
+			Policy. With Vite, add <code>@zip.js/zip.js</code> to <code>optimizeDeps.exclude</code> to
+			resolve the assets during development. The prebuilt bundle <code>zip-fs-external.min.js</code>
+			offers the same behavior without a bundler, it resolves the two files from its own directory.
+		</p>
 		<h2 id="library-variants">Library variants</h2>
 		<p>
 			The library comes in two variants. The default variant embeds a WebAssembly build of zlib, while the
