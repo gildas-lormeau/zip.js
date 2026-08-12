@@ -1449,7 +1449,7 @@ const DERIVED_BITS_ALGORITHM = Object.assign({ iterations: 1000, hash: { name: H
 const DERIVED_BITS_USAGE = ["deriveBits"];
 const SALT_LENGTH = [8, 12, 16];
 const KEY_LENGTH = [16, 24, 32];
-const SIGNATURE_LENGTH = 10;
+const AUTHENTICATION_CODE_LENGTH = 10;
 const COUNTER_DEFAULT_VALUE = [0, 0, 0, 0];
 // deno-lint-ignore valid-typeof
 const CRYPTO_API_SUPPORTED = typeof crypto != UNDEFINED_TYPE;
@@ -1489,8 +1489,8 @@ class AESDecryptionStream extends TransformStream {
 				} else {
 					await ready;
 				}
-				const output = new Uint8Array(chunk.length - SIGNATURE_LENGTH - ((chunk.length - SIGNATURE_LENGTH) % BLOCK_LENGTH));
-				controller.enqueue(append(aesCrypto, chunk, output, 0, SIGNATURE_LENGTH, true));
+				const output = new Uint8Array(chunk.length - AUTHENTICATION_CODE_LENGTH - ((chunk.length - AUTHENTICATION_CODE_LENGTH) % BLOCK_LENGTH));
+				controller.enqueue(append(aesCrypto, chunk, output, 0, AUTHENTICATION_CODE_LENGTH, true));
 			},
 			async flush(controller) {
 				const {
@@ -1501,8 +1501,8 @@ class AESDecryptionStream extends TransformStream {
 				} = this;
 				if (hmac && ctr) {
 					await ready;
-					const chunkToDecrypt = subarray(pending, 0, pending.length - SIGNATURE_LENGTH);
-					const originalSignature = subarray(pending, pending.length - SIGNATURE_LENGTH);
+					const chunkToDecrypt = subarray(pending, 0, pending.length - AUTHENTICATION_CODE_LENGTH);
+					const originalAuthenticationCode = subarray(pending, pending.length - AUTHENTICATION_CODE_LENGTH);
 					let decryptedChunkArray = EMPTY_UINT8_ARRAY;
 					if (chunkToDecrypt.length) {
 						const encryptedChunk = toBits(codecBytes, chunkToDecrypt);
@@ -1510,12 +1510,12 @@ class AESDecryptionStream extends TransformStream {
 						const decryptedChunk = ctr.update(encryptedChunk);
 						decryptedChunkArray = fromBits(codecBytes, decryptedChunk);
 					}
-					const signature = subarray(fromBits(codecBytes, hmac.digest()), 0, SIGNATURE_LENGTH);
-					let invalidSignature = pending.length < SIGNATURE_LENGTH ? 1 : 0;
-					for (let indexSignature = 0; indexSignature < SIGNATURE_LENGTH; indexSignature++) {
-						invalidSignature |= signature[indexSignature] ^ originalSignature[indexSignature];
+					const authenticationCode = subarray(fromBits(codecBytes, hmac.digest()), 0, AUTHENTICATION_CODE_LENGTH);
+					let invalidAuthenticationCode = pending.length < AUTHENTICATION_CODE_LENGTH ? 1 : 0;
+					for (let indexByte = 0; indexByte < AUTHENTICATION_CODE_LENGTH; indexByte++) {
+						invalidAuthenticationCode |= authenticationCode[indexByte] ^ originalAuthenticationCode[indexByte];
 					}
-					if (invalidSignature && checkAuthenticationCode) {
+					if (invalidAuthenticationCode && checkAuthenticationCode) {
 						throw new Error(ERR_INVALID_AUTHENTICATION_CODE);
 					}
 					controller.enqueue(decryptedChunkArray);
@@ -1528,8 +1528,6 @@ class AESDecryptionStream extends TransformStream {
 class AESEncryptionStream extends TransformStream {
 
 	constructor({ password, rawPassword, encryptionStrength }) {
-		// deno-lint-ignore prefer-const
-		let stream;
 		super({
 			start() {
 				initAesCrypto(this, password, rawPassword, encryptionStrength);
@@ -1568,12 +1566,11 @@ class AESEncryptionStream extends TransformStream {
 						hmac.update(encryptedChunk);
 						encryptedChunkArray = fromBits(codecBytes, encryptedChunk);
 					}
-					stream.signature = fromBits(codecBytes, hmac.digest()).slice(0, SIGNATURE_LENGTH);
-					controller.enqueue(concat(encryptedChunkArray, stream.signature));
+					const authenticationCode = fromBits(codecBytes, hmac.digest()).slice(0, AUTHENTICATION_CODE_LENGTH);
+					controller.enqueue(concat(encryptedChunkArray, authenticationCode));
 				}
 			}
 		});
-		stream = this;
 	}
 }
 
@@ -1586,7 +1583,7 @@ function initAesCrypto(aesCrypto, password, rawPassword, encryptionStrength) {
 	});
 }
 
-function append(aesCrypto, input, output, paddingStart, paddingEnd, verifySignature) {
+function append(aesCrypto, input, output, paddingStart, paddingEnd, verifyAuthenticationCode) {
 	const {
 		ctr,
 		hmac,
@@ -1600,11 +1597,11 @@ function append(aesCrypto, input, output, paddingStart, paddingEnd, verifySignat
 	let offset;
 	for (offset = 0; offset <= inputLength - BLOCK_LENGTH; offset += BLOCK_LENGTH) {
 		const inputChunk = toBits(codecBytes, subarray(input, offset, offset + BLOCK_LENGTH));
-		if (verifySignature) {
+		if (verifyAuthenticationCode) {
 			hmac.update(inputChunk);
 		}
 		const outputChunk = ctr.update(inputChunk);
-		if (!verifySignature) {
+		if (!verifyAuthenticationCode) {
 			hmac.update(outputChunk);
 		}
 		output.set(fromBits(codecBytes, outputChunk), offset + paddingStart);
@@ -2010,14 +2007,9 @@ class DeflateStream extends TransformStream {
 			}
 		}
 		setReadable(stream, readable, () => {
-			let signature;
-			if (encrypted && !zipCrypto) {
-				signature = encryptionStream.signature;
-			}
 			if ((!encrypted || zipCrypto) && computeCrc32) {
-				signature = useGzipCrc32 ? gzipCrc32Stream.signature : new DataView(crc32Stream.value.buffer).getUint32(0);
+				stream.crc32 = useGzipCrc32 ? gzipCrc32Stream.crc32 : new DataView(crc32Stream.value.buffer).getUint32(0);
 			}
-			stream.signature = signature;
 		});
 	}
 }
@@ -2055,7 +2047,7 @@ class GzipToRawDeflateStream extends TransformStream {
 			},
 			flush() {
 				const dataView = getDataView(trailerCandidate);
-				stream.signature = dataView.getUint32(0, true);
+				stream.crc32 = dataView.getUint32(0, true);
 				stream.uncompressedSize = dataView.getUint32(4, true);
 			}
 		});
@@ -2137,7 +2129,7 @@ class InflateStream extends TransformStream {
 
 	constructor(options, { chunkSize, DecompressionStreamZlib, DecompressionStream }) {
 		super({});
-		const { zipCrypto, encrypted, checkCrc32, signature, compressed, useCompressionStream, deflate64, format, compressionMethod, rawBitFlag, outputSize } = options;
+		const { zipCrypto, encrypted, checkCrc32, crc32, compressed, useCompressionStream, deflate64, format, compressionMethod, rawBitFlag, outputSize } = options;
 		let crc32Stream, decryptionStream;
 		let readable = super.readable;
 		if (encrypted) {
@@ -2176,8 +2168,8 @@ class InflateStream extends TransformStream {
 		}
 		setReadable(this, readable, () => {
 			if (checkCrc32) {
-				const dataViewSignature = new DataView(crc32Stream.value.buffer);
-				if (signature != dataViewSignature.getUint32(0, false)) {
+				const computedCrc32View = new DataView(crc32Stream.value.buffer);
+				if (crc32 != computedCrc32View.getUint32(0, false)) {
 					throw new Error(ERR_INVALID_CRC32);
 				}
 			}
@@ -2402,9 +2394,9 @@ class CodecStream extends TransformStream {
 				}
 			},
 			flush() {
-				const { signature } = stream;
+				const { crc32 } = stream;
 				Object.assign(codec, {
-					signature,
+					crc32,
 					inputSize
 				});
 			}
@@ -2707,12 +2699,12 @@ async function runWorker$1({ options, readable, writable, onTaskFinished }, conf
 			.pipeThrough(new ChunkStream(getChunkSize(config)))
 			.pipeTo(writable, { preventClose: true, preventAbort: true });
 		const {
-			signature,
+			crc32,
 			inputSize,
 			outputSize
 		} = codecStream;
 		return {
-			signature,
+			crc32,
 			inputSize,
 			outputSize
 		};
@@ -4901,7 +4893,7 @@ let ZipEntry$1 = class ZipEntry {
 			config,
 			bitFlag,
 			rawBitFlag,
-			signature,
+			crc32,
 			rawLastModDate,
 			uncompressedSize,
 			compressedSize
@@ -5002,9 +4994,9 @@ let ZipEntry$1 = class ZipEntry {
 				encryptionStrength: extraFieldAES && extraFieldAES.strength,
 				checkCrc32,
 				checkAuthenticationCode: getOptionValue$1(zipEntry, options, OPTION_CHECK_AUTHENTICATION_CODE),
-				passwordVerification: zipCrypto && (dataDescriptor ? ((rawLastModDate >>> 8) & MAX_8_BITS) : ((signature >>> 24) & MAX_8_BITS)),
+				passwordVerification: zipCrypto && (dataDescriptor ? ((rawLastModDate >>> 8) & MAX_8_BITS) : ((crc32 >>> 24) & MAX_8_BITS)),
 				outputSize: passThrough ? compressedSize : uncompressedSize,
-				signature,
+				crc32,
 				compressed: compressionMethod != 0 && !passThrough,
 				encrypted,
 				useWebWorkers: getOptionValue$1(zipEntry, options, OPTION_USE_WEB_WORKERS),
@@ -5026,7 +5018,7 @@ let ZipEntry$1 = class ZipEntry {
 				fileEntry,
 				index,
 				offset: localHeaderOffset,
-				signature,
+				crc32,
 				compressedSize,
 				uncompressedSize,
 				dataOffset,
@@ -5202,15 +5194,15 @@ function readExtraFieldUnicode(extraFieldUnicode, propertyName, rawPropertyName,
 		return;
 	}
 	const extraFieldView = getDataView(extraFieldUnicode.data);
-	const crc32 = new Crc32();
-	crc32.append(fileEntry[rawPropertyName]);
-	const dataViewSignature = getDataView(new Uint8Array(4));
-	dataViewSignature.setUint32(0, crc32.get(), true);
-	const signature = getUint32(extraFieldView, 1);
+	const computedCrc32 = new Crc32();
+	computedCrc32.append(fileEntry[rawPropertyName]);
+	const computedCrc32View = getDataView(new Uint8Array(4));
+	computedCrc32View.setUint32(0, computedCrc32.get(), true);
+	const nameCrc32 = getUint32(extraFieldView, 1);
 	Object.assign(extraFieldUnicode, {
 		version: getUint8(extraFieldView, 0),
 		[propertyName]: decodeText(extraFieldUnicode.data.subarray(5)),
-		valid: !fileEntry.bitFlag.languageEncodingFlag && signature == getUint32(dataViewSignature, 0)
+		valid: !fileEntry.bitFlag.languageEncodingFlag && nameCrc32 == getUint32(computedCrc32View, 0)
 	});
 	if (extraFieldUnicode.valid) {
 		directory[propertyName] = extraFieldUnicode[propertyName];
@@ -5363,7 +5355,7 @@ async function detectOverlappingEntry({
 	fileEntry,
 	index,
 	offset,
-	signature,
+	crc32,
 	compressedSize,
 	uncompressedSize,
 	dataOffset,
@@ -5384,7 +5376,7 @@ async function detectOverlappingEntry({
 		const dataDescriptorSignature = dataDescriptorArray.length == dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH &&
 			getUint32(getDataView(dataDescriptorArray), 0) == DATA_DESCRIPTOR_RECORD_SIGNATURE;
 		if (dataDescriptorSignature) {
-			const readSignature = getUint32(getDataView(dataDescriptorArray), 4);
+			const readCrc32 = getUint32(getDataView(dataDescriptorArray), 4);
 			let readCompressedSize;
 			let readUncompressedSize;
 			if (extraFieldZip64) {
@@ -5394,8 +5386,8 @@ async function detectOverlappingEntry({
 				readCompressedSize = getUint32(getDataView(dataDescriptorArray), 8);
 				readUncompressedSize = getUint32(getDataView(dataDescriptorArray), 12);
 			}
-			const matchSignature = (fileEntry.encrypted && !fileEntry.zipCrypto) || readSignature == signature;
-			if (matchSignature &&
+			const matchCrc32 = (fileEntry.encrypted && !fileEntry.zipCrypto) || readCrc32 == crc32;
+			if (matchCrc32 &&
 				readCompressedSize == compressedSize &&
 				readUncompressedSize == uncompressedSize) {
 				dataDescriptorLength += DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH;
@@ -5564,11 +5556,11 @@ function checkLocalDirectory(zipEntry, localDirectory, rawLocalFilename) {
 		throwAmbiguousArchive("mismatched local file header (compression method)");
 	}
 	if (!localDirectory.bitFlag.dataDescriptor &&
-		(localDirectory.signature || localDirectory.compressedSize || localDirectory.uncompressedSize) &&
-		(localDirectory.signature != zipEntry.signature ||
+		(localDirectory.crc32 || localDirectory.compressedSize || localDirectory.uncompressedSize) &&
+		(localDirectory.crc32 != zipEntry.crc32 ||
 			localDirectory.compressedSize != zipEntry.compressedSize ||
 			localDirectory.uncompressedSize != zipEntry.uncompressedSize)) {
-		throwAmbiguousArchive("mismatched local file header (signature or sizes)");
+		throwAmbiguousArchive("mismatched local file header (crc32 or sizes)");
 	}
 }
 
@@ -5782,9 +5774,9 @@ class ZipWriter {
 				zip64UncompressedSize,
 				extraFieldLength
 			});
-			const { signature } = entry;
-			if (signature !== UNDEFINED_VALUE) {
-				setUint32(headerView, HEADER_OFFSET_SIGNATURE, signature);
+			const { crc32 } = entry;
+			if (crc32 !== UNDEFINED_VALUE) {
+				setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
 			}
 			Object.assign(entry, {
 				zip64UncompressedSize,
@@ -6574,11 +6566,11 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		msdosAttributes
 	};
 	let {
-		crc32: signature,
+		crc32,
 		uncompressedSize
 	} = options;
-	if (signature === UNDEFINED_VALUE) {
-		({ signature } = options);
+	if (crc32 === UNDEFINED_VALUE) {
+		({ signature: crc32 } = options);
 	}
 	let compressedSize = 0;
 	if (!passThrough) {
@@ -6617,7 +6609,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 			if (!passThrough) {
 				uncompressedSize = result.inputSize;
 				if (!encrypted || zipCrypto) {
-					signature = result.signature;
+					crc32 = result.crc32;
 				}
 			}
 			if ((!zip64CompressedSize && compressedSize >= MAX_32_BITS) ||
@@ -6633,7 +6625,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 
 	}
 	setEntryInfo({
-		signature,
+		crc32,
 		compressedSize,
 		uncompressedSize,
 		headerInfo,
@@ -6656,8 +6648,8 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		version,
 		headerArray,
 		headerView,
-		signature,
-		crc32: encrypted && !zipCrypto ? UNDEFINED_VALUE : signature,
+		signature: crc32,
+		crc32: encrypted && !zipCrypto ? UNDEFINED_VALUE : crc32,
 		extraFieldExtendedTimestampFlag,
 		zip64UncompressedSize,
 		zip64CompressedSize
@@ -6969,7 +6961,7 @@ function getDataDescriptorInfo({
 }
 
 function setEntryInfo({
-	signature,
+	crc32,
 	compressedSize,
 	uncompressedSize,
 	headerInfo,
@@ -6987,10 +6979,10 @@ function setEntryInfo({
 		dataDescriptorView,
 		dataDescriptorOffset
 	} = dataDescriptorInfo;
-	if ((!encrypted || zipCrypto) && signature !== UNDEFINED_VALUE) {
-		setUint32(headerView, HEADER_OFFSET_SIGNATURE, signature);
+	if ((!encrypted || zipCrypto) && crc32 !== UNDEFINED_VALUE) {
+		setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
 		if (dataDescriptor) {
-			setUint32(dataDescriptorView, dataDescriptorOffset, signature);
+			setUint32(dataDescriptorView, dataDescriptorOffset, crc32);
 		}
 	}
 	if (zip64) {
@@ -7013,7 +7005,7 @@ function updateLocalHeader({
 	encrypted,
 	zip64,
 	localExtraFieldZip64Length,
-	signature,
+	crc32,
 	compressedSize,
 	uncompressedSize,
 	zip64UncompressedSize,
@@ -7021,7 +7013,7 @@ function updateLocalHeader({
 }, localHeaderView, { dataDescriptor }) {
 	if (!dataDescriptor) {
 		if (!encrypted) {
-			setUint32(localHeaderView, HEADER_OFFSET_SIGNATURE + LOCAL_HEADER_COMMON_OFFSET, signature);
+			setUint32(localHeaderView, HEADER_OFFSET_SIGNATURE + LOCAL_HEADER_COMMON_OFFSET, crc32);
 		}
 		if (!zip64CompressedSize) {
 			setUint32(localHeaderView, HEADER_OFFSET_COMPRESSED_SIZE + LOCAL_HEADER_COMMON_OFFSET, compressedSize);
@@ -9127,7 +9119,7 @@ async function exportZip(zipWriter, entry, totalSize, options, readers) {
 					uncompressedSize,
 					encrypted,
 					zipCrypto,
-					signature,
+					crc32,
 					compressionMethod,
 					extraFieldAES
 				} = child.data;
@@ -9151,7 +9143,7 @@ async function exportZip(zipWriter, entry, totalSize, options, readers) {
 						passThrough: true,
 						encrypted,
 						zipCrypto,
-						signature,
+						crc32,
 						uncompressedSize,
 						level,
 						encryptionStrength,

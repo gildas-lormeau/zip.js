@@ -226,7 +226,7 @@
 		Object.assign(config, DEFAULT_CONFIGURATION);
 	}
 
-	function t$1(t){const e='(t=>{"function"==typeof define&&define.amd?define(t):t()})(function(){"use strict";const{Array:t,Object:e,Number:n,Math:s,Error:r,Uint8Array:o,Uint16Array:c,Uint32Array:i,Int32Array:a,Map:f,DataView:l,Promise:u,TextEncoder:w,crypto:h,postMessage:p,TransformStream:d,ReadableStream:y,WritableStream:m,CompressionStream:g,DecompressionStream:S}=self,v=void 0,b="undefined",k="function",z=new o,C=[[],[],[],[],[],[],[],[]];for(let t=0;256>t;t++){let e=t;for(let t=0;8>t;t++)e=1&e?e>>>1^3988292384:e>>>1;C[0][t]=e}for(let t=0;256>t;t++)for(let e=1;8>e;e++){const n=C[e-1][t];C[e][t]=n>>>8^C[0][255&n]}const[A,I,x,M,P,B,D,R]=C;class U{constructor(t){this.o=t||-1}append(t){let e=0|this.o;const n=0|t.length;let s=0;if(n>=8&&t.buffer){const r=new l(t.buffer,t.byteOffset,n),o=n-8;for(;o>=s;s+=8){const t=e^r.getInt32(s,!0),n=r.getInt32(s+4,!0);e=R[255&t]^D[t>>>8&255]^B[t>>>16&255]^P[t>>>24&255]^M[255&n]^x[n>>>8&255]^I[n>>>16&255]^A[n>>>24&255]}}for(;n>s;s++)e=e>>>8^A[255&(e^t[s])];this.o=e}get(){return~this.o}}class W extends d{constructor(){let t;const e=new U;super({transform(t,n){e.append(t),n.enqueue(t)},flush(){const n=new o(4);new l(n.buffer).setUint32(0,e.get()),t.value=n}}),t=this}}function _(t,e){const n=new o(t.length+e.length);return n.set(t),n.set(e,t.length),n}function T(t){return new l(t.buffer,t.byteOffset,t.byteLength)}const V={concat(t,e){if(0===t.length||0===e.length)return t.concat(e);const n=t[t.length-1],s=V.l(n);return 32===s?t.concat(e):V.h(e,s,0|n,t.slice(0,t.length-1))},m(t){const e=t.length;if(0===e)return 0;const n=t[e-1];return 32*(e-1)+V.l(n)},S(t,e){if(32*t.length<e)return t;const n=(t=t.slice(0,s.ceil(e/32))).length;return e&=31,n>0&&e&&(t[n-1]=V.v(e,t[n-1]&2147483648>>e-1,1)),t},v:(t,e,n)=>32===t?e:(n?0|e:e<<32-t)+1099511627776*t,l:t=>s.round(t/1099511627776)||32,h(t,e,n,s){for(void 0===s&&(s=[]);e>=32;e-=32)s.push(n),n=0;if(0===e)return s.concat(t);for(let r=0;r<t.length;r++)s.push(n|t[r]>>>e),n=t[r]<<32-e;const r=t.length?t[t.length-1]:0,o=V.l(r);return s.push(V.v(e+o&31,e+o>32?n:s.pop(),1)),s}},K={bytes:{C(t){const e=V.m(t)/8,n=new o(e);let s;for(let r=0;e>r;r++)3&r||(s=t[r/4]),n[r]=s>>>24,s<<=8;return n},A(t){const e=[];let n,s=0;for(n=0;n<t.length;n++)s=s<<8|t[n],3&~n||(e.push(s),s=0);return 3&n&&e.push(V.v(8*(3&n),s)),e}}},E=class{constructor(t){const e=this;e.blockSize=512,e.I=[1732584193,4023233417,2562383102,271733878,3285377520],e.M=[1518500249,1859775393,2400959708,3395469782],t?(e.P=t.P.slice(0),e.B=t.B.slice(0),e.D=t.D):e.reset()}reset(){const t=this;return t.P=t.I.slice(0),t.B=[],t.D=0,t}update(t){const e=this;"string"==typeof t&&(t=K.R.A(t));const n=e.B=V.concat(e.B,t),s=e.D,o=e.D=s+V.m(t);if(o>9007199254740991)throw new r("Cannot hash more than 2^53 - 1 bits");const c=new i(n);let a=0;for(let t=e.blockSize+s-(e.blockSize+s&e.blockSize-1);o>=t;t+=e.blockSize)e.U(c.subarray(16*a,16*(a+1))),a+=1;return n.splice(0,16*a),e}W(){const t=this;let e=t.B;const n=t.P;e=V.concat(e,[V.v(1,1)]);for(let t=e.length+2;15&t;t++)e.push(0);for(e.push(s.floor(t.D/4294967296)),e.push(0|t.D);e.length;)t.U(e.splice(0,16));return t.reset(),n}_(t,e,n,s){return t>19?t>39?t>59?t>79?void 0:e^n^s:e&n|e&s|n&s:e^n^s:e&n|~e&s}T(t,e){return e<<t|e>>>32-t}U(e){const n=this,r=n.P,o=t(80);for(let t=0;16>t;t++)o[t]=e[t];let c=r[0],i=r[1],a=r[2],f=r[3],l=r[4];for(let t=0;79>=t;t++){16>t||(o[t]=n.T(1,o[t-3]^o[t-8]^o[t-14]^o[t-16]));const e=n.T(5,c)+n._(t,i,a,f)+l+o[t]+n.M[s.floor(t/20)]|0;l=f,f=a,a=n.T(30,i),i=c,c=e}r[0]=r[0]+c|0,r[1]=r[1]+i|0,r[2]=r[2]+a|0,r[3]=r[3]+f|0,r[4]=r[4]+l|0}},F={importKey:t=>new F.V(K.bytes.A(t)),K(t,e,n,s){if(n=n||1e4,0>s||0>n)throw new r("invalid params to pbkdf2");const o=1+(s>>5)<<2;let c,i,a,f,u;const w=new ArrayBuffer(o),h=new l(w);let p=0;const d=V;for(e=K.bytes.A(e),u=1;(o||1)>p;u++){for(c=i=t.encrypt(d.concat(e,[u])),a=1;n>a;a++)for(i=t.encrypt(i),f=0;f<i.length;f++)c[f]^=i[f];for(a=0;(o||1)>p&&a<c.length;a++)h.setInt32(p,c[a]),p+=4}return w.slice(0,s/8)},V:class{constructor(t){const e=this,n=e.F=E,s=[[],[]];e.L=[new n,new n];const r=e.L[0].blockSize/32;t.length>r&&(t=(new n).update(t).W());for(let e=0;r>e;e++)s[0][e]=909522486^t[e],s[1][e]=1549556828^t[e];e.L[0].update(s[0]),e.L[1].update(s[1]),e.O=new n(e.L[0])}reset(){const t=this;t.O=new t.F(t.L[0]),t.j=!1}update(t){this.j=!0,this.O.update(t)}digest(){const t=this,e=t.O.W(),n=new t.F(t.L[1]).update(e).W();return t.reset(),n}encrypt(t){if(this.j)throw new r("encrypt on already updated hmac called!");return this.update(t),this.digest(t)}}},L=typeof h!=b&&typeof h.getRandomValues==k,O="Invalid password",j="Invalid signature",H=j,Z="zipjs-abort-check-password";function N(t){if(L)return h.getRandomValues(t);throw new r("Crypto API not supported")}const q=16,G={name:"PBKDF2"},J=e.assign({hash:{name:"HMAC"}},G),Q=e.assign({iterations:1e3,hash:{name:"SHA-1"}},G),X=["deriveBits"],Y=[8,12,16],$=[16,24,32],tt=10,et=[0,0,0,0],nt=typeof h!=b,st=nt&&h.subtle,rt=nt&&typeof st!=b,ot=K.bytes,ct=class{constructor(t){const e=this;e.H=[[[],[],[],[],[]],[[],[],[],[],[]]],e.H[0][0][0]||e.Z();const n=e.H[0][4],s=e.H[1],o=t.length;let c,i,a,f=1;if(4!==o&&6!==o&&8!==o)throw new r("invalid aes key size");for(e.M=[i=t.slice(0),a=[]],c=o;4*o+28>c;c++){let t=i[c-1];(c%o===0||8===o&&c%o===4)&&(t=n[t>>>24]<<24^n[t>>16&255]<<16^n[t>>8&255]<<8^n[255&t],c%o===0&&(t=t<<8^t>>>24^f<<24,f=f<<1^283*(f>>7))),i[c]=i[c-o]^t}for(let t=0;c;t++,c--){const e=i[3&t?c:c-4];a[t]=4>=c||4>t?e:s[0][n[e>>>24]]^s[1][n[e>>16&255]]^s[2][n[e>>8&255]]^s[3][n[255&e]]}}encrypt(t){return this.N(t,0)}decrypt(t){return this.N(t,1)}Z(){const t=this.H[0],e=this.H[1],n=t[4],s=e[4],r=[],o=[];let c,i,a,f;for(let t=0;256>t;t++)o[(r[t]=t<<1^283*(t>>7))^t]=t;for(let l=c=0;!n[l];l^=i||1,c=o[c]||1){let o=c^c<<1^c<<2^c<<3^c<<4;o=o>>8^255&o^99,n[l]=o,s[o]=l,f=r[a=r[i=r[l]]];let u=16843009*f^65537*a^257*i^16843008*l,w=257*r[o]^16843008*o;for(let n=0;4>n;n++)t[n][l]=w=w<<24^w>>>8,e[n][o]=u=u<<24^u>>>8}for(let n=0;5>n;n++)t[n]=t[n].slice(0),e[n]=e[n].slice(0)}N(t,e){if(4!==t.length)throw new r("invalid aes block size");const n=this.M[e],s=n.length/4-2,o=[0,0,0,0],c=this.H[e],i=c[0],a=c[1],f=c[2],l=c[3],u=c[4];let w,h,p,d=t[0]^n[0],y=t[e?3:1]^n[1],m=t[2]^n[2],g=t[e?1:3]^n[3],S=4;for(let t=0;s>t;t++)w=i[d>>>24]^a[y>>16&255]^f[m>>8&255]^l[255&g]^n[S],h=i[y>>>24]^a[m>>16&255]^f[g>>8&255]^l[255&d]^n[S+1],p=i[m>>>24]^a[g>>16&255]^f[d>>8&255]^l[255&y]^n[S+2],g=i[g>>>24]^a[d>>16&255]^f[y>>8&255]^l[255&m]^n[S+3],S+=4,d=w,y=h,m=p;for(let t=0;4>t;t++)o[e?3&-t:t]=u[d>>>24]<<24^u[y>>16&255]<<16^u[m>>8&255]<<8^u[255&g]^n[S++],w=d,d=y,y=m,m=g,g=w;return o}},it=class{constructor(t,e){this.G=t,this.J=e,this.X=e}reset(){this.X=this.J}update(t){return this.Y(this.G,t,this.X)}$(t){if(255&~(t>>24))t+=1<<24;else{let e=t>>16&255,n=t>>8&255,s=255&t;255===e?(e=0,255===n?(n=0,255===s?s=0:++s):++n):++e,t=0,t+=e<<16,t+=n<<8,t+=s}return t}et(t){0===(t[0]=this.$(t[0]))&&(t[1]=this.$(t[1]))}Y(t,e,n){let s;if(!(s=e.length))return[];const r=V.m(e);for(let r=0;s>r;r+=4){this.et(n);const s=t.encrypt(n);e[r]^=s[0],e[r+1]^=s[1],e[r+2]^=s[2],e[r+3]^=s[3]}return V.S(e,r)}},at=F.V;let ft=nt&&rt&&typeof st.importKey==k,lt=nt&&rt&&typeof st.deriveBits==k;class ut extends d{constructor({password:t,rawPassword:e,encryptionStrength:n,checkPasswordOnly:s,checkAuthenticationCode:c=!0}){super({start(){ht(this,t,e,n)},async transform(t,e){const n=this,{password:c,strength:i,nt:a,ready:f}=n;c?(await(async(t,e,n,s)=>{const o=await dt(t,e,n,mt(s,0,Y[e])),c=mt(s,Y[e]);if(o[0]!=c[0]||o[1]!=c[1])throw new r(O)})(n,i,c,mt(t,0,Y[i]+2)),t=mt(t,Y[i]+2),s?e.error(new r(Z)):a()):await f;const l=new o(t.length-tt-(t.length-tt)%q);e.enqueue(pt(n,t,l,0,tt,!0))},async flush(t){const{st:e,ot:n,pending:s,ready:o}=this;if(n&&e){await o;const i=mt(s,0,s.length-tt),a=mt(s,s.length-tt);let f=z;if(i.length){const t=St(ot,i);n.update(t);const s=e.update(t);f=gt(ot,s)}const l=mt(gt(ot,n.digest()),0,tt);let u=s.length<tt?1:0;for(let t=0;tt>t;t++)u|=l[t]^a[t];if(u&&c)throw new r(H);t.enqueue(f)}}})}}class wt extends d{constructor({password:t,rawPassword:e,encryptionStrength:n}){let s;super({start(){ht(this,t,e,n)},async transform(t,e){const n=this,{password:s,strength:r,nt:c,ready:i}=n;let a=z;s?(a=await(async(t,e,n)=>{const s=N(new o(Y[e]));return _(s,await dt(t,e,n,s))})(n,r,s),c()):await i;const f=new o(a.length+t.length-t.length%q);f.set(a,0),e.enqueue(pt(n,t,f,a.length,0))},async flush(t){const{st:e,ot:n,pending:r,ready:o}=this;if(n&&e){await o;let c=z;if(r.length){const t=e.update(St(ot,r));n.update(t),c=gt(ot,t)}s.signature=gt(ot,n.digest()).slice(0,tt),t.enqueue(_(c,s.signature))}}}),s=this}}function ht(t,n,s,r){e.assign(t,{ready:new u(e=>t.nt=e),password:yt(n,s),strength:r-1,pending:z})}function pt(t,e,n,s,r,c){const{st:i,ot:a,pending:f}=t;f.length&&(e=_(f,e));const l=e.length-r;let u;for(n=((t,e)=>{if(e&&e>t.length){const n=t;(t=new o(e)).set(n,0)}return t})(n,s+(l-l%q)),u=0;l-q>=u;u+=q){const t=St(ot,mt(e,u,u+q));c&&a.update(t);const r=i.update(t);c||a.update(r),n.set(gt(ot,r),u+s)}return t.pending=mt(e,u),n}async function dt(n,s,r,c){n.password=null;const i=await(async(t,e,n,s,r)=>{if(!ft)return F.importKey(e);try{return await st.importKey("raw",e,n,!1,r)}catch{return ft=!1,F.importKey(e)}})(0,r,J,0,X),a=await(async(t,e,n)=>{if(!lt)return F.K(e,t.salt,Q.iterations,n);try{return await st.deriveBits(t,e,n)}catch{return lt=!1,F.K(e,t.salt,Q.iterations,n)}})(e.assign({salt:c},Q),i,8*(2*$[s]+2)),f=new o(a),l=St(ot,mt(f,0,$[s])),u=St(ot,mt(f,$[s],2*$[s])),w=mt(f,2*$[s]);return e.assign(n,{keys:{key:l,ct:u,passwordVerification:w},st:new it(new ct(l),t.from(et)),ot:new at(u)}),w}function yt(t,e){return e===v?(t=>{if(typeof w==b){const e=new o((t=unescape(encodeURIComponent(t))).length);for(let n=0;n<e.length;n++)e[n]=t.charCodeAt(n);return e}return(new w).encode(t)})(t):e}function mt(t,e,n){return t.subarray(e,n)}function gt(t,e){return t.C(e)}function St(t,e){return t.A(e)}class vt extends d{constructor({password:t,rawPassword:e,passwordVerification:n,checkPasswordOnly:s}){super({start(){kt(this,t,e,n)},transform(t,e){const n=this;if(n.password||n.rawPassword){const e=zt(n,t.subarray(0,12));if(n.password=n.rawPassword=null,0!=(e[11]^n.passwordVerification))throw new r(O);t=t.subarray(12)}s?e.error(new r(Z)):e.enqueue(zt(n,t))}})}}class bt extends d{constructor({password:t,rawPassword:e,passwordVerification:n}){super({start(){kt(this,t,e,n)},transform(t,e){const n=this;let s,r;if(n.password||n.rawPassword){n.password=n.rawPassword=null;const e=N(new o(12));e[11]=n.passwordVerification,s=new o(t.length+e.length),s.set(Ct(n,e),0),r=12}else s=new o(t.length),r=0;s.set(Ct(n,t),r),e.enqueue(s)}})}}function kt(t,n,s,r){e.assign(t,{password:n,rawPassword:s,passwordVerification:r}),((t,n,s)=>{const r=[305419896,591751049,878082192];if(e.assign(t,{keys:r,it:new U(r[0]),ft:new U(r[2])}),s)for(let e=0;e<s.length;e++)At(t,s[e]);else for(let e=0;e<n.length;e++)At(t,n.charCodeAt(e))})(t,n,s)}function zt(t,e){const n=new o(e.length);for(let s=0;s<e.length;s++)n[s]=It(t)^e[s],At(t,n[s]);return n}function Ct(t,e){const n=new o(e.length);for(let s=0;s<e.length;s++)n[s]=It(t)^e[s],At(t,e[s]);return n}function At(t,e){let[,n]=t.keys;t.it.append([e]);const r=~t.it.get();n=Mt(s.imul(Mt(n+xt(r)),134775813)+1),t.ft.append([n>>>24]);const o=~t.ft.get();t.keys=[r,n,o]}function It(t){const e=2|t.keys[2];return xt(s.imul(e,1^e)>>>8)}function xt(t){return 255&t}function Mt(t){return 4294967295&t}const Pt=new f;function Bt(t){return Pt.get(t)}const Dt="Invalid uncompressed size",Rt=j,Ut="deflate-raw",Wt="gzip",_t=[31,139,8];class Tt extends d{constructor(t,{chunkSize:e,CompressionStreamZlib:n,CompressionStream:s}){super({});const{compressed:r,encrypted:o,useCompressionStream:c,zipCrypto:i,computeCrc32:a,level:f,deflate64:u,format:w,compressionMethod:h}=t,p=this;let d,y,m,g=super.readable;const S=w&&Bt(w),v=a&&r&&!u&&!S&&(!o||i)&&!(!c||!s);if(o&&!i||!a||v||(d=new W,g=jt(g,d)),r)if(S)g=Ht(g,Lt(S.CompressionStream,w,{level:f,chunkSize:e,compressionMethod:h}));else if(v)m=new Vt,g=Ht(g,new s(Wt)),g=jt(g,m);else try{g=Ot(g,c,{level:f,chunkSize:e},s,n)}catch(t){let e;try{e=new s(Wt)}catch{throw t}g=Ht(g,e),g=jt(g,new Vt)}o&&(i?g=jt(g,new bt(t)):(y=new wt(t),g=jt(g,y))),Ft(p,g,()=>{let t;o&&!i&&(t=y.signature),o&&!i||!a||(t=v?m.signature:new l(d.value.buffer).getUint32(0)),p.signature=t})}}class Vt extends d{constructor(){let t,e=10,n=new o(0);super({transform(t,r){if(e){const n=s.min(e,t.length);if(e-=n,!(t=t.subarray(n)).length)return}const o=n.length+t.length;if(8>=o)return void(n=_(n,t));const c=o-8,i=s.min(c,n.length);r.enqueue(_(n.subarray(0,i),t.subarray(0,c-i))),n=_(n.subarray(i),t.subarray(c-i))},flush(){const e=T(n);t.signature=e.getUint32(0,!0),t.uncompressedSize=e.getUint32(4,!0)}}),t=this}}class Kt extends d{constructor(t,{chunkSize:e,DecompressionStreamZlib:n,DecompressionStream:s}){super({});const{zipCrypto:c,encrypted:i,checkCrc32:a,signature:f,compressed:w,useCompressionStream:h,deflate64:p,format:m,compressionMethod:g,rawBitFlag:S,outputSize:b}=t;let k,z,C=super.readable;if(i&&(c?C=jt(C,new vt(t)):(z=new ut(t),C=jt(C,z))),w){const t=m&&Bt(m);if(t)C=Ht(C,Lt(t.DecompressionStream,m,{chunkSize:e,compressionMethod:g,rawBitFlag:S,uncompressedSize:b}));else try{C=Ot(C,h,{chunkSize:e,deflate64:p},s,n)}catch(t){if(p||b===v)throw t;let e;try{e=new s(Wt)}catch{throw t}C=((t,e,n)=>{const s=new U;let c,i,a,f=0,l=!1;const w=new u((t,e)=>{i=t,a=e});w.catch(()=>{}),n||i();const h=new d({start(t){const e=new o(10);e.set(_t),t.enqueue(e)},transform(t,e){e.enqueue(t)},async flush(t){l=!0,y();try{await w}finally{m()}const e=new o(8),r=T(e);r.setUint32(0,s.get(),!0),r.setUint32(4,n,!0),t.enqueue(e)},cancel(t){a(t)}}),p=new d({transform(t,e){s.append(t),f+=t.length,n>f?l&&y():i(),e.enqueue(t)},cancel(t){a(t)}});return t=jt(t,h),jt(t=Ht(t,e),p);function y(){m(),c=setTimeout(()=>a(new r(Dt)),5e3)}function m(){clearTimeout(c)}})(C,e,b)}C=(t=>{const e=t.getReader();return new y({async pull(t){let n;try{n=await e.read()}catch(t){if(t&&t.message)throw t;const e=new r("Invalid compressed data");throw e.cause=t,e}const{value:s,done:o}=n;o?t.close():t.enqueue(s)},cancel:t=>e.cancel(t)})})(C)}a&&(k=new W,C=jt(C,k)),Ft(this,C,()=>{if(a){const t=new l(k.value.buffer);if(f!=t.getUint32(0,!1))throw new r(Rt)}})}}const Et=new f;function Ft(t,n,s){n=jt(n,new d({flush:s})),e.defineProperty(t,"readable",{get:()=>n})}function Lt(t,e,n){if(!t)throw new r("Compression method not supported");return new t(e,n)}function Ot(t,e,n,s,r){const o=e&&s?s:r||s,c=n.deflate64?"deflate64-raw":Ut;let i;try{i=new o(c,n)}catch(t){if(!e||!r||o==r)throw t;i=new r(c,n)}return Ht(t,i)}function jt(t,e){return(t=>{if(t instanceof y)return t;const e=t.getReader();return new y({async pull(t){const{value:n,done:s}=await e.read();s?t.close():t.enqueue(n)},cancel:t=>e.cancel(t)})})(t).pipeThrough(e)}function Ht(t,e){const n=e.writable.getWriter(),s=t.getReader();return(async()=>{try{for(;;){await n.ready;const t=await s.read();if(t.done){await n.close();break}await n.write(t.value)}}catch(t){await(async(t,e)=>{try{await t.abort(e)}catch{}})(n,t),await(async(t,e)=>{try{await t.cancel(e)}catch{}})(s,t)}})(),e.readable}const Zt="data",Nt="close",qt="deflate";class Gt extends d{constructor(t,n){super({});const s=this,{codecType:o}=t;let c;o.startsWith(qt)?c=Tt:o.startsWith("inflate")&&(c=Kt),s.outputSize=0;let i=0;const a=new c(t,n),f=super.readable,l=new d({transform(t,e){t&&t.length&&(i+=t.length,e.enqueue(t))},flush(){e.assign(s,{inputSize:i})}}),u=new d({transform(e,n){if(e&&e.length&&(n.enqueue(e),s.outputSize+=e.length,t.outputSize!==v&&s.outputSize>t.outputSize))throw new r(Dt)},flush(){const{signature:t}=a;e.assign(s,{signature:t,inputSize:i})}});e.defineProperty(s,"readable",{get:()=>f.pipeThrough(l).pipeThrough(a).pipeThrough(u)})}}class Jt extends d{constructor(t){const e=[];let s=0;function r(){const n=new o(t);let r=0;for(;t>r;){const s=e[0],o=t-r;s.length>o?(n.set(s.subarray(0,o),r),e[0]=s.subarray(o),r+=o):(n.set(s,r),r+=s.length,e.shift())}return s-=t,n}n.isFinite(t)&&t>=1||(t=65536),super({transform(n,o){for(e.push(n),s+=n.length;s>t;)o.enqueue(r())},flush(t){s&&t.enqueue(((t,e)=>{const n=new o(e);let s=0;for(const e of t)n.set(e,s),s+=e.length;return n})(e,s))}})}}let Qt=2;try{typeof navigator!=b&&navigator.hardwareConcurrency&&(Qt=navigator.hardwareConcurrency)}catch{}const Xt=new f,Yt=new f;let $t,te,ee,ne,se,re,oe=0;async function ce(t){let e,o;try{const{options:c,config:i}=t;if(c.format&&await(async(t,e)=>{!Pt.has(t)&&e&&((t,e)=>{const{CompressionStream:n,DecompressionStream:s}=e;if(typeof n!=k&&typeof s!=k)throw new r("Invalid codec module");Pt.set(t,{CompressionStream:n,DecompressionStream:s})})(t,await(import(e)))})(c.format,c.codecURI),i.CompressionStream=self.CompressionStream,i.DecompressionStream=self.DecompressionStream,c.compressed&&!c.format)if(c.useCompressionStream){if(!((t,e)=>{if(!t)return!1;let n=Et.get(t);n||(n=new f,Et.set(t,n));let s=n.get(e);if(s===v){try{new t(e),s=!0}catch{s=!1}n.set(e,s)}return s})(c.codecType.startsWith(qt)?i.CompressionStream:i.DecompressionStream,Ut))try{await self.initModule(t.config)}catch{}}else try{await self.initModule(t.config)}catch{c.useCompressionStream=!0}const a={highWaterMark:1},l=t.readable||new y({async pull(t){const e=new u(t=>Xt.set(oe,t));ie({type:"pull",messageId:oe}),oe=(oe+1)%n.MAX_SAFE_INTEGER;const{value:s,done:r}=await e;t.enqueue(s),r&&t.close()}},a);o=t.writable||new m({async write(t){let e;const s=new u(t=>e=t);Yt.set(oe,e),ie({type:Zt,value:t,messageId:oe}),oe=(oe+1)%n.MAX_SAFE_INTEGER,await s}},a),e=new Gt(c,i),$t=new AbortController;const{signal:w}=$t;await l.pipeThrough(e).pipeThrough(new Jt((t=>s.max(t.chunkSize,64))(i))).pipeTo(o,{signal:w,preventClose:!0,preventAbort:!0}),await o.getWriter().close();const{signature:h,inputSize:p,outputSize:d}=e;ie({type:Nt,result:{signature:h,inputSize:p,outputSize:d}})}catch(t){if(t.outputSize=e?e.outputSize:0,o&&!o.locked)try{await o.getWriter().close()}catch{}ae(t)}}function ie(t){const{value:e}=t;if(e)if(e.length)try{t.value=(n=e,n.byteOffset||n.byteLength!=n.buffer.byteLength?new o(n):n).buffer,p(t,[t.value])}catch{p(t)}else p(t);else p(t);var n}function ae(t=new r("Unknown error")){const{message:e,stack:n,code:s,name:o,outputSize:c,cause:i}=t,a={message:e,stack:n,code:s,name:o,outputSize:c};i&&(a.cause={name:i.name,message:i.message}),p({error:a})}function fe(t,e,n={}){if(!te){const t=new r("WASM module not loaded");throw t.cause=re,t}const c="number"==typeof n.level?n.level:-1,i="number"==typeof n.outBuffer?n.outBuffer:65536,a="number"==typeof n.inBufferSize?n.inBufferSize:65536;return new d({start(){try{let n;if(this.lt=ee(i),this.in=ee(a),this.inBufferSize=a,!this.lt||!this.in)throw new r("allocation failed");if(this.ut=new o(i),t?(this.wt=te.deflate_process,this.ht=te.deflate_last_consumed,this.yt=te.deflate_end,this.gt=te.deflate_new(),n="gzip"===e?te.deflate_init_gzip(this.gt,c):"deflate-raw"===e?te.deflate_init_raw(this.gt,c):te.deflate_init(this.gt,c)):"deflate64-raw"===e?(this.wt=te.inflate9_process,this.ht=te.inflate9_last_consumed,this.yt=te.inflate9_end,this.gt=te.inflate9_new(),n=te.inflate9_init_raw(this.gt)):(this.wt=te.inflate_process,this.ht=te.inflate_last_consumed,this.yt=te.inflate_end,this.gt=te.inflate_new(),n="deflate-raw"===e?te.inflate_init_raw(this.gt):"gzip"===e?te.inflate_init_gzip(this.gt):te.inflate_init(this.gt)),0!==n)throw new r("init failed:"+n)}catch(t){throw f(this),t}},transform(e,n){try{const c=e,a=new o(se.buffer),f=this.wt,l=this.ht,u=this.lt,w=this.ut;let h=0;for(;h<c.length;){const e=s.min(c.length-h,32768);if((!this.in||this.inBufferSize<e)&&(this.in&&ne&&(ne(this.in),this.in=0),this.in=ee(e),this.inBufferSize=e,!this.in))throw new r("allocation failed");a.set(c.subarray(h,h+e),this.in);const o=f(this.gt,this.in,e,u,i,0),p=16777215&o;if(p&&(w.set(a.subarray(u,u+p),0),n.enqueue(w.slice(0,p))),!t){const t=o>>24&255,e=128&t?t-256:t;if(0>e)throw new r("process error:"+e)}const d=l(this.gt);if(0===d)break;h+=d}}catch(t){f(this),n.error(t)}},flush(e){try{const n=new o(se.buffer),s=this.wt,c=this.lt,a=this.ut;for(;;){const o=s(this.gt,0,0,c,i,4),f=16777215&o,l=o>>24&255;if(!t){const t=128&l?l-256:l;if(0>t)throw new r("process error:"+t)}if(f&&(a.set(n.subarray(c,c+f),0),e.enqueue(a.slice(0,f))),1===l||0===f)break}}catch(t){e.error(t)}finally{const t=f(this);0!==t&&e.error(new r("end error:"+t))}},cancel(){f(this)}});function f(t){let e=0;return t.gt&&t.yt&&(e=t.yt(t.gt)),t.gt=0,t.in&&ne&&ne(t.in),t.in=0,t.lt&&ne&&ne(t.lt),t.lt=0,e}}addEventListener("message",({data:t})=>{const{type:e,messageId:n,value:s,done:r}=t;try{if("start"==e&&ce(t),e==Zt){const t=Xt.get(n);Xt.delete(n),t({value:s||new o,done:r})}if("ack"==e){const t=Yt.get(n);Yt.delete(n),t()}e==Nt&&$t.abort()}catch(t){ae(t)}}),p({type:"ready"});class le{constructor(t="deflate",e){return fe(!0,t,e)}}class ue{constructor(t="deflate",e){return fe(!1,t,e)}}le.St=!0,ue.St=!0;let we=!1;self.initModule=async t=>{const e=await(async(t,{baseURI:e})=>{if(!we)try{await(async(t,e)=>{let n,s;try{try{s=new URL(t,e)}catch{}const r=await fetch(s);n=await r.arrayBuffer()}catch(e){if(!t.startsWith("data:application/wasm;base64,"))throw e;n=(t=>{const e=t.split(",")[1],n=atob(e),s=n.length,r=new o(s);for(let t=0;s>t;++t)r[t]=n.charCodeAt(t);return r.buffer})(t)}(t=>{if(te=t,({malloc:ee,free:ne,memory:se}=te),"function"!=typeof ee||"function"!=typeof ne||!se)throw te=ee=ne=se=null,new r("Invalid WASM module")})((await WebAssembly.instantiate(n)).instance.exports)})(t,e),we=!0}catch(t){throw(t=>{re=t})(t),t}})(t.wasmURI,t);return t.CompressionStreamZlib=le,t.DecompressionStreamZlib=ue,e}});\n';t({workerURI:t=>{const n="text/javascript";if(t){const t=new Blob([e],{type:n});return URL.createObjectURL(t)}return "data:"+n+","+encodeURIComponent(e)}});}
+	function t$1(t){const e='(t=>{"function"==typeof define&&define.amd?define(t):t()})(function(){"use strict";const{Array:t,Object:e,Number:n,Math:s,Error:r,Uint8Array:o,Uint16Array:c,Uint32Array:i,Int32Array:a,Map:f,DataView:l,Promise:w,TextEncoder:u,crypto:h,postMessage:p,TransformStream:d,ReadableStream:y,WritableStream:m,CompressionStream:g,DecompressionStream:S}=self,v=void 0,b="undefined",k="function",z=new o,C=[[],[],[],[],[],[],[],[]];for(let t=0;256>t;t++){let e=t;for(let t=0;8>t;t++)e=1&e?e>>>1^3988292384:e>>>1;C[0][t]=e}for(let t=0;256>t;t++)for(let e=1;8>e;e++){const n=C[e-1][t];C[e][t]=n>>>8^C[0][255&n]}const[A,I,x,M,P,B,D,R]=C;class U{constructor(t){this.o=t||-1}append(t){let e=0|this.o;const n=0|t.length;let s=0;if(n>=8&&t.buffer){const r=new l(t.buffer,t.byteOffset,n),o=n-8;for(;o>=s;s+=8){const t=e^r.getInt32(s,!0),n=r.getInt32(s+4,!0);e=R[255&t]^D[t>>>8&255]^B[t>>>16&255]^P[t>>>24&255]^M[255&n]^x[n>>>8&255]^I[n>>>16&255]^A[n>>>24&255]}}for(;n>s;s++)e=e>>>8^A[255&(e^t[s])];this.o=e}get(){return~this.o}}class W extends d{constructor(){let t;const e=new U;super({transform(t,n){e.append(t),n.enqueue(t)},flush(){const n=new o(4);new l(n.buffer).setUint32(0,e.get()),t.value=n}}),t=this}}function _(t,e){const n=new o(t.length+e.length);return n.set(t),n.set(e,t.length),n}function T(t){return new l(t.buffer,t.byteOffset,t.byteLength)}const V={concat(t,e){if(0===t.length||0===e.length)return t.concat(e);const n=t[t.length-1],s=V.l(n);return 32===s?t.concat(e):V.h(e,s,0|n,t.slice(0,t.length-1))},m(t){const e=t.length;if(0===e)return 0;const n=t[e-1];return 32*(e-1)+V.l(n)},S(t,e){if(32*t.length<e)return t;const n=(t=t.slice(0,s.ceil(e/32))).length;return e&=31,n>0&&e&&(t[n-1]=V.v(e,t[n-1]&2147483648>>e-1,1)),t},v:(t,e,n)=>32===t?e:(n?0|e:e<<32-t)+1099511627776*t,l:t=>s.round(t/1099511627776)||32,h(t,e,n,s){for(void 0===s&&(s=[]);e>=32;e-=32)s.push(n),n=0;if(0===e)return s.concat(t);for(let r=0;r<t.length;r++)s.push(n|t[r]>>>e),n=t[r]<<32-e;const r=t.length?t[t.length-1]:0,o=V.l(r);return s.push(V.v(e+o&31,e+o>32?n:s.pop(),1)),s}},K={bytes:{C(t){const e=V.m(t)/8,n=new o(e);let s;for(let r=0;e>r;r++)3&r||(s=t[r/4]),n[r]=s>>>24,s<<=8;return n},A(t){const e=[];let n,s=0;for(n=0;n<t.length;n++)s=s<<8|t[n],3&~n||(e.push(s),s=0);return 3&n&&e.push(V.v(8*(3&n),s)),e}}},E=class{constructor(t){const e=this;e.blockSize=512,e.I=[1732584193,4023233417,2562383102,271733878,3285377520],e.M=[1518500249,1859775393,2400959708,3395469782],t?(e.P=t.P.slice(0),e.B=t.B.slice(0),e.D=t.D):e.reset()}reset(){const t=this;return t.P=t.I.slice(0),t.B=[],t.D=0,t}update(t){const e=this;"string"==typeof t&&(t=K.R.A(t));const n=e.B=V.concat(e.B,t),s=e.D,o=e.D=s+V.m(t);if(o>9007199254740991)throw new r("Cannot hash more than 2^53 - 1 bits");const c=new i(n);let a=0;for(let t=e.blockSize+s-(e.blockSize+s&e.blockSize-1);o>=t;t+=e.blockSize)e.U(c.subarray(16*a,16*(a+1))),a+=1;return n.splice(0,16*a),e}W(){const t=this;let e=t.B;const n=t.P;e=V.concat(e,[V.v(1,1)]);for(let t=e.length+2;15&t;t++)e.push(0);for(e.push(s.floor(t.D/4294967296)),e.push(0|t.D);e.length;)t.U(e.splice(0,16));return t.reset(),n}_(t,e,n,s){return t>19?t>39?t>59?t>79?void 0:e^n^s:e&n|e&s|n&s:e^n^s:e&n|~e&s}T(t,e){return e<<t|e>>>32-t}U(e){const n=this,r=n.P,o=t(80);for(let t=0;16>t;t++)o[t]=e[t];let c=r[0],i=r[1],a=r[2],f=r[3],l=r[4];for(let t=0;79>=t;t++){16>t||(o[t]=n.T(1,o[t-3]^o[t-8]^o[t-14]^o[t-16]));const e=n.T(5,c)+n._(t,i,a,f)+l+o[t]+n.M[s.floor(t/20)]|0;l=f,f=a,a=n.T(30,i),i=c,c=e}r[0]=r[0]+c|0,r[1]=r[1]+i|0,r[2]=r[2]+a|0,r[3]=r[3]+f|0,r[4]=r[4]+l|0}},F={importKey:t=>new F.V(K.bytes.A(t)),K(t,e,n,s){if(n=n||1e4,0>s||0>n)throw new r("invalid params to pbkdf2");const o=1+(s>>5)<<2;let c,i,a,f,w;const u=new ArrayBuffer(o),h=new l(u);let p=0;const d=V;for(e=K.bytes.A(e),w=1;(o||1)>p;w++){for(c=i=t.encrypt(d.concat(e,[w])),a=1;n>a;a++)for(i=t.encrypt(i),f=0;f<i.length;f++)c[f]^=i[f];for(a=0;(o||1)>p&&a<c.length;a++)h.setInt32(p,c[a]),p+=4}return u.slice(0,s/8)},V:class{constructor(t){const e=this,n=e.F=E,s=[[],[]];e.L=[new n,new n];const r=e.L[0].blockSize/32;t.length>r&&(t=(new n).update(t).W());for(let e=0;r>e;e++)s[0][e]=909522486^t[e],s[1][e]=1549556828^t[e];e.L[0].update(s[0]),e.L[1].update(s[1]),e.O=new n(e.L[0])}reset(){const t=this;t.O=new t.F(t.L[0]),t.j=!1}update(t){this.j=!0,this.O.update(t)}digest(){const t=this,e=t.O.W(),n=new t.F(t.L[1]).update(e).W();return t.reset(),n}encrypt(t){if(this.j)throw new r("encrypt on already updated hmac called!");return this.update(t),this.digest(t)}}},L=typeof h!=b&&typeof h.getRandomValues==k,O="Invalid password",j="Invalid signature",H=j,Z="zipjs-abort-check-password";function N(t){if(L)return h.getRandomValues(t);throw new r("Crypto API not supported")}const q=16,G={name:"PBKDF2"},J=e.assign({hash:{name:"HMAC"}},G),Q=e.assign({iterations:1e3,hash:{name:"SHA-1"}},G),X=["deriveBits"],Y=[8,12,16],$=[16,24,32],tt=10,et=[0,0,0,0],nt=typeof h!=b,st=nt&&h.subtle,rt=nt&&typeof st!=b,ot=K.bytes,ct=class{constructor(t){const e=this;e.H=[[[],[],[],[],[]],[[],[],[],[],[]]],e.H[0][0][0]||e.Z();const n=e.H[0][4],s=e.H[1],o=t.length;let c,i,a,f=1;if(4!==o&&6!==o&&8!==o)throw new r("invalid aes key size");for(e.M=[i=t.slice(0),a=[]],c=o;4*o+28>c;c++){let t=i[c-1];(c%o===0||8===o&&c%o===4)&&(t=n[t>>>24]<<24^n[t>>16&255]<<16^n[t>>8&255]<<8^n[255&t],c%o===0&&(t=t<<8^t>>>24^f<<24,f=f<<1^283*(f>>7))),i[c]=i[c-o]^t}for(let t=0;c;t++,c--){const e=i[3&t?c:c-4];a[t]=4>=c||4>t?e:s[0][n[e>>>24]]^s[1][n[e>>16&255]]^s[2][n[e>>8&255]]^s[3][n[255&e]]}}encrypt(t){return this.N(t,0)}decrypt(t){return this.N(t,1)}Z(){const t=this.H[0],e=this.H[1],n=t[4],s=e[4],r=[],o=[];let c,i,a,f;for(let t=0;256>t;t++)o[(r[t]=t<<1^283*(t>>7))^t]=t;for(let l=c=0;!n[l];l^=i||1,c=o[c]||1){let o=c^c<<1^c<<2^c<<3^c<<4;o=o>>8^255&o^99,n[l]=o,s[o]=l,f=r[a=r[i=r[l]]];let w=16843009*f^65537*a^257*i^16843008*l,u=257*r[o]^16843008*o;for(let n=0;4>n;n++)t[n][l]=u=u<<24^u>>>8,e[n][o]=w=w<<24^w>>>8}for(let n=0;5>n;n++)t[n]=t[n].slice(0),e[n]=e[n].slice(0)}N(t,e){if(4!==t.length)throw new r("invalid aes block size");const n=this.M[e],s=n.length/4-2,o=[0,0,0,0],c=this.H[e],i=c[0],a=c[1],f=c[2],l=c[3],w=c[4];let u,h,p,d=t[0]^n[0],y=t[e?3:1]^n[1],m=t[2]^n[2],g=t[e?1:3]^n[3],S=4;for(let t=0;s>t;t++)u=i[d>>>24]^a[y>>16&255]^f[m>>8&255]^l[255&g]^n[S],h=i[y>>>24]^a[m>>16&255]^f[g>>8&255]^l[255&d]^n[S+1],p=i[m>>>24]^a[g>>16&255]^f[d>>8&255]^l[255&y]^n[S+2],g=i[g>>>24]^a[d>>16&255]^f[y>>8&255]^l[255&m]^n[S+3],S+=4,d=u,y=h,m=p;for(let t=0;4>t;t++)o[e?3&-t:t]=w[d>>>24]<<24^w[y>>16&255]<<16^w[m>>8&255]<<8^w[255&g]^n[S++],u=d,d=y,y=m,m=g,g=u;return o}},it=class{constructor(t,e){this.G=t,this.J=e,this.X=e}reset(){this.X=this.J}update(t){return this.Y(this.G,t,this.X)}$(t){if(255&~(t>>24))t+=1<<24;else{let e=t>>16&255,n=t>>8&255,s=255&t;255===e?(e=0,255===n?(n=0,255===s?s=0:++s):++n):++e,t=0,t+=e<<16,t+=n<<8,t+=s}return t}et(t){0===(t[0]=this.$(t[0]))&&(t[1]=this.$(t[1]))}Y(t,e,n){let s;if(!(s=e.length))return[];const r=V.m(e);for(let r=0;s>r;r+=4){this.et(n);const s=t.encrypt(n);e[r]^=s[0],e[r+1]^=s[1],e[r+2]^=s[2],e[r+3]^=s[3]}return V.S(e,r)}},at=F.V;let ft=nt&&rt&&typeof st.importKey==k,lt=nt&&rt&&typeof st.deriveBits==k;class wt extends d{constructor({password:t,rawPassword:e,encryptionStrength:n,checkPasswordOnly:s,checkAuthenticationCode:c=!0}){super({start(){ht(this,t,e,n)},async transform(t,e){const n=this,{password:c,strength:i,nt:a,ready:f}=n;c?(await(async(t,e,n,s)=>{const o=await dt(t,e,n,mt(s,0,Y[e])),c=mt(s,Y[e]);if(o[0]!=c[0]||o[1]!=c[1])throw new r(O)})(n,i,c,mt(t,0,Y[i]+2)),t=mt(t,Y[i]+2),s?e.error(new r(Z)):a()):await f;const l=new o(t.length-tt-(t.length-tt)%q);e.enqueue(pt(n,t,l,0,tt,!0))},async flush(t){const{st:e,ot:n,pending:s,ready:o}=this;if(n&&e){await o;const i=mt(s,0,s.length-tt),a=mt(s,s.length-tt);let f=z;if(i.length){const t=St(ot,i);n.update(t);const s=e.update(t);f=gt(ot,s)}const l=mt(gt(ot,n.digest()),0,tt);let w=s.length<tt?1:0;for(let t=0;tt>t;t++)w|=l[t]^a[t];if(w&&c)throw new r(H);t.enqueue(f)}}})}}class ut extends d{constructor({password:t,rawPassword:e,encryptionStrength:n}){super({start(){ht(this,t,e,n)},async transform(t,e){const n=this,{password:s,strength:r,nt:c,ready:i}=n;let a=z;s?(a=await(async(t,e,n)=>{const s=N(new o(Y[e]));return _(s,await dt(t,e,n,s))})(n,r,s),c()):await i;const f=new o(a.length+t.length-t.length%q);f.set(a,0),e.enqueue(pt(n,t,f,a.length,0))},async flush(t){const{st:e,ot:n,pending:s,ready:r}=this;if(n&&e){await r;let o=z;if(s.length){const t=e.update(St(ot,s));n.update(t),o=gt(ot,t)}const c=gt(ot,n.digest()).slice(0,tt);t.enqueue(_(o,c))}}})}}function ht(t,n,s,r){e.assign(t,{ready:new w(e=>t.nt=e),password:yt(n,s),strength:r-1,pending:z})}function pt(t,e,n,s,r,c){const{st:i,ot:a,pending:f}=t;f.length&&(e=_(f,e));const l=e.length-r;let w;for(n=((t,e)=>{if(e&&e>t.length){const n=t;(t=new o(e)).set(n,0)}return t})(n,s+(l-l%q)),w=0;l-q>=w;w+=q){const t=St(ot,mt(e,w,w+q));c&&a.update(t);const r=i.update(t);c||a.update(r),n.set(gt(ot,r),w+s)}return t.pending=mt(e,w),n}async function dt(n,s,r,c){n.password=null;const i=await(async(t,e,n,s,r)=>{if(!ft)return F.importKey(e);try{return await st.importKey("raw",e,n,!1,r)}catch{return ft=!1,F.importKey(e)}})(0,r,J,0,X),a=await(async(t,e,n)=>{if(!lt)return F.K(e,t.salt,Q.iterations,n);try{return await st.deriveBits(t,e,n)}catch{return lt=!1,F.K(e,t.salt,Q.iterations,n)}})(e.assign({salt:c},Q),i,8*(2*$[s]+2)),f=new o(a),l=St(ot,mt(f,0,$[s])),w=St(ot,mt(f,$[s],2*$[s])),u=mt(f,2*$[s]);return e.assign(n,{keys:{key:l,ct:w,passwordVerification:u},st:new it(new ct(l),t.from(et)),ot:new at(w)}),u}function yt(t,e){return e===v?(t=>{if(typeof u==b){const e=new o((t=unescape(encodeURIComponent(t))).length);for(let n=0;n<e.length;n++)e[n]=t.charCodeAt(n);return e}return(new u).encode(t)})(t):e}function mt(t,e,n){return t.subarray(e,n)}function gt(t,e){return t.C(e)}function St(t,e){return t.A(e)}class vt extends d{constructor({password:t,rawPassword:e,passwordVerification:n,checkPasswordOnly:s}){super({start(){kt(this,t,e,n)},transform(t,e){const n=this;if(n.password||n.rawPassword){const e=zt(n,t.subarray(0,12));if(n.password=n.rawPassword=null,0!=(e[11]^n.passwordVerification))throw new r(O);t=t.subarray(12)}s?e.error(new r(Z)):e.enqueue(zt(n,t))}})}}class bt extends d{constructor({password:t,rawPassword:e,passwordVerification:n}){super({start(){kt(this,t,e,n)},transform(t,e){const n=this;let s,r;if(n.password||n.rawPassword){n.password=n.rawPassword=null;const e=N(new o(12));e[11]=n.passwordVerification,s=new o(t.length+e.length),s.set(Ct(n,e),0),r=12}else s=new o(t.length),r=0;s.set(Ct(n,t),r),e.enqueue(s)}})}}function kt(t,n,s,r){e.assign(t,{password:n,rawPassword:s,passwordVerification:r}),((t,n,s)=>{const r=[305419896,591751049,878082192];if(e.assign(t,{keys:r,it:new U(r[0]),ft:new U(r[2])}),s)for(let e=0;e<s.length;e++)At(t,s[e]);else for(let e=0;e<n.length;e++)At(t,n.charCodeAt(e))})(t,n,s)}function zt(t,e){const n=new o(e.length);for(let s=0;s<e.length;s++)n[s]=It(t)^e[s],At(t,n[s]);return n}function Ct(t,e){const n=new o(e.length);for(let s=0;s<e.length;s++)n[s]=It(t)^e[s],At(t,e[s]);return n}function At(t,e){let[,n]=t.keys;t.it.append([e]);const r=~t.it.get();n=Mt(s.imul(Mt(n+xt(r)),134775813)+1),t.ft.append([n>>>24]);const o=~t.ft.get();t.keys=[r,n,o]}function It(t){const e=2|t.keys[2];return xt(s.imul(e,1^e)>>>8)}function xt(t){return 255&t}function Mt(t){return 4294967295&t}const Pt=new f;function Bt(t){return Pt.get(t)}const Dt="Invalid uncompressed size",Rt=j,Ut="deflate-raw",Wt="gzip",_t=[31,139,8];class Tt extends d{constructor(t,{chunkSize:e,CompressionStreamZlib:n,CompressionStream:s}){super({});const{compressed:r,encrypted:o,useCompressionStream:c,zipCrypto:i,computeCrc32:a,level:f,deflate64:w,format:u,compressionMethod:h}=t,p=this;let d,y,m,g=super.readable;const S=u&&Bt(u),v=a&&r&&!w&&!S&&(!o||i)&&!(!c||!s);if(o&&!i||!a||v||(d=new W,g=jt(g,d)),r)if(S)g=Ht(g,Lt(S.CompressionStream,u,{level:f,chunkSize:e,compressionMethod:h}));else if(v)m=new Vt,g=Ht(g,new s(Wt)),g=jt(g,m);else try{g=Ot(g,c,{level:f,chunkSize:e},s,n)}catch(t){let e;try{e=new s(Wt)}catch{throw t}g=Ht(g,e),g=jt(g,new Vt)}o&&(i?g=jt(g,new bt(t)):(y=new ut(t),g=jt(g,y))),Ft(p,g,()=>{o&&!i||!a||(p.crc32=v?m.crc32:new l(d.value.buffer).getUint32(0))})}}class Vt extends d{constructor(){let t,e=10,n=new o(0);super({transform(t,r){if(e){const n=s.min(e,t.length);if(e-=n,!(t=t.subarray(n)).length)return}const o=n.length+t.length;if(8>=o)return void(n=_(n,t));const c=o-8,i=s.min(c,n.length);r.enqueue(_(n.subarray(0,i),t.subarray(0,c-i))),n=_(n.subarray(i),t.subarray(c-i))},flush(){const e=T(n);t.crc32=e.getUint32(0,!0),t.uncompressedSize=e.getUint32(4,!0)}}),t=this}}class Kt extends d{constructor(t,{chunkSize:e,DecompressionStreamZlib:n,DecompressionStream:s}){super({});const{zipCrypto:c,encrypted:i,checkCrc32:a,crc32:f,compressed:u,useCompressionStream:h,deflate64:p,format:m,compressionMethod:g,rawBitFlag:S,outputSize:b}=t;let k,z,C=super.readable;if(i&&(c?C=jt(C,new vt(t)):(z=new wt(t),C=jt(C,z))),u){const t=m&&Bt(m);if(t)C=Ht(C,Lt(t.DecompressionStream,m,{chunkSize:e,compressionMethod:g,rawBitFlag:S,uncompressedSize:b}));else try{C=Ot(C,h,{chunkSize:e,deflate64:p},s,n)}catch(t){if(p||b===v)throw t;let e;try{e=new s(Wt)}catch{throw t}C=((t,e,n)=>{const s=new U;let c,i,a,f=0,l=!1;const u=new w((t,e)=>{i=t,a=e});u.catch(()=>{}),n||i();const h=new d({start(t){const e=new o(10);e.set(_t),t.enqueue(e)},transform(t,e){e.enqueue(t)},async flush(t){l=!0,y();try{await u}finally{m()}const e=new o(8),r=T(e);r.setUint32(0,s.get(),!0),r.setUint32(4,n,!0),t.enqueue(e)},cancel(t){a(t)}}),p=new d({transform(t,e){s.append(t),f+=t.length,n>f?l&&y():i(),e.enqueue(t)},cancel(t){a(t)}});return t=jt(t,h),jt(t=Ht(t,e),p);function y(){m(),c=setTimeout(()=>a(new r(Dt)),5e3)}function m(){clearTimeout(c)}})(C,e,b)}C=(t=>{const e=t.getReader();return new y({async pull(t){let n;try{n=await e.read()}catch(t){if(t&&t.message)throw t;const e=new r("Invalid compressed data");throw e.cause=t,e}const{value:s,done:o}=n;o?t.close():t.enqueue(s)},cancel:t=>e.cancel(t)})})(C)}a&&(k=new W,C=jt(C,k)),Ft(this,C,()=>{if(a){const t=new l(k.value.buffer);if(f!=t.getUint32(0,!1))throw new r(Rt)}})}}const Et=new f;function Ft(t,n,s){n=jt(n,new d({flush:s})),e.defineProperty(t,"readable",{get:()=>n})}function Lt(t,e,n){if(!t)throw new r("Compression method not supported");return new t(e,n)}function Ot(t,e,n,s,r){const o=e&&s?s:r||s,c=n.deflate64?"deflate64-raw":Ut;let i;try{i=new o(c,n)}catch(t){if(!e||!r||o==r)throw t;i=new r(c,n)}return Ht(t,i)}function jt(t,e){return(t=>{if(t instanceof y)return t;const e=t.getReader();return new y({async pull(t){const{value:n,done:s}=await e.read();s?t.close():t.enqueue(n)},cancel:t=>e.cancel(t)})})(t).pipeThrough(e)}function Ht(t,e){const n=e.writable.getWriter(),s=t.getReader();return(async()=>{try{for(;;){await n.ready;const t=await s.read();if(t.done){await n.close();break}await n.write(t.value)}}catch(t){await(async(t,e)=>{try{await t.abort(e)}catch{}})(n,t),await(async(t,e)=>{try{await t.cancel(e)}catch{}})(s,t)}})(),e.readable}const Zt="data",Nt="close",qt="deflate";class Gt extends d{constructor(t,n){super({});const s=this,{codecType:o}=t;let c;o.startsWith(qt)?c=Tt:o.startsWith("inflate")&&(c=Kt),s.outputSize=0;let i=0;const a=new c(t,n),f=super.readable,l=new d({transform(t,e){t&&t.length&&(i+=t.length,e.enqueue(t))},flush(){e.assign(s,{inputSize:i})}}),w=new d({transform(e,n){if(e&&e.length&&(n.enqueue(e),s.outputSize+=e.length,t.outputSize!==v&&s.outputSize>t.outputSize))throw new r(Dt)},flush(){const{crc32:t}=a;e.assign(s,{crc32:t,inputSize:i})}});e.defineProperty(s,"readable",{get:()=>f.pipeThrough(l).pipeThrough(a).pipeThrough(w)})}}class Jt extends d{constructor(t){const e=[];let s=0;function r(){const n=new o(t);let r=0;for(;t>r;){const s=e[0],o=t-r;s.length>o?(n.set(s.subarray(0,o),r),e[0]=s.subarray(o),r+=o):(n.set(s,r),r+=s.length,e.shift())}return s-=t,n}n.isFinite(t)&&t>=1||(t=65536),super({transform(n,o){for(e.push(n),s+=n.length;s>t;)o.enqueue(r())},flush(t){s&&t.enqueue(((t,e)=>{const n=new o(e);let s=0;for(const e of t)n.set(e,s),s+=e.length;return n})(e,s))}})}}let Qt=2;try{typeof navigator!=b&&navigator.hardwareConcurrency&&(Qt=navigator.hardwareConcurrency)}catch{}const Xt=new f,Yt=new f;let $t,te,ee,ne,se,re,oe=0;async function ce(t){let e,o;try{const{options:c,config:i}=t;if(c.format&&await(async(t,e)=>{!Pt.has(t)&&e&&((t,e)=>{const{CompressionStream:n,DecompressionStream:s}=e;if(typeof n!=k&&typeof s!=k)throw new r("Invalid codec module");Pt.set(t,{CompressionStream:n,DecompressionStream:s})})(t,await(import(e)))})(c.format,c.codecURI),i.CompressionStream=self.CompressionStream,i.DecompressionStream=self.DecompressionStream,c.compressed&&!c.format)if(c.useCompressionStream){if(!((t,e)=>{if(!t)return!1;let n=Et.get(t);n||(n=new f,Et.set(t,n));let s=n.get(e);if(s===v){try{new t(e),s=!0}catch{s=!1}n.set(e,s)}return s})(c.codecType.startsWith(qt)?i.CompressionStream:i.DecompressionStream,Ut))try{await self.initModule(t.config)}catch{}}else try{await self.initModule(t.config)}catch{c.useCompressionStream=!0}const a={highWaterMark:1},l=t.readable||new y({async pull(t){const e=new w(t=>Xt.set(oe,t));ie({type:"pull",messageId:oe}),oe=(oe+1)%n.MAX_SAFE_INTEGER;const{value:s,done:r}=await e;t.enqueue(s),r&&t.close()}},a);o=t.writable||new m({async write(t){let e;const s=new w(t=>e=t);Yt.set(oe,e),ie({type:Zt,value:t,messageId:oe}),oe=(oe+1)%n.MAX_SAFE_INTEGER,await s}},a),e=new Gt(c,i),$t=new AbortController;const{signal:u}=$t;await l.pipeThrough(e).pipeThrough(new Jt((t=>s.max(t.chunkSize,64))(i))).pipeTo(o,{signal:u,preventClose:!0,preventAbort:!0}),await o.getWriter().close();const{crc32:h,inputSize:p,outputSize:d}=e;ie({type:Nt,result:{crc32:h,inputSize:p,outputSize:d}})}catch(t){if(t.outputSize=e?e.outputSize:0,o&&!o.locked)try{await o.getWriter().close()}catch{}ae(t)}}function ie(t){const{value:e}=t;if(e)if(e.length)try{t.value=(n=e,n.byteOffset||n.byteLength!=n.buffer.byteLength?new o(n):n).buffer,p(t,[t.value])}catch{p(t)}else p(t);else p(t);var n}function ae(t=new r("Unknown error")){const{message:e,stack:n,code:s,name:o,outputSize:c,cause:i}=t,a={message:e,stack:n,code:s,name:o,outputSize:c};i&&(a.cause={name:i.name,message:i.message}),p({error:a})}function fe(t,e,n={}){if(!te){const t=new r("WASM module not loaded");throw t.cause=re,t}const c="number"==typeof n.level?n.level:-1,i="number"==typeof n.outBuffer?n.outBuffer:65536,a="number"==typeof n.inBufferSize?n.inBufferSize:65536;return new d({start(){try{let n;if(this.lt=ee(i),this.in=ee(a),this.inBufferSize=a,!this.lt||!this.in)throw new r("allocation failed");if(this.wt=new o(i),t?(this.ut=te.deflate_process,this.ht=te.deflate_last_consumed,this.yt=te.deflate_end,this.gt=te.deflate_new(),n="gzip"===e?te.deflate_init_gzip(this.gt,c):"deflate-raw"===e?te.deflate_init_raw(this.gt,c):te.deflate_init(this.gt,c)):"deflate64-raw"===e?(this.ut=te.inflate9_process,this.ht=te.inflate9_last_consumed,this.yt=te.inflate9_end,this.gt=te.inflate9_new(),n=te.inflate9_init_raw(this.gt)):(this.ut=te.inflate_process,this.ht=te.inflate_last_consumed,this.yt=te.inflate_end,this.gt=te.inflate_new(),n="deflate-raw"===e?te.inflate_init_raw(this.gt):"gzip"===e?te.inflate_init_gzip(this.gt):te.inflate_init(this.gt)),0!==n)throw new r("init failed:"+n)}catch(t){throw f(this),t}},transform(e,n){try{const c=e,a=new o(se.buffer),f=this.ut,l=this.ht,w=this.lt,u=this.wt;let h=0;for(;h<c.length;){const e=s.min(c.length-h,32768);if((!this.in||this.inBufferSize<e)&&(this.in&&ne&&(ne(this.in),this.in=0),this.in=ee(e),this.inBufferSize=e,!this.in))throw new r("allocation failed");a.set(c.subarray(h,h+e),this.in);const o=f(this.gt,this.in,e,w,i,0),p=16777215&o;if(p&&(u.set(a.subarray(w,w+p),0),n.enqueue(u.slice(0,p))),!t){const t=o>>24&255,e=128&t?t-256:t;if(0>e)throw new r("process error:"+e)}const d=l(this.gt);if(0===d)break;h+=d}}catch(t){f(this),n.error(t)}},flush(e){try{const n=new o(se.buffer),s=this.ut,c=this.lt,a=this.wt;for(;;){const o=s(this.gt,0,0,c,i,4),f=16777215&o,l=o>>24&255;if(!t){const t=128&l?l-256:l;if(0>t)throw new r("process error:"+t)}if(f&&(a.set(n.subarray(c,c+f),0),e.enqueue(a.slice(0,f))),1===l||0===f)break}}catch(t){e.error(t)}finally{const t=f(this);0!==t&&e.error(new r("end error:"+t))}},cancel(){f(this)}});function f(t){let e=0;return t.gt&&t.yt&&(e=t.yt(t.gt)),t.gt=0,t.in&&ne&&ne(t.in),t.in=0,t.lt&&ne&&ne(t.lt),t.lt=0,e}}addEventListener("message",({data:t})=>{const{type:e,messageId:n,value:s,done:r}=t;try{if("start"==e&&ce(t),e==Zt){const t=Xt.get(n);Xt.delete(n),t({value:s||new o,done:r})}if("ack"==e){const t=Yt.get(n);Yt.delete(n),t()}e==Nt&&$t.abort()}catch(t){ae(t)}}),p({type:"ready"});class le{constructor(t="deflate",e){return fe(!0,t,e)}}class we{constructor(t="deflate",e){return fe(!1,t,e)}}le.St=!0,we.St=!0;let ue=!1;self.initModule=async t=>{const e=await(async(t,{baseURI:e})=>{if(!ue)try{await(async(t,e)=>{let n,s;try{try{s=new URL(t,e)}catch{}const r=await fetch(s);n=await r.arrayBuffer()}catch(e){if(!t.startsWith("data:application/wasm;base64,"))throw e;n=(t=>{const e=t.split(",")[1],n=atob(e),s=n.length,r=new o(s);for(let t=0;s>t;++t)r[t]=n.charCodeAt(t);return r.buffer})(t)}(t=>{if(te=t,({malloc:ee,free:ne,memory:se}=te),"function"!=typeof ee||"function"!=typeof ne||!se)throw te=ee=ne=se=null,new r("Invalid WASM module")})((await WebAssembly.instantiate(n)).instance.exports)})(t,e),ue=!0}catch(t){throw(t=>{re=t})(t),t}})(t.wasmURI,t);return t.CompressionStreamZlib=le,t.DecompressionStreamZlib=we,e}});\n';t({workerURI:t=>{const n="text/javascript";if(t){const t=new Blob([e],{type:n});return URL.createObjectURL(t)}return "data:"+n+","+encodeURIComponent(e)}});}
 
 	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
@@ -1424,7 +1424,7 @@
 	const DERIVED_BITS_USAGE = ["deriveBits"];
 	const SALT_LENGTH = [8, 12, 16];
 	const KEY_LENGTH = [16, 24, 32];
-	const SIGNATURE_LENGTH = 10;
+	const AUTHENTICATION_CODE_LENGTH = 10;
 	const COUNTER_DEFAULT_VALUE = [0, 0, 0, 0];
 	// deno-lint-ignore valid-typeof
 	const CRYPTO_API_SUPPORTED = typeof crypto != UNDEFINED_TYPE;
@@ -1464,8 +1464,8 @@
 					} else {
 						await ready;
 					}
-					const output = new Uint8Array(chunk.length - SIGNATURE_LENGTH - ((chunk.length - SIGNATURE_LENGTH) % BLOCK_LENGTH));
-					controller.enqueue(append(aesCrypto, chunk, output, 0, SIGNATURE_LENGTH, true));
+					const output = new Uint8Array(chunk.length - AUTHENTICATION_CODE_LENGTH - ((chunk.length - AUTHENTICATION_CODE_LENGTH) % BLOCK_LENGTH));
+					controller.enqueue(append(aesCrypto, chunk, output, 0, AUTHENTICATION_CODE_LENGTH, true));
 				},
 				async flush(controller) {
 					const {
@@ -1476,8 +1476,8 @@
 					} = this;
 					if (hmac && ctr) {
 						await ready;
-						const chunkToDecrypt = subarray(pending, 0, pending.length - SIGNATURE_LENGTH);
-						const originalSignature = subarray(pending, pending.length - SIGNATURE_LENGTH);
+						const chunkToDecrypt = subarray(pending, 0, pending.length - AUTHENTICATION_CODE_LENGTH);
+						const originalAuthenticationCode = subarray(pending, pending.length - AUTHENTICATION_CODE_LENGTH);
 						let decryptedChunkArray = EMPTY_UINT8_ARRAY;
 						if (chunkToDecrypt.length) {
 							const encryptedChunk = toBits(codecBytes, chunkToDecrypt);
@@ -1485,12 +1485,12 @@
 							const decryptedChunk = ctr.update(encryptedChunk);
 							decryptedChunkArray = fromBits(codecBytes, decryptedChunk);
 						}
-						const signature = subarray(fromBits(codecBytes, hmac.digest()), 0, SIGNATURE_LENGTH);
-						let invalidSignature = pending.length < SIGNATURE_LENGTH ? 1 : 0;
-						for (let indexSignature = 0; indexSignature < SIGNATURE_LENGTH; indexSignature++) {
-							invalidSignature |= signature[indexSignature] ^ originalSignature[indexSignature];
+						const authenticationCode = subarray(fromBits(codecBytes, hmac.digest()), 0, AUTHENTICATION_CODE_LENGTH);
+						let invalidAuthenticationCode = pending.length < AUTHENTICATION_CODE_LENGTH ? 1 : 0;
+						for (let indexByte = 0; indexByte < AUTHENTICATION_CODE_LENGTH; indexByte++) {
+							invalidAuthenticationCode |= authenticationCode[indexByte] ^ originalAuthenticationCode[indexByte];
 						}
-						if (invalidSignature && checkAuthenticationCode) {
+						if (invalidAuthenticationCode && checkAuthenticationCode) {
 							throw new Error(ERR_INVALID_AUTHENTICATION_CODE);
 						}
 						controller.enqueue(decryptedChunkArray);
@@ -1503,8 +1503,6 @@
 	class AESEncryptionStream extends TransformStream {
 
 		constructor({ password, rawPassword, encryptionStrength }) {
-			// deno-lint-ignore prefer-const
-			let stream;
 			super({
 				start() {
 					initAesCrypto(this, password, rawPassword, encryptionStrength);
@@ -1543,12 +1541,11 @@
 							hmac.update(encryptedChunk);
 							encryptedChunkArray = fromBits(codecBytes, encryptedChunk);
 						}
-						stream.signature = fromBits(codecBytes, hmac.digest()).slice(0, SIGNATURE_LENGTH);
-						controller.enqueue(concat(encryptedChunkArray, stream.signature));
+						const authenticationCode = fromBits(codecBytes, hmac.digest()).slice(0, AUTHENTICATION_CODE_LENGTH);
+						controller.enqueue(concat(encryptedChunkArray, authenticationCode));
 					}
 				}
 			});
-			stream = this;
 		}
 	}
 
@@ -1561,7 +1558,7 @@
 		});
 	}
 
-	function append(aesCrypto, input, output, paddingStart, paddingEnd, verifySignature) {
+	function append(aesCrypto, input, output, paddingStart, paddingEnd, verifyAuthenticationCode) {
 		const {
 			ctr,
 			hmac,
@@ -1575,11 +1572,11 @@
 		let offset;
 		for (offset = 0; offset <= inputLength - BLOCK_LENGTH; offset += BLOCK_LENGTH) {
 			const inputChunk = toBits(codecBytes, subarray(input, offset, offset + BLOCK_LENGTH));
-			if (verifySignature) {
+			if (verifyAuthenticationCode) {
 				hmac.update(inputChunk);
 			}
 			const outputChunk = ctr.update(inputChunk);
-			if (!verifySignature) {
+			if (!verifyAuthenticationCode) {
 				hmac.update(outputChunk);
 			}
 			output.set(fromBits(codecBytes, outputChunk), offset + paddingStart);
@@ -1985,14 +1982,9 @@
 				}
 			}
 			setReadable(stream, readable, () => {
-				let signature;
-				if (encrypted && !zipCrypto) {
-					signature = encryptionStream.signature;
-				}
 				if ((!encrypted || zipCrypto) && computeCrc32) {
-					signature = useGzipCrc32 ? gzipCrc32Stream.signature : new DataView(crc32Stream.value.buffer).getUint32(0);
+					stream.crc32 = useGzipCrc32 ? gzipCrc32Stream.crc32 : new DataView(crc32Stream.value.buffer).getUint32(0);
 				}
-				stream.signature = signature;
 			});
 		}
 	}
@@ -2030,7 +2022,7 @@
 				},
 				flush() {
 					const dataView = getDataView(trailerCandidate);
-					stream.signature = dataView.getUint32(0, true);
+					stream.crc32 = dataView.getUint32(0, true);
 					stream.uncompressedSize = dataView.getUint32(4, true);
 				}
 			});
@@ -2112,7 +2104,7 @@
 
 		constructor(options, { chunkSize, DecompressionStreamZlib, DecompressionStream }) {
 			super({});
-			const { zipCrypto, encrypted, checkCrc32, signature, compressed, useCompressionStream, deflate64, format, compressionMethod, rawBitFlag, outputSize } = options;
+			const { zipCrypto, encrypted, checkCrc32, crc32, compressed, useCompressionStream, deflate64, format, compressionMethod, rawBitFlag, outputSize } = options;
 			let crc32Stream, decryptionStream;
 			let readable = super.readable;
 			if (encrypted) {
@@ -2151,8 +2143,8 @@
 			}
 			setReadable(this, readable, () => {
 				if (checkCrc32) {
-					const dataViewSignature = new DataView(crc32Stream.value.buffer);
-					if (signature != dataViewSignature.getUint32(0, false)) {
+					const computedCrc32View = new DataView(crc32Stream.value.buffer);
+					if (crc32 != computedCrc32View.getUint32(0, false)) {
 						throw new Error(ERR_INVALID_CRC32);
 					}
 				}
@@ -2377,9 +2369,9 @@
 					}
 				},
 				flush() {
-					const { signature } = stream;
+					const { crc32 } = stream;
 					Object.assign(codec, {
-						signature,
+						crc32,
 						inputSize
 					});
 				}
@@ -2682,12 +2674,12 @@
 				.pipeThrough(new ChunkStream(getChunkSize(config)))
 				.pipeTo(writable, { preventClose: true, preventAbort: true });
 			const {
-				signature,
+				crc32,
 				inputSize,
 				outputSize
 			} = codecStream;
 			return {
-				signature,
+				crc32,
 				inputSize,
 				outputSize
 			};
@@ -4876,7 +4868,7 @@
 				config,
 				bitFlag,
 				rawBitFlag,
-				signature,
+				crc32,
 				rawLastModDate,
 				uncompressedSize,
 				compressedSize
@@ -4977,9 +4969,9 @@
 					encryptionStrength: extraFieldAES && extraFieldAES.strength,
 					checkCrc32,
 					checkAuthenticationCode: getOptionValue$1(zipEntry, options, OPTION_CHECK_AUTHENTICATION_CODE),
-					passwordVerification: zipCrypto && (dataDescriptor ? ((rawLastModDate >>> 8) & MAX_8_BITS) : ((signature >>> 24) & MAX_8_BITS)),
+					passwordVerification: zipCrypto && (dataDescriptor ? ((rawLastModDate >>> 8) & MAX_8_BITS) : ((crc32 >>> 24) & MAX_8_BITS)),
 					outputSize: passThrough ? compressedSize : uncompressedSize,
-					signature,
+					crc32,
 					compressed: compressionMethod != 0 && !passThrough,
 					encrypted,
 					useWebWorkers: getOptionValue$1(zipEntry, options, OPTION_USE_WEB_WORKERS),
@@ -5001,7 +4993,7 @@
 					fileEntry,
 					index,
 					offset: localHeaderOffset,
-					signature,
+					crc32,
 					compressedSize,
 					uncompressedSize,
 					dataOffset,
@@ -5177,15 +5169,15 @@
 			return;
 		}
 		const extraFieldView = getDataView(extraFieldUnicode.data);
-		const crc32 = new Crc32();
-		crc32.append(fileEntry[rawPropertyName]);
-		const dataViewSignature = getDataView(new Uint8Array(4));
-		dataViewSignature.setUint32(0, crc32.get(), true);
-		const signature = getUint32(extraFieldView, 1);
+		const computedCrc32 = new Crc32();
+		computedCrc32.append(fileEntry[rawPropertyName]);
+		const computedCrc32View = getDataView(new Uint8Array(4));
+		computedCrc32View.setUint32(0, computedCrc32.get(), true);
+		const nameCrc32 = getUint32(extraFieldView, 1);
 		Object.assign(extraFieldUnicode, {
 			version: getUint8(extraFieldView, 0),
 			[propertyName]: decodeText(extraFieldUnicode.data.subarray(5)),
-			valid: !fileEntry.bitFlag.languageEncodingFlag && signature == getUint32(dataViewSignature, 0)
+			valid: !fileEntry.bitFlag.languageEncodingFlag && nameCrc32 == getUint32(computedCrc32View, 0)
 		});
 		if (extraFieldUnicode.valid) {
 			directory[propertyName] = extraFieldUnicode[propertyName];
@@ -5338,7 +5330,7 @@
 		fileEntry,
 		index,
 		offset,
-		signature,
+		crc32,
 		compressedSize,
 		uncompressedSize,
 		dataOffset,
@@ -5359,7 +5351,7 @@
 			const dataDescriptorSignature = dataDescriptorArray.length == dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH &&
 				getUint32(getDataView(dataDescriptorArray), 0) == DATA_DESCRIPTOR_RECORD_SIGNATURE;
 			if (dataDescriptorSignature) {
-				const readSignature = getUint32(getDataView(dataDescriptorArray), 4);
+				const readCrc32 = getUint32(getDataView(dataDescriptorArray), 4);
 				let readCompressedSize;
 				let readUncompressedSize;
 				if (extraFieldZip64) {
@@ -5369,8 +5361,8 @@
 					readCompressedSize = getUint32(getDataView(dataDescriptorArray), 8);
 					readUncompressedSize = getUint32(getDataView(dataDescriptorArray), 12);
 				}
-				const matchSignature = (fileEntry.encrypted && !fileEntry.zipCrypto) || readSignature == signature;
-				if (matchSignature &&
+				const matchCrc32 = (fileEntry.encrypted && !fileEntry.zipCrypto) || readCrc32 == crc32;
+				if (matchCrc32 &&
 					readCompressedSize == compressedSize &&
 					readUncompressedSize == uncompressedSize) {
 					dataDescriptorLength += DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH;
@@ -5539,11 +5531,11 @@
 			throwAmbiguousArchive("mismatched local file header (compression method)");
 		}
 		if (!localDirectory.bitFlag.dataDescriptor &&
-			(localDirectory.signature || localDirectory.compressedSize || localDirectory.uncompressedSize) &&
-			(localDirectory.signature != zipEntry.signature ||
+			(localDirectory.crc32 || localDirectory.compressedSize || localDirectory.uncompressedSize) &&
+			(localDirectory.crc32 != zipEntry.crc32 ||
 				localDirectory.compressedSize != zipEntry.compressedSize ||
 				localDirectory.uncompressedSize != zipEntry.uncompressedSize)) {
-			throwAmbiguousArchive("mismatched local file header (signature or sizes)");
+			throwAmbiguousArchive("mismatched local file header (crc32 or sizes)");
 		}
 	}
 
@@ -5757,9 +5749,9 @@
 					zip64UncompressedSize,
 					extraFieldLength
 				});
-				const { signature } = entry;
-				if (signature !== UNDEFINED_VALUE) {
-					setUint32(headerView, HEADER_OFFSET_SIGNATURE, signature);
+				const { crc32 } = entry;
+				if (crc32 !== UNDEFINED_VALUE) {
+					setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
 				}
 				Object.assign(entry, {
 					zip64UncompressedSize,
@@ -6549,11 +6541,11 @@
 			msdosAttributes
 		};
 		let {
-			crc32: signature,
+			crc32,
 			uncompressedSize
 		} = options;
-		if (signature === UNDEFINED_VALUE) {
-			({ signature } = options);
+		if (crc32 === UNDEFINED_VALUE) {
+			({ signature: crc32 } = options);
 		}
 		let compressedSize = 0;
 		if (!passThrough) {
@@ -6592,7 +6584,7 @@
 				if (!passThrough) {
 					uncompressedSize = result.inputSize;
 					if (!encrypted || zipCrypto) {
-						signature = result.signature;
+						crc32 = result.crc32;
 					}
 				}
 				if ((!zip64CompressedSize && compressedSize >= MAX_32_BITS) ||
@@ -6608,7 +6600,7 @@
 
 		}
 		setEntryInfo({
-			signature,
+			crc32,
 			compressedSize,
 			uncompressedSize,
 			headerInfo,
@@ -6631,8 +6623,8 @@
 			version,
 			headerArray,
 			headerView,
-			signature,
-			crc32: encrypted && !zipCrypto ? UNDEFINED_VALUE : signature,
+			signature: crc32,
+			crc32: encrypted && !zipCrypto ? UNDEFINED_VALUE : crc32,
 			extraFieldExtendedTimestampFlag,
 			zip64UncompressedSize,
 			zip64CompressedSize
@@ -6944,7 +6936,7 @@
 	}
 
 	function setEntryInfo({
-		signature,
+		crc32,
 		compressedSize,
 		uncompressedSize,
 		headerInfo,
@@ -6962,10 +6954,10 @@
 			dataDescriptorView,
 			dataDescriptorOffset
 		} = dataDescriptorInfo;
-		if ((!encrypted || zipCrypto) && signature !== UNDEFINED_VALUE) {
-			setUint32(headerView, HEADER_OFFSET_SIGNATURE, signature);
+		if ((!encrypted || zipCrypto) && crc32 !== UNDEFINED_VALUE) {
+			setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
 			if (dataDescriptor) {
-				setUint32(dataDescriptorView, dataDescriptorOffset, signature);
+				setUint32(dataDescriptorView, dataDescriptorOffset, crc32);
 			}
 		}
 		if (zip64) {
@@ -6988,7 +6980,7 @@
 		encrypted,
 		zip64,
 		localExtraFieldZip64Length,
-		signature,
+		crc32,
 		compressedSize,
 		uncompressedSize,
 		zip64UncompressedSize,
@@ -6996,7 +6988,7 @@
 	}, localHeaderView, { dataDescriptor }) {
 		if (!dataDescriptor) {
 			if (!encrypted) {
-				setUint32(localHeaderView, HEADER_OFFSET_SIGNATURE + LOCAL_HEADER_COMMON_OFFSET, signature);
+				setUint32(localHeaderView, HEADER_OFFSET_SIGNATURE + LOCAL_HEADER_COMMON_OFFSET, crc32);
 			}
 			if (!zip64CompressedSize) {
 				setUint32(localHeaderView, HEADER_OFFSET_COMPRESSED_SIZE + LOCAL_HEADER_COMMON_OFFSET, compressedSize);
@@ -9104,7 +9096,7 @@
 						uncompressedSize,
 						encrypted,
 						zipCrypto,
-						signature,
+						crc32,
 						compressionMethod,
 						extraFieldAES
 					} = child.data;
@@ -9128,7 +9120,7 @@
 							passThrough: true,
 							encrypted,
 							zipCrypto,
-							signature,
+							crc32,
 							uncompressedSize,
 							level,
 							encryptionStrength,

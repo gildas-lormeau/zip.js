@@ -78,7 +78,7 @@ async function test() {
 		for (let indexByte = 14; indexByte < 18; indexByte++) {
 			localSignatureArray[indexByte] ^= 0xff;
 		}
-		await expectAmbiguousEntry(localSignatureArray, "mismatched local file header (signature or sizes)");
+		await expectAmbiguousEntry(localSignatureArray, "mismatched local file header (crc32 or sizes)");
 		// zeroed out local signature and sizes are tolerated (produced by some streaming writers)
 		const localZeroedArray = array.slice();
 		localZeroedArray.fill(0, 14, 26);
