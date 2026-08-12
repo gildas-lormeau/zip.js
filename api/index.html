@@ -34,35 +34,6 @@ encryption, incremental writing, and Deflate64 decompression.</p>
 </code><button type="button">Copy</button></pre>
 
 <p>Run the code on Plunker: <a href="https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview">https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview</a></p>
-<h2 id="using-external-assets" class="tsd-anchor-link">Using external assets<a href="#using-external-assets" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>By default, zip.js embeds the code of the web worker and the WebAssembly module
-in the library. The <code>@zip.js/zip.js/external</code> entry point references them as
-external files instead.</p>
-<pre><code class="js"><span class="hl-0">import</span><span class="hl-1"> </span><span class="hl-5">*</span><span class="hl-1"> </span><span class="hl-0">as</span><span class="hl-1"> </span><span class="hl-2">zip</span><span class="hl-1"> </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@zip.js/zip.js/external&quot;</span><span class="hl-1">;</span>
-</code><button type="button">Copy</button></pre>
-
-<p>Bundlers like webpack and Vite detect these references. They emit
-<code>zip-web-worker.js</code> and <code>zip-module.wasm</code> as separate assets and remove
-approximately 45KB of embedded payloads from the main bundle. The worker also
-runs from a real file URL. This avoids <code>blob:</code> restrictions on pages and
-browser extensions with a strict Content Security Policy.</p>
-<p>With Vite, add <code>@zip.js/zip.js</code> to <code>optimizeDeps.exclude</code> to resolve the assets
-during development. With bundlers which do not rewrite
-<code>new URL(..., import.meta.url)</code> expressions, copy the two files next to the
-output bundle.</p>
-<p>The build <code>dist/zip-fs-external.min.js</code> offers the same behavior without a
-bundler. It resolves <code>zip-web-worker.js</code> and <code>zip-module.wasm</code> relative to its
-own location. The three files must be deployed in the same directory.</p>
-<p>Smaller compositions of this entry point are also available.
-<code>@zip.js/zip.js/lib/zip-fs-core-external.js</code> excludes the MIME type table
-(approximately 23KB), <code>getMimeType()</code> then returns
-<code>&quot;application/octet-stream&quot;</code>. <code>@zip.js/zip.js/lib/zip-core-external.js</code> also
-excludes the filesystem API. Both compositions come with prebuilt bundles in
-the <code>/dist</code> directory. The full table remains available from any entry point
-via <code>@zip.js/zip.js/mime-types</code>:</p>
-<pre><code class="js"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">getMimeType</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@zip.js/zip.js/mime-types&quot;</span><span class="hl-1">;</span>
-</code><button type="button">Copy</button></pre>
-
 <h2 id="tests" class="tsd-anchor-link">Tests<a href="#tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>See <a href="https://github.com/gildas-lormeau/zip.js/tree/master/tests/all">https://github.com/gildas-lormeau/zip.js/tree/master/tests/all</a></p>
 </div></div>
@@ -85,7 +56,6 @@ via <code>@zip.js/zip.js/mime-types</code>:</p>
 <li><a href="#hello-world"><span>Hello world</span></a></li>
 <li><a href="#hello-world-with-streams"><span>Hello world with <wbr/>Streams</span></a></li>
 <li><a href="#adding-concurrently-multiple-entries-in-a-zip-file"><span>Adding concurrently multiple entries in a zip file</span></a></li>
-<li><a href="#using-external-assets"><span>Using external assets</span></a></li>
 <li><a href="#tests"><span>Tests</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="modules.html">@zip.js/zip.js</a>
