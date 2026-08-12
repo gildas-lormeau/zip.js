@@ -5602,7 +5602,7 @@
 	const MIN_UNIX_TIME = -2147483648;
 	const MAX_UNIX_TIME = 2147483647;
 	const MIN_NTFS_TIME = BigInt(0);
-	const MAX_NTFS_TIME = BigInt("0xffffffffffffffff");
+	const MAX_NTFS_TIME = BigInt("0x7fffffffffffffff");
 	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (set the 'zip64' option to 'true')";
 	const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
 	const ERR_UNDEFINED_READER = "Undefined reader";

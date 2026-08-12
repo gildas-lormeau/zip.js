@@ -10,7 +10,7 @@ const OUT_OF_RANGE_DATE = new Date(2040, 4, 15, 12, 30, 20);
 const ANCIENT_DATE = new Date(1500, 0, 1);
 const MAX_JS_DATE = new Date(8640000000000000);
 const MIN_NTFS_DATE_TIME = -11644473600000;
-const MAX_NTFS_DATE_TIME = Number((BigInt("0xffffffffffffffff") / BigInt(10000)) - BigInt(11644473600000));
+const MAX_NTFS_DATE_TIME = Number((BigInt("0x7fffffffffffffff") / BigInt(10000)) - BigInt(11644473600000));
 
 export { test };
 
