@@ -1164,8 +1164,8 @@ export interface ZipReaderOptions {
    * file header of the entry disagrees with its central directory record in a way that could make other tools
    * (e.g. streaming readers based on local file headers) interpret the entry differently. This detects mismatched
    * filenames, general purpose bit flags (encryption, data descriptor and language encoding flags), compression
-   * methods, signatures and sizes. The extra fields are not compared because the zip specification allows them
-   * to differ.
+   * methods, CRC-32 checksums and sizes. The extra fields are not compared because the zip specification allows
+   * them to differ.
    *
    * @defaultValue false
    */
