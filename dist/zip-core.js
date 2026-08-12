@@ -2139,12 +2139,12 @@
 				}
 				readable = mapInflateStreamError(readable);
 			}
-			if ((!encrypted || zipCrypto) && checkCrc32) {
+			if (checkCrc32) {
 				crc32Stream = new Crc32Stream();
 				readable = pipeThrough(readable, crc32Stream);
 			}
 			setReadable(this, readable, () => {
-				if ((!encrypted || zipCrypto) && checkCrc32) {
+				if (checkCrc32) {
 					const dataViewSignature = new DataView(crc32Stream.value.buffer);
 					if (signature != dataViewSignature.getUint32(0, false)) {
 						throw new Error(ERR_INVALID_SIGNATURE);
@@ -4948,7 +4948,8 @@
 			const checkCrc32Option = getOptionValue$1(zipEntry, options, OPTION_CHECK_CRC32);
 			const checkCrc32 = (checkCrc32Option === UNDEFINED_VALUE ?
 				getOptionValue$1(zipEntry, options, OPTION_CHECK_SIGNATURE) :
-				checkCrc32Option) && !passThrough;
+				checkCrc32Option) && !passThrough &&
+				(!encrypted || zipCrypto || (extraFieldAES && extraFieldAES.vendorVersion == VENDOR_VERSION_AE_1));
 			const workerOptions = {
 				options: {
 					codecType: CODEC_INFLATE,

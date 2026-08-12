@@ -53,6 +53,7 @@ export default ([
 	{ title: "Crypto (raw password)", script: "./test-crypto-raw-password.js" },
 	{ title: "Crypto check password only", script: "./test-crypto-check-password.js", sanitizeResources: false },
 	{ title: "Crypto tampered data", script: "./test-crypto-tampered.js" },
+	{ title: "AES CRC-32 verification", script: "./test-aes-crc32.js" },
 	{ title: "Crypto AES streaming", script: "./test-aes-streaming.js" },
 	{ title: "Custom IO classes", script: "./test-custom-io.js" },
 	{ title: "Custom temp stream", script: "./test-custom-temp-buffer.js" },

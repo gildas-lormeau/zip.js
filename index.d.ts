@@ -1178,8 +1178,8 @@ export interface ZipReaderOptions {
   checkPasswordOnly?: boolean;
   /**
    * `true` to verify the CRC-32 checksum of the entry against the value stored in the zip file. The verification
-   * is run on the decompressed data and covers the whole read pipeline. Entries encrypted with AES store a zeroed
-   * CRC-32 value when written in AE-2 format, the verification is skipped for these entries.
+   * is run on the decompressed data and covers the whole read pipeline. It also applies to entries encrypted with
+   * AES in AE-1 format. It is skipped for entries in AE-2 format because they store a zeroed CRC-32 value.
    *
    * @defaultValue false
    */
@@ -1278,6 +1278,15 @@ export interface EntryExtraFieldAES extends EntryExtraField {
    * The encryption strength (1, 2 or 3).
    */
   strength?: number;
+  /**
+   * The vendor version (1 for AE-1, 2 for AE-2). Entries in AE-1 format store the CRC-32 checksum of the content,
+   * entries in AE-2 format store a zeroed value.
+   */
+  vendorVersion?: number;
+  /**
+   * The vendor identifier.
+   */
+  vendorId?: number;
   /**
    * The compression method stored in the AES extra field.
    */
