@@ -3,6 +3,8 @@ benchmarks
 rollup*
 reserved-property-names.js
 mangled-property-names.js
+mime-types.json
+generate-mime-type-data.js
 tsconfig.json
 .vscode
 .eslintrc.json

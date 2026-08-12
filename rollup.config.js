@@ -9,6 +9,7 @@ import { Buffer } from "node:buffer";
 import { inflateRaw } from "./lib/core/util/inflate.js";
 import { getReservedPropertyNames } from "./reserved-property-names.js";
 import { MANGLED_PROPERTY_NAMES } from "./mangled-property-names.js";
+import { generateMimeTypeData } from "./generate-mime-type-data.js";
 
 function deflatePayload(data) {
 	const deflated = deflateRawSync(data, { level: 9 });
@@ -50,6 +51,8 @@ function copyCjsTypes() {
 		}
 	};
 }
+
+generateMimeTypeData();
 
 const reservedPropertyNames = getReservedPropertyNames();
 const MANGLED_PROPERTY_NAMES_PATH = path.resolve(__dirname, "mangled-property-names.js");

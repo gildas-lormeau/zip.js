@@ -5,6 +5,9 @@ import { fileURLToPath } from "url";
 import { deflateRawSync } from "node:zlib";
 import { Buffer } from "node:buffer";
 import { inflateRaw } from "./lib/core/util/inflate.js";
+import { generateMimeTypeData } from "./generate-mime-type-data.js";
+
+generateMimeTypeData();
 
 function deflatePayload(data) {
 	const deflated = deflateRawSync(data, { level: 9 });
