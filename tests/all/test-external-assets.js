@@ -1,4 +1,5 @@
 import * as zip from "../../lib/zip-fs-external.js";
+import { configureExternalAssets } from "../../lib/core/external-assets.js";
 import { getConfiguration, setDefaultConfiguration } from "../../lib/core/configuration.js";
 import { configureWebWorker } from "../../lib/core/web-worker-inline-wasm.js";
 import { configureZlibModule } from "../../lib/core/zlib-streams-inline.js";
@@ -20,6 +21,7 @@ async function test() {
 		}
 	};
 	try {
+		configureExternalAssets();
 		const { workerURI, wasmURI } = getConfiguration();
 		if (!workerURI.endsWith("/dist/zip-web-worker.js")) {
 			throw new Error("unexpected worker URI: " + workerURI);

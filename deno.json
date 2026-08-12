@@ -2,7 +2,11 @@
 	"name": "@zip-js/zip-js",
 	"version": "2.8.41",
 	"exports": {
-		".": "./index.js"
+		".": "./index.js",
+		"./external": "./lib/zip-fs-external.js",
+		"./mime-types": "./lib/zip-mime-types.js",
+		"./lib/zip-core-external.js": "./lib/zip-core-external.js",
+		"./lib/zip-fs-core-external.js": "./lib/zip-fs-core-external.js"
 	},
 	"lint": {
 		"exclude": [

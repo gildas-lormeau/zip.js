@@ -77,6 +77,24 @@
         "default": "./lib/zip-fs-external.js"
       }
     },
+    "./mime-types": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/zip-mime-types.js"
+      }
+    },
+    "./lib/zip-core-external.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/zip-core-external.js"
+      }
+    },
+    "./lib/zip-fs-core-external.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/zip-fs-core-external.js"
+      }
+    },
     "./dist/zip-fs-external.js": {
       "import": {
         "types": "./index.d.ts",
@@ -87,6 +105,30 @@
       "import": {
         "types": "./index.d.ts",
         "default": "./dist/zip-fs-external.min.js"
+      }
+    },
+    "./dist/zip-fs-core-external.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./dist/zip-fs-core-external.js"
+      }
+    },
+    "./dist/zip-fs-core-external.min.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./dist/zip-fs-core-external.min.js"
+      }
+    },
+    "./dist/zip-core-external.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./dist/zip-core-external.js"
+      }
+    },
+    "./dist/zip-core-external.min.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./dist/zip-core-external.min.js"
       }
     },
     "./index-native.js": {

@@ -196,6 +196,18 @@ The build `dist/zip-fs-external.min.js` offers the same behavior without a
 bundler. It resolves `zip-web-worker.js` and `zip-module.wasm` relative to its
 own location. The three files must be deployed in the same directory.
 
+Smaller compositions of this entry point are also available.
+`@zip.js/zip.js/lib/zip-fs-core-external.js` excludes the MIME type table
+(approximately 23KB), `getMimeType()` then returns
+`"application/octet-stream"`. `@zip.js/zip.js/lib/zip-core-external.js` also
+excludes the filesystem API. Both compositions come with prebuilt bundles in
+the `/dist` directory. The full table remains available from any entry point
+via `@zip.js/zip.js/mime-types`:
+
+```js
+import { getMimeType } from "@zip.js/zip.js/mime-types";
+```
+
 ## Tests
 
 See https://github.com/gildas-lormeau/zip.js/tree/master/tests/all

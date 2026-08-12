@@ -133,6 +133,15 @@ const inlineTerserOptions = {
 	}
 };
 
+function externalAssetsReplace() {
+	return replace({
+		preventAssignment: true,
+		delimiters: ["", ""],
+		"../../dist/zip-web-worker.js": "./zip-web-worker.js",
+		"../../dist/zip-module.wasm": "./zip-module.wasm"
+	});
+}
+
 const GLOBALS = "const { Array, Object, String, Number, BigInt, Math, Date, Map, Set, Response, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, document, crypto, btoa, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream, navigator, Worker } = typeof globalThis !== 'undefined' ? globalThis : this || self;";
 const GLOBALS_WORKER = "const { Array, Object, Number, Math, Error, Uint8Array, Uint16Array, Uint32Array, Int32Array, Map, DataView, Promise, TextEncoder, crypto, postMessage, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream } = self;";
 
@@ -307,20 +316,35 @@ export default [{
 	}]
 }, {
 	input: "lib/zip-fs-external.js",
-	plugins: [
-		replace({
-			preventAssignment: true,
-			delimiters: ["", ""],
-			"../dist/zip-web-worker.js": "./zip-web-worker.js",
-			"../dist/zip-module.wasm": "./zip-module.wasm"
-		})
-	],
+	plugins: [externalAssetsReplace()],
 	output: [{
 		file: "dist/zip-fs-external.min.js",
 		format: "es",
 		plugins: [terserMangler(bundledTerserOptions)]
 	}, {
 		file: "dist/zip-fs-external.js",
+		format: "es"
+	}]
+}, {
+	input: "lib/zip-fs-core-external.js",
+	plugins: [externalAssetsReplace()],
+	output: [{
+		file: "dist/zip-fs-core-external.min.js",
+		format: "es",
+		plugins: [terserMangler(bundledTerserOptions)]
+	}, {
+		file: "dist/zip-fs-core-external.js",
+		format: "es"
+	}]
+}, {
+	input: "lib/zip-core-external.js",
+	plugins: [externalAssetsReplace()],
+	output: [{
+		file: "dist/zip-core-external.min.js",
+		format: "es",
+		plugins: [terserMangler(bundledTerserOptions)]
+	}, {
+		file: "dist/zip-core-external.js",
 		format: "es"
 	}]
 }, {
