@@ -1,4 +1,4 @@
-/* global Blob */
+/* global Blob, URL */
 
 import * as zip from "../zip-lib.js";
 
@@ -9,6 +9,11 @@ const PASSWORD = "password";
 const END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;
 const AES_EXTRA_FIELD_TYPE = 0x9901;
 const AE_1_VERSION = 1;
+const WINZIP_FIXTURE_URL = new URL("./../data/lorem-winzip-encrypted.zip", import.meta.url).href;
+const WINZIP_FIXTURE_PASSWORD = "lorem.txt";
+const WINZIP_FIXTURE_CRC32 = 0x869415c8;
+const WINZIP_FIXTURE_UNCOMPRESSED_SIZE = 1162;
+const WINZIP_FIXTURE_VERSION = 0x14;
 
 export { test };
 
@@ -50,8 +55,29 @@ async function test() {
 		if (await readEntry(tamperedData, { checkAuthenticationCode: false }) != TEXT_CONTENT) {
 			throw new Error();
 		}
+		await testWinZipAE1();
 	} finally {
 		await zip.terminateWorkers();
+	}
+}
+
+async function testWinZipAE1() {
+	const zipReader = new zip.ZipReader(new zip.HttpReader(WINZIP_FIXTURE_URL, { preventHeadRequest: true }));
+	try {
+		const entries = await zipReader.getEntries();
+		const entry = entries[0];
+		if (entry.filename != FILENAME || !entry.encrypted ||
+			entry.extraFieldAES.vendorVersion != AE_1_VERSION ||
+			entry.crc32 != WINZIP_FIXTURE_CRC32 || entry.signature != WINZIP_FIXTURE_CRC32 ||
+			entry.version != WINZIP_FIXTURE_VERSION) {
+			throw new Error();
+		}
+		const text = await entry.getData(new zip.TextWriter(), { password: WINZIP_FIXTURE_PASSWORD, checkCrc32: true });
+		if (text.length != WINZIP_FIXTURE_UNCOMPRESSED_SIZE || !text.startsWith("Lorem ipsum dolor sit amet")) {
+			throw new Error();
+		}
+	} finally {
+		await zipReader.close();
 	}
 }
 
