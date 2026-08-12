@@ -4363,7 +4363,7 @@
 	const PROPERTY_NAME_UTF8_SUFFIX = "UTF8";
 	const CHARSET_CP437 = "cp437";
 	const BITFLAG_AMBIGUITY_MASK = BITFLAG_ENCRYPTED | BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
-	const VENDOR_VERSION_AE_1 = 1;
+	const VENDOR_VERSION_AE_1$1 = 1;
 	const ZIP64_PROPERTIES = [
 		[PROPERTY_NAME_UNCOMPRESSED_SIZE, MAX_32_BITS],
 		[PROPERTY_NAME_COMPRESSED_SIZE, MAX_32_BITS],
@@ -4807,7 +4807,7 @@
 			const checkCrc32 = (checkCrc32Option === UNDEFINED_VALUE ?
 				getOptionValue$1(zipEntry, options, OPTION_CHECK_SIGNATURE) :
 				checkCrc32Option) && !passThrough &&
-				(!encrypted || zipCrypto || (extraFieldAES && extraFieldAES.vendorVersion == VENDOR_VERSION_AE_1));
+				(!encrypted || zipCrypto || (extraFieldAES && extraFieldAES.vendorVersion == VENDOR_VERSION_AE_1$1));
 			const workerOptions = {
 				options: {
 					codecType: CODEC_INFLATE,
@@ -5044,7 +5044,7 @@
 			compressionMethod: getUint16(extraFieldView, 5)
 		});
 		directory.compressionMethod = extraFieldAES.compressionMethod;
-		if (extraFieldAES.vendorVersion != VENDOR_VERSION_AE_1) {
+		if (extraFieldAES.vendorVersion != VENDOR_VERSION_AE_1$1) {
 			directory.crc32 = UNDEFINED_VALUE;
 		}
 	}
@@ -5502,6 +5502,8 @@
 	const ERR_INVALID_MSDOS_DATA = "Invalid msdosAttributes (must be an object with boolean flags)";
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
+	const EXTRAFIELD_OFFSET_AES_VENDOR_VERSION = 4;
+	const VENDOR_VERSION_AE_1 = 1;
 	const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
 	const UNIX_EXTRA_FIELD_TYPE = "unix";
 
@@ -5721,6 +5723,7 @@
 				internalFileAttribute: metadataInfo.resolvedOptions.internalFileAttributes,
 				externalFileAttribute: attributesInfo.resolvedOptions.externalFileAttributes,
 				signature: options[PROPERTY_NAME_SIGNATURE],
+				crc32: options.crc32 === UNDEFINED_VALUE ? options[PROPERTY_NAME_SIGNATURE] : options.crc32,
 				offset: zipWriter.offset - diskOffset,
 				diskNumberStart: diskNumber
 			});
@@ -6329,9 +6332,6 @@
 			crc32,
 			uncompressedSize
 		} = options;
-		if (crc32 === UNDEFINED_VALUE) {
-			({ signature: crc32 } = options);
-		}
 		let compressedSize = 0;
 		if (!passThrough) {
 			uncompressedSize = 0;
@@ -6409,7 +6409,7 @@
 			headerArray,
 			headerView,
 			signature: crc32,
-			crc32: encrypted && !zipCrypto ? UNDEFINED_VALUE : crc32,
+			crc32: encrypted && !zipCrypto && !passThrough ? UNDEFINED_VALUE : crc32,
 			extraFieldExtendedTimestampFlag,
 			zip64UncompressedSize,
 			zip64CompressedSize
@@ -6438,7 +6438,8 @@
 			encrypted,
 			zip64UncompressedSize,
 			zip64CompressedSize,
-			uncompressedSize
+			uncompressedSize,
+			crc32
 		} = options;
 		let { version, compressionMethod } = options;
 		const compressed = !directory && (compressionMethod === UNDEFINED_VALUE
@@ -6564,6 +6565,9 @@
 		}
 		if (encrypted && !zipCrypto) {
 			version = version > VERSION_AES ? version : VERSION_AES;
+			if (passThrough && crc32 !== UNDEFINED_VALUE) {
+				rawExtraFieldAES[EXTRAFIELD_OFFSET_AES_VENDOR_VERSION] = VENDOR_VERSION_AE_1;
+			}
 			rawExtraFieldAES[9] = compressionMethod;
 			compressionMethod = COMPRESSION_METHOD_AES;
 		}
@@ -6729,6 +6733,7 @@
 	}, {
 		zip64,
 		zipCrypto,
+		passThrough,
 		dataDescriptor
 	}) {
 		const {
@@ -6739,7 +6744,7 @@
 			dataDescriptorView,
 			dataDescriptorOffset
 		} = dataDescriptorInfo;
-		if ((!encrypted || zipCrypto) && crc32 !== UNDEFINED_VALUE) {
+		if ((!encrypted || zipCrypto || passThrough) && crc32 !== UNDEFINED_VALUE) {
 			setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
 			if (dataDescriptor) {
 				setUint32(dataDescriptorView, dataDescriptorOffset, crc32);
@@ -6770,9 +6775,9 @@
 		uncompressedSize,
 		zip64UncompressedSize,
 		zip64CompressedSize
-	}, localHeaderView, { dataDescriptor }) {
+	}, localHeaderView, { dataDescriptor, passThrough }) {
 		if (!dataDescriptor) {
-			if (!encrypted) {
+			if (!encrypted || (passThrough && crc32 !== UNDEFINED_VALUE)) {
 				setUint32(localHeaderView, HEADER_OFFSET_SIGNATURE + LOCAL_HEADER_COMMON_OFFSET, crc32);
 			}
 			if (!zip64CompressedSize) {

@@ -197,7 +197,7 @@ function planEntry(entry, leg) {
 			passThrough: true,
 			encrypted,
 			uncompressedSize: cd.uncompressedSize,
-			signature: cd.crc32
+			crc32: fields.aes && fields.aes.vendorVersion != 1 ? undefined : cd.crc32
 		});
 	} else {
 		mode = "codec";
@@ -326,10 +326,11 @@ function parseAESField(data, fail) {
 		fail("unexpected AES field length");
 	}
 	const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-	if (view.getUint16(0, true) != 2) {
+	const vendorVersion = view.getUint16(0, true);
+	if (vendorVersion != 1 && vendorVersion != 2) {
 		fail("unsupported AES vendor version");
 	}
-	return { strength: data[4], compressionMethod: view.getUint16(5, true) };
+	return { vendorVersion, strength: data[4], compressionMethod: view.getUint16(5, true) };
 }
 
 function parseInfozipField(data, fail) {

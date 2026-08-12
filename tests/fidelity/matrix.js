@@ -95,11 +95,45 @@ const cases = [
 	{ name: "aes", writerOptions: { password: "correct horse", useCompressionStream: false }, entries: textEntries(2, 28) },
 	{ name: "aes-strength-1", writerOptions: { password: "correct horse", encryptionStrength: 1, useCompressionStream: false }, entries: textEntries(2, 29) },
 	{ name: "aes-store", writerOptions: { password: "correct horse", level: 0 }, entries: textEntries(2, 30) },
-	{ name: "zipcrypto", writerOptions: { password: "correct horse", zipCrypto: true, useCompressionStream: false }, entries: textEntries(2, 31) }
+	{ name: "zipcrypto", writerOptions: { password: "correct horse", zipCrypto: true, useCompressionStream: false }, entries: textEntries(2, 31) },
+	{ name: "aes-ae1-passthrough", build: buildAE1PassthroughZip }
 ];
 
 for (const testCase of cases) {
-	testCase.build = zip => buildZip(zip, testCase);
+	if (!testCase.build) {
+		testCase.build = zip => buildZip(zip, testCase);
+	}
+}
+
+async function buildAE1PassthroughZip(zip) {
+	const data = pseudoText(40);
+	const plainWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { useWebWorkers: false, lastModDate: BASE_DATE });
+	await plainWriter.add("file-0.txt", new zip.Uint8ArrayReader(data));
+	const plainReader = new zip.ZipReader(new zip.Uint8ArrayReader(await plainWriter.close()));
+	const [plainEntry] = await plainReader.getEntries();
+	const { crc32 } = plainEntry;
+	await plainReader.close();
+	const aesWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), {
+		useWebWorkers: false,
+		lastModDate: BASE_DATE,
+		password: "correct horse",
+		useCompressionStream: false
+	});
+	await aesWriter.add("file-0.txt", new zip.Uint8ArrayReader(data));
+	const aesReader = new zip.ZipReader(new zip.Uint8ArrayReader(await aesWriter.close()));
+	const [aesEntry] = await aesReader.getEntries();
+	const rawData = await aesEntry.getData(new zip.Uint8ArrayWriter(), { passThrough: true });
+	await aesReader.close();
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { useWebWorkers: false, lastModDate: BASE_DATE });
+	await zipWriter.add("file-0.txt", new zip.Uint8ArrayReader(rawData), {
+		passThrough: true,
+		encrypted: true,
+		encryptionStrength: 3,
+		uncompressedSize: data.length,
+		compressionMethod: 8,
+		crc32
+	});
+	return zipWriter.close();
 }
 
 async function buildZip(zip, { writerOptions = {}, entries, comment }) {
