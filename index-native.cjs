@@ -65,6 +65,8 @@ const EXTRAFIELD_TYPE_UNICODE_COMMENT = 0x6375;
 const EXTRAFIELD_TYPE_USDZ = 0x1986;
 const EXTRAFIELD_TYPE_INFOZIP = 0x7875;
 const EXTRAFIELD_TYPE_UNIX = 0x7855;
+const EXTRAFIELD_TYPE_UNIX_TYPE1 = 0x5855;
+const EXTRAFIELD_TYPE_PKWARE_UNIX = 0x000d;
 
 const BITFLAG_ENCRYPTED = 0b1;
 const BITFLAG_LEVEL = 0b0110;
@@ -4273,6 +4275,8 @@ const PROPERTY_NAME_CRC32 = "crc32";
 const PROPERTY_NAME_EXTRA_FIELD = "extraField";
 const PROPERTY_NAME_EXTRA_FIELD_INFOZIP = "extraFieldInfoZip";
 const PROPERTY_NAME_EXTRA_FIELD_UNIX = "extraFieldUnix";
+const PROPERTY_NAME_EXTRA_FIELD_UNIX_TYPE1 = "extraFieldUnixType1";
+const PROPERTY_NAME_EXTRA_FIELD_PKWARE_UNIX = "extraFieldPkwareUnix";
 const PROPERTY_NAME_UID = "uid";
 const PROPERTY_NAME_GID = "gid";
 const PROPERTY_NAME_UNIX_MODE = "unixMode";
@@ -4322,6 +4326,8 @@ const PROPERTY_NAMES = [
 	PROPERTY_NAME_EXTRA_FIELD,
 	PROPERTY_NAME_EXTRA_FIELD_UNIX,
 	PROPERTY_NAME_EXTRA_FIELD_INFOZIP,
+	PROPERTY_NAME_EXTRA_FIELD_UNIX_TYPE1,
+	PROPERTY_NAME_EXTRA_FIELD_PKWARE_UNIX,
 	PROPERTY_NAME_UID,
 	PROPERTY_NAME_GID,
 	PROPERTY_NAME_UNIX_MODE,
@@ -5098,6 +5104,16 @@ function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory
 	} else {
 		directory.compressionMethod = compressionMethod;
 	}
+	const extraFieldPkwareUnix = extraField.get(EXTRAFIELD_TYPE_PKWARE_UNIX);
+	if (extraFieldPkwareUnix) {
+		readExtraFieldUnixDates(extraFieldPkwareUnix, directory);
+		directory.extraFieldPkwareUnix = extraFieldPkwareUnix;
+	}
+	const extraFieldUnixType1 = extraField.get(EXTRAFIELD_TYPE_UNIX_TYPE1);
+	if (extraFieldUnixType1) {
+		readExtraFieldUnixDates(extraFieldUnixType1, directory);
+		directory.extraFieldUnixType1 = extraFieldUnixType1;
+	}
 	const extraFieldNTFS = extraField.get(EXTRAFIELD_TYPE_NTFS);
 	if (extraFieldNTFS) {
 		readExtraFieldNTFS(extraFieldNTFS, directory);
@@ -5212,6 +5228,22 @@ function readExtraFieldNTFS(extraFieldNTFS, directory) {
 		Object.assign(extraFieldNTFS, extraFieldData);
 		Object.assign(directory, extraFieldData);
 	}
+}
+
+function readExtraFieldUnixDates(extraField, directory) {
+	if (extraField.data.length < 8) {
+		return;
+	}
+	const extraFieldView = getDataView(extraField.data);
+	const lastAccessDate = new Date(getUint32(extraFieldView, 0) * 1000);
+	const lastModDate = new Date(getUint32(extraFieldView, 4) * 1000);
+	const extraFieldData = { lastAccessDate, lastModDate };
+	if (extraField.data.length >= 12) {
+		extraFieldData.uid = getUint16(extraFieldView, 8);
+		extraFieldData.gid = getUint16(extraFieldView, 10);
+	}
+	Object.assign(extraField, extraFieldData);
+	Object.assign(directory, extraFieldData);
 }
 
 function readExtraFieldUnix(extraField, directory, isInfoZip) {

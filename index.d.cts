@@ -1293,6 +1293,30 @@ export interface EntryExtraFieldAES extends EntryExtraField {
   originalCompressionMethod?: number;
 }
 /**
+ * Represents a Unix extra field record storing timestamps: the Info-ZIP Unix type 1 extra field (0x5855),
+ * written notably by macOS Archive Utility and `ditto`, or the PKWARE Unix extra field (0x000d). Both store
+ * the last access/modification dates as 32-bit Unix times, followed by the optional uid/gid in the local
+ * file header.
+ */
+export interface EntryExtraFieldUnixDates extends EntryExtraField {
+  /**
+   * The last access date.
+   */
+  lastAccessDate?: Date;
+  /**
+   * The last modification date.
+   */
+  lastModDate?: Date;
+  /**
+   * The Unix user id.
+   */
+  uid?: number;
+  /**
+   * The Unix group id.
+   */
+  gid?: number;
+}
+/**
  * Represents a Unicode path or comment extra field record of an entry.
  */
 export interface EntryExtraFieldUnicode extends EntryExtraField {
@@ -1387,6 +1411,14 @@ export interface LocalDirectory {
    * The Info-ZIP Unix extra field.
    */
   extraFieldInfoZip?: EntryExtraField;
+  /**
+   * The Info-ZIP Unix type 1 extra field (0x5855).
+   */
+  extraFieldUnixType1?: EntryExtraFieldUnixDates;
+  /**
+   * The PKWARE Unix extra field (0x000d).
+   */
+  extraFieldPkwareUnix?: EntryExtraFieldUnixDates;
   /**
    * The extended timestamp extra field.
    */
@@ -1660,6 +1692,14 @@ export interface EntryMetaData {
    * The Info-ZIP Unix extra field.
    */
   extraFieldInfoZip?: EntryExtraField;
+  /**
+   * The Info-ZIP Unix type 1 extra field (0x5855).
+   */
+  extraFieldUnixType1?: EntryExtraFieldUnixDates;
+  /**
+   * The PKWARE Unix extra field (0x000d).
+   */
+  extraFieldPkwareUnix?: EntryExtraFieldUnixDates;
   /**
    * The extended timestamp extra field.
    */
