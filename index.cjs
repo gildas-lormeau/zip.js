@@ -5199,26 +5199,22 @@ function readExtraFieldNTFS(extraFieldNTFS, directory) {
 	} catch {
 		// ignored
 	}
-	try {
-		if (tag1Data && tag1Data.length == 24) {
-			const tag1View = getDataView(tag1Data);
-			const rawLastModDate = tag1View.getBigUint64(0, true);
-			const rawLastAccessDate = tag1View.getBigUint64(8, true);
-			const rawCreationDate = tag1View.getBigUint64(16, true);
-			Object.assign(extraFieldNTFS, {
-				rawLastModDate,
-				rawLastAccessDate,
-				rawCreationDate
-			});
-			const lastModDate = getDateNTFS(rawLastModDate);
-			const lastAccessDate = getDateNTFS(rawLastAccessDate);
-			const creationDate = getDateNTFS(rawCreationDate);
-			const extraFieldData = { lastModDate, lastAccessDate, creationDate };
-			Object.assign(extraFieldNTFS, extraFieldData);
-			Object.assign(directory, extraFieldData);
-		}
-	} catch {
-		// ignored
+	if (tag1Data && tag1Data.length == 24) {
+		const tag1View = getDataView(tag1Data);
+		const rawLastModDate = tag1View.getBigUint64(0, true);
+		const rawLastAccessDate = tag1View.getBigUint64(8, true);
+		const rawCreationDate = tag1View.getBigUint64(16, true);
+		Object.assign(extraFieldNTFS, {
+			rawLastModDate,
+			rawLastAccessDate,
+			rawCreationDate
+		});
+		const lastModDate = getDateNTFS(rawLastModDate);
+		const lastAccessDate = getDateNTFS(rawLastAccessDate);
+		const creationDate = getDateNTFS(rawCreationDate);
+		const extraFieldData = { lastModDate, lastAccessDate, creationDate };
+		Object.assign(extraFieldNTFS, extraFieldData);
+		Object.assign(directory, extraFieldData);
 	}
 }
 
@@ -5521,11 +5517,7 @@ function getOptionValue$1(zipReader, options, name) {
 
 function getDate(timeRaw) {
 	const date = (timeRaw & 0xffff0000) >> 16, time = timeRaw & MAX_16_BITS;
-	try {
-		return new Date(1980 + ((date & 0xFE00) >> 9), ((date & 0x01E0) >> 5) - 1, date & 0x001F, (time & 0xF800) >> 11, (time & 0x07E0) >> 5, (time & 0x001F) * 2, 0);
-	} catch {
-		// ignored
-	}
+	return new Date(1980 + ((date & 0xFE00) >> 9), ((date & 0x01E0) >> 5) - 1, date & 0x001F, (time & 0xF800) >> 11, (time & 0x07E0) >> 5, (time & 0x001F) * 2, 0);
 }
 
 function getDateNTFS(timeRaw) {
