@@ -206,6 +206,16 @@
 			resolve the assets during development. The prebuilt bundle <code>zip-fs-external.min.js</code>
 			offers the same behavior without a bundler, it resolves the two files from its own directory.
 		</p>
+		<p>
+			Smaller compositions of this entry point are also available:
+			<code>@zip.js/zip.js/lib/zip-fs-core-external.js</code> excludes the MIME type table
+			(approximately 23KB), <code>getMimeType()</code> then returns
+			<code>"application/octet-stream"</code>, and <code>@zip.js/zip.js/lib/zip-core-external.js</code>
+			also excludes the filesystem API. Both come with prebuilt ES module bundles in
+			<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>.
+			The full MIME type table remains available from any entry point via
+			<code>@zip.js/zip.js/mime-types</code>.
+		</p>
 		<h2 id="library-variants">Library variants</h2>
 		<p>
 			The library comes in two variants. The default variant embeds a WebAssembly build of zlib, while the
