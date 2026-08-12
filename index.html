@@ -100,9 +100,9 @@
 				Compression Streams API, while the other builds fall back on their embedded deflate implementation
 				when the <code>"deflate-raw"</code> format is unavailable. When neither is usable, e.g. with the
 				"core" builds on Chrome 80 to 102, zip.js wraps raw deflate data in the <code>"gzip"</code> format
-				as a last resort. Reading AES-encrypted entries is not supported with this fallback. The embedded
-				WebAssembly module uses bulk memory operations, hence the higher requirements of the WebAssembly
-				builds compared to the "native" JavaScript builds.</li>
+				as a last resort, and stores entries uncompressed when writing data without any usable
+				implementation. The embedded WebAssembly module uses bulk memory operations, hence the higher
+				requirements of the WebAssembly builds compared to the "native" JavaScript builds.</li>
 			<li>Uncompressed entries only require the Streams API, i.e. Chrome 67, Firefox 102, Safari 14.1, and
 				Node.js 18, with any build. A worker script embedding the codecs passed via <code>workerURI</code>
 				also lifts the requirements of the "core" builds.</li>
