@@ -29,7 +29,7 @@ async function test() {
 	};
 	try {
 		for (const options of [
-			{ level: 9, signed: true },
+			{ level: 9, checkCrc32: true },
 			{ password: PASSWORD, encryptionStrength: 3 },
 			{ password: PASSWORD, encryptionStrength: 1 },
 			{ password: PASSWORD, zipCrypto: true },
@@ -58,7 +58,7 @@ async function testEntry(options, transferStreams) {
 	const text = await readEntry(data, {
 		password: options.password,
 		rawPassword: options.rawPassword,
-		checkSignature: options.signed
+		checkCrc32: options.checkCrc32
 	}, transferStreams);
 	if (text != TEXT_CONTENT) {
 		throw new Error();
