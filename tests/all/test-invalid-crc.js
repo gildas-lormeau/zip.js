@@ -16,7 +16,7 @@ async function test() {
 		data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { checkSignature: true });
 		data = null;
 	} catch (error) {
-		if (error.message == zip.ERR_INVALID_SIGNATURE) {
+		if (error.message == zip.ERR_INVALID_CRC32) {
 			data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { checkSignature: false });
 			await zipReader.close();
 		} else {

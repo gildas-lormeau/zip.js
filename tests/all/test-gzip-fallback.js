@@ -70,7 +70,7 @@ async function test() {
 		} catch (error) {
 			caughtError = error;
 		}
-		if (!caughtError || caughtError.message != zip.ERR_INVALID_SIGNATURE) {
+		if (!caughtError || caughtError.message != zip.ERR_INVALID_CRC32) {
 			throw new Error("expected an invalid signature error, got: " + caughtError);
 		}
 		const shrunkSizeData = patchFirstCentralHeader(data, CENTRAL_HEADER_UNCOMPRESSED_SIZE_OFFSET, entries[0].uncompressedSize - 1);

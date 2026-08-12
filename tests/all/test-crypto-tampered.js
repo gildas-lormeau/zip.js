@@ -30,7 +30,7 @@ async function test() {
 		await readEntry(array);
 		throw new Error();
 	} catch (error) {
-		if (error.message != zip.ERR_INVALID_SIGNATURE) {
+		if (error.message != zip.ERR_INVALID_AUTHENTICATION_CODE) {
 			throw error;
 		}
 	} finally {

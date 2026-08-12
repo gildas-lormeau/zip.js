@@ -14,6 +14,9 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
+	if (zip.ERR_INVALID_CRC32 != zip.ERR_INVALID_SIGNATURE || zip.ERR_INVALID_AUTHENTICATION_CODE != zip.ERR_INVALID_SIGNATURE) {
+		throw new Error();
+	}
 	try {
 		const plainEntry = await readEntryMetadata(await writeEntry());
 		if (plainEntry.crc32 === undefined || plainEntry.crc32 != plainEntry.signature) {
@@ -40,10 +43,10 @@ async function test() {
 		if (await readEntry(corruptedAe1Data) != TEXT_CONTENT) {
 			throw new Error();
 		}
-		await expectInvalidSignature(corruptedAe1Data, { checkCrc32: true });
-		await expectInvalidSignature(corruptedAe1Data, { checkSignature: true });
+		await expectError(corruptedAe1Data, { checkCrc32: true }, zip.ERR_INVALID_CRC32);
+		await expectError(corruptedAe1Data, { checkSignature: true }, zip.ERR_INVALID_CRC32);
 		const tamperedData = tamperAuthenticationCode(aes2Data);
-		await expectInvalidSignature(tamperedData, {});
+		await expectError(tamperedData, {}, zip.ERR_INVALID_AUTHENTICATION_CODE);
 		if (await readEntry(tamperedData, { checkAuthenticationCode: false }) != TEXT_CONTENT) {
 			throw new Error();
 		}
@@ -80,12 +83,12 @@ async function readEntry(array, options) {
 	}
 }
 
-async function expectInvalidSignature(array, options) {
+async function expectError(array, options, message) {
 	try {
 		await readEntry(array, options);
 		throw new Error();
 	} catch (error) {
-		if (error.message != zip.ERR_INVALID_SIGNATURE) {
+		if (error.message != message) {
 			throw error;
 		}
 	}

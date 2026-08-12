@@ -2315,6 +2315,7 @@
 
 	const ERR_INVALID_PASSWORD = "Invalid password";
 	const ERR_INVALID_SIGNATURE = "Invalid signature";
+	const ERR_INVALID_AUTHENTICATION_CODE = ERR_INVALID_SIGNATURE;
 	const ERR_ABORT_CHECK_PASSWORD = "zipjs-abort-check-password";
 	const ERR_UNSUPPORTED_CRYPTO_API = "Crypto API not supported";
 
@@ -2432,7 +2433,7 @@
 							invalidSignature |= signature[indexSignature] ^ originalSignature[indexSignature];
 						}
 						if (invalidSignature && checkAuthenticationCode) {
-							throw new Error(ERR_INVALID_SIGNATURE);
+							throw new Error(ERR_INVALID_AUTHENTICATION_CODE);
 						}
 						controller.enqueue(decryptedChunkArray);
 					}
@@ -2803,6 +2804,7 @@
 
 	const ERR_INVALID_UNCOMPRESSED_SIZE = "Invalid uncompressed size";
 	const ERR_INVALID_COMPRESSED_DATA = "Invalid compressed data";
+	const ERR_INVALID_CRC32 = ERR_INVALID_SIGNATURE;
 	const ERR_UNSUPPORTED_COMPRESSION$2 = "Compression method not supported";
 	const FORMAT_DEFLATE_RAW = "deflate-raw";
 	const FORMAT_DEFLATE64_RAW = "deflate64-raw";
@@ -3026,7 +3028,7 @@
 				if (checkCrc32) {
 					const dataViewSignature = new DataView(crc32Stream.value.buffer);
 					if (signature != dataViewSignature.getUint32(0, false)) {
-						throw new Error(ERR_INVALID_SIGNATURE);
+						throw new Error(ERR_INVALID_CRC32);
 					}
 				}
 			});
@@ -5410,7 +5412,9 @@
 		ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND: ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND,
 		ERR_EOCDR_NOT_FOUND: ERR_EOCDR_NOT_FOUND,
 		ERR_EXTRAFIELD_ZIP64_NOT_FOUND: ERR_EXTRAFIELD_ZIP64_NOT_FOUND,
+		ERR_INVALID_AUTHENTICATION_CODE: ERR_INVALID_AUTHENTICATION_CODE,
 		ERR_INVALID_COMPRESSED_DATA: ERR_INVALID_COMPRESSED_DATA,
+		ERR_INVALID_CRC32: ERR_INVALID_CRC32,
 		ERR_INVALID_PASSWORD: ERR_INVALID_PASSWORD,
 		ERR_INVALID_SIGNATURE: ERR_INVALID_SIGNATURE,
 		ERR_INVALID_UNCOMPRESSED_SIZE: ERR_INVALID_UNCOMPRESSED_SIZE,
