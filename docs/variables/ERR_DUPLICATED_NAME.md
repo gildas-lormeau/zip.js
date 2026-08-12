@@ -8,6 +8,6 @@
 
 > `const` **ERR\_DUPLICATED\_NAME**: `string`
 
-Defined in: [index.d.ts:2968](https://github.com/gildas-lormeau/zip.js/blob/145e5bdb1e7cc78e96edfd9a84ad855c74dc6273/index.d.ts#L2968)
+Defined in: [index.d.ts:3041](https://github.com/gildas-lormeau/zip.js/blob/7098a57e0b1c6131a5cdca7e2f7570ef2bfa1c95/index.d.ts#L3041)
 
 Duplicate entry error

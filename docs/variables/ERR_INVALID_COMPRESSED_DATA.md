@@ -8,7 +8,7 @@
 
 > `const` **ERR\_INVALID\_COMPRESSED\_DATA**: `string`
 
-Defined in: [index.d.ts:2960](https://github.com/gildas-lormeau/zip.js/blob/145e5bdb1e7cc78e96edfd9a84ad855c74dc6273/index.d.ts#L2960)
+Defined in: [index.d.ts:3033](https://github.com/gildas-lormeau/zip.js/blob/7098a57e0b1c6131a5cdca7e2f7570ef2bfa1c95/index.d.ts#L3033)
 
 Invalid compressed data error
 
@@ -21,5 +21,5 @@ decompress the valid data and ignore the extra bytes, but are rejected by the
 native `DecompressionStream` with its own `TypeError` (on Node,
 `ERR_TRAILING_JUNK_AFTER_STREAM_END`) rather than this error. Any data that is
 returned is always validated against the entry's uncompressed size (and CRC
-when `checkSignature` is set), so it is never silently truncated; the backends
+when `checkCrc32` is set), so it is never silently truncated; the backends
 differ only in whether trailing bytes are ignored or raised as an error.
