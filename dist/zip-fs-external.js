@@ -1462,7 +1462,7 @@ let DERIVE_BITS_SUPPORTED = CRYPTO_API_SUPPORTED && SUBTLE_API_SUPPORTED && type
 
 class AESDecryptionStream extends TransformStream {
 
-	constructor({ password, rawPassword, encryptionStrength, checkPasswordOnly }) {
+	constructor({ password, rawPassword, encryptionStrength, checkPasswordOnly, checkAuthenticationCode = true }) {
 		super({
 			start() {
 				initAesCrypto(this, password, rawPassword, encryptionStrength);
@@ -1512,7 +1512,7 @@ class AESDecryptionStream extends TransformStream {
 					for (let indexSignature = 0; indexSignature < SIGNATURE_LENGTH; indexSignature++) {
 						invalidSignature |= signature[indexSignature] ^ originalSignature[indexSignature];
 					}
-					if (invalidSignature) {
+					if (invalidSignature && checkAuthenticationCode) {
 						throw new Error(ERR_INVALID_SIGNATURE);
 					}
 					controller.enqueue(decryptedChunkArray);
@@ -1964,14 +1964,14 @@ class DeflateStream extends TransformStream {
 
 	constructor(options, { chunkSize, CompressionStreamZlib, CompressionStream }) {
 		super({});
-		const { compressed, encrypted, useCompressionStream, zipCrypto, signed, level, deflate64, format, compressionMethod } = options;
+		const { compressed, encrypted, useCompressionStream, zipCrypto, computeCrc32, level, deflate64, format, compressionMethod } = options;
 		const stream = this;
 		let crc32Stream, encryptionStream, gzipCrc32Stream;
 		let readable = super.readable;
 		const codecStreams = format && getCodecStreams(format);
-		const useGzipCrc32 = signed && compressed && !deflate64 && !codecStreams && (!encrypted || zipCrypto) &&
+		const useGzipCrc32 = computeCrc32 && compressed && !deflate64 && !codecStreams && (!encrypted || zipCrypto) &&
 			Boolean(useCompressionStream && CompressionStream);
-		if ((!encrypted || zipCrypto) && signed && !useGzipCrc32) {
+		if ((!encrypted || zipCrypto) && computeCrc32 && !useGzipCrc32) {
 			crc32Stream = new Crc32Stream();
 			readable = pipeThrough(readable, crc32Stream);
 		}
@@ -2010,7 +2010,7 @@ class DeflateStream extends TransformStream {
 			if (encrypted && !zipCrypto) {
 				signature = encryptionStream.signature;
 			}
-			if ((!encrypted || zipCrypto) && signed) {
+			if ((!encrypted || zipCrypto) && computeCrc32) {
 				signature = useGzipCrc32 ? gzipCrc32Stream.signature : new DataView(crc32Stream.value.buffer).getUint32(0);
 			}
 			stream.signature = signature;
@@ -2133,7 +2133,7 @@ class InflateStream extends TransformStream {
 
 	constructor(options, { chunkSize, DecompressionStreamZlib, DecompressionStream }) {
 		super({});
-		const { zipCrypto, encrypted, signed, signature, compressed, useCompressionStream, deflate64, format, compressionMethod, rawBitFlag, outputSize } = options;
+		const { zipCrypto, encrypted, checkCrc32, signature, compressed, useCompressionStream, deflate64, format, compressionMethod, rawBitFlag, outputSize } = options;
 		let crc32Stream, decryptionStream;
 		let readable = super.readable;
 		if (encrypted) {
@@ -2166,12 +2166,12 @@ class InflateStream extends TransformStream {
 			}
 			readable = mapInflateStreamError(readable);
 		}
-		if ((!encrypted || zipCrypto) && signed) {
+		if ((!encrypted || zipCrypto) && checkCrc32) {
 			crc32Stream = new Crc32Stream();
 			readable = pipeThrough(readable, crc32Stream);
 		}
 		setReadable(this, readable, () => {
-			if ((!encrypted || zipCrypto) && signed) {
+			if ((!encrypted || zipCrypto) && checkCrc32) {
 				const dataViewSignature = new DataView(crc32Stream.value.buffer);
 				if (signature != dataViewSignature.getUint32(0, false)) {
 					throw new Error(ERR_INVALID_SIGNATURE);
@@ -3069,7 +3069,7 @@ let indexWorker = 0;
 
 async function runWorker(stream, workerOptions) {
 	const { options, config } = workerOptions;
-	const { transferStreams, useWebWorkers, useCompressionStream, compressed, signed, encrypted, format, codecURI } = options;
+	const { transferStreams, useWebWorkers, useCompressionStream, compressed, checkCrc32, computeCrc32, encrypted, format, codecURI } = options;
 	const { workerURI, maxWorkers } = config;
 	if (format) {
 		if (codecURI) {
@@ -3078,7 +3078,7 @@ async function runWorker(stream, workerOptions) {
 		await ensureCodecStreams(format, options.codecURI);
 	}
 	workerOptions.transferStreams = transferStreams || (transferStreams === UNDEFINED_VALUE && config.transferStreams);
-	const streamCopy = !compressed && !signed && !encrypted;
+	const streamCopy = !compressed && !checkCrc32 && !computeCrc32 && !encrypted;
 	const workerSupported = format === UNDEFINED_VALUE || Boolean(options.codecURI);
 	workerOptions.useWebWorkers = !streamCopy && workerSupported && (useWebWorkers || (useWebWorkers === UNDEFINED_VALUE && config.useWebWorkers));
 	workerOptions.workerURI = workerOptions.useWebWorkers && workerURI ? workerURI : UNDEFINED_VALUE;
@@ -4302,6 +4302,7 @@ const PROPERTY_NAME_DIRECTORY = "directory";
 const PROPERTY_NAME_EXECUTABLE = "executable";
 const PROPERTY_NAME_COMPRESSION_METHOD = "compressionMethod";
 const PROPERTY_NAME_SIGNATURE = "signature";
+const PROPERTY_NAME_CRC32 = "crc32";
 const PROPERTY_NAME_EXTRA_FIELD = "extraField";
 const PROPERTY_NAME_EXTRA_FIELD_INFOZIP = "extraFieldInfoZip";
 const PROPERTY_NAME_EXTRA_FIELD_UNIX = "extraFieldUnix";
@@ -4350,6 +4351,7 @@ const PROPERTY_NAMES = [
 	PROPERTY_NAME_EXECUTABLE,
 	PROPERTY_NAME_COMPRESSION_METHOD,
 	PROPERTY_NAME_SIGNATURE,
+	PROPERTY_NAME_CRC32,
 	PROPERTY_NAME_EXTRA_FIELD,
 	PROPERTY_NAME_EXTRA_FIELD_UNIX,
 	PROPERTY_NAME_EXTRA_FIELD_INFOZIP,
@@ -4421,6 +4423,8 @@ const OPTION_CHECK_OVERLAPPING_ENTRY_ONLY = "checkOverlappingEntryOnly";
 const OPTION_CHECK_OVERLAPPING_ENTRY = "checkOverlappingEntry";
 const OPTION_CHECK_AMBIGUITY = "checkAmbiguity";
 const OPTION_CHECK_SIGNATURE = "checkSignature";
+const OPTION_CHECK_CRC32 = "checkCrc32";
+const OPTION_CHECK_AUTHENTICATION_CODE = "checkAuthenticationCode";
 const OPTION_USE_WEB_WORKERS = "useWebWorkers";
 const OPTION_USE_COMPRESSION_STREAM = "useCompressionStream";
 const OPTION_TRANSFER_STREAMS = "transferStreams";
@@ -4492,6 +4496,7 @@ const CHARSET_UTF8 = "utf-8";
 const PROPERTY_NAME_UTF8_SUFFIX = "UTF8";
 const CHARSET_CP437 = "cp437";
 const BITFLAG_AMBIGUITY_MASK = BITFLAG_ENCRYPTED | BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
+const VENDOR_VERSION_AE_1 = 1;
 const ZIP64_PROPERTIES = [
 	[PROPERTY_NAME_UNCOMPRESSED_SIZE, MAX_32_BITS],
 	[PROPERTY_NAME_COMPRESSED_SIZE, MAX_32_BITS],
@@ -4971,6 +4976,10 @@ let ZipEntry$1 = class ZipEntry {
 		if (deflate64) {
 			useCompressionStream = false;
 		}
+		const checkCrc32Option = getOptionValue$1(zipEntry, options, OPTION_CHECK_CRC32);
+		const checkCrc32 = (checkCrc32Option === UNDEFINED_VALUE ?
+			getOptionValue$1(zipEntry, options, OPTION_CHECK_SIGNATURE) :
+			checkCrc32Option) && !passThrough;
 		const workerOptions = {
 			options: {
 				codecType: CODEC_INFLATE,
@@ -4978,7 +4987,8 @@ let ZipEntry$1 = class ZipEntry {
 				rawPassword,
 				zipCrypto,
 				encryptionStrength: extraFieldAES && extraFieldAES.strength,
-				signed: getOptionValue$1(zipEntry, options, OPTION_CHECK_SIGNATURE) && !passThrough,
+				checkCrc32,
+				checkAuthenticationCode: getOptionValue$1(zipEntry, options, OPTION_CHECK_AUTHENTICATION_CODE),
 				passwordVerification: zipCrypto && (dataDescriptor ? ((rawLastModDate >>> 8) & MAX_8_BITS) : ((signature >>> 24) & MAX_8_BITS)),
 				outputSize: passThrough ? compressedSize : uncompressedSize,
 				signature,
@@ -5094,6 +5104,7 @@ function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory
 	const compressionMethod = getUint16(dataView, offset + 4);
 	Object.assign(directory, {
 		signature: getUint32(dataView, offset + HEADER_OFFSET_SIGNATURE),
+		crc32: getUint32(dataView, offset + HEADER_OFFSET_SIGNATURE),
 		compressedSize: getUint32(dataView, offset + HEADER_OFFSET_COMPRESSED_SIZE),
 		uncompressedSize: getUint32(dataView, offset + HEADER_OFFSET_UNCOMPRESSED_SIZE)
 	});
@@ -5195,6 +5206,9 @@ function readExtraFieldAES(extraFieldAES, directory, compressionMethod) {
 		compressionMethod: getUint16(extraFieldView, 5)
 	});
 	directory.compressionMethod = extraFieldAES.compressionMethod;
+	if (extraFieldAES.vendorVersion != VENDOR_VERSION_AE_1) {
+		directory.crc32 = UNDEFINED_VALUE;
+	}
 }
 
 function readExtraFieldNTFS(extraFieldNTFS, directory) {
@@ -6521,9 +6535,12 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		msdosAttributes
 	};
 	let {
-		signature,
+		crc32: signature,
 		uncompressedSize
 	} = options;
+	if (signature === UNDEFINED_VALUE) {
+		({ signature } = options);
+	}
 	let compressedSize = 0;
 	if (!passThrough) {
 		uncompressedSize = 0;
@@ -6541,7 +6558,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 				encryptionStrength,
 				zipCrypto: encrypted && zipCrypto,
 				passwordVerification: encrypted && zipCrypto && (rawLastModDate >> 8) & MAX_8_BITS,
-				signed: !passThrough,
+				computeCrc32: !passThrough,
 				compressed: compressed && !passThrough,
 				encrypted: encrypted && !passThrough,
 				useWebWorkers,
@@ -6599,6 +6616,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		headerArray,
 		headerView,
 		signature,
+		crc32: encrypted && !zipCrypto ? UNDEFINED_VALUE : signature,
 		extraFieldExtendedTimestampFlag,
 		zip64UncompressedSize,
 		zip64CompressedSize

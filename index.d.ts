@@ -1177,7 +1177,24 @@ export interface ZipReaderOptions {
    */
   checkPasswordOnly?: boolean;
   /**
-   * `true` to check the signature of the entry.
+   * `true` to verify the CRC-32 checksum of the entry against the value stored in the zip file. The verification
+   * is run on the decompressed data and covers the whole read pipeline. Entries encrypted with AES store a zeroed
+   * CRC-32 value when written in AE-2 format, the verification is skipped for these entries.
+   *
+   * @defaultValue false
+   */
+  checkCrc32?: boolean;
+  /**
+   * `true` to verify the authentication code of entries encrypted with AES. The verification detects encrypted
+   * data tampered or corrupted after the encryption.
+   *
+   * @defaultValue true
+   */
+  checkAuthenticationCode?: boolean;
+  /**
+   * `true` to check the CRC-32 checksum of the entry.
+   *
+   * @deprecated Use {@link ZipReaderOptions#checkCrc32} instead.
    *
    * @defaultValue false
    */
@@ -1320,7 +1337,13 @@ export interface LocalDirectory {
    */
   extraField?: Map<number, EntryExtraField>;
   /**
+   * The CRC-32 checksum of the content.
+   */
+  crc32?: number;
+  /**
    * The signature (CRC32 checksum) of the content.
+   *
+   * @deprecated Use {@link LocalDirectory#crc32} instead.
    */
   signature?: number;
   /**
@@ -1462,7 +1485,14 @@ export interface EntryMetaData {
    */
   commentUTF8: boolean;
   /**
+   * The CRC-32 checksum of the content. It is `undefined` when the zip file does not store it, e.g. for entries
+   * encrypted with AES in AE-2 format.
+   */
+  crc32?: number;
+  /**
    * The signature (CRC32 checksum) of the content.
+   *
+   * @deprecated Use {@link EntryMetaData#crc32} instead.
    */
   signature: number;
   /**
@@ -1936,7 +1966,13 @@ export interface ZipWriterAddDataOptions
    */
   uncompressedSize?: number;
   /**
+   * The CRC-32 checksum of the content. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
+   */
+  crc32?: number;
+  /**
    * The signature (CRC32 checksum) of the content. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
+   *
+   * @deprecated Use {@link ZipWriterAddDataOptions#crc32} instead.
    */
   signature?: number;
 }
@@ -2954,7 +2990,7 @@ export const ERR_INVALID_UNCOMPRESSED_SIZE: string;
  * native `DecompressionStream` with its own `TypeError` (on Node,
  * `ERR_TRAILING_JUNK_AFTER_STREAM_END`) rather than this error. Any data that is
  * returned is always validated against the entry's uncompressed size (and CRC
- * when `checkSignature` is set), so it is never silently truncated; the backends
+ * when `checkCrc32` is set), so it is never silently truncated; the backends
  * differ only in whether trailing bytes are ignored or raised as an error.
  */
 export const ERR_INVALID_COMPRESSED_DATA: string;
