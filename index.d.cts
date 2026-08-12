@@ -2008,9 +2008,13 @@ export interface ZipWriterAddDataOptions
    */
   comment?: string;
   /**
-   * The extra field of the entry.
+   * The extra field of the entry, written in the local file header and the central directory.
    */
   extraField?: Map<number, Uint8Array>;
+  /**
+   * The extra field of the entry written only in the local file header.
+   */
+  localExtraField?: Map<number, Uint8Array>;
   /**
    * The uncompressed size of the entry. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
    */

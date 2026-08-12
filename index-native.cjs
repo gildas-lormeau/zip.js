@@ -4420,6 +4420,7 @@ const OPTION_ENCODE_TEXT = "encodeText";
 const OPTION_OFFSET = "offset";
 const OPTION_USDZ = "usdz";
 const OPTION_UNIX_EXTRA_FIELD_TYPE = "unixExtraFieldType";
+const OPTION_LOCAL_EXTRA_FIELD = "localExtraField";
 const OPTION_STRICTNESS = "strictness";
 const OPTION_MAX_APPENDED_DATA_SIZE = "maxAppendedDataSize";
 const STRICTNESS_STRICT = "strict";
@@ -6149,27 +6150,8 @@ function resolveMetadata(zipWriter, name, options) {
 	if (!zipCrypto && (password !== UNDEFINED_VALUE || rawPassword !== UNDEFINED_VALUE) && !(encryptionStrength >= 1 && encryptionStrength <= 3)) {
 		throw new Error(ERR_INVALID_ENCRYPTION_STRENGTH);
 	}
-	let rawExtraField = EMPTY_UINT8_ARRAY;
-	const extraField = options[PROPERTY_NAME_EXTRA_FIELD];
-	if (extraField) {
-		let extraFieldSize = 0;
-		let offset = 0;
-		extraField.forEach(data => extraFieldSize += 4 + getLength(data));
-		rawExtraField = new Uint8Array(extraFieldSize);
-		const rawExtraFieldView = getDataView(rawExtraField);
-		extraField.forEach((data, type) => {
-			if (type > MAX_16_BITS) {
-				throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
-			}
-			if (getLength(data) > MAX_16_BITS) {
-				throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
-			}
-			setUint16(rawExtraFieldView, offset, type);
-			setUint16(rawExtraFieldView, offset + 2, getLength(data));
-			arraySet(rawExtraField, data, offset + 4);
-			offset += 4 + getLength(data);
-		});
-	}
+	const rawExtraField = serializeExtraField(options[PROPERTY_NAME_EXTRA_FIELD]);
+	const rawLocalExtraField = serializeExtraField(options[OPTION_LOCAL_EXTRA_FIELD]);
 	return {
 		comment,
 		resolvedOptions: {
@@ -6203,9 +6185,34 @@ function resolveMetadata(zipWriter, name, options) {
 			useCompressionStream,
 			dataDescriptor,
 			zip64,
-			rawExtraField
+			rawExtraField,
+			rawLocalExtraField
 		}
 	};
+}
+
+function serializeExtraField(extraField) {
+	if (!extraField) {
+		return EMPTY_UINT8_ARRAY;
+	}
+	let extraFieldSize = 0;
+	let offset = 0;
+	extraField.forEach(data => extraFieldSize += 4 + getLength(data));
+	const rawExtraField = new Uint8Array(extraFieldSize);
+	const rawExtraFieldView = getDataView(rawExtraField);
+	extraField.forEach((data, type) => {
+		if (type > MAX_16_BITS) {
+			throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
+		}
+		if (getLength(data) > MAX_16_BITS) {
+			throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
+		}
+		setUint16(rawExtraFieldView, offset, type);
+		setUint16(rawExtraFieldView, offset + 2, getLength(data));
+		arraySet(rawExtraField, data, offset + 4);
+		offset += 4 + getLength(data);
+	});
+	return rawExtraField;
 }
 
 async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, options) {
@@ -6636,6 +6643,7 @@ function getHeaderInfo(options) {
 		dataDescriptor,
 		directory,
 		rawExtraField,
+		rawLocalExtraField,
 		encryptionStrength,
 		extendedTimestamp,
 		ntfsTimestamp,
@@ -6773,7 +6781,7 @@ function getHeaderInfo(options) {
 		compressionMethod = COMPRESSION_METHOD_AES;
 	}
 	const localExtraFieldZip64Length = writeLocalExtraFieldZip64 ? getLength(rawLocalExtraFieldZip64) : 0;
-	const extraFieldLength = localExtraFieldZip64Length + getLength(rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
+	const extraFieldLength = localExtraFieldZip64Length + getLength(rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField, rawLocalExtraField);
 	if (extraFieldLength > MAX_16_BITS) {
 		throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
 	}
@@ -6807,6 +6815,7 @@ function getHeaderInfo(options) {
 	localHeader.bytes(rawExtraFieldNTFS);
 	localHeader.bytes(rawExtraFieldUnix);
 	localHeader.bytes(rawExtraField);
+	localHeader.bytes(rawLocalExtraField);
 	if (dataDescriptor) {
 		if (!zip64CompressedSize) {
 			setUint32(localHeaderView, HEADER_OFFSET_COMPRESSED_SIZE + LOCAL_HEADER_COMMON_OFFSET, 0);

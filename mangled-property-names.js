@@ -92,6 +92,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"rawExtraFieldNTFS",
 	"rawExtraFieldUnix",
 	"rawExtraFieldZip64",
+	"rawLocalExtraField",
 	"readRanges",
 	"readers",
 	"rejectResult",
