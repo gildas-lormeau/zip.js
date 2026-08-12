@@ -111,6 +111,10 @@
 			<li>Reading and writing Zip64 files requires Safari 15 or higher.</li>
 			<li>AES encryption and decryption rely on the Web Crypto API, only available in secure contexts (HTTPS)
 				in browsers and exposed globally since version 19 in Node.js.</li>
+			<li>Entries encrypted with AES are written in the AE-2 format: the CRC-32 checksum of the content is not
+				stored, so the zip file does not reveal anything about the encrypted content that could be used to
+				verify guessed data without the password. The integrity of the data is guaranteed by the
+				authentication code instead.</li>
 			<li>The WebAssembly builds require, on pages with a Content Security Policy, the
 				<code>'wasm-unsafe-eval'</code> source (<code>'wasm-eval'</code> in extensions on Chromium 102 and
 				older). Without it, zip.js falls back on the Compression Streams API. Use the "native" builds
