@@ -176,7 +176,7 @@ export default ([
 	{ title: "Wrapped zip file", script: "./test-wrapped.js" },
 	{ title: "Writable Stream", script: "./test-writable-stream.js" },
 	{ title: "Zip Streams", script: "./test-zip-streams.js" },
-	{ title: "Zip64 (auto)", script: "./test-zip64-auto.js", env: ["deno", "browser"] },
+	{ title: "Zip64 (auto)", script: "./test-zip64-auto.js", env: ["deno", "bun"] },
 	{ title: "Zip64 (buffered, no data descriptor)", script: "./test-zip64-buffered-no-data-descriptor.js" },
 	{ title: "Zip64 (buffered)", script: "./test-zip64-buffered.js" },
 	{ title: "Zip64 crypto", script: "./test-zip64-crypto.js" },
