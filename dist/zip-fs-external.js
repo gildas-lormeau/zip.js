@@ -5626,6 +5626,8 @@ const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
 const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 const MIN_UNIX_TIME = -2147483648;
 const MAX_UNIX_TIME = 2147483647;
+const MIN_NTFS_TIME = BigInt(0);
+const MAX_NTFS_TIME = BigInt("0xffffffffffffffff");
 const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (set the 'zip64' option to 'true')";
 const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
 const ERR_UNDEFINED_READER = "Undefined reader";
@@ -6697,8 +6699,8 @@ function getHeaderInfo(options) {
 				extraFieldNTFS.uint16(EXTRAFIELD_TYPE_NTFS_TAG1);
 				extraFieldNTFS.uint16(24);
 				extraFieldNTFS.uint64(lastModTimeNTFS);
-				extraFieldNTFS.uint64(getTimeNTFS(lastAccessDate) || lastModTimeNTFS);
-				extraFieldNTFS.uint64(getTimeNTFS(creationDate) || lastModTimeNTFS);
+				extraFieldNTFS.uint64(lastAccessDate ? getTimeNTFS(lastAccessDate) : lastModTimeNTFS);
+				extraFieldNTFS.uint64(creationDate ? getTimeNTFS(creationDate) : lastModTimeNTFS);
 				rawExtraFieldNTFS = extraFieldNTFS.array;
 			} catch {
 				rawExtraFieldNTFS = EMPTY_UINT8_ARRAY;
@@ -7267,7 +7269,8 @@ async function flushBufferedData(readable, writer, signal, onChunkWritten) {
 
 function getTimeNTFS(date) {
 	if (date) {
-		return ((BigInt(date.getTime()) + BigInt(11644473600000)) * BigInt(10000));
+		const timeNTFS = ((BigInt(date.getTime()) + BigInt(11644473600000)) * BigInt(10000));
+		return timeNTFS < MIN_NTFS_TIME ? MIN_NTFS_TIME : timeNTFS > MAX_NTFS_TIME ? MAX_NTFS_TIME : timeNTFS;
 	}
 }
 

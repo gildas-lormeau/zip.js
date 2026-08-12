@@ -7,6 +7,10 @@ const FILENAME = "lorem.txt";
 const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 const IN_RANGE_DATE = new Date(2021, 0, 1, 12, 30, 20);
 const OUT_OF_RANGE_DATE = new Date(2040, 4, 15, 12, 30, 20);
+const ANCIENT_DATE = new Date(1500, 0, 1);
+const MAX_JS_DATE = new Date(8640000000000000);
+const MIN_NTFS_DATE_TIME = -11644473600000;
+const MAX_NTFS_DATE_TIME = Number((BigInt("0xffffffffffffffff") / BigInt(10000)) - BigInt(11644473600000));
 
 export { test };
 
@@ -32,6 +36,18 @@ async function test() {
 	}
 	const disabledEntry = await writeAndReadEntry({ lastModDate: IN_RANGE_DATE, creationDate: IN_RANGE_DATE, ntfsTimestamp: false });
 	if (disabledEntry.extraFieldNTFS || !disabledEntry.extraFieldExtendedTimestamp) {
+		throw new Error();
+	}
+	const ancientDateEntry = await writeAndReadEntry({ lastModDate: ANCIENT_DATE });
+	if (!ancientDateEntry.extraFieldNTFS || ancientDateEntry.lastModDate.getTime() != MIN_NTFS_DATE_TIME) {
+		throw new Error();
+	}
+	const maxDateEntry = await writeAndReadEntry({ lastModDate: MAX_JS_DATE });
+	if (!maxDateEntry.extraFieldNTFS || maxDateEntry.lastModDate.getTime() != MAX_NTFS_DATE_TIME) {
+		throw new Error();
+	}
+	const ancientAccessDateEntry = await writeAndReadEntry({ lastModDate: IN_RANGE_DATE, lastAccessDate: ANCIENT_DATE });
+	if (!ancientAccessDateEntry.extraFieldNTFS || ancientAccessDateEntry.extraFieldNTFS.lastAccessDate.getTime() != MIN_NTFS_DATE_TIME) {
 		throw new Error();
 	}
 	await zip.terminateWorkers();
