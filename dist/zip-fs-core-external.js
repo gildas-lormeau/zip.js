@@ -2855,9 +2855,12 @@ async function onMessage({ data }, workerData) {
 	const stale = () => workerData.generation != generation;
 	try {
 		if (error) {
-			const { message, stack, code, name, outputSize } = error;
+			const { message, stack, code, name, outputSize, cause } = error;
 			const responseError = new Error(message);
 			Object.assign(responseError, { stack, code, name, outputSize });
+			if (cause) {
+				responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
+			}
 			close(responseError);
 		} else {
 			if (type == MESSAGE_PULL) {
@@ -7754,7 +7757,7 @@ try {
 
 /* global TransformStream */
 
-let wasm, malloc, free, memory;
+let wasm, malloc, free, memory, initError;
 
 function setWasmExports(wasmAPI) {
 	wasm = wasmAPI;
@@ -7765,7 +7768,20 @@ function setWasmExports(wasmAPI) {
 	}
 }
 
+function setInitError(error) {
+	initError = error;
+}
+
+function resetWasmExports() {
+	wasm = malloc = free = memory = initError = null;
+}
+
 function _make(isCompress, type, options = {}) {
+	if (!wasm) {
+		const error = new Error("WASM module not loaded");
+		error.cause = initError;
+		throw error;
+	}
 	const level = (typeof options.level === "number") ? options.level : -1;
 	const outBufferSize = (typeof options.outBuffer === "number") ? options.outBuffer : 64 * 1024;
 	const inBufferSize = (typeof options.inBufferSize === "number") ? options.inBufferSize : 64 * 1024;
@@ -7976,30 +7992,40 @@ let initializedModule = false;
 
 async function initModule(wasmURI, { baseURI }) {
 	if (!initializedModule) {
-		let arrayBuffer, uri;
 		try {
-			try {
-				uri = new URL(wasmURI, baseURI);
-			} catch {
-				// ignored
-			}
-			const response = await fetch(uri);
-			arrayBuffer = await response.arrayBuffer();
+			await instantiateModule(wasmURI, baseURI);
+			initializedModule = true;
 		} catch (error) {
-			if (wasmURI.startsWith("data:application/wasm;base64,")) {
-				arrayBuffer = arrayBufferFromDataURI(wasmURI);
-			} else {
-				throw error;
-			}
+			setInitError(error);
+			throw error;
 		}
-		const wasmInstance = await WebAssembly.instantiate(arrayBuffer);
-		setWasmExports(wasmInstance.instance.exports);
-		initializedModule = true;
 	}
+}
+
+async function instantiateModule(wasmURI, baseURI) {
+	let arrayBuffer, uri;
+	try {
+		try {
+			uri = new URL(wasmURI, baseURI);
+		} catch {
+			// ignored
+		}
+		const response = await fetch(uri);
+		arrayBuffer = await response.arrayBuffer();
+	} catch (error) {
+		if (wasmURI.startsWith("data:application/wasm;base64,")) {
+			arrayBuffer = arrayBufferFromDataURI(wasmURI);
+		} else {
+			throw error;
+		}
+	}
+	const wasmInstance = await WebAssembly.instantiate(arrayBuffer);
+	setWasmExports(wasmInstance.instance.exports);
 }
 
 function resetWasmModule() {
 	initializedModule = false;
+	resetWasmExports();
 }
 
 function arrayBufferFromDataURI(dataURI) {
@@ -8052,8 +8078,10 @@ configureWorker({
 			if (typeof wasmURI == FUNCTION_TYPE) {
 				wasmURI = wasmURI();
 			}
-			modulePromise = initModule(wasmURI, config);
-
+			modulePromise = initModule(wasmURI, config).catch(error => {
+				modulePromise = null;
+				throw error;
+			});
 		}
 		return modulePromise;
 	}

@@ -34,6 +34,7 @@ export default ([
 	{ title: "Writer edge cases", script: "./test-writer-edge-cases.js" },
 	{ title: "Writer streaming backpressure", script: "./test-writer-backpressure.js" },
 	{ title: "Writer JS codec fallback on WASM load failure", script: "./test-writer-js-codec-fallback.js" },
+	{ title: "WASM module load error", script: "./test-wasm-module-error.js" },
 	{ title: "IO edge cases", script: "./test-io-edge-cases.js" },
 	{ title: "Blob", script: "./test-blob.js" },
 	{ title: "Comments", script: "./test-comments.js" },
