@@ -111,7 +111,6 @@ const MANGLED_PROPERTY_NAMES = [
 	"uint64",
 	"utf8",
 	"utf8String",
-	"vendorVersion",
 	"worker",
 	"workerAlive",
 	"workerOptions",
