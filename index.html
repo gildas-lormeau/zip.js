@@ -207,8 +207,10 @@
 			payloads from the main bundle. The worker also runs from a real file URL. This avoids
 			<code>blob:</code> restrictions on pages and browser extensions with a strict Content Security
 			Policy. With Vite, add <code>@zip.js/zip.js</code> to <code>optimizeDeps.exclude</code> to
-			resolve the assets during development. The prebuilt bundle <code>zip-fs-external.min.js</code>
-			offers the same behavior without a bundler, it resolves the two files from its own directory.
+			resolve the assets during development. With bundlers which do not rewrite
+			<code>new URL(..., import.meta.url)</code> expressions, copy the two files next to the output
+			bundle. The prebuilt bundle <code>zip-fs-external.min.js</code> offers the same behavior without
+			a bundler, it resolves the two files from its own directory: deploy the three files together.
 		</p>
 		<p>
 			Smaller compositions of this entry point are also available:
