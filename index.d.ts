@@ -2058,6 +2058,13 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   keepOrder?: boolean;
   /**
    * The password used to encrypt the content of the entry.
+   *
+   * @remarks
+   * When a password is set and the {@link ZipWriterConstructorOptions#zipCrypto} option is not set to `true`, the
+   * entry is encrypted in AES AE-2 format: the CRC-32 checksum of the content is stored as `0` so that the zip
+   * file reveals no information about the encrypted content. A stored checksum would allow an attacker to verify
+   * guessed content without knowing the password. The integrity of the data is guaranteed by the authentication
+   * code instead.
    */
   password?: string;
   /**
