@@ -58,8 +58,11 @@ async function test() {
 async function writeEntry(password) {
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter, { dataDescriptor: false });
-	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { password });
+	const entry = await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { password });
 	await zipWriter.close();
+	if (password && (entry.signature !== undefined || entry.crc32 !== undefined)) {
+		throw new Error();
+	}
 	return new Uint8Array(await (await blobWriter.getData()).arrayBuffer());
 }
 

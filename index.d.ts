@@ -1499,11 +1499,12 @@ export interface EntryMetaData {
    */
   crc32?: number;
   /**
-   * The signature (CRC32 checksum) of the content.
+   * The signature (CRC32 checksum) of the content. It is `undefined` for entries encrypted with AES returned by
+   * {@link ZipWriter#add}.
    *
    * @deprecated Use {@link EntryMetaData#crc32} instead.
    */
-  signature: number;
+  signature?: number;
   /**
    * The extra field.
    */

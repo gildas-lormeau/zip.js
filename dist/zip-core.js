@@ -6551,7 +6551,9 @@
 				writer.size += compressedSize;
 				if (!passThrough) {
 					uncompressedSize = result.inputSize;
-					signature = result.signature;
+					if (!encrypted || zipCrypto) {
+						signature = result.signature;
+					}
 				}
 				if ((!zip64CompressedSize && compressedSize >= MAX_32_BITS) ||
 					(!zip64UncompressedSize && uncompressedSize >= MAX_32_BITS)) {
