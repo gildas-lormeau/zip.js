@@ -33,6 +33,7 @@
 			<li>Support of PKWare DEFLATE64 decompression</li>
 			<li>Support of simultaneous reads and writes to one or more zip files</li>
 			<li>Integrated worker pool manager</li>
+			<li>Customizable web workers and compression engines</li>
 			<li>No third-party dependencies</li>
 		</ul>
 
@@ -85,8 +86,8 @@
 			</tr>
 			<tr>
 				<td>"core" builds: <code>lib/zip-core.js</code>, <code>lib/zip-core-reader.js</code>,
-					<code>lib/zip-core-writer.js</code>, <code>dist/zip-core.min.js</code>,
-					<code>dist/zip-fs-core.min.js</code></td>
+					<code>lib/zip-core-writer.js</code>, <code>lib/zip-core-custom.js</code>,
+					<code>dist/zip-core.min.js</code>, <code>dist/zip-fs-core.min.js</code></td>
 				<td>80</td>
 				<td>113</td>
 				<td>16.4</td>
@@ -104,8 +105,8 @@
 				implementation. The embedded WebAssembly module uses bulk memory operations, hence the higher
 				requirements of the WebAssembly builds compared to the "native" JavaScript builds.</li>
 			<li>Uncompressed entries only require the Streams API, i.e. Chrome 67, Firefox 102, Safari 14.1, and
-				Node.js 18, with any build. A worker script embedding the codecs passed via <code>workerURI</code>
-				also lifts the requirements of the "core" builds.</li>
+				Node.js 18, with any build. A worker script embedding the codecs, passed via <code>workerURI</code>
+				or created via <code>createWorker</code>, also lifts the requirements of the "core" builds.</li>
 			<li>Deflate64 decompression and custom compression <code>level</code> values require an embedded deflate
 				implementation, they are not available with the "core" builds.</li>
 			<li>Reading and writing Zip64 files requires Safari 15 or higher.</li>
@@ -199,7 +200,10 @@
 		<p>
 			Smaller entry points are also available, e.g. <code>@zip.js/zip.js/lib/zip-core.js</code> embeds
 			neither the Web Worker code nor the WebAssembly module, pass <code>workerURI</code> and
-			<code>wasmURI</code> to <code>configure()</code> instead. The prebuilt bundles in
+			<code>wasmURI</code> to <code>configure()</code> instead.
+			<code>@zip.js/zip.js/lib/zip-core-custom.js</code> goes further and embeds no deflate implementation
+			at all, cf. <a href="#custom-workers">Custom web workers and compression engines</a>. The prebuilt
+			bundles in
 			<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
 			are standalone files for script tags and AMD loaders, they are not tree-shaken.
 		</p>
@@ -259,6 +263,54 @@
 		<p>
 			The smaller entry points also have a "native" twin, e.g. <code>@zip.js/zip.js/lib/zip-core-native.js</code>
 			instead of <code>@zip.js/zip.js/lib/zip-core.js</code>. The "native" variant is not available on JSR.
+		</p>
+		<h2 id="custom-workers">Custom web workers and compression engines</h2>
+		<p>
+			The <code>createWorker</code> option of <code>configure()</code> lets you create the web workers
+			yourself, with the standard pattern below that bundlers like webpack and Vite detect statically to
+			compile the worker script and its imports into a separate asset. It takes precedence over
+			<code>workerURI</code>.
+		</p>
+		<pre><code class="prettyprint">import { configure } from "@zip.js/zip.js";
+
+configure({
+  createWorker: () => new Worker(new URL("./zip-worker.js", import.meta.url), { type: "module" })
+});</code></pre>
+		<p>
+			A custom worker script calls <code>initWorker()</code>, exposed by the
+			<code>@zip.js/zip.js/worker</code> entry point. It can register an alternative deflate
+			implementation: classes implementing the <code>CompressionStream</code> and
+			<code>DecompressionStream</code> interfaces with the <code>"deflate-raw"</code> format, e.g. based on
+			<a href="https://github.com/101arrowz/fflate">fflate</a>. See the complete example in the
+			<a href="api/functions/initWorker.html">API documentation of <code>initWorker()</code></a>.
+		</p>
+		<pre><code class="prettyprint">import { initWorker } from "@zip.js/zip.js/worker";
+import { CompressionStreamFallback, DecompressionStreamFallback } from "./fflate-streams.js";
+
+initWorker({ CompressionStreamFallback, DecompressionStreamFallback });</code></pre>
+		<p>
+			The <code>@zip.js/zip.js/lib/zip-core-custom.js</code> entry point is designed for this use case: it
+			offers the full API but embeds neither the web worker code nor any deflate implementation. Combined
+			with <code>createWorker</code>, the compression engine of your choice then ships only once, in the
+			worker script. In a test with fflate, the application bundle and the worker script weighed
+			approximately 115KB in total, 43KB gzipped, versus approximately 158KB, 72KB gzipped, for the default
+			entry point.
+		</p>
+		<pre><code class="prettyprint">import { configure } from "@zip.js/zip.js/lib/zip-core-custom.js";
+
+configure({
+  createWorker: () => new Worker(new URL("./zip-worker.js", import.meta.url), { type: "module" })
+});</code></pre>
+		<p>
+			The same classes can also be registered in the main thread via the
+			<code>CompressionStreamFallback</code> and <code>DecompressionStreamFallback</code> options of
+			<code>configure()</code>, e.g. when <code>useWebWorkers</code> is set to <code>false</code>. Like the
+			embedded implementation they replace, they are used when <code>useCompressionStream</code> is set to
+			<code>false</code> or when the Compression Streams API is unavailable. These options were previously
+			named <code>CompressionStreamZlib</code> and <code>DecompressionStreamZlib</code>, the old names are
+			deprecated but remain supported. The registered implementation also determines the support of custom
+			compression <code>level</code> values and, via the <code>"deflate64-raw"</code> format, of Deflate64
+			decompression.
 		</p>
 		<div class="footer">
 			Get the source code on GitHub : <a href="https://github.com/gildas-lormeau/zip.js">gildas-lormeau/zip.js</a>

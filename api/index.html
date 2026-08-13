@@ -12,8 +12,9 @@
 <p>zip.js is a JavaScript open-source library (BSD-3-Clause license) for
 compressing and decompressing zip files. It has been designed to handle large amounts
 of data. It supports notably multi-core compression, native compression with
-compression streams, archives larger than 4GB with Zip64, split zip files, data
-encryption, incremental writing, and Deflate64 decompression.</p>
+compression streams, pluggable compression engines, archives larger than 4GB
+with Zip64, split zip files, data encryption, incremental writing, and
+Deflate64 decompression.</p>
 <h1 id="demo" class="tsd-anchor-link">Demo<a href="#demo" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
 <p>See <a href="https://gildas-lormeau.github.io/zip-manager">https://gildas-lormeau.github.io/zip-manager</a></p>
 <h1 id="documentation" class="tsd-anchor-link">Documentation<a href="#documentation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
@@ -34,6 +35,18 @@ encryption, incremental writing, and Deflate64 decompression.</p>
 </code><button type="button">Copy</button></pre>
 
 <p>Run the code on Plunker: <a href="https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview">https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview</a></p>
+<h2 id="custom-web-workers-and-compression-engines" class="tsd-anchor-link">Custom web workers and compression engines<a href="#custom-web-workers-and-compression-engines" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>zip.js can create its web workers with the standard bundler pattern and
+delegate compression/decompression to a custom engine, e.g.
+<a href="https://github.com/101arrowz/fflate">fflate</a>:</p>
+<pre><code class="js"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">configure</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@zip.js/zip.js/lib/zip-core-custom.js&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-7">configure</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-7">createWorker</span><span class="hl-2">:</span><span class="hl-1"> () </span><span class="hl-5">=&gt;</span><span class="hl-1"> </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-7">Worker</span><span class="hl-1">(</span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-7">URL</span><span class="hl-1">(</span><span class="hl-3">&quot;./zip-worker.js&quot;</span><span class="hl-1">, </span><span class="hl-0">import</span><span class="hl-1">.</span><span class="hl-2">meta</span><span class="hl-1">.</span><span class="hl-2">url</span><span class="hl-1">), { </span><span class="hl-2">type:</span><span class="hl-1"> </span><span class="hl-3">&quot;module&quot;</span><span class="hl-1"> })</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
+
+<pre><code class="js"><span class="hl-4">// zip-worker.js</span><br/><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">initWorker</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;@zip.js/zip.js/worker&quot;</span><span class="hl-1">;</span><br/><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">CompressionStreamFallback</span><span class="hl-1">, </span><span class="hl-2">DecompressionStreamFallback</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;./fflate-streams.js&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-7">initWorker</span><span class="hl-1">({ </span><span class="hl-2">CompressionStreamFallback</span><span class="hl-1">, </span><span class="hl-2">DecompressionStreamFallback</span><span class="hl-1"> });</span>
+</code><button type="button">Copy</button></pre>
+
+<p>See <a href="https://gildas-lormeau.github.io/zip.js/#custom-workers">https://gildas-lormeau.github.io/zip.js/#custom-workers</a> for a complete
+guide.</p>
 <h2 id="tests" class="tsd-anchor-link">Tests<a href="#tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>See <a href="https://github.com/gildas-lormeau/zip.js/tree/master/tests/all">https://github.com/gildas-lormeau/zip.js/tree/master/tests/all</a></p>
 </div></div>
@@ -56,6 +69,7 @@ encryption, incremental writing, and Deflate64 decompression.</p>
 <li><a href="#hello-world"><span>Hello world</span></a></li>
 <li><a href="#hello-world-with-streams"><span>Hello world with <wbr/>Streams</span></a></li>
 <li><a href="#adding-concurrently-multiple-entries-in-a-zip-file"><span>Adding concurrently multiple entries in a zip file</span></a></li>
+<li><a href="#custom-web-workers-and-compression-engines"><span>Custom web workers and compression engines</span></a></li>
 <li><a href="#tests"><span>Tests</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="modules.html">@zip.js/zip.js</a>
