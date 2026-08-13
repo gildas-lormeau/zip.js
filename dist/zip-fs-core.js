@@ -3515,13 +3515,15 @@
 								} else {
 									webWorkerSupported = false;
 								}
-								const { reader } = workerData;
-								if (reader) {
-									reader.releaseLock();
-								}
-								workerData.reader = null;
-								workerData.writer = null;
+								releaseWorkerStreams(workerData);
 								return runWorker$1(workerData, config);
+							}
+							if (error && error.codecImportFailed) {
+								if (workerData.reader) {
+									releaseWorkerStreams(workerData);
+									return runWorker$1(workerData, config);
+								}
+								workerData.onTaskFinished();
 							}
 							throw error;
 						}
@@ -3657,6 +3659,15 @@
 		const closed = readable.pipeTo(writableSource, { preventClose: true, preventAbort: true, signal: abortController.signal });
 		closed.catch(() => { });
 		return { writable, closed, abortPipe: () => abortController.abort() };
+	}
+
+	function releaseWorkerStreams(workerData) {
+		const { reader } = workerData;
+		if (reader) {
+			reader.releaseLock();
+		}
+		workerData.reader = null;
+		workerData.writer = null;
 	}
 
 	function terminateWorker$1(workerData) {
@@ -3844,11 +3855,14 @@
 		const stale = () => workerData.generation != generation;
 		try {
 			if (error) {
-				const { message, stack, code, name, outputSize, cause } = error;
+				const { message, stack, code, name, outputSize, cause, codecImportFailed } = error;
 				const responseError = new Error(message);
 				Object.assign(responseError, { stack, code, name, outputSize });
 				if (cause) {
 					responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
+				}
+				if (codecImportFailed) {
+					responseError.codecImportFailed = true;
 				}
 				close(responseError);
 			} else {
@@ -3888,7 +3902,9 @@
 			if (writer) {
 				writer.releaseLock();
 			}
-			onTaskFinished();
+			if (!(error && error.codecImportFailed)) {
+				onTaskFinished();
+			}
 		}
 	}
 
@@ -3938,7 +3954,7 @@
 			}
 			await ensureCodecStreams(format, options.codecURI);
 		}
-		workerOptions.transferStreams = transferStreams || (transferStreams === UNDEFINED_VALUE && config.transferStreams);
+		workerOptions.transferStreams = !format && (transferStreams || (transferStreams === UNDEFINED_VALUE && config.transferStreams));
 		const streamCopy = !compressed && !checkCrc32 && !computeCrc32 && !encrypted;
 		const workerSupported = format === UNDEFINED_VALUE || Boolean(options.codecURI);
 		workerOptions.useWebWorkers = !streamCopy && workerSupported && (useWebWorkers || (useWebWorkers === UNDEFINED_VALUE && config.useWebWorkers));
