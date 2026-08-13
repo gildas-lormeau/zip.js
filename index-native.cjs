@@ -2886,7 +2886,7 @@ function getWebWorker(url, baseURI, workerData, isModuleType, useBlobURI = true)
 			try {
 				worker = new Worker(resolvedURI, resolvedOptions);
 			} catch (error) {
-				if (!isModuleType) {
+				if (isModuleType) {
 					return getWebWorker(url, baseURI, workerData, false, useBlobURI);
 				} else {
 					throw error;
