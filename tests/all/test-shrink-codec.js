@@ -1,4 +1,4 @@
-/* global URL, fetch, TextDecoder, Uint8Array */
+/* global URL, fetch, TextDecoder */
 
 import * as zip from "../zip-lib.js";
 import { unshrink } from "../vendor/unshrink.js";

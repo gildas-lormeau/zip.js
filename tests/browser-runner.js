@@ -1,5 +1,3 @@
-/* global process, setTimeout, URL */
-
 import { fileURLToPath } from "node:url";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";

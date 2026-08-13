@@ -1,4 +1,4 @@
-/* global Blob, TransformStream, Uint8Array, DataView, btoa, URL, fetch */
+/* global Blob, TransformStream, btoa, URL, fetch */
 
 import * as zip from "../zip-lib.js";
 

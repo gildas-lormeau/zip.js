@@ -35,7 +35,7 @@ async function main() {
 	} else if (op === "decompress") {
 		// Build the archive first (untimed) with the SAME library, then time only the read.
 		const { files } = loadFiles(workload);
-		const zipped = await buildArchive(adapter, files, opts);
+		const zipped = await buildArchive(adapter, files);
 		const t0 = performance.now();
 		result = await adapter.decompress(zipped, opts);
 		result.ms = performance.now() - t0;
@@ -55,7 +55,7 @@ async function main() {
 
 // Produce an in-memory archive to feed decompress(). zip.js returns a Uint8Array from close();
 // jszip/fflate return Uint8Array. archiver can't decompress so it never reaches here.
-async function buildArchive(adapter, files, opts) {
+async function buildArchive(adapter, files) {
 	if (adapter.name === "@zip.js/zip.js") {
 		const zip = await import("../index.js");
 		zip.configure({ useWebWorkers: false, useCompressionStream: true });

@@ -1,4 +1,4 @@
-/* global URL, fetch, Uint8Array */
+/* global URL, fetch */
 
 import * as zip from "../zip-lib.js";
 import { expand } from "../vendor/expand.js";

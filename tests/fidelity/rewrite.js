@@ -205,7 +205,7 @@ function planEntry(entry, leg) {
 	return { entry, name, options, mode };
 }
 
-function checkLocalDirectoryConsistency({ local, cd, index }, fail) {
+function checkLocalDirectoryConsistency({ local, cd }, fail) {
 	const fields = ["versionNeeded", "bitFlag", "compressionMethod", "rawLastModDate"];
 	for (const field of fields) {
 		if (local[field] != cd[field]) {

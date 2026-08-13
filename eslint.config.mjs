@@ -10,7 +10,8 @@ export default [
 			"lib/core/web-worker-inline-native.js",
 			"lib/core/web-worker-inline-wasm.js",
 			"lib/core/streams/zlib-js/zlib-streams.min.js",
-			"tests/vendor/*.js",
+			"tests/vendor/",
+			"tests/corpus/",
 			"index.cjs",
 			"index.min.js",
 			"index-native.cjs",
@@ -49,6 +50,34 @@ export default [
 			"no-console": [
 				"warn"
 			]
+		}
+	},
+	{
+		files: ["benchmarks/**/*.js", "benchmarks/**/*.mjs", "tests/browser-runner.js", "tests/fidelity/**/*.js"],
+		languageOptions: {
+			ecmaVersion: "latest",
+			globals: {
+				AbortSignal: "readonly",
+				Blob: "readonly",
+				Buffer: "readonly",
+				clearTimeout: "readonly",
+				CompressionStream: "readonly",
+				crypto: "readonly",
+				Deno: "readonly",
+				fetch: "readonly",
+				performance: "readonly",
+				process: "readonly",
+				ReadableStream: "readonly",
+				setTimeout: "readonly",
+				TextDecoder: "readonly",
+				TextEncoder: "readonly",
+				TransformStream: "readonly",
+				URL: "readonly",
+				Worker: "readonly"
+			}
+		},
+		rules: {
+			"no-console": "off"
 		}
 	}
 ];

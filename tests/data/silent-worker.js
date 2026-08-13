@@ -1,1 +1,3 @@
+/* global addEventListener */
+
 addEventListener("message", () => {});

@@ -20,8 +20,6 @@
 // matches let deflate skip ahead), where the CRC pass is a big fraction of a tiny total. Use the
 // real corpus, not repeated-string data, or the number is meaningless.
 
-/* global CompressionStream, Blob, process, Buffer */
-
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
