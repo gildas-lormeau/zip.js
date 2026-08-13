@@ -17,10 +17,8 @@
         const script = testData.script;
         (async () => {
             try {
-                if (testData.withStreamsPolyfill) {
-                    await import('../lib/web-streams-polyfill-prefix.js');
+                if (testData.withStreamsPolyfill && !globalThis.TransformStream) {
                     await import('../lib/web-streams-polyfill.js');
-                    await import('../lib/web-streams-polyfill-postfix.js');
                 }
                 const Module = await import(script);
                 const result = await Module.test();
