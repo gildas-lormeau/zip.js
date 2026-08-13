@@ -6,7 +6,7 @@
 
 # Interface: WritableWriter
 
-Defined in: [index.d.ts:847](https://github.com/gildas-lormeau/zip.js/blob/7ba4f706201f50288c5cdcca10c73dfd5e5471c6/index.d.ts#L847)
+Defined in: [index.d.ts:847](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L847)
 
 Represents an instance used to write data into a `WritableStream` instance.
 
@@ -16,7 +16,7 @@ Represents an instance used to write data into a `WritableStream` instance.
 
 > `optional` **maxSize?**: `number`
 
-Defined in: [index.d.ts:855](https://github.com/gildas-lormeau/zip.js/blob/7ba4f706201f50288c5cdcca10c73dfd5e5471c6/index.d.ts#L855)
+Defined in: [index.d.ts:855](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L855)
 
 The maximum size of split data when creating a [ZipWriter](../classes/ZipWriter.md) instance or when calling [FileEntry#getData](FileEntry.md#getdata) with a generator of WritableWriter instances.
 
@@ -26,6 +26,6 @@ The maximum size of split data when creating a [ZipWriter](../classes/ZipWriter.
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:851](https://github.com/gildas-lormeau/zip.js/blob/7ba4f706201f50288c5cdcca10c73dfd5e5471c6/index.d.ts#L851)
+Defined in: [index.d.ts:851](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L851)
 
 The `WritableStream` instance.
