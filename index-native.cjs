@@ -7615,7 +7615,7 @@ function createOPFSTempStream(options = {}) {
 
 		async function spillToFile() {
 			const directoryHandle = await getTempDirectory();
-			fileName = crypto.randomUUID();
+			fileName = getRandomFileName$1();
 			fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
 			fileWriter = (await fileHandle.createWritable()).getWriter();
 			spilled = true;
@@ -7694,6 +7694,13 @@ function createOPFSTempStream(options = {}) {
 
 		return { writable, readable, dispose };
 	};
+}
+
+function getRandomFileName$1() {
+	if (crypto.randomUUID) {
+		return crypto.randomUUID();
+	}
+	return Array.from(crypto.getRandomValues(new Uint8Array(16)), byteValue => byteValue.toString(16).padStart(2, "0")).join("");
 }
 
 /*
@@ -7879,7 +7886,7 @@ function createSyncAccessHandleTempStream(options = {}) {
 
 		async function spillToFile() {
 			const directoryHandle = await getTempDirectory();
-			fileName = crypto.randomUUID();
+			fileName = getRandomFileName();
 			const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
 			accessHandle = await fileHandle.createSyncAccessHandle();
 			spilled = true;
@@ -7957,6 +7964,13 @@ function createSyncAccessHandleTempStream(options = {}) {
 
 		return { writable, readable, dispose };
 	};
+}
+
+function getRandomFileName() {
+	if (crypto.randomUUID) {
+		return crypto.randomUUID();
+	}
+	return Array.from(crypto.getRandomValues(new Uint8Array(16)), byteValue => byteValue.toString(16).padStart(2, "0")).join("");
 }
 
 /*
