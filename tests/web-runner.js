@@ -6,8 +6,10 @@ const MAX_PARALLEL_TESTS = 16;
 const TEST_TIMEOUT = 120000;
 const LOADER_PATH = "/tests/all/loader.html#";
 
+const urlParams = new URLSearchParams(location.search);
 const browserTests = tests.filter(test => !test.env || test.env.includes("browser"));
-const keepTests = location.search.startsWith("?keepTests");
+const keepTests = urlParams.has('keepTests');
+const withStreamsPolyfill = urlParams.has('withStreamsPolyfill');
 const testResults = { done: false, total: browserTests.length, passed: 0, failures: [] };
 globalThis.testResults = testResults;
 
@@ -36,7 +38,7 @@ function startTest(test) {
 	const iframe = document.createElement("iframe");
 	link.textContent = test.title;
 	link.target = test.script;
-	link.href = iframe.src = LOADER_PATH + encodeURIComponent(JSON.stringify({ script: test.script }));
+	link.href = iframe.src = LOADER_PATH + encodeURIComponent(JSON.stringify({ script: test.script, withStreamsPolyfill }));
 	titleCell.appendChild(link);
 	frameCell.appendChild(iframe);
 	row.appendChild(titleCell);
