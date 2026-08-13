@@ -1874,6 +1874,8 @@
 	 */
 
 
+	const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
+
 	function toCompatibleReadable(readable) {
 		if (readable instanceof ReadableStream) {
 			return readable;
@@ -1892,6 +1894,29 @@
 				return reader.cancel(reason);
 			}
 		});
+	}
+
+	function streamToBlob(readable, contentType) {
+		readable = toCompatibleReadable(readable);
+		if (responseSupportsGlobalReadable()) {
+			const options = {};
+			if (contentType) {
+				options.headers = [[HTTP_HEADER_CONTENT_TYPE, contentType]];
+			}
+			return new Response(readable, options).blob();
+		}
+		const chunks = [];
+		return readable
+			.pipeTo(new WritableStream({
+				write(chunk) {
+					chunks.push(chunk);
+				}
+			}))
+			.then(() => new Blob(chunks, contentType ? { type: contentType } : {}));
+	}
+
+	function responseSupportsGlobalReadable() {
+		return typeof Blob.prototype.stream != FUNCTION_TYPE || new Blob([]).stream() instanceof ReadableStream;
 	}
 
 	function toCompatibleWritable(writable) {
@@ -3233,7 +3258,6 @@
 	const HTTP_HEADER_CONTENT_RANGE = "Content-Range";
 	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
 	const HTTP_HEADER_RANGE = "Range";
-	const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
 	const HTTP_HEADER_ETAG = "Etag";
 	const HTTP_HEADER_LAST_MODIFIED = "Last-Modified";
 	const HTTP_METHOD_HEAD = "HEAD";
@@ -3438,10 +3462,6 @@
 		}
 	}
 
-	function responseSupportsGlobalReadable() {
-		return typeof Blob.prototype.stream != FUNCTION_TYPE || new Blob([]).stream() instanceof ReadableStream;
-	}
-
 	class BlobWriter extends Stream {
 
 		constructor(contentType) {
@@ -3453,22 +3473,7 @@
 					return transformStream.writable;
 				}
 			});
-			if (responseSupportsGlobalReadable()) {
-				const headers = [];
-				if (contentType) {
-					headers.push([HTTP_HEADER_CONTENT_TYPE, contentType]);
-				}
-				writer.blob = new Response(transformStream.readable, { headers }).blob();
-			} else {
-				const chunks = [];
-				writer.blob = transformStream.readable
-					.pipeTo(new WritableStream({
-						write(chunk) {
-							chunks.push(chunk);
-						}
-					}))
-					.then(() => new Blob(chunks, { type: contentType }));
-			}
+			writer.blob = streamToBlob(transformStream.readable, contentType);
 			writer.blob.catch(() => { });
 		}
 
@@ -4542,7 +4547,7 @@
 			const { config } = zipReader;
 			await initStream(reader);
 			if (reader.size === UNDEFINED_VALUE || !reader.readUint8Array) {
-				reader = new BlobReader(await new Response(reader.readable).blob());
+				reader = new BlobReader(await streamToBlob(reader.readable));
 				await initStream(reader);
 			}
 			if (reader.size < END_OF_CENTRAL_DIR_LENGTH) {
@@ -4811,7 +4816,7 @@
 				entry.arrayBuffer = async options => {
 					const writer = new TransformStream();
 					const [arrayBuffer] = await Promise.all([
-						new Response(writer.readable).arrayBuffer(),
+						streamToBlob(writer.readable).then(blob => blob.arrayBuffer()),
 						fileEntry.getData(writer, entry, zipReader.readRanges, options)]);
 					return arrayBuffer;
 				};
@@ -7750,7 +7755,7 @@
 
 			async function spillToBlob() {
 				const transformStream = new TransformStream();
-				blobPromise = new Response(transformStream.readable).blob();
+				blobPromise = streamToBlob(transformStream.readable);
 				blobWriter = transformStream.writable.getWriter();
 				spilled = true;
 				for (const chunk of memoryChunks) {
