@@ -6,7 +6,7 @@
 
 # Interface: BlobTempStreamOptions
 
-Defined in: [index.d.ts:553](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L553)
+Defined in: [index.d.ts:553](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L553)
 
 Options for [createBlobTempStream](../functions/createBlobTempStream.md).
 
@@ -16,7 +16,7 @@ Options for [createBlobTempStream](../functions/createBlobTempStream.md).
 
 > `optional` **thresholdBytes?**: `number`
 
-Defined in: [index.d.ts:559](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L559)
+Defined in: [index.d.ts:559](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L559)
 
 Spill a buffered entry to a `Blob` once its buffered data exceeds this size, in bytes. Smaller entries stay in memory.
 
