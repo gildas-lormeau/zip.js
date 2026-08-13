@@ -1,9 +1,8 @@
-import replace from "@rollup/plugin-replace";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "url";
 import { generateMimeTypeData } from "./generate-mime-type-data.js";
-import { inlineWorker, deflatePayload } from "./rollup-plugin-inline-worker.js";
+import { inlineWorker, inlineBinary } from "./rollup-plugin-inline-worker.js";
 
 generateMimeTypeData();
 
@@ -53,11 +52,7 @@ export default [{
 	}],
 	plugins: [
 		copyWasmModule(),
-		replace({
-			preventAssignment: true,
-			"__wasmBinary__": () => deflatePayload(fs.readFileSync("lib/core/streams/zlib-wasm/zlib-streams.wasm"))
-		}),
-
+		inlineBinary()
 	]
 }, {
 	input: ["lib/zip-wasm.js"],

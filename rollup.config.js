@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 import { getReservedPropertyNames } from "./reserved-property-names.js";
 import { MANGLED_PROPERTY_NAMES } from "./mangled-property-names.js";
 import { generateMimeTypeData } from "./generate-mime-type-data.js";
-import { inlineWorker, deflatePayload } from "./rollup-plugin-inline-worker.js";
+import { inlineWorker, inlineBinary } from "./rollup-plugin-inline-worker.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -166,10 +166,7 @@ export default [{
 	plugins: [
 		copyWasmModule(),
 		copyCjsTypes(),
-		replace({
-			preventAssignment: true,
-			"__wasmBinary__": () => deflatePayload(fs.readFileSync("lib/core/streams/zlib-wasm/zlib-streams.wasm"))
-		}),
+		inlineBinary(),
 		terserMangler(bundledTerserOptions)
 	]
 }, {

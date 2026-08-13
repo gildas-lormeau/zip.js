@@ -1,12 +1,15 @@
 import { rollup } from "rollup";
 import { deflateRawSync } from "node:zlib";
+import { readFileSync } from "node:fs";
 import { Buffer } from "node:buffer";
 import { inflateRaw } from "./lib/core/util/inflate.js";
 
 const SPECIFIER_PREFIX = "inline-worker:";
 const RESOLVED_SPECIFIER_PREFIX = "\0" + SPECIFIER_PREFIX;
+const BINARY_SPECIFIER_PREFIX = "inline-binary:";
+const RESOLVED_BINARY_SPECIFIER_PREFIX = "\0" + BINARY_SPECIFIER_PREFIX;
 
-export { inlineWorker, deflatePayload };
+export { inlineWorker, inlineBinary, deflatePayload };
 
 function inlineWorker({ intro, createPlugins, deflate = true }) {
 	return {
@@ -38,6 +41,28 @@ function inlineWorker({ intro, createPlugins, deflate = true }) {
 				} finally {
 					await bundle.close();
 				}
+			}
+		}
+	};
+}
+
+function inlineBinary() {
+	return {
+		name: "inline-binary",
+		async resolveId(id, importer) {
+			if (id.startsWith(BINARY_SPECIFIER_PREFIX)) {
+				const resolved = await this.resolve(id.slice(BINARY_SPECIFIER_PREFIX.length), importer);
+				if (!resolved) {
+					this.error("cannot resolve " + JSON.stringify(id) + " from " + JSON.stringify(importer));
+				}
+				return RESOLVED_BINARY_SPECIFIER_PREFIX + resolved.id;
+			}
+		},
+		load(id) {
+			if (id.startsWith(RESOLVED_BINARY_SPECIFIER_PREFIX)) {
+				const file = id.slice(RESOLVED_BINARY_SPECIFIER_PREFIX.length);
+				this.addWatchFile(file);
+				return "export default " + JSON.stringify(deflatePayload(readFileSync(file))) + ";";
 			}
 		}
 	};
