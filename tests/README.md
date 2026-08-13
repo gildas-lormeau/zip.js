@@ -34,4 +34,4 @@ Optional fields in `tests/tests-data.js`:
 - `tests/fidelity`: read, rewrite and byte-compare harness, see [tests/fidelity/README.md](fidelity/README.md).
 - `tests/types`: TypeScript definitions test, run with `npm run test-types`.
 - `tests/vendor`: vendored third-party code used by the tests, ignored by the linters.
-- `tests/data`: zip files used as fixtures.
+- `tests/data`: fixtures, e.g. zip files, sample data and worker scripts.
