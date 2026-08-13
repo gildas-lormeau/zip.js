@@ -1,6 +1,7 @@
-/* global TransformStream, Blob, Response */
+/* global TransformStream */
 
 import * as zip from "../zip-lib.js";
+import { readableFromText, readTextFromReadable } from "../stream-helpers.js";
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam; est usus legentis in iis qui facit eorum claritatem. Investigationes demonstraverunt lectores legere me lius quod ii legunt saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium lectorum. Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.";
 const FILENAME_FIRST_ENTRY = "lorem1.txt";
@@ -13,8 +14,8 @@ async function test() {
 	const zipWriterStream = new zip.ZipWriterStream();
 	const transformStream = new TransformStream();
 	zipWriterStream.readable.pipeTo(transformStream.writable);
-	new Blob([TEXT_CONTENT]).stream().pipeTo(zipWriterStream.writable(FILENAME_FIRST_ENTRY));
-	new Blob([TEXT_CONTENT]).stream().pipeTo(zipWriterStream.writable(FILENAME_SECOND_ENTRY));
+	readableFromText(TEXT_CONTENT).pipeTo(zipWriterStream.writable(FILENAME_FIRST_ENTRY));
+	readableFromText(TEXT_CONTENT).pipeTo(zipWriterStream.writable(FILENAME_SECOND_ENTRY));
 	zipWriterStream.close();
 	const zipReaderStream = new zip.ZipReaderStream();
 	const entriesStream = transformStream.readable.pipeThrough(zipReaderStream);
@@ -22,17 +23,17 @@ async function test() {
 		const reader = entriesStream.getReader();
 		let entry;
 		while ((entry = await reader.read()) && !entry.done) {
-			const entryText = await new Response(entry.value.readable).text();
+			const entryText = await readTextFromReadable(entry.value.readable);
 			if (TEXT_CONTENT != entryText || entry.value.uncompressedSize != TEXT_CONTENT.length || entry.value.compressedSize <= 0) {
-				throw new Error();
+				throw new Error("unexpected entry content or sizes");
 			}
 		}
 		reader.releaseLock();
 	} else {
 		for await (const entry of entriesStream) {
-			const entryText = await new Response(entry.readable).text();
+			const entryText = await readTextFromReadable(entry.readable);
 			if (TEXT_CONTENT != entryText || entry.uncompressedSize != TEXT_CONTENT.length || entry.compressedSize <= 0) {
-				throw new Error();
+				throw new Error("unexpected entry content or sizes");
 			}
 		}
 	}
