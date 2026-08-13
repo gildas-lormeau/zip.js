@@ -10,38 +10,11 @@ import { generateMimeTypeData } from "./generate-mime-type-data.js";
 import { inlineWorker, inlineBinary } from "./rollup-plugin-inline-worker.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-function copyWasmModule() {
-	return {
-		name: "copy-wasm",
-		buildStart() {
-			const wasmSrc = path.resolve(__dirname, "lib/core/streams/zlib-wasm/zlib-streams.wasm");
-			const wasmDest = path.resolve(__dirname, "dist/zip-module.wasm");
-			try {
-				fs.copyFileSync(wasmSrc, wasmDest);
-			} catch (e) {
-				this.warn && this.warn("copy-wasm: failed to copy wasm file: " + e.message);
-			}
-		}
-	};
-}
-
-function copyCjsTypes() {
-	return {
-		name: "copy-cjs-types",
-		buildStart() {
-			const typesSrc = path.resolve(__dirname, "index.d.ts");
-			const typesDest = path.resolve(__dirname, "index.d.cts");
-			try {
-				fs.copyFileSync(typesSrc, typesDest);
-			} catch (e) {
-				this.warn && this.warn("copy-cjs-types: failed to copy declaration file: " + e.message);
-			}
-		}
-	};
-}
+const DEV = Boolean(process.env.DEV);
 
 generateMimeTypeData();
+fs.copyFileSync(path.resolve(__dirname, "lib/core/streams/zlib-wasm/zlib-streams.wasm"), path.resolve(__dirname, "dist/zip-module.wasm"));
+fs.copyFileSync(path.resolve(__dirname, "index.d.ts"), path.resolve(__dirname, "index.d.cts"));
 
 const reservedPropertyNames = getReservedPropertyNames();
 const MANGLED_PROPERTY_NAMES_PATH = path.resolve(__dirname, "mangled-property-names.js");
@@ -137,198 +110,109 @@ function externalAssetsReplace() {
 const GLOBALS = "const { Array, Object, String, Number, BigInt, Math, Date, Map, Set, Response, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, document, crypto, btoa, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream, navigator, Worker } = typeof globalThis !== 'undefined' ? globalThis : this || self;";
 const GLOBALS_WORKER = "const { Array, Object, Number, Math, Error, Uint8Array, Uint16Array, Uint32Array, Int32Array, Map, DataView, Promise, TextEncoder, crypto, postMessage, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream } = self;";
 
-export default [{
-	input: "lib/core/web-worker-inline-template.js",
-	output: [{
-		file: "lib/core/web-worker-inline-wasm.js",
-		format: "es"
-	}],
-	plugins: [
-		inlineWorker({ intro: GLOBALS_WORKER, deflate: false, createPlugins: () => [terserMangler(inlineTerserOptions)] }),
-		terserMangler(bundledTerserOptions)
-	]
-}, {
-	input: "lib/core/web-worker-inline-template-native.js",
-	output: [{
-		file: "lib/core/web-worker-inline-native.js",
-		format: "es"
-	}],
-	plugins: [
-		inlineWorker({ intro: GLOBALS_WORKER, createPlugins: () => [terser(inlineTerserOptions)] }),
-		terserMangler(bundledTerserOptions)
-	]
-}, {
-	input: "lib/core/zlib-streams-inline-template.js",
-	output: [{
-		file: "lib/core/zlib-streams-inline.js",
-		format: "es"
-	}],
-	plugins: [
-		copyWasmModule(),
-		copyCjsTypes(),
-		inlineBinary(),
-		terserMangler(bundledTerserOptions)
-	]
-}, {
-	input: ["lib/zip-wasm.js"],
-	output: [{
+function minPlugins(mangle) {
+	if (DEV) {
+		return [];
+	}
+	return [mangle ? terserMangler(bundledTerserOptions) : terser(bundledTerserOptions)];
+}
+
+function inlineWorkerEntry({ input, file, deflate, mangle }) {
+	const options = { intro: GLOBALS_WORKER, deflate };
+	if (!DEV) {
+		options.createPlugins = () => [mangle ? terserMangler(inlineTerserOptions) : terser(inlineTerserOptions)];
+	}
+	return {
+		input,
+		output: [{
+			file,
+			format: "es"
+		}],
+		plugins: [inlineWorker(options), ...minPlugins(true)]
+	};
+}
+
+function umdBundleEntry({ input, name, mangle, moduleFile }) {
+	const output = [{
 		intro: GLOBALS,
-		file: "dist/zip.min.js",
+		file: "dist/" + name + ".min.js",
 		format: "umd",
 		name: "zip",
-		plugins: [terserMangler(bundledTerserOptions)]
+		plugins: minPlugins(mangle)
 	}, {
 		intro: GLOBALS,
-		file: "dist/zip.js",
+		file: "dist/" + name + ".js",
 		format: "umd",
 		name: "zip"
-	}]
-}, {
-	input: ["lib/zip-native.js"],
-	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-native.min.js",
-		format: "umd",
-		name: "zip",
-		plugins: [terser(bundledTerserOptions)]
-	}, {
-		intro: GLOBALS,
-		file: "dist/zip-native.js",
-		format: "umd",
-		name: "zip"
-	}]
-}, {
-	input: ["lib/zip-legacy.js"],
-	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-legacy.min.js",
-		format: "umd",
-		name: "zip",
-		plugins: [terser(bundledTerserOptions)]
-	}, {
-		intro: GLOBALS,
-		file: "dist/zip-legacy.js",
-		format: "umd",
-		name: "zip"
-	}]
-}, {
-	input: ["lib/zip-core.js"],
-	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-core.min.js",
-		format: "umd",
-		name: "zip",
-		plugins: [terserMangler(bundledTerserOptions)]
-	}, {
-		intro: GLOBALS,
-		file: "dist/zip-core.js",
-		format: "umd",
-		name: "zip"
-	}]
-}, {
-	input: "lib/core/zip-fs.js",
-	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-fs-core.min.js",
-		format: "umd",
-		name: "zip",
-		plugins: [terserMangler(bundledTerserOptions)]
-	}, {
-		intro: GLOBALS,
-		file: "dist/zip-fs-core.js",
-		format: "umd",
-		name: "zip"
-	}]
-}, {
-	input: "lib/zip-fs-wasm.js",
-	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-fs.min.js",
-		format: "umd",
-		name: "zip",
-		plugins: [terserMangler(bundledTerserOptions)]
-	}, {
-		intro: GLOBALS,
-		file: "dist/zip-fs.js",
-		format: "umd",
-		name: "zip"
-	}, {
-		file: "index.cjs",
-		format: "cjs"
-	}, {
-		file: "index.min.js",
-		format: "es",
-		plugins: [terserMangler(bundledTerserOptions)]
-	}]
-}, {
-	input: "lib/zip-fs-native.js",
-	output: [{
-		intro: GLOBALS,
-		file: "dist/zip-fs-native.min.js",
-		format: "umd",
-		name: "zip",
-		plugins: [terser(bundledTerserOptions)]
-	}, {
-		intro: GLOBALS,
-		file: "dist/zip-fs-native.js",
-		format: "umd",
-		name: "zip"
-	}, {
-		file: "index-native.cjs",
-		format: "cjs"
-	}, {
-		file: "index-native.min.js",
-		format: "es",
-		plugins: [terser(bundledTerserOptions)]
-	}]
-}, {
-	input: "lib/zip-fs-external.js",
-	plugins: [externalAssetsReplace()],
-	output: [{
-		file: "dist/zip-fs-external.min.js",
-		format: "es",
-		plugins: [terserMangler(bundledTerserOptions)]
-	}, {
-		file: "dist/zip-fs-external.js",
-		format: "es"
-	}]
-}, {
-	input: "lib/zip-fs-core-external.js",
-	plugins: [externalAssetsReplace()],
-	output: [{
-		file: "dist/zip-fs-core-external.min.js",
-		format: "es",
-		plugins: [terserMangler(bundledTerserOptions)]
-	}, {
-		file: "dist/zip-fs-core-external.js",
-		format: "es"
-	}]
-}, {
-	input: "lib/zip-core-external.js",
-	plugins: [externalAssetsReplace()],
-	output: [{
-		file: "dist/zip-core-external.min.js",
-		format: "es",
-		plugins: [terserMangler(bundledTerserOptions)]
-	}, {
-		file: "dist/zip-core-external.js",
-		format: "es"
-	}]
-}, {
-	input: "lib/core/web-worker-wasm.js",
-	output: [{
-		intro: GLOBALS_WORKER,
-		file: "dist/zip-web-worker.js",
-		format: "iife",
-		plugins: [terserMangler(bundledTerserOptions)]
-	}]
-}, {
-	input: "lib/core/web-worker-native.js",
-	output: [{
-		intro: GLOBALS_WORKER,
-		file: "dist/zip-web-worker-native.js",
-		format: "iife",
-		plugins: [terser(bundledTerserOptions)]
-	}],
-	plugins: [checkMangledPropertyNames()]
-}];
+	}];
+	if (moduleFile) {
+		output.push({
+			file: moduleFile + ".cjs",
+			format: "cjs"
+		}, {
+			file: moduleFile + ".min.js",
+			format: "es",
+			plugins: minPlugins(mangle)
+		});
+	}
+	return { input, output };
+}
+
+function externalBundleEntry({ input, name }) {
+	return {
+		input,
+		plugins: [externalAssetsReplace()],
+		output: [{
+			file: "dist/" + name + ".min.js",
+			format: "es",
+			plugins: minPlugins(true)
+		}, {
+			file: "dist/" + name + ".js",
+			format: "es"
+		}]
+	};
+}
+
+function workerBundleEntry({ input, name, mangle }) {
+	return {
+		input,
+		output: [{
+			intro: GLOBALS_WORKER,
+			file: "dist/" + name + ".js",
+			format: "iife",
+			plugins: minPlugins(mangle)
+		}]
+	};
+}
+
+const config = [
+	inlineWorkerEntry({ input: "lib/core/web-worker-inline-template.js", file: "lib/core/web-worker-inline-wasm.js", deflate: false, mangle: true }),
+	inlineWorkerEntry({ input: "lib/core/web-worker-inline-template-native.js", file: "lib/core/web-worker-inline-native.js", deflate: true, mangle: false }),
+	{
+		input: "lib/core/zlib-streams-inline-template.js",
+		output: [{
+			file: "lib/core/zlib-streams-inline.js",
+			format: "es"
+		}],
+		plugins: [inlineBinary(), ...minPlugins(true)]
+	},
+	umdBundleEntry({ input: "lib/zip-wasm.js", name: "zip", mangle: true }),
+	umdBundleEntry({ input: "lib/zip-native.js", name: "zip-native", mangle: false }),
+	umdBundleEntry({ input: "lib/zip-legacy.js", name: "zip-legacy", mangle: false }),
+	umdBundleEntry({ input: "lib/zip-core.js", name: "zip-core", mangle: true }),
+	umdBundleEntry({ input: "lib/core/zip-fs.js", name: "zip-fs-core", mangle: true }),
+	umdBundleEntry({ input: "lib/zip-fs-wasm.js", name: "zip-fs", mangle: true, moduleFile: "index" }),
+	umdBundleEntry({ input: "lib/zip-fs-native.js", name: "zip-fs-native", mangle: false, moduleFile: "index-native" }),
+	externalBundleEntry({ input: "lib/zip-fs-external.js", name: "zip-fs-external" }),
+	externalBundleEntry({ input: "lib/zip-fs-core-external.js", name: "zip-fs-core-external" }),
+	externalBundleEntry({ input: "lib/zip-core-external.js", name: "zip-core-external" }),
+	workerBundleEntry({ input: "lib/core/web-worker-wasm.js", name: "zip-web-worker", mangle: true }),
+	workerBundleEntry({ input: "lib/core/web-worker-native.js", name: "zip-web-worker-native", mangle: false })
+];
+
+if (!DEV) {
+	const lastEntry = config[config.length - 1];
+	lastEntry.plugins = [...(lastEntry.plugins || []), checkMangledPropertyNames()];
+}
+
+export default config;

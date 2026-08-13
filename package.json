@@ -39,7 +39,7 @@
     "test-browsers": "npm run test-chrome && npm run test-firefox && npm run test-webkit",
     "test-all": "npm run lint && npm run test && npm run test-browsers",
     "build": "npx rollup -c",
-    "build-dev": "npx rollup -c rollup.config.dev.js",
+    "build-dev": "npx rollup -c --environment DEV",
     "build-doc-api": "npx typedoc",
     "build-doc-markdown": "npx typedoc --plugin typedoc-plugin-markdown --out ./docs",
     "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
