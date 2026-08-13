@@ -1120,6 +1120,21 @@ export class ZipReader<Type> {
    */
   appendedData?: Uint8Array;
   /**
+   * The data of the digital signature record of the central directory (see
+   * {@link ZipWriterCloseOptions#signCentralDirectory}), if the zip file contains one. zip.js does not verify
+   * signatures; use {@link ZipReader#directoryOffset} and {@link ZipReader#directoryLength} to read the signed
+   * central directory data and verify it.
+   */
+  digitalSignature?: Uint8Array;
+  /**
+   * The offset of the central directory in the zip file.
+   */
+  directoryOffset?: number;
+  /**
+   * The length in bytes of the central directory as declared in the end of central directory record.
+   */
+  directoryLength?: number;
+  /**
    * Returns all the entries in the zip file
    *
    * @param options The options.
@@ -1234,6 +1249,66 @@ export interface GetEntriesOptions {
    * {@link ERR_AMBIGUOUS_ARCHIVE} error otherwise.
    */
   maxAppendedDataSize?: number;
+  /**
+   * The function called for decrypting the central directory when it is encrypted (see the Strong Encryption
+   * Specification in the ZIP format specification). Without this function, reading such an archive throws an
+   * {@link ERR_ENCRYPTED_CENTRAL_DIRECTORY} error. zip.js provides the encrypted data and the related metadata
+   * but does not implement the decryption itself.
+   *
+   * @param data The raw data stored in place of the central directory, i.e. the decryption header followed by
+   * the encrypted (and possibly compressed) central directory, as stored in the zip file.
+   * @param encryptionInfo The encryption metadata read from the Zip64 end of central directory record, or
+   * `undefined` if the zip file does not contain a version 2 record.
+   * @returns The decrypted and decompressed central directory records.
+   */
+  decryptCentralDirectory?(
+    data: Uint8Array,
+    encryptionInfo?: DirectoryEncryptionInfo
+  ): Uint8Array | PromiseLike<Uint8Array>;
+}
+
+/**
+ * Represents the encryption metadata of an encrypted central directory (see
+ * {@link GetEntriesOptions#decryptCentralDirectory}), read from the version 2 Zip64 end of central directory
+ * record.
+ */
+export interface DirectoryEncryptionInfo {
+  /**
+   * The raw data of the extensible data sector of the record.
+   */
+  rawExtensibleData: Uint8Array;
+  /**
+   * The compression method applied to the central directory before encryption.
+   */
+  compressionMethod?: number;
+  /**
+   * The size of the compressed and encrypted central directory.
+   */
+  compressedSize?: number;
+  /**
+   * The size of the central directory once decrypted and decompressed.
+   */
+  uncompressedSize?: number;
+  /**
+   * The identifier of the encryption algorithm (e.g. `0x6610` for AES-256).
+   */
+  encryptionAlgorithm?: number;
+  /**
+   * The key size in bits.
+   */
+  bitLength?: number;
+  /**
+   * The processing flags (e.g. `0x0001` for password-based encryption).
+   */
+  flags?: number;
+  /**
+   * The identifier of the hash algorithm used for the password validation data.
+   */
+  hashAlgorithm?: number;
+  /**
+   * The password validation data.
+   */
+  hashData?: Uint8Array;
 }
 
 /**
@@ -2141,6 +2216,19 @@ export interface ZipWriterCloseOptions extends EntryOnprogressOptions {
    * @defaultValue false
    */
   preventClose?: boolean;
+  /**
+   * The function called for signing the central directory. The returned data (e.g. a PKCS#7 signature computed
+   * over the central directory records) is stored in a digital signature record written between the central
+   * directory and the end of central directory record, and exposed by {@link ZipReader#digitalSignature} when
+   * reading the zip file. It must not exceed 64KB, otherwise an {@link ERR_INVALID_SIGNATURE_DATA} error is
+   * thrown. zip.js stores the data as-is and does not implement the signature computation itself.
+   *
+   * @param directory The raw data of the central directory records.
+   * @returns The data of the digital signature record.
+   */
+  signCentralDirectory?(
+    directory: Uint8Array
+  ): Uint8Array | PromiseLike<Uint8Array>;
 }
 
 /**
@@ -3254,3 +3342,7 @@ export const ERR_WRITER_NOT_INITIALIZED: string;
  * Zip file not empty error
  */
 export const ERR_ZIP_NOT_EMPTY: string;
+/**
+ * Signature data exceeding 64KB error (see {@link ZipWriterCloseOptions#signCentralDirectory})
+ */
+export const ERR_INVALID_SIGNATURE_DATA: string;

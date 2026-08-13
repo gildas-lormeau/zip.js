@@ -87,6 +87,8 @@ export default ([
 	{ title: "Local extra field", script: "./test-local-extra-field.js" },
 	{ title: "MIME type lookup", script: "./test-mime-type.js" },
 	{ title: "Encrypted central directory", script: "./test-encrypted-central-directory.js" },
+	{ title: "Decrypt central directory", script: "./test-decrypt-central-directory.js" },
+	{ title: "Digital signature record", script: "./test-digital-signature.js" },
 	{ title: "SecureZIP archives", script: "./test-securezip-archives.js" },
 	{ title: "Empty entry deflate", script: "./test-empty-entry-deflate.js" },
 	{ title: "Extra field", script: "./test-extra-field.js" },

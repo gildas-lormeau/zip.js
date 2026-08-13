@@ -46,6 +46,7 @@
 	const SPLIT_ZIP_FILE_SIGNATURE = 0x08074b50;
 	const DATA_DESCRIPTOR_RECORD_SIGNATURE = SPLIT_ZIP_FILE_SIGNATURE;
 	const ARCHIVE_EXTRA_DATA_SIGNATURE = 0x08064b50;
+	const DIGITAL_SIGNATURE_RECORD_SIGNATURE = 0x05054b50;
 	const CENTRAL_FILE_HEADER_SIGNATURE = 0x02014b50;
 	const END_OF_CENTRAL_DIR_SIGNATURE = 0x06054b50;
 	const ZIP64_END_OF_CENTRAL_DIR_SIGNATURE = 0x06064b50;
@@ -4329,6 +4330,8 @@
 	const OPTION_LOCAL_EXTRA_FIELD = "localExtraField";
 	const OPTION_STRICTNESS = "strictness";
 	const OPTION_MAX_APPENDED_DATA_SIZE = "maxAppendedDataSize";
+	const OPTION_DECRYPT_CENTRAL_DIRECTORY = "decryptCentralDirectory";
+	const OPTION_SIGN_CENTRAL_DIRECTORY = "signCentralDirectory";
 	const STRICTNESS_STRICT = "strict";
 	const STRICTNESS_BALANCED = "balanced";
 	const STRICTNESS_TOLERANT = "tolerant";
@@ -4454,6 +4457,7 @@
 			let startOffset;
 			let zip64EndOfDirectory;
 			let zip64EndOfDirectoryVersion2;
+			let directoryEncryptionInfo;
 			const requiresZip64 = directoryDataOffset == MAX_32_BITS || directoryDataLength == MAX_32_BITS || filesLength == MAX_16_BITS || diskNumber == MAX_16_BITS;
 			if (directoryDataOffset != MAX_32_BITS && diskNumber != MAX_16_BITS) {
 				directoryDataOffset += getDiskOffset$1(reader, diskNumber);
@@ -4484,6 +4488,15 @@
 					}
 					zip64EndOfDirectory = true;
 					zip64EndOfDirectoryVersion2 = getBigUint64(endOfDirectoryView, 4) > ZIP64_END_OF_CENTRAL_DIR_LENGTH - 12;
+					if (zip64EndOfDirectoryVersion2) {
+						const extensibleDataLength = Math.min(
+							Number(getBigUint64(endOfDirectoryView, 4)) - (ZIP64_END_OF_CENTRAL_DIR_LENGTH - 12),
+							reader.size - directoryDataOffset - ZIP64_END_OF_CENTRAL_DIR_LENGTH);
+						if (extensibleDataLength > 0) {
+							const rawExtensibleData = await readUint8Array(reader, directoryDataOffset + ZIP64_END_OF_CENTRAL_DIR_LENGTH, extensibleDataLength);
+							directoryEncryptionInfo = getDirectoryEncryptionInfo(rawExtensibleData);
+						}
+					}
 					if (lastDiskNumber == MAX_16_BITS) {
 						lastDiskNumber = getUint32(endOfDirectoryView, 16);
 					} else if (checkAmbiguity && lastDiskNumber != getUint32(endOfDirectoryView, 16)) {
@@ -4507,7 +4520,7 @@
 					directoryDataOffset = getDiskOffset$1(reader, diskNumber) + getBigUint64(endOfDirectoryView, 48) + prependedDataLength;
 				}
 			}
-			const declaredDirectoryDataLength = directoryDataLength;
+			let declaredDirectoryDataLength = directoryDataLength;
 			const centralDirectoryEndOffset = endOfDirectoryInfo.offset -
 				(zip64EndOfDirectory ? ZIP64_END_OF_CENTRAL_DIR_LENGTH + ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH : 0);
 			if (directoryDataOffset >= reader.size) {
@@ -4555,6 +4568,18 @@
 			if (directoryDataOffset < 0 || directoryDataOffset >= reader.size) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
+			zipReader.directoryOffset = directoryDataOffset;
+			zipReader.directoryLength = declaredDirectoryDataLength;
+			const decryptCentralDirectory = getOptionValue$1(zipReader, options, OPTION_DECRYPT_CENTRAL_DIRECTORY);
+			let decryptedDirectory;
+			if (decryptCentralDirectory && filesLength && directoryArray.length >= 4 &&
+				getUint32(directoryView, 0) != CENTRAL_FILE_HEADER_SIGNATURE &&
+				(zip64EndOfDirectoryVersion2 || detectEncryptedCentralDirectory(directoryView))) {
+				directoryArray = await decryptCentralDirectory(directoryArray, directoryEncryptionInfo);
+				directoryView = getDataView(directoryArray);
+				declaredDirectoryDataLength = directoryArray.length;
+				decryptedDirectory = true;
+			}
 			startOffset = directoryDataOffset;
 			const filenameEncoding = getOptionValue$1(zipReader, options, OPTION_FILENAME_ENCODING);
 			const commentEncoding = getOptionValue$1(zipReader, options, OPTION_COMMENT_ENCODING);
@@ -4563,7 +4588,7 @@
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
 				const fileEntry = new ZipEntry$1(reader, config, zipReader.options);
 				if (offset + CENTRAL_FILE_HEADER_LENGTH > directoryArray.length || getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE) {
-					if (indexFile == 0 && (zip64EndOfDirectoryVersion2 || detectEncryptedCentralDirectory(directoryView))) {
+					if (indexFile == 0 && !decryptedDirectory && (zip64EndOfDirectoryVersion2 || detectEncryptedCentralDirectory(directoryView))) {
 						throw new Error(ERR_ENCRYPTED_CENTRAL_DIRECTORY);
 					}
 					throw new Error(ERR_CENTRAL_DIRECTORY_NOT_FOUND);
@@ -4676,7 +4701,15 @@
 				}
 				yield entry;
 			}
-			if (checkAmbiguity && offset != declaredDirectoryDataLength) {
+			let offsetAfterSignature = offset;
+			if (offset + 6 <= directoryArray.length && getUint32(directoryView, offset) == DIGITAL_SIGNATURE_RECORD_SIGNATURE) {
+				const signatureDataLength = getUint16(directoryView, offset + 4);
+				if (offset + 6 + signatureDataLength <= directoryArray.length) {
+					zipReader.digitalSignature = directoryArray.subarray(offset + 6, offset + 6 + signatureDataLength);
+					offsetAfterSignature = offset + 6 + signatureDataLength;
+				}
+			}
+			if (checkAmbiguity && offset != declaredDirectoryDataLength && offsetAfterSignature != declaredDirectoryDataLength) {
 				throwAmbiguousArchive("trailing central directory data");
 			}
 			if (duplicateFilename) {
@@ -4906,6 +4939,25 @@
 			}
 		}
 		return false;
+	}
+
+	function getDirectoryEncryptionInfo(rawExtensibleData) {
+		const directoryEncryptionInfo = { rawExtensibleData };
+		if (rawExtensibleData.length >= 28) {
+			const extensibleDataView = getDataView(rawExtensibleData);
+			const hashDataLength = getUint16(extensibleDataView, 26);
+			Object.assign(directoryEncryptionInfo, {
+				compressionMethod: getUint16(extensibleDataView, 0),
+				compressedSize: Number(getBigUint64(extensibleDataView, 2)),
+				uncompressedSize: Number(getBigUint64(extensibleDataView, 10)),
+				encryptionAlgorithm: getUint16(extensibleDataView, 18),
+				bitLength: getUint16(extensibleDataView, 20),
+				flags: getUint16(extensibleDataView, 22),
+				hashAlgorithm: getUint16(extensibleDataView, 24),
+				hashData: rawExtensibleData.subarray(28, 28 + hashDataLength)
+			});
+		}
+		return directoryEncryptionInfo;
 	}
 
 	function readCommonHeader(directory, dataView, offset) {
@@ -5516,6 +5568,7 @@
 	const ERR_INVALID_UNIX_ID_SIZE = "uid/gid must be 0..65535 for unixExtraFieldType 'unix' (use 'infozip' for larger ids)";
 	const ERR_INVALID_MSDOS_ATTRIBUTES = "Invalid msdosAttributesRaw (must be integer 0..255)";
 	const ERR_INVALID_MSDOS_DATA = "Invalid msdosAttributes (must be an object with boolean flags)";
+	const ERR_INVALID_SIGNATURE_DATA = "Signature data exceeds 64KB";
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
 	const EXTRAFIELD_OFFSET_AES_VENDOR_VERSION = 4;
@@ -6813,8 +6866,9 @@
 
 	async function closeFile(zipWriter, comment, options) {
 		const directoryDataLength = createDirectoryRecords(zipWriter.files);
-		const directoryStart = await writeDirectoryRecords(zipWriter, directoryDataLength, options);
-		await writeEndOfDirectoryRecord(zipWriter, comment, options, { directoryStart, directoryDataLength });
+		const { directoryStart, directoryArray } = await writeDirectoryRecords(zipWriter, directoryDataLength, options);
+		const signatureLength = await writeDigitalSignatureRecord(zipWriter, directoryArray, options);
+		await writeEndOfDirectoryRecord(zipWriter, comment, options, { directoryStart, directoryDataLength, signatureLength });
 	}
 
 	function createDirectoryRecords(files) {
@@ -6971,12 +7025,33 @@
 			}
 		}
 		await writeData(writer, directoryDiskOffset ? directoryArray.slice(directoryDiskOffset) : directoryArray);
-		return { diskNumber: directoryStartDiskNumber, diskOffset: directoryStartDiskOffset };
+		return {
+			directoryStart: { diskNumber: directoryStartDiskNumber, diskOffset: directoryStartDiskOffset },
+			directoryArray
+		};
+	}
+
+	async function writeDigitalSignatureRecord(zipWriter, directoryArray, options) {
+		const signCentralDirectory = getOptionValue(zipWriter, options, OPTION_SIGN_CENTRAL_DIRECTORY);
+		if (signCentralDirectory) {
+			const signatureData = await signCentralDirectory(directoryArray);
+			const signatureDataLength = getLength(signatureData);
+			if (signatureDataLength > MAX_16_BITS) {
+				throw new Error(ERR_INVALID_SIGNATURE_DATA);
+			}
+			const signatureRecord = createRecordWriter(6 + signatureDataLength);
+			signatureRecord.uint32(DIGITAL_SIGNATURE_RECORD_SIGNATURE);
+			signatureRecord.uint16(signatureDataLength);
+			signatureRecord.bytes(signatureData);
+			await writeData(zipWriter.writer, signatureRecord.array);
+			return 6 + signatureDataLength;
+		}
+		return 0;
 	}
 
 	async function writeEndOfDirectoryRecord(zipWriter, comment, options, cdInfo) {
 		const { writer } = zipWriter;
-		const { directoryStart } = cdInfo;
+		const { directoryStart, signatureLength } = cdInfo;
 		let { directoryDataLength } = cdInfo;
 		let filesLength = zipWriter.files.size;
 		let diskNumber = directoryStart.diskNumber;
@@ -7015,7 +7090,7 @@
 			endOfdirectoryRecord.uint64(directoryOffset);
 			endOfdirectoryRecord.uint32(ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
 			endOfdirectoryRecord.uint32(lastDiskNumber);
-			endOfdirectoryRecord.uint64(BigInt(getSegmentOffset(zipWriter, writer)) + BigInt(directoryDataLength));
+			endOfdirectoryRecord.uint64(BigInt(getSegmentOffset(zipWriter, writer)) + BigInt(directoryDataLength) + BigInt(signatureLength));
 			endOfdirectoryRecord.uint32(lastDiskNumber + 1);
 			const supportZip64SplitFile = getOptionValue(zipWriter, options, OPTION_SUPPORT_ZIP64_SPLIT_FILE, true);
 			if (supportZip64SplitFile) {
