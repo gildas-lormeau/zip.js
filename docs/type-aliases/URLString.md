@@ -8,6 +8,6 @@
 
 > **URLString** = `string`
 
-Defined in: [index.d.ts:734](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L734)
+Defined in: [index.d.ts:734](https://github.com/gildas-lormeau/zip.js/blob/7ba4f706201f50288c5cdcca10c73dfd5e5471c6/index.d.ts#L734)
 
 Represents a URL stored into a `string`.

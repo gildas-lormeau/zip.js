@@ -6,7 +6,7 @@
 
 # Interface: CreateReadableOptions
 
-Defined in: [index.d.ts:686](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L686)
+Defined in: [index.d.ts:686](https://github.com/gildas-lormeau/zip.js/blob/7ba4f706201f50288c5cdcca10c73dfd5e5471c6/index.d.ts#L686)
 
 Represents the options passed to [Reader#createReadable](../classes/Reader.md#createreadable).
 
@@ -16,7 +16,7 @@ Represents the options passed to [Reader#createReadable](../classes/Reader.md#cr
 
 > `optional` **chunkSize?**: `number`
 
-Defined in: [index.d.ts:701](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L701)
+Defined in: [index.d.ts:701](https://github.com/gildas-lormeau/zip.js/blob/7ba4f706201f50288c5cdcca10c73dfd5e5471c6/index.d.ts#L701)
 
 The size in bytes of the chunks emitted by the default implementation (the `chunkSize` value
 of the global configuration by default).
@@ -27,7 +27,7 @@ of the global configuration by default).
 
 > `optional` **offset?**: `number`
 
-Defined in: [index.d.ts:692](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L692)
+Defined in: [index.d.ts:692](https://github.com/gildas-lormeau/zip.js/blob/7ba4f706201f50288c5cdcca10c73dfd5e5471c6/index.d.ts#L692)
 
 The byte offset of the start of the range to read.
 
@@ -43,6 +43,6 @@ The byte offset of the start of the range to read.
 
 > `optional` **size?**: `number`
 
-Defined in: [index.d.ts:696](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L696)
+Defined in: [index.d.ts:696](https://github.com/gildas-lormeau/zip.js/blob/7ba4f706201f50288c5cdcca10c73dfd5e5471c6/index.d.ts#L696)
 
 The size of the range to read in bytes (until the end of the data by default).
