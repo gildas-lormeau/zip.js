@@ -127,6 +127,7 @@
 - [createOPFSTempStream](functions/createOPFSTempStream.md)
 - [createSyncAccessHandleTempStream](functions/createSyncAccessHandleTempStream.md)
 - [getMimeType](functions/getMimeType.md)
+- [initWorker](functions/initWorker.md)
 - [registerCodec](functions/registerCodec.md)
 - [resetConfiguration](functions/resetConfiguration.md)
 - [terminateWorkers](functions/terminateWorkers.md)

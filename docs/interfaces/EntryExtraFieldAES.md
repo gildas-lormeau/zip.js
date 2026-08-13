@@ -6,7 +6,7 @@
 
 # Interface: EntryExtraFieldAES
 
-Defined in: [index.d.ts:1276](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1276)
+Defined in: [index.d.ts:1366](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L1366)
 
 Represents the AES extra field record of an entry.
 
@@ -20,7 +20,7 @@ Represents the AES extra field record of an entry.
 
 > **data**: `Uint8Array`
 
-Defined in: [index.d.ts:1271](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1271)
+Defined in: [index.d.ts:1361](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L1361)
 
 The data of the extra field.
 
@@ -34,7 +34,7 @@ The data of the extra field.
 
 > `optional` **originalCompressionMethod?**: `number`
 
-Defined in: [index.d.ts:1293](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1293)
+Defined in: [index.d.ts:1383](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L1383)
 
 The compression method stored in the AES extra field.
 
@@ -44,7 +44,7 @@ The compression method stored in the AES extra field.
 
 > `optional` **strength?**: `number`
 
-Defined in: [index.d.ts:1280](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1280)
+Defined in: [index.d.ts:1370](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L1370)
 
 The encryption strength (1, 2 or 3).
 
@@ -54,7 +54,7 @@ The encryption strength (1, 2 or 3).
 
 > **type**: `number`
 
-Defined in: [index.d.ts:1267](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1267)
+Defined in: [index.d.ts:1357](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L1357)
 
 The type (header id) of the extra field.
 
@@ -68,7 +68,7 @@ The type (header id) of the extra field.
 
 > `optional` **vendorId?**: `number`
 
-Defined in: [index.d.ts:1289](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1289)
+Defined in: [index.d.ts:1379](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L1379)
 
 The vendor identifier.
 
@@ -78,7 +78,7 @@ The vendor identifier.
 
 > `optional` **vendorVersion?**: `number`
 
-Defined in: [index.d.ts:1285](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1285)
+Defined in: [index.d.ts:1375](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L1375)
 
 The vendor version (1 for AE-1, 2 for AE-2). Entries in AE-1 format store the CRC-32 checksum of the content,
 entries in AE-2 format store a zeroed value.

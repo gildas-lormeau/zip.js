@@ -6,7 +6,7 @@
 
 # Class: ZipEntry
 
-Defined in: [index.d.ts:2377](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2377)
+Defined in: [index.d.ts:2467](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2467)
 
 Represents an entry in a zip file (Filesystem API).
 
@@ -31,7 +31,7 @@ Represents an entry in a zip file (Filesystem API).
 
 > **children**: `ZipEntry`[]
 
-Defined in: [index.d.ts:2401](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2401)
+Defined in: [index.d.ts:2491](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2491)
 
 The children of the entry.
 
@@ -41,7 +41,7 @@ The children of the entry.
 
 > `optional` **data?**: [`EntryMetaData`](../interfaces/EntryMetaData.md)
 
-Defined in: [index.d.ts:2385](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2385)
+Defined in: [index.d.ts:2475](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2475)
 
 The underlying [EntryMetaData](../interfaces/EntryMetaData.md) instance.
 
@@ -51,7 +51,7 @@ The underlying [EntryMetaData](../interfaces/EntryMetaData.md) instance.
 
 > **id**: `number`
 
-Defined in: [index.d.ts:2389](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2389)
+Defined in: [index.d.ts:2479](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2479)
 
 The ID of the instance.
 
@@ -61,7 +61,7 @@ The ID of the instance.
 
 > **name**: `string`
 
-Defined in: [index.d.ts:2381](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2381)
+Defined in: [index.d.ts:2471](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2471)
 
 The relative filename of the entry.
 
@@ -71,7 +71,7 @@ The relative filename of the entry.
 
 > `optional` **parent?**: `ZipEntry`
 
-Defined in: [index.d.ts:2393](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2393)
+Defined in: [index.d.ts:2483](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2483)
 
 The parent directory of the entry.
 
@@ -81,7 +81,7 @@ The parent directory of the entry.
 
 > **uncompressedSize**: `number`
 
-Defined in: [index.d.ts:2397](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2397)
+Defined in: [index.d.ts:2487](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2487)
 
 The uncompressed size of the content.
 
@@ -91,7 +91,7 @@ The uncompressed size of the content.
 
 > **checkPassword**(`password`, `options?`): `Promise`\<`boolean`\>
 
-Defined in: [index.d.ts:2429](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2429)
+Defined in: [index.d.ts:2519](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2519)
 
 Tests the password on the entry and all children if any, returns `true` if the entry is not password protected
 
@@ -115,7 +115,7 @@ Tests the password on the entry and all children if any, returns `true` if the e
 
 > **clone**(`deepClone?`): `ZipEntry`
 
-Defined in: [index.d.ts:2407](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2407)
+Defined in: [index.d.ts:2497](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2497)
 
 Clones the entry
 
@@ -137,7 +137,7 @@ Clones the entry
 
 > **getFullname**(): `string`
 
-Defined in: [index.d.ts:2411](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2411)
+Defined in: [index.d.ts:2501](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2501)
 
 Returns the full filename of the entry
 
@@ -151,7 +151,7 @@ Returns the full filename of the entry
 
 > **getRelativeName**(`ancestor`): `string`
 
-Defined in: [index.d.ts:2415](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2415)
+Defined in: [index.d.ts:2505](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2505)
 
 Returns the filename of the entry relative to a parent directory
 
@@ -171,7 +171,7 @@ Returns the filename of the entry relative to a parent directory
 
 > **isDescendantOf**(`ancestor`): `boolean`
 
-Defined in: [index.d.ts:2421](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2421)
+Defined in: [index.d.ts:2511](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2511)
 
 Tests if a [ZipDirectoryEntry](ZipDirectoryEntry.md) instance is an ancestor of the entry
 
@@ -193,7 +193,7 @@ The [ZipDirectoryEntry](ZipDirectoryEntry.md) instance.
 
 > **isPasswordProtected**(): `boolean`
 
-Defined in: [index.d.ts:2425](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2425)
+Defined in: [index.d.ts:2515](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2515)
 
 Tests if the entry or any of its children is password protected
 
@@ -207,7 +207,7 @@ Tests if the entry or any of its children is password protected
 
 > **rename**(`name`): `void`
 
-Defined in: [index.d.ts:2438](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L2438)
+Defined in: [index.d.ts:2528](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L2528)
 
 Set the name of the entry
 

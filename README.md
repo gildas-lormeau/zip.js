@@ -3,8 +3,9 @@
 zip.js is a JavaScript open-source library (BSD-3-Clause license) for
 compressing and decompressing zip files. It has been designed to handle large amounts
 of data. It supports notably multi-core compression, native compression with
-compression streams, archives larger than 4GB with Zip64, split zip files, data
-encryption, incremental writing, and Deflate64 decompression.
+compression streams, pluggable compression engines, archives larger than 4GB
+with Zip64, split zip files, data encryption, incremental writing, and
+Deflate64 decompression.
 
 # Demo
 
@@ -170,6 +171,31 @@ function downloadFile(blob) {
 ```
 
 Run the code on Plunker: https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview
+
+## Custom web workers and compression engines
+
+zip.js can create its web workers with the standard bundler pattern and
+delegate compression/decompression to a custom engine, e.g.
+[fflate](https://github.com/101arrowz/fflate):
+
+```js
+import { configure } from "@zip.js/zip.js/lib/zip-core-custom.js";
+
+configure({
+  createWorker: () => new Worker(new URL("./zip-worker.js", import.meta.url), { type: "module" })
+});
+```
+
+```js
+// zip-worker.js
+import { initWorker } from "@zip.js/zip.js/worker";
+import { CompressionStreamFallback, DecompressionStreamFallback } from "./fflate-streams.js";
+
+initWorker({ CompressionStreamFallback, DecompressionStreamFallback });
+```
+
+See https://gildas-lormeau.github.io/zip.js/#custom-workers for a complete
+guide.
 
 ## Tests
 

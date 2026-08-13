@@ -6,7 +6,7 @@
 
 # Class: SplitDataWriter
 
-Defined in: [index.d.ts:873](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L873)
+Defined in: [index.d.ts:963](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L963)
 
 Represents a [Writer](Writer.md)  instance used to retrieve the written data from a generator of [WritableWriter](../interfaces/WritableWriter.md)  instances  (i.e. split zip files).
 
@@ -21,7 +21,7 @@ Represents a [Writer](Writer.md)  instance used to retrieve the written data fro
 
 > **new SplitDataWriter**(`writerGenerator`, `maxSize?`): `SplitDataWriter`
 
-Defined in: [index.d.ts:908](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L908)
+Defined in: [index.d.ts:998](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L998)
 
 Creates the SplitDataWriter instance
 
@@ -49,7 +49,7 @@ The maximum size of the data written into [Writer](Writer.md) instances (default
 
 > **availableSize**: `number`
 
-Defined in: [index.d.ts:893](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L893)
+Defined in: [index.d.ts:983](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L983)
 
 The number of bytes still available on the disk being written.
 
@@ -59,7 +59,7 @@ The number of bytes still available on the disk being written.
 
 > **diskNumber**: `number`
 
-Defined in: [index.d.ts:881](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L881)
+Defined in: [index.d.ts:971](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L971)
 
 The number of the disk being written.
 
@@ -69,7 +69,7 @@ The number of the disk being written.
 
 > **diskOffset**: `number`
 
-Defined in: [index.d.ts:885](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L885)
+Defined in: [index.d.ts:975](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L975)
 
 The byte offset of the disk being written.
 
@@ -79,7 +79,7 @@ The byte offset of the disk being written.
 
 > **maxSize**: `number`
 
-Defined in: [index.d.ts:889](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L889)
+Defined in: [index.d.ts:979](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L979)
 
 The maximum size of each disk in bytes.
 
@@ -93,7 +93,7 @@ The maximum size of each disk in bytes.
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:877](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L877)
+Defined in: [index.d.ts:967](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L967)
 
 The `WritableStream` instance.
 
@@ -107,7 +107,7 @@ The `WritableStream` instance.
 
 > **closeDisk**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:901](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L901)
+Defined in: [index.d.ts:991](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L991)
 
 Closes the disk being written, the next disk being opened when more data is written
 
@@ -121,7 +121,7 @@ Closes the disk being written, the next disk being opened when more data is writ
 
 > **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:897](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L897)
+Defined in: [index.d.ts:987](https://github.com/gildas-lormeau/zip.js/blob/d1931525d0589064f02a9e88299b9c35f6f8f656/index.d.ts#L987)
 
 Initializes the instance asynchronously
 
