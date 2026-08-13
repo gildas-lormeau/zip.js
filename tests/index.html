@@ -2,8 +2,27 @@
 <html>
 
 <head>
-    <title>Tests</title>
+    <meta charset="utf-8">
+    <title>zip.js tests</title>
     <style>
+        body {
+            font-family: monospace;
+        }
+
+        #status {
+            margin-bottom: 8px;
+        }
+
+        #status.passed,
+        tr.passed {
+            color: green;
+        }
+
+        #status.failed,
+        tr.failed {
+            color: red;
+        }
+
         iframe {
             display: block;
             height: 1.2em;
@@ -15,6 +34,8 @@
 </head>
 
 <body>
+    <div id="status"></div>
+    <table id="tests"></table>
     <script src="web-runner.js" type="module"></script>
 </body>
 

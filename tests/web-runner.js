@@ -1,50 +1,89 @@
-/* global document, location, addEventListener */
-
-// Open `index.html` in a browser to run this file
+/* global document, location, addEventListener, setTimeout, clearTimeout */
 
 import tests from "./tests-data.js";
 
-const table = document.createElement("table");
-const MAX_TESTS = 16;
-let indexTest;
-for (indexTest = 0; indexTest < Math.min(MAX_TESTS, tests.length); indexTest++) {
-	const test = tests[indexTest];
-	if (!test.env || test.env.includes("browser")) {
-		addTest(test);
-	}
-}
-document.body.appendChild(table);
-if (!location.search.startsWith("?keepTests")) {
-	addEventListener("message", event => {
-		const result = JSON.parse(event.data);
-		if (!result.error) {
-			Array.from(document.querySelectorAll("tr")).find(row => row.dataset.script == result.script).remove();
-		}
-		const test = tests[indexTest];
-		indexTest++;
-		if (test) {
-			if (!test.env || test.env.includes("browser")) {
-				addTest(test);
-			}
-		} else if (!document.querySelectorAll("tr").length) {
-			document.body.innerHTML = "ok";
-		}
-	}, false);
-}
+const MAX_PARALLEL_TESTS = 16;
+const TEST_TIMEOUT = 120000;
+const LOADER_PATH = "/tests/all/loader.html#";
 
-function addTest(test) {
+const browserTests = tests.filter(test => !test.env || test.env.includes("browser"));
+const keepTests = location.search.startsWith("?keepTests");
+const testResults = { done: false, total: browserTests.length, passed: 0, failures: [] };
+globalThis.testResults = testResults;
+
+const statusElement = document.getElementById("status");
+const tableElement = document.getElementById("tests");
+const pendingTests = new Map();
+let nextTestIndex = 0;
+
+addEventListener("message", event => {
+	const result = JSON.parse(event.data);
+	const pendingTest = pendingTests.get(result.script);
+	if (pendingTest) {
+		completeTest(pendingTest, result.error);
+	}
+});
+while (nextTestIndex < Math.min(MAX_PARALLEL_TESTS, browserTests.length)) {
+	startTest(browserTests[nextTestIndex++]);
+}
+updateStatus();
+
+function startTest(test) {
 	const row = document.createElement("tr");
-	const cellTest = document.createElement("td");
-	const cellLink = document.createElement("td");
-	const iframe = document.createElement("iframe");
+	const titleCell = document.createElement("td");
+	const frameCell = document.createElement("td");
 	const link = document.createElement("a");
+	const iframe = document.createElement("iframe");
 	link.textContent = test.title;
 	link.target = test.script;
-	row.dataset.script = test.script;
-	link.href = iframe.src = "/tests/all/loader.html#" + encodeURIComponent(JSON.stringify({ script: test.script }));
-	cellTest.appendChild(iframe);
-	cellLink.appendChild(link);
-	row.appendChild(cellLink);
-	row.appendChild(cellTest);
-	table.appendChild(row);
+	link.href = iframe.src = LOADER_PATH + encodeURIComponent(JSON.stringify({ script: test.script }));
+	titleCell.appendChild(link);
+	frameCell.appendChild(iframe);
+	row.appendChild(titleCell);
+	row.appendChild(frameCell);
+	tableElement.appendChild(row);
+	const timeoutId = setTimeout(() => {
+		const pendingTest = pendingTests.get(test.script);
+		if (pendingTest) {
+			completeTest(pendingTest, { message: "timeout after " + TEST_TIMEOUT + "ms" });
+		}
+	}, TEST_TIMEOUT);
+	pendingTests.set(test.script, { test, row, timeoutId });
+}
+
+function completeTest({ test, row, timeoutId }, error) {
+	clearTimeout(timeoutId);
+	pendingTests.delete(test.script);
+	if (error) {
+		testResults.failures.push({ title: test.title, script: test.script, message: error.message, stack: error.stack });
+		row.className = "failed";
+		const errorCell = document.createElement("td");
+		errorCell.textContent = error.message || "error";
+		row.appendChild(errorCell);
+	} else if (keepTests) {
+		testResults.passed++;
+		row.className = "passed";
+	} else {
+		testResults.passed++;
+		row.remove();
+	}
+	if (nextTestIndex < browserTests.length) {
+		startTest(browserTests[nextTestIndex++]);
+	}
+	updateStatus();
+}
+
+function updateStatus() {
+	const finishedCount = testResults.passed + testResults.failures.length;
+	if (finishedCount == testResults.total) {
+		testResults.done = true;
+		const failedCount = testResults.failures.length;
+		statusElement.textContent = failedCount ?
+			"FAILED — " + failedCount + " of " + testResults.total + " tests" :
+			"OK — " + testResults.total + " tests";
+		statusElement.className = failedCount ? "failed" : "passed";
+		document.title = (failedCount ? "FAILED" : "OK") + " — zip.js tests";
+	} else {
+		statusElement.textContent = finishedCount + "/" + testResults.total;
+	}
 }
