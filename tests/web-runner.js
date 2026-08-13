@@ -1,4 +1,4 @@
-/* global document, location, addEventListener, setTimeout, clearTimeout */
+/* global document, location, addEventListener, setTimeout, clearTimeout, URLSearchParams */
 
 import tests from "./tests-data.js";
 
@@ -8,8 +8,8 @@ const LOADER_PATH = "/tests/all/loader.html#";
 
 const urlParams = new URLSearchParams(location.search);
 const browserTests = tests.filter(test => !test.env || test.env.includes("browser"));
-const keepTests = urlParams.has('keepTests');
-const withStreamsPolyfill = urlParams.has('withStreamsPolyfill');
+const keepTests = urlParams.has("keepTests");
+const withStreamsPolyfill = urlParams.has("withStreamsPolyfill");
 const testResults = { done: false, total: browserTests.length, passed: 0, failures: [] };
 globalThis.testResults = testResults;
 
