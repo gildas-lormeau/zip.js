@@ -34,6 +34,10 @@
     "bun": ">=0.7.0"
   },
   "scripts": {
+    "lint": "npx eslint . && deno lint",
+    "test": "npm run test-node && npm run test-deno && npm run test-bun && npm run test-node-dist && npm run test-deno-dist && npm run test-bun-dist && npm run test-web-streams-polyfill && npm run test-types",
+    "test-browsers": "npm run test-chrome && npm run test-firefox && npm run test-webkit",
+    "test-all": "npm run lint && npm run test && npm run test-browsers",
     "build": "npx rollup -c",
     "build-dev": "npx rollup -c rollup.config.dev.js",
     "build-doc-api": "npx typedoc",
