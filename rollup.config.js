@@ -4,21 +4,10 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "url";
-import { deflateRawSync } from "node:zlib";
-import { Buffer } from "node:buffer";
-import { inflateRaw } from "./lib/core/util/inflate.js";
 import { getReservedPropertyNames } from "./reserved-property-names.js";
 import { MANGLED_PROPERTY_NAMES } from "./mangled-property-names.js";
 import { generateMimeTypeData } from "./generate-mime-type-data.js";
-
-function deflatePayload(data) {
-	const deflated = deflateRawSync(data, { level: 9 });
-	const restored = Buffer.from(inflateRaw(new Uint8Array(deflated)));
-	if (Buffer.compare(restored, Buffer.from(data)) != 0) {
-		throw new Error("deflated payload round-trip failed");
-	}
-	return deflated.toString("base64");
-}
+import { inlineWorker, deflatePayload } from "./rollup-plugin-inline-worker.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -149,32 +138,13 @@ const GLOBALS = "const { Array, Object, String, Number, BigInt, Math, Date, Map,
 const GLOBALS_WORKER = "const { Array, Object, Number, Math, Error, Uint8Array, Uint16Array, Uint32Array, Int32Array, Map, DataView, Promise, TextEncoder, crypto, postMessage, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream } = self;";
 
 export default [{
-	input: "lib/core/web-worker-wasm.js",
-	output: [{
-		intro: GLOBALS_WORKER,
-		file: "lib/core/web-worker-inline-wasm.js",
-		format: "umd",
-		plugins: [terserMangler(inlineTerserOptions)]
-	}]
-}, {
-	input: "lib/core/web-worker-native.js",
-	output: [{
-		intro: GLOBALS_WORKER,
-		file: "lib/core/web-worker-inline-native.js",
-		format: "umd",
-		plugins: [terser(inlineTerserOptions)]
-	}]
-}, {
 	input: "lib/core/web-worker-inline-template.js",
 	output: [{
 		file: "lib/core/web-worker-inline-wasm.js",
 		format: "es"
 	}],
 	plugins: [
-		replace({
-			preventAssignment: true,
-			"__workerCode__": () => fs.readFileSync("lib/core/web-worker-inline-wasm.js").toString()
-		}),
+		inlineWorker({ intro: GLOBALS_WORKER, deflate: false, createPlugins: () => [terserMangler(inlineTerserOptions)] }),
 		terserMangler(bundledTerserOptions)
 	]
 }, {
@@ -184,10 +154,7 @@ export default [{
 		format: "es"
 	}],
 	plugins: [
-		replace({
-			preventAssignment: true,
-			"__workerCode__": () => deflatePayload(fs.readFileSync("lib/core/web-worker-inline-native.js"))
-		}),
+		inlineWorker({ intro: GLOBALS_WORKER, createPlugins: () => [terser(inlineTerserOptions)] }),
 		terserMangler(bundledTerserOptions)
 	]
 }, {

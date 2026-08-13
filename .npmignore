@@ -10,3 +10,7 @@ tsconfig.json
 .eslintrc.json
 docs
 .github
+lib/core/web-worker-inline-template.js
+lib/core/web-worker-inline-template-native.js
+lib/core/zlib-streams-inline-template.js
+lib/core/web-worker-inline-base.js
