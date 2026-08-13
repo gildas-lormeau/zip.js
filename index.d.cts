@@ -3346,3 +3346,43 @@ export const ERR_ZIP_NOT_EMPTY: string;
  * Signature data exceeding 64KB error (see {@link ZipWriterCloseOptions#signCentralDirectory})
  */
 export const ERR_INVALID_SIGNATURE_DATA: string;
+/**
+ * Invalid uid error (thrown when the `uid` option is not an integer in the range 0..2^32-1)
+ */
+export const ERR_INVALID_UID: string;
+/**
+ * Invalid gid error (thrown when the `gid` option is not an integer in the range 0..2^32-1)
+ */
+export const ERR_INVALID_GID: string;
+/**
+ * Invalid UNIX mode error (thrown when the `unixMode` option is not an integer in the range 0..65535)
+ */
+export const ERR_INVALID_UNIX_MODE: string;
+/**
+ * Invalid unixExtraFieldType error (thrown when the `unixExtraFieldType` option is not `"infozip"` or `"unix"`)
+ */
+export const ERR_INVALID_UNIX_EXTRA_FIELD_TYPE: string;
+/**
+ * Invalid UNIX uid/gid size error (thrown when `uid`/`gid` exceeds 65535 with `unixExtraFieldType` set to `"unix"`; use `"infozip"` for larger ids)
+ */
+export const ERR_INVALID_UNIX_ID_SIZE: string;
+/**
+ * Invalid msdosAttributesRaw error (thrown when the `msdosAttributesRaw` option is not an integer in the range 0..255)
+ */
+export const ERR_INVALID_MSDOS_ATTRIBUTES: string;
+/**
+ * Invalid msdosAttributes error (thrown when the `msdosAttributes` option is not an object with boolean flags)
+ */
+export const ERR_INVALID_MSDOS_DATA: string;
+/**
+ * Entry already exists error (thrown by the filesystem API when adding an entry whose filename already exists)
+ */
+export const ERR_ENTRY_EXISTS: string;
+/**
+ * Readable stream already consumed error (thrown by the filesystem API when a readable stream is read more than once)
+ */
+export const ERR_READABLE_CONSUMED: string;
+/**
+ * Unsupported context error (thrown when {@link createSyncAccessHandleTempStream} is used outside a dedicated worker)
+ */
+export const ERR_UNSUPPORTED_CONTEXT: string;

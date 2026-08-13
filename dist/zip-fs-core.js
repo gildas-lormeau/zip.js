@@ -8363,6 +8363,8 @@
 		}
 	}
 
+	exports.ERR_ENTRY_EXISTS = ERR_ENTRY_EXISTS;
+	exports.ERR_READABLE_CONSUMED = ERR_READABLE_CONSUMED;
 	exports.fs = fs;
 
 }));
