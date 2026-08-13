@@ -8,7 +8,7 @@
 
 > **configure**(`configuration`): `void`
 
-Defined in: [index.d.ts:198](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L198)
+Defined in: [index.d.ts:198](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L198)
 
 Configures zip.js
 

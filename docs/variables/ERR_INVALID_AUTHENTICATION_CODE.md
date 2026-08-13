@@ -8,7 +8,7 @@
 
 > `const` **ERR\_INVALID\_AUTHENTICATION\_CODE**: `string`
 
-Defined in: [index.d.ts:3234](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L3234)
+Defined in: [index.d.ts:3234](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L3234)
 
 Invalid authentication code error, thrown when the authentication code of an entry encrypted with AES does not
 match the encrypted data, e.g. when the data was tampered or corrupted after the encryption.

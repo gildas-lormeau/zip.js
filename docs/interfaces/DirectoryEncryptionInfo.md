@@ -6,7 +6,7 @@
 
 # Interface: DirectoryEncryptionInfo
 
-Defined in: [index.d.ts:1275](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1275)
+Defined in: [index.d.ts:1275](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L1275)
 
 Represents the encryption metadata of an encrypted central directory (see
 [GetEntriesOptions#decryptCentralDirectory](GetEntriesOptions.md#decryptcentraldirectory)), read from the version 2 Zip64 end of central directory
@@ -18,7 +18,7 @@ record.
 
 > `optional` **bitLength?**: `number`
 
-Defined in: [index.d.ts:1299](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1299)
+Defined in: [index.d.ts:1299](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L1299)
 
 The key size in bits.
 
@@ -28,7 +28,7 @@ The key size in bits.
 
 > `optional` **compressedSize?**: `number`
 
-Defined in: [index.d.ts:1287](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1287)
+Defined in: [index.d.ts:1287](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L1287)
 
 The size of the compressed and encrypted central directory.
 
@@ -38,7 +38,7 @@ The size of the compressed and encrypted central directory.
 
 > `optional` **compressionMethod?**: `number`
 
-Defined in: [index.d.ts:1283](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1283)
+Defined in: [index.d.ts:1283](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L1283)
 
 The compression method applied to the central directory before encryption.
 
@@ -48,7 +48,7 @@ The compression method applied to the central directory before encryption.
 
 > `optional` **encryptionAlgorithm?**: `number`
 
-Defined in: [index.d.ts:1295](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1295)
+Defined in: [index.d.ts:1295](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L1295)
 
 The identifier of the encryption algorithm (e.g. `0x6610` for AES-256).
 
@@ -58,7 +58,7 @@ The identifier of the encryption algorithm (e.g. `0x6610` for AES-256).
 
 > `optional` **flags?**: `number`
 
-Defined in: [index.d.ts:1303](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1303)
+Defined in: [index.d.ts:1303](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L1303)
 
 The processing flags (e.g. `0x0001` for password-based encryption).
 
@@ -68,7 +68,7 @@ The processing flags (e.g. `0x0001` for password-based encryption).
 
 > `optional` **hashAlgorithm?**: `number`
 
-Defined in: [index.d.ts:1307](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1307)
+Defined in: [index.d.ts:1307](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L1307)
 
 The identifier of the hash algorithm used for the password validation data.
 
@@ -78,7 +78,7 @@ The identifier of the hash algorithm used for the password validation data.
 
 > `optional` **hashData?**: `Uint8Array`\<`ArrayBufferLike`\>
 
-Defined in: [index.d.ts:1311](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1311)
+Defined in: [index.d.ts:1311](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L1311)
 
 The password validation data.
 
@@ -88,7 +88,7 @@ The password validation data.
 
 > **rawExtensibleData**: `Uint8Array`
 
-Defined in: [index.d.ts:1279](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1279)
+Defined in: [index.d.ts:1279](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L1279)
 
 The raw data of the extensible data sector of the record.
 
@@ -98,6 +98,6 @@ The raw data of the extensible data sector of the record.
 
 > `optional` **uncompressedSize?**: `number`
 
-Defined in: [index.d.ts:1291](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1291)
+Defined in: [index.d.ts:1291](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L1291)
 
 The size of the central directory once decrypted and decompressed.

@@ -8,6 +8,6 @@
 
 > `const` **ERR\_READABLE\_CONSUMED**: `string`
 
-Defined in: [index.d.ts:3384](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L3384)
+Defined in: [index.d.ts:3384](https://github.com/gildas-lormeau/zip.js/blob/73cfa02ff8cf16ec80308b1759f9f3b000080d00/index.d.ts#L3384)
 
 Readable stream already consumed error (thrown by the filesystem API when a readable stream is read more than once)
