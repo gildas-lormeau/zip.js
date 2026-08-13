@@ -15,8 +15,12 @@
     <script>
         const testData = JSON.parse(decodeURIComponent(location.hash.substring(1)));
         const script = testData.script;
-        import(script).then(async Module => {
+        (async () => {
             try {
+                if (testData.withStreamsPolyfill && !globalThis.TransformStream) {
+                    await import("../vendor/web-streams-polyfill.js");
+                }
+                const Module = await import(script);
                 const result = await Module.test();
                 document.body.innerHTML = "ok";
                 parent.postMessage(JSON.stringify({ script }), "*");
@@ -24,7 +28,7 @@
                 parent.postMessage(JSON.stringify({ script, error: { message: error.message, stack: error.stack } }), "*");
                 throw error;
             }
-        })
+        })();
     </script>
 </body>
 
