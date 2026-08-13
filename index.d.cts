@@ -3386,3 +3386,12 @@ export const ERR_READABLE_CONSUMED: string;
  * Unsupported context error (thrown when {@link createSyncAccessHandleTempStream} is used outside a dedicated worker)
  */
 export const ERR_UNSUPPORTED_CONTEXT: string;
+/**
+ * Unsupported Crypto API error (thrown when writing encrypted entries while `crypto.getRandomValues` is unavailable)
+ */
+export const ERR_UNSUPPORTED_CRYPTO_API: string;
+/**
+ * Web worker startup timeout error (thrown when a web worker does not start in time, e.g. in browser extensions
+ * disallowing workers; set `useWebWorkers` to `false` in {@link configure} to work around it)
+ */
+export const ERR_WORKER_STARTUP_TIMEOUT: string;

@@ -8,7 +8,7 @@
 
 > **initWorker**(`options?`): `void`
 
-Defined in: [index.d.ts:468](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L468)
+Defined in: [index.d.ts:468](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L468)
 
 Initializes a custom web worker script. This function is exposed by the `@zip.js/zip.js/worker` entry point and must be called
 in the worker script created by [Configuration#createWorker](../interfaces/Configuration.md#createworker) or referenced by [Configuration#workerURI](../interfaces/Configuration.md#workeruri).

@@ -6,7 +6,7 @@
 
 # Interface: EntryExtraFieldUnixDates
 
-Defined in: [index.d.ts:1466](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1466)
+Defined in: [index.d.ts:1466](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1466)
 
 Represents a Unix extra field record storing timestamps: the Info-ZIP Unix type 1 extra field (0x5855),
 written notably by macOS Archive Utility and `ditto`, or the PKWARE Unix extra field (0x000d). Both store
@@ -23,7 +23,7 @@ file header.
 
 > **data**: `Uint8Array`
 
-Defined in: [index.d.ts:1436](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1436)
+Defined in: [index.d.ts:1436](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1436)
 
 The data of the extra field.
 
@@ -37,7 +37,7 @@ The data of the extra field.
 
 > `optional` **gid?**: `number`
 
-Defined in: [index.d.ts:1482](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1482)
+Defined in: [index.d.ts:1482](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1482)
 
 The Unix group id.
 
@@ -47,7 +47,7 @@ The Unix group id.
 
 > `optional` **lastAccessDate?**: `Date`
 
-Defined in: [index.d.ts:1470](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1470)
+Defined in: [index.d.ts:1470](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1470)
 
 The last access date.
 
@@ -57,7 +57,7 @@ The last access date.
 
 > `optional` **lastModDate?**: `Date`
 
-Defined in: [index.d.ts:1474](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1474)
+Defined in: [index.d.ts:1474](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1474)
 
 The last modification date.
 
@@ -67,7 +67,7 @@ The last modification date.
 
 > **type**: `number`
 
-Defined in: [index.d.ts:1432](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1432)
+Defined in: [index.d.ts:1432](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1432)
 
 The type (header id) of the extra field.
 
@@ -81,6 +81,6 @@ The type (header id) of the extra field.
 
 > `optional` **uid?**: `number`
 
-Defined in: [index.d.ts:1478](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1478)
+Defined in: [index.d.ts:1478](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1478)
 
 The Unix user id.

@@ -6,7 +6,7 @@
 
 # Interface: EntryBitFlag
 
-Defined in: [index.d.ts:1411](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1411)
+Defined in: [index.d.ts:1411](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1411)
 
 Represents the parsed general purpose bit flag of an entry.
 
@@ -16,7 +16,7 @@ Represents the parsed general purpose bit flag of an entry.
 
 > **dataDescriptor**: `boolean`
 
-Defined in: [index.d.ts:1419](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1419)
+Defined in: [index.d.ts:1419](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1419)
 
 `true` if the entry data is followed by a data descriptor.
 
@@ -26,7 +26,7 @@ Defined in: [index.d.ts:1419](https://github.com/gildas-lormeau/zip.js/blob/6dfc
 
 > **languageEncodingFlag**: `boolean`
 
-Defined in: [index.d.ts:1423](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1423)
+Defined in: [index.d.ts:1423](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1423)
 
 `true` if the filename and the comment are encoded in UTF-8 (EFS).
 
@@ -36,6 +36,6 @@ Defined in: [index.d.ts:1423](https://github.com/gildas-lormeau/zip.js/blob/6dfc
 
 > **level**: `number`
 
-Defined in: [index.d.ts:1415](https://github.com/gildas-lormeau/zip.js/blob/6dfcc8d971710e93f48cd97e36cb8ac26540a99a/index.d.ts#L1415)
+Defined in: [index.d.ts:1415](https://github.com/gildas-lormeau/zip.js/blob/6edab2a8c9668fd8462c20e69bc657763354a004/index.d.ts#L1415)
 
 The compression option bits.
