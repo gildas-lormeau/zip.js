@@ -48,6 +48,8 @@ export default ([
 		sanitizeResources: false },
 	{ title: "External core entries", script: "./test-external-core-entries.js" },
 	{ title: "Custom codec registration", script: "./test-register-codec.js" },
+	{ title: "Custom worker factory", script: "./test-create-worker.js" },
+	{ title: "Custom engine composition", script: "./test-custom-engine.js" },
 	{ title: "Common JS", script: "./test-common-js.cjs", env: ["node", "deno", "bun"] },
 	{ title: "Core", script: "./test-core.js" },
 	{ title: "Crypto", script: "./test-crypto.js", sanitizeResources: false },

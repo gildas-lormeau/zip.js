@@ -88,6 +88,12 @@
         "default": "./lib/zip-mime-types.js"
       }
     },
+    "./worker": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/core/web-worker-base.js"
+      }
+    },
     "./lib/zip-core-external.js": {
       "import": {
         "types": "./index.d.ts",
@@ -98,6 +104,12 @@
       "import": {
         "types": "./index.d.ts",
         "default": "./lib/zip-fs-core-external.js"
+      }
+    },
+    "./lib/zip-core-custom.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/zip-core-custom.js"
       }
     },
     "./dist/zip-fs-external.js": {
@@ -224,6 +236,12 @@
       "import": {
         "types": "./index.d.ts",
         "default": "./lib/zip-native.js"
+      }
+    },
+    "./lib/core/web-worker-base.js": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./lib/core/web-worker-base.js"
       }
     }
   },

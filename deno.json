@@ -6,7 +6,10 @@
 		"./external": "./lib/zip-fs-external.js",
 		"./mime-types": "./lib/zip-mime-types.js",
 		"./lib/zip-core-external.js": "./lib/zip-core-external.js",
-		"./lib/zip-fs-core-external.js": "./lib/zip-fs-core-external.js"
+		"./lib/zip-fs-core-external.js": "./lib/zip-fs-core-external.js",
+		"./lib/zip-core-custom.js": "./lib/zip-core-custom.js",
+		"./worker": "./lib/core/web-worker-base.js",
+		"./lib/core/web-worker-base.js": "./lib/core/web-worker-base.js"
 	},
 	"publish": {
 		"exclude": [
@@ -23,13 +26,20 @@
 			"package-lock.json",
 			".npmignore",
 			"eslint.config.mjs",
-			"worker-message-property-names.js"
+			"worker-message-property-names.js",
+			"lib/core/web-worker-inline-template.js",
+			"lib/core/web-worker-inline-template-native.js",
+			"lib/core/zlib-streams-inline-template.js",
+			"lib/core/web-worker-inline-base.js"
 		]
 	},
 	"lint": {
 		"exclude": [
 			"dist/*.js",
 			"*-inline.js",
+			"lib/core/web-worker-inline-wasm.js",
+			"lib/core/web-worker-inline-native.js",
+			"lib/core/zlib-streams-inline.js",
 			"tests/",
 			"benchmarks/",
 			"**/*.cjs",

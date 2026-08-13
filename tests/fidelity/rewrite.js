@@ -67,7 +67,7 @@ async function rewriteZip(zip, data, { leg = "codec" } = {}) {
 		.filter(plan => plan.mode == "codec" && plan.options.compressionMethod == COMPRESSION_METHOD_DEFLATE)
 		.map(plan => data.slice(plan.entry.payload.start, plan.entry.payload.end));
 	const configuration = getConfiguration();
-	const RealCompressionStreamZlib = configuration.CompressionStreamZlib;
+	const RealCompressionStreamFallback = configuration.CompressionStreamFallback;
 	class ReplayCompressionStream extends TransformStream {
 		constructor() {
 			const payload = queue.shift();
@@ -81,7 +81,7 @@ async function rewriteZip(zip, data, { leg = "codec" } = {}) {
 			});
 		}
 	}
-	zip.configure({ CompressionStreamZlib: ReplayCompressionStream });
+	zip.configure({ CompressionStreamFallback: ReplayCompressionStream });
 	try {
 		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { useWebWorkers: false, useCompressionStream: false });
 		for (const plan of plans) {
@@ -95,7 +95,7 @@ async function rewriteZip(zip, data, { leg = "codec" } = {}) {
 		}
 		return await zipWriter.close(parsed.eocd.commentBytes.length ? parsed.eocd.commentBytes : undefined);
 	} finally {
-		zip.configure({ CompressionStreamZlib: RealCompressionStreamZlib });
+		zip.configure({ CompressionStreamFallback: RealCompressionStreamFallback });
 	}
 }
 

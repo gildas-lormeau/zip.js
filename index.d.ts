@@ -315,6 +315,19 @@ export interface Configuration extends WorkerConfiguration {
    */
   workerURI?: string;
   /**
+   * The function used to create the web workers, taking precedence over `workerURI`.
+   *
+   * It lets bundlers detect the worker script statically and compile it with its imports, e.g. a custom worker script embedding alternative compression streams.
+   *
+   * Here is an example with a custom worker script (see {@link initWorker} for the content of the script):
+   * ```
+   * configure({
+   *   createWorker: () => new Worker(new URL("./zip-worker.js", import.meta.url), { type: "module" })
+   * });
+   * ```
+   */
+  createWorker?: () => Worker;
+  /**
    * The URI of the WebAssembly module used by default implementations to compress/decompress data. It is ignored if `useCompressionStream` is set to `true` and `CompressionStream`/`DecompressionStream` are supported by the environment.
    *
    * Here is an example to import the WASM module as a URL (see `?url`) and avoid CSP issues:
@@ -352,11 +365,19 @@ export interface Configuration extends WorkerConfiguration {
    *
    * @defaultValue {@link CodecStream}
    */
-  CompressionStreamZlib?: typeof TransformStreamLike;
+  CompressionStreamFallback?: typeof TransformStreamLike;
   /**
    * The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
    *
    * @defaultValue {@link CodecStream}
+   */
+  DecompressionStreamFallback?: typeof TransformStreamLike;
+  /**
+   * @deprecated Use {@link Configuration#CompressionStreamFallback} instead.
+   */
+  CompressionStreamZlib?: typeof TransformStreamLike;
+  /**
+   * @deprecated Use {@link Configuration#DecompressionStreamFallback} instead.
    */
   DecompressionStreamZlib?: typeof TransformStreamLike;
 }
@@ -389,6 +410,75 @@ export interface WorkerConfiguration {
  * Terminates all the web workers
  */
 export function terminateWorkers(): Promise<void>;
+
+/**
+ * Initializes a custom web worker script. This function is exposed by the `@zip.js/zip.js/worker` entry point and must be called
+ * in the worker script created by {@link Configuration#createWorker} or referenced by {@link Configuration#workerURI}.
+ *
+ * Here is a complete example of a worker script using fflate as the compression engine, e.g. to reduce the bundle size:
+ * ```
+ * import { initWorker } from "@zip.js/zip.js/worker";
+ * import { Deflate, Inflate } from "fflate";
+ *
+ * const FORMAT_DEFLATE_RAW = "deflate-raw";
+ *
+ * class FflateStream extends TransformStream {
+ *   constructor(codec) {
+ *     super({
+ *       start(controller) {
+ *         codec.ondata = chunk => {
+ *           if (chunk.length) {
+ *             controller.enqueue(chunk);
+ *           }
+ *         };
+ *       },
+ *       transform(chunk) {
+ *         codec.push(chunk);
+ *       },
+ *       flush() {
+ *         codec.push(new Uint8Array(0), true);
+ *       }
+ *     });
+ *   }
+ * }
+ *
+ * class CompressionStreamFallback extends FflateStream {
+ *   constructor(format, { level } = {}) {
+ *     checkFormat(format);
+ *     super(new Deflate(level === undefined ? {} : { level }));
+ *   }
+ * }
+ *
+ * class DecompressionStreamFallback extends FflateStream {
+ *   constructor(format) {
+ *     checkFormat(format);
+ *     super(new Inflate());
+ *   }
+ * }
+ *
+ * function checkFormat(format) {
+ *   if (format != FORMAT_DEFLATE_RAW) {
+ *     throw new TypeError("Unsupported compression format: " + format);
+ *   }
+ * }
+ *
+ * initWorker({ CompressionStreamFallback, DecompressionStreamFallback });
+ * ```
+ */
+export function initWorker(options?: {
+  /**
+   * The stream implementation used to compress data when `useCompressionStream` is set to `false` or when `CompressionStream` is unsupported.
+   */
+  CompressionStreamFallback?: typeof TransformStreamLike;
+  /**
+   * The stream implementation used to decompress data when `useCompressionStream` is set to `false` or when `DecompressionStream` is unsupported.
+   */
+  DecompressionStreamFallback?: typeof TransformStreamLike;
+  /**
+   * The function called before resolving the stream implementations, e.g. to load a WebAssembly module.
+   */
+  init?(config: Configuration): Promise<unknown> | unknown;
+}): void;
 
 /**
  * Represents a class implementing `CompressionStream` or `DecompressionStream` interfaces.
