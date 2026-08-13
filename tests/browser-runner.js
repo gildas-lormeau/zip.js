@@ -38,7 +38,8 @@ async function main() {
 			console.error("  " + pageError);
 		}
 	}
-	console.log(browserName + ": " + testResults.passed + " pass, " + testResults.failures.length + " fail");
+	console.log(browserName + ": " + testResults.passed + " pass, " + testResults.failures.length + " fail" +
+		(testResults.skipped ? ", " + testResults.skipped + " skipped" : ""));
 	process.exit(testResults.failures.length || !testResults.done ? 1 : 0);
 }
 
@@ -71,7 +72,7 @@ async function getTestResults(page) {
 			if (testResults.done) {
 				return testResults;
 			}
-			const finishedCount = testResults.passed + testResults.failures.length;
+			const finishedCount = testResults.passed + (testResults.skipped || 0) + testResults.failures.length;
 			if (finishedCount >= lastFinishedCount + 50) {
 				lastFinishedCount = finishedCount;
 				console.log(finishedCount + "/" + testResults.total);

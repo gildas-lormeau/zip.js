@@ -1,4 +1,4 @@
-/* global Blob, AbortController */
+/* global Blob, AbortController, AbortSignal */
 
 import * as zip from "../zip-lib.js";
 
@@ -21,7 +21,7 @@ async function test() {
 		});
 		await zipWriter.close();
 	} catch (error) {
-		if (signal.reason == error || signal.reason.code == error.code) {
+		if (!("reason" in AbortSignal.prototype) || signal.reason == error || signal.reason.code == error.code) {
 			await zip.terminateWorkers();
 		} else {
 			throw error;

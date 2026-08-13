@@ -22,10 +22,10 @@ async function test() {
 			await zipReader.close();
 			await zip.terminateWorkers();
 			if (TEXT_CONTENT != (await data.text())) {
-				throw new Error();
+				throw new Error("unexpected content");
 			}
 		}
 	} else {
-		throw new Error();
+		throw new Error("expected a deflated entry");
 	}
 }
