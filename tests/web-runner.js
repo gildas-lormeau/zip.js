@@ -16,7 +16,8 @@ const FEATURE_PROBES = {
 		return response.status == 206;
 	},
 	moduleWorker: () => probeWorker("export {};\npostMessage(true);", { type: "module" }),
-	workerDynamicImport: () => probeWorker("import(\"data:text/javascript,export {};\").then(() => postMessage(true), () => postMessage(false));")
+	workerDynamicImport: () => probeWorker("import(\"data:text/javascript,export {};\").then(() => postMessage(true), () => postMessage(false));"),
+	workerStreams: () => probeWorker("postMessage(typeof TransformStream != \"undefined\");")
 };
 
 const urlParams = new URLSearchParams(location.search);
