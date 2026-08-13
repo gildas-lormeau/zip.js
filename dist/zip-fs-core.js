@@ -2815,7 +2815,7 @@
 
 	class DeflateStream extends TransformStream {
 
-		constructor(options, { chunkSize, CompressionStreamZlib, CompressionStream }) {
+		constructor(options, { chunkSize, CompressionStreamFallback, CompressionStream }) {
 			super({});
 			const { compressed, encrypted, useCompressionStream, zipCrypto, computeCrc32, level, deflate64, format, compressionMethod } = options;
 			const stream = this;
@@ -2837,7 +2837,7 @@
 					readable = pipeThrough(readable, gzipCrc32Stream);
 				} else {
 					try {
-						readable = pipeThroughCompressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStream, CompressionStreamZlib);
+						readable = pipeThroughCompressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStream, CompressionStreamFallback);
 					} catch (error) {
 						let gzipStream;
 						try {
@@ -2979,7 +2979,7 @@
 
 	class InflateStream extends TransformStream {
 
-		constructor(options, { chunkSize, DecompressionStreamZlib, DecompressionStream }) {
+		constructor(options, { chunkSize, DecompressionStreamFallback, DecompressionStream }) {
 			super({});
 			const { zipCrypto, encrypted, checkCrc32, crc32, compressed, useCompressionStream, deflate64, format, compressionMethod, rawBitFlag, outputSize } = options;
 			let crc32Stream, decryptionStream;
@@ -2998,7 +2998,7 @@
 					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.DecompressionStream, format, { chunkSize, compressionMethod, rawBitFlag, uncompressedSize: outputSize }));
 				} else {
 					try {
-						readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamZlib);
+						readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamFallback);
 					} catch (error) {
 						if (deflate64 || outputSize === UNDEFINED_VALUE) {
 							throw error;
@@ -3077,17 +3077,17 @@
 		return new CodecStreamClass(format, options);
 	}
 
-	function pipeThroughCompressionStream(readable, useCompressionStream, options, CompressionStreamNative, CompressionStreamZlib) {
+	function pipeThroughCompressionStream(readable, useCompressionStream, options, CompressionStreamNative, CompressionStreamFallback) {
 		const Stream = useCompressionStream && CompressionStreamNative ?
 			CompressionStreamNative :
-			CompressionStreamZlib || CompressionStreamNative;
+			CompressionStreamFallback || CompressionStreamNative;
 		const format = options.deflate64 ? FORMAT_DEFLATE64_RAW : FORMAT_DEFLATE_RAW;
 		let codecStream;
 		try {
 			codecStream = new Stream(format, options);
 		} catch (error) {
-			if (useCompressionStream && CompressionStreamZlib && Stream != CompressionStreamZlib) {
-				codecStream = new CompressionStreamZlib(format, options);
+			if (useCompressionStream && CompressionStreamFallback && Stream != CompressionStreamFallback) {
+				codecStream = new CompressionStreamFallback(format, options);
 			} else {
 				throw error;
 			}
@@ -3350,7 +3350,7 @@
 	const MESSAGE_ERROR_EVENT_TYPE = "messageerror";
 	const ERR_WORKER_STARTUP_TIMEOUT = "Worker startup timeout";
 
-	let webWorkerSupported, webWorkerSource, webWorkerURI, webWorkerOptions;
+	let webWorkerSupported, webWorkerSource, webWorkerURI, webWorkerOptions, createWorkerFailed;
 	let transferStreamsSupported = true;
 	try {
 		transferStreamsSupported = typeof structuredClone == FUNCTION_TYPE && structuredClone(new DOMException("", "AbortError")).code !== UNDEFINED_VALUE;
@@ -3360,14 +3360,14 @@
 	let initModule = () => { };
 
 	async function supportsDeflate(config) {
-		const { CompressionStream: NativeStream, CompressionStreamZlib: ZlibStream } = config;
-		if (ZlibStream && !ZlibStream.requiresModule) {
+		const { CompressionStream: NativeStream, CompressionStreamFallback: FallbackStream } = config;
+		if (FallbackStream && !FallbackStream.requiresModule) {
 			return true;
 		}
 		if (supportsDeflateRaw(NativeStream) || supportsGzip(NativeStream)) {
 			return true;
 		}
-		if (ZlibStream) {
+		if (FallbackStream) {
 			try {
 				await initModule(config);
 				return true;
@@ -3380,8 +3380,11 @@
 
 	class CodecWorker {
 
-		constructor(workerData, { readable, writable }, { options, config, streamOptions, useWebWorkers, transferStreams, workerURI }, onTaskFinished) {
+		constructor(workerData, { readable, writable }, { options, config, streamOptions, useWebWorkers, transferStreams, workerURI, createWorker }, onTaskFinished) {
 			const { signal } = streamOptions;
+			if (createWorkerFailed) {
+				createWorker = UNDEFINED_VALUE;
+			}
 			Object.assign(workerData, {
 				busy: true,
 				generation: (workerData.generation || 0) + 1,
@@ -3391,6 +3394,7 @@
 				writable,
 				options: Object.assign({}, options),
 				workerURI,
+				createWorker,
 				transferStreams,
 				terminate() {
 					return new Promise(resolve => {
@@ -3426,7 +3430,7 @@
 				// deno-lint-ignore valid-typeof
 				webWorkerSupported = typeof Worker != UNDEFINED_TYPE;
 			}
-			return (useWebWorkers && webWorkerSupported ? createWebWorkerInterface : createWorkerInterface)(workerData, config);
+			return (useWebWorkers && ((webWorkerSupported && workerURI) || createWorker) ? createWebWorkerInterface : createWorkerInterface)(workerData, config);
 		}
 	}
 
@@ -3483,7 +3487,11 @@
 			try {
 				worker = getWebWorker(workerData.workerURI, baseURI, workerData);
 			} catch {
-				webWorkerSupported = false;
+				if (workerData.createWorker) {
+					createWorkerFailed = true;
+				} else {
+					webWorkerSupported = false;
+				}
 				return createWorkerInterface(workerData, config);
 			}
 			Object.assign(workerData, {
@@ -3496,7 +3504,11 @@
 							return await runWebWorker(workerData, { chunkSize, wasmURI, baseURI, workerStartupTimeout });
 						} catch (error) {
 							if (error && error.workerStartupFailed) {
-								webWorkerSupported = false;
+								if (workerData.createWorker) {
+									createWorkerFailed = true;
+								} else {
+									webWorkerSupported = false;
+								}
 								const { reader } = workerData;
 								if (reader) {
 									reader.releaseLock();
@@ -3519,17 +3531,17 @@
 		try {
 			if (options.compressed && !options.format) {
 				const deflate = options.codecType.startsWith(CODEC_DEFLATE);
-				const ZlibStream = deflate ? config.CompressionStreamZlib : config.DecompressionStreamZlib;
+				const FallbackStream = deflate ? config.CompressionStreamFallback : config.DecompressionStreamFallback;
 				const NativeStream = deflate ? config.CompressionStream : config.DecompressionStream;
 				if (!options.useCompressionStream) {
 					try {
 						await initModule(config);
 					} catch {
-						if (!ZlibStream || ZlibStream.requiresModule) {
+						if (!FallbackStream || FallbackStream.requiresModule) {
 							options.useCompressionStream = true;
 						}
 					}
-				} else if (ZlibStream && ZlibStream.requiresModule && !supportsDeflateRaw(NativeStream)) {
+				} else if (FallbackStream && FallbackStream.requiresModule && !supportsDeflateRaw(NativeStream)) {
 					try {
 						await initModule(config);
 					} catch {
@@ -3654,8 +3666,11 @@
 	}
 
 	function getWebWorker(url, baseURI, workerData, isModuleType, useBlobURI = true) {
+		const { createWorker } = workerData;
 		let worker, resolvedURI, resolvedOptions;
-		if (webWorkerURI === UNDEFINED_VALUE || webWorkerSource !== url) {
+		if (createWorker) {
+			worker = createWorker();
+		} else if (webWorkerURI === UNDEFINED_VALUE || webWorkerSource !== url) {
 			// deno-lint-ignore valid-typeof
 			const isFunctionURI = typeof url == FUNCTION_TYPE;
 			if (isFunctionURI) {
@@ -3910,7 +3925,7 @@
 	async function runWorker(stream, workerOptions) {
 		const { options, config } = workerOptions;
 		const { transferStreams, useWebWorkers, useCompressionStream, compressed, checkCrc32, computeCrc32, encrypted, format, codecURI } = options;
-		const { workerURI, maxWorkers } = config;
+		const { workerURI, createWorker, maxWorkers } = config;
 		if (format) {
 			if (codecURI) {
 				options.codecURI = resolveCodecURI(codecURI, config.baseURI);
@@ -3922,6 +3937,7 @@
 		const workerSupported = format === UNDEFINED_VALUE || Boolean(options.codecURI);
 		workerOptions.useWebWorkers = !streamCopy && workerSupported && (useWebWorkers || (useWebWorkers === UNDEFINED_VALUE && config.useWebWorkers));
 		workerOptions.workerURI = workerOptions.useWebWorkers && workerURI ? workerURI : UNDEFINED_VALUE;
+		workerOptions.createWorker = workerOptions.useWebWorkers && createWorker ? createWorker : UNDEFINED_VALUE;
 		options.useCompressionStream = useCompressionStream || (useCompressionStream === UNDEFINED_VALUE && config.useCompressionStream);
 		return (await getWorker()).run();
 
@@ -3985,7 +4001,7 @@
 		starvationTimeout = null;
 		if (pendingRequests.length) {
 			const [{ resolve, stream, workerOptions }] = pendingRequests.splice(0, 1);
-			const inlineWorkerOptions = Object.assign({}, workerOptions, { useWebWorkers: false, workerURI: UNDEFINED_VALUE });
+			const inlineWorkerOptions = Object.assign({}, workerOptions, { useWebWorkers: false, workerURI: UNDEFINED_VALUE, createWorker: UNDEFINED_VALUE });
 			resolve(new CodecWorker({}, stream, inlineWorkerOptions, onInlineTaskFinished));
 			armStarvationTimeout();
 		}
