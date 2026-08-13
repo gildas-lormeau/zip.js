@@ -5,6 +5,7 @@ export { test };
 const CONTENT_REPETITIONS = 10000;
 
 async function test() {
+	const OriginalWorker = globalThis.Worker;
 	const { default: NodeWorker } = await import("web-worker");
 	let workerCount = 0;
 	let workerMessageCount = 0;
@@ -36,6 +37,10 @@ async function test() {
 		}
 	} finally {
 		await zip.terminateWorkers();
-		delete globalThis.Worker;
+		if (OriginalWorker) {
+			globalThis.Worker = OriginalWorker;
+		} else {
+			delete globalThis.Worker;
+		}
 	}
 }
