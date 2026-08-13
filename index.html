@@ -67,7 +67,7 @@
 			<tr>
 				<td>WebAssembly builds: <code>index.js</code> (default), <code>lib/zip-core-wasm.js</code>,
 					<code>dist/zip.min.js</code>, <code>dist/zip-fs.min.js</code></td>
-				<td>75</td>
+				<td>80</td>
 				<td>102</td>
 				<td>15.1</td>
 				<td>18</td>
@@ -77,7 +77,7 @@
 			<tr>
 				<td>"native" JavaScript builds: <code>index-native.js</code>, <code>lib/zip-core-native.js</code>,
 					<code>dist/zip-native.min.js</code>, <code>dist/zip-fs-native.min.js</code></td>
-				<td>67</td>
+				<td>80</td>
 				<td>102</td>
 				<td>14.1</td>
 				<td>18</td>
@@ -104,9 +104,13 @@
 				as a last resort, and stores entries uncompressed when writing data without any usable
 				implementation. The embedded WebAssembly module uses bulk memory operations, hence the higher
 				requirements of the WebAssembly builds compared to the "native" JavaScript builds.</li>
-			<li>Uncompressed entries only require the Streams API, i.e. Chrome 67, Firefox 102, Safari 14.1, and
-				Node.js 18, with any build. A worker script embedding the codecs, passed via <code>workerURI</code>
-				or created via <code>createWorker</code>, also lifts the requirements of the "core" builds.</li>
+			<li>Uncompressed entries only require the Streams API and the <code>Blob</code> reading methods, i.e.
+				Chrome 76, Firefox 102, Safari 14.1, and Node.js 18, with the WebAssembly and "core" builds. A worker
+				script embedding the codecs, passed via <code>workerURI</code> or created via
+				<code>createWorker</code>, also lifts the requirements of the "core" builds.</li>
+			<li>When <a href="https://github.com/MattiasBuelens/web-streams-polyfill">web-streams-polyfill</a> is
+				loaded on browsers without <code>TransformStream</code>, the WebAssembly builds work down to
+				Firefox 79.</li>
 			<li>Deflate64 decompression and custom compression <code>level</code> values require an embedded deflate
 				implementation, they are not available with the "core" builds.</li>
 			<li>Reading and writing Zip64 files requires Safari 15 or higher.</li>
