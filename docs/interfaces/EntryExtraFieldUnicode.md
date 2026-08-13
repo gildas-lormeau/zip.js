@@ -6,7 +6,7 @@
 
 # Interface: EntryExtraFieldUnicode
 
-Defined in: [index.d.ts:1298](https://github.com/gildas-lormeau/zip.js/blob/7098a57e0b1c6131a5cdca7e2f7570ef2bfa1c95/index.d.ts#L1298)
+Defined in: [index.d.ts:1322](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1322)
 
 Represents a Unicode path or comment extra field record of an entry.
 
@@ -20,7 +20,7 @@ Represents a Unicode path or comment extra field record of an entry.
 
 > **data**: `Uint8Array`
 
-Defined in: [index.d.ts:1271](https://github.com/gildas-lormeau/zip.js/blob/7098a57e0b1c6131a5cdca7e2f7570ef2bfa1c95/index.d.ts#L1271)
+Defined in: [index.d.ts:1271](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1271)
 
 The data of the extra field.
 
@@ -34,7 +34,7 @@ The data of the extra field.
 
 > **type**: `number`
 
-Defined in: [index.d.ts:1267](https://github.com/gildas-lormeau/zip.js/blob/7098a57e0b1c6131a5cdca7e2f7570ef2bfa1c95/index.d.ts#L1267)
+Defined in: [index.d.ts:1267](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1267)
 
 The type (header id) of the extra field.
 
@@ -48,6 +48,6 @@ The type (header id) of the extra field.
 
 > `optional` **valid?**: `boolean`
 
-Defined in: [index.d.ts:1302](https://github.com/gildas-lormeau/zip.js/blob/7098a57e0b1c6131a5cdca7e2f7570ef2bfa1c95/index.d.ts#L1302)
+Defined in: [index.d.ts:1326](https://github.com/gildas-lormeau/zip.js/blob/827a5b5e74129baaeb2fd91ddb78a9aa9a253d8a/index.d.ts#L1326)
 
 `true` if the extra field is consistent with the entry metadata.

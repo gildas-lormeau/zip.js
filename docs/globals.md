@@ -44,6 +44,7 @@
 - [EntryExtraField](interfaces/EntryExtraField.md)
 - [EntryExtraFieldAES](interfaces/EntryExtraFieldAES.md)
 - [EntryExtraFieldUnicode](interfaces/EntryExtraFieldUnicode.md)
+- [EntryExtraFieldUnixDates](interfaces/EntryExtraFieldUnixDates.md)
 - [EntryGetDataCheckPasswordOptions](interfaces/EntryGetDataCheckPasswordOptions.md)
 - [EntryGetDataOptions](interfaces/EntryGetDataOptions.md)
 - [EntryMetaData](interfaces/EntryMetaData.md)
