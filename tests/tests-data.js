@@ -127,6 +127,7 @@ export default ([
 	{ title: "HTTP range requests (window size)", script: "./test-http-range-window.js" },
 	{ title: "Writer exact chunks", script: "./test-writer-exact-chunks.js" },
 	{ title: "Filename validation", script: "./test-filename-validation.js" },
+	{ title: "Option validation", script: "./test-option-validation.js" },
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js" },
 	{ title: "Invalid uncompressed size", script: "./test-invalid-uncompressed-size.js", sanitizeResources: false },
 	{ title: "Failed read commit (real OPFS)", script: "./test-failed-read-commit-browser.js", env: ["browser"], features: ["opfs"] },

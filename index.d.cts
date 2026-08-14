@@ -3422,6 +3422,18 @@ export const ERR_ENCRYPTED_CENTRAL_DIRECTORY: string;
  */
 export const ERR_UNSAFE_FILENAME: string;
 /**
+ * Invalid strictness error (thrown when the `strictness` option is not `"strict"`, `"balanced"` or `"tolerant"`)
+ */
+export const ERR_INVALID_STRICTNESS: string;
+/**
+ * Invalid filenameValidation error (thrown when the `filenameValidation` option is not `"strict"`, `"balanced"` or `"tolerant"`)
+ */
+export const ERR_INVALID_FILENAME_VALIDATION: string;
+/**
+ * Invalid maxAppendedDataSize error (thrown when the `maxAppendedDataSize` option is not a number greater than or equal to 0)
+ */
+export const ERR_INVALID_MAX_APPENDED_DATA_SIZE: string;
+/**
  * Iteration completed too soon error
  */
 export const ERR_ITERATOR_COMPLETED_TOO_SOON: string;
@@ -3473,6 +3485,17 @@ export const ERR_INVALID_MSDOS_ATTRIBUTES: string;
  * Invalid msdosAttributes error (thrown when the `msdosAttributes` option is not an object with boolean flags)
  */
 export const ERR_INVALID_MSDOS_DATA: string;
+/**
+ * Invalid level error (thrown when the `level` option is not an integer in the range 0..9)
+ */
+export const ERR_INVALID_LEVEL: string;
+/**
+ * Invalid password error (thrown when the `password` option is not a string, or the `rawPassword` option is not a `Uint8Array`)
+ *
+ * @remarks A value of another type would silently produce an unencrypted archive, and a `rawPassword` passed as a string
+ * would produce an archive that cannot be opened with the equivalent {@link ZipWriterConstructorOptions#password}.
+ */
+export const ERR_INVALID_PASSWORD_TYPE: string;
 /**
  * Entry already exists error (thrown by the filesystem API when adding an entry whose filename already exists)
  */

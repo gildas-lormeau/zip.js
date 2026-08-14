@@ -1,0 +1,157 @@
+// Checks that options taking an enumeration of values or a bounded number reject anything else instead
+// of silently falling back to a default. Every value probed here used to be accepted: an unknown
+// strictness behaved as "balanced", a negative or non-numeric level disabled compression altogether,
+// and a password of another type produced an unencrypted archive. Values meaning "no value" (undefined,
+// and the falsy passwords that already stood for "no password") must keep working.
+
+import * as zip from "../zip-lib.js";
+
+const CONTENT = "The quick brown fox jumps over the lazy dog.".repeat(20);
+
+export { test };
+
+async function test() {
+	await levelRejectsValuesOutsideItsRange();
+	await levelAcceptsItsWholeRange();
+	await passwordRejectsOtherTypes();
+	await passwordKeepsAcceptingEmptyValues();
+	await encryptionStrengthRejectsNonIntegers();
+	await strictnessRejectsUnknownValues();
+	await filenameValidationRejectsUnknownValues();
+	await maxAppendedDataSizeRejectsInvalidNumbers();
+	await unixIdsRejectNonIntegers();
+	await zip.terminateWorkers();
+}
+
+async function levelRejectsValuesOutsideItsRange() {
+	for (const level of [-1, 10, 1.5, NaN, Infinity, null, "6"]) {
+		await assertThrows({ level }, zip.ERR_INVALID_LEVEL, "level: " + String(level));
+	}
+}
+
+// The guard must not narrow the documented range, and level 0 must keep selecting the STORE method.
+async function levelAcceptsItsWholeRange() {
+	for (let level = 0; level <= 9; level++) {
+		const [entry] = await readEntries(await buildZip({ level }));
+		const expectedMethod = level ? 8 : 0;
+		if (entry.compressionMethod != expectedMethod) {
+			throw new Error("expected method " + expectedMethod + " at level " + level + " got " + entry.compressionMethod);
+		}
+	}
+}
+
+// A password of another type used to be ignored, producing a plain archive with no error at all, and a
+// rawPassword passed as a string used to produce an archive that its equivalent password cannot open.
+async function passwordRejectsOtherTypes() {
+	for (const password of [42, {}, true, ["p"]]) {
+		await assertThrows({ password }, zip.ERR_INVALID_PASSWORD_TYPE, "password: " + JSON.stringify(password));
+	}
+	for (const rawPassword of ["p", 42, []]) {
+		await assertThrows({ rawPassword }, zip.ERR_INVALID_PASSWORD_TYPE, "rawPassword: " + JSON.stringify(rawPassword));
+	}
+}
+
+async function passwordKeepsAcceptingEmptyValues() {
+	for (const options of [{}, { password: undefined }, { password: "" }, { password: null }, { rawPassword: new Uint8Array() }]) {
+		const [entry] = await readEntries(await buildZip(options));
+		if (entry.encrypted) {
+			throw new Error("expected no encryption for " + JSON.stringify(options));
+		}
+	}
+	const [encryptedEntry] = await readEntries(await buildZip({ password: "secret" }));
+	if (!encryptedEntry.encrypted) {
+		throw new Error("expected an encrypted entry");
+	}
+}
+
+// 2.5 used to pass the range check and fail much later with an opaque "invalid aes key size".
+async function encryptionStrengthRejectsNonIntegers() {
+	await assertThrows({ password: "secret", encryptionStrength: 2.5 }, zip.ERR_INVALID_ENCRYPTION_STRENGTH, "encryptionStrength: 2.5");
+	for (const encryptionStrength of [1, 2, 3]) {
+		const [entry] = await readEntries(await buildZip({ password: "secret", encryptionStrength }));
+		if (entry.extraFieldAES.strength != encryptionStrength) {
+			throw new Error("expected strength " + encryptionStrength + " got " + entry.extraFieldAES.strength);
+		}
+	}
+}
+
+async function strictnessRejectsUnknownValues() {
+	const data = await buildZip({});
+	for (const strictness of ["tolerent", "TOLERANT", "strict ", 1, null]) {
+		await assertReadThrows(data, { strictness }, zip.ERR_INVALID_STRICTNESS, "strictness: " + String(strictness));
+	}
+	for (const strictness of ["strict", "balanced", "tolerant", undefined]) {
+		await readEntries(data, { strictness });
+	}
+}
+
+async function filenameValidationRejectsUnknownValues() {
+	const data = await buildZip({});
+	for (const filenameValidation of ["tolerent", "TOLERANT", 0]) {
+		await assertReadThrows(data, { filenameValidation }, zip.ERR_INVALID_FILENAME_VALIDATION, "filenameValidation: " + String(filenameValidation));
+	}
+	for (const filenameValidation of ["strict", "balanced", "tolerant", undefined]) {
+		await readEntries(data, { filenameValidation });
+	}
+}
+
+async function maxAppendedDataSizeRejectsInvalidNumbers() {
+	const data = await buildZip({});
+	for (const maxAppendedDataSize of [-1, NaN, "100", null]) {
+		await assertReadThrows(data, { maxAppendedDataSize }, zip.ERR_INVALID_MAX_APPENDED_DATA_SIZE, "maxAppendedDataSize: " + String(maxAppendedDataSize));
+	}
+	for (const maxAppendedDataSize of [0, 1024, Infinity]) {
+		await readEntries(data, { maxAppendedDataSize });
+	}
+}
+
+// The messages of these guards already promised integers while only the range was checked, so a
+// fractional id was silently truncated when written to the extra field.
+async function unixIdsRejectNonIntegers() {
+	await assertThrows({ uid: 1.5 }, zip.ERR_INVALID_UID, "uid: 1.5");
+	await assertThrows({ gid: 1.5 }, zip.ERR_INVALID_GID, "gid: 1.5");
+	await assertThrows({ unixMode: 0.5 }, zip.ERR_INVALID_UNIX_MODE, "unixMode: 0.5");
+	await readEntries(await buildZip({ uid: 1000, gid: 1000, unixMode: 0o644 }));
+}
+
+async function buildZip(options) {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), options);
+	await zipWriter.add("test.txt", new zip.TextReader(CONTENT), options);
+	return await zipWriter.close();
+}
+
+async function readEntries(data, options) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), options);
+	const entries = await zipReader.getEntries();
+	await zipReader.close();
+	return entries;
+}
+
+async function assertThrows(options, expectedMessage, description) {
+	let thrownError;
+	try {
+		await buildZip(options);
+	} catch (error) {
+		thrownError = error;
+	}
+	assertMessage(thrownError, expectedMessage, description);
+}
+
+async function assertReadThrows(data, options, expectedMessage, description) {
+	let thrownError;
+	try {
+		await readEntries(data, options);
+	} catch (error) {
+		thrownError = error;
+	}
+	assertMessage(thrownError, expectedMessage, description);
+}
+
+function assertMessage(thrownError, expectedMessage, description) {
+	if (!thrownError) {
+		throw new Error("expected " + description + " to be rejected");
+	}
+	if (thrownError.message != expectedMessage) {
+		throw new Error("expected \"" + expectedMessage + "\" for " + description + " got \"" + thrownError.message + "\"");
+	}
+}
