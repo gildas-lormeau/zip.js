@@ -4998,7 +4998,7 @@
 	function getMaxAppendedDataSize(maxAppendedDataSize, strictness) {
 		if (maxAppendedDataSize !== UNDEFINED_VALUE) {
 			const size = toNumber$1(maxAppendedDataSize);
-			if (typeof size != NUMBER_TYPE || !(size >= 0)) {
+			if (typeof size != NUMBER_TYPE || Number.isNaN(size) || size < 0) {
 				throw new Error(ERR_INVALID_MAX_APPENDED_DATA_SIZE);
 			}
 			return size;
