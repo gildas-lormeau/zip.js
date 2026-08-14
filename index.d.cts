@@ -1627,6 +1627,13 @@ export interface EntryError extends Error {
    * it, so the list holds every failure of the export except this one.
    */
   entryErrors?: EntryError[];
+  /**
+   * The names of the files {@link ZipDirectoryEntry#exportFileSystemHandle} finished writing before
+   * it failed, relative to the exported entry (filesystem API). Directories are not listed. Every
+   * other file of the export is either missing or empty, so this is the only way to tell a file the
+   * export completed from one it created but never filled.
+   */
+  exportedEntryNames?: string[];
 }
 /**
  * Represents the metadata of an entry in a zip file (Core API).
@@ -2998,7 +3005,21 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * If an entry cannot be written, the original error is rethrown unmodified as an {@link EntryError},
    * whose {@link EntryError#entryName} is the name of the entry that failed, relative to this entry.
-   * The target directory keeps whatever was written before the failure.
+   *
+   * The export is not atomic and nothing is rolled back, because the target is merged into rather
+   * than replaced: a file that already existed cannot be restored once overwritten. On failure the
+   * target is left as follows, and {@link EntryError#exportedEntryNames} lists the files that
+   * completed:
+   * - files written before the failure are left in place, complete and valid;
+   * - a file whose write started but did not finish is left empty, because it is created before its
+   *   content is streamed; this includes the entry that failed and, with `concurrent`, every entry
+   *   cancelled alongside it;
+   * - files that already existed in the target keep their previous content unless they were
+   *   overwritten in full;
+   * - entries not started yet are missing, as are the directories that would have held them.
+   *
+   * Running the same export again is the supported way to recover, since directories are merged and
+   * files are overwritten.
    *
    * @param directoryHandle The target `FileSystemDirectoryHandle` instance.
    * @param options The options.
@@ -3059,6 +3080,11 @@ export interface ZipDirectoryEntryExportFileSystemHandleOptions
   extends EntryGetDataOptions {
   /**
    * `true` to write independent files concurrently instead of one after another.
+   *
+   * When an entry fails, the entries still in flight are cancelled and the ones not started yet are
+   * skipped, so a failed export stops as early as it does when writing one file after another. An
+   * entry whose write has already been requested may still be created, because the File System
+   * Access API cannot cancel a pending `getFileHandle` or `getDirectoryHandle` call.
    *
    * @defaultValue false
    */

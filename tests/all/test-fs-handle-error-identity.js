@@ -23,7 +23,22 @@ async function test() {
 	await sequentialStopsAtFirstFailure();
 	await concurrentSiblingsAreCancelled();
 	await userSignalIsForwarded();
+	await manifestListsCompletedFiles();
 	await zip.terminateWorkers();
+}
+
+async function manifestListsCompletedFiles() {
+	const fs = new zip.fs.FS();
+	fs.addUint8Array("a.bin", new Uint8Array(8));
+	fs.addDirectory("sub").addUint8Array("b.bin", new Uint8Array(8));
+	fs.addDirectory("boom");
+	fs.addUint8Array("never.bin", new Uint8Array(8));
+	const error = await captureError(() => fs.exportFileSystemHandle(createTargetHandle("boom")));
+	assertError(error, "TypeError", "boom", "manifest");
+	const exported = (error.exportedEntryNames || []).join(",");
+	if (exported != "a.bin,sub/b.bin") {
+		throw new Error("manifest: expected \"a.bin,sub/b.bin\" got \"" + exported + "\"");
+	}
 }
 
 async function concurrentSiblingsAreCancelled() {

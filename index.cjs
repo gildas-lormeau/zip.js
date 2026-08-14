@@ -9467,8 +9467,16 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 	const abortController = new AbortController();
 	const { signal } = abortController;
 	const releaseSignal = forwardAbort(options.signal, abortController);
+	const exportedEntryNames = [];
 	try {
 		await exportChildren(zipEntry, directoryHandle);
+	} catch (error) {
+		try {
+			error.exportedEntryNames = exportedEntryNames;
+		} catch {
+			// ignored
+		}
+		throw error;
 	} finally {
 		releaseSignal();
 	}
@@ -9517,6 +9525,7 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 						}
 					}
 				}));
+				exportedEntryNames.push(child.getRelativeName(zipEntry));
 			}
 		} catch (error) {
 			abortController.abort(new Error(ERR_ABORT_EXPORT));
