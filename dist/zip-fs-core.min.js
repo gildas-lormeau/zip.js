@@ -4997,10 +4997,11 @@
 
 	function getMaxAppendedDataSize(maxAppendedDataSize, strictness) {
 		if (maxAppendedDataSize !== UNDEFINED_VALUE) {
-			if (typeof maxAppendedDataSize != NUMBER_TYPE || !(maxAppendedDataSize >= 0)) {
+			const size = toNumber$1(maxAppendedDataSize);
+			if (typeof size != NUMBER_TYPE || !(size >= 0)) {
 				throw new Error(ERR_INVALID_MAX_APPENDED_DATA_SIZE);
 			}
-			return maxAppendedDataSize;
+			return size;
 		}
 		if (strictness == STRICTNESS_STRICT) {
 			return 0;
@@ -5144,6 +5145,10 @@
 
 	function getOptionValue$1(zipReader, options, name) {
 		return options[name] === UNDEFINED_VALUE ? zipReader.options[name] : options[name];
+	}
+
+	function toNumber$1(value) {
+		return typeof value == STRING_TYPE && value.trim() ? Number(value) : value;
 	}
 
 	function getDate(timeRaw) {
@@ -5502,9 +5507,9 @@
 		let msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE);
 		let versionMadeBy = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION_MADE_BY, msDosCompatible ? 20 : 768);
 		const executable = getOptionValue(zipWriter, options, PROPERTY_NAME_EXECUTABLE);
-		const uid = getOptionValue(zipWriter, options, PROPERTY_NAME_UID);
-		const gid = getOptionValue(zipWriter, options, PROPERTY_NAME_GID);
-		let unixMode = getOptionValue(zipWriter, options, PROPERTY_NAME_UNIX_MODE);
+		const uid = getNumberOptionValue(zipWriter, options, PROPERTY_NAME_UID);
+		const gid = getNumberOptionValue(zipWriter, options, PROPERTY_NAME_GID);
+		let unixMode = getNumberOptionValue(zipWriter, options, PROPERTY_NAME_UNIX_MODE);
 		let unixExtraFieldType = getOptionValue(zipWriter, options, OPTION_UNIX_EXTRA_FIELD_TYPE);
 		let setuid = getOptionValue(zipWriter, options, PROPERTY_NAME_SETUID);
 		let setgid = getOptionValue(zipWriter, options, PROPERTY_NAME_SETGID);
@@ -5659,7 +5664,7 @@
 				throw new Error(ERR_INVALID_PASSWORD_TYPE);
 			}
 		}
-		const encryptionStrength = getOptionValue(zipWriter, options, OPTION_ENCRYPTION_STRENGTH, 3);
+		const encryptionStrength = getNumberOptionValue(zipWriter, options, OPTION_ENCRYPTION_STRENGTH, 3);
 		const zipCrypto = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIPCRYPTO);
 		const extendedTimestamp = getOptionValue(zipWriter, options, OPTION_EXTENDED_TIMESTAMP, true);
 		const ntfsTimestamp = getOptionValue(zipWriter, options, OPTION_NTFS_TIMESTAMP);
@@ -5677,7 +5682,7 @@
 			compressionMethod !== COMPRESSION_METHOD_STORE && compressionMethod !== COMPRESSION_METHOD_DEFLATE && !registeredCodec) {
 			throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 		}
-		let level = getOptionValue(zipWriter, options, OPTION_LEVEL);
+		let level = getNumberOptionValue(zipWriter, options, OPTION_LEVEL);
 		if (level !== UNDEFINED_VALUE && (!Number.isInteger(level) || level < 0 || level > MAX_LEVEL)) {
 			throw new Error(ERR_INVALID_LEVEL);
 		}
@@ -6893,6 +6898,14 @@
 	function getOptionValue(zipWriter, options, name, defaultValue) {
 		const result = options[name] === UNDEFINED_VALUE ? zipWriter.options[name] : options[name];
 		return result === UNDEFINED_VALUE ? defaultValue : result;
+	}
+
+	function getNumberOptionValue(zipWriter, options, name, defaultValue) {
+		return toNumber(getOptionValue(zipWriter, options, name, defaultValue));
+	}
+
+	function toNumber(value) {
+		return typeof value == STRING_TYPE && value.trim() ? Number(value) : value;
 	}
 
 	function getMaximumCompressedSize(uncompressedSize) {

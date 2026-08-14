@@ -13,6 +13,7 @@ export { test };
 async function test() {
 	await levelRejectsValuesOutsideItsRange();
 	await levelAcceptsItsWholeRange();
+	await numericStringsAreAccepted();
 	await passwordRejectsOtherTypes();
 	await passwordKeepsAcceptingEmptyValues();
 	await encryptionStrengthRejectsNonIntegers();
@@ -24,8 +25,33 @@ async function test() {
 }
 
 async function levelRejectsValuesOutsideItsRange() {
-	for (const level of [-1, 10, 1.5, NaN, Infinity, null, "6"]) {
-		await assertThrows({ level }, zip.ERR_INVALID_LEVEL, "level: " + String(level));
+	for (const level of [-1, 10, 1.5, NaN, Infinity, null, "fast", "", " ", "1.5", {}, [], true]) {
+		await assertThrows({ level }, zip.ERR_INVALID_LEVEL, "level: " + JSON.stringify(level));
+	}
+}
+
+// Numeric options are read from form controls, query strings and environment variables, which all
+// yield strings. These worked before the guards existed, so they must keep working: only values that
+// do not represent a number are rejected. The coerced number is what the rest of the writer sees, so
+// level "9" must still set the maximum compression bit of the general purpose bit flag.
+async function numericStringsAreAccepted() {
+	for (const [level, expectedMethod] of [["0", 0], ["6", 8], ["9", 8]]) {
+		const [entry] = await readEntries(await buildZip({ level }));
+		if (entry.compressionMethod != expectedMethod) {
+			throw new Error("expected method " + expectedMethod + " at level \"" + level + "\" got " + entry.compressionMethod);
+		}
+	}
+	const [maximumLevelEntry] = await readEntries(await buildZip({ level: "9" }));
+	if (maximumLevelEntry.bitFlag.level != 1) {
+		throw new Error("expected the maximum compression bit flag, got " + maximumLevelEntry.bitFlag.level);
+	}
+	const [encryptedEntry] = await readEntries(await buildZip({ password: "secret", encryptionStrength: "3" }));
+	if (encryptedEntry.extraFieldAES.strength != 3) {
+		throw new Error("expected strength 3, got " + encryptedEntry.extraFieldAES.strength);
+	}
+	const [unixEntry] = await readEntries(await buildZip({ uid: "1000", gid: "1000", unixMode: "420" }));
+	if (unixEntry.uid != 1000 || unixEntry.gid != 1000) {
+		throw new Error("expected uid and gid 1000, got " + unixEntry.uid + " and " + unixEntry.gid);
 	}
 }
 
@@ -97,10 +123,10 @@ async function filenameValidationRejectsUnknownValues() {
 
 async function maxAppendedDataSizeRejectsInvalidNumbers() {
 	const data = await buildZip({});
-	for (const maxAppendedDataSize of [-1, NaN, "100", null]) {
-		await assertReadThrows(data, { maxAppendedDataSize }, zip.ERR_INVALID_MAX_APPENDED_DATA_SIZE, "maxAppendedDataSize: " + String(maxAppendedDataSize));
+	for (const maxAppendedDataSize of [-1, NaN, null, "", " ", "abc", {}]) {
+		await assertReadThrows(data, { maxAppendedDataSize }, zip.ERR_INVALID_MAX_APPENDED_DATA_SIZE, "maxAppendedDataSize: " + JSON.stringify(maxAppendedDataSize));
 	}
-	for (const maxAppendedDataSize of [0, 1024, Infinity]) {
+	for (const maxAppendedDataSize of [0, 1024, Infinity, "0", "1024", "Infinity"]) {
 		await readEntries(data, { maxAppendedDataSize });
 	}
 }
