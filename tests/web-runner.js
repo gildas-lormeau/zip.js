@@ -1,4 +1,4 @@
-/* global document, location, addEventListener, setTimeout, clearTimeout, URLSearchParams, fetch, Worker, Blob, URL, navigator, CompressionStream, structuredClone */
+/* global document, location, addEventListener, setTimeout, clearTimeout, URLSearchParams, fetch, Worker, Blob, URL, navigator, CompressionStream, structuredClone, TransformStream */
 
 import tests from "./tests-data.js";
 
@@ -16,7 +16,29 @@ const FEATURE_PROBES = {
 		return response.status == 206;
 	},
 	moduleWorker: () => probeWorker("export {};\npostMessage(true);", { type: "module" }),
-	workerStreams: () => probeWorker("postMessage(typeof TransformStream != \"undefined\");")
+	workerStreams: () => probeWorker("postMessage(typeof TransformStream != \"undefined\");"),
+	wasmBuild: async () => {
+		const zip = await import("./zip-lib.js");
+		let wasmURIRead = false;
+		try {
+			zip.configure({
+				useWebWorkers: false,
+				useCompressionStream: false,
+				wasmURI: () => {
+					wasmURIRead = true;
+					return "data:application/wasm;base64,";
+				}
+			});
+			const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+			await zipWriter.add("probe.txt", new zip.TextReader("probe"));
+			await zipWriter.close();
+		} catch {
+			// ignored
+		} finally {
+			zip.resetConfiguration();
+		}
+		return wasmURIRead;
+	}
 };
 
 const urlParams = new URLSearchParams(location.search);
@@ -35,6 +57,9 @@ let nextTestIndex = 0;
 main();
 
 async function main() {
+	if (withStreamsPolyfill && typeof TransformStream == "undefined") {
+		await import("./vendor/web-streams-polyfill.js");
+	}
 	const missingFeatures = await getMissingFeatures(browserTests);
 	addEventListener("message", event => {
 		const result = JSON.parse(event.data);

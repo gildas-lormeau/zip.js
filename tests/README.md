@@ -26,7 +26,7 @@ Create `tests/all/test-<name>.js`. It must export an async function named `test`
 Optional fields in `tests/tests-data.js`:
 
 - `env`: the runtimes the test runs in, among `"browser"`, `"deno"`, `"node"` and `"bun"`. It runs everywhere by default.
-- `features`: the browser features the test requires, among `"compressionStream"`, `"structuredClone"`, `"opfs"`, `"httpRange"`, `"moduleWorker"` and `"workerStreams"`. The test is skipped in browsers missing one of them.
+- `features`: the features the test requires, among `"compressionStream"`, `"structuredClone"`, `"opfs"`, `"httpRange"`, `"moduleWorker"`, `"workerStreams"` and `"wasmBuild"`. The test is skipped when one of them is missing. `"wasmBuild"` requires the build under test, i.e. the target of `tests/zip-lib.js`, to embed the WebAssembly module.
 - `sanitizeResources: false`: opts the test out of the Deno resource sanitizer, see the comment in `tests/tests-data.js`.
 
 ## Other folders
