@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_MSDOS\_DATA**: `string`
 
-Defined in: [index.d.ts:3376](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L3376)
+Defined in: [index.d.ts:3487](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3487)
 
 Invalid msdosAttributes error (thrown when the `msdosAttributes` option is not an object with boolean flags)

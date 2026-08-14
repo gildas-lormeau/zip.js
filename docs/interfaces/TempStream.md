@@ -6,7 +6,7 @@
 
 # Interface: TempStream
 
-Defined in: [index.d.ts:499](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L499)
+Defined in: [index.d.ts:499](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L499)
 
 A `TransformStream`-like temporary buffer returned by a [ZipWriterConstructorOptions.createTempStream](ZipWriterConstructorOptions.md#createtempstream) factory.
 
@@ -16,7 +16,7 @@ A `TransformStream`-like temporary buffer returned by a [ZipWriterConstructorOpt
 
 > `optional` **dispose?**: () => `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:511](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L511)
+Defined in: [index.d.ts:511](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L511)
 
 Optional cleanup, called once the entry has been processed (on success, error, or abort) to release any backing resource.
 
@@ -30,7 +30,7 @@ Optional cleanup, called once the entry has been processed (on success, error, o
 
 > **readable**: `ReadableStream`
 
-Defined in: [index.d.ts:507](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L507)
+Defined in: [index.d.ts:507](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L507)
 
 The readable side, replayed into the final zip stream once the entry is ready.
 
@@ -40,6 +40,6 @@ The readable side, replayed into the final zip stream once the entry is ready.
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:503](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L503)
+Defined in: [index.d.ts:503](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L503)
 
 The writable side, receiving the compressed data of a buffered entry.

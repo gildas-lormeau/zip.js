@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_UID**: `string`
 
-Defined in: [index.d.ts:3352](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L3352)
+Defined in: [index.d.ts:3463](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3463)
 
 Invalid uid error (thrown when the `uid` option is not an integer in the range 0..2^32-1)

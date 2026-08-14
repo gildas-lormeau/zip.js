@@ -6,7 +6,7 @@
 
 # Interface: OPFSTempStreamOptions
 
-Defined in: [index.d.ts:517](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L517)
+Defined in: [index.d.ts:517](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L517)
 
 Options for [createOPFSTempStream](../functions/createOPFSTempStream.md).
 
@@ -16,7 +16,7 @@ Options for [createOPFSTempStream](../functions/createOPFSTempStream.md).
 
 > `optional` **directoryName?**: `string`
 
-Defined in: [index.d.ts:529](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L529)
+Defined in: [index.d.ts:529](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L529)
 
 Name of the OPFS sub-directory holding the temporary files.
 
@@ -32,7 +32,7 @@ Name of the OPFS sub-directory holding the temporary files.
 
 > `optional` **getDirectory?**: () => `FileSystemDirectoryHandle` \| `Promise`\<`FileSystemDirectoryHandle`\>
 
-Defined in: [index.d.ts:535](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L535)
+Defined in: [index.d.ts:535](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L535)
 
 Returns (or resolves to) the root `FileSystemDirectoryHandle`. Defaults to `navigator.storage.getDirectory()`.
 
@@ -48,7 +48,7 @@ Provide it to run inside a worker with a pre-obtained handle, or to test against
 
 > `optional` **thresholdBytes?**: `number`
 
-Defined in: [index.d.ts:523](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L523)
+Defined in: [index.d.ts:523](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L523)
 
 Spill a buffered entry to a file once its buffered data exceeds this size, in bytes. Smaller entries stay in memory.
 

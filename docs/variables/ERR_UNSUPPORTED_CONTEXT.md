@@ -8,6 +8,6 @@
 
 > `const` **ERR\_UNSUPPORTED\_CONTEXT**: `string`
 
-Defined in: [index.d.ts:3388](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L3388)
+Defined in: [index.d.ts:3510](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3510)
 
 Unsupported context error (thrown when [createSyncAccessHandleTempStream](../functions/createSyncAccessHandleTempStream.md) is used outside a dedicated worker)

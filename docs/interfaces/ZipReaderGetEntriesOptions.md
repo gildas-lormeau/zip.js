@@ -6,7 +6,7 @@
 
 # Interface: ZipReaderGetEntriesOptions
 
-Defined in: [index.d.ts:1183](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L1183)
+Defined in: [index.d.ts:1183](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1183)
 
 Represents the options passed to [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
@@ -20,7 +20,7 @@ Represents the options passed to [ZipReader#getEntries](../classes/ZipReader.md#
 
 > `optional` **checkAmbiguity?**: `boolean`
 
-Defined in: [index.d.ts:1217](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L1217)
+Defined in: [index.d.ts:1218](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1218)
 
 `true` to throw an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error when the archive could be parsed differently by other
 tools. This detects data before or after the zip structure (e.g. a self-extracting archive stub or a
@@ -45,7 +45,7 @@ false
 
 > `optional` **commentEncoding?**: `string`
 
-Defined in: [index.d.ts:1198](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L1198)
+Defined in: [index.d.ts:1198](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1198)
 
 The encoding of the comment of the entry.
 
@@ -59,7 +59,7 @@ The encoding of the comment of the entry.
 
 > `optional` **filenameEncoding?**: `string`
 
-Defined in: [index.d.ts:1194](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L1194)
+Defined in: [index.d.ts:1194](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1194)
 
 The encoding of the filename of the entry.
 
@@ -69,11 +69,44 @@ The encoding of the filename of the entry.
 
 ***
 
+### filenameValidation?
+
+> `optional` **filenameValidation?**: `"balanced"` \| `"strict"` \| `"tolerant"`
+
+Defined in: [index.d.ts:1261](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1261)
+
+How strictly the filename of each entry should be validated. A rejected name throws an
+[ERR\_UNSAFE\_FILENAME](../variables/ERR_UNSAFE_FILENAME.md) error carrying the offending name in its `filename` property.
+
+- `"strict"`: reject the names rejected by `"balanced"`, plus the names that do not map cleanly to a file
+path, i.e. empty names and names containing a `"."` path component or an empty one (e.g. `"a//b.txt"`).
+- `"balanced"`: reject names that would escape the directory they are extracted into, i.e. names containing
+a `".."` path component, and absolute names, i.e. names starting with `"/"`, with a drive letter (e.g.
+`"C:/file.txt"`) or with two backslashes (UNC paths).
+- `"tolerant"`: never reject a name.
+
+A backslash is never interpreted as a path separator: it is a valid filename character on UNIX systems, and
+it also occurs as the trail byte of legitimate double-byte filenames (e.g. CP932) decoded with another
+charset.
+
+Names are validated, never rewritten, so the filename reported for an entry always matches its central
+directory record.
+
+#### Default Value
+
+The value of [GetEntriesOptions#strictness](#strictness).
+
+#### Inherited from
+
+[`GetEntriesOptions`](GetEntriesOptions.md).[`filenameValidation`](GetEntriesOptions.md#filenamevalidation)
+
+***
+
 ### maxAppendedDataSize?
 
 > `optional` **maxAppendedDataSize?**: `number`
 
-Defined in: [index.d.ts:1251](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L1251)
+Defined in: [index.d.ts:1288](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1288)
 
 The maximum number of bytes tolerated after the zip structure before the archive is rejected. Defaults to
 `0` when [GetEntriesOptions#strictness](#strictness) is `"strict"`, `65535` when it is `"balanced"`, and `Infinity`
@@ -95,7 +128,7 @@ record is searched for, so a value smaller than the amount of data actually appe
 
 > `optional` **strictness?**: `"balanced"` \| `"strict"` \| `"tolerant"`
 
-Defined in: [index.d.ts:1239](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L1239)
+Defined in: [index.d.ts:1240](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1240)
 
 How tolerant the reader should be when the archive can be parsed in more than one way.
 
@@ -129,9 +162,9 @@ of the file).
 
 ### decodeText()?
 
-> `optional` **decodeText**(`value`, `encoding`): `string` \| `undefined`
+> `optional` **decodeText**(`value`, `encoding`, `type`): `string` \| `undefined`
 
-Defined in: [index.d.ts:1206](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L1206)
+Defined in: [index.d.ts:1207](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1207)
 
 The function called for decoding the filename and the comment of the entry.
 
@@ -149,6 +182,12 @@ The raw text value.
 
 The encoding of the text.
 
+##### type
+
+`"filename"` \| `"comment"`
+
+The type of the decoded text, `"filename"` or `"comment"`.
+
 #### Returns
 
 `string` \| `undefined`
@@ -165,7 +204,7 @@ The decoded text value or `undefined` if the raw text value should be decoded by
 
 > `optional` **decryptCentralDirectory**(`data`, `encryptionInfo?`): `Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [index.d.ts:1264](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L1264)
+Defined in: [index.d.ts:1301](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1301)
 
 The function called for decrypting the central directory when it is encrypted (see the Strong Encryption
 Specification in the ZIP format specification). Without this function, reading such an archive throws an
@@ -200,11 +239,47 @@ The decrypted and decompressed central directory records.
 
 ***
 
+### normalizeFilename()?
+
+> `optional` **normalizeFilename**(`filename`): `string` \| `undefined`
+
+Defined in: [index.d.ts:1276](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1276)
+
+The function called for normalizing the filename of each entry, e.g. to repair the names rejected by
+[GetEntriesOptions#filenameValidation](GetEntriesOptions.md#filenamevalidation).
+
+It is called with the decoded filename, after [GetEntriesOptions#decodeText](GetEntriesOptions.md#decodetext) and before the name is
+validated, so a name it fails to repair is still rejected. The returned name becomes the name of the entry:
+it is used to detect directory entries by their trailing `"/"`, and to detect duplicate filenames when
+[GetEntriesOptions#checkAmbiguity](#checkambiguity) is set, so two names normalized into the same name are reported as
+an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error instead of silently shadowing each other. The raw filename remains
+available in [EntryMetaData#rawFilename](EntryMetaData.md#rawfilename).
+
+#### Parameters
+
+##### filename
+
+`string`
+
+The decoded filename.
+
+#### Returns
+
+`string` \| `undefined`
+
+The normalized filename or `undefined` to keep the decoded filename.
+
+#### Inherited from
+
+[`GetEntriesOptions`](GetEntriesOptions.md).[`normalizeFilename`](GetEntriesOptions.md#normalizefilename)
+
+***
+
 ### onprogress()?
 
 > `optional` **onprogress**(`progress`, `total`, `entry`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:2545](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L2545)
+Defined in: [index.d.ts:2604](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L2604)
 
 The function called each time an entry is read/written.
 

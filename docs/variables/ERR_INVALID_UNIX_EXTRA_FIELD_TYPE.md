@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_UNIX\_EXTRA\_FIELD\_TYPE**: `string`
 
-Defined in: [index.d.ts:3364](https://github.com/gildas-lormeau/zip.js/blob/c9b73330dec29c733bb7a9d2dfdbb62bcd048550/index.d.ts#L3364)
+Defined in: [index.d.ts:3475](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3475)
 
 Invalid unixExtraFieldType error (thrown when the `unixExtraFieldType` option is not `"infozip"` or `"unix"`)
