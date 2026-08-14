@@ -4614,6 +4614,10 @@ const ZIP64_EXTRACTION = {
 		bytes: 8
 	}
 };
+const MAX_END_OF_CENTRAL_DIR_PROBES = 64;
+const CENTRAL_DIRECTORY_UNREACHABLE = 0;
+const CENTRAL_DIRECTORY_PLAUSIBLE = 1;
+const CENTRAL_DIRECTORY_REACHABLE = 2;
 
 class ZipReader {
 
@@ -4900,10 +4904,10 @@ class ZipReader {
 			entry.getData = (writer, options) => fileEntry.getData(writer, entry, zipReader.readRanges, options);
 			entry.arrayBuffer = async options => {
 				const writer = new TransformStream();
-				const [arrayBuffer] = await Promise.all([
-					streamToBlob(writer.readable).then(blob => blob.arrayBuffer()),
-					fileEntry.getData(writer, entry, zipReader.readRanges, options)]);
-				return arrayBuffer;
+				const arrayBufferPromise = streamToBlob(writer.readable).then(blob => blob.arrayBuffer());
+				arrayBufferPromise.catch(() => { });
+				await fileEntry.getData(writer, entry, zipReader.readRanges, options);
+				return arrayBufferPromise;
 			};
 			offset = endOffset;
 			const { onprogress } = options;
@@ -5154,7 +5158,7 @@ let ZipEntry$1 = class ZipEntry {
 				readRanges
 			});
 		}
-		let writable;
+		let writable, abortError;
 		try {
 			if (!checkOverlappingEntryOnly) {
 				if (checkPasswordOnly) {
@@ -5174,12 +5178,22 @@ let ZipEntry$1 = class ZipEntry {
 				writer.size += error.outputSize;
 			}
 			if (!checkPasswordOnly || error.message != ERR_ABORT_CHECK_PASSWORD) {
+				abortError = error;
 				throw error;
 			}
 		} finally {
 			const preventClose = getOptionValue$1(zipEntry, options, OPTION_PREVENT_CLOSE);
 			if (!preventClose && writable && !writable.locked) {
-				await writable.getWriter().close();
+				const writableWriter = writable.getWriter();
+				if (abortError) {
+					try {
+						await writableWriter.abort(abortError);
+					} catch {
+						// the error being propagated is more relevant; ignored
+					}
+				} else {
+					await writableWriter.close();
+				}
 			}
 		}
 		return checkPasswordOnly || checkOverlappingEntryOnly ? UNDEFINED_VALUE : writer.getData ? writer.getData() : writable;
@@ -5578,12 +5592,6 @@ function getMaxAppendedDataSize(maxAppendedDataSize, strictness) {
 	}
 	return MAX_16_BITS;
 }
-
-const MAX_END_OF_CENTRAL_DIR_PROBES = 64;
-
-const CENTRAL_DIRECTORY_UNREACHABLE = 0;
-const CENTRAL_DIRECTORY_PLAUSIBLE = 1;
-const CENTRAL_DIRECTORY_REACHABLE = 2;
 
 async function findEndOfCentralDirectory(reader, rejectAmbiguous, maxAppendedDataSize) {
 	const { size } = reader;

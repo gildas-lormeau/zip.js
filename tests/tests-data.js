@@ -127,6 +127,7 @@ export default ([
 	{ title: "Writer exact chunks", script: "./test-writer-exact-chunks.js" },
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js" },
 	{ title: "Invalid uncompressed size", script: "./test-invalid-uncompressed-size.js", sanitizeResources: false },
+	{ title: "Failed read commit (real OPFS)", script: "./test-failed-read-commit-browser.js", env: ["browser"], features: ["opfs"] },
 	{ title: "Multiple writers", script: "./test-multiple-writers.js" },
 	{ title: "MS-DOS attributes", script: "./test-msdos-attributes.js" },
 	{ title: "No worker", script: "./test-no-worker.js" },
