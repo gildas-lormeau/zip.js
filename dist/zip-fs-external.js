@@ -8516,6 +8516,7 @@ configureExternalAssets();
 
 const ERR_ENTRY_EXISTS = "Entry filename already exists";
 const ERR_READABLE_CONSUMED = "Readable stream already consumed";
+const ERR_ABORT_EXPORT = "zipjs-abort-export";
 const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
 const INTERPRETED_EXTRA_FIELD_TYPES = new Set([
 	EXTRAFIELD_TYPE_ZIP64,
@@ -8624,8 +8625,9 @@ class ZipFileEntry extends ZipEntry {
 			const uncompressedSize = zipEntry.data ? zipEntry.data.uncompressedSize : reader.size;
 			await Promise.all([initStream(reader), initStream(writer, uncompressedSize)]);
 			const { readable } = reader;
+			const { signal } = options;
 			zipEntry.uncompressedSize = reader.size;
-			await toCompatibleReadable(readable).pipeTo(toCompatibleWritable(writer.writable));
+			await toCompatibleReadable(readable).pipeTo(toCompatibleWritable(writer.writable), { signal });
 			return writer.getData ? writer.getData() : writer.writable;
 		}
 	}
@@ -9267,11 +9269,29 @@ function detach(entry) {
 	}
 }
 
+function forwardAbort(signal, abortController) {
+	if (!signal) {
+		return () => { };
+	}
+	if (signal.aborted) {
+		abortController.abort(signal.reason);
+		return () => { };
+	}
+	const abort = () => abortController.abort(signal.reason);
+	signal.addEventListener("abort", abort, { once: true });
+	return () => signal.removeEventListener("abort", abort);
+}
+
+function isExportAborted(error) {
+	return Boolean(error) && error.message == ERR_ABORT_EXPORT;
+}
+
 function aggregateEntryErrors(errors) {
 	const [error] = errors;
 	const otherErrors = errors
 		.slice(1)
-		.flatMap(otherError => [otherError, ...(otherError && otherError.entryErrors || [])]);
+		.flatMap(otherError => [otherError, ...(otherError && otherError.entryErrors || [])])
+		.filter(otherError => otherError !== error);
 	if (otherErrors.length) {
 		try {
 			error.entryErrors = [...(error.entryErrors || []), ...otherErrors];
@@ -9447,15 +9467,24 @@ function addFileSystemHandle(zipEntry, handle, options) {
 async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 	const totalSize = getTotalSize([zipEntry], "uncompressedSize");
 	const writtenSizes = new Map();
-	await exportChildren(zipEntry, directoryHandle);
+	const abortController = new AbortController();
+	const { signal } = abortController;
+	const releaseSignal = forwardAbort(options.signal, abortController);
+	try {
+		await exportChildren(zipEntry, directoryHandle);
+	} finally {
+		releaseSignal();
+	}
 	return directoryHandle;
 
 	async function exportChildren(entry, parentHandle) {
 		if (options.concurrent) {
 			const results = await Promise.allSettled(entry.children.map(child => exportChild(child, parentHandle)));
-			const failedResults = results.filter(result => result.status == "rejected");
-			if (failedResults.length) {
-				throw aggregateEntryErrors(failedResults.map(result => result.reason));
+			const rejectedResults = results.filter(result => result.status == "rejected");
+			if (rejectedResults.length) {
+				const failedResults = rejectedResults.filter(result => !isExportAborted(result.reason));
+				const reportedResults = failedResults.length ? failedResults : rejectedResults;
+				throw aggregateEntryErrors(reportedResults.map(result => result.reason));
 			}
 		} else {
 			for (const child of entry.children) {
@@ -9465,6 +9494,12 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 	}
 
 	async function exportChild(child, parentHandle) {
+		if (signal.aborted) {
+			if (isExportAborted(signal.reason)) {
+				return;
+			}
+			throw signal.reason;
+		}
 		try {
 			if (child.directory) {
 				const childDirectoryHandle = await parentHandle.getDirectoryHandle(child.name, { create: true });
@@ -9473,6 +9508,7 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 				const fileHandle = await parentHandle.getFileHandle(child.name, { create: true });
 				const writable = await fileHandle.createWritable();
 				await child.getData({ writable }, Object.assign({}, options, {
+					signal,
 					onprogress: async progress => {
 						if (options.onprogress) {
 							writtenSizes.set(child.id, progress);
@@ -9486,6 +9522,7 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 				}));
 			}
 		} catch (error) {
+			abortController.abort(new Error(ERR_ABORT_EXPORT));
 			try {
 				if (error.entryName === UNDEFINED_VALUE) {
 					error.entryName = child.getRelativeName(zipEntry);

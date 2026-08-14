@@ -1,4 +1,4 @@
-/* global WritableStream, ReadableStream, TextEncoder */
+/* global WritableStream, ReadableStream, TextEncoder, AbortController */
 
 // Checks that the File System Access paths of the filesystem API report failures without rewriting
 // them: the original error keeps its message and its type, so it stays comparable to the exported
@@ -10,6 +10,7 @@
 import * as zip from "../zip-lib.js";
 
 const ERROR_MESSAGE = "simulated failure";
+const USER_ABORT_MESSAGE = "user abort";
 
 export { test };
 
@@ -20,7 +21,77 @@ async function test() {
 	await importHandleFailure();
 	await concurrentFailuresAreCollected();
 	await sequentialStopsAtFirstFailure();
+	await concurrentSiblingsAreCancelled();
+	await userSignalIsForwarded();
 	await zip.terminateWorkers();
+}
+
+async function concurrentSiblingsAreCancelled() {
+	zip.configure({ chunkSize: 128 });
+	const fs = new zip.fs.FS();
+	fs.addUint8Array("slow.bin", new Uint8Array(512 * 1024));
+	fs.addDirectory("bad");
+	const target = createCancellationTarget();
+	const error = await captureError(() => fs.exportFileSystemHandle(target.handle, { concurrent: true }));
+	assertError(error, "TypeError", "bad", "cancelled siblings");
+	if (error.entryErrors) {
+		throw new Error("cancelled siblings: cancellations leaked into entryErrors: " +
+			error.entryErrors.map(entryError => entryError.message).join(","));
+	}
+	if (!target.aborted) {
+		throw new Error("cancelled siblings: the in-flight entry was not cancelled");
+	}
+	if (target.closed) {
+		throw new Error("cancelled siblings: the cancelled entry was committed");
+	}
+}
+
+async function userSignalIsForwarded() {
+	const fs = new zip.fs.FS();
+	fs.addUint8Array("data.bin", new Uint8Array(1024));
+	const controller = new AbortController();
+	controller.abort(new Error(USER_ABORT_MESSAGE));
+	const error = await captureError(() => fs.exportFileSystemHandle(createTargetHandle(), {
+		signal: controller.signal
+	}));
+	if (error.message != USER_ABORT_MESSAGE) {
+		throw new Error("user signal: expected \"" + USER_ABORT_MESSAGE + "\" got \"" + error.message + "\"");
+	}
+}
+
+// Target whose "bad" directory fails only once the sibling entry has started streaming, so the
+// sibling is reliably in flight when the export is cancelled.
+function createCancellationTarget() {
+	const state = { aborted: false, closed: false };
+	let onFirstChunk;
+	const firstChunk = new Promise(resolve => onFirstChunk = resolve);
+	state.handle = {
+		async getDirectoryHandle(name) {
+			if (name == "bad") {
+				await firstChunk;
+				throw new TypeError(ERROR_MESSAGE);
+			}
+			return state.handle;
+		},
+		async getFileHandle() {
+			return {
+				async createWritable() {
+					return new WritableStream({
+						write() {
+							onFirstChunk();
+						},
+						abort() {
+							state.aborted = true;
+						},
+						close() {
+							state.closed = true;
+						}
+					});
+				}
+			};
+		}
+	};
+	return state;
 }
 
 async function concurrentFailuresAreCollected() {

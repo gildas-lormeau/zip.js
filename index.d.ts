@@ -3060,6 +3060,11 @@ export interface ZipDirectoryEntryExportFileSystemHandleOptions
   /**
    * `true` to write independent files concurrently instead of one after another.
    *
+   * When an entry fails, the entries still in flight are cancelled and the ones not started yet are
+   * skipped, so a failed export stops as early as it does when writing one file after another. An
+   * entry whose write has already been requested may still be created, because the File System
+   * Access API cannot cancel a pending `getFileHandle` or `getDirectoryHandle` call.
+   *
    * @defaultValue false
    */
   concurrent?: boolean;
