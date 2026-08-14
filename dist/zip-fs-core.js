@@ -3949,6 +3949,8 @@
 	const OPTION_MAX_APPENDED_DATA_SIZE = "maxAppendedDataSize";
 	const OPTION_DECRYPT_CENTRAL_DIRECTORY = "decryptCentralDirectory";
 	const OPTION_SIGN_CENTRAL_DIRECTORY = "signCentralDirectory";
+	const TEXT_TYPE_FILENAME = "filename";
+	const TEXT_TYPE_COMMENT = "comment";
 	const STRICTNESS_STRICT = "strict";
 	const STRICTNESS_BALANCED = "balanced";
 	const STRICTNESS_TOLERANT = "tolerant";
@@ -4245,7 +4247,7 @@
 				const decode = getOptionValue$1(zipReader, options, OPTION_DECODE_TEXT) || decodeText;
 				const rawFilenameEncoding = filenameUTF8 ? CHARSET_UTF8 : filenameEncoding || CHARSET_CP437;
 				const rawCommentEncoding = commentUTF8 ? CHARSET_UTF8 : commentEncoding || CHARSET_CP437;
-				let filename = decode(rawFilename, rawFilenameEncoding);
+				let filename = decode(rawFilename, rawFilenameEncoding, TEXT_TYPE_FILENAME);
 				if (filename === UNDEFINED_VALUE) {
 					filename = decodeText(rawFilename, rawFilenameEncoding);
 				}
@@ -4260,7 +4262,7 @@
 					error.filename = filename;
 					throw error;
 				}
-				let comment = decode(rawComment, rawCommentEncoding);
+				let comment = decode(rawComment, rawCommentEncoding, TEXT_TYPE_COMMENT);
 				if (comment === UNDEFINED_VALUE) {
 					comment = decodeText(rawComment, rawCommentEncoding);
 				}
@@ -5597,7 +5599,7 @@
 
 	function resolveMetadata(zipWriter, name, options) {
 		const encode = getOptionValue(zipWriter, options, OPTION_ENCODE_TEXT, encodeText);
-		let rawFilename = encode(name);
+		let rawFilename = encode(name, TEXT_TYPE_FILENAME);
 		if (rawFilename === UNDEFINED_VALUE) {
 			rawFilename = encodeText(name);
 		}
@@ -5605,7 +5607,7 @@
 			throw new Error(ERR_INVALID_ENTRY_NAME);
 		}
 		const comment = options[PROPERTY_NAME_COMMENT] || "";
-		let rawComment = encode(comment);
+		let rawComment = encode(comment, TEXT_TYPE_COMMENT);
 		if (rawComment === UNDEFINED_VALUE) {
 			rawComment = encodeText(comment);
 		}

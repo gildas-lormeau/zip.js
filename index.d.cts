@@ -1201,9 +1201,10 @@ export interface GetEntriesOptions {
    *
    * @param value The raw text value.
    * @param encoding The encoding of the text.
+   * @param type The type of the decoded text, `"filename"` or `"comment"`.
    * @returns The decoded text value or `undefined` if the raw text value should be decoded by zip.js.
    */
-  decodeText?(value: Uint8Array, encoding: string): string | undefined;
+  decodeText?(value: Uint8Array, encoding: string, type: "filename" | "comment"): string | undefined;
   /**
    * `true` to throw an {@link ERR_AMBIGUOUS_ARCHIVE} error when the archive could be parsed differently by other
    * tools. This detects data before or after the zip structure (e.g. a self-extracting archive stub or a
@@ -2554,9 +2555,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * The function called for encoding the filename and the comment of the entry.
    *
    * @param text The text to encode.
+   * @param type The type of the encoded text, `"filename"` or `"comment"`.
    * @returns The encoded text or `undefined` if the text should be encoded by zip.js.
    */
-  encodeText?(text: string): Uint8Array | undefined;
+  encodeText?(text: string, type: "filename" | "comment"): Uint8Array | undefined;
 }
 
 /**
