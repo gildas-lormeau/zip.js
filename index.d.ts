@@ -1613,6 +1613,13 @@ export interface EntryError extends Error {
    * The id of the related {@link ZipEntry} (filesystem API).
    */
   entryId?: number;
+  /**
+   * The name of the related {@link ZipEntry}, or of the related `FileSystemHandle` when importing
+   * one (filesystem API). Set by {@link ZipDirectoryEntry#addFileSystemHandle} and
+   * {@link ZipDirectoryEntry#exportFileSystemHandle}, which rethrow the original error rather than
+   * wrapping it, so its `message` stays comparable to the exported `ERR_*` constants.
+   */
+  entryName?: string;
 }
 /**
  * Represents the metadata of an entry in a zip file (Core API).
@@ -2867,6 +2874,10 @@ export class ZipDirectoryEntry extends ZipEntry {
   /**
    * Adds an entry with content provided via a `FileSystemHandle` instance
    *
+   * If a handle cannot be read, the original error is rethrown unmodified as an {@link EntryError},
+   * whose {@link EntryError#entryName} is the path of the handle that failed, relative to the parent
+   * of `fileSystemHandle`.
+   *
    * @param fileSystemHandle The `fileSystemHandle` instance.
    * @param options The options.
    * @returns A promise resolving to an array of {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instances.
@@ -2977,6 +2988,10 @@ export class ZipDirectoryEntry extends ZipEntry {
   ): Promise<WritableStream>;
   /**
    * Writes the entry and its descendants into a directory as files and sub-directories via the File System Access API (e.g. the Origin Private File System). Files are streamed and directories are merged into the target; colliding files are overwritten. This is the inverse of {@link ZipDirectoryEntry#addFileSystemHandle}.
+   *
+   * If an entry cannot be written, the original error is rethrown unmodified as an {@link EntryError},
+   * whose {@link EntryError#entryName} is the name of the entry that failed, relative to this entry.
+   * The target directory keeps whatever was written before the failure.
    *
    * @param directoryHandle The target `FileSystemDirectoryHandle` instance.
    * @param options The options.

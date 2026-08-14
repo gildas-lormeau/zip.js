@@ -9390,8 +9390,9 @@
 	function addFileSystemHandle(zipEntry, handle, options) {
 		return addFile(zipEntry, handle, []);
 
-		async function addFile(parentEntry, handle, addedEntries) {
+		async function addFile(parentEntry, handle, addedEntries, parentName = "") {
 			if (handle) {
+				const entryName = parentName ? parentName + "/" + handle.name : handle.name;
 				try {
 					if (handle.isFile || handle.isDirectory) {
 						handle = await transformToFileSystemhandle(handle);
@@ -9413,12 +9414,18 @@
 						const directoryEntry = parentEntry.addDirectory(handle.name);
 						addedEntries.push(directoryEntry);
 						for await (const childHandle of handle.values()) {
-							await addFile(directoryEntry, childHandle, addedEntries);
+							await addFile(directoryEntry, childHandle, addedEntries, entryName);
 						}
 					}
 				} catch (error) {
-					const message = error.message + (handle ? " (" + handle.name + ")" : "");
-					throw new Error(message, { cause: error });
+					try {
+						if (error.entryName === UNDEFINED_VALUE) {
+							error.entryName = entryName;
+						}
+					} catch {
+						// ignored
+					}
+					throw error;
 				}
 			}
 			return addedEntries;
@@ -9467,7 +9474,15 @@
 					}));
 				}
 			} catch (error) {
-				throw new Error(error.message + (child ? " (" + child.name + ")" : ""), { cause: error });
+				try {
+					if (error.entryName === UNDEFINED_VALUE) {
+						error.entryName = child.getRelativeName(zipEntry);
+						error.entryId = child.id;
+					}
+				} catch {
+					// ignored
+				}
+				throw error;
 			}
 		}
 	}
