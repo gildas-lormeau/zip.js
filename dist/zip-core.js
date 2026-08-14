@@ -246,7 +246,7 @@
 	}
 
 	/*
-	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+	 Copyright (c) 2026 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
 	 modification, are permitted provided that the following conditions are met:
@@ -274,72 +274,19 @@
 	 */
 
 
-	const ERR_INVALID_CODEC_DEFINITION = "Invalid codec definition";
-	const ERR_RESERVED_COMPRESSION_METHOD = "Reserved compression method";
-	const ERR_INVALID_CODEC_MODULE = "Invalid codec module";
-
-	const STRING_TYPE = "string";
-	const RESERVED_COMPRESSION_METHODS = [
-		COMPRESSION_METHOD_STORE,
-		COMPRESSION_METHOD_DEFLATE,
-		COMPRESSION_METHOD_DEFLATE_64,
-		COMPRESSION_METHOD_AES
-	];
-
-	const registeredCodecs = new Map();
-	const codecStreams = new Map();
-
-	function registerCodec(codec = {}) {
-		const { compressionMethod, format, codecURI, CompressionStream, DecompressionStream, versionNeeded } = codec;
-		if (!Number.isInteger(compressionMethod) || compressionMethod < 0 || compressionMethod > MAX_16_BITS ||
-			typeof format != STRING_TYPE || !format.length) {
-			throw new Error(ERR_INVALID_CODEC_DEFINITION);
-		}
-		if (RESERVED_COMPRESSION_METHODS.includes(compressionMethod)) {
-			throw new Error(ERR_RESERVED_COMPRESSION_METHOD);
-		}
-		const hasStreams = typeof CompressionStream == FUNCTION_TYPE || typeof DecompressionStream == FUNCTION_TYPE;
-		if (!hasStreams && (typeof codecURI != STRING_TYPE || !codecURI.length)) {
-			throw new Error(ERR_INVALID_CODEC_DEFINITION);
-		}
-		registeredCodecs.set(compressionMethod, { compressionMethod, format, codecURI, versionNeeded });
-		if (hasStreams) {
-			setCodecStreams(format, { CompressionStream, DecompressionStream });
-		}
+	function concat(first, second) {
+		const result = new Uint8Array(first.length + second.length);
+		result.set(first);
+		result.set(second, first.length);
+		return result;
 	}
 
-	function unregisterCodec(compressionMethod) {
-		const codec = registeredCodecs.get(compressionMethod);
-		if (codec) {
-			registeredCodecs.delete(compressionMethod);
-			let formatUsed;
-			registeredCodecs.forEach(otherCodec => formatUsed = formatUsed || otherCodec.format == codec.format);
-			if (!formatUsed) {
-				codecStreams.delete(codec.format);
-			}
-		}
+	function toExactUint8Array(array) {
+		return array.byteOffset || array.byteLength != array.buffer.byteLength ? new Uint8Array(array) : array;
 	}
 
-	function getRegisteredCodec(compressionMethod) {
-		return registeredCodecs.get(compressionMethod);
-	}
-
-	function getCodecStreams(format) {
-		return codecStreams.get(format);
-	}
-
-	function setCodecStreams(format, streams) {
-		const { CompressionStream, DecompressionStream } = streams;
-		if (typeof CompressionStream != FUNCTION_TYPE && typeof DecompressionStream != FUNCTION_TYPE) {
-			throw new Error(ERR_INVALID_CODEC_MODULE);
-		}
-		codecStreams.set(format, { CompressionStream, DecompressionStream });
-	}
-
-	async function ensureCodecStreams(format, codecURI) {
-		if (!codecStreams.has(format) && codecURI) {
-			setCodecStreams(format, await import(/* webpackIgnore: true */ /* @vite-ignore */ codecURI));
-		}
+	function getDataView(array) {
+		return new DataView(array.buffer, array.byteOffset, array.byteLength);
 	}
 
 	/*
@@ -522,50 +469,6 @@
 		} else {
 			return new TextEncoder().encode(value);
 		}
-	}
-
-	/*
-	 Copyright (c) 2026 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright
-	 notice, this list of conditions and the following disclaimer in
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	function concat(first, second) {
-		const result = new Uint8Array(first.length + second.length);
-		result.set(first);
-		result.set(second, first.length);
-		return result;
-	}
-
-	function toExactUint8Array(array) {
-		return array.byteOffset || array.byteLength != array.buffer.byteLength ? new Uint8Array(array) : array;
-	}
-
-	function getDataView(array) {
-		return new DataView(array.buffer, array.byteOffset, array.byteLength);
 	}
 
 	// Derived from https://github.com/xqdoo00o/jszip/blob/master/lib/sjcl.js and https://github.com/bitwiseshiftleft/sjcl
@@ -1946,6 +1849,103 @@
 	 1. Redistributions of source code must retain the above copyright notice,
 	 this list of conditions and the following disclaimer.
 
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const ERR_INVALID_CODEC_DEFINITION = "Invalid codec definition";
+	const ERR_RESERVED_COMPRESSION_METHOD = "Reserved compression method";
+	const ERR_INVALID_CODEC_MODULE = "Invalid codec module";
+
+	const STRING_TYPE = "string";
+	const RESERVED_COMPRESSION_METHODS = [
+		COMPRESSION_METHOD_STORE,
+		COMPRESSION_METHOD_DEFLATE,
+		COMPRESSION_METHOD_DEFLATE_64,
+		COMPRESSION_METHOD_AES
+	];
+
+	const registeredCodecs = new Map();
+	const codecStreams = new Map();
+
+	function registerCodec(codec = {}) {
+		const { compressionMethod, format, codecURI, CompressionStream, DecompressionStream, versionNeeded } = codec;
+		if (!Number.isInteger(compressionMethod) || compressionMethod < 0 || compressionMethod > MAX_16_BITS ||
+			typeof format != STRING_TYPE || !format.length) {
+			throw new Error(ERR_INVALID_CODEC_DEFINITION);
+		}
+		if (RESERVED_COMPRESSION_METHODS.includes(compressionMethod)) {
+			throw new Error(ERR_RESERVED_COMPRESSION_METHOD);
+		}
+		const hasStreams = typeof CompressionStream == FUNCTION_TYPE || typeof DecompressionStream == FUNCTION_TYPE;
+		if (!hasStreams && (typeof codecURI != STRING_TYPE || !codecURI.length)) {
+			throw new Error(ERR_INVALID_CODEC_DEFINITION);
+		}
+		registeredCodecs.set(compressionMethod, { compressionMethod, format, codecURI, versionNeeded });
+		if (hasStreams) {
+			setCodecStreams(format, { CompressionStream, DecompressionStream });
+		}
+	}
+
+	function unregisterCodec(compressionMethod) {
+		const codec = registeredCodecs.get(compressionMethod);
+		if (codec) {
+			registeredCodecs.delete(compressionMethod);
+			let formatUsed;
+			registeredCodecs.forEach(otherCodec => formatUsed = formatUsed || otherCodec.format == codec.format);
+			if (!formatUsed) {
+				codecStreams.delete(codec.format);
+			}
+		}
+	}
+
+	function getRegisteredCodec(compressionMethod) {
+		return registeredCodecs.get(compressionMethod);
+	}
+
+	function getCodecStreams(format) {
+		return codecStreams.get(format);
+	}
+
+	function setCodecStreams(format, streams) {
+		const { CompressionStream, DecompressionStream } = streams;
+		if (typeof CompressionStream != FUNCTION_TYPE && typeof DecompressionStream != FUNCTION_TYPE) {
+			throw new Error(ERR_INVALID_CODEC_MODULE);
+		}
+		codecStreams.set(format, { CompressionStream, DecompressionStream });
+	}
+
+	async function ensureCodecStreams(format, codecURI) {
+		if (!codecStreams.has(format) && codecURI) {
+			setCodecStreams(format, await import(/* webpackIgnore: true */ /* @vite-ignore */ codecURI));
+		}
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
 	 2. Redistributions in binary form must reproduce the above copyright 
 	 notice, this list of conditions and the following disclaimer in 
 	 the documentation and/or other materials provided with the distribution.
@@ -2490,8 +2490,8 @@
 	 1. Redistributions of source code must retain the above copyright notice,
 	 this list of conditions and the following disclaimer.
 
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
 	 the documentation and/or other materials provided with the distribution.
 
 	 3. The names of the authors may not be used to endorse or promote products
@@ -2510,19 +2510,14 @@
 	 */
 
 
-	const MODULE_WORKER_OPTIONS = { type: "module" };
-	const ERROR_EVENT_TYPE = "error";
-	const MESSAGE_ERROR_EVENT_TYPE = "messageerror";
 	const ERR_WORKER_STARTUP_TIMEOUT = "Worker startup timeout";
 
-	let webWorkerSupported, webWorkerSource, webWorkerURI, webWorkerOptions, createWorkerFailed;
-	let transferStreamsSupported = true;
-	try {
-		transferStreamsSupported = typeof structuredClone == FUNCTION_TYPE && structuredClone(new DOMException("", "AbortError")).code !== UNDEFINED_VALUE;
-	} catch {
-		// ignored
-	}
+	let webWorkerSupported, createWorkerFailed, webWorkerBackend;
 	let initModule = () => { };
+
+	function setWebWorkerBackend(backend) {
+		webWorkerBackend = backend;
+	}
 
 	async function supportsDeflate(config) {
 		const { CompressionStream: NativeStream, CompressionStreamFallback: FallbackStream } = config;
@@ -2546,6 +2541,14 @@
 	function resetWebWorkerSupport() {
 		webWorkerSupported = UNDEFINED_VALUE;
 		createWorkerFailed = false;
+	}
+
+	function disableWebWorker(workerData) {
+		if (workerData.createWorker) {
+			createWorkerFailed = true;
+		} else {
+			webWorkerSupported = false;
+		}
 	}
 
 	class CodecWorker {
@@ -2600,7 +2603,7 @@
 				// deno-lint-ignore valid-typeof
 				webWorkerSupported = typeof Worker != UNDEFINED_TYPE;
 			}
-			return (useWebWorkers && ((webWorkerSupported && workerURI) || createWorker) ? createWebWorkerInterface : createWorkerInterface)(workerData, config);
+			return (useWebWorkers && webWorkerBackend && ((webWorkerSupported && workerURI) || createWorker) ? webWorkerBackend : createWorkerInterface)(workerData, config);
 		}
 	}
 
@@ -2642,60 +2645,6 @@
 		return {
 			run: () => runWorker$1(workerData, config)
 		};
-	}
-
-	function createWebWorkerInterface(workerData, config) {
-		const { baseURI, chunkSize, workerStartupTimeout } = config;
-		let { wasmURI } = config;
-
-		if (!workerData.interface) {
-			// deno-lint-ignore valid-typeof
-			if (typeof wasmURI == FUNCTION_TYPE) {
-				wasmURI = wasmURI();
-			}
-			let worker;
-			try {
-				worker = getWebWorker(workerData.workerURI, baseURI, workerData);
-			} catch {
-				if (workerData.createWorker) {
-					createWorkerFailed = true;
-				} else {
-					webWorkerSupported = false;
-				}
-				return createWorkerInterface(workerData, config);
-			}
-			Object.assign(workerData, {
-				worker,
-				workerAlive: false,
-				terminated: false,
-				interface: {
-					run: async () => {
-						try {
-							return await runWebWorker(workerData, { chunkSize, wasmURI, baseURI, workerStartupTimeout });
-						} catch (error) {
-							if (error && error.workerStartupFailed) {
-								if (workerData.createWorker) {
-									createWorkerFailed = true;
-								} else {
-									webWorkerSupported = false;
-								}
-								releaseWorkerStreams(workerData);
-								return runWorker$1(workerData, config);
-							}
-							if (error && error.codecImportFailed) {
-								if (workerData.reader) {
-									releaseWorkerStreams(workerData);
-									return runWorker$1(workerData, config);
-								}
-								workerData.onTaskFinished();
-							}
-							throw error;
-						}
-					}
-				}
-			});
-		}
-		return workerData.interface;
 	}
 
 	async function runWorker$1({ options, readable, writable, onTaskFinished }, config) {
@@ -2744,6 +2693,95 @@
 		} finally {
 			onTaskFinished();
 		}
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const MODULE_WORKER_OPTIONS = { type: "module" };
+	const ERROR_EVENT_TYPE = "error";
+	const MESSAGE_ERROR_EVENT_TYPE = "messageerror";
+
+	let webWorkerSource, webWorkerURI, webWorkerOptions;
+	let transferStreamsSupported = true;
+	try {
+		transferStreamsSupported = typeof structuredClone == FUNCTION_TYPE && structuredClone(new DOMException("", "AbortError")).code !== UNDEFINED_VALUE;
+	} catch {
+		// ignored
+	}
+
+	setWebWorkerBackend(createWebWorkerInterface);
+
+	function createWebWorkerInterface(workerData, config) {
+		const { baseURI, chunkSize, workerStartupTimeout } = config;
+		let { wasmURI } = config;
+
+		if (!workerData.interface) {
+			// deno-lint-ignore valid-typeof
+			if (typeof wasmURI == FUNCTION_TYPE) {
+				wasmURI = wasmURI();
+			}
+			let worker;
+			try {
+				worker = getWebWorker(workerData.workerURI, baseURI, workerData);
+			} catch {
+				disableWebWorker(workerData);
+				return createWorkerInterface(workerData, config);
+			}
+			Object.assign(workerData, {
+				worker,
+				workerAlive: false,
+				terminated: false,
+				interface: {
+					run: async () => {
+						try {
+							return await runWebWorker(workerData, { chunkSize, wasmURI, baseURI, workerStartupTimeout });
+						} catch (error) {
+							if (error && error.workerStartupFailed) {
+								disableWebWorker(workerData);
+								releaseWorkerStreams(workerData);
+								return runWorker$1(workerData, config);
+							}
+							if (error && error.codecImportFailed) {
+								if (workerData.reader) {
+									releaseWorkerStreams(workerData);
+									return runWorker$1(workerData, config);
+								}
+								workerData.onTaskFinished();
+							}
+							throw error;
+						}
+					}
+				}
+			});
+		}
+		return workerData.interface;
 	}
 
 	async function runWebWorker(workerData, config) {
