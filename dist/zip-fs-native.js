@@ -8901,6 +8901,21 @@
 		}
 	}
 
+	function aggregateEntryErrors(errors) {
+		const [error] = errors;
+		const otherErrors = errors
+			.slice(1)
+			.flatMap(otherError => [otherError, ...(otherError && otherError.entryErrors || [])]);
+		if (otherErrors.length) {
+			try {
+				error.entryErrors = [...(error.entryErrors || []), ...otherErrors];
+			} catch {
+				// ignored
+			}
+		}
+		return error;
+	}
+
 	function getUserExtraField(extraField) {
 		if (extraField) {
 			const userExtraField = new Map();
@@ -9072,9 +9087,9 @@
 		async function exportChildren(entry, parentHandle) {
 			if (options.concurrent) {
 				const results = await Promise.allSettled(entry.children.map(child => exportChild(child, parentHandle)));
-				const failedResult = results.find(result => result.status == "rejected");
-				if (failedResult) {
-					throw failedResult.reason;
+				const failedResults = results.filter(result => result.status == "rejected");
+				if (failedResults.length) {
+					throw aggregateEntryErrors(failedResults.map(result => result.reason));
 				}
 			} else {
 				for (const child of entry.children) {

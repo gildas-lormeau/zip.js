@@ -1620,6 +1620,13 @@ export interface EntryError extends Error {
    * wrapping it, so its `message` stays comparable to the exported `ERR_*` constants.
    */
   entryName?: string;
+  /**
+   * The other entries that also failed, when {@link ZipDirectoryEntry#exportFileSystemHandle} runs
+   * with `concurrent` set to `true` and more than one entry fails (filesystem API). The error it is
+   * set on is not repeated in the list, and failures raised deeper in the tree are flattened into
+   * it, so the list holds every failure of the export except this one.
+   */
+  entryErrors?: EntryError[];
 }
 /**
  * Represents the metadata of an entry in a zip file (Core API).

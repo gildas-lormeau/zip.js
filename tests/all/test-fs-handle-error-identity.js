@@ -18,7 +18,37 @@ async function test() {
 	await exportDirectoryFailure(true);
 	await exportEntryFailure();
 	await importHandleFailure();
+	await concurrentFailuresAreCollected();
+	await sequentialStopsAtFirstFailure();
 	await zip.terminateWorkers();
+}
+
+async function concurrentFailuresAreCollected() {
+	const error = await captureError(() => buildFailingTree().exportFileSystemHandle(
+		createTargetHandle("bad1", "bad2", "bad3"), { concurrent: true }));
+	assertError(error, "TypeError", "a/bad1", "concurrent failures");
+	const reported = (error.entryErrors || []).map(entryError => entryError.entryName).join(",");
+	if (reported != "a/bad2,b/bad3") {
+		throw new Error("concurrent failures: expected entryErrors \"a/bad2,b/bad3\" got \"" + reported + "\"");
+	}
+}
+
+async function sequentialStopsAtFirstFailure() {
+	const error = await captureError(() => buildFailingTree().exportFileSystemHandle(
+		createTargetHandle("bad1", "bad2", "bad3")));
+	assertError(error, "TypeError", "a/bad1", "sequential failures");
+	if (error.entryErrors) {
+		throw new Error("sequential failures: expected no entryErrors, got " + error.entryErrors.length);
+	}
+}
+
+function buildFailingTree() {
+	const fs = new zip.fs.FS();
+	const first = fs.addDirectory("a");
+	first.addDirectory("bad1");
+	first.addDirectory("bad2");
+	fs.addDirectory("b").addDirectory("bad3");
+	return fs;
 }
 
 async function exportDirectoryFailure(concurrent) {
@@ -69,13 +99,13 @@ function assertError(error, name, entryName, label) {
 	}
 }
 
-function createTargetHandle(failingDirectoryName) {
+function createTargetHandle(...failingDirectoryNames) {
 	return makeHandle();
 
 	function makeHandle() {
 		return {
 			async getDirectoryHandle(name) {
-				if (name == failingDirectoryName) {
+				if (failingDirectoryNames.includes(name)) {
 					throw new TypeError(ERROR_MESSAGE);
 				}
 				return makeHandle();
