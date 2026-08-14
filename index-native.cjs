@@ -4509,6 +4509,7 @@ const OPTION_USDZ = "usdz";
 const OPTION_UNIX_EXTRA_FIELD_TYPE = "unixExtraFieldType";
 const OPTION_LOCAL_EXTRA_FIELD = "localExtraField";
 const OPTION_STRICTNESS = "strictness";
+const OPTION_FILENAME_VALIDATION = "filenameValidation";
 const OPTION_MAX_APPENDED_DATA_SIZE = "maxAppendedDataSize";
 const OPTION_DECRYPT_CENTRAL_DIRECTORY = "decryptCentralDirectory";
 const OPTION_SIGN_CENTRAL_DIRECTORY = "signCentralDirectory";
@@ -4558,6 +4559,8 @@ const ERR_SPLIT_ZIP_FILE = "Split zip file";
 const ERR_OVERLAPPING_ENTRY = "Overlapping entry found";
 const ERR_AMBIGUOUS_ARCHIVE = "Ambiguous archive";
 const ERR_ENCRYPTED_CENTRAL_DIRECTORY = "Encrypted central directory is not supported";
+const ERR_UNSAFE_FILENAME = "Unsafe filename";
+const DRIVE_LETTER_REGEXP = /^[a-zA-Z]:/;
 const CHARSET_UTF8 = "utf-8";
 const PROPERTY_NAME_UTF8_SUFFIX = "UTF8";
 const CHARSET_CP437 = "cp437";
@@ -4611,6 +4614,7 @@ class ZipReader {
 		const checkAmbiguity = strictness == STRICTNESS_STRICT;
 		const rejectAmbiguousEndOfDirectory = strictness != STRICTNESS_TOLERANT;
 		const maxAppendedDataSize = getMaxAppendedDataSize(getOptionValue$1(zipReader, options, OPTION_MAX_APPENDED_DATA_SIZE), strictness);
+		const filenameValidation = getFilenameValidation(getOptionValue$1(zipReader, options, OPTION_FILENAME_VALIDATION), strictness);
 		const { endOfDirectoryInfo, endOfDirectoryReachingEndCount } = await findEndOfCentralDirectory(reader, rejectAmbiguousEndOfDirectory, maxAppendedDataSize);
 		if (!endOfDirectoryInfo) {
 			const signatureArray = await readUint8Array(reader, 0, 4);
@@ -4807,6 +4811,11 @@ class ZipReader {
 			let filename = decode(rawFilename, rawFilenameEncoding);
 			if (filename === UNDEFINED_VALUE) {
 				filename = decodeText(rawFilename, rawFilenameEncoding);
+			}
+			if (isUnsafeFilename(filename, filenameValidation)) {
+				const error = new Error(ERR_UNSAFE_FILENAME);
+				error.filename = filename;
+				throw error;
 			}
 			let comment = decode(rawComment, rawCommentEncoding);
 			if (comment === UNDEFINED_VALUE) {
@@ -5545,6 +5554,24 @@ function getStrictness(strictness, checkAmbiguity) {
 	return strictness;
 }
 
+function getFilenameValidation(filenameValidation, strictness) {
+	return filenameValidation === UNDEFINED_VALUE ? strictness : filenameValidation;
+}
+
+function isUnsafeFilename(filename, filenameValidation) {
+	if (filenameValidation == STRICTNESS_TOLERANT) {
+		return false;
+	}
+	const pathParts = filename.split("/");
+	if (pathParts.length > 1 && pathParts[pathParts.length - 1] === "") {
+		pathParts.pop();
+	}
+	if (pathParts.includes("..") || filename.startsWith("/") || filename.startsWith("\\\\") || DRIVE_LETTER_REGEXP.test(filename)) {
+		return true;
+	}
+	return filenameValidation == STRICTNESS_STRICT && (pathParts.includes(".") || pathParts.includes(""));
+}
+
 function getMaxAppendedDataSize(maxAppendedDataSize, strictness) {
 	if (maxAppendedDataSize !== UNDEFINED_VALUE) {
 		return maxAppendedDataSize;
@@ -5737,6 +5764,7 @@ var zipReader = /*#__PURE__*/Object.freeze({
 	ERR_LOCAL_FILE_HEADER_NOT_FOUND: ERR_LOCAL_FILE_HEADER_NOT_FOUND,
 	ERR_OVERLAPPING_ENTRY: ERR_OVERLAPPING_ENTRY,
 	ERR_SPLIT_ZIP_FILE: ERR_SPLIT_ZIP_FILE,
+	ERR_UNSAFE_FILENAME: ERR_UNSAFE_FILENAME,
 	ERR_UNSUPPORTED_COMPRESSION: ERR_UNSUPPORTED_COMPRESSION$1,
 	ERR_UNSUPPORTED_ENCRYPTION: ERR_UNSUPPORTED_ENCRYPTION,
 	ERR_WORKER_STARTUP_TIMEOUT: ERR_WORKER_STARTUP_TIMEOUT,
@@ -8522,7 +8550,7 @@ class ZipDirectoryEntry extends ZipEntry {
 		for (const entry of entries) {
 			let parent = this;
 			try {
-				const path = entry.filename.split("/");
+				const path = entry.filename.split("/").filter(pathPart => pathPart != "" && pathPart != ".");
 				const name = path.pop();
 				path.forEach(pathPart => {
 					const previousParent = parent;
@@ -9391,6 +9419,7 @@ exports.ERR_RESERVED_COMPRESSION_METHOD = ERR_RESERVED_COMPRESSION_METHOD;
 exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
 exports.ERR_UNDEFINED_READER = ERR_UNDEFINED_READER;
 exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
+exports.ERR_UNSAFE_FILENAME = ERR_UNSAFE_FILENAME;
 exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION$1;
 exports.ERR_UNSUPPORTED_CONTEXT = ERR_UNSUPPORTED_CONTEXT;
 exports.ERR_UNSUPPORTED_CRYPTO_API = ERR_UNSUPPORTED_CRYPTO_API;

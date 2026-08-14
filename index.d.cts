@@ -1238,6 +1238,27 @@ export interface GetEntriesOptions {
    */
   strictness?: "strict" | "balanced" | "tolerant";
   /**
+   * How strictly the filename of each entry should be validated. A rejected name throws an
+   * {@link ERR_UNSAFE_FILENAME} error carrying the offending name in its `filename` property.
+   *
+   * - `"strict"`: reject the names rejected by `"balanced"`, plus the names that do not map cleanly to a file
+   * path, i.e. empty names and names containing a `"."` path component or an empty one (e.g. `"a//b.txt"`).
+   * - `"balanced"`: reject names that would escape the directory they are extracted into, i.e. names containing
+   * a `".."` path component, and absolute names, i.e. names starting with `"/"`, with a drive letter (e.g.
+   * `"C:/file.txt"`) or with two backslashes (UNC paths).
+   * - `"tolerant"`: never reject a name.
+   *
+   * A backslash is never interpreted as a path separator: it is a valid filename character on UNIX systems, and
+   * it also occurs as the trail byte of legitimate double-byte filenames (e.g. CP932) decoded with another
+   * charset.
+   *
+   * Names are validated, never rewritten, so the filename reported for an entry always matches its central
+   * directory record.
+   *
+   * @defaultValue The value of {@link GetEntriesOptions#strictness}.
+   */
+  filenameValidation?: "strict" | "balanced" | "tolerant";
+  /**
    * The maximum number of bytes tolerated after the zip structure before the archive is rejected. Defaults to
    * `0` when {@link GetEntriesOptions#strictness} is `"strict"`, `65535` when it is `"balanced"`, and `Infinity`
    * when it is `"tolerant"`.
@@ -2955,6 +2976,11 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @param reader The {@link Reader} instance.
    * @param options  The options.
+   *
+   * @remarks The filename of each entry is split into path components to build the tree of entries. Empty
+   * components and `"."` components are ignored, so `"a//b.txt"`, `"./a/b.txt"` and `"a/./b.txt"` all produce
+   * the same `"a/b.txt"` entry. Filenames are validated beforehand, see
+   * {@link GetEntriesOptions#filenameValidation}.
    */
   importZip(
     reader:
@@ -3370,6 +3396,14 @@ export const ERR_AMBIGUOUS_ARCHIVE: string;
  * Encryption Specification, which is not supported.
  */
 export const ERR_ENCRYPTED_CENTRAL_DIRECTORY: string;
+/**
+ * Unsafe filename error
+ *
+ * @remarks Thrown when reading an archive containing an entry whose filename is rejected by
+ * {@link GetEntriesOptions#filenameValidation}. The thrown error carries the offending name in its `filename`
+ * property.
+ */
+export const ERR_UNSAFE_FILENAME: string;
 /**
  * Iteration completed too soon error
  */
