@@ -18,7 +18,81 @@ async function test() {
 	await defaultLevelRejectsEscapingNames();
 	await strictnessDrivesTheDefaultLevel();
 	await filesystemDropsRedundantPathComponents();
+	await normalizationRepairsRejectedNames();
+	await normalizationRunsAfterDecodingAndBeforeValidation();
+	await normalizationDetectsCollisions();
+	await filesystemInheritsNormalization();
 	await zip.terminateWorkers();
+}
+
+async function normalizationRepairsRejectedNames() {
+	const entries = await readEntries(await buildZip(["../evil.txt"]), { normalizeFilename: stripLeadingParents });
+	if (entries[0].filename != "evil.txt") {
+		throw new Error("expected the repaired name \"evil.txt\" got \"" + entries[0].filename + "\"");
+	}
+	const keptEntries = await readEntries(await buildZip(["kept.txt"]), { normalizeFilename: () => undefined });
+	if (keptEntries[0].filename != "kept.txt") {
+		throw new Error("expected the decoded name to be kept, got \"" + keptEntries[0].filename + "\"");
+	}
+	const directoryEntries = await readEntries(await buildZip(["x"], ""), { normalizeFilename: () => "x/" });
+	if (!directoryEntries[0].directory) {
+		throw new Error("expected the normalized name to be detected as a directory entry");
+	}
+}
+
+// The hook receives the decoded name and its result is validated, so a hook that fails to repair a name
+// does not defeat filenameValidation.
+async function normalizationRunsAfterDecodingAndBeforeValidation() {
+	let receivedFilename;
+	const entries = await readEntries(await buildZip(["original.txt"]), {
+		decodeText: () => "decoded.txt",
+		normalizeFilename: filename => {
+			receivedFilename = filename;
+			return "normalized.txt";
+		}
+	});
+	if (receivedFilename != "decoded.txt") {
+		throw new Error("expected the hook to receive \"decoded.txt\" got \"" + receivedFilename + "\"");
+	}
+	if (entries[0].filename != "normalized.txt") {
+		throw new Error("expected \"normalized.txt\" got \"" + entries[0].filename + "\"");
+	}
+	await assertRejected("../evil.txt", { normalizeFilename: filename => filename.replace("evil", "still-evil") },
+		"../still-evil.txt");
+}
+
+// A normalization collapsing two names into one must not silently shadow an entry.
+async function normalizationDetectsCollisions() {
+	const data = await buildZip(["a.txt", "/a.txt"]);
+	const options = { checkAmbiguity: true, filenameValidation: "balanced", normalizeFilename: stripLeadingSlashes };
+	try {
+		await readEntries(data, options);
+	} catch (error) {
+		if (error.message != zip.ERR_AMBIGUOUS_ARCHIVE) {
+			throw error;
+		}
+		return;
+	}
+	throw new Error("expected colliding normalized names to be reported as an ambiguous archive");
+}
+
+async function filesystemInheritsNormalization() {
+	const filesystem = new zip.fs.FS();
+	await filesystem.importUint8Array(await buildZip(["../evil.txt", "sub/../ok.txt"]), {
+		normalizeFilename: stripLeadingParents
+	});
+	const names = collectNames(filesystem.root).sort().join(",");
+	if (names != "evil.txt,sub,sub/ok.txt") {
+		throw new Error("expected \"evil.txt,sub,sub/ok.txt\" got \"" + names + "\"");
+	}
+}
+
+function stripLeadingParents(filename) {
+	return filename.split("/").filter(pathPart => pathPart != "..").join("/");
+}
+
+function stripLeadingSlashes(filename) {
+	return filename.startsWith("/") ? filename.slice(1) : filename;
 }
 
 async function levelsRejectExpectedNames() {
@@ -77,15 +151,15 @@ async function assertAccepted(name, options) {
 	}
 }
 
-async function assertRejected(name, options) {
+async function assertRejected(name, options, expectedFilename = name) {
 	try {
 		await readEntries(await buildZip([name]), options);
 	} catch (error) {
 		if (error.message != zip.ERR_UNSAFE_FILENAME) {
 			throw error;
 		}
-		if (error.filename != name) {
-			throw new Error("expected rejected filename \"" + name + "\" got \"" + error.filename + "\"", { cause: error });
+		if (error.filename != expectedFilename) {
+			throw new Error("expected rejected filename \"" + expectedFilename + "\" got \"" + error.filename + "\"", { cause: error });
 		}
 		return;
 	}
@@ -101,11 +175,11 @@ async function readEntries(data, options) {
 	}
 }
 
-async function buildZip(names) {
+async function buildZip(names, content = "content") {
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
 	for (const name of names) {
 		const directory = name.endsWith("/");
-		await zipWriter.add(name, directory ? undefined : new zip.TextReader("content"), { directory });
+		await zipWriter.add(name, directory ? undefined : new zip.TextReader(content), { directory });
 	}
 	return zipWriter.close();
 }

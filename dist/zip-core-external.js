@@ -4545,6 +4545,7 @@ const OPTION_UNIX_EXTRA_FIELD_TYPE = "unixExtraFieldType";
 const OPTION_LOCAL_EXTRA_FIELD = "localExtraField";
 const OPTION_STRICTNESS = "strictness";
 const OPTION_FILENAME_VALIDATION = "filenameValidation";
+const OPTION_NORMALIZE_FILENAME = "normalizeFilename";
 const OPTION_MAX_APPENDED_DATA_SIZE = "maxAppendedDataSize";
 const OPTION_DECRYPT_CENTRAL_DIRECTORY = "decryptCentralDirectory";
 const OPTION_SIGN_CENTRAL_DIRECTORY = "signCentralDirectory";
@@ -4650,6 +4651,7 @@ class ZipReader {
 		const rejectAmbiguousEndOfDirectory = strictness != STRICTNESS_TOLERANT;
 		const maxAppendedDataSize = getMaxAppendedDataSize(getOptionValue$1(zipReader, options, OPTION_MAX_APPENDED_DATA_SIZE), strictness);
 		const filenameValidation = getFilenameValidation(getOptionValue$1(zipReader, options, OPTION_FILENAME_VALIDATION), strictness);
+		const normalizeFilename = getOptionValue$1(zipReader, options, OPTION_NORMALIZE_FILENAME);
 		const { endOfDirectoryInfo, endOfDirectoryReachingEndCount } = await findEndOfCentralDirectory(reader, rejectAmbiguousEndOfDirectory, maxAppendedDataSize);
 		if (!endOfDirectoryInfo) {
 			const signatureArray = await readUint8Array(reader, 0, 4);
@@ -4846,6 +4848,12 @@ class ZipReader {
 			let filename = decode(rawFilename, rawFilenameEncoding);
 			if (filename === UNDEFINED_VALUE) {
 				filename = decodeText(rawFilename, rawFilenameEncoding);
+			}
+			if (normalizeFilename) {
+				const normalizedFilename = normalizeFilename(filename);
+				if (normalizedFilename !== UNDEFINED_VALUE) {
+					filename = normalizedFilename;
+				}
 			}
 			if (isUnsafeFilename(filename, filenameValidation)) {
 				const error = new Error(ERR_UNSAFE_FILENAME);

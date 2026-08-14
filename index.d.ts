@@ -1259,6 +1259,21 @@ export interface GetEntriesOptions {
    */
   filenameValidation?: "strict" | "balanced" | "tolerant";
   /**
+   * The function called for normalizing the filename of each entry, e.g. to repair the names rejected by
+   * {@link GetEntriesOptions#filenameValidation}.
+   *
+   * It is called with the decoded filename, after {@link GetEntriesOptions#decodeText} and before the name is
+   * validated, so a name it fails to repair is still rejected. The returned name becomes the name of the entry:
+   * it is used to detect directory entries by their trailing `"/"`, and to detect duplicate filenames when
+   * {@link GetEntriesOptions#checkAmbiguity} is set, so two names normalized into the same name are reported as
+   * an {@link ERR_AMBIGUOUS_ARCHIVE} error instead of silently shadowing each other. The raw filename remains
+   * available in {@link EntryMetaData#rawFilename}.
+   *
+   * @param filename The decoded filename.
+   * @returns The normalized filename or `undefined` to keep the decoded filename.
+   */
+  normalizeFilename?(filename: string): string | undefined;
+  /**
    * The maximum number of bytes tolerated after the zip structure before the archive is rejected. Defaults to
    * `0` when {@link GetEntriesOptions#strictness} is `"strict"`, `65535` when it is `"balanced"`, and `Infinity`
    * when it is `"tolerant"`.
@@ -2979,8 +2994,8 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @remarks The filename of each entry is split into path components to build the tree of entries. Empty
    * components and `"."` components are ignored, so `"a//b.txt"`, `"./a/b.txt"` and `"a/./b.txt"` all produce
-   * the same `"a/b.txt"` entry. Filenames are validated beforehand, see
-   * {@link GetEntriesOptions#filenameValidation}.
+   * the same `"a/b.txt"` entry. Filenames are normalized and validated beforehand, see
+   * {@link GetEntriesOptions#normalizeFilename} and {@link GetEntriesOptions#filenameValidation}.
    */
   importZip(
     reader:
