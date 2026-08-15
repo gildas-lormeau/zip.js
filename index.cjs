@@ -8598,6 +8598,7 @@ U(setDefaultConfiguration);
 const ERR_ENTRY_EXISTS = "Entry filename already exists";
 const ERR_READABLE_CONSUMED = "Readable stream already consumed";
 const ERR_ABORT_EXPORT = "zipjs-abort-export";
+const ERR_ABORTED = "The operation was aborted";
 const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
 const INTERPRETED_EXTRA_FIELD_TYPES = new Set([
 	EXTRAFIELD_TYPE_ZIP64,
@@ -9588,7 +9589,7 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 			if (exportAborted || isExportAborted(signal.reason)) {
 				return;
 			}
-			throw signal.reason;
+			throw signal.reason === UNDEFINED_VALUE ? new Error(ERR_ABORTED) : signal.reason;
 		}
 		try {
 			if (child.directory) {
