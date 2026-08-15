@@ -2816,6 +2816,23 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   getChildByName(name: string): ZipEntry | undefined;
   /**
+   * Gets the children of the directory
+   *
+   * @remarks The returned array is a snapshot taken when the method is called: entries added or removed
+   * afterwards are not reflected, and an entry removed while the array is being iterated is still present
+   * but detached from the filesystem.
+   *
+   * With `recursive`, the descendants are ordered level by level, i.e. the children of a directory come
+   * before the children of its subdirectories, like the result of `readdir(path, { recursive: true })` in
+   * Node.js.
+   *
+   * Unlike {@link FS#entries}, the directory itself is not included and removed entries leave no empty slot.
+   *
+   * @param options The options.
+   * @returns The array of {@link ZipEntry} instances.
+   */
+  getChildren(options?: ZipDirectoryEntryGetChildrenOptions): ZipEntry[];
+  /**
    * Adds a directory
    *
    * @param name The relative filename of the directory.
@@ -3101,6 +3118,18 @@ export interface ZipDirectoryEntryImportHttpOptions
     HttpOptions {}
 
 /**
+ * Represents the options passed to {@link ZipDirectoryEntry#getChildren} and {@link FS#getChildren}.
+ */
+export interface ZipDirectoryEntryGetChildrenOptions {
+  /**
+   * `true` to return all the descendants of the directory instead of its direct children only.
+   *
+   * @defaultValue false
+   */
+  recursive?: boolean;
+}
+
+/**
  * Represents the options passed to `{@link ZipDirectoryEntry}#export*()`.
  */
 export interface ZipDirectoryEntryExportOptions
@@ -3160,6 +3189,7 @@ export interface FS
   extends Pick<
     ZipDirectoryEntry,
     | "getChildByName"
+    | "getChildren"
     | "addDirectory"
     | "addText"
     | "addBlob"

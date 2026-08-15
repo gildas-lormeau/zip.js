@@ -8689,6 +8689,10 @@
 			}
 		}
 
+		getChildren(options = {}) {
+			return collectChildren(this, options.recursive);
+		}
+
 		isPasswordProtected() {
 			const children = this.children;
 			for (let childIndex = 0; childIndex < children.length; childIndex++) {
@@ -8778,6 +8782,10 @@
 
 		getChildByName(name) {
 			return this.root.getChildByName(name);
+		}
+
+		getChildren(options) {
+			return this.root.getChildren(options);
 		}
 
 		addDirectory(name, options) {
@@ -9326,6 +9334,21 @@
 		fs.entries = [];
 		fs.entryIdCounter = 0;
 		fs.root = new ZipDirectoryEntry(fs);
+	}
+
+	function collectChildren(directory, recursive) {
+		const children = [];
+		const pendingDirectories = [directory];
+		let directoryIndex = 0;
+		while (directoryIndex < pendingDirectories.length) {
+			for (const child of pendingDirectories[directoryIndex++].children) {
+				children.push(child);
+				if (recursive) {
+					pendingDirectories.push(child);
+				}
+			}
+		}
+		return children;
 	}
 
 	function registerEntries(fs, entry) {

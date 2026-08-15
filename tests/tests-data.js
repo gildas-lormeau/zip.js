@@ -100,6 +100,7 @@ export default ([
 	{ title: "Filesystem export error", script: "./test-fs-export-error.js" },
 	{ title: "Filesystem export zip", script: "./test-fs-export-zip.js" },
 	{ title: "Filesystem export File System handle", script: "./test-fs-export-file-system-handle.js" },
+	{ title: "Filesystem getChildren", script: "./test-fs-get-children.js" },
 	{ title: "Filesystem File System handle error identity", script: "./test-fs-handle-error-identity.js" },
 	{ title: "Filesystem File System handle abort signal", script: "./test-fs-handle-abort-signal.js", features: ["abortReason"] },
 	{ title: "Filesystem export File System handle (real OPFS)", script: "./test-fs-export-file-system-handle-browser.js", env: ["browser"], features: ["opfs"] },
