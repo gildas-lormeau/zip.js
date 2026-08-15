@@ -3064,6 +3064,10 @@ export class ZipDirectoryEntry extends ZipEntry {
    * Running the same export again is the supported way to recover, since directories are merged and
    * files are overwritten.
    *
+   * @remarks An entry flagged as a symbolic link by its {@link EntryMetaData#externalFileAttributes} is written
+   * as a regular file whose content is the path of the link target, because the File System Access API cannot
+   * create symbolic links.
+   *
    * @param directoryHandle The target `FileSystemDirectoryHandle` instance.
    * @param options The options.
    * @returns A promise resolving to the target `FileSystemDirectoryHandle` instance.
