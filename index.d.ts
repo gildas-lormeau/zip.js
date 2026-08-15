@@ -3505,6 +3505,15 @@ export const ERR_ENTRY_EXISTS: string;
  */
 export const ERR_READABLE_CONSUMED: string;
 /**
+ * Aborted operation error (thrown by {@link ZipDirectoryEntry#exportFileSystemHandle} when it is aborted via
+ * {@link ZipReaderOptions#signal} on platforms which do not support the `reason` argument of
+ * `AbortController#abort()`)
+ *
+ * @remarks The reason passed by the caller is discarded by these platforms and cannot be recovered, so a
+ * `DOMException` named `AbortError` carrying this message is thrown in its place.
+ */
+export const ERR_ABORTED: string;
+/**
  * Unsupported context error (thrown when {@link createSyncAccessHandleTempStream} is used outside a dedicated worker)
  */
 export const ERR_UNSUPPORTED_CONTEXT: string;
