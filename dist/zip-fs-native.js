@@ -9047,103 +9047,101 @@
 	async function exportZip(zipWriter, entry, totalSize, options, readers) {
 		const selectedEntry = entry;
 		const entryOffsets = new Map();
-		await process(zipWriter, entry);
-
-		async function process(zipWriter, entry) {
-			await exportChild();
-
-			async function exportChild() {
-				if (options.bufferedWrite) {
-					const results = await Promise.allSettled(entry.children.map(processChild));
-					const errorResult = results.find(result => result.status == "rejected");
-					if (errorResult) {
-						throw errorResult.reason;
-					}
-				} else {
-					for (const child of entry.children) {
-						await processChild(child);
-					}
-				}
+		if (options.bufferedWrite) {
+			await processChildren(entry);
+		} else {
+			for (const child of entry.getChildren({ recursive: true })) {
+				await addChild(child);
 			}
+		}
 
-			async function processChild(child) {
-				const name = options.relativePath ? child.getRelativeName(selectedEntry) : child.getFullname();
-				const childOptions = child.options || {};
-				let zipEntryOptions = {};
-				if (child.data instanceof Entry) {
-					const {
-						externalFileAttributes,
-						versionMadeBy,
-						comment,
-						lastModDate,
-						creationDate,
-						lastAccessDate,
-						uncompressedSize,
+		async function processChildren(entry) {
+			const results = await Promise.allSettled(entry.children.map(async child => {
+				await addChild(child);
+				await processChildren(child);
+			}));
+			const errorResult = results.find(result => result.status == "rejected");
+			if (errorResult) {
+				throw errorResult.reason;
+			}
+		}
+
+		async function addChild(child) {
+			const name = options.relativePath ? child.getRelativeName(selectedEntry) : child.getFullname();
+			const childOptions = child.options || {};
+			let zipEntryOptions = {};
+			if (child.data instanceof Entry) {
+				const {
+					externalFileAttributes,
+					versionMadeBy,
+					comment,
+					lastModDate,
+					creationDate,
+					lastAccessDate,
+					uncompressedSize,
+					encrypted,
+					zipCrypto,
+					crc32,
+					compressionMethod,
+					extraFieldAES,
+					internalFileAttributes,
+					extraField,
+					uid,
+					gid
+				} = child.data;
+				zipEntryOptions = {
+					externalFileAttributes,
+					versionMadeBy,
+					comment,
+					lastModDate,
+					creationDate,
+					lastAccessDate,
+					internalFileAttributes
+				};
+				const userExtraField = getUserExtraField(extraField);
+				if (userExtraField) {
+					zipEntryOptions.extraField = userExtraField;
+				}
+				if (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE) {
+					Object.assign(zipEntryOptions, {
+						uid,
+						gid,
+						unixExtraFieldType: options.unixExtraFieldType || INFOZIP_EXTRA_FIELD_TYPE
+					});
+				}
+				if (child.passThrough) {
+					let level, encryptionStrength;
+					if (compressionMethod === 0) {
+						level = 0;
+					}
+					if (extraFieldAES) {
+						encryptionStrength = extraFieldAES.strength;
+					}
+					zipEntryOptions = Object.assign(zipEntryOptions, {
+						passThrough: true,
 						encrypted,
 						zipCrypto,
 						crc32,
-						compressionMethod,
-						extraFieldAES,
-						internalFileAttributes,
-						extraField,
-						uid,
-						gid
-					} = child.data;
-					zipEntryOptions = {
-						externalFileAttributes,
-						versionMadeBy,
-						comment,
-						lastModDate,
-						creationDate,
-						lastAccessDate,
-						internalFileAttributes
-					};
-					const userExtraField = getUserExtraField(extraField);
-					if (userExtraField) {
-						zipEntryOptions.extraField = userExtraField;
-					}
-					if (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE) {
-						Object.assign(zipEntryOptions, {
-							uid,
-							gid,
-							unixExtraFieldType: options.unixExtraFieldType || INFOZIP_EXTRA_FIELD_TYPE
-						});
-					}
-					if (child.passThrough) {
-						let level, encryptionStrength;
-						if (compressionMethod === 0) {
-							level = 0;
+						uncompressedSize,
+						level,
+						encryptionStrength,
+						compressionMethod
+					});
+				}
+			}
+			await zipWriter.add(name, readers.get(child), Object.assign({}, options, zipEntryOptions, childOptions, {
+				directory: child.directory,
+				onprogress: async indexProgress => {
+					if (options.onprogress) {
+						entryOffsets.set(name, indexProgress);
+						try {
+							await options.onprogress(Array.from(entryOffsets.values()).reduce((previousValue, currentValue) => previousValue + currentValue), totalSize);
+						} catch {
+							// ignored
 						}
-						if (extraFieldAES) {
-							encryptionStrength = extraFieldAES.strength;
-						}
-						zipEntryOptions = Object.assign(zipEntryOptions, {
-							passThrough: true,
-							encrypted,
-							zipCrypto,
-							crc32,
-							uncompressedSize,
-							level,
-							encryptionStrength,
-							compressionMethod
-						});
 					}
 				}
-				await zipWriter.add(name, readers.get(child), Object.assign({}, options, zipEntryOptions, childOptions, {
-					directory: child.directory,
-					onprogress: async indexProgress => {
-						if (options.onprogress) {
-							entryOffsets.set(name, indexProgress);
-							try {
-								await options.onprogress(Array.from(entryOffsets.values()).reduce((previousValue, currentValue) => previousValue + currentValue), totalSize);
-							} catch {
-								// ignored
-							}
-						}
-					}
-				}));
-				await process(zipWriter, child);
-			}
+			}));
 		}
 	}
 

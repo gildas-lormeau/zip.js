@@ -10,6 +10,7 @@ async function test() {
 	await shallowByDefault();
 	await recursiveWalksDescendants();
 	await recursiveIsOrderedLevelByLevel();
+	await exportOrderDoesNotDependOnBufferedWrite();
 	await snapshotSurvivesMutation();
 	await comparedToEntriesArray();
 	await zip.terminateWorkers();
@@ -50,6 +51,30 @@ async function recursiveIsOrderedLevelByLevel() {
 	const expected = "A,B,A/A1,B/B1,A/A1/A1a,B/B1/b1.txt,A/A1/A1a/leaf.txt";
 	if (walked != expected) {
 		throw new Error("level order: expected \"" + expected + "\" got \"" + walked + "\"");
+	}
+}
+
+// bufferedWrite selects a write strategy, so it must not decide the order of the entries in the archive.
+// A lopsided tree is needed: the two strategies used to agree on a balanced one.
+async function exportOrderDoesNotDependOnBufferedWrite() {
+	const orders = [];
+	for (const bufferedWrite of [true, false]) {
+		const fs = new zip.fs.FS();
+		const first = fs.addDirectory("A");
+		first.addDirectory("A1").addDirectory("A1a").addText("leaf.txt", "leaf");
+		fs.addDirectory("B").addDirectory("B1").addText("b1.txt", "b1");
+		const walked = fs.getChildren({ recursive: true }).map(entry => entry.getFullname()).join(",");
+		const data = await fs.exportUint8Array({ bufferedWrite });
+		const reader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+		const exported = (await reader.getEntries()).map(entry => entry.filename.replace(/\/$/, "")).join(",");
+		await reader.close();
+		if (exported != walked) {
+			throw new Error("export order (bufferedWrite=" + bufferedWrite + "): expected \"" + walked + "\" got \"" + exported + "\"");
+		}
+		orders.push(exported);
+	}
+	if (orders[0] != orders[1]) {
+		throw new Error("export order: bufferedWrite changed it from \"" + orders[0] + "\" to \"" + orders[1] + "\"");
 	}
 }
 

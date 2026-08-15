@@ -2824,7 +2824,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * With `recursive`, the descendants are ordered level by level, i.e. the children of a directory come
    * before the children of its subdirectories, like the result of `readdir(path, { recursive: true })` in
-   * Node.js.
+   * Node.js. This is also the order in which `{@link ZipDirectoryEntry}#export*()` writes them.
    *
    * Unlike {@link FS#entries}, the directory itself is not included and removed entries leave no empty slot.
    *
