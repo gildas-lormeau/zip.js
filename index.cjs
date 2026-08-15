@@ -9552,6 +9552,7 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 	const { signal } = abortController;
 	const releaseSignal = forwardAbort(options.signal, abortController);
 	const exportedEntryNames = [];
+	let exportAborted = false;
 	try {
 		await exportChildren(zipEntry, directoryHandle);
 	} catch (error) {
@@ -9584,7 +9585,7 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 
 	async function exportChild(child, parentHandle) {
 		if (signal.aborted) {
-			if (isExportAborted(signal.reason)) {
+			if (exportAborted || isExportAborted(signal.reason)) {
 				return;
 			}
 			throw signal.reason;
@@ -9596,22 +9597,27 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 			} else {
 				const fileHandle = await parentHandle.getFileHandle(child.name, { create: true });
 				const writable = await fileHandle.createWritable();
-				await child.getData({ writable }, Object.assign({}, options, {
-					signal,
-					onprogress: async progress => {
-						if (options.onprogress) {
-							writtenSizes.set(child.id, progress);
-							try {
-								await options.onprogress(Array.from(writtenSizes.values()).reduce((previousValue, currentValue) => previousValue + currentValue, 0), totalSize);
-							} catch {
-								// ignored
+				try {
+					await child.getData({ writable }, Object.assign({}, options, {
+						signal,
+						onprogress: async progress => {
+							if (options.onprogress) {
+								writtenSizes.set(child.id, progress);
+								try {
+									await options.onprogress(Array.from(writtenSizes.values()).reduce((previousValue, currentValue) => previousValue + currentValue, 0), totalSize);
+								} catch {
+									// ignored
+								}
 							}
 						}
-					}
-				}));
+					}));
+				} catch (error) {
+					throw exportAborted ? new Error(ERR_ABORT_EXPORT) : error;
+				}
 				exportedEntryNames.push(child.getRelativeName(zipEntry));
 			}
 		} catch (error) {
+			exportAborted = true;
 			abortController.abort(new Error(ERR_ABORT_EXPORT));
 			try {
 				if (error.entryName === UNDEFINED_VALUE) {

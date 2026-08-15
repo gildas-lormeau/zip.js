@@ -1,4 +1,4 @@
-/* global document, location, addEventListener, setTimeout, clearTimeout, URLSearchParams, fetch, Worker, Blob, URL, navigator, CompressionStream, structuredClone, TransformStream */
+/* global document, location, addEventListener, setTimeout, clearTimeout, URLSearchParams, fetch, Worker, Blob, URL, navigator, CompressionStream, structuredClone, TransformStream, AbortController */
 
 import tests from "./tests-data.js";
 
@@ -10,6 +10,12 @@ const LOADER_PATH = "/tests/all/loader.html#";
 const FEATURE_PROBES = {
 	compressionStream: () => typeof CompressionStream == "function",
 	structuredClone: () => typeof structuredClone == "function",
+	abortReason: () => {
+		const controller = new AbortController();
+		const reason = new Error("reason");
+		controller.abort(reason);
+		return controller.signal.reason === reason;
+	},
 	opfs: () => Boolean(navigator.storage && navigator.storage.getDirectory),
 	httpRange: async () => {
 		const response = await fetch("./index.html", { headers: { Range: "bytes=0-0" }, cache: "no-store" });

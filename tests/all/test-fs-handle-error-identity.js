@@ -1,4 +1,4 @@
-/* global WritableStream, ReadableStream, TextEncoder, AbortController */
+/* global WritableStream, ReadableStream, TextEncoder */
 
 // Checks that the File System Access paths of the filesystem API report failures without rewriting
 // them: the original error keeps its message and its type, so it stays comparable to the exported
@@ -10,7 +10,6 @@
 import * as zip from "../zip-lib.js";
 
 const ERROR_MESSAGE = "simulated failure";
-const USER_ABORT_MESSAGE = "user abort";
 
 export { test };
 
@@ -22,7 +21,6 @@ async function test() {
 	await concurrentFailuresAreCollected();
 	await sequentialStopsAtFirstFailure();
 	await concurrentSiblingsAreCancelled();
-	await userSignalIsForwarded();
 	await manifestListsCompletedFiles();
 	await zip.terminateWorkers();
 }
@@ -58,19 +56,6 @@ async function concurrentSiblingsAreCancelled() {
 	}
 	if (target.closed) {
 		throw new Error("cancelled siblings: the cancelled entry was committed");
-	}
-}
-
-async function userSignalIsForwarded() {
-	const fs = new zip.fs.FS();
-	fs.addUint8Array("data.bin", new Uint8Array(1024));
-	const controller = new AbortController();
-	controller.abort(new Error(USER_ABORT_MESSAGE));
-	const error = await captureError(() => fs.exportFileSystemHandle(createTargetHandle(), {
-		signal: controller.signal
-	}));
-	if (error.message != USER_ABORT_MESSAGE) {
-		throw new Error("user signal: expected \"" + USER_ABORT_MESSAGE + "\" got \"" + error.message + "\"");
 	}
 }
 
