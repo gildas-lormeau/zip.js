@@ -6,7 +6,7 @@
 
 # Interface: ZipReaderGetEntriesOptions
 
-Defined in: [index.d.ts:1183](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1183)
+Defined in: [index.d.ts:1183](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1183)
 
 Represents the options passed to [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
@@ -20,7 +20,7 @@ Represents the options passed to [ZipReader#getEntries](../classes/ZipReader.md#
 
 > `optional` **checkAmbiguity?**: `boolean`
 
-Defined in: [index.d.ts:1218](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1218)
+Defined in: [index.d.ts:1218](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1218)
 
 `true` to throw an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error when the archive could be parsed differently by other
 tools. This detects data before or after the zip structure (e.g. a self-extracting archive stub or a
@@ -45,7 +45,7 @@ false
 
 > `optional` **commentEncoding?**: `string`
 
-Defined in: [index.d.ts:1198](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1198)
+Defined in: [index.d.ts:1198](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1198)
 
 The encoding of the comment of the entry.
 
@@ -59,7 +59,7 @@ The encoding of the comment of the entry.
 
 > `optional` **filenameEncoding?**: `string`
 
-Defined in: [index.d.ts:1194](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1194)
+Defined in: [index.d.ts:1194](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1194)
 
 The encoding of the filename of the entry.
 
@@ -73,7 +73,7 @@ The encoding of the filename of the entry.
 
 > `optional` **filenameValidation?**: `"balanced"` \| `"strict"` \| `"tolerant"`
 
-Defined in: [index.d.ts:1261](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1261)
+Defined in: [index.d.ts:1261](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1261)
 
 How strictly the filename of each entry should be validated. A rejected name throws an
 [ERR\_UNSAFE\_FILENAME](../variables/ERR_UNSAFE_FILENAME.md) error carrying the offending name in its `filename` property.
@@ -106,7 +106,7 @@ The value of [GetEntriesOptions#strictness](#strictness).
 
 > `optional` **maxAppendedDataSize?**: `number`
 
-Defined in: [index.d.ts:1288](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1288)
+Defined in: [index.d.ts:1288](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1288)
 
 The maximum number of bytes tolerated after the zip structure before the archive is rejected. Defaults to
 `0` when [GetEntriesOptions#strictness](#strictness) is `"strict"`, `65535` when it is `"balanced"`, and `Infinity`
@@ -128,7 +128,7 @@ record is searched for, so a value smaller than the amount of data actually appe
 
 > `optional` **strictness?**: `"balanced"` \| `"strict"` \| `"tolerant"`
 
-Defined in: [index.d.ts:1240](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1240)
+Defined in: [index.d.ts:1240](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1240)
 
 How tolerant the reader should be when the archive can be parsed in more than one way.
 
@@ -164,7 +164,7 @@ of the file).
 
 > `optional` **decodeText**(`value`, `encoding`, `type`): `string` \| `undefined`
 
-Defined in: [index.d.ts:1207](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1207)
+Defined in: [index.d.ts:1207](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1207)
 
 The function called for decoding the filename and the comment of the entry.
 
@@ -204,7 +204,7 @@ The decoded text value or `undefined` if the raw text value should be decoded by
 
 > `optional` **decryptCentralDirectory**(`data`, `encryptionInfo?`): `Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [index.d.ts:1301](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1301)
+Defined in: [index.d.ts:1301](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1301)
 
 The function called for decrypting the central directory when it is encrypted (see the Strong Encryption
 Specification in the ZIP format specification). Without this function, reading such an archive throws an
@@ -243,7 +243,7 @@ The decrypted and decompressed central directory records.
 
 > `optional` **normalizeFilename**(`filename`): `string` \| `undefined`
 
-Defined in: [index.d.ts:1276](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1276)
+Defined in: [index.d.ts:1276](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1276)
 
 The function called for normalizing the filename of each entry, e.g. to repair the names rejected by
 [GetEntriesOptions#filenameValidation](GetEntriesOptions.md#filenamevalidation).
@@ -279,7 +279,7 @@ The normalized filename or `undefined` to keep the decoded filename.
 
 > `optional` **onprogress**(`progress`, `total`, `entry`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:2604](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L2604)
+Defined in: [index.d.ts:2604](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L2604)
 
 The function called each time an entry is read/written.
 

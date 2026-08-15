@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_GID**: `string`
 
-Defined in: [index.d.ts:3467](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3467)
+Defined in: [index.d.ts:3501](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L3501)
 
 Invalid gid error (thrown when the `gid` option is not an integer in the range 0..2^32-1)

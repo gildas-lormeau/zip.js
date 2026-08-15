@@ -8,7 +8,7 @@
 
 > `const` **ERR\_INVALID\_COMPRESSED\_DATA**: `string`
 
-Defined in: [index.d.ts:3350](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3350)
+Defined in: [index.d.ts:3384](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L3384)
 
 Invalid compressed data error
 

@@ -8,6 +8,6 @@
 
 > `const` **ERR\_ENTRY\_EXISTS**: `string`
 
-Defined in: [index.d.ts:3502](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3502)
+Defined in: [index.d.ts:3536](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L3536)
 
 Entry already exists error (thrown by the filesystem API when adding an entry whose filename already exists)

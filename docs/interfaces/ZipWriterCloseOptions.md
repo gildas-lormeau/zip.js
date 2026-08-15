@@ -6,7 +6,7 @@
 
 # Interface: ZipWriterCloseOptions
 
-Defined in: [index.d.ts:2264](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L2264)
+Defined in: [index.d.ts:2264](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L2264)
 
 Represents the options passed to  [ZipWriter#close](../classes/ZipWriter.md#close).
 
@@ -20,7 +20,7 @@ Represents the options passed to  [ZipWriter#close](../classes/ZipWriter.md#clos
 
 > `optional` **preventClose?**: `boolean`
 
-Defined in: [index.d.ts:2276](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L2276)
+Defined in: [index.d.ts:2276](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L2276)
 
 `true` to prevent closing of [WritableWriter#writable](WritableWriter.md#writable).
 
@@ -36,7 +36,7 @@ false
 
 > `optional` **zip64?**: `boolean`
 
-Defined in: [index.d.ts:2270](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L2270)
+Defined in: [index.d.ts:2270](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L2270)
 
 `true` to use Zip64 to write the entries directory.
 
@@ -52,7 +52,7 @@ false
 
 > `optional` **onprogress**(`progress`, `total`, `entry`): `void` \| `Promise`\<`void`\>
 
-Defined in: [index.d.ts:2604](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L2604)
+Defined in: [index.d.ts:2604](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L2604)
 
 The function called each time an entry is read/written.
 
@@ -92,7 +92,7 @@ An empty promise or `undefined`.
 
 > `optional` **signCentralDirectory**(`directory`): `Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [index.d.ts:2287](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L2287)
+Defined in: [index.d.ts:2287](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L2287)
 
 The function called for signing the central directory. The returned data (e.g. a PKCS#7 signature computed
 over the central directory records) is stored in a digital signature record written between the central

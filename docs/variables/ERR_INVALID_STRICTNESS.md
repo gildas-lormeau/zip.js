@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_STRICTNESS**: `string`
 
-Defined in: [index.d.ts:3427](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3427)
+Defined in: [index.d.ts:3461](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L3461)
 
 Invalid strictness error (thrown when the `strictness` option is not `"strict"`, `"balanced"` or `"tolerant"`)

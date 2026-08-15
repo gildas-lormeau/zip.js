@@ -8,6 +8,6 @@
 
 > `const` **ERR\_INVALID\_MAX\_APPENDED\_DATA\_SIZE**: `string`
 
-Defined in: [index.d.ts:3435](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3435)
+Defined in: [index.d.ts:3469](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L3469)
 
 Invalid maxAppendedDataSize error (thrown when the `maxAppendedDataSize` option is not a number greater than or equal to 0)

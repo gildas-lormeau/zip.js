@@ -8,7 +8,7 @@
 
 > `const` **ERR\_UNSAFE\_FILENAME**: `string`
 
-Defined in: [index.d.ts:3423](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3423)
+Defined in: [index.d.ts:3457](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L3457)
 
 Unsafe filename error
 

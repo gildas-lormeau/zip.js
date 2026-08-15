@@ -6,7 +6,7 @@
 
 # Interface: EntryError
 
-Defined in: [index.d.ts:1644](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1644)
+Defined in: [index.d.ts:1644](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1644)
 
 Represents an error raised while processing an entry, decorated with entry context.
 
@@ -20,7 +20,7 @@ Represents an error raised while processing an entry, decorated with entry conte
 
 > `optional` **corruptedEntry?**: `boolean`
 
-Defined in: [index.d.ts:1648](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1648)
+Defined in: [index.d.ts:1648](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1648)
 
 `true` if the zip file is corrupted because the entry data could not be written entirely.
 
@@ -30,7 +30,7 @@ Defined in: [index.d.ts:1648](https://github.com/gildas-lormeau/zip.js/blob/affd
 
 > `optional` **entryErrors?**: `EntryError`[]
 
-Defined in: [index.d.ts:1666](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1666)
+Defined in: [index.d.ts:1666](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1666)
 
 The other entries that also failed, when [ZipDirectoryEntry#exportFileSystemHandle](../classes/ZipDirectoryEntry.md#exportfilesystemhandle) runs
 with `concurrent` set to `true` and more than one entry fails (filesystem API). The error it is
@@ -43,7 +43,7 @@ it, so the list holds every failure of the export except this one.
 
 > `optional` **entryId?**: `number`
 
-Defined in: [index.d.ts:1652](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1652)
+Defined in: [index.d.ts:1652](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1652)
 
 The id of the related [ZipEntry](../classes/ZipEntry.md) (filesystem API).
 
@@ -53,7 +53,7 @@ The id of the related [ZipEntry](../classes/ZipEntry.md) (filesystem API).
 
 > `optional` **entryName?**: `string`
 
-Defined in: [index.d.ts:1659](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1659)
+Defined in: [index.d.ts:1659](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1659)
 
 The name of the related [ZipEntry](../classes/ZipEntry.md), or of the related `FileSystemHandle` when importing
 one (filesystem API). Set by [ZipDirectoryEntry#addFileSystemHandle](../classes/ZipDirectoryEntry.md#addfilesystemhandle) and
@@ -66,7 +66,7 @@ wrapping it, so its `message` stays comparable to the exported `ERR_*` constants
 
 > `optional` **exportedEntryNames?**: `string`[]
 
-Defined in: [index.d.ts:1673](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L1673)
+Defined in: [index.d.ts:1673](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L1673)
 
 The names of the files [ZipDirectoryEntry#exportFileSystemHandle](../classes/ZipDirectoryEntry.md#exportfilesystemhandle) finished writing before
 it failed, relative to the exported entry (filesystem API). Directories are not listed. Every

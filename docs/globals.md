@@ -65,6 +65,7 @@
 - [WritableWriter](interfaces/WritableWriter.md)
 - [ZipDirectoryEntryExportFileSystemHandleOptions](interfaces/ZipDirectoryEntryExportFileSystemHandleOptions.md)
 - [ZipDirectoryEntryExportOptions](interfaces/ZipDirectoryEntryExportOptions.md)
+- [ZipDirectoryEntryGetChildrenOptions](interfaces/ZipDirectoryEntryGetChildrenOptions.md)
 - [ZipDirectoryEntryImportHttpOptions](interfaces/ZipDirectoryEntryImportHttpOptions.md)
 - [ZipReaderConstructorOptions](interfaces/ZipReaderConstructorOptions.md)
 - [ZipReaderGetEntriesOptions](interfaces/ZipReaderGetEntriesOptions.md)
@@ -80,6 +81,7 @@
 
 ## Variables
 
+- [ERR\_ABORTED](variables/ERR_ABORTED.md)
 - [ERR\_AMBIGUOUS\_ARCHIVE](variables/ERR_AMBIGUOUS_ARCHIVE.md)
 - [ERR\_BAD\_FORMAT](variables/ERR_BAD_FORMAT.md)
 - [ERR\_CENTRAL\_DIRECTORY\_NOT\_FOUND](variables/ERR_CENTRAL_DIRECTORY_NOT_FOUND.md)

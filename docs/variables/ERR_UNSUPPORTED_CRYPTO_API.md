@@ -8,6 +8,6 @@
 
 > `const` **ERR\_UNSUPPORTED\_CRYPTO\_API**: `string`
 
-Defined in: [index.d.ts:3514](https://github.com/gildas-lormeau/zip.js/blob/affdaca3185899ef53f0d7f92e81b0ecb16491ca/index.d.ts#L3514)
+Defined in: [index.d.ts:3557](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L3557)
 
 Unsupported Crypto API error (thrown when writing encrypted entries while `crypto.getRandomValues` is unavailable)
