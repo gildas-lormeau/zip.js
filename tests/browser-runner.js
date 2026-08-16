@@ -20,6 +20,9 @@ const args = parseArgs({
 		"headful": {
 			type: "boolean",
 		},
+		"exe-path": {
+			type: "string",
+		},
 	},
 });
 
@@ -31,19 +34,20 @@ if (args.values.help) {
 main({
 	browserName: args.positionals[0],
 	headless: !args.values["headful"],
+	executablePath: args.values["exe-path"],
 });
 
 function showHelp() {
-	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|webkit [-h|--help] [--headful]";
+	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|webkit [-h|--help] [--headful] [--exe-path <path>]";
 	process.stdout.write(usage);
 }
 
-async function main({ browserName, headless }) {
+async function main({ browserName, headless, executablePath }) {
 	const server = httpServer.createServer({ root: fileURLToPath(new URL("..", import.meta.url)), cache: -1 });
 	await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 	const { port } = server.server.address();
 	const profileDirectory = await mkdtemp(join(tmpdir(), "zip-js-tests-"));
-	const browserContext = await launchBrowserContext(profileDirectory, { browserName, headless });
+	const browserContext = await launchBrowserContext(profileDirectory, { browserName, headless, executablePath });
 	const page = await browserContext.newPage();
 	const pageErrors = [];
 	page.on("pageerror", error => pageErrors.push(error.message));
@@ -67,16 +71,16 @@ async function main({ browserName, headless }) {
 	process.exit(testResults.failures.length || !testResults.done ? 1 : 0);
 }
 
-async function launchBrowserContext(profileDirectory, { browserName, headless }) {
+async function launchBrowserContext(profileDirectory, { browserName, headless, executablePath }) {
 	try {
 		if (browserName == "chrome") {
-			return await chromium.launchPersistentContext(profileDirectory, { channel: "chrome", headless });
+			return await chromium.launchPersistentContext(profileDirectory, { channel: "chrome", headless, executablePath });
 		}
 		if (browserName == "firefox") {
-			return await firefox.launchPersistentContext(profileDirectory, { headless });
+			return await firefox.launchPersistentContext(profileDirectory, { headless, executablePath });
 		}
 		if (browserName == "webkit") {
-			return await webkit.launchPersistentContext(profileDirectory, { headless });
+			return await webkit.launchPersistentContext(profileDirectory, { headless, executablePath });
 		}
 	} catch (error) {
 		console.error(error.message);
