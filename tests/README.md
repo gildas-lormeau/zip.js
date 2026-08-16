@@ -16,6 +16,7 @@ Optional URL parameters:
 
 - `keepTests` keeps the passed tests displayed on the page.
 - `withStreamsPolyfill` loads [web-streams-polyfill](https://github.com/MattiasBuelens/web-streams-polyfill) when `TransformStream` is unavailable, for browsers older than Firefox 102.
+- `maxParallelTests` overrides the number of tests running concurrently, 16 by default. Chromium 87 needs a low value, e.g. 4: under higher load its streams implementation randomly loses a backpressure wakeup and a test hangs until the timeout.
 
 Tests requiring a feature the browser does not support, e.g. `CompressionStream` or OPFS, are reported as skipped instead of failing.
 

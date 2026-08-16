@@ -67,6 +67,7 @@ const urlParams = new URLSearchParams(location.search);
 const browserTests = tests.filter(test => !test.env || test.env.includes("browser"));
 const keepTests = urlParams.has("keepTests");
 const withStreamsPolyfill = urlParams.has("withStreamsPolyfill");
+const maxParallelTests = Number(urlParams.get("maxParallelTests")) || MAX_PARALLEL_TESTS;
 const testResults = { done: false, total: browserTests.length, passed: 0, skipped: 0, failures: [] };
 globalThis.testResults = testResults;
 
@@ -98,7 +99,7 @@ async function main() {
 			runnableTests.push(test);
 		}
 	}
-	while (nextTestIndex < Math.min(MAX_PARALLEL_TESTS, runnableTests.length)) {
+	while (nextTestIndex < Math.min(maxParallelTests, runnableTests.length)) {
 		startTest(runnableTests[nextTestIndex++]);
 	}
 	updateStatus();
