@@ -8,7 +8,7 @@
 
 > `const` **ERR\_INVALID\_SIGNATURE**: `string`
 
-Defined in: [index.d.ts:3365](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L3365)
+Defined in: [index.d.ts:3373](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L3373)
 
 Invalid signature error
 

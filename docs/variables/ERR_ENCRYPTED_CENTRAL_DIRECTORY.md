@@ -8,7 +8,7 @@
 
 > `const` **ERR\_ENCRYPTED\_CENTRAL\_DIRECTORY**: `string`
 
-Defined in: [index.d.ts:3449](https://github.com/gildas-lormeau/zip.js/blob/f8f317b930b2e41b3184052c0c74fa81382218c7/index.d.ts#L3449)
+Defined in: [index.d.ts:3457](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L3457)
 
 Encrypted central directory error
 
