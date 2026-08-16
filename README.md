@@ -182,7 +182,10 @@ delegate compression/decompression to a custom engine, e.g.
 import { configure } from "@zip.js/zip.js/lib/zip-core-custom.js";
 
 configure({
-  createWorker: () => new Worker(new URL("./zip-worker.js", import.meta.url), { type: "module" })
+  createWorker: () => new Worker(
+    new URL("./zip-worker.js", import.meta.url), 
+    { type: "module" }
+  )
 });
 ```
 
