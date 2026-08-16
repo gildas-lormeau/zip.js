@@ -174,8 +174,10 @@ Run the code on Plunker: https://plnkr.co/edit/4sVljNIpqSUE9HCA?preview
 
 ## Custom web workers and compression engines
 
-zip.js can create its web workers with the standard bundler pattern and
-delegate compression/decompression to a custom engine, e.g.
+zip.js lets you create its web workers yourself by using the
+`new Worker(new URL("./zip-worker.js", import.meta.url))` form. Bundlers like
+Vite, webpack and Rollup detect it and bundle the worker automatically. You can
+also delegate compression and decompression to a custom engine, e.g.
 [fflate](https://github.com/101arrowz/fflate):
 
 ```js
