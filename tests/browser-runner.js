@@ -45,7 +45,7 @@ main({
 });
 
 function showHelp() {
-	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|webkit [-h|--help] [--headful] [--exe-path <path>] [--url-search <search>]";
+	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|safari [-h|--help] [--headful] [--exe-path <path>] [--url-search <search>]";
 	process.stdout.write(usage);
 }
 
@@ -95,7 +95,7 @@ async function launchBrowserDriver(profileDirectory, { browserName, headless, ex
 			const service = new firefox.ServiceBuilder();
 			return await new Builder().forBrowser("firefox").setFirefoxOptions(options).setFirefoxService(service).build();
 		}
-		if (browserName == "webkit") {
+		if (browserName == "safari") {
 			const options = new safari.Options();
 			return await new Builder().forBrowser("safari").setSafariOptions(options).build();
 		}
