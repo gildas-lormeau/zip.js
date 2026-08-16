@@ -8,8 +8,6 @@
 
 > **createSyncAccessHandleTempStream**(`options?`): () => [`TempStream`](../interfaces/TempStream.md)
 
-Defined in: [index.d.ts:589](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L589)
-
 Builds a [ZipWriterConstructorOptions.createTempStream](../interfaces/ZipWriterConstructorOptions.md#createtempstream) factory that spills the data of buffered entries to the Origin Private File System (OPFS) via `FileSystemSyncAccessHandle` instead of keeping it in memory.
 
 This is the fastest disk-backed temporary storage on the web platform: it behaves like [createOPFSTempStream](createOPFSTempStream.md) (same options, same bounded-memory profile) but writes roughly 2.5 times faster in Chromium and Firefox and reads back several times faster in Firefox and Safari, making disk-backed staging nearly as fast as the in-memory default.

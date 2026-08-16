@@ -6,8 +6,6 @@
 
 # Interface: ZipWriterCloseOptions
 
-Defined in: [index.d.ts:2266](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2266)
-
 Represents the options passed to  [ZipWriter#close](../classes/ZipWriter.md#close).
 
 ## Extends
@@ -19,8 +17,6 @@ Represents the options passed to  [ZipWriter#close](../classes/ZipWriter.md#clos
 ### preventClose?
 
 > `optional` **preventClose?**: `boolean`
-
-Defined in: [index.d.ts:2278](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2278)
 
 `true` to prevent closing of [WritableWriter#writable](WritableWriter.md#writable).
 
@@ -36,8 +32,6 @@ false
 
 > `optional` **zip64?**: `boolean`
 
-Defined in: [index.d.ts:2272](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2272)
-
 `true` to use Zip64 to write the entries directory.
 
 #### Default Value
@@ -51,8 +45,6 @@ false
 ### onprogress()?
 
 > `optional` **onprogress**(`progress`, `total`, `entry`): `void` \| `Promise`\<`void`\>
-
-Defined in: [index.d.ts:2612](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2612)
 
 The function called each time an entry is read/written.
 
@@ -91,8 +83,6 @@ An empty promise or `undefined`.
 ### signCentralDirectory()?
 
 > `optional` **signCentralDirectory**(`directory`): `Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
-
-Defined in: [index.d.ts:2289](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2289)
 
 The function called for signing the central directory. The returned data (e.g. a PKCS#7 signature computed
 over the central directory records) is stored in a digital signature record written between the central

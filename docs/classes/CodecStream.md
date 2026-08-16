@@ -6,8 +6,6 @@
 
 # Class: CodecStream
 
-Defined in: [index.d.ts:488](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L488)
-
 Represents a class implementing `CompressionStream` or `DecompressionStream` interfaces.
 
 ## Extends
@@ -19,8 +17,6 @@ Represents a class implementing `CompressionStream` or `DecompressionStream` int
 ### Constructor
 
 > **new CodecStream**(`transformer?`, `writableStrategy?`, `readableStrategy?`): `CodecStream`
-
-Defined in: node\_modules/typescript/lib/lib.dom.d.ts:37120
 
 #### Parameters
 
@@ -50,8 +46,6 @@ Defined in: node\_modules/typescript/lib/lib.dom.d.ts:37120
 
 > `readonly` **readable**: `ReadableStream`\<`any`\>
 
-Defined in: node\_modules/typescript/lib/lib.dom.d.ts:37109
-
 The **`readable`** read-only property of the TransformStream interface returns the ReadableStream instance controlled by this TransformStream. This stream emits the transformed output data.
 
 [MDN Reference](https://developer.mozilla.org/docs/Web/API/TransformStream/readable)
@@ -65,8 +59,6 @@ The **`readable`** read-only property of the TransformStream interface returns t
 ### writable
 
 > `readonly` **writable**: `WritableStream`\<`any`\>
-
-Defined in: node\_modules/typescript/lib/lib.dom.d.ts:37115
 
 The **`writable`** read-only property of the TransformStream interface returns the WritableStream instance controlled by this TransformStream. This stream accepts input data that will be transformed and emitted to the readable stream.
 

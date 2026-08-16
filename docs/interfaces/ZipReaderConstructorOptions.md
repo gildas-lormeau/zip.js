@@ -6,8 +6,6 @@
 
 # Interface: ZipReaderConstructorOptions
 
-Defined in: [index.d.ts:1164](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1164)
-
 Represents the options passed to the constructor of [ZipReader](../classes/ZipReader.md), and `{@link ZipDirectory}#import*`.
 
 ## Extends
@@ -23,8 +21,6 @@ Represents the options passed to the constructor of [ZipReader](../classes/ZipRe
 ### checkAmbiguity?
 
 > `optional` **checkAmbiguity?**: `boolean`
-
-Defined in: [index.d.ts:1376](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1376)
 
 `true` to throw an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the local
 file header of the entry disagrees with its central directory record in a way that could make other tools
@@ -49,8 +45,6 @@ false
 
 > `optional` **checkAuthenticationCode?**: `boolean`
 
-Defined in: [index.d.ts:1397](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1397)
-
 `true` to verify the authentication code of entries encrypted with AES. The verification detects encrypted
 data tampered or corrupted after the encryption.
 
@@ -69,8 +63,6 @@ true
 ### checkCrc32?
 
 > `optional` **checkCrc32?**: `boolean`
-
-Defined in: [index.d.ts:1390](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1390)
 
 `true` to verify the CRC-32 checksum of the entry against the value stored in the zip file. The verification
 is run on the decompressed data and covers the whole read pipeline. It also applies to entries encrypted with
@@ -92,8 +84,6 @@ false
 
 > `optional` **checkOverlappingEntry?**: `boolean`
 
-Defined in: [index.d.ts:1413](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1413)
-
 `true` to throw an [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the entry
  overlaps with another entry on which [FileEntry#getData](FileEntry.md#getdata) has already been called (with the option
 `checkOverlappingEntry` or  `checkOverlappingEntryOnly` set to `true`).
@@ -113,8 +103,6 @@ false
 ### checkOverlappingEntryOnly?
 
 > `optional` **checkOverlappingEntryOnly?**: `boolean`
-
-Defined in: [index.d.ts:1422](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1422)
 
 `true` to throw an [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error when calling [FileEntry#getData](FileEntry.md#getdata) if the entry
  overlaps with another entry on which [FileEntry#getData](FileEntry.md#getdata) has already been called (with the option
@@ -137,8 +125,6 @@ false
 
 > `optional` **checkPasswordOnly?**: `boolean`
 
-Defined in: [index.d.ts:1382](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1382)
-
 `true` to check only if the password is valid.
 
 #### Default Value
@@ -156,8 +142,6 @@ false
 ### ~~checkSignature?~~
 
 > `optional` **checkSignature?**: `boolean`
-
-Defined in: [index.d.ts:1405](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1405)
 
 `true` to check the CRC-32 checksum of the entry.
 
@@ -181,8 +165,6 @@ false
 
 > `optional` **commentEncoding?**: `string`
 
-Defined in: [index.d.ts:1200](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1200)
-
 The encoding of the comment of the entry.
 
 #### Inherited from
@@ -194,8 +176,6 @@ The encoding of the comment of the entry.
 ### extractAppendedData?
 
 > `optional` **extractAppendedData?**: `boolean`
-
-Defined in: [index.d.ts:1179](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1179)
 
 `true` to extract the appended data into [ZipReader#appendedData](../classes/ZipReader.md#appendeddata).
 
@@ -211,8 +191,6 @@ false
 
 > `optional` **extractPrependedData?**: `boolean`
 
-Defined in: [index.d.ts:1173](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1173)
-
 `true` to extract the prepended data into [ZipReader#prependedData](../classes/ZipReader.md#prependeddata).
 
 #### Default Value
@@ -227,8 +205,6 @@ false
 
 > `optional` **filenameEncoding?**: `string`
 
-Defined in: [index.d.ts:1196](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1196)
-
 The encoding of the filename of the entry.
 
 #### Inherited from
@@ -240,8 +216,6 @@ The encoding of the filename of the entry.
 ### filenameValidation?
 
 > `optional` **filenameValidation?**: `"balanced"` \| `"strict"` \| `"tolerant"`
-
-Defined in: [index.d.ts:1263](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1263)
 
 How strictly the filename of each entry should be validated. A rejected name throws an
 [ERR\_UNSAFE\_FILENAME](../variables/ERR_UNSAFE_FILENAME.md) error carrying the offending name in its `filename` property.
@@ -274,8 +248,6 @@ The value of [GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strict
 
 > `optional` **maxAppendedDataSize?**: `number`
 
-Defined in: [index.d.ts:1290](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1290)
-
 The maximum number of bytes tolerated after the zip structure before the archive is rejected. Defaults to
 `0` when [GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strictness) is `"strict"`, `65535` when it is `"balanced"`, and `Infinity`
 when it is `"tolerant"`.
@@ -296,8 +268,6 @@ record is searched for, so a value smaller than the amount of data actually appe
 
 > `optional` **passThrough?**: `boolean`
 
-Defined in: [index.d.ts:1430](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1430)
-
 `true` to read the data as-is without decompressing it and without decrypting it.
 
 #### Inherited from
@@ -310,8 +280,6 @@ Defined in: [index.d.ts:1430](https://github.com/gildas-lormeau/zip.js/blob/1508
 
 > `optional` **password?**: `string`
 
-Defined in: [index.d.ts:1426](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1426)
-
 The password used to decrypt the content of the entry.
 
 #### Inherited from
@@ -323,8 +291,6 @@ The password used to decrypt the content of the entry.
 ### preventClose?
 
 > `optional` **preventClose?**: `boolean`
-
-Defined in: [index.d.ts:1444](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1444)
 
 `true` to prevent closing of [Writer#writable](../classes/Writer.md#writable) when calling [FileEntry#getData](FileEntry.md#getdata).
 
@@ -344,8 +310,6 @@ false
 
 > `optional` **rawPassword?**: `Uint8Array`\<`ArrayBufferLike`\>
 
-Defined in: [index.d.ts:1434](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1434)
-
 The password used to encrypt the content of the entry (raw).
 
 #### Inherited from
@@ -358,8 +322,6 @@ The password used to encrypt the content of the entry (raw).
 
 > `optional` **signal?**: `AbortSignal`
 
-Defined in: [index.d.ts:1438](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1438)
-
 The `AbortSignal` instance used to cancel the decompression.
 
 #### Inherited from
@@ -371,8 +333,6 @@ The `AbortSignal` instance used to cancel the decompression.
 ### strictness?
 
 > `optional` **strictness?**: `"balanced"` \| `"strict"` \| `"tolerant"`
-
-Defined in: [index.d.ts:1365](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1365)
 
 How tolerant the reader should be when the local file header of an entry disagrees with its central
 directory record. `"strict"` throws an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error (equivalent to
@@ -395,8 +355,6 @@ directory record.
 
 > `optional` **transferStreams?**: `boolean`
 
-Defined in: [index.d.ts:408](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L408)
-
 `true` to transfer stream ownership to web workers.
 
 #### Default Value
@@ -414,8 +372,6 @@ true
 ### useCompressionStream?
 
 > `optional` **useCompressionStream?**: `boolean`
-
-Defined in: [index.d.ts:402](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L402)
 
 `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
 
@@ -437,8 +393,6 @@ true
 
 > `optional` **useWebWorkers?**: `boolean`
 
-Defined in: [index.d.ts:394](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L394)
-
 `true` to use web workers to compress/decompress data in non-blocking background processes.
 
 #### Default Value
@@ -456,8 +410,6 @@ true
 ### decodeText()?
 
 > `optional` **decodeText**(`value`, `encoding`, `type`): `string` \| `undefined`
-
-Defined in: [index.d.ts:1209](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1209)
 
 The function called for decoding the filename and the comment of the entry.
 
@@ -497,8 +449,6 @@ The decoded text value or `undefined` if the raw text value should be decoded by
 
 > `optional` **decryptCentralDirectory**(`data`, `encryptionInfo?`): `Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [index.d.ts:1303](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1303)
-
 The function called for decrypting the central directory when it is encrypted (see the Strong Encryption
 Specification in the ZIP format specification). Without this function, reading such an archive throws an
 [ERR\_ENCRYPTED\_CENTRAL\_DIRECTORY](../variables/ERR_ENCRYPTED_CENTRAL_DIRECTORY.md) error. zip.js provides the encrypted data and the related metadata
@@ -535,8 +485,6 @@ The decrypted and decompressed central directory records.
 ### normalizeFilename()?
 
 > `optional` **normalizeFilename**(`filename`): `string` \| `undefined`
-
-Defined in: [index.d.ts:1278](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1278)
 
 The function called for normalizing the filename of each entry, e.g. to repair the names rejected by
 [GetEntriesOptions#filenameValidation](GetEntriesOptions.md#filenamevalidation).

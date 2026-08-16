@@ -6,8 +6,6 @@
 
 # Class: Writer\<Type\>
 
-Defined in: [index.d.ts:885](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L885)
-
 Represents an instance used to write unknown type of data.
 
 ## Example
@@ -66,8 +64,6 @@ class BinaryStringWriter extends Writer {
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:889](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L889)
-
 The `WritableStream` instance.
 
 #### Implementation of
@@ -79,8 +75,6 @@ The `WritableStream` instance.
 ### getData()
 
 > **getData**(): `Promise`\<`Type`\>
-
-Defined in: [index.d.ts:909](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L909)
 
 Retrieves all the written data
 
@@ -95,8 +89,6 @@ A promise resolving to the written data.
 ### init()?
 
 > `optional` **init**(`size?`): `Promise`\<`void`\>
-
-Defined in: [index.d.ts:895](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L895)
 
 Initializes the instance asynchronously
 
@@ -121,8 +113,6 @@ the total size of the written data in bytes.
 ### writeUint8Array()
 
 > **writeUint8Array**(`array`): `Promise`\<`void`\>
-
-Defined in: [index.d.ts:903](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L903)
 
 Appends a chunk of data
 

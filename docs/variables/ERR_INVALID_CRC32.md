@@ -8,8 +8,6 @@
 
 > `const` **ERR\_INVALID\_CRC32**: `string`
 
-Defined in: [index.d.ts:3358](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L3358)
-
 Invalid CRC-32 checksum error, thrown when the [ZipReaderOptions#checkCrc32](../interfaces/ZipReaderOptions.md#checkcrc32) option is set and the CRC-32
 checksum of an entry does not match the value stored in the zip file.
 

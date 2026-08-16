@@ -6,8 +6,6 @@
 
 # Interface: EntryExtraFieldUnicode
 
-Defined in: [index.d.ts:1526](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1526)
-
 Represents a Unicode path or comment extra field record of an entry.
 
 ## Extends
@@ -19,8 +17,6 @@ Represents a Unicode path or comment extra field record of an entry.
 ### data
 
 > **data**: `Uint8Array`
-
-Defined in: [index.d.ts:1475](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1475)
 
 The data of the extra field.
 
@@ -34,8 +30,6 @@ The data of the extra field.
 
 > **type**: `number`
 
-Defined in: [index.d.ts:1471](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1471)
-
 The type (header id) of the extra field.
 
 #### Inherited from
@@ -47,7 +41,5 @@ The type (header id) of the extra field.
 ### valid?
 
 > `optional` **valid?**: `boolean`
-
-Defined in: [index.d.ts:1530](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1530)
 
 `true` if the extra field is consistent with the entry metadata.

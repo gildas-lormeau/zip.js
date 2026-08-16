@@ -6,8 +6,6 @@
 
 # Interface: GetEntriesOptions
 
-Defined in: [index.d.ts:1192](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1192)
-
 Represents options passed to the constructor of [ZipReader](../classes/ZipReader.md), [ZipReader#getEntries](../classes/ZipReader.md#getentries) and [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator).
 
 ## Extended by
@@ -20,8 +18,6 @@ Represents options passed to the constructor of [ZipReader](../classes/ZipReader
 ### checkAmbiguity?
 
 > `optional` **checkAmbiguity?**: `boolean`
-
-Defined in: [index.d.ts:1220](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1220)
 
 `true` to throw an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error when the archive could be parsed differently by other
 tools. This detects data before or after the zip structure (e.g. a self-extracting archive stub or a
@@ -42,8 +38,6 @@ false
 
 > `optional` **commentEncoding?**: `string`
 
-Defined in: [index.d.ts:1200](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1200)
-
 The encoding of the comment of the entry.
 
 ***
@@ -52,8 +46,6 @@ The encoding of the comment of the entry.
 
 > `optional` **filenameEncoding?**: `string`
 
-Defined in: [index.d.ts:1196](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1196)
-
 The encoding of the filename of the entry.
 
 ***
@@ -61,8 +53,6 @@ The encoding of the filename of the entry.
 ### filenameValidation?
 
 > `optional` **filenameValidation?**: `"balanced"` \| `"strict"` \| `"tolerant"`
-
-Defined in: [index.d.ts:1263](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1263)
 
 How strictly the filename of each entry should be validated. A rejected name throws an
 [ERR\_UNSAFE\_FILENAME](../variables/ERR_UNSAFE_FILENAME.md) error carrying the offending name in its `filename` property.
@@ -91,8 +81,6 @@ The value of [GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strict
 
 > `optional` **maxAppendedDataSize?**: `number`
 
-Defined in: [index.d.ts:1290](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1290)
-
 The maximum number of bytes tolerated after the zip structure before the archive is rejected. Defaults to
 `0` when [GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strictness) is `"strict"`, `65535` when it is `"balanced"`, and `Infinity`
 when it is `"tolerant"`.
@@ -108,8 +96,6 @@ record is searched for, so a value smaller than the amount of data actually appe
 ### strictness?
 
 > `optional` **strictness?**: `"balanced"` \| `"strict"` \| `"tolerant"`
-
-Defined in: [index.d.ts:1242](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1242)
 
 How tolerant the reader should be when the archive can be parsed in more than one way.
 
@@ -140,8 +126,6 @@ of the file).
 ### decodeText()?
 
 > `optional` **decodeText**(`value`, `encoding`, `type`): `string` \| `undefined`
-
-Defined in: [index.d.ts:1209](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1209)
 
 The function called for decoding the filename and the comment of the entry.
 
@@ -177,8 +161,6 @@ The decoded text value or `undefined` if the raw text value should be decoded by
 
 > `optional` **decryptCentralDirectory**(`data`, `encryptionInfo?`): `Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [index.d.ts:1303](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1303)
-
 The function called for decrypting the central directory when it is encrypted (see the Strong Encryption
 Specification in the ZIP format specification). Without this function, reading such an archive throws an
 [ERR\_ENCRYPTED\_CENTRAL\_DIRECTORY](../variables/ERR_ENCRYPTED_CENTRAL_DIRECTORY.md) error. zip.js provides the encrypted data and the related metadata
@@ -211,8 +193,6 @@ The decrypted and decompressed central directory records.
 ### normalizeFilename()?
 
 > `optional` **normalizeFilename**(`filename`): `string` \| `undefined`
-
-Defined in: [index.d.ts:1278](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1278)
 
 The function called for normalizing the filename of each entry, e.g. to repair the names rejected by
 [GetEntriesOptions#filenameValidation](#filenamevalidation).

@@ -6,8 +6,6 @@
 
 # Class: ZipWriter\<Type\>
 
-Defined in: [index.d.ts:2130](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2130)
-
 Represents an instance used to create a zip file.
 
 ## Example
@@ -40,8 +38,6 @@ const blob = await blobWriter.getData();
 
 > **new ZipWriter**\<`Type`\>(`writer`, `options?`): `ZipWriter`\<`Type`\>
 
-Defined in: [index.d.ts:2137](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2137)
-
 Creates the ZipWriter instance
 
 #### Parameters
@@ -68,8 +64,6 @@ The options.
 
 > `readonly` `optional` **hasCorruptedEntries?**: `boolean`
 
-Defined in: [index.d.ts:2151](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2151)
-
 `true` if the zip contains at least one entry that has been partially written.
 
 ## Methods
@@ -77,8 +71,6 @@ Defined in: [index.d.ts:2151](https://github.com/gildas-lormeau/zip.js/blob/1508
 ### add()
 
 > **add**\<`ReaderType`\>(`filename`, `reader?`, `options?`): `Promise`\<[`EntryMetaData`](../interfaces/EntryMetaData.md)\>
-
-Defined in: [index.d.ts:2181](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2181)
 
 Adds an entry into the zip file
 
@@ -123,8 +115,6 @@ A promise resolving to an [EntryMetaData](../interfaces/EntryMetaData.md) instan
 
 > **close**(`comment?`, `options?`): `Promise`\<`Type`\>
 
-Defined in: [index.d.ts:2209](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2209)
-
 Writes the entries directory, writes the global comment, and returns the content of the zip file
 
 #### Parameters
@@ -152,8 +142,6 @@ The content of the zip file.
 ### prependZip()
 
 > **prependZip**\<`ReaderType`\>(`reader`): `Promise`\<`void`\>
-
-Defined in: [index.d.ts:2160](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2160)
 
 Adds an existing zip file at the beginning of the current zip. This method
 cannot be called after the first call to [ZipWriter#add](#add).
@@ -183,8 +171,6 @@ A promise resolving when the zip file has been added.
 ### remove()
 
 > **remove**(`entry`): `boolean`
-
-Defined in: [index.d.ts:2200](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2200)
 
 Removes an entry from the central directory that will be written for the zip file. The entry
 data itself cannot be removed because it has already been streamed to the output.

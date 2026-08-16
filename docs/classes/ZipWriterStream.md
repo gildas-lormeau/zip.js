@@ -6,8 +6,6 @@
 
 # Class: ZipWriterStream
 
-Defined in: [index.d.ts:2058](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2058)
-
 Represents an instance used to create a zipped stream.
 
 ## Examples
@@ -49,8 +47,6 @@ zipper.close()
 
 > **new ZipWriterStream**(`options?`): `ZipWriterStream`
 
-Defined in: [index.d.ts:2064](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2064)
-
 Creates the stream.
 
 #### Parameters
@@ -71,8 +67,6 @@ The options.
 
 > **readable**: `ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [index.d.ts:2069](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2069)
-
 The readable stream.
 
 ***
@@ -81,8 +75,6 @@ The readable stream.
 
 > **zipWriter**: [`ZipWriter`](ZipWriter.md)\<`unknown`\>
 
-Defined in: [index.d.ts:2074](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2074)
-
 The ZipWriter property.
 
 ## Methods
@@ -90,8 +82,6 @@ The ZipWriter property.
 ### close()
 
 > **close**(`comment?`, `options?`): `Promise`\<`unknown`\>
-
-Defined in: [index.d.ts:2104](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2104)
 
 Writes the entries directory, writes the global comment, and returns the content of the zipped file.
 
@@ -120,8 +110,6 @@ The content of the zip file.
 ### transform()
 
 > **transform**\<`T`\>(`path`): `object`
-
-Defined in: [index.d.ts:2083](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2083)
 
 Returns an object containing a readable and writable property for the .pipeThrough method
 
@@ -159,8 +147,6 @@ An object containing readable and writable properties
 ### writable()
 
 > **writable**\<`T`\>(`path`): `WritableStream`\<`T`\>
-
-Defined in: [index.d.ts:2095](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L2095)
 
 Returns a WritableStream for the .pipeTo method
 

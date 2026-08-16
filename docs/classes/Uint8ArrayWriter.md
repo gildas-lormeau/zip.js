@@ -6,8 +6,6 @@
 
 # Class: Uint8ArrayWriter
 
-Defined in: [index.d.ts:1012](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1012)
-
 Represents a [Writer](Writer.md) instance used to retrieve the written data as a `Uint8Array` instance.
 
 ## Extends
@@ -19,8 +17,6 @@ Represents a [Writer](Writer.md) instance used to retrieve the written data as a
 ### Constructor
 
 > **new Uint8ArrayWriter**(`defaultBufferSize?`): `Uint8ArrayWriter`
-
-Defined in: [index.d.ts:1018](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L1018)
 
 Creates the Uint8ArrayWriter instance
 
@@ -46,8 +42,6 @@ The initial size of the internal buffer (default: 256KB).
 
 > **writable**: `WritableStream`
 
-Defined in: [index.d.ts:889](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L889)
-
 The `WritableStream` instance.
 
 #### Inherited from
@@ -59,8 +53,6 @@ The `WritableStream` instance.
 ### getData()
 
 > **getData**(): `Promise`\<`Uint8Array`\<`ArrayBuffer`\>\>
-
-Defined in: [index.d.ts:909](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L909)
 
 Retrieves all the written data
 
@@ -79,8 +71,6 @@ A promise resolving to the written data.
 ### init()?
 
 > `optional` **init**(`size?`): `Promise`\<`void`\>
-
-Defined in: [index.d.ts:895](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L895)
 
 Initializes the instance asynchronously
 
@@ -105,8 +95,6 @@ the total size of the written data in bytes.
 ### writeUint8Array()
 
 > **writeUint8Array**(`array`): `Promise`\<`void`\>
-
-Defined in: [index.d.ts:903](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L903)
 
 Appends a chunk of data
 

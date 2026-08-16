@@ -42,7 +42,7 @@
     "build": "npx rollup -c",
     "build-dev": "npx rollup -c --environment DEV",
     "build-doc-api": "npx typedoc",
-    "build-doc-markdown": "npx typedoc --plugin typedoc-plugin-markdown --out ./docs",
+    "build-doc-markdown": "npx typedoc --plugin typedoc-plugin-markdown --disableSources --out ./docs",
     "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
     "test-web-streams-polyfill": "cd ./tests && deno run --allow-read ./web-streams-polyfill-runner.js",
     "test-node": "cd ./tests && node ./node-runner.js",

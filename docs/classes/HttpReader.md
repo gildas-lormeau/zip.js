@@ -6,8 +6,6 @@
 
 # Class: HttpReader
 
-Defined in: [index.d.ts:741](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L741)
-
 Represents a [Reader](Reader.md) instance used to fetch data from a URL.
 
 ## Extends
@@ -23,8 +21,6 @@ Represents a [Reader](Reader.md) instance used to fetch data from a URL.
 ### Constructor
 
 > **new HttpReader**(`url`, `options?`): `HttpReader`
-
-Defined in: [index.d.ts:748](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L748)
 
 Creates the HttpReader instance
 
@@ -56,8 +52,6 @@ The options.
 
 > **readable**: `ReadableStream`
 
-Defined in: [index.d.ts:656](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L656)
-
 The `ReadableStream` instance.
 
 #### Inherited from
@@ -70,8 +64,6 @@ The `ReadableStream` instance.
 
 > **size**: `number`
 
-Defined in: [index.d.ts:660](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L660)
-
 The total size of the data in bytes.
 
 #### Inherited from
@@ -83,8 +75,6 @@ The total size of the data in bytes.
 ### createReadable()
 
 > **createReadable**(`options?`): `ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>
-
-Defined in: [index.d.ts:674](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L674)
 
 Creates a `ReadableStream` of the data, optionally restricted to a byte range.
 
@@ -115,8 +105,6 @@ The `ReadableStream` instance.
 
 > `optional` **init**(): `Promise`\<`void`\>
 
-Defined in: [index.d.ts:664](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L664)
-
 Initializes the instance asynchronously
 
 #### Returns
@@ -132,8 +120,6 @@ Initializes the instance asynchronously
 ### readUint8Array()
 
 > **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
-
-Defined in: [index.d.ts:682](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L682)
 
 Reads a chunk of data
 

@@ -8,6 +8,4 @@
 
 > `const` **ERR\_INVALID\_FILENAME\_VALIDATION**: `string`
 
-Defined in: [index.d.ts:3473](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L3473)
-
 Invalid filenameValidation error (thrown when the `filenameValidation` option is not `"strict"`, `"balanced"` or `"tolerant"`)

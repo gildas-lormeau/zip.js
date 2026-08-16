@@ -8,8 +8,6 @@
 
 > **createBlobTempStream**(`options?`): () => [`TempStream`](../interfaces/TempStream.md)
 
-Defined in: [index.d.ts:577](https://github.com/gildas-lormeau/zip.js/blob/1508d5ac4ac7985c21cdd9cc0be315b0cf9a547f/index.d.ts#L577)
-
 Builds a [ZipWriterConstructorOptions.createTempStream](../interfaces/ZipWriterConstructorOptions.md#createtempstream) factory that spills the data of buffered entries into a `Blob` instead of keeping it in memory.
 
 An entry stays in memory until it exceeds `thresholdBytes`, then its data is transferred incrementally into a `Blob` built with `new Response(stream).blob()` and streamed back afterwards.
