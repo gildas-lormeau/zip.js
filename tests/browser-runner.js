@@ -23,6 +23,9 @@ const args = parseArgs({
 		"exe-path": {
 			type: "string",
 		},
+		"url-search": {
+			type: "string",
+		},
 	},
 });
 
@@ -35,14 +38,15 @@ main({
 	browserName: args.positionals[0],
 	headless: !args.values["headful"],
 	executablePath: args.values["exe-path"],
+	urlSearch: args.values["url-search"],
 });
 
 function showHelp() {
-	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|webkit [-h|--help] [--headful] [--exe-path <path>]";
+	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|webkit [-h|--help] [--headful] [--exe-path <path>] [--url-search <search>]";
 	process.stdout.write(usage);
 }
 
-async function main({ browserName, headless, executablePath }) {
+async function main({ browserName, headless, executablePath, urlSearch }) {
 	const server = httpServer.createServer({ root: fileURLToPath(new URL("..", import.meta.url)), cache: -1 });
 	await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 	const { port } = server.server.address();
@@ -51,7 +55,7 @@ async function main({ browserName, headless, executablePath }) {
 	const page = await browserContext.newPage();
 	const pageErrors = [];
 	page.on("pageerror", error => pageErrors.push(error.message));
-	await page.goto("http://127.0.0.1:" + port + "/tests/");
+	await page.goto(`http://127.0.0.1:${port}/tests/${urlSearch ? "?" + urlSearch : ""}`);
 	const testResults = await getTestResults(page);
 	await browserContext.close();
 	await rm(profileDirectory, { recursive: true, force: true });
