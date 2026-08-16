@@ -12,6 +12,13 @@ import safari from "selenium-webdriver/safari.js";
 
 const SUITE_TIMEOUT = 600000;
 const POLL_INTERVAL = 500;
+const ZIP_LIB_PATH = "/tests/zip-lib.js";
+const BUILD_MODULES = {
+	wasm: null,
+	native: "../lib/zip-fs-native.js",
+	external: "../lib/zip-fs-external.js",
+	dist: "../index.min.js"
+};
 
 const args = parseArgs({
 	allowPositionals: true,
@@ -29,6 +36,9 @@ const args = parseArgs({
 		"url-search": {
 			type: "string",
 		},
+		"build": {
+			type: "string",
+		},
 	},
 });
 
@@ -37,20 +47,37 @@ if (args.values.help) {
 	process.exit(0);
 }
 
+if (args.values.build && !(args.values.build in BUILD_MODULES)) {
+	console.error("unknown build: " + args.values.build + ", expected " + Object.keys(BUILD_MODULES).join("|"));
+	process.exit(1);
+}
+
 main({
 	browserName: args.positionals[0],
 	headless: !args.values["headful"],
 	executablePath: args.values["exe-path"],
 	urlSearch: args.values["url-search"],
+	buildModule: BUILD_MODULES[args.values.build],
 });
 
 function showHelp() {
-	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|safari [-h|--help] [--headful] [--exe-path <path>] [--url-search <search>]";
+	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|safari [-h|--help] [--headful] [--exe-path <path>] [--url-search <search>] [--build wasm|native|external|dist]";
 	process.stdout.write(usage);
 }
 
-async function main({ browserName, headless, executablePath, urlSearch }) {
-	const server = httpServer.createServer({ root: fileURLToPath(new URL("..", import.meta.url)), cache: -1 });
+async function main({ browserName, headless, executablePath, urlSearch, buildModule }) {
+	const serverOptions = { root: fileURLToPath(new URL("..", import.meta.url)), cache: -1 };
+	if (buildModule) {
+		serverOptions.before = [(request, response) => {
+			if (request.url.split("?")[0] == ZIP_LIB_PATH) {
+				response.writeHead(200, { "Content-Type": "text/javascript" });
+				response.end("export * from \"" + buildModule + "\";");
+			} else {
+				response.emit("next");
+			}
+		}];
+	}
+	const server = httpServer.createServer(serverOptions);
 	await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 	const { port } = server.server.address();
 	const profileDirectory = await mkdtemp(join(tmpdir(), "zip-js-tests-"));

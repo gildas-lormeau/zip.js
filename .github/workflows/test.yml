@@ -151,12 +151,6 @@ jobs:
             sudo safaridriver --enable
           }
 
-      - name: Set up native build
-        if: matrix.build == 'native'
-        shell: pwsh
-        run: |
-          Set-Content -Path "tests/zip-lib.js" -Value 'export * from "../lib/zip-fs-native.js";'
-
       - name: Run tests
         shell: pwsh
         run: |
@@ -171,6 +165,12 @@ jobs:
           if ($urlSearch) {
             $argsList += "--url-search"
             $argsList += "$urlSearch"
+          }
+
+          $build = "${{ matrix.build }}"
+          if ($build) {
+            $argsList += "--build"
+            $argsList += "$build"
           }
 
           & node tests/browser-runner.js $argsList

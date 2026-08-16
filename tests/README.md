@@ -4,6 +4,7 @@
 
 - `npm test` runs the suite in Node.js, Deno and Bun, against the source and the built files. It also runs the web-streams-polyfill interop test and checks the TypeScript definitions.
 - `npm run test-chrome`, `npm run test-firefox` and `npm run test-safari` run the suite in a locally installed browser with selenium. Chrome and Firefox run headless unless `--headful` is passed to `node ./tests/browser-runner.js`, which also accepts `--exe-path <path>` to test a specific browser build and `--url-search <search>` to forward URL parameters. Safari always runs headful and requires enabling `safaridriver` once with `sudo safaridriver --enable`.
+- `--build wasm|native|external|dist` selects the build under test: the runner serves `tests/zip-lib.js` re-exporting `index.js` (`wasm`, the default), `lib/zip-fs-native.js`, `lib/zip-fs-external.js` or `index.min.js` instead of the file on disk.
 - `npm run test-all` runs the linters and all the tests.
 
 ## Running the tests in a browser manually
