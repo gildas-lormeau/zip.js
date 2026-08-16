@@ -30,7 +30,7 @@ jobs:
         run: npx eslint .
 
   test:
-    name: Test ${{ matrix.browser }} ${{ matrix.version }} on ${{ matrix.os }}
+    name: Test ${{ matrix.browser }} ${{ matrix.version }}${{ format(matrix.build && ' ({0})' || '', matrix.build) }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -65,6 +65,31 @@ jobs:
           - os: macos-latest
             browser: safari
             version: 'latest'
+
+          # native build
+          - os: windows-latest
+            browser: chrome
+            version: '87.0'
+            url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchrome-win.zip?alt=media'
+            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchromedriver_win32.zip?alt=media'
+            build: 'native'
+          - os: windows-latest
+            browser: chrome
+            version: '76.0'
+            url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchrome-win.zip?alt=media'
+            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchromedriver_win32.zip?alt=media'
+            build: 'native'
+          - os: windows-latest
+            browser: firefox
+            version: '102.0'
+            url: 'https://ftp.mozilla.org/pub/firefox/releases/102.0.1/win64/en-US/Firefox%20Setup%20102.0.1.exe'
+            build: 'native'
+          - os: windows-latest
+            browser: firefox
+            version: '71.0'
+            url: 'https://ftp.mozilla.org/pub/firefox/releases/71.0/win64/en-US/Firefox%20Setup%2071.0.exe'
+            build: 'native'
+            search: 'withStreamsPolyfill'
 
     steps:
       - name: Checkout code
@@ -121,6 +146,12 @@ jobs:
           elseif ($browser -eq "safari") {
             sudo safaridriver --enable
           }
+
+      - name: Set up native build
+        if: matrix.build == 'native'
+        shell: pwsh
+        run: |
+          Set-Content -Path "tests/zip-lib.js" -Value 'export * from "../lib/zip-fs-native.js";'
 
       - name: Run tests
         shell: pwsh
