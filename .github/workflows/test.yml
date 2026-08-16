@@ -47,6 +47,7 @@ jobs:
             version: '87.0'
             url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchrome-win.zip?alt=media'
             driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchromedriver_win32.zip?alt=media'
+            search: 'maxParallelTests=4'
           - os: windows-latest
             browser: chrome
             version: '76.0'
@@ -74,6 +75,7 @@ jobs:
             version: '87.0'
             url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchrome-win.zip?alt=media'
             driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchromedriver_win32.zip?alt=media'
+            search: 'maxParallelTests=4'
             build: 'native'
           - os: windows-latest
             browser: chrome
