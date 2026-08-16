@@ -395,6 +395,8 @@ export interface WorkerConfiguration {
   /**
    * `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
    *
+   * When compressing, the native API is only used when `level` is undefined or equal to 6, see {@link ZipWriterConstructorOptions#level}.
+   *
    * @defaultValue true
    */
   useCompressionStream?: boolean;
@@ -2311,6 +2313,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * The level of compression.
    *
    * The minimum value is 0 and means that no compression is applied. The maximum value is 9.
+   *
+   * The native API `CompressionStream` does not support compression levels. Any value other than 6,
+   * its de facto level, disables `useCompressionStream` and compresses the data with the embedded
+   * implementation instead. Note that the compressed data produced at a given level can still vary
+   * between platforms. Set `useCompressionStream` to `false` to get deterministic output across
+   * platforms.
    *
    * @defaultValue 6
    */
