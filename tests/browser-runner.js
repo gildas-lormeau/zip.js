@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { parseArgs } from "node:util";
 
 import httpServer from "http-server";
 import { chromium, firefox, webkit } from "playwright";
@@ -9,10 +10,33 @@ import { chromium, firefox, webkit } from "playwright";
 const SUITE_TIMEOUT = 600000;
 const POLL_INTERVAL = 500;
 
-main({
-	browserName: process.argv[2],
-	headless: !process.argv.includes("--headful"),
+const args = parseArgs({
+	allowPositionals: true,
+	options: {
+		"help": {
+			type: "boolean",
+			short: "h",
+		},
+		"headful": {
+			type: "boolean",
+		},
+	},
 });
+
+if (args.values.help) {
+	showHelp();
+	process.exit(0);
+}
+
+main({
+	browserName: args.positionals[0],
+	headless: !args.values["headful"],
+});
+
+function showHelp() {
+	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|webkit [-h|--help] [--headful]";
+	process.stdout.write(usage);
+}
 
 async function main({ browserName, headless }) {
 	const server = httpServer.createServer({ root: fileURLToPath(new URL("..", import.meta.url)), cache: -1 });
@@ -59,7 +83,7 @@ async function launchBrowserContext(profileDirectory, { browserName, headless })
 		console.error("run: npx playwright install " + browserName);
 		process.exit(1);
 	}
-	console.error("usage: node ./tests/browser-runner.js chrome|firefox|webkit [--headful]");
+	showHelp();
 	process.exit(1);
 }
 
