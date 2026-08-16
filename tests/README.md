@@ -3,12 +3,12 @@
 ## Running the tests
 
 - `npm test` runs the suite in Node.js, Deno and Bun, against the source and the built files. It also runs the web-streams-polyfill interop test and checks the TypeScript definitions.
-- `npm run test-chrome`, `npm run test-firefox` and `npm run test-webkit` run the suite in a headless browser with playwright. Add `--headful` to `node ./tests/browser-runner.js chrome` to see the browser.
+- `npm run test-chrome`, `npm run test-firefox` and `npm run test-safari` run the suite in a locally installed browser with selenium. Chrome and Firefox run headless unless `--headful` is passed to `node ./tests/browser-runner.js`, which also accepts `--exe-path <path>` to test a specific browser build and `--url-search <search>` to forward URL parameters. Safari always runs headful and requires enabling `safaridriver` once with `sudo safaridriver --enable`.
 - `npm run test-all` runs the linters and all the tests.
 
 ## Running the tests in a browser manually
 
-Run `npm run serve-tests` and open `http://localhost:8888/tests/` in the browser to test. This is the way to test browsers playwright does not cover, e.g. older versions.
+Run `npm run serve-tests` and open `http://localhost:8888/tests/` in the browser to test. This is the way to test browsers selenium does not cover.
 
 The server supports HTTP range requests. With a server that does not, e.g. `python -m http.server`, the two HTTP range tests are skipped.
 
@@ -26,7 +26,7 @@ Create `tests/all/test-<name>.js`. It must export an async function named `test`
 Optional fields in `tests/tests-data.js`:
 
 - `env`: the runtimes the test runs in, among `"browser"`, `"deno"`, `"node"` and `"bun"`. It runs everywhere by default.
-- `features`: the features the test requires, among `"compressionStream"`, `"structuredClone"`, `"opfs"`, `"httpRange"`, `"moduleWorker"`, `"workerStreams"` and `"wasmBuild"`. The test is skipped when one of them is missing. `"wasmBuild"` requires the build under test, i.e. the target of `tests/zip-lib.js`, to embed the WebAssembly module.
+- `features`: the features the test requires, among `"compressionStream"`, `"structuredClone"`, `"abortReason"`, `"pipeToSignal"`, `"opfs"`, `"httpRange"`, `"moduleWorker"`, `"workerStreams"` and `"wasmBuild"`. The test is skipped when one of them is missing. `"wasmBuild"` requires the build under test, i.e. the target of `tests/zip-lib.js`, to embed the WebAssembly module. `"pipeToSignal"` is missing in Chrome 76-79, which ignore the `signal` option of `pipeTo()`.
 - `sanitizeResources: false`: opts the test out of the Deno resource sanitizer, see the comment in `tests/tests-data.js`.
 
 ## Other folders

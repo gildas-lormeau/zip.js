@@ -36,7 +36,7 @@
   "scripts": {
     "lint": "npx eslint . && deno lint",
     "test": "npm run test-node && npm run test-deno && npm run test-bun && npm run test-node-dist && npm run test-deno-dist && npm run test-bun-dist && npm run test-web-streams-polyfill && npm run test-types",
-    "test-browsers": "npm run test-chrome && npm run test-firefox && npm run test-webkit",
+    "test-browsers": "npm run test-chrome && npm run test-firefox && npm run test-safari",
     "serve-tests": "http-server -p 8888 -c-1 .",
     "test-all": "npm run lint && npm run test && npm run test-browsers",
     "build": "npx rollup -c",
@@ -53,7 +53,7 @@
     "test-types": "tsc -p ./tests/types/tsconfig.json",
     "test-firefox": "node ./tests/browser-runner.js firefox",
     "test-chrome": "node ./tests/browser-runner.js chrome",
-    "test-webkit": "node ./tests/browser-runner.js webkit"
+    "test-safari": "node ./tests/browser-runner.js safari"
   },
   "main": "./index.cjs",
   "module": "./index.js",
