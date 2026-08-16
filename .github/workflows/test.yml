@@ -1,0 +1,176 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: 'Lint'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Verify no code issue
+        run: npx eslint .
+
+  test:
+    name: Test ${{ matrix.browser }} ${{ matrix.version }}${{ format(matrix.build && ' ({0})' || '', matrix.build) }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            browser: chrome
+            version: 'latest'
+          - os: windows-latest
+            browser: chrome
+            version: '87.0'
+            url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchrome-win.zip?alt=media'
+            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchromedriver_win32.zip?alt=media'
+            search: 'maxParallelTests=4'
+          - os: windows-latest
+            browser: chrome
+            version: '76.0'
+            url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchrome-win.zip?alt=media'
+            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchromedriver_win32.zip?alt=media'
+          - os: windows-latest
+            browser: firefox
+            version: 'latest'
+          - os: windows-latest
+            browser: firefox
+            version: '102.0'
+            url: 'https://ftp.mozilla.org/pub/firefox/releases/102.0.1/win64/en-US/Firefox%20Setup%20102.0.1.exe'
+          - os: windows-latest
+            browser: firefox
+            version: '79.0'
+            url: 'https://ftp.mozilla.org/pub/firefox/releases/79.0/win64/en-US/Firefox%20Setup%2079.0.exe'
+            search: 'withStreamsPolyfill'
+          - os: macos-latest
+            browser: safari
+            version: 'latest'
+
+          # native build
+          - os: windows-latest
+            browser: chrome
+            version: '87.0'
+            url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchrome-win.zip?alt=media'
+            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchromedriver_win32.zip?alt=media'
+            search: 'maxParallelTests=4'
+            build: 'native'
+          - os: windows-latest
+            browser: chrome
+            version: '76.0'
+            url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchrome-win.zip?alt=media'
+            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchromedriver_win32.zip?alt=media'
+            build: 'native'
+          - os: windows-latest
+            browser: firefox
+            version: '102.0'
+            url: 'https://ftp.mozilla.org/pub/firefox/releases/102.0.1/win64/en-US/Firefox%20Setup%20102.0.1.exe'
+            build: 'native'
+          - os: windows-latest
+            browser: firefox
+            version: '71.0'
+            url: 'https://ftp.mozilla.org/pub/firefox/releases/71.0/win64/en-US/Firefox%20Setup%2071.0.exe'
+            build: 'native'
+            search: 'withStreamsPolyfill'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Set up browser
+        shell: pwsh
+        run: |
+          $browser = "${{ matrix.browser }}"
+          $version = "${{ matrix.version }}"
+          $targetDir = "$env:USERPROFILE\browsers"
+          New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+
+          if ($browser -eq "chrome") {
+            $url = "${{ matrix.url }}"
+            if ($url) {
+              $zipFile = "$targetDir\chrome-win.zip"
+              $exeDir = "$targetDir\chrome"
+              Invoke-WebRequest -Uri $url -OutFile $zipFile
+              Expand-Archive -Path $zipFile -DestinationPath $exeDir -Force
+              $exePath = "$exeDir\chrome-win\chrome.exe"
+              echo "EXE_PATH=$exePath" >> $env:GITHUB_ENV
+            }
+
+            $driverUrl = "${{ matrix.driver }}"
+            if ($driverUrl) {
+              $driverZip = "$targetDir\chromedriver.zip"
+              $driverDir = "$targetDir\chromedriver"
+              Invoke-WebRequest -Uri $driverUrl -OutFile $driverZip
+              Expand-Archive -Path $driverZip -DestinationPath $driverDir -Force
+              $driverExePath = "$driverDir\chromedriver_win32"
+              Add-Content -Path $env:GITHUB_PATH -Value $driverExePath
+            }
+          }
+          elseif ($browser -eq "firefox") {
+            $url = "${{ matrix.url }}"
+            if ($url) {
+              $exeFile = "$targetDir\firefox-setup.exe"
+              $exeDir = "$targetDir\firefox"
+              Invoke-WebRequest -Uri $url -OutFile $exeFile
+              7z x $exeFile -o"$targetDir\firefox" -y | Out-Null
+              $exePath = "$exeDir\core\firefox.exe"
+              echo "EXE_PATH=$exePath" >> $env:GITHUB_ENV
+            }
+          }
+          elseif ($browser -eq "safari") {
+            sudo safaridriver --enable
+          }
+
+      - name: Set up native build
+        if: matrix.build == 'native'
+        shell: pwsh
+        run: |
+          Set-Content -Path "tests/zip-lib.js" -Value 'export * from "../lib/zip-fs-native.js";'
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          $argsList = @("${{ matrix.browser }}")
+
+          if ($env:EXE_PATH) {
+            $argsList += "--exe-path"
+            $argsList += "$env:EXE_PATH"
+          }
+
+          $urlSearch = "${{ matrix.search }}"
+          if ($urlSearch) {
+            $argsList += "--url-search"
+            $argsList += "$urlSearch"
+          }
+
+          & node tests/browser-runner.js $argsList

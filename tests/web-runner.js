@@ -1,4 +1,4 @@
-/* global document, location, addEventListener, setTimeout, clearTimeout, URLSearchParams, fetch, Worker, Blob, URL, navigator, CompressionStream, structuredClone, TransformStream, AbortController */
+/* global document, location, addEventListener, setTimeout, clearTimeout, URLSearchParams, fetch, Worker, Blob, URL, navigator, CompressionStream, structuredClone, TransformStream, AbortController, ReadableStream, WritableStream */
 
 import tests from "./tests-data.js";
 
@@ -15,6 +15,22 @@ const FEATURE_PROBES = {
 		const reason = new Error("reason");
 		controller.abort(reason);
 		return controller.signal.reason === reason;
+	},
+	pipeToSignal: async () => {
+		const abortController = new AbortController();
+		abortController.abort();
+		const readable = new ReadableStream({
+			start(controller) {
+				controller.enqueue(new Uint8Array([0]));
+				controller.close();
+			}
+		});
+		try {
+			await readable.pipeTo(new WritableStream(), { signal: abortController.signal });
+			return false;
+		} catch {
+			return true;
+		}
 	},
 	opfs: () => Boolean(navigator.storage && navigator.storage.getDirectory),
 	httpRange: async () => {
@@ -51,6 +67,7 @@ const urlParams = new URLSearchParams(location.search);
 const browserTests = tests.filter(test => !test.env || test.env.includes("browser"));
 const keepTests = urlParams.has("keepTests");
 const withStreamsPolyfill = urlParams.has("withStreamsPolyfill");
+const maxParallelTests = Number(urlParams.get("maxParallelTests")) || MAX_PARALLEL_TESTS;
 const testResults = { done: false, total: browserTests.length, passed: 0, skipped: 0, failures: [] };
 globalThis.testResults = testResults;
 
@@ -82,7 +99,7 @@ async function main() {
 			runnableTests.push(test);
 		}
 	}
-	while (nextTestIndex < Math.min(MAX_PARALLEL_TESTS, runnableTests.length)) {
+	while (nextTestIndex < Math.min(maxParallelTests, runnableTests.length)) {
 		startTest(runnableTests[nextTestIndex++]);
 	}
 	updateStatus();
