@@ -31,6 +31,11 @@ jobs:
       - name: Verify no code issue
         run: npx eslint .
 
+      - name: Verify markdown doc is up to date
+        run: |
+          npm run build-doc-markdown
+          git diff --exit-code docs
+
   test:
     name: Test ${{ matrix.browser }} ${{ matrix.version }}${{ format(matrix.build && ' ({0})' || '', matrix.build) }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
