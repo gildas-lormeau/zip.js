@@ -9,17 +9,17 @@ import { chromium, firefox, webkit } from "playwright";
 const SUITE_TIMEOUT = 600000;
 const POLL_INTERVAL = 500;
 
-const browserName = process.argv[2];
-const headless = !process.argv.includes("--headful");
+main({
+	browserName: process.argv[2],
+	headless: !process.argv.includes("--headful"),
+});
 
-main();
-
-async function main() {
+async function main({ browserName, headless }) {
 	const server = httpServer.createServer({ root: fileURLToPath(new URL("..", import.meta.url)), cache: -1 });
 	await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 	const { port } = server.server.address();
 	const profileDirectory = await mkdtemp(join(tmpdir(), "zip-js-tests-"));
-	const browserContext = await launchBrowserContext(profileDirectory);
+	const browserContext = await launchBrowserContext(profileDirectory, { browserName, headless });
 	const page = await browserContext.newPage();
 	const pageErrors = [];
 	page.on("pageerror", error => pageErrors.push(error.message));
@@ -43,7 +43,7 @@ async function main() {
 	process.exit(testResults.failures.length || !testResults.done ? 1 : 0);
 }
 
-async function launchBrowserContext(profileDirectory) {
+async function launchBrowserContext(profileDirectory, { browserName, headless }) {
 	try {
 		if (browserName == "chrome") {
 			return await chromium.launchPersistentContext(profileDirectory, { channel: "chrome", headless });
