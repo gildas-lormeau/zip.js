@@ -3283,6 +3283,16 @@ export interface ZipDirectoryEntryExportOptions
    */
   mimeType?: string;
   /**
+   * The function called for signing the central directory, see
+   * {@link ZipWriterCloseOptions#signCentralDirectory}.
+   *
+   * @param directory The raw data of the central directory records.
+   * @returns The data of the digital signature record.
+   */
+  signCentralDirectory?(
+    directory: Uint8Array
+  ): Uint8Array | PromiseLike<Uint8Array>;
+  /**
    * The options passed to the Reader instances.
    *
    * @remarks

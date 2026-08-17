@@ -957,3 +957,26 @@ An empty promise or `undefined`.
 #### Inherited from
 
 [`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md).[`onstart`](EntryDataOnprogressOptions.md#onstart)
+
+***
+
+### signCentralDirectory()?
+
+> `optional` **signCentralDirectory**(`directory`): `Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+
+The function called for signing the central directory, see
+[ZipWriterCloseOptions#signCentralDirectory](ZipWriterCloseOptions.md#signcentraldirectory).
+
+#### Parameters
+
+##### directory
+
+`Uint8Array`
+
+The raw data of the central directory records.
+
+#### Returns
+
+`Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+
+The data of the digital signature record.

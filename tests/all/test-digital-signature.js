@@ -32,7 +32,9 @@ async function test() {
 	const signedRegion = data.subarray(zipReader.directoryOffset, zipReader.directoryOffset + zipReader.directoryLength);
 	const errorTooLarge = await getCloseError({ signCentralDirectory: () => new Uint8Array(0x10000) });
 	const zip64OK = await testZip64();
+	const filesystemOK = await testFilesystem();
 	if (!zip64OK ||
+		!filesystemOK ||
 		entries.length != 2 ||
 		entries[0].filename != "first.txt" ||
 		entries[1].filename != "second.txt" ||
@@ -64,6 +66,24 @@ async function testZip64() {
 	const signedRegion = data.subarray(zipReader.directoryOffset, zipReader.directoryOffset + zipReader.directoryLength);
 	return entries.length == 1 &&
 		content == TEXT_CONTENT &&
+		equalArrays(zipReader.digitalSignature, SIGNATURE_DATA) &&
+		equalArrays(signedRegion, signedDirectory);
+}
+
+async function testFilesystem() {
+	let signedDirectory;
+	const zipFs = new zip.fs.FS();
+	zipFs.addText("entry.txt", TEXT_CONTENT);
+	const data = await zipFs.exportUint8Array({
+		signCentralDirectory(directory) {
+			signedDirectory = directory.slice();
+			return SIGNATURE_DATA;
+		}
+	});
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { strictness: "strict" });
+	const entries = await zipReader.getEntries();
+	const signedRegion = data.subarray(zipReader.directoryOffset, zipReader.directoryOffset + zipReader.directoryLength);
+	return entries.length == 1 &&
 		equalArrays(zipReader.digitalSignature, SIGNATURE_DATA) &&
 		equalArrays(signedRegion, signedDirectory);
 }

@@ -24,11 +24,13 @@ const protectedFlag: boolean = fs.isPasswordProtected();
 const passwordPromise: Promise<boolean> = fs.checkPassword("password");
 const readerPasswordPromise: Promise<Blob> = fs.exportBlob({ readerOptions: { password: "password" } });
 const exportHandlePromise: Promise<unknown> = fs.exportFileSystemHandle(new Object() as never, { readerOptions: { password: "password" } });
+const signedExportPromise: Promise<Uint8Array> = fs.exportUint8Array({ signCentralDirectory: () => new Uint8Array(8) });
 
 // silence unused-variable diagnostics
 void [root, entries, children, byName, byId, found, directory, textEntry,
 	importPromise, exportBlobPromise, importZipPromise, exportZipPromise,
-	protectedFlag, passwordPromise, readerPasswordPromise, exportHandlePromise];
+	protectedFlag, passwordPromise, readerPasswordPromise, exportHandlePromise,
+	signedExportPromise];
 
 // members that do NOT exist on FS at runtime must NOT type-check
 // @ts-expect-error FS is not a file entry
