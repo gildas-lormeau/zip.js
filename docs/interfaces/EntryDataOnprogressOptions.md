@@ -8,6 +8,13 @@
 
 Represents options passed to [FileEntry#getData](FileEntry.md#getdata), [ZipWriter.add](../classes/ZipWriter.md#add) and `{@link ZipDirectory}.export*`.
 
+## Remarks
+
+When passed to `{@link ZipDirectory}.export*`, these functions report the progress of the whole archive instead
+of the progress of each entry: [EntryDataOnprogressOptions#onstart](#onstart) and
+[EntryDataOnprogressOptions#onend](#onend) are called once, and the total number of bytes is the sum of the sizes
+of all the entries.
+
 ## Extended by
 
 - [`EntryGetDataOptions`](EntryGetDataOptions.md)

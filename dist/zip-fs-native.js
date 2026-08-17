@@ -9314,14 +9314,21 @@
 	}
 
 	async function exportZip(zipWriter, entry, totalSize, options, readers) {
+		const { onstart, onprogress, onend } = options;
 		const selectedEntry = entry;
 		let writtenSize = 0;
+		if (onstart) {
+			await callHandler(onstart, totalSize);
+		}
 		if (options.bufferedWrite) {
 			await processChildren(entry);
 		} else {
 			for (const child of entry.getChildren({ recursive: true })) {
 				await addChild(child);
 			}
+		}
+		if (onend) {
+			await callHandler(onend, writtenSize);
 		}
 
 		async function processChildren(entry) {
@@ -9339,15 +9346,13 @@
 			const { name, entryOptions } = getChildEntryOptions(child, selectedEntry, options);
 			let entryWrittenSize = 0;
 			await zipWriter.add(name, readers.get(child), Object.assign(entryOptions, {
+				onstart: UNDEFINED_VALUE,
+				onend: UNDEFINED_VALUE,
 				onprogress: async indexProgress => {
 					writtenSize += indexProgress - entryWrittenSize;
 					entryWrittenSize = indexProgress;
-					if (options.onprogress) {
-						try {
-							await options.onprogress(writtenSize, totalSize);
-						} catch {
-							// ignored
-						}
+					if (onprogress) {
+						await callHandler(onprogress, writtenSize, totalSize);
 					}
 				}
 			}));
@@ -9400,12 +9405,15 @@
 	}
 
 	async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
+		const { onstart, onprogress, onend } = options;
 		const abortController = new AbortController();
 		const { signal } = abortController;
 		const releaseSignal = forwardAbort(options.signal, abortController);
 		const getDataOptions = Object.assign({}, options, options.readerOptions, {
 			signal,
+			onstart: UNDEFINED_VALUE,
 			onprogress: UNDEFINED_VALUE,
+			onend: UNDEFINED_VALUE,
 			preventClose: false
 		});
 		const totalSize = getTotalSize([zipEntry], entry => getExtractedSize(entry, getDataOptions.passThrough));
@@ -9413,7 +9421,13 @@
 		let exportAborted = false;
 		let writtenSize = 0;
 		try {
+			if (onstart) {
+				await callHandler(onstart, totalSize);
+			}
 			await exportChildren(zipEntry, directoryHandle);
+			if (onend) {
+				await callHandler(onend, writtenSize);
+			}
 		} catch (error) {
 			try {
 				error.exportedEntryNames = exportedEntryNames;
@@ -9432,12 +9446,8 @@
 				async write(chunk) {
 					await writer.write(chunk);
 					writtenSize += chunk.length;
-					if (options.onprogress) {
-						try {
-							await options.onprogress(writtenSize, totalSize);
-						} catch {
-							// ignored
-						}
+					if (onprogress) {
+						await callHandler(onprogress, writtenSize, totalSize);
 					}
 				},
 				close() {

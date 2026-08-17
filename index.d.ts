@@ -2635,6 +2635,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
 
 /**
  * Represents options passed to {@link FileEntry#getData}, {@link ZipWriter.add} and `{@link ZipDirectory}.export*`.
+ *
+ * @remarks
+ * When passed to `{@link ZipDirectory}.export*`, these functions report the progress of the whole archive instead
+ * of the progress of each entry: {@link EntryDataOnprogressOptions#onstart} and
+ * {@link EntryDataOnprogressOptions#onend} are called once, and the total number of bytes is the sum of the sizes
+ * of all the entries.
  */
 export interface EntryDataOnprogressOptions {
   /**

@@ -35,7 +35,7 @@ async function exportTree(concurrent) {
 
 	const target = createMockWriteDirectory();
 	const progress = createProgressWatcher("concurrent=" + concurrent);
-	const returned = await fs.exportFileSystemHandle(target.handle, { concurrent, onprogress: progress.onprogress });
+	const returned = await fs.exportFileSystemHandle(target.handle, Object.assign({ concurrent }, progress.options));
 	if (returned !== target.handle) {
 		throw new Error("exportFileSystemHandle did not return the target handle");
 	}
@@ -65,7 +65,7 @@ async function exportImportedTree(concurrent) {
 
 	const target = createMockWriteDirectory();
 	const progress = createProgressWatcher("concurrent=" + concurrent);
-	await fs.exportFileSystemHandle(target.handle, { concurrent, onprogress: progress.onprogress });
+	await fs.exportFileSystemHandle(target.handle, Object.assign({ concurrent }, progress.options));
 	progress.assertCompleted(COMPRESSIBLE_CONTENT.length + 5);
 
 	const files = flatten(target.root);
@@ -85,7 +85,7 @@ async function exportPassThroughTree(options) {
 
 	const target = createMockWriteDirectory();
 	const progress = createProgressWatcher(JSON.stringify(options));
-	await fs.exportFileSystemHandle(target.handle, Object.assign({ onprogress: progress.onprogress }, options));
+	await fs.exportFileSystemHandle(target.handle, Object.assign({}, progress.options, options));
 	progress.assertCompleted(compressedSize);
 
 	const files = flatten(target.root);
@@ -102,7 +102,7 @@ async function exportTreeIgnoringPreventClose(options) {
 	const label = JSON.stringify(options);
 	const target = createMockWriteDirectory();
 	const progress = createProgressWatcher(label);
-	await fs.exportFileSystemHandle(target.handle, Object.assign({ onprogress: progress.onprogress }, options));
+	await fs.exportFileSystemHandle(target.handle, Object.assign({}, progress.options, options));
 	progress.assertCompleted(25);
 
 	const files = flatten(target.root);
@@ -111,19 +111,28 @@ async function exportTreeIgnoringPreventClose(options) {
 }
 
 function createProgressWatcher(label) {
+	const starts = [];
+	const ends = [];
+	const totalSizes = new Set();
 	let previousProgress = 0;
 	let lastProgress = 0;
 	let progressCount = 0;
-	const totalSizes = new Set();
 	return {
-		onprogress: (progress, totalSize) => {
-			if (progress < previousProgress || progress > totalSize) {
-				throw new Error("inconsistent progress " + progress + "/" + totalSize + " (" + label + ")");
-			}
-			previousProgress = progress;
-			lastProgress = progress;
-			totalSizes.add(totalSize);
-			progressCount++;
+		options: {
+			onstart: total => starts.push(total),
+			onprogress: (progress, totalSize) => {
+				if (!starts.length) {
+					throw new Error("progress reported before onstart (" + label + ")");
+				}
+				if (progress < previousProgress || progress > totalSize) {
+					throw new Error("inconsistent progress " + progress + "/" + totalSize + " (" + label + ")");
+				}
+				previousProgress = progress;
+				lastProgress = progress;
+				totalSizes.add(totalSize);
+				progressCount++;
+			},
+			onend: computedSize => ends.push(computedSize)
 		},
 		assertCompleted(expectedTotalSize) {
 			if (!progressCount) {
@@ -133,8 +142,16 @@ function createProgressWatcher(label) {
 				throw new Error("progress stopped at " + lastProgress + " of " + [...totalSizes] +
 					", expected " + expectedTotalSize + " (" + label + ")");
 			}
+			assertSingleEvent(starts, "onstart", expectedTotalSize, label);
+			assertSingleEvent(ends, "onend", expectedTotalSize, label);
 		}
 	};
+}
+
+function assertSingleEvent(sizes, name, expectedTotalSize, label) {
+	if (sizes.length != 1 || sizes[0] != expectedTotalSize) {
+		throw new Error("expected one " + name + " with " + expectedTotalSize + ", got [" + sizes + "] (" + label + ")");
+	}
 }
 
 function assertText(bytes, expected, label) {

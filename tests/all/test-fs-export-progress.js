@@ -1,3 +1,8 @@
+// Locks the aggregated progress of the exports writing a zip file. `onstart`, `onprogress` and
+// `onend` are documented together, so they must all report the archive as a whole: one `onstart`
+// with the total size of the entries, one monotonic series of progress events covering all of them,
+// and one `onend`, whatever the number of entries and whether they are imported from a zip file.
+
 import * as zip from "../zip-lib.js";
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.";
@@ -18,12 +23,28 @@ async function test() {
 		]) {
 			await testProgress(options);
 		}
+		await testImportedProgress();
 	} finally {
 		await zip.terminateWorkers();
 	}
 }
 
 async function testProgress(options) {
+	const watcher = createProgressWatcher(JSON.stringify(options));
+	await createTree().exportUint8Array(Object.assign({}, options, watcher.options));
+	watcher.assertCompleted(7);
+}
+
+async function testImportedProgress() {
+	const data = await createTree().exportUint8Array({ level: 9 });
+	const zipFs = new zip.fs.FS();
+	await zipFs.importUint8Array(data);
+	const watcher = createProgressWatcher("imported");
+	await zipFs.exportUint8Array(watcher.options);
+	watcher.assertCompleted(4);
+}
+
+function createTree() {
 	const zipFs = new zip.fs.FS();
 	zipFs.root.addUint8Array("large.bin", LARGE_CONTENT);
 	const directory = zipFs.root.addDirectory("docs");
@@ -32,22 +53,46 @@ async function testProgress(options) {
 	directory.addDirectory("empty");
 	zipFs.root.addUint8Array("empty.bin", new Uint8Array(0));
 	zipFs.root.addUint8Array("last.bin", SMALL_CONTENT);
+	return zipFs;
+}
+
+function createProgressWatcher(label) {
+	const starts = [];
+	const ends = [];
+	const totalSizes = new Set();
 	let previousProgress = 0;
 	let lastProgress = 0;
 	let progressCount = 0;
-	const totalSizes = new Set();
-	await zipFs.exportUint8Array(Object.assign({}, options, {
-		onprogress: (progress, totalSize) => {
-			if (progress < previousProgress || progress > totalSize) {
-				throw new Error();
+	return {
+		options: {
+			onstart: total => starts.push(total),
+			onprogress: (progress, totalSize) => {
+				if (!starts.length) {
+					throw new Error("progress reported before onstart (" + label + ")");
+				}
+				if (progress < previousProgress || progress > totalSize) {
+					throw new Error("inconsistent progress " + progress + "/" + totalSize + " (" + label + ")");
+				}
+				previousProgress = progress;
+				lastProgress = progress;
+				totalSizes.add(totalSize);
+				progressCount++;
+			},
+			onend: computedSize => ends.push(computedSize)
+		},
+		assertCompleted(minimumProgressCount) {
+			if (progressCount < minimumProgressCount || totalSizes.size != 1 || !totalSizes.has(EXPECTED_SIZE) || lastProgress != EXPECTED_SIZE) {
+				throw new Error("progress stopped at " + lastProgress + " of " + [...totalSizes] +
+					" after " + progressCount + " events, expected " + EXPECTED_SIZE + " (" + label + ")");
 			}
-			previousProgress = progress;
-			lastProgress = progress;
-			totalSizes.add(totalSize);
-			progressCount++;
+			assertSingleEvent(starts, "onstart", label);
+			assertSingleEvent(ends, "onend", label);
 		}
-	}));
-	if (progressCount < 7 || totalSizes.size != 1 || !totalSizes.has(EXPECTED_SIZE) || lastProgress != EXPECTED_SIZE) {
-		throw new Error();
+	};
+}
+
+function assertSingleEvent(sizes, name, label) {
+	if (sizes.length != 1 || sizes[0] != EXPECTED_SIZE) {
+		throw new Error("expected one " + name + " with " + EXPECTED_SIZE + ", got [" + sizes + "] (" + label + ")");
 	}
 }
