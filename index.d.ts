@@ -2476,6 +2476,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    */
   externalFileAttributes?: number;
   /**
+   * The external file attribute.
+   *
+   * @deprecated Use {@link ZipWriterConstructorOptions#externalFileAttributes} instead.
+   */
+  externalFileAttribute?: number;
+  /**
    * The Unix owner id to write in the Unix extra field or as part of the external attributes.
    */
   uid?: number;
@@ -2513,6 +2519,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * @defaultValue 0
    */
   internalFileAttributes?: number;
+  /**
+   * The internal file attribute.
+   *
+   * @deprecated Use {@link ZipWriterConstructorOptions#internalFileAttributes} instead.
+   */
+  internalFileAttribute?: number;
   /**
    * When provided, the low 8-bit MS-DOS attributes to write into external file attributes.
    * Must be an integer between 0 and 255.
