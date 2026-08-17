@@ -63,15 +63,31 @@ async function test() {
 		}
 	}
 
-	const blobWriter = new zip.BlobWriter("application/zip");
-	const zipWriter = new zip.ZipWriter(blobWriter, { externalFileAttribute: EXTERNAL_FILE_ATTRIBUTES });
-	await zipWriter.add("hello.txt", new zip.TextReader("Hi"), { compressionMethod: 0 });
-	await zipWriter.close();
-	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
-	const [entry] = await zipReader.getEntries();
-	await zipReader.close();
-	if ((entry.externalFileAttributes >>> 0) !== EXTERNAL_FILE_ATTRIBUTES) {
-		throw new Error(`writer options: externalFileAttributes mismatch (got ${(entry.externalFileAttributes >>> 0).toString(16)})`);
+	const OTHER_EXTERNAL_FILE_ATTRIBUTES = (0o100600 << 16) >>> 0;
+	const PRECEDENCE_CASES = [
+		{ name: "writer-options", writerOptions: { externalFileAttribute: EXTERNAL_FILE_ATTRIBUTES }, options: {} },
+		{
+			name: "entry-deprecated-wins-over-writer",
+			writerOptions: { externalFileAttributes: OTHER_EXTERNAL_FILE_ATTRIBUTES },
+			options: { externalFileAttribute: EXTERNAL_FILE_ATTRIBUTES }
+		},
+		{
+			name: "entry-current-wins-over-writer",
+			writerOptions: { externalFileAttribute: OTHER_EXTERNAL_FILE_ATTRIBUTES },
+			options: { externalFileAttributes: EXTERNAL_FILE_ATTRIBUTES }
+		}
+	];
+	for (const testCase of PRECEDENCE_CASES) {
+		const blobWriter = new zip.BlobWriter("application/zip");
+		const zipWriter = new zip.ZipWriter(blobWriter, testCase.writerOptions);
+		await zipWriter.add("hello.txt", new zip.TextReader("Hi"), Object.assign({ compressionMethod: 0 }, testCase.options));
+		await zipWriter.close();
+		const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
+		const [entry] = await zipReader.getEntries();
+		await zipReader.close();
+		if ((entry.externalFileAttributes >>> 0) !== EXTERNAL_FILE_ATTRIBUTES) {
+			throw new Error(`${testCase.name}: externalFileAttributes mismatch (got ${(entry.externalFileAttributes >>> 0).toString(16)})`);
+		}
 	}
 	await zip.terminateWorkers();
 }
