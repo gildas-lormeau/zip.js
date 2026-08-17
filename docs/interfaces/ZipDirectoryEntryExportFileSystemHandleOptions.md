@@ -8,6 +8,11 @@
 
 Represents the options passed to [ZipDirectoryEntry#exportFileSystemHandle](../classes/ZipDirectoryEntry.md#exportfilesystemhandle) and [FS#exportFileSystemHandle](../classes/FS.md#exportfilesystemhandle).
 
+## Remarks
+
+The [ZipReaderOptions#preventClose](ZipReaderOptions.md#preventclose) option is ignored: the export owns the writable of each
+file it creates and must close it for the data to be written.
+
 ## Extends
 
 - [`EntryGetDataOptions`](EntryGetDataOptions.md)
@@ -204,7 +209,13 @@ The password used to decrypt the content of the entry.
 
 > `optional` **preventClose?**: `boolean`
 
-`true` to prevent closing of [Writer#writable](../classes/Writer.md#writable) when calling [FileEntry#getData](FileEntry.md#getdata).
+`true` to prevent closing of [WritableWriter#writable](WritableWriter.md#writable) when calling [FileEntry#getData](FileEntry.md#getdata).
+
+#### Remarks
+
+It only applies to the writable owned by the caller. It is ignored by the [Writer](../classes/Writer.md) instances
+returning the written data, such as [BlobWriter](../classes/BlobWriter.md) or [TextWriter](../classes/TextWriter.md), whose writable is
+created internally and must be closed for [Writer#getData](../classes/Writer.md#getdata) to resolve.
 
 #### Default Value
 

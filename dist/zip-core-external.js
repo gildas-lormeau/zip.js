@@ -4240,6 +4240,10 @@ class GenericWriter {
 	}
 }
 
+function ownsWritable(writer) {
+	return Boolean(writer && writer.getData);
+}
+
 function isHttpFamily(url) {
 	const { baseURI } = getConfiguration();
 	const { protocol } = new URL(url, baseURI);
@@ -5216,7 +5220,7 @@ class ZipEntry {
 				throw error;
 			}
 		} finally {
-			const preventClose = getOptionValue$1(zipEntry, options, OPTION_PREVENT_CLOSE);
+			const preventClose = !ownsWritable(writer) && getOptionValue$1(zipEntry, options, OPTION_PREVENT_CLOSE);
 			if (!preventClose && writable && !writable.locked) {
 				const writableWriter = writable.getWriter();
 				if (abortError) {
@@ -6109,7 +6113,7 @@ class ZipWriter {
 			await Promise.allSettled(Array.from(pendingAddFileCalls));
 		}
 		await closeFile(zipWriter, comment, options);
-		const preventClose = getOptionValue(zipWriter, options, OPTION_PREVENT_CLOSE);
+		const preventClose = !ownsWritable(writer) && getOptionValue(zipWriter, options, OPTION_PREVENT_CLOSE);
 		if (!preventClose) {
 			await writable.getWriter().close();
 		}

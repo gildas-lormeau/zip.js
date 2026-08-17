@@ -19,6 +19,9 @@ async function test() {
 	await exportImportedTree(true);
 	await exportPassThroughTree({ passThrough: true });
 	await exportPassThroughTree({ readerOptions: { passThrough: true } });
+	await exportTreeIgnoringPreventClose({ preventClose: true });
+	await exportTreeIgnoringPreventClose({ readerOptions: { preventClose: true } });
+	await exportTreeIgnoringPreventClose({ preventClose: true, concurrent: true });
 	await zip.terminateWorkers();
 }
 
@@ -39,8 +42,8 @@ async function exportTree(concurrent) {
 	progress.assertCompleted(30);
 
 	const files = flatten(target.root);
-	assertText(files["readme.txt"], "hello world", concurrent);
-	assertText(files["sub/nested.txt"], "nested content", concurrent);
+	assertText(files["readme.txt"], "hello world", "concurrent=" + concurrent);
+	assertText(files["sub/nested.txt"], "nested content", "concurrent=" + concurrent);
 	if (!bytesEqual(files["data.bin"], new Uint8Array([1, 2, 3, 4, 5]))) {
 		throw new Error("data.bin mismatch (concurrent=" + concurrent + ")");
 	}
@@ -66,7 +69,7 @@ async function exportImportedTree(concurrent) {
 	progress.assertCompleted(COMPRESSIBLE_CONTENT.length + 5);
 
 	const files = flatten(target.root);
-	assertText(files["compressible.txt"], COMPRESSIBLE_CONTENT, concurrent);
+	assertText(files["compressible.txt"], COMPRESSIBLE_CONTENT, "concurrent=" + concurrent);
 	if (!bytesEqual(files["stored.bin"], new Uint8Array([1, 2, 3, 4, 5]))) {
 		throw new Error("stored.bin mismatch (concurrent=" + concurrent + ")");
 	}
@@ -89,6 +92,22 @@ async function exportPassThroughTree(options) {
 	if (files["compressible.txt"].length != compressedSize) {
 		throw new Error("passThrough did not write the raw compressed data with " + JSON.stringify(options));
 	}
+}
+
+async function exportTreeIgnoringPreventClose(options) {
+	const fs = new zip.fs.FS();
+	fs.addText("readme.txt", "hello world");
+	fs.addDirectory("sub").addText("nested.txt", "nested content");
+
+	const label = JSON.stringify(options);
+	const target = createMockWriteDirectory();
+	const progress = createProgressWatcher(label);
+	await fs.exportFileSystemHandle(target.handle, Object.assign({ onprogress: progress.onprogress }, options));
+	progress.assertCompleted(25);
+
+	const files = flatten(target.root);
+	assertText(files["readme.txt"], "hello world", label);
+	assertText(files["sub/nested.txt"], "nested content", label);
 }
 
 function createProgressWatcher(label) {
@@ -118,10 +137,10 @@ function createProgressWatcher(label) {
 	};
 }
 
-function assertText(bytes, expected, concurrent) {
+function assertText(bytes, expected, label) {
 	const text = bytes ? new TextDecoder().decode(bytes) : undefined;
 	if (text != expected) {
-		throw new Error("expected \"" + expected + "\" got \"" + text + "\" (concurrent=" + concurrent + ")");
+		throw new Error("expected \"" + expected + "\" got \"" + text + "\" (" + label + ")");
 	}
 	// ensure the entry compressed/decompressed round-trips, not just that some bytes were written
 	if (!bytesEqual(bytes, TEXT_ENCODER.encode(expected))) {

@@ -1437,7 +1437,12 @@ export interface ZipReaderOptions {
    */
   signal?: AbortSignal;
   /**
-   * `true` to prevent closing of {@link Writer#writable} when calling {@link FileEntry#getData}.
+   * `true` to prevent closing of {@link WritableWriter#writable} when calling {@link FileEntry#getData}.
+   *
+   * @remarks
+   * It only applies to the writable owned by the caller. It is ignored by the {@link Writer} instances
+   * returning the written data, such as {@link BlobWriter} or {@link TextWriter}, whose writable is
+   * created internally and must be closed for {@link Writer#getData} to resolve.
    *
    * @defaultValue false
    */
@@ -3231,6 +3236,12 @@ export interface ZipDirectoryEntryGetChildrenOptions {
  * by the Reader instances. Exporting entries imported from a zip file as-is is done with the
  * {@link ZipReaderOptions#passThrough} option in the
  * {@link ZipDirectoryEntryExportOptions#readerOptions} option instead.
+ *
+ * The {@link ZipWriterConstructorOptions#preventClose} option only applies when the caller owns the
+ * writable, i.e. when a {@link WritableWriter} instance is passed to
+ * {@link ZipDirectoryEntry#exportZip} or {@link ZipDirectoryEntry#exportWritable}. It is ignored by the
+ * other `{@link ZipDirectoryEntry}#export*()` methods, whose Writer instance can only return its data
+ * once its writable is closed.
  */
 export interface ZipDirectoryEntryExportOptions
   extends ZipWriterConstructorOptions,
@@ -3260,6 +3271,10 @@ export interface ZipDirectoryEntryExportOptions
 
 /**
  * Represents the options passed to {@link ZipDirectoryEntry#exportFileSystemHandle} and {@link FS#exportFileSystemHandle}.
+ *
+ * @remarks
+ * The {@link ZipReaderOptions#preventClose} option is ignored: the export owns the writable of each
+ * file it creates and must close it for the data to be written.
  */
 export interface ZipDirectoryEntryExportFileSystemHandleOptions
   extends EntryGetDataOptions {

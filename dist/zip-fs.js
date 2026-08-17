@@ -4235,6 +4235,10 @@
 		}
 	}
 
+	function ownsWritable(writer) {
+		return Boolean(writer && writer.getData);
+	}
+
 	function isHttpFamily(url) {
 		const { baseURI } = getConfiguration();
 		const { protocol } = new URL(url, baseURI);
@@ -5211,7 +5215,7 @@
 					throw error;
 				}
 			} finally {
-				const preventClose = getOptionValue$1(zipEntry, options, OPTION_PREVENT_CLOSE);
+				const preventClose = !ownsWritable(writer) && getOptionValue$1(zipEntry, options, OPTION_PREVENT_CLOSE);
 				if (!preventClose && writable && !writable.locked) {
 					const writableWriter = writable.getWriter();
 					if (abortError) {
@@ -6104,7 +6108,7 @@
 				await Promise.allSettled(Array.from(pendingAddFileCalls));
 			}
 			await closeFile(zipWriter, comment, options);
-			const preventClose = getOptionValue(zipWriter, options, OPTION_PREVENT_CLOSE);
+			const preventClose = !ownsWritable(writer) && getOptionValue(zipWriter, options, OPTION_PREVENT_CLOSE);
 			if (!preventClose) {
 				await writable.getWriter().close();
 			}
@@ -8840,8 +8844,9 @@
 				await Promise.all([initStream(reader), initStream(writer, dataSize)]);
 				const { readable } = reader;
 				const { signal } = options;
+				const preventClose = !ownsWritable(writer) && Boolean(options.preventClose);
 				zipEntry.uncompressedSize = reader.size;
-				await toCompatibleReadable(readable).pipeTo(toCompatibleWritable(writer.writable), { signal });
+				await toCompatibleReadable(readable).pipeTo(toCompatibleWritable(writer.writable), { signal, preventClose, preventAbort: preventClose });
 				return writer.getData ? writer.getData() : writer.writable;
 			}
 		}
@@ -9744,7 +9749,8 @@
 		const releaseSignal = forwardAbort(options.signal, abortController);
 		const getDataOptions = Object.assign({}, options, options.readerOptions, {
 			signal,
-			onprogress: UNDEFINED_VALUE
+			onprogress: UNDEFINED_VALUE,
+			preventClose: false
 		});
 		const totalSize = getTotalSize([zipEntry], entry => getExtractedSize(entry, getDataOptions.passThrough));
 		const exportedEntryNames = [];

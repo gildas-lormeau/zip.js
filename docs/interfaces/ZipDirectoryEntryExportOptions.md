@@ -19,6 +19,12 @@ by the Reader instances. Exporting entries imported from a zip file as-is is don
 [ZipReaderOptions#passThrough](ZipReaderOptions.md#passthrough) option in the
 [ZipDirectoryEntryExportOptions#readerOptions](#readeroptions) option instead.
 
+The [ZipWriterConstructorOptions#preventClose](ZipWriterConstructorOptions.md#preventclose) option only applies when the caller owns the
+writable, i.e. when a [WritableWriter](WritableWriter.md) instance is passed to
+[ZipDirectoryEntry#exportZip](../classes/ZipDirectoryEntry.md#exportzip) or [ZipDirectoryEntry#exportWritable](../classes/ZipDirectoryEntry.md#exportwritable). It is ignored by the
+other `{@link ZipDirectoryEntry}#export*()` methods, whose Writer instance can only return its data
+once its writable is closed.
+
 ## Extends
 
 - [`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md)
