@@ -153,6 +153,7 @@ export default ([
 	{ title: "Pass through", script: "./test-passthrough.js" },
 	{ title: "Pass through AES crc32", script: "./test-passthrough-aes-crc32.js" },
 	{ title: "Pass through crypto", script: "./test-passthrough-crypto.js" },
+	{ title: "Pass through password", script: "./test-passthrough-password.js" },
 	{ title: "Pass through uncompressed data", script: "./test-passthrough-uncompressed.js" },
 	{ title: "Pass through zipcrypto", script: "./test-passthrough-zipcrypto.js" },
 	{ title: "Pass through zstd", script: "./test-passthrough-zstd.js" },

@@ -19,6 +19,11 @@ by the Reader instances. Exporting entries imported from a zip file as-is is don
 [ZipReaderOptions#passThrough](ZipReaderOptions.md#passthrough) option in the
 [ZipDirectoryEntryExportOptions#readerOptions](#readeroptions) option instead.
 
+Exporting entries as-is and setting the [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) option throws an
+[ERR\_UNSUPPORTED\_ENCRYPTION\_PASS\_THROUGH](../variables/ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH.md) error, since the data of these entries is copied
+verbatim and cannot be encrypted. Entries imported from an encrypted zip file are an exception: they
+are exported as-is without error, and keep the password they were encrypted with.
+
 The [ZipWriterConstructorOptions#preventClose](ZipWriterConstructorOptions.md#preventclose) option only applies when the caller owns the
 writable, i.e. when a [WritableWriter](WritableWriter.md) instance is passed to
 [ZipDirectoryEntry#exportZip](../classes/ZipDirectoryEntry.md#exportzip) or [ZipDirectoryEntry#exportWritable](../classes/ZipDirectoryEntry.md#exportwritable). It is ignored by the
@@ -462,6 +467,16 @@ The offset of the first entry in the zip file.
 > `optional` **passThrough?**: `boolean`
 
 `true` to write the data as-is without compressing it and without crypting it.
+
+#### Remarks
+
+The [ZipWriterConstructorOptions#level](ZipWriterConstructorOptions.md#level) and [ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) options
+do not apply to data written as-is. Setting the [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) or the
+[ZipWriterConstructorOptions#rawPassword](ZipWriterConstructorOptions.md#rawpassword) option throws an
+[ERR\_UNSUPPORTED\_ENCRYPTION\_PASS\_THROUGH](../variables/ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH.md) error, unless the
+[ZipWriterConstructorOptions#encrypted](ZipWriterConstructorOptions.md#encrypted) option is set to `true` to declare that the data is already
+encrypted. In that case the password encrypts the other entries only, and the data written as-is keeps the
+password it was encrypted with, which is not verified.
 
 #### Inherited from
 

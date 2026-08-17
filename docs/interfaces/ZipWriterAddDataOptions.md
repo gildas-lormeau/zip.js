@@ -502,6 +502,16 @@ The offset of the first entry in the zip file.
 
 `true` to write the data as-is without compressing it and without crypting it.
 
+#### Remarks
+
+The [ZipWriterConstructorOptions#level](ZipWriterConstructorOptions.md#level) and [ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) options
+do not apply to data written as-is. Setting the [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) or the
+[ZipWriterConstructorOptions#rawPassword](ZipWriterConstructorOptions.md#rawpassword) option throws an
+[ERR\_UNSUPPORTED\_ENCRYPTION\_PASS\_THROUGH](../variables/ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH.md) error, unless the
+[ZipWriterConstructorOptions#encrypted](ZipWriterConstructorOptions.md#encrypted) option is set to `true` to declare that the data is already
+encrypted. In that case the password encrypts the other entries only, and the data written as-is keeps the
+password it was encrypted with, which is not verified.
+
 #### Inherited from
 
 [`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`passThrough`](ZipWriterConstructorOptions.md#passthrough)

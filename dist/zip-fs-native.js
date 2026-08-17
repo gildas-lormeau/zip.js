@@ -5887,6 +5887,7 @@
 	const ERR_INVALID_VERSION = "Version exceeds 65535";
 	const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
 	const ERR_UNSUPPORTED_ENCRYPTION_USDZ = "Encryption is not supported in USDZ files";
+	const ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = "Encryption is not supported when the 'passThrough' option is set";
 	const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
 	const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
 	const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
@@ -6368,13 +6369,10 @@
 		const creationDate = getOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
 		const internalFileAttributes = getAliasedOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES, 0);
 		const passThrough = getOptionValue(zipWriter, options, OPTION_PASS_THROUGH);
-		let password, rawPassword;
-		if (!passThrough) {
-			password = getOptionValue(zipWriter, options, OPTION_PASSWORD);
-			rawPassword = getOptionValue(zipWriter, options, OPTION_RAW_PASSWORD);
-			if ((password && typeof password != STRING_TYPE) || (rawPassword && !(rawPassword instanceof Uint8Array))) {
-				throw new Error(ERR_INVALID_PASSWORD_TYPE);
-			}
+		const password = getOptionValue(zipWriter, options, OPTION_PASSWORD);
+		const rawPassword = getOptionValue(zipWriter, options, OPTION_RAW_PASSWORD);
+		if ((password && typeof password != STRING_TYPE) || (rawPassword && !(rawPassword instanceof Uint8Array))) {
+			throw new Error(ERR_INVALID_PASSWORD_TYPE);
 		}
 		const encryptionStrength = getNumberOptionValue(zipWriter, options, OPTION_ENCRYPTION_STRENGTH, 3);
 		const zipCrypto = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIPCRYPTO);
@@ -6512,6 +6510,9 @@
 		}
 		const zip64Enabled = zip64 === true;
 		const encrypted = getOptionValue(zipWriter, options, PROPERTY_NAME_ENCRYPTED);
+		if (hasContent && passThrough && !encrypted && getLength(password, rawPassword)) {
+			throw new Error(ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH);
+		}
 		const encryptedEntry = hasContent && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted));
 		if (!hasContent) {
 			level = 0;
@@ -9722,6 +9723,7 @@
 	exports.ERR_UNSUPPORTED_CONTEXT = ERR_UNSUPPORTED_CONTEXT;
 	exports.ERR_UNSUPPORTED_CRYPTO_API = ERR_UNSUPPORTED_CRYPTO_API;
 	exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
+	exports.ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH;
 	exports.ERR_UNSUPPORTED_ENCRYPTION_USDZ = ERR_UNSUPPORTED_ENCRYPTION_USDZ;
 	exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
 	exports.ERR_WORKER_STARTUP_TIMEOUT = ERR_WORKER_STARTUP_TIMEOUT;

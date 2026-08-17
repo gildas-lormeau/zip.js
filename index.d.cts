@@ -2600,6 +2600,15 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   usdz?: boolean;
   /**
    * `true` to write the data as-is without compressing it and without crypting it.
+   *
+   * @remarks
+   * The {@link ZipWriterConstructorOptions#level} and {@link ZipWriterAddDataOptions#compressionMethod} options
+   * do not apply to data written as-is. Setting the {@link ZipWriterConstructorOptions#password} or the
+   * {@link ZipWriterConstructorOptions#rawPassword} option throws an
+   * {@link ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH} error, unless the
+   * {@link ZipWriterConstructorOptions#encrypted} option is set to `true` to declare that the data is already
+   * encrypted. In that case the password encrypts the other entries only, and the data written as-is keeps the
+   * password it was encrypted with, which is not verified.
    */
   passThrough?: boolean;
   /**
@@ -3237,6 +3246,11 @@ export interface ZipDirectoryEntryGetChildrenOptions {
  * {@link ZipReaderOptions#passThrough} option in the
  * {@link ZipDirectoryEntryExportOptions#readerOptions} option instead.
  *
+ * Exporting entries as-is and setting the {@link ZipWriterConstructorOptions#password} option throws an
+ * {@link ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH} error, since the data of these entries is copied
+ * verbatim and cannot be encrypted. Entries imported from an encrypted zip file are an exception: they
+ * are exported as-is without error, and keep the password they were encrypted with.
+ *
  * The {@link ZipWriterConstructorOptions#preventClose} option only applies when the caller owns the
  * writable, i.e. when a {@link WritableWriter} instance is passed to
  * {@link ZipDirectoryEntry#exportZip} or {@link ZipDirectoryEntry#exportWritable}. It is ignored by the
@@ -3556,6 +3570,10 @@ export const ERR_INVALID_ENCRYPTION_STRENGTH: string;
  * Unsupported encryption in USDZ files error
  */
 export const ERR_UNSUPPORTED_ENCRYPTION_USDZ: string;
+/**
+ * Unsupported encryption in pass-through entries error
+ */
+export const ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH: string;
 /**
  * Invalid format error
  */
