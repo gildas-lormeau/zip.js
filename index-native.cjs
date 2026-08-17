@@ -8734,10 +8734,16 @@ class ZipDirectoryEntry extends ZipEntry {
 	}
 
 	async importZip(reader, options = {}) {
-		await initStream(reader);
-		const zipReader = new ZipReader(reader, options);
+		let zipReader;
+		if (reader && typeof reader.getEntries == FUNCTION_TYPE) {
+			zipReader = reader;
+			options = Object.assign({}, zipReader.options, options);
+		} else {
+			await initStream(reader);
+			zipReader = new ZipReader(reader, options);
+		}
 		const importedEntries = [];
-		const entries = await zipReader.getEntries();
+		const entries = await zipReader.getEntries(options);
 		for (const entry of entries) {
 			let parent = this;
 			try {

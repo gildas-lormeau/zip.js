@@ -3051,6 +3051,9 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @param blob The `Blob` instance.
    * @param options  The options.
+   *
+   * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
+   * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
    */
   importBlob(
     blob: Blob,
@@ -3061,6 +3064,9 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @param dataURI The Data URI `string` encoded in Base64.
    * @param options  The options.
+   *
+   * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
+   * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
    */
   importData64URI(
     dataURI: string,
@@ -3071,6 +3077,9 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @param array The `Uint8Array` instance.
    * @param options  The options.
+   *
+   * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
+   * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
    */
   importUint8Array(
     array: Uint8Array,
@@ -3081,6 +3090,9 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @param url The URL.
    * @param options  The options.
+   *
+   * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
+   * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
    */
   importHttpContent(
     url: string,
@@ -3091,21 +3103,30 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @param readable The `ReadableStream` instance.
    * @param options  The options.
+   *
+   * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
+   * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
    */
   importReadable(
     readable: ReadableStream,
     options?: ZipReaderConstructorOptions
   ): Promise<[ZipEntry]>;
   /**
-   * Extracts a zip file provided via a custom {@link Reader} instance into the entry
+   * Extracts a zip file provided via a custom {@link Reader} instance or a {@link ZipReader} instance into
+   * the entry
    *
-   * @param reader The {@link Reader} instance.
+   * @param reader The {@link Reader} instance or the {@link ZipReader} instance.
    * @param options  The options.
    *
    * @remarks The filename of each entry is split into path components to build the tree of entries. Empty
    * components and `"."` components are ignored, so `"a//b.txt"`, `"./a/b.txt"` and `"a/./b.txt"` all produce
    * the same `"a/b.txt"` entry. Filenames are normalized and validated beforehand, see
    * {@link GetEntriesOptions#normalizeFilename} and {@link GetEntriesOptions#filenameValidation}.
+   *
+   * Passing a {@link ZipReader} instance is the way to read the data of the zip file itself, e.g. its
+   * {@link ZipReader#prependedData} or its {@link ZipReader#comment} property, since the instance created
+   * otherwise is not exposed. Its options are used as defaults for the options passed here, and it must not
+   * have read its entries yet when it is created over a `ReadableStream` instance, which can only be read once.
    */
   importZip(
     reader:
@@ -3114,7 +3135,8 @@ export class ZipDirectoryEntry extends ZipEntry {
       | ReadableStream
       | Reader<unknown>[]
       | ReadableReader[]
-      | ReadableStream[],
+      | ReadableStream[]
+      | ZipReader<unknown>,
     options?: ZipReaderConstructorOptions
   ): Promise<[ZipEntry]>;
   /**

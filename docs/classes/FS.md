@@ -826,6 +826,11 @@ The options.
 
 `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
 
+#### Remarks
+
+Use [ZipDirectoryEntry#importZip](ZipDirectoryEntry.md#importzip) with a [ZipReader](ZipReader.md) instance to read the data of the
+zip file itself, e.g. its [ZipReader#prependedData](ZipReader.md#prependeddata) or its [ZipReader#comment](ZipReader.md#comment) property.
+
 #### Inherited from
 
 `Pick.importBlob`
@@ -855,6 +860,11 @@ The options.
 #### Returns
 
 `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+
+#### Remarks
+
+Use [ZipDirectoryEntry#importZip](ZipDirectoryEntry.md#importzip) with a [ZipReader](ZipReader.md) instance to read the data of the
+zip file itself, e.g. its [ZipReader#prependedData](ZipReader.md#prependeddata) or its [ZipReader#comment](ZipReader.md#comment) property.
 
 #### Inherited from
 
@@ -886,6 +896,11 @@ The options.
 
 `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
 
+#### Remarks
+
+Use [ZipDirectoryEntry#importZip](ZipDirectoryEntry.md#importzip) with a [ZipReader](ZipReader.md) instance to read the data of the
+zip file itself, e.g. its [ZipReader#prependedData](ZipReader.md#prependeddata) or its [ZipReader#comment](ZipReader.md#comment) property.
+
 #### Inherited from
 
 `Pick.importHttpContent`
@@ -915,6 +930,11 @@ The options.
 #### Returns
 
 `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+
+#### Remarks
+
+Use [ZipDirectoryEntry#importZip](ZipDirectoryEntry.md#importzip) with a [ZipReader](ZipReader.md) instance to read the data of the
+zip file itself, e.g. its [ZipReader#prependedData](ZipReader.md#prependeddata) or its [ZipReader#comment](ZipReader.md#comment) property.
 
 #### Inherited from
 
@@ -946,6 +966,11 @@ The options.
 
 `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
 
+#### Remarks
+
+Use [ZipDirectoryEntry#importZip](ZipDirectoryEntry.md#importzip) with a [ZipReader](ZipReader.md) instance to read the data of the
+zip file itself, e.g. its [ZipReader#prependedData](ZipReader.md#prependeddata) or its [ZipReader#comment](ZipReader.md#comment) property.
+
 #### Inherited from
 
 `Pick.importUint8Array`
@@ -956,15 +981,16 @@ The options.
 
 > **importZip**(`reader`, `options?`): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
 
-Extracts a zip file provided via a custom [Reader](Reader.md) instance into the entry
+Extracts a zip file provided via a custom [Reader](Reader.md) instance or a [ZipReader](ZipReader.md) instance into
+the entry
 
 #### Parameters
 
 ##### reader
 
-`ReadableStream`\<`any`\> \| `ReadableStream`\<`any`\>[] \| [`ReadableReader`](../interfaces/ReadableReader.md) \| [`Reader`](Reader.md)\<`unknown`\> \| [`Reader`](Reader.md)\<`unknown`\>[] \| [`ReadableReader`](../interfaces/ReadableReader.md)[]
+`ReadableStream`\<`any`\> \| `ReadableStream`\<`any`\>[] \| [`ReadableReader`](../interfaces/ReadableReader.md) \| [`Reader`](Reader.md)\<`unknown`\> \| [`Reader`](Reader.md)\<`unknown`\>[] \| [`ReadableReader`](../interfaces/ReadableReader.md)[] \| [`ZipReader`](ZipReader.md)\<`unknown`\>
 
-The [Reader](Reader.md) instance.
+The [Reader](Reader.md) instance or the [ZipReader](ZipReader.md) instance.
 
 ##### options?
 
@@ -982,6 +1008,11 @@ The filename of each entry is split into path components to build the tree of en
 components and `"."` components are ignored, so `"a//b.txt"`, `"./a/b.txt"` and `"a/./b.txt"` all produce
 the same `"a/b.txt"` entry. Filenames are normalized and validated beforehand, see
 [GetEntriesOptions#normalizeFilename](../interfaces/GetEntriesOptions.md#normalizefilename) and [GetEntriesOptions#filenameValidation](../interfaces/GetEntriesOptions.md#filenamevalidation).
+
+Passing a [ZipReader](ZipReader.md) instance is the way to read the data of the zip file itself, e.g. its
+[ZipReader#prependedData](ZipReader.md#prependeddata) or its [ZipReader#comment](ZipReader.md#comment) property, since the instance created
+otherwise is not exposed. Its options are used as defaults for the options passed here, and it must not
+have read its entries yet when it is created over a `ReadableStream` instance, which can only be read once.
 
 #### Inherited from
 
