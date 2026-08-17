@@ -3345,8 +3345,10 @@
 				async pull(controller) {
 					const dataSize = size === UNDEFINED_VALUE ? chunkSize : Math.min(chunkSize, size - chunkOffset);
 					const data = await readUint8Array(reader, offset + chunkOffset, dataSize);
-					controller.enqueue(data);
-					if ((chunkOffset + chunkSize > size) || (size === UNDEFINED_VALUE && !data.length && dataSize)) {
+					if (data.length) {
+						controller.enqueue(data);
+					}
+					if ((chunkOffset + chunkSize >= size) || (size === UNDEFINED_VALUE && !data.length && dataSize)) {
 						controller.close();
 					} else {
 						chunkOffset += chunkSize;

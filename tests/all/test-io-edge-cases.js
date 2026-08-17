@@ -1,10 +1,11 @@
-/* global Response */
+/* global Response, WritableStream */
 
 import * as zip from "../zip-lib.js";
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.";
 const FILENAME = "lorem.txt";
 const SEGMENT_SIZE = 100;
+const CHUNK_SIZE = 512;
 
 export { test };
 
@@ -14,6 +15,12 @@ async function test() {
 	await testSplitDataWriterCloseDisk();
 	await testSplitStateNotLeakedOnWriters();
 	await testHttpReaderIgnoredRangeRequest();
+	await testReadableChunkBoundaries();
+	try {
+		await testReadableEntryChunks();
+	} finally {
+		await zip.terminateWorkers();
+	}
 }
 
 // a payload filling a bounded number of disks exactly must not pull an
@@ -128,6 +135,90 @@ async function testHttpReaderIgnoredRangeRequest() {
 	} finally {
 		globalThis.fetch = originalFetch;
 	}
+}
+
+// a Reader must never hand a zero-length chunk to its consumer, and must stop
+// pulling as soon as the requested range is read, whether or not its size is known
+async function testReadableChunkBoundaries() {
+	for (const size of [0, 1, CHUNK_SIZE - 1, CHUNK_SIZE, CHUNK_SIZE * 2, CHUNK_SIZE * 2 + 1]) {
+		const data = new Uint8Array(size).fill(65);
+		const expectedLengths = [];
+		for (let offset = 0; offset < size; offset += CHUNK_SIZE) {
+			expectedLengths.push(Math.min(CHUNK_SIZE, size - offset));
+		}
+		for (const knownSize of [true, false]) {
+			const reader = new TestReader(data);
+			const lengths = await getChunkLengths(reader.createReadable(knownSize ?
+				{ size, chunkSize: CHUNK_SIZE } :
+				{ chunkSize: CHUNK_SIZE }));
+			if (lengths.join() != expectedLengths.join()) {
+				throw new Error("expected the chunks " + expectedLengths.join() + " for a size of " + size +
+					", got " + lengths.join());
+			}
+			const expectedReadCount = knownSize ? Math.max(1, expectedLengths.length) : expectedLengths.length + 1;
+			if (reader.readCount != expectedReadCount) {
+				throw new Error("expected " + expectedReadCount + " reads for a size of " + size +
+					(knownSize ? " known" : " unknown") + ", got " + reader.readCount);
+			}
+		}
+	}
+	const lengths = await getChunkLengths(new TestReader(new Uint8Array(CHUNK_SIZE * 2)).createReadable({
+		offset: CHUNK_SIZE,
+		size: CHUNK_SIZE,
+		chunkSize: CHUNK_SIZE
+	}));
+	if (lengths.join() != String(CHUNK_SIZE)) {
+		throw new Error("expected a single chunk of " + CHUNK_SIZE + " bytes, got " + lengths.join());
+	}
+}
+
+// the same contract through a zip entry, where the data is read by the codec
+async function testReadableEntryChunks() {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT), { level: 0 });
+	await zipWriter.add("empty.txt", new zip.TextReader(""));
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(await zipWriter.close()));
+	const entries = await zipReader.getEntries();
+	for (const entry of entries) {
+		const lengths = [];
+		await entry.getData({
+			writable: new WritableStream({
+				write(chunk) {
+					lengths.push(chunk.length);
+				}
+			})
+		});
+		if (lengths.some(length => !length)) {
+			throw new Error("expected no empty chunk for " + entry.filename + ", got " + lengths.join());
+		}
+	}
+	await zipReader.close();
+}
+
+class TestReader extends zip.Reader {
+
+	constructor(data) {
+		super();
+		this.data = data;
+		this.size = data.length;
+		this.readCount = 0;
+	}
+
+	readUint8Array(index, length) {
+		this.readCount++;
+		return this.data.subarray(index, index + Math.min(length, this.size - index));
+	}
+}
+
+async function getChunkLengths(readable) {
+	const lengths = [];
+	const reader = readable.getReader();
+	let result = await reader.read();
+	while (!result.done) {
+		lengths.push(result.value.length);
+		result = await reader.read();
+	}
+	return lengths;
 }
 
 function* blobWriterGenerator(writers, count) {
