@@ -245,6 +245,19 @@ The Unix group id to write in the Unix extra field or as part of the external at
 
 ***
 
+### globalComment?
+
+> `optional` **globalComment?**: `Uint8Array`\<`ArrayBufferLike`\>
+
+The global comment of the zip file, see [ZipWriter#close](../classes/ZipWriter.md#close).
+
+#### Remarks
+
+The [ZipWriterAddDataOptions#comment](ZipWriterAddDataOptions.md#comment) option is the comment of an entry: setting it here
+comments every entry of the exported zip file instead of the zip file itself.
+
+***
+
 ### ~~internalFileAttribute?~~
 
 > `optional` **internalFileAttribute?**: `number`

@@ -102,6 +102,7 @@ export default ([
 	{ title: "Filesystem export progress", script: "./test-fs-export-progress.js" },
 	{ title: "Filesystem export password", script: "./test-fs-export-password.js" },
 	{ title: "Filesystem export passthrough", script: "./test-fs-export-passthrough.js" },
+	{ title: "Filesystem export global comment", script: "./test-fs-export-global-comment.js" },
 	{ title: "Filesystem exported size", script: "./test-fs-exported-size.js" },
 	{ title: "Filesystem export File System handle", script: "./test-fs-export-file-system-handle.js" },
 	{ title: "Filesystem add File System handle", script: "./test-fs-add-file-system-handle.js" },

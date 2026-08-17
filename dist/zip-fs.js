@@ -6562,10 +6562,14 @@
 		};
 	}
 
-	async function getEntriesSize(writerOptions, entries, writeOrderGuaranteed) {
+	async function getEntriesSize(writerOptions, entries, writeOrderGuaranteed, comment) {
 		const zipWriter = { options: writerOptions, config: getConfiguration() };
 		if (writerOptions[OPTION_SIGN_CENTRAL_DIRECTORY]) {
 			throw new Error(ERR_UNDETERMINED_SIZE);
+		}
+		const commentLength = getLength(comment);
+		if (commentLength > MAX_16_BITS) {
+			throw new Error(ERR_INVALID_COMMENT);
 		}
 		const usdz = writerOptions[OPTION_USDZ];
 		const files = new Map();
@@ -6627,7 +6631,7 @@
 				zip64 = true;
 			}
 		}
-		return offset + directoryDataLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH);
+		return offset + directoryDataLength + commentLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH);
 	}
 
 	async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
@@ -9173,7 +9177,7 @@
 			const [readers] = await Promise.all([initReaders(zipEntry, options.readerOptions), initStream(writer)]);
 			const zipWriter = new ZipWriter(writer, options);
 			await exportZip(zipWriter, zipEntry, getTotalSize([zipEntry], getUncompressedSize), options, readers);
-			await zipWriter.close();
+			await zipWriter.close(options.globalComment);
 			return writer.getData ? writer.getData() : writer.writable;
 		}
 
@@ -9188,7 +9192,7 @@
 			return getEntriesSize(options, Array.from(zipEntry.getChildren({ recursive: true }), child => {
 				const { name, entryOptions } = getChildEntryOptions(child, zipEntry, options);
 				return { name, size: child.directory ? 0 : getDeterminedSize(child, isPassThrough(child, options)), options: entryOptions };
-			}), writeOrderGuaranteed);
+			}), writeOrderGuaranteed, options.globalComment);
 		}
 
 		getChildByName(name) {

@@ -3286,6 +3286,14 @@ export interface ZipDirectoryEntryExportOptions
    */
   mimeType?: string;
   /**
+   * The global comment of the zip file, see {@link ZipWriter#close}.
+   *
+   * @remarks
+   * The {@link ZipWriterAddDataOptions#comment} option is the comment of an entry: setting it here
+   * comments every entry of the exported zip file instead of the zip file itself.
+   */
+  globalComment?: Uint8Array;
+  /**
    * The function called for signing the central directory, see
    * {@link ZipWriterCloseOptions#signCentralDirectory}.
    *
