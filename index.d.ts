@@ -2506,6 +2506,11 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * The value includes the Unix file type, so it is also how a symbolic link is written: pass
    * `0o120777` and use the path of the link target as the content of the entry. Extractors that
    * support symbolic links, e.g. Info-ZIP `unzip`, then restore the entry as a link.
+   *
+   * When the value carries no file type, the type of the entry is added: `S_IFDIR` (`0o040000`)
+   * for a folder entry, `S_IFREG` (`0o100000`) otherwise. Set
+   * {@link ZipWriterConstructorOptions#externalFileAttributes} instead to write a mode with no
+   * file type.
    */
   unixMode?: number;
   /**

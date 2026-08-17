@@ -161,6 +161,7 @@ export default ([
 	{ title: "Props", script: "./test-props.js" },
 	{ title: "Deprecated attribute names", script: "./test-deprecated-attributes.js" },
 	{ title: "Symlink entries", script: "./test-symlink.js" },
+	{ title: "Unix file type", script: "./test-unix-file-type.js" },
 	{ title: "Readable Stream", script: "./test-readable-stream.js" },
 	{ title: "Readable Zip Stream", script: "./test-readable-zip-stream.js" },
 	{ title: "Remove entry", script: "./test-remove-entry.js" },
