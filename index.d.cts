@@ -2603,7 +2603,8 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    *
    * @remarks
    * The {@link ZipWriterConstructorOptions#level} and {@link ZipWriterAddDataOptions#compressionMethod} options
-   * do not apply to data written as-is. Setting the {@link ZipWriterConstructorOptions#password} or the
+   * do not apply to data written as-is, and the entries with no content, e.g. the directories, ignore this
+   * option entirely. Setting the {@link ZipWriterConstructorOptions#password} or the
    * {@link ZipWriterConstructorOptions#rawPassword} option throws an
    * {@link ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH} error, unless the
    * {@link ZipWriterConstructorOptions#encrypted} option is set to `true` to declare that the data is already
@@ -3654,6 +3655,10 @@ export const ERR_UNDEFINED_UNCOMPRESSED_SIZE: string;
 export const ERR_UNDETERMINED_SIZE: string;
 /**
  * Undefined reader error
+ *
+ * @remarks Thrown when adding an entry with the {@link ZipWriterConstructorOptions#passThrough} option set to `true`
+ * and no Reader instance: the headers of such an entry describe its content verbatim and would declare content that
+ * is not there. Directory entries are exempt, they have no content to write as-is.
  */
 export const ERR_UNDEFINED_READER: string;
 /**

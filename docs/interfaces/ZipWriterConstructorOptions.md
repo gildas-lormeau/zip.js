@@ -354,7 +354,8 @@ The offset of the first entry in the zip file.
 #### Remarks
 
 The [ZipWriterConstructorOptions#level](#level) and [ZipWriterAddDataOptions#compressionMethod](#compressionmethod) options
-do not apply to data written as-is. Setting the [ZipWriterConstructorOptions#password](#password) or the
+do not apply to data written as-is, and the entries with no content, e.g. the directories, ignore this
+option entirely. Setting the [ZipWriterConstructorOptions#password](#password) or the
 [ZipWriterConstructorOptions#rawPassword](#rawpassword) option throws an
 [ERR\_UNSUPPORTED\_ENCRYPTION\_PASS\_THROUGH](../variables/ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH.md) error, unless the
 [ZipWriterConstructorOptions#encrypted](#encrypted) option is set to `true` to declare that the data is already

@@ -5808,7 +5808,7 @@
 	}
 
 	async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, options) {
-		if (metadata.passThrough && !reader) {
+		if (metadata.passThrough && !reader && !getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY)) {
 			throw new Error(ERR_UNDEFINED_READER);
 		}
 		let contentSize;
@@ -5825,7 +5825,7 @@
 		let { dataDescriptor, zip64, level, compressionMethod } = metadata;
 		let maximumCompressedSize = 0;
 		let uncompressedSize = 0;
-		if (passThrough) {
+		if (passThrough && hasContent) {
 			uncompressedSize = options[PROPERTY_NAME_UNCOMPRESSED_SIZE];
 			if (uncompressedSize === UNDEFINED_VALUE) {
 				throw new Error(ERR_UNDEFINED_UNCOMPRESSED_SIZE);
