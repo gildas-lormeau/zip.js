@@ -30,6 +30,9 @@ async function test() {
 		if (entry.directory) {
 			throw new Error(`${filename}: expected directory to be false`);
 		}
+		if (entry.executable) {
+			throw new Error(`${filename}: expected executable to be false`);
+		}
 		const target = await entry.getData(new zip.TextWriter());
 		if (target !== LINK_TARGET) {
 			throw new Error(`${filename}: link target mismatch (got ${target})`);
@@ -39,6 +42,9 @@ async function test() {
 		if (entriesByName.get(filename).symlink) {
 			throw new Error(`${filename}: expected symlink to be false`);
 		}
+	}
+	if (!entriesByName.get("executable.txt").executable) {
+		throw new Error("executable.txt: expected executable to be true");
 	}
 	await zipReader.close();
 	await zip.terminateWorkers();

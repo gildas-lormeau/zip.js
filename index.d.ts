@@ -1696,6 +1696,9 @@ export interface EntryMetaData {
   filenameUTF8: boolean;
   /**
    * `true` if the entry is an executable file
+   *
+   * Always `false` when {@link EntryMetaData#symlink} is `true`: the permissions of a symbolic link
+   * are not meaningful, Unix systems store them as `0o777`.
    */
   executable: boolean;
   /**

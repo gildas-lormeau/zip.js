@@ -137,6 +137,9 @@ The number of the disk where the entry data starts.
 
 `true` if the entry is an executable file
 
+Always `false` when [EntryMetaData#symlink](EntryMetaData.md#symlink) is `true`: the permissions of a symbolic link
+are not meaningful, Unix systems store them as `0o777`.
+
 #### Inherited from
 
 [`EntryMetaData`](EntryMetaData.md).[`executable`](EntryMetaData.md#executable)
