@@ -3221,6 +3221,11 @@ export interface ZipDirectoryEntryGetChildrenOptions {
 
 /**
  * Represents the options passed to `{@link ZipDirectoryEntry}#export*()`.
+ *
+ * @remarks
+ * The {@link ZipWriterConstructorOptions#password} option encrypts the exported zip file. It never
+ * decrypts the entries being exported: the password of an entry imported from an encrypted zip file
+ * must be passed in the {@link ZipDirectoryEntryExportOptions#readerOptions} option instead.
  */
 export interface ZipDirectoryEntryExportOptions
   extends ZipWriterConstructorOptions,
@@ -3234,7 +3239,12 @@ export interface ZipDirectoryEntryExportOptions
    */
   mimeType?: string;
   /**
-   * The options passed to the Reader instances
+   * The options passed to the Reader instances.
+   *
+   * @remarks
+   * The {@link ZipReaderOptions#password} option must be set here to export entries imported from an
+   * encrypted zip file, since the {@link ZipDirectoryEntryExportOptions#password} option sets the
+   * password used to encrypt the exported zip file instead.
    */
   readerOptions?: ZipReaderConstructorOptions;
 }
@@ -3255,6 +3265,15 @@ export interface ZipDirectoryEntryExportFileSystemHandleOptions
    * @defaultValue false
    */
   concurrent?: boolean;
+  /**
+   * The options passed to the Reader instances.
+   *
+   * @remarks
+   * These options override the ones passed at the top level. The {@link ZipReaderOptions#password}
+   * option can be set here or at the top level, unlike {@link ZipDirectoryEntryExportOptions} where
+   * the top-level password encrypts the exported zip file instead.
+   */
+  readerOptions?: ZipReaderConstructorOptions;
 }
 
 /**

@@ -9734,6 +9734,10 @@
 		const abortController = new AbortController();
 		const { signal } = abortController;
 		const releaseSignal = forwardAbort(options.signal, abortController);
+		const getDataOptions = Object.assign({}, options, options.readerOptions, {
+			signal,
+			onprogress: UNDEFINED_VALUE
+		});
 		const exportedEntryNames = [];
 		let exportAborted = false;
 		let writtenSize = 0;
@@ -9805,10 +9809,7 @@
 					const fileHandle = await parentHandle.getFileHandle(child.name, { create: true });
 					const writable = await fileHandle.createWritable();
 					try {
-						await child.getData({ writable: createProgressWritable(writable) }, Object.assign({}, options, {
-							signal,
-							onprogress: UNDEFINED_VALUE
-						}));
+						await child.getData({ writable: createProgressWritable(writable) }, getDataOptions);
 					} catch (error) {
 						throw exportAborted ? new Error(ERR_ABORT_EXPORT) : error;
 					}

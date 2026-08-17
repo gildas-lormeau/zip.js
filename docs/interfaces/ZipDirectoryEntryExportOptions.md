@@ -8,6 +8,12 @@
 
 Represents the options passed to `{@link ZipDirectoryEntry}#export*()`.
 
+## Remarks
+
+The [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) option encrypts the exported zip file. It never
+decrypts the entries being exported: the password of an entry imported from an encrypted zip file
+must be passed in the [ZipDirectoryEntryExportOptions#readerOptions](#readeroptions) option instead.
+
 ## Extends
 
 - [`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md)
@@ -506,7 +512,13 @@ The password used to encrypt the content of the entry (raw).
 
 > `optional` **readerOptions?**: [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md)
 
-The options passed to the Reader instances
+The options passed to the Reader instances.
+
+#### Remarks
+
+The [ZipReaderOptions#password](ZipReaderOptions.md#password) option must be set here to export entries imported from an
+encrypted zip file, since the [ZipDirectoryEntryExportOptions#password](ZipWriterConstructorOptions.md#password) option sets the
+password used to encrypt the exported zip file instead.
 
 ***
 

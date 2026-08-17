@@ -230,6 +230,20 @@ The password used to encrypt the content of the entry (raw).
 
 ***
 
+### readerOptions?
+
+> `optional` **readerOptions?**: [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md)
+
+The options passed to the Reader instances.
+
+#### Remarks
+
+These options override the ones passed at the top level. The [ZipReaderOptions#password](ZipReaderOptions.md#password)
+option can be set here or at the top level, unlike [ZipDirectoryEntryExportOptions](ZipDirectoryEntryExportOptions.md) where
+the top-level password encrypts the exported zip file instead.
+
+***
+
 ### signal?
 
 > `optional` **signal?**: `AbortSignal`
