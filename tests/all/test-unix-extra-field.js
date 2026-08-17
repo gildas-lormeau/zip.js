@@ -8,6 +8,8 @@ const UNIX_TYPE1_EXTRA_FIELD_TYPE = 0x5855;
 const PKWARE_UNIX_EXTRA_FIELD_TYPE = 0x000d;
 const ATIME = new Date(Date.UTC(2026, 2, 4, 5, 6, 7));
 const MTIME = new Date(Date.UTC(2026, 0, 2, 3, 4, 5));
+const PRE_EPOCH_ATIME = new Date(Date.UTC(1960, 2, 4, 5, 6, 7));
+const PRE_EPOCH_MTIME = new Date(Date.UTC(1960, 0, 2, 3, 4, 5));
 const UID = 1234;
 const GID = 4321;
 const LAST_MOD_DATE = new Date(2030, 5, 15, 10, 20, 24);
@@ -26,6 +28,7 @@ async function test() {
 		await testUnixType1();
 		await testExtendedTimestampPrecedence();
 		await testPkwareUnix();
+		await testPreEpochDates();
 		await testMacOSFixture();
 	} finally {
 		await zip.terminateWorkers();
@@ -62,6 +65,17 @@ async function testPkwareUnix() {
 	}
 }
 
+async function testPreEpochDates() {
+	for (const extraFieldType of [UNIX_TYPE1_EXTRA_FIELD_TYPE, PKWARE_UNIX_EXTRA_FIELD_TYPE]) {
+		const blob = await writeEntry(extraFieldType, { extendedTimestamp: false }, PRE_EPOCH_ATIME, PRE_EPOCH_MTIME);
+		const entry = await readFirstEntry(blob);
+		if (entry.lastModDate.getTime() != PRE_EPOCH_MTIME.getTime() ||
+			entry.lastAccessDate.getTime() != PRE_EPOCH_ATIME.getTime()) {
+			throw new Error();
+		}
+	}
+}
+
 async function testMacOSFixture() {
 	const zipReader = new zip.ZipReader(new zip.HttpReader(MACOS_FIXTURE_URL, { preventHeadRequest: true }));
 	try {
@@ -90,13 +104,13 @@ async function testMacOSFixture() {
 	}
 }
 
-async function writeEntry(extraFieldType, options) {
+async function writeEntry(extraFieldType, options, atime = ATIME, mtime = MTIME) {
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter);
 	const data = new Uint8Array(12);
 	const dataView = new DataView(data.buffer);
-	dataView.setUint32(0, ATIME.getTime() / 1000, true);
-	dataView.setUint32(4, MTIME.getTime() / 1000, true);
+	dataView.setInt32(0, atime.getTime() / 1000, true);
+	dataView.setInt32(4, mtime.getTime() / 1000, true);
 	dataView.setUint16(8, UID, true);
 	dataView.setUint16(10, GID, true);
 	const extraField = new Map([[extraFieldType, data]]);

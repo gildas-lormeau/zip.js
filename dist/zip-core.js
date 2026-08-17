@@ -5429,8 +5429,8 @@
 			return;
 		}
 		const extraFieldView = getDataView(extraField.data);
-		const lastAccessDate = new Date(getUint32(extraFieldView, 0) * 1000);
-		const lastModDate = new Date(getUint32(extraFieldView, 4) * 1000);
+		const lastAccessDate = new Date((getUint32(extraFieldView, 0) | 0) * 1000);
+		const lastModDate = new Date((getUint32(extraFieldView, 4) | 0) * 1000);
 		const extraFieldData = { lastAccessDate, lastModDate };
 		if (extraField.data.length >= 12) {
 			extraFieldData.uid = getUint16(extraFieldView, 8);
