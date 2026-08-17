@@ -9588,7 +9588,8 @@ function aggregateEntryErrors(errors) {
 function getChildEntryOptions(child, selectedEntry, options) {
 	const name = options.relativePath ? child.getRelativeName(selectedEntry) : child.getFullname();
 	const childOptions = child.options || {};
-	let zipEntryOptions = {};
+	let zipEntryMetadata = {};
+	let passThroughOptions = {};
 	if (child.data instanceof Entry) {
 		const {
 			externalFileAttributes,
@@ -9608,7 +9609,7 @@ function getChildEntryOptions(child, selectedEntry, options) {
 			uid,
 			gid
 		} = child.data;
-		zipEntryOptions = {
+		zipEntryMetadata = {
 			externalFileAttributes,
 			versionMadeBy,
 			comment,
@@ -9619,13 +9620,13 @@ function getChildEntryOptions(child, selectedEntry, options) {
 		};
 		const userExtraField = getUserExtraField(extraField);
 		if (userExtraField) {
-			zipEntryOptions.extraField = userExtraField;
+			zipEntryMetadata.extraField = userExtraField;
 		}
 		if (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE) {
-			Object.assign(zipEntryOptions, {
+			Object.assign(zipEntryMetadata, {
 				uid,
 				gid,
-				unixExtraFieldType: options.unixExtraFieldType || INFOZIP_EXTRA_FIELD_TYPE
+				unixExtraFieldType: INFOZIP_EXTRA_FIELD_TYPE
 			});
 		}
 		if (isPassThrough(child, options)) {
@@ -9636,7 +9637,7 @@ function getChildEntryOptions(child, selectedEntry, options) {
 			if (extraFieldAES) {
 				encryptionStrength = extraFieldAES.strength;
 			}
-			zipEntryOptions = Object.assign(zipEntryOptions, {
+			passThroughOptions = {
 				passThrough: true,
 				encrypted,
 				zipCrypto,
@@ -9645,10 +9646,10 @@ function getChildEntryOptions(child, selectedEntry, options) {
 				level,
 				encryptionStrength,
 				compressionMethod
-			});
+			};
 		}
 	}
-	const entryOptions = Object.assign({}, options, zipEntryOptions, childOptions, { directory: child.directory });
+	const entryOptions = Object.assign({}, zipEntryMetadata, options, passThroughOptions, childOptions, { directory: child.directory });
 	if (!child.directory && entryOptions.passThrough && entryOptions.uncompressedSize === UNDEFINED_VALUE) {
 		throw new Error(ERR_INVALID_PASS_THROUGH);
 	}

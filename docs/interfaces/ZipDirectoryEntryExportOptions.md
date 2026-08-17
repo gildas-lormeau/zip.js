@@ -10,6 +10,14 @@ Represents the options passed to `{@link ZipDirectoryEntry}#export*()`.
 
 ## Remarks
 
+The options set here apply to every entry of the exported zip file, including the entries imported
+from a zip file: such an entry keeps the metadata of the entry it was imported from, e.g. its
+[ZipWriterConstructorOptions#lastModDate](ZipWriterConstructorOptions.md#lastmoddate) option, only when the option is not set here. The
+options passed when adding an entry to the filesystem take precedence over the options set here, and
+the options describing the data of the entries exported as-is, e.g.
+[ZipWriterConstructorOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) and
+[ZipWriterAddDataOptions#uncompressedSize](ZipWriterAddDataOptions.md#uncompressedsize), are always the ones of the original entries.
+
 The [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) option encrypts the exported zip file. It never
 decrypts the entries being exported: the password of an entry imported from an encrypted zip file
 must be passed in the [ZipDirectoryEntryExportOptions#readerOptions](#readeroptions) option instead.

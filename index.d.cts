@@ -3252,6 +3252,14 @@ export interface ZipDirectoryEntryGetChildrenOptions {
  * Represents the options passed to `{@link ZipDirectoryEntry}#export*()`.
  *
  * @remarks
+ * The options set here apply to every entry of the exported zip file, including the entries imported
+ * from a zip file: such an entry keeps the metadata of the entry it was imported from, e.g. its
+ * {@link ZipWriterConstructorOptions#lastModDate} option, only when the option is not set here. The
+ * options passed when adding an entry to the filesystem take precedence over the options set here, and
+ * the options describing the data of the entries exported as-is, e.g.
+ * {@link ZipWriterConstructorOptions#compressionMethod} and
+ * {@link ZipWriterAddDataOptions#uncompressedSize}, are always the ones of the original entries.
+ *
  * The {@link ZipWriterConstructorOptions#password} option encrypts the exported zip file. It never
  * decrypts the entries being exported: the password of an entry imported from an encrypted zip file
  * must be passed in the {@link ZipDirectoryEntryExportOptions#readerOptions} option instead.
