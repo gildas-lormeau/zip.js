@@ -3170,6 +3170,26 @@ export class ZipDirectoryEntry extends ZipEntry {
       | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream>,
     options?: ZipDirectoryEntryExportOptions
   ): Promise<unknown>;
+  /**
+   * Computes the exact size in bytes of the zip file that `export*()` would produce for the entry
+   * and its descendants, without reading or compressing any data.
+   *
+   * Pass the same options object that will be passed to the export method, otherwise the result
+   * will not match. The size is only determinable when every descendant is stored (i.e. `level` is
+   * set to 0) or passed through, and has a known size; {@link ERR_UNDETERMINED_SIZE} is thrown
+   * otherwise. Encryption does not prevent it, the overhead of ZipCrypto and AES being fixed.
+   *
+   * The intended use is setting the `Content-Length` header of a zip file streamed over HTTP.
+   *
+   * @remarks Entries added with {@link ZipDirectoryEntry#addReadable} never have a known size, and
+   * entries added with {@link ZipDirectoryEntry#addHttpContent} only get one once their content has
+   * been read. The returned size assumes a single output file, it does not apply to split zip files.
+   *
+   * @param options The options.
+   * @returns A promise resolving to the size in bytes.
+   * @throws {@link ERR_UNDETERMINED_SIZE} if the size of an entry cannot be determined.
+   */
+  getExportedSize(options?: ZipDirectoryEntryExportOptions): Promise<number>;
 }
 
 /**
@@ -3274,6 +3294,7 @@ export interface FS
     | "exportWritable"
     | "exportFileSystemHandle"
     | "exportZip"
+    | "getExportedSize"
     | "isPasswordProtected"
     | "checkPassword"
   > {}
@@ -3537,6 +3558,7 @@ export const ERR_ITERATOR_COMPLETED_TOO_SOON: string;
  * Undefined uncompressed size error
  */
 export const ERR_UNDEFINED_UNCOMPRESSED_SIZE: string;
+export const ERR_UNDETERMINED_SIZE: string;
 /**
  * Undefined reader error
  */

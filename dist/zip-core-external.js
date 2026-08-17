@@ -5901,6 +5901,7 @@ const MIN_NTFS_TIME = BigInt(0);
 const MAX_NTFS_TIME = BigInt("0x7fffffffffffffff");
 const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (set the 'zip64' option to 'true')";
 const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
+const ERR_UNDETERMINED_SIZE = "Undetermined size (entries must be stored or passed through, with a known size)";
 const ERR_UNDEFINED_READER = "Undefined reader";
 const ERR_ZIP_NOT_EMPTY = "Zip file not empty";
 const ERR_INVALID_UID = "Invalid uid (must be integer 0..2^32-1)";
@@ -6491,14 +6492,24 @@ function serializeExtraField(extraField) {
 }
 
 async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, options) {
+	if (metadata.passThrough && !reader) {
+		throw new Error(ERR_UNDEFINED_READER);
+	}
+	let contentSize;
+	if (reader) {
+		reader = new GenericReader(reader);
+		await initStream(reader);
+		({ size: contentSize } = reader);
+	}
+	return Object.assign({ reader }, resolveEntrySizes(zipWriter, Boolean(reader), contentSize, metadata, options));
+}
+
+function resolveEntrySizes(zipWriter, hasContent, contentSize, metadata, options) {
 	const { passThrough, zipCrypto, password, rawPassword, encryptionStrength } = metadata;
 	let { dataDescriptor, zip64, level, compressionMethod } = metadata;
 	let maximumCompressedSize = 0;
 	let uncompressedSize = 0;
 	if (passThrough) {
-		if (!reader) {
-			throw new Error(ERR_UNDEFINED_READER);
-		}
 		uncompressedSize = options[PROPERTY_NAME_UNCOMPRESSED_SIZE];
 		if (uncompressedSize === UNDEFINED_VALUE) {
 			throw new Error(ERR_UNDEFINED_UNCOMPRESSED_SIZE);
@@ -6506,29 +6517,27 @@ async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, op
 	}
 	const zip64Enabled = zip64 === true;
 	const encrypted = getOptionValue(zipWriter, options, PROPERTY_NAME_ENCRYPTED);
-	const encryptedEntry = Boolean(reader) && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted));
-	if (!reader) {
+	const encryptedEntry = hasContent && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted));
+	if (!hasContent) {
 		level = 0;
 		compressionMethod = COMPRESSION_METHOD_STORE;
 	}
 	const encryptionOverhead = encryptedEntry ? (zipCrypto ? 12 : 16 + encryptionStrength * 4) : 0;
-	if (reader) {
-		reader = new GenericReader(reader);
-		await initStream(reader);
+	if (hasContent) {
 		if (!passThrough) {
-			if (reader.size === UNDEFINED_VALUE) {
+			if (contentSize === UNDEFINED_VALUE) {
 				dataDescriptor = true;
 				if (zip64 || zip64 === UNDEFINED_VALUE) {
 					zip64 = true;
 					uncompressedSize = maximumCompressedSize = MAX_32_BITS + 1;
 				}
 			} else {
-				options.uncompressedSize = uncompressedSize = reader.size;
+				options.uncompressedSize = uncompressedSize = contentSize;
 				maximumCompressedSize = (isCompressed(compressionMethod, level) ? getMaximumCompressedSize(uncompressedSize) : uncompressedSize) + encryptionOverhead;
 			}
 		} else {
 			options.uncompressedSize = uncompressedSize;
-			maximumCompressedSize = reader.size === UNDEFINED_VALUE ? getMaximumCompressedSize(uncompressedSize) + encryptionOverhead : reader.size;
+			maximumCompressedSize = contentSize === UNDEFINED_VALUE ? getMaximumCompressedSize(uncompressedSize) + encryptionOverhead : contentSize;
 		}
 	}
 	const zip64UncompressedSize = zip64Enabled || uncompressedSize >= MAX_32_BITS;
@@ -6542,7 +6551,7 @@ async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, op
 	}
 	zip64 = zip64 || false;
 	return {
-		reader,
+		maximumCompressedSize,
 		resolvedOptions: {
 			dataDescriptor,
 			zip64,
@@ -8596,4 +8605,4 @@ function terminateWorkersAndModule() {
 
 configureExternalAssets();
 
-export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_AMBIGUOUS_ARCHIVE, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_SIGNATURE, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_RESERVED_COMPRESSION_METHOD, ERR_SPLIT_ZIP_FILE, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION$1 as ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, Writer, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, getMimeType, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };
+export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_AMBIGUOUS_ARCHIVE, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_SIGNATURE, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_RESERVED_COMPRESSION_METHOD, ERR_SPLIT_ZIP_FILE, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION$1 as ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, Writer, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, getMimeType, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };

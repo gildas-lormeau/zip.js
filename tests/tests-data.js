@@ -99,6 +99,7 @@ export default ([
 	{ title: "Filesystem export", script: "./test-fs-export-options.js" },
 	{ title: "Filesystem export error", script: "./test-fs-export-error.js" },
 	{ title: "Filesystem export zip", script: "./test-fs-export-zip.js" },
+	{ title: "Filesystem exported size", script: "./test-fs-exported-size.js" },
 	{ title: "Filesystem export File System handle", script: "./test-fs-export-file-system-handle.js" },
 	{ title: "Filesystem getChildren", script: "./test-fs-get-children.js" },
 	{ title: "Filesystem File System handle error identity", script: "./test-fs-handle-error-identity.js", features: ["pipeToSignal"] },

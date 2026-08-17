@@ -5876,6 +5876,7 @@
 	const MAX_NTFS_TIME = BigInt("0x7fffffffffffffff");
 	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (set the 'zip64' option to 'true')";
 	const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
+	const ERR_UNDETERMINED_SIZE = "Undetermined size (entries must be stored or passed through, with a known size)";
 	const ERR_UNDEFINED_READER = "Undefined reader";
 	const ERR_ZIP_NOT_EMPTY = "Zip file not empty";
 	const ERR_INVALID_UID = "Invalid uid (must be integer 0..2^32-1)";
@@ -6466,14 +6467,24 @@
 	}
 
 	async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, options) {
+		if (metadata.passThrough && !reader) {
+			throw new Error(ERR_UNDEFINED_READER);
+		}
+		let contentSize;
+		if (reader) {
+			reader = new GenericReader(reader);
+			await initStream(reader);
+			({ size: contentSize } = reader);
+		}
+		return Object.assign({ reader }, resolveEntrySizes(zipWriter, Boolean(reader), contentSize, metadata, options));
+	}
+
+	function resolveEntrySizes(zipWriter, hasContent, contentSize, metadata, options) {
 		const { passThrough, zipCrypto, password, rawPassword, encryptionStrength } = metadata;
 		let { dataDescriptor, zip64, level, compressionMethod } = metadata;
 		let maximumCompressedSize = 0;
 		let uncompressedSize = 0;
 		if (passThrough) {
-			if (!reader) {
-				throw new Error(ERR_UNDEFINED_READER);
-			}
 			uncompressedSize = options[PROPERTY_NAME_UNCOMPRESSED_SIZE];
 			if (uncompressedSize === UNDEFINED_VALUE) {
 				throw new Error(ERR_UNDEFINED_UNCOMPRESSED_SIZE);
@@ -6481,29 +6492,27 @@
 		}
 		const zip64Enabled = zip64 === true;
 		const encrypted = getOptionValue(zipWriter, options, PROPERTY_NAME_ENCRYPTED);
-		const encryptedEntry = Boolean(reader) && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted));
-		if (!reader) {
+		const encryptedEntry = hasContent && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted));
+		if (!hasContent) {
 			level = 0;
 			compressionMethod = COMPRESSION_METHOD_STORE;
 		}
 		const encryptionOverhead = encryptedEntry ? (zipCrypto ? 12 : 16 + encryptionStrength * 4) : 0;
-		if (reader) {
-			reader = new GenericReader(reader);
-			await initStream(reader);
+		if (hasContent) {
 			if (!passThrough) {
-				if (reader.size === UNDEFINED_VALUE) {
+				if (contentSize === UNDEFINED_VALUE) {
 					dataDescriptor = true;
 					if (zip64 || zip64 === UNDEFINED_VALUE) {
 						zip64 = true;
 						uncompressedSize = maximumCompressedSize = MAX_32_BITS + 1;
 					}
 				} else {
-					options.uncompressedSize = uncompressedSize = reader.size;
+					options.uncompressedSize = uncompressedSize = contentSize;
 					maximumCompressedSize = (isCompressed(compressionMethod, level) ? getMaximumCompressedSize(uncompressedSize) : uncompressedSize) + encryptionOverhead;
 				}
 			} else {
 				options.uncompressedSize = uncompressedSize;
-				maximumCompressedSize = reader.size === UNDEFINED_VALUE ? getMaximumCompressedSize(uncompressedSize) + encryptionOverhead : reader.size;
+				maximumCompressedSize = contentSize === UNDEFINED_VALUE ? getMaximumCompressedSize(uncompressedSize) + encryptionOverhead : contentSize;
 			}
 		}
 		const zip64UncompressedSize = zip64Enabled || uncompressedSize >= MAX_32_BITS;
@@ -6517,7 +6526,7 @@
 		}
 		zip64 = zip64 || false;
 		return {
-			reader,
+			maximumCompressedSize,
 			resolvedOptions: {
 				dataDescriptor,
 				zip64,
@@ -6529,6 +6538,64 @@
 				encrypted: encryptedEntry
 			}
 		};
+	}
+
+	async function getEntriesSize(writerOptions, entries) {
+		const zipWriter = { options: writerOptions, config: getConfiguration() };
+		const usdz = writerOptions[OPTION_USDZ];
+		const files = new Map();
+		let offset = 0;
+		for (const entry of entries) {
+			let { name } = entry;
+			const { size } = entry;
+			const options = Object.assign({}, entry.options);
+			name = name.trim();
+			if (getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY) && !name.endsWith(DIRECTORY_SIGNATURE)) {
+				name += DIRECTORY_SIGNATURE;
+			}
+			const attributesInfo = resolveAttributes(zipWriter, name, options);
+			({ name } = attributesInfo);
+			const { resolvedOptions: metadata } = resolveMetadata(zipWriter, name, options);
+			if (metadata.level != 0 && metadata.compressionMethod === UNDEFINED_VALUE &&
+				!metadata.passThrough && !(await supportsDeflate(zipWriter.config))) {
+				metadata.level = 0;
+			}
+			const hasContent = !getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY);
+			if (hasContent && size === UNDEFINED_VALUE) {
+				throw new Error(ERR_UNDETERMINED_SIZE);
+			}
+			const { maximumCompressedSize, resolvedOptions: sizes } = resolveEntrySizes(zipWriter, hasContent, size, metadata, options);
+			if (hasContent && !metadata.passThrough && isCompressed(sizes.compressionMethod, sizes.level)) {
+				throw new Error(ERR_UNDETERMINED_SIZE);
+			}
+			const entryOptions = Object.assign({}, options, attributesInfo.resolvedOptions, metadata, sizes);
+			const headerInfo = getHeaderInfo(entryOptions);
+			const dataDescriptorInfo = getDataDescriptorInfo(entryOptions);
+			const entryInfo = {
+				headerInfo,
+				metadataSize: getLength(headerInfo.localHeaderArray, dataDescriptorInfo.dataDescriptorArray)
+			};
+			if (usdz) {
+				appendExtraFieldUSDZ(entryInfo, offset);
+			}
+			const compressedSize = hasContent ? maximumCompressedSize : 0;
+			files.set(name, Object.assign({}, entryOptions, headerInfo, {
+				offset,
+				diskNumberStart: 0,
+				compressedSize
+			}));
+			offset += entryInfo.metadataSize + compressedSize;
+		}
+		const directoryDataLength = createDirectoryRecords(files);
+		let zip64 = getOptionValue(zipWriter, writerOptions, PROPERTY_NAME_ZIP64);
+		if (offset >= MAX_32_BITS || directoryDataLength >= MAX_32_BITS || files.size >= MAX_16_BITS) {
+			if (zip64 === false) {
+				throw new Error(ERR_UNSUPPORTED_FORMAT);
+			} else {
+				zip64 = true;
+			}
+		}
+		return offset + directoryDataLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH);
 	}
 
 	async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
@@ -8667,6 +8734,7 @@
 				parent,
 				children: [],
 				uncompressedSize: params.uncompressedSize || 0,
+				undeterminedSize: params.undeterminedSize || params.uncompressedSize === UNDEFINED_VALUE,
 				passThrough: params.passThrough
 			});
 			if (parent || !fs.root) {
@@ -9075,6 +9143,18 @@
 			return writer.getData ? writer.getData() : writer.writable;
 		}
 
+		getExportedSize(options = {}) {
+			const zipEntry = this;
+			options = Object.assign({}, options);
+			if (options.bufferedWrite === UNDEFINED_VALUE) {
+				options.bufferedWrite = true;
+			}
+			return getEntriesSize(options, Array.from(zipEntry.getChildren({ recursive: true }), child => {
+				const { name, entryOptions } = getChildEntryOptions(child, zipEntry, options);
+				return { name, size: child.directory ? 0 : getDeterminedSize(child), options: entryOptions };
+			}));
+		}
+
 		getChildByName(name) {
 			const children = this.children;
 			for (let childIndex = 0; childIndex < children.length; childIndex++) {
@@ -9282,6 +9362,10 @@
 			return this.root.exportZip(writer, options);
 		}
 
+		getExportedSize(options) {
+			return this.root.getExportedSize(options);
+		}
+
 		isPasswordProtected() {
 			return this.root.isPasswordProtected();
 		}
@@ -9377,6 +9461,7 @@
 			}
 			if (reader.size !== UNDEFINED_VALUE) {
 				child.uncompressedSize = reader.size;
+				child.undeterminedSize = false;
 			}
 		}));
 		return readers;
@@ -9426,6 +9511,83 @@
 		return error;
 	}
 
+	function getChildEntryOptions(child, selectedEntry, options) {
+		const name = options.relativePath ? child.getRelativeName(selectedEntry) : child.getFullname();
+		const childOptions = child.options || {};
+		let zipEntryOptions = {};
+		if (child.data instanceof Entry) {
+			const {
+				externalFileAttributes,
+				versionMadeBy,
+				comment,
+				lastModDate,
+				creationDate,
+				lastAccessDate,
+				uncompressedSize,
+				encrypted,
+				zipCrypto,
+				crc32,
+				compressionMethod,
+				extraFieldAES,
+				internalFileAttributes,
+				extraField,
+				uid,
+				gid
+			} = child.data;
+			zipEntryOptions = {
+				externalFileAttributes,
+				versionMadeBy,
+				comment,
+				lastModDate,
+				creationDate,
+				lastAccessDate,
+				internalFileAttributes
+			};
+			const userExtraField = getUserExtraField(extraField);
+			if (userExtraField) {
+				zipEntryOptions.extraField = userExtraField;
+			}
+			if (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE) {
+				Object.assign(zipEntryOptions, {
+					uid,
+					gid,
+					unixExtraFieldType: options.unixExtraFieldType || INFOZIP_EXTRA_FIELD_TYPE
+				});
+			}
+			if (child.passThrough) {
+				let level, encryptionStrength;
+				if (compressionMethod === 0) {
+					level = 0;
+				}
+				if (extraFieldAES) {
+					encryptionStrength = extraFieldAES.strength;
+				}
+				zipEntryOptions = Object.assign(zipEntryOptions, {
+					passThrough: true,
+					encrypted,
+					zipCrypto,
+					crc32,
+					uncompressedSize,
+					level,
+					encryptionStrength,
+					compressionMethod
+				});
+			}
+		}
+		return {
+			name,
+			entryOptions: Object.assign({}, options, zipEntryOptions, childOptions, { directory: child.directory })
+		};
+	}
+
+	function getDeterminedSize(child) {
+		const { reader } = child;
+		if (reader && reader.size !== UNDEFINED_VALUE) {
+			return reader.size;
+		}
+		return child.undeterminedSize ? UNDEFINED_VALUE : child.uncompressedSize;
+	}
+
 	function getUserExtraField(extraField) {
 		if (extraField) {
 			const userExtraField = new Map();
@@ -9463,70 +9625,8 @@
 		}
 
 		async function addChild(child) {
-			const name = options.relativePath ? child.getRelativeName(selectedEntry) : child.getFullname();
-			const childOptions = child.options || {};
-			let zipEntryOptions = {};
-			if (child.data instanceof Entry) {
-				const {
-					externalFileAttributes,
-					versionMadeBy,
-					comment,
-					lastModDate,
-					creationDate,
-					lastAccessDate,
-					uncompressedSize,
-					encrypted,
-					zipCrypto,
-					crc32,
-					compressionMethod,
-					extraFieldAES,
-					internalFileAttributes,
-					extraField,
-					uid,
-					gid
-				} = child.data;
-				zipEntryOptions = {
-					externalFileAttributes,
-					versionMadeBy,
-					comment,
-					lastModDate,
-					creationDate,
-					lastAccessDate,
-					internalFileAttributes
-				};
-				const userExtraField = getUserExtraField(extraField);
-				if (userExtraField) {
-					zipEntryOptions.extraField = userExtraField;
-				}
-				if (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE) {
-					Object.assign(zipEntryOptions, {
-						uid,
-						gid,
-						unixExtraFieldType: options.unixExtraFieldType || INFOZIP_EXTRA_FIELD_TYPE
-					});
-				}
-				if (child.passThrough) {
-					let level, encryptionStrength;
-					if (compressionMethod === 0) {
-						level = 0;
-					}
-					if (extraFieldAES) {
-						encryptionStrength = extraFieldAES.strength;
-					}
-					zipEntryOptions = Object.assign(zipEntryOptions, {
-						passThrough: true,
-						encrypted,
-						zipCrypto,
-						crc32,
-						uncompressedSize,
-						level,
-						encryptionStrength,
-						compressionMethod
-					});
-				}
-			}
-			await zipWriter.add(name, readers.get(child), Object.assign({}, options, zipEntryOptions, childOptions, {
-				directory: child.directory,
+			const { name, entryOptions } = getChildEntryOptions(child, selectedEntry, options);
+			await zipWriter.add(name, readers.get(child), Object.assign(entryOptions, {
 				onprogress: async indexProgress => {
 					if (options.onprogress) {
 						entryOffsets.set(name, indexProgress);
@@ -9912,6 +10012,7 @@
 	exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
 	exports.ERR_UNDEFINED_READER = ERR_UNDEFINED_READER;
 	exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
+	exports.ERR_UNDETERMINED_SIZE = ERR_UNDETERMINED_SIZE;
 	exports.ERR_UNSAFE_FILENAME = ERR_UNSAFE_FILENAME;
 	exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION$1;
 	exports.ERR_UNSUPPORTED_CONTEXT = ERR_UNSUPPORTED_CONTEXT;

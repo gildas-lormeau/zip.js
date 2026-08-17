@@ -8,7 +8,7 @@
 
 ## Extends
 
-- `Pick`\<[`ZipDirectoryEntry`](ZipDirectoryEntry.md), `"getChildByName"` \| `"getChildren"` \| `"addDirectory"` \| `"addText"` \| `"addBlob"` \| `"addData64URI"` \| `"addUint8Array"` \| `"addHttpContent"` \| `"addReadable"` \| `"addFile"` \| `"addFileSystemEntry"` \| `"addFileSystemHandle"` \| `"importBlob"` \| `"importData64URI"` \| `"importUint8Array"` \| `"importHttpContent"` \| `"importReadable"` \| `"importZip"` \| `"exportBlob"` \| `"exportData64URI"` \| `"exportUint8Array"` \| `"exportWritable"` \| `"exportFileSystemHandle"` \| `"exportZip"` \| `"isPasswordProtected"` \| `"checkPassword"`\>
+- `Pick`\<[`ZipDirectoryEntry`](ZipDirectoryEntry.md), `"getChildByName"` \| `"getChildren"` \| `"addDirectory"` \| `"addText"` \| `"addBlob"` \| `"addData64URI"` \| `"addUint8Array"` \| `"addHttpContent"` \| `"addReadable"` \| `"addFile"` \| `"addFileSystemEntry"` \| `"addFileSystemHandle"` \| `"importBlob"` \| `"importData64URI"` \| `"importUint8Array"` \| `"importHttpContent"` \| `"importReadable"` \| `"importZip"` \| `"exportBlob"` \| `"exportData64URI"` \| `"exportUint8Array"` \| `"exportWritable"` \| `"exportFileSystemHandle"` \| `"exportZip"` \| `"getExportedSize"` \| `"isPasswordProtected"` \| `"checkPassword"`\>
 
 ## Constructors
 
@@ -22,7 +22,7 @@
 
 #### Inherited from
 
-Pick\< ZipDirectoryEntry, \| "getChildByName" \| "getChildren" \| "addDirectory" \| "addText" \| "addBlob" \| "addData64URI" \| "addUint8Array" \| "addHttpContent" \| "addReadable" \| "addFile" \| "addFileSystemEntry" \| "addFileSystemHandle" \| "importBlob" \| "importData64URI" \| "importUint8Array" \| "importHttpContent" \| "importReadable" \| "importZip" \| "exportBlob" \| "exportData64URI" \| "exportUint8Array" \| "exportWritable" \| "exportFileSystemHandle" \| "exportZip" \| "isPasswordProtected" \| "checkPassword" \>.constructor
+Pick\< ZipDirectoryEntry, \| "getChildByName" \| "getChildren" \| "addDirectory" \| "addText" \| "addBlob" \| "addData64URI" \| "addUint8Array" \| "addHttpContent" \| "addReadable" \| "addFile" \| "addFileSystemEntry" \| "addFileSystemHandle" \| "importBlob" \| "importData64URI" \| "importUint8Array" \| "importHttpContent" \| "importReadable" \| "importZip" \| "exportBlob" \| "exportData64URI" \| "exportUint8Array" \| "exportWritable" \| "exportFileSystemHandle" \| "exportZip" \| "getExportedSize" \| "isPasswordProtected" \| "checkPassword" \>.constructor
 
 ## Properties
 
@@ -739,6 +739,50 @@ Unlike [FS#entries](#entries), the directory itself is not included and removed 
 #### Inherited from
 
 [`ZipDirectoryEntry`](ZipDirectoryEntry.md).[`getChildren`](ZipDirectoryEntry.md#getchildren)
+
+***
+
+### getExportedSize()
+
+> **getExportedSize**(`options?`): `Promise`\<`number`\>
+
+Computes the exact size in bytes of the zip file that `export*()` would produce for the entry
+and its descendants, without reading or compressing any data.
+
+Pass the same options object that will be passed to the export method, otherwise the result
+will not match. The size is only determinable when every descendant is stored (i.e. `level` is
+set to 0) or passed through, and has a known size; [ERR\_UNDETERMINED\_SIZE](../variables/ERR_UNDETERMINED_SIZE.md) is thrown
+otherwise. Encryption does not prevent it, the overhead of ZipCrypto and AES being fixed.
+
+The intended use is setting the `Content-Length` header of a zip file streamed over HTTP.
+
+#### Parameters
+
+##### options?
+
+[`ZipDirectoryEntryExportOptions`](../interfaces/ZipDirectoryEntryExportOptions.md)
+
+The options.
+
+#### Returns
+
+`Promise`\<`number`\>
+
+A promise resolving to the size in bytes.
+
+#### Remarks
+
+Entries added with [ZipDirectoryEntry#addReadable](ZipDirectoryEntry.md#addreadable) never have a known size, and
+entries added with [ZipDirectoryEntry#addHttpContent](ZipDirectoryEntry.md#addhttpcontent) only get one once their content has
+been read. The returned size assumes a single output file, it does not apply to split zip files.
+
+#### Throws
+
+[ERR\_UNDETERMINED\_SIZE](../variables/ERR_UNDETERMINED_SIZE.md) if the size of an entry cannot be determined.
+
+#### Inherited from
+
+[`ZipDirectoryEntry`](ZipDirectoryEntry.md).[`getExportedSize`](ZipDirectoryEntry.md#getexportedsize)
 
 ***
 

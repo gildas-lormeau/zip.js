@@ -5872,6 +5872,7 @@
 	const MAX_NTFS_TIME = BigInt("0x7fffffffffffffff");
 	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (set the 'zip64' option to 'true')";
 	const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
+	const ERR_UNDETERMINED_SIZE = "Undetermined size (entries must be stored or passed through, with a known size)";
 	const ERR_UNDEFINED_READER = "Undefined reader";
 	const ERR_ZIP_NOT_EMPTY = "Zip file not empty";
 	const ERR_INVALID_UID = "Invalid uid (must be integer 0..2^32-1)";
@@ -6462,14 +6463,24 @@
 	}
 
 	async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, options) {
+		if (metadata.passThrough && !reader) {
+			throw new Error(ERR_UNDEFINED_READER);
+		}
+		let contentSize;
+		if (reader) {
+			reader = new GenericReader(reader);
+			await initStream(reader);
+			({ size: contentSize } = reader);
+		}
+		return Object.assign({ reader }, resolveEntrySizes(zipWriter, Boolean(reader), contentSize, metadata, options));
+	}
+
+	function resolveEntrySizes(zipWriter, hasContent, contentSize, metadata, options) {
 		const { passThrough, zipCrypto, password, rawPassword, encryptionStrength } = metadata;
 		let { dataDescriptor, zip64, level, compressionMethod } = metadata;
 		let maximumCompressedSize = 0;
 		let uncompressedSize = 0;
 		if (passThrough) {
-			if (!reader) {
-				throw new Error(ERR_UNDEFINED_READER);
-			}
 			uncompressedSize = options[PROPERTY_NAME_UNCOMPRESSED_SIZE];
 			if (uncompressedSize === UNDEFINED_VALUE) {
 				throw new Error(ERR_UNDEFINED_UNCOMPRESSED_SIZE);
@@ -6477,29 +6488,27 @@
 		}
 		const zip64Enabled = zip64 === true;
 		const encrypted = getOptionValue(zipWriter, options, PROPERTY_NAME_ENCRYPTED);
-		const encryptedEntry = Boolean(reader) && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted));
-		if (!reader) {
+		const encryptedEntry = hasContent && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted));
+		if (!hasContent) {
 			level = 0;
 			compressionMethod = COMPRESSION_METHOD_STORE;
 		}
 		const encryptionOverhead = encryptedEntry ? (zipCrypto ? 12 : 16 + encryptionStrength * 4) : 0;
-		if (reader) {
-			reader = new GenericReader(reader);
-			await initStream(reader);
+		if (hasContent) {
 			if (!passThrough) {
-				if (reader.size === UNDEFINED_VALUE) {
+				if (contentSize === UNDEFINED_VALUE) {
 					dataDescriptor = true;
 					if (zip64 || zip64 === UNDEFINED_VALUE) {
 						zip64 = true;
 						uncompressedSize = maximumCompressedSize = MAX_32_BITS + 1;
 					}
 				} else {
-					options.uncompressedSize = uncompressedSize = reader.size;
+					options.uncompressedSize = uncompressedSize = contentSize;
 					maximumCompressedSize = (isCompressed(compressionMethod, level) ? getMaximumCompressedSize(uncompressedSize) : uncompressedSize) + encryptionOverhead;
 				}
 			} else {
 				options.uncompressedSize = uncompressedSize;
-				maximumCompressedSize = reader.size === UNDEFINED_VALUE ? getMaximumCompressedSize(uncompressedSize) + encryptionOverhead : reader.size;
+				maximumCompressedSize = contentSize === UNDEFINED_VALUE ? getMaximumCompressedSize(uncompressedSize) + encryptionOverhead : contentSize;
 			}
 		}
 		const zip64UncompressedSize = zip64Enabled || uncompressedSize >= MAX_32_BITS;
@@ -6513,7 +6522,7 @@
 		}
 		zip64 = zip64 || false;
 		return {
-			reader,
+			maximumCompressedSize,
 			resolvedOptions: {
 				dataDescriptor,
 				zip64,
@@ -8273,6 +8282,7 @@
 	exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
 	exports.ERR_UNDEFINED_READER = ERR_UNDEFINED_READER;
 	exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
+	exports.ERR_UNDETERMINED_SIZE = ERR_UNDETERMINED_SIZE;
 	exports.ERR_UNSAFE_FILENAME = ERR_UNSAFE_FILENAME;
 	exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION$1;
 	exports.ERR_UNSUPPORTED_CONTEXT = ERR_UNSUPPORTED_CONTEXT;
