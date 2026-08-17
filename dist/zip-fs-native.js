@@ -9247,7 +9247,7 @@
 
 	async function exportZip(zipWriter, entry, totalSize, options, readers) {
 		const selectedEntry = entry;
-		const entryOffsets = new Map();
+		let writtenSize = 0;
 		if (options.bufferedWrite) {
 			await processChildren(entry);
 		} else {
@@ -9269,12 +9269,14 @@
 
 		async function addChild(child) {
 			const { name, entryOptions } = getChildEntryOptions(child, selectedEntry, options);
+			let entryWrittenSize = 0;
 			await zipWriter.add(name, readers.get(child), Object.assign(entryOptions, {
 				onprogress: async indexProgress => {
+					writtenSize += indexProgress - entryWrittenSize;
+					entryWrittenSize = indexProgress;
 					if (options.onprogress) {
-						entryOffsets.set(name, indexProgress);
 						try {
-							await options.onprogress(Array.from(entryOffsets.values()).reduce((previousValue, currentValue) => previousValue + currentValue), totalSize);
+							await options.onprogress(writtenSize, totalSize);
 						} catch {
 							// ignored
 						}
@@ -9331,12 +9333,12 @@
 
 	async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 		const totalSize = getTotalSize([zipEntry], "uncompressedSize");
-		const writtenSizes = new Map();
 		const abortController = new AbortController();
 		const { signal } = abortController;
 		const releaseSignal = forwardAbort(options.signal, abortController);
 		const exportedEntryNames = [];
 		let exportAborted = false;
+		let writtenSize = 0;
 		try {
 			await exportChildren(zipEntry, directoryHandle);
 		} catch (error) {
@@ -9381,14 +9383,16 @@
 				} else {
 					const fileHandle = await parentHandle.getFileHandle(child.name, { create: true });
 					const writable = await fileHandle.createWritable();
+					let entryWrittenSize = 0;
 					try {
 						await child.getData({ writable }, Object.assign({}, options, {
 							signal,
 							onprogress: async progress => {
+								writtenSize += progress - entryWrittenSize;
+								entryWrittenSize = progress;
 								if (options.onprogress) {
-									writtenSizes.set(child.id, progress);
 									try {
-										await options.onprogress(Array.from(writtenSizes.values()).reduce((previousValue, currentValue) => previousValue + currentValue, 0), totalSize);
+										await options.onprogress(writtenSize, totalSize);
 									} catch {
 										// ignored
 									}
