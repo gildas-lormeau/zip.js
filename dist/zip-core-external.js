@@ -1808,8 +1808,6 @@ function getInt32(number) {
  */
 
 
-const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
-
 function toCompatibleReadable(readable) {
 	if (readable instanceof ReadableStream) {
 		return readable;
@@ -1832,12 +1830,9 @@ function toCompatibleReadable(readable) {
 
 function streamToBlob(readable, contentType) {
 	readable = toCompatibleReadable(readable);
+	const blobOptions = contentType ? { type: contentType } : {};
 	if (responseSupportsGlobalReadable()) {
-		const options = {};
-		if (contentType) {
-			options.headers = [[HTTP_HEADER_CONTENT_TYPE, contentType]];
-		}
-		return new Response(readable, options).blob();
+		return new Response(readable).blob().then(blob => contentType ? new Blob([blob], blobOptions) : blob);
 	}
 	const chunks = [];
 	return readable
@@ -1846,7 +1841,7 @@ function streamToBlob(readable, contentType) {
 				chunks.push(chunk);
 			}
 		}))
-		.then(() => new Blob(chunks, contentType ? { type: contentType } : {}));
+		.then(() => new Blob(chunks, blobOptions));
 }
 
 function responseSupportsGlobalReadable() {
@@ -3460,6 +3455,7 @@ class Data64URIWriter extends Writer {
 	constructor(contentType) {
 		super();
 		Object.assign(this, {
+			contentType,
 			data: "data:" + (contentType || "") + ";base64,",
 			pending: []
 		});
@@ -3561,6 +3557,7 @@ class BlobWriter extends Stream {
 				return transformStream.writable;
 			}
 		});
+		writer.contentType = contentType;
 		writer.blob = streamToBlob(transformStream.readable, contentType);
 		writer.blob.catch(() => { });
 	}

@@ -1783,8 +1783,6 @@
 	 */
 
 
-	const HTTP_HEADER_CONTENT_TYPE = "Content-Type";
-
 	function toCompatibleReadable(readable) {
 		if (readable instanceof ReadableStream) {
 			return readable;
@@ -1807,12 +1805,9 @@
 
 	function streamToBlob(readable, contentType) {
 		readable = toCompatibleReadable(readable);
+		const blobOptions = contentType ? { type: contentType } : {};
 		if (responseSupportsGlobalReadable()) {
-			const options = {};
-			if (contentType) {
-				options.headers = [[HTTP_HEADER_CONTENT_TYPE, contentType]];
-			}
-			return new Response(readable, options).blob();
+			return new Response(readable).blob().then(blob => contentType ? new Blob([blob], blobOptions) : blob);
 		}
 		const chunks = [];
 		return readable
@@ -1821,7 +1816,7 @@
 					chunks.push(chunk);
 				}
 			}))
-			.then(() => new Blob(chunks, contentType ? { type: contentType } : {}));
+			.then(() => new Blob(chunks, blobOptions));
 	}
 
 	function responseSupportsGlobalReadable() {
@@ -3435,6 +3430,7 @@
 		constructor(contentType) {
 			super();
 			Object.assign(this, {
+				contentType,
 				data: "data:" + (contentType || "") + ";base64,",
 				pending: []
 			});
@@ -3536,6 +3532,7 @@
 					return transformStream.writable;
 				}
 			});
+			writer.contentType = contentType;
 			writer.blob = streamToBlob(transformStream.readable, contentType);
 			writer.blob.catch(() => { });
 		}
@@ -8837,7 +8834,7 @@
 
 		async getData(writer, options = {}) {
 			const zipEntry = this;
-			if (!writer || (writer.constructor == zipEntry.Writer && zipEntry.data)) {
+			if (!writer || (writer.constructor == zipEntry.Writer && zipEntry.data && keepsContentType(writer, zipEntry.data))) {
 				return zipEntry.data;
 			} else {
 				const reader = zipEntry.reader = createReader(zipEntry.Reader, zipEntry.data, options);
@@ -9481,6 +9478,19 @@
 
 	function createReader(Reader, data, options) {
 		return Reader.prototype ? new Reader(data, options) : Reader(data, options);
+	}
+
+	function keepsContentType(writer, data) {
+		const { contentType } = writer;
+		if (contentType === UNDEFINED_VALUE) {
+			return true;
+		} else if (writer.constructor == BlobWriter) {
+			return data.type == contentType;
+		} else if (writer.constructor == Data64URIWriter) {
+			return data.startsWith(writer.data);
+		} else {
+			return true;
+		}
 	}
 
 	function createProgressReadable(zipEntry, reader, options, signal) {
