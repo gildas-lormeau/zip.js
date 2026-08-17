@@ -3,6 +3,9 @@
 // Locks the pass-through contract of the fs zip export API: setting `passThrough` in `readerOptions`
 // exports the entries as-is, exactly as importing them with `passThrough` does. Both spellings must
 // produce the same bytes, whatever the compression method and the encryption of the source entries.
+// The top-level `passThrough` option is a writer option: it declares that the data returned by the
+// Reader instances is already compressed, which the export can only honor when the uncompressed size
+// of every entry is known. It must name that mistake instead of failing on a missing size.
 
 import * as zip from "../zip-lib.js";
 
@@ -23,7 +26,78 @@ async function test() {
 	await testSameBytesAsImportPassThrough({ password: PASSWORD, zipCrypto: true });
 	await testExportedSize();
 	await testAddedEntriesAreCompressed();
+	await testWriterPassThroughIsRejected();
+	await testWriterPassThroughWithKnownSizes();
+	await testDirectoriesIgnoreWriterPassThrough();
 	await zip.terminateWorkers();
+}
+
+async function testDirectoriesIgnoreWriterPassThrough() {
+	const fs = new zip.fs.FS();
+	fs.addDirectory(DIRECTORY_NAME);
+	const options = { lastModDate: new Date(0) };
+	const predictedSize = await fs.getExportedSize(Object.assign({ passThrough: true }, options));
+	const bytes = new Uint8Array(await (await fs.exportBlob(Object.assign({ passThrough: true }, options))).arrayBuffer());
+	const reference = new Uint8Array(await (await fs.exportBlob(options)).arrayBuffer());
+	if (!bytesEqual(bytes, reference)) {
+		throw new Error("the writer option should not change the bytes of a tree of directories");
+	}
+	if (predictedSize != bytes.length) {
+		throw new Error("expected a predicted size of " + bytes.length + ", got " + predictedSize);
+	}
+}
+
+async function testWriterPassThroughIsRejected() {
+	const fs = await importBlob(await createSourceBlob({}));
+	fs.addText("added.txt", TEXT_CONTENT);
+	await assertInvalidPassThrough("exportBlob", () => fs.exportBlob({ passThrough: true }));
+	await assertInvalidPassThrough("getExportedSize", () => fs.getExportedSize({ passThrough: true }));
+	await assertInvalidPassThrough("exportBlob of an imported entry", async () => {
+		const importedFs = await importBlob(await createSourceBlob({}));
+		return importedFs.exportBlob({ passThrough: true });
+	});
+}
+
+async function testWriterPassThroughWithKnownSizes() {
+	const importedFs = await importBlob(await createSourceBlob({}), { passThrough: true });
+	const importedBytes = await exportBytes(await createSourceBlob({}), {}, EXPORT_PASS_THROUGH_OPTIONS);
+	const bothSpellings = new Uint8Array(await (await importedFs.exportBlob({ passThrough: true })).arrayBuffer());
+	if (!bytesEqual(bothSpellings, importedBytes)) {
+		throw new Error("the writer option should be redundant when every entry is already exported as-is");
+	}
+	const fs = new zip.fs.FS();
+	const compressed = await getCompressedContent();
+	fs.addDirectory(DIRECTORY_NAME).addUint8Array(FILENAME, compressed.data, {
+		uncompressedSize: compressed.uncompressedSize,
+		crc32: compressed.crc32,
+		compressionMethod: 8
+	});
+	const exported = await importBlob(await fs.exportBlob({ passThrough: true }));
+	if (await exported.find(DIRECTORY_NAME + "/" + FILENAME).getText() != TEXT_CONTENT) {
+		throw new Error("unexpected content for the entry added as-is");
+	}
+}
+
+async function getCompressedContent() {
+	const fs = await importBlob(await createSourceBlob({}), { passThrough: true });
+	const entry = fs.find(DIRECTORY_NAME + "/" + FILENAME);
+	return {
+		data: await entry.getUint8Array(),
+		uncompressedSize: entry.data.uncompressedSize,
+		crc32: entry.data.signature
+	};
+}
+
+async function assertInvalidPassThrough(label, run) {
+	let error;
+	try {
+		await run();
+	} catch (runError) {
+		error = runError;
+	}
+	if (!error || error.message != zip.ERR_INVALID_PASS_THROUGH) {
+		throw new Error("expected an " + zip.ERR_INVALID_PASS_THROUGH + " error from " + label + ", got " + (error && error.message));
+	}
 }
 
 async function testSameBytesAsImportPassThrough(sourceOptions) {

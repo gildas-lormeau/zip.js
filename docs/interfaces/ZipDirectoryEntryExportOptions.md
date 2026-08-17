@@ -17,7 +17,9 @@ must be passed in the [ZipDirectoryEntryExportOptions#readerOptions](#readeropti
 Likewise, the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option describes the data returned
 by the Reader instances. Exporting entries imported from a zip file as-is is done with the
 [ZipReaderOptions#passThrough](ZipReaderOptions.md#passthrough) option in the
-[ZipDirectoryEntryExportOptions#readerOptions](#readeroptions) option instead.
+[ZipDirectoryEntryExportOptions#readerOptions](#readeroptions) option instead. Setting it here throws an
+[ERR\_INVALID\_PASS\_THROUGH](../variables/ERR_INVALID_PASS_THROUGH.md) error, unless the [ZipWriterAddDataOptions#uncompressedSize](ZipWriterAddDataOptions.md#uncompressedsize)
+option of every entry holding content is known.
 
 Exporting entries as-is and setting the [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) option throws an
 [ERR\_UNSUPPORTED\_ENCRYPTION\_PASS\_THROUGH](../variables/ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH.md) error, since the data of these entries is copied

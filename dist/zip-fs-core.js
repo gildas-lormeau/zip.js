@@ -7168,6 +7168,7 @@
 
 	const ERR_ENTRY_EXISTS = "Entry filename already exists";
 	const ERR_READABLE_CONSUMED = "Readable stream already consumed";
+	const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
 	const ERR_ABORT_EXPORT = "zipjs-abort-export";
 	const ERR_ABORTED = "The operation was aborted";
 	const ABORT_ERROR_NAME = "AbortError";
@@ -8088,10 +8089,11 @@
 				});
 			}
 		}
-		return {
-			name,
-			entryOptions: Object.assign({}, options, zipEntryOptions, childOptions, { directory: child.directory })
-		};
+		const entryOptions = Object.assign({}, options, zipEntryOptions, childOptions, { directory: child.directory });
+		if (!child.directory && entryOptions.passThrough && entryOptions.uncompressedSize === UNDEFINED_VALUE) {
+			throw new Error(ERR_INVALID_PASS_THROUGH);
+		}
+		return { name, entryOptions };
 	}
 
 	function getDeterminedSize(child, passThrough) {
@@ -8413,6 +8415,7 @@
 
 	exports.ERR_ABORTED = ERR_ABORTED;
 	exports.ERR_ENTRY_EXISTS = ERR_ENTRY_EXISTS;
+	exports.ERR_INVALID_PASS_THROUGH = ERR_INVALID_PASS_THROUGH;
 	exports.ERR_READABLE_CONSUMED = ERR_READABLE_CONSUMED;
 	exports.fs = fs;
 

@@ -3259,7 +3259,9 @@ export interface ZipDirectoryEntryGetChildrenOptions {
  * Likewise, the {@link ZipWriterConstructorOptions#passThrough} option describes the data returned
  * by the Reader instances. Exporting entries imported from a zip file as-is is done with the
  * {@link ZipReaderOptions#passThrough} option in the
- * {@link ZipDirectoryEntryExportOptions#readerOptions} option instead.
+ * {@link ZipDirectoryEntryExportOptions#readerOptions} option instead. Setting it here throws an
+ * {@link ERR_INVALID_PASS_THROUGH} error, unless the {@link ZipWriterAddDataOptions#uncompressedSize}
+ * option of every entry holding content is known.
  *
  * Exporting entries as-is and setting the {@link ZipWriterConstructorOptions#password} option throws an
  * {@link ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH} error, since the data of these entries is copied
@@ -3712,6 +3714,16 @@ export const ERR_INVALID_LEVEL: string;
  * would produce an archive that cannot be opened with the equivalent {@link ZipWriterConstructorOptions#password}.
  */
 export const ERR_INVALID_PASSWORD_TYPE: string;
+/**
+ * Invalid passThrough option error (thrown by `{@link ZipDirectoryEntry}#export*()` and
+ * {@link ZipDirectoryEntry#getExportedSize} when an entry would be written as-is without a known uncompressed size)
+ *
+ * @remarks The {@link ZipWriterConstructorOptions#passThrough} option describes the data returned by the Reader
+ * instances, which the filesystem API creates itself. Use the {@link ZipReaderOptions#passThrough} option in the
+ * {@link ZipDirectoryEntryExportOptions#readerOptions} option to export the entries imported from a zip file as-is,
+ * or set the {@link ZipWriterAddDataOptions#uncompressedSize} option of each entry holding compressed data.
+ */
+export const ERR_INVALID_PASS_THROUGH: string;
 /**
  * Entry already exists error (thrown by the filesystem API when adding an entry whose filename already exists)
  */

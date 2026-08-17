@@ -8360,6 +8360,7 @@
 
 	const ERR_ENTRY_EXISTS = "Entry filename already exists";
 	const ERR_READABLE_CONSUMED = "Readable stream already consumed";
+	const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
 	const ERR_ABORT_EXPORT = "zipjs-abort-export";
 	const ERR_ABORTED = "The operation was aborted";
 	const ABORT_ERROR_NAME = "AbortError";
@@ -9280,10 +9281,11 @@
 				});
 			}
 		}
-		return {
-			name,
-			entryOptions: Object.assign({}, options, zipEntryOptions, childOptions, { directory: child.directory })
-		};
+		const entryOptions = Object.assign({}, options, zipEntryOptions, childOptions, { directory: child.directory });
+		if (!child.directory && entryOptions.passThrough && entryOptions.uncompressedSize === UNDEFINED_VALUE) {
+			throw new Error(ERR_INVALID_PASS_THROUGH);
+		}
+		return { name, entryOptions };
 	}
 
 	function getDeterminedSize(child, passThrough) {
@@ -9734,6 +9736,7 @@
 	exports.ERR_INVALID_MSDOS_DATA = ERR_INVALID_MSDOS_DATA;
 	exports.ERR_INVALID_PASSWORD = ERR_INVALID_PASSWORD;
 	exports.ERR_INVALID_PASSWORD_TYPE = ERR_INVALID_PASSWORD_TYPE;
+	exports.ERR_INVALID_PASS_THROUGH = ERR_INVALID_PASS_THROUGH;
 	exports.ERR_INVALID_SIGNATURE = ERR_INVALID_SIGNATURE;
 	exports.ERR_INVALID_SIGNATURE_DATA = ERR_INVALID_SIGNATURE_DATA;
 	exports.ERR_INVALID_STRICTNESS = ERR_INVALID_STRICTNESS;
