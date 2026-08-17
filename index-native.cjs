@@ -8468,8 +8468,8 @@ class ZipFileEntry extends ZipEntry {
 			const reader = zipEntry.reader = createReader(zipEntry.Reader, zipEntry.data, options);
 			const dataSize = zipEntry.uncompressedSize || reader.size;
 			await Promise.all([initStream(reader), initStream(writer, dataSize)]);
-			const { readable } = reader;
 			const { signal } = options;
+			const readable = createProgressReadable(zipEntry, reader, options, signal);
 			const preventClose = !ownsWritable(writer) && Boolean(options.preventClose);
 			zipEntry.uncompressedSize = reader.size;
 			await toCompatibleReadable(readable).pipeTo(toCompatibleWritable(writer.writable), { signal, preventClose, preventAbort: preventClose });
@@ -9106,6 +9106,17 @@ function getZipBlobReader(options) {
 
 function createReader(Reader, data, options) {
 	return Reader.prototype ? new Reader(data, options) : Reader(data, options);
+}
+
+function createProgressReadable(zipEntry, reader, options, signal) {
+	const { onstart, onprogress, onend } = options;
+	const { readable } = reader;
+	const coreReaderReportsProgress = zipEntry.data instanceof Entry;
+	if (coreReaderReportsProgress || (!onstart && !onprogress && !onend)) {
+		return readable;
+	} else {
+		return toCompatibleReadable(readable).pipeThrough(new ProgressWatcherStream({ onstart, onprogress, onend, size: reader.size }), { signal });
+	}
 }
 
 async function initReaders(entry, options) {
