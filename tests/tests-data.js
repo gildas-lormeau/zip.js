@@ -160,6 +160,7 @@ export default ([
 	{ title: "Worker message properties", script: "./test-worker-message-properties.js", env: ["deno", "bun", "browser"] },
 	{ title: "Props", script: "./test-props.js" },
 	{ title: "Deprecated attribute names", script: "./test-deprecated-attributes.js" },
+	{ title: "Symlink entries", script: "./test-symlink.js" },
 	{ title: "Readable Stream", script: "./test-readable-stream.js" },
 	{ title: "Readable Zip Stream", script: "./test-readable-zip-stream.js" },
 	{ title: "Remove entry", script: "./test-remove-entry.js" },

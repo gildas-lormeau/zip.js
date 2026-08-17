@@ -534,7 +534,7 @@ A promise resolving to the target `FileSystemDirectoryHandle` instance.
 
 #### Remarks
 
-An entry flagged as a symbolic link by its [EntryMetaData#externalFileAttributes](../interfaces/EntryMetaData.md#externalfileattributes) is written
+An entry flagged as a symbolic link by [EntryMetaData#symlink](../interfaces/EntryMetaData.md#symlink) is written
 as a regular file whose content is the path of the link target, because the File System Access API cannot
 create symbolic links.
 

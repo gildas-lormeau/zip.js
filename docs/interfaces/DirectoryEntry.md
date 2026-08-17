@@ -650,6 +650,25 @@ Use [EntryMetaData#crc32](EntryMetaData.md#crc32) instead.
 
 ***
 
+### symlink
+
+> **symlink**: `boolean`
+
+`true` if the entry is a symbolic link, i.e. if the Unix file type stored in
+[EntryMetaData#externalFileAttributes](EntryMetaData.md#externalfileattributes) is `S_IFLNK` (`0o120000`).
+
+The target of the link is the content of the entry, stored as a path with no trailing NUL
+character. It is read like any other entry, e.g. with `entry.getData(new TextWriter())`.
+
+The path is not validated: it can be absolute or escape the archive with `..` segments. It must
+be checked before being used to resolve a file.
+
+#### Inherited from
+
+[`EntryMetaData`](EntryMetaData.md).[`symlink`](EntryMetaData.md#symlink)
+
+***
+
 ### uid?
 
 > `optional` **uid?**: `number`

@@ -1699,6 +1699,17 @@ export interface EntryMetaData {
    */
   executable: boolean;
   /**
+   * `true` if the entry is a symbolic link, i.e. if the Unix file type stored in
+   * {@link EntryMetaData#externalFileAttributes} is `S_IFLNK` (`0o120000`).
+   *
+   * The target of the link is the content of the entry, stored as a path with no trailing NUL
+   * character. It is read like any other entry, e.g. with `entry.getData(new TextWriter())`.
+   *
+   * The path is not validated: it can be absolute or escape the archive with `..` segments. It must
+   * be checked before being used to resolve a file.
+   */
+  symlink: boolean;
+  /**
    * `true` if the content of the entry is encrypted.
    */
   encrypted: boolean;
@@ -2491,6 +2502,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   gid?: number;
   /**
    * The Unix mode (st_mode bits) to use when writing external attributes.
+   *
+   * The value includes the Unix file type, so it is also how a symbolic link is written: pass
+   * `0o120777` and use the path of the link target as the content of the entry. Extractors that
+   * support symbolic links, e.g. Info-ZIP `unzip`, then restore the entry as a link.
    */
   unixMode?: number;
   /**
@@ -3101,7 +3116,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * Running the same export again is the supported way to recover, since directories are merged and
    * files are overwritten.
    *
-   * @remarks An entry flagged as a symbolic link by its {@link EntryMetaData#externalFileAttributes} is written
+   * @remarks An entry flagged as a symbolic link by {@link EntryMetaData#symlink} is written
    * as a regular file whose content is the path of the link target, because the File System Access API cannot
    * create symbolic links.
    *

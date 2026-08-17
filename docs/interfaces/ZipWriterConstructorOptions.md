@@ -481,6 +481,10 @@ Which Unix extra field format to write when creating entries that include Unix m
 
 The Unix mode (st_mode bits) to use when writing external attributes.
 
+The value includes the Unix file type, so it is also how a symbolic link is written: pass
+`0o120777` and use the path of the link target as the content of the entry. Extractors that
+support symbolic links, e.g. Info-ZIP `unzip`, then restore the entry as a link.
+
 ***
 
 ### usdz?
