@@ -90,6 +90,8 @@
 	const FILE_ATTR_MSDOS_ARCHIVE_MASK = 0x20;
 	const FILE_ATTR_UNIX_TYPE_MASK = 0o170000;
 	const FILE_ATTR_UNIX_TYPE_DIR = 0o040000;
+	const FILE_ATTR_UNIX_TYPE_SYMLINK = 0o120000;
+	const FILE_ATTR_UNIX_TYPE_FILE = 0o100000;
 	const FILE_ATTR_UNIX_EXECUTABLE_MASK = 0o111;
 	const FILE_ATTR_UNIX_DEFAULT_MASK = 0o644;
 	const FILE_ATTR_UNIX_SETUID_MASK = 0o4000;
@@ -4353,6 +4355,8 @@
 	const PROPERTY_NAME_RAW_CREATION_DATE = "rawCreationDate";
 	const PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES = "internalFileAttributes";
 	const PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES = "externalFileAttributes";
+	const PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES = "internalFileAttribute";
+	const PROPERTY_NAME_DEPRECATED_EXTERNAL_FILE_ATTRIBUTES = "externalFileAttribute";
 	const PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW = "msdosAttributesRaw";
 	const PROPERTY_NAME_MSDOS_ATTRIBUTES = "msdosAttributes";
 	const PROPERTY_NAME_MS_DOS_COMPATIBLE = "msDosCompatible";
@@ -4363,6 +4367,7 @@
 	const PROPERTY_NAME_ZIPCRYPTO = "zipCrypto";
 	const PROPERTY_NAME_DIRECTORY = "directory";
 	const PROPERTY_NAME_EXECUTABLE = "executable";
+	const PROPERTY_NAME_SYMLINK = "symlink";
 	const PROPERTY_NAME_COMPRESSION_METHOD = "compressionMethod";
 	const PROPERTY_NAME_SIGNATURE = "signature";
 	const PROPERTY_NAME_CRC32 = "crc32";
@@ -4406,6 +4411,8 @@
 		PROPERTY_NAME_DISK_NUMBER_START,
 		PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES,
 		PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES,
+		PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES,
+		PROPERTY_NAME_DEPRECATED_EXTERNAL_FILE_ATTRIBUTES,
 		PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW,
 		PROPERTY_NAME_MSDOS_ATTRIBUTES,
 		PROPERTY_NAME_MS_DOS_COMPATIBLE,
@@ -4416,6 +4423,7 @@
 		PROPERTY_NAME_ZIPCRYPTO,
 		PROPERTY_NAME_DIRECTORY,
 		PROPERTY_NAME_EXECUTABLE,
+		PROPERTY_NAME_SYMLINK,
 		PROPERTY_NAME_COMPRESSION_METHOD,
 		PROPERTY_NAME_SIGNATURE,
 		PROPERTY_NAME_CRC32,
@@ -4878,15 +4886,18 @@
 				const setuid = Boolean(fileEntry.unixMode & FILE_ATTR_UNIX_SETUID_MASK);
 				const setgid = Boolean(fileEntry.unixMode & FILE_ATTR_UNIX_SETGID_MASK);
 				const sticky = Boolean(fileEntry.unixMode & FILE_ATTR_UNIX_STICKY_MASK);
-				const executable = (fileEntry.unixMode !== UNDEFINED_VALUE)
+				const unixType = fileEntry.unixMode === UNDEFINED_VALUE ? unixExternalUpper : fileEntry.unixMode;
+				const symlink = (unixType & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_SYMLINK;
+				const executable = !symlink && ((fileEntry.unixMode !== UNDEFINED_VALUE)
 					? ((fileEntry.unixMode & FILE_ATTR_UNIX_EXECUTABLE_MASK) != 0)
-					: (unixCompatible && ((unixExternalUpper & FILE_ATTR_UNIX_EXECUTABLE_MASK) != 0));
+					: (unixCompatible && ((unixExternalUpper & FILE_ATTR_UNIX_EXECUTABLE_MASK) != 0)));
 				const modeIsDir = fileEntry.unixMode !== UNDEFINED_VALUE && ((fileEntry.unixMode & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_DIR);
 				const upperIsDir = ((unixExternalUpper & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_DIR);
 				Object.assign(fileEntry, {
 					setuid,
 					setgid,
 					sticky,
+					symlink,
 					unixExternalUpper,
 					internalFileAttribute: fileEntry.internalFileAttributes,
 					externalFileAttribute: fileEntry.externalFileAttributes,
@@ -6227,7 +6238,7 @@
 		if (versionMadeBy > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_VERSION);
 		}
-		let externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES);
+		let externalFileAttributes = getAliasedOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_DEPRECATED_EXTERNAL_FILE_ATTRIBUTES);
 		const externalFileAttributesProvided = externalFileAttributes !== UNDEFINED_VALUE;
 		if (!externalFileAttributesProvided) {
 			externalFileAttributes = 0;
@@ -6275,7 +6286,9 @@
 			}
 			if (!externalFileAttributesProvided || unixModeProvided) {
 				if (directory) {
-					unixMode |= FILE_ATTR_UNIX_TYPE_DIR;
+					unixMode = (unixMode & ~FILE_ATTR_UNIX_TYPE_MASK) | FILE_ATTR_UNIX_TYPE_DIR;
+				} else if (!(unixMode & FILE_ATTR_UNIX_TYPE_MASK)) {
+					unixMode |= FILE_ATTR_UNIX_TYPE_FILE;
 				}
 				externalFileAttributes = ((unixMode & MAX_16_BITS) << 16) | (externalFileAttributes & MAX_16_BITS);
 			}
@@ -6328,7 +6341,7 @@
 		const lastModDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE, new Date());
 		const lastAccessDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
 		const creationDate = getOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
-		const internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, 0);
+		const internalFileAttributes = getAliasedOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES, 0);
 		const passThrough = getOptionValue(zipWriter, options, OPTION_PASS_THROUGH);
 		let password, rawPassword;
 		if (!passThrough) {
@@ -7572,6 +7585,16 @@
 	function getOptionValue(zipWriter, options, name, defaultValue) {
 		const result = options[name] === UNDEFINED_VALUE ? zipWriter.options[name] : options[name];
 		return result === UNDEFINED_VALUE ? defaultValue : result;
+	}
+
+	function getAliasedOptionValue(zipWriter, options, name, deprecatedName, defaultValue) {
+		const value = getAliasedValue(options, name, deprecatedName);
+		const result = value === UNDEFINED_VALUE ? getAliasedValue(zipWriter.options, name, deprecatedName) : value;
+		return result === UNDEFINED_VALUE ? defaultValue : result;
+	}
+
+	function getAliasedValue(options, name, deprecatedName) {
+		return options[name] === UNDEFINED_VALUE ? options[deprecatedName] : options[name];
 	}
 
 	function getNumberOptionValue(zipWriter, options, name, defaultValue) {

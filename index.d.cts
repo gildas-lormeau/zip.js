@@ -395,6 +395,8 @@ export interface WorkerConfiguration {
   /**
    * `true` to use the native API `CompressionStream`/`DecompressionStream` to compress/decompress data.
    *
+   * When compressing, the native API is only used when `level` is undefined or equal to 6, see {@link ZipWriterConstructorOptions#level}.
+   *
    * @defaultValue true
    */
   useCompressionStream?: boolean;
@@ -1694,8 +1696,22 @@ export interface EntryMetaData {
   filenameUTF8: boolean;
   /**
    * `true` if the entry is an executable file
+   *
+   * Always `false` when {@link EntryMetaData#symlink} is `true`: the permissions of a symbolic link
+   * are not meaningful, Unix systems store them as `0o777`.
    */
   executable: boolean;
+  /**
+   * `true` if the entry is a symbolic link, i.e. if the Unix file type stored in
+   * {@link EntryMetaData#externalFileAttributes} is `S_IFLNK` (`0o120000`).
+   *
+   * The target of the link is the content of the entry, stored as a path with no trailing NUL
+   * character. It is read like any other entry, e.g. with `entry.getData(new TextWriter())`.
+   *
+   * The path is not validated: it can be absolute or escape the archive with `..` segments. It must
+   * be checked before being used to resolve a file.
+   */
+  symlink: boolean;
   /**
    * `true` if the content of the entry is encrypted.
    */
@@ -2312,6 +2328,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    *
    * The minimum value is 0 and means that no compression is applied. The maximum value is 9.
    *
+   * The native API `CompressionStream` does not support compression levels. Any value other than 6,
+   * its de facto level, disables `useCompressionStream` and compresses the data with the embedded
+   * implementation instead. Note that the compressed data produced at a given level can still vary
+   * between platforms. Set `useCompressionStream` to `false` to get deterministic output across
+   * platforms.
+   *
    * @defaultValue 6
    */
   level?: number;
@@ -2468,6 +2490,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    */
   externalFileAttributes?: number;
   /**
+   * The external file attribute.
+   *
+   * @deprecated Use {@link ZipWriterConstructorOptions#externalFileAttributes} instead.
+   */
+  externalFileAttribute?: number;
+  /**
    * The Unix owner id to write in the Unix extra field or as part of the external attributes.
    */
   uid?: number;
@@ -2477,6 +2505,15 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   gid?: number;
   /**
    * The Unix mode (st_mode bits) to use when writing external attributes.
+   *
+   * The value includes the Unix file type, so it is also how a symbolic link is written: pass
+   * `0o120777` and use the path of the link target as the content of the entry. Extractors that
+   * support symbolic links, e.g. Info-ZIP `unzip`, then restore the entry as a link.
+   *
+   * When the value carries no file type, the type of the entry is added: `S_IFDIR` (`0o040000`)
+   * for a folder entry, `S_IFREG` (`0o100000`) otherwise. Set
+   * {@link ZipWriterConstructorOptions#externalFileAttributes} instead to write a mode with no
+   * file type.
    */
   unixMode?: number;
   /**
@@ -2505,6 +2542,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * @defaultValue 0
    */
   internalFileAttributes?: number;
+  /**
+   * The internal file attribute.
+   *
+   * @deprecated Use {@link ZipWriterConstructorOptions#internalFileAttributes} instead.
+   */
+  internalFileAttribute?: number;
   /**
    * When provided, the low 8-bit MS-DOS attributes to write into external file attributes.
    * Must be an integer between 0 and 255.
@@ -3081,7 +3124,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * Running the same export again is the supported way to recover, since directories are merged and
    * files are overwritten.
    *
-   * @remarks An entry flagged as a symbolic link by its {@link EntryMetaData#externalFileAttributes} is written
+   * @remarks An entry flagged as a symbolic link by {@link EntryMetaData#symlink} is written
    * as a regular file whose content is the path of the link target, because the File System Access API cannot
    * create symbolic links.
    *
