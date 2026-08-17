@@ -2688,6 +2688,10 @@ declare class ZipEntry {
   parent?: ZipEntry;
   /**
    * The uncompressed size of the content.
+   *
+   * @remarks It is the size of the raw compressed content when the entry has been imported with the
+   * `passThrough` option set to `true`, since the entry holds the compressed data in that case. The
+   * uncompressed size of the original entry remains available in {@link ZipEntry#data}.
    */
   uncompressedSize: number;
   /**

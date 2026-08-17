@@ -8363,8 +8363,8 @@ class ZipFileEntry extends ZipEntry {
 			return zipEntry.data;
 		} else {
 			const reader = zipEntry.reader = createReader(zipEntry.Reader, zipEntry.data, options);
-			const uncompressedSize = zipEntry.data ? zipEntry.data.uncompressedSize : reader.size;
-			await Promise.all([initStream(reader), initStream(writer, uncompressedSize)]);
+			const dataSize = zipEntry.uncompressedSize || reader.size;
+			await Promise.all([initStream(reader), initStream(writer, dataSize)]);
 			const { readable } = reader;
 			const { signal } = options;
 			zipEntry.uncompressedSize = reader.size;
@@ -8653,7 +8653,7 @@ class ZipDirectoryEntry extends ZipEntry {
 					importedEntries.push(addChild(parent, name, {
 						data: entry,
 						Reader: getZipBlobReader(Object.assign({}, options)),
-						uncompressedSize: entry.uncompressedSize,
+						uncompressedSize: options.passThrough ? entry.compressedSize : entry.uncompressedSize,
 						passThrough: options.passThrough
 					}));
 				} else {
@@ -8953,10 +8953,10 @@ function getZipBlobReader(options) {
 
 		async init() {
 			const zipBlobReader = this;
-			zipBlobReader.size = zipBlobReader.entry.uncompressedSize;
 			const data = await zipBlobReader.entry.getData(new BlobWriter(), Object.assign({}, options, zipBlobReader.options));
 			zipBlobReader.data = data;
 			zipBlobReader.blobReader = new BlobReader(data);
+			zipBlobReader.size = data.size;
 			super.init();
 		}
 

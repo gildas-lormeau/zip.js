@@ -102,6 +102,12 @@ The parent directory of the entry.
 
 The uncompressed size of the content.
 
+#### Remarks
+
+It is the size of the raw compressed content when the entry has been imported with the
+`passThrough` option set to `true`, since the entry holds the compressed data in that case. The
+uncompressed size of the original entry remains available in [ZipEntry#data](ZipEntry.md#data).
+
 #### Inherited from
 
 [`ZipEntry`](ZipEntry.md).[`uncompressedSize`](ZipEntry.md#uncompressedsize)
