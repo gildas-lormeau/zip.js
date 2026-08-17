@@ -1,4 +1,4 @@
-/* global Blob */
+/* global Blob, TextEncoder */
 
 import * as zip from "../zip-lib.js";
 
@@ -14,9 +14,11 @@ async function test() {
 		await testStoredEntries();
 		await testNestedTree();
 		await testEntryOptions();
+		await testExtraFields();
 		await testEncrypted();
 		await testRelativePath();
 		await testPassThrough();
+		await testUsdz();
 		await testUndeterminedSize();
 		await testNoReaderCreated();
 	} finally {
@@ -56,6 +58,37 @@ async function testEntryOptions() {
 	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, bufferedWrite: false });
 }
 
+async function testExtraFields() {
+	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, ntfsTimestamp: true });
+	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, useUnicodeFileNames: false });
+	await assertExportedSize(root => root.addText("café.txt", TEXT_CONTENT), { level: 0, useUnicodeFileNames: false });
+	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), {
+		level: 0,
+		localExtraField: new Map([[64768, new Uint8Array(6).fill(1)]])
+	});
+	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), {
+		level: 0,
+		extraField: new Map([[64769, new Uint8Array(10).fill(2)]])
+	});
+	await assertExportedSize(root => root.addText("café.txt", TEXT_CONTENT), {
+		level: 0,
+		encodeText: text => new TextEncoder().encode(text.normalize("NFD"))
+	});
+}
+
+async function testUsdz() {
+	await assertExportedSize(root => {
+		root.addUint8Array("a.bin", BINARY_CONTENT);
+		root.addUint8Array("b.bin", new Uint8Array(37).fill(66));
+	}, { level: 0, usdz: true });
+	await assertExportedSize(root => {
+		const directory = root.addDirectory("docs");
+		directory.addUint8Array("readme.bin", BINARY_CONTENT);
+		directory.addDirectory("img").addUint8Array("logo.bin", BINARY_CONTENT);
+		root.addUint8Array("root.bin", new Uint8Array(7).fill(66));
+	}, { level: 0, usdz: true, bufferedWrite: false });
+}
+
 async function testEncrypted() {
 	for (const options of [
 		{ password: "password" },
@@ -83,17 +116,23 @@ async function testRelativePath() {
 }
 
 async function testPassThrough() {
-	const source = new zip.fs.FS();
-	source.root.addText("compressed.txt", TEXT_CONTENT.repeat(50));
-	source.root.addUint8Array("stored.bin", BINARY_CONTENT, { level: 0 });
-	const deflated = await source.exportBlob({ level: 9 });
-	const zipFs = new zip.fs.FS();
-	await zipFs.importBlob(deflated, { passThrough: true });
-	const options = { passThrough: true };
-	const predictedSize = await zipFs.getExportedSize(options);
-	const blob = await zipFs.exportBlob(options);
-	if (blob.size != predictedSize) {
-		throw new Error();
+	for (const sourceOptions of [
+		{ level: 9 },
+		{ level: 9, password: "password" },
+		{ level: 9, password: "password", zipCrypto: true }
+	]) {
+		const source = new zip.fs.FS();
+		source.root.addText("compressed.txt", TEXT_CONTENT.repeat(50));
+		source.root.addUint8Array("stored.bin", BINARY_CONTENT, { level: 0 });
+		const deflated = await source.exportBlob(sourceOptions);
+		const zipFs = new zip.fs.FS();
+		await zipFs.importBlob(deflated, { passThrough: true });
+		const options = { passThrough: true };
+		const predictedSize = await zipFs.getExportedSize(options);
+		const blob = await zipFs.exportBlob(options);
+		if (blob.size != predictedSize) {
+			throw new Error();
+		}
 	}
 }
 
@@ -108,6 +147,15 @@ async function testUndeterminedSize() {
 		clonedEntry.parent = root;
 		root.children.push(clonedEntry);
 	}, { level: 0 });
+	await assertUndeterminedSize(root => root.addText("text.txt", TEXT_CONTENT), {
+		level: 0,
+		signCentralDirectory: () => new Uint8Array(64)
+	});
+	await assertUndeterminedSize(root => {
+		root.addDirectory("docs").addText("readme.txt", TEXT_CONTENT);
+		root.addText("root.txt", TEXT_CONTENT);
+	}, { level: 0, usdz: true });
+	await assertUndeterminedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, usdz: true, keepOrder: false });
 }
 
 async function testNoReaderCreated() {

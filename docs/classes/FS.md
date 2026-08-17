@@ -776,9 +776,17 @@ Entries added with [ZipDirectoryEntry#addReadable](ZipDirectoryEntry.md#addreada
 entries added with [ZipDirectoryEntry#addHttpContent](ZipDirectoryEntry.md#addhttpcontent) only get one once their content has
 been read. The returned size assumes a single output file, it does not apply to split zip files.
 
+[ERR\_UNDETERMINED\_SIZE](../variables/ERR_UNDETERMINED_SIZE.md) is also thrown when the size depends on the order in which the
+entries are physically written, which the buffered write path only determines at write time.
+This happens when `usdz` is set, since the alignment padding depends on the offset of each
+entry, and when the archive exceeds 4GB, since the offsets recorded in the central directory
+are then extended to 64 bits. Passing `bufferedWrite: false` makes both determinable again,
+as does exporting a directory whose children are all files. It is thrown as well when
+`signCentralDirectory` is set, the length of the signature being unknown until it is computed.
+
 #### Throws
 
-[ERR\_UNDETERMINED\_SIZE](../variables/ERR_UNDETERMINED_SIZE.md) if the size of an entry cannot be determined.
+[ERR\_UNDETERMINED\_SIZE](../variables/ERR_UNDETERMINED_SIZE.md) if the size cannot be determined.
 
 #### Inherited from
 

@@ -5870,7 +5870,7 @@ const MIN_NTFS_TIME = BigInt(0);
 const MAX_NTFS_TIME = BigInt("0x7fffffffffffffff");
 const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (set the 'zip64' option to 'true')";
 const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
-const ERR_UNDETERMINED_SIZE = "Undetermined size (entries must be stored or passed through, with a known size)";
+const ERR_UNDETERMINED_SIZE = "Undetermined size";
 const ERR_UNDEFINED_READER = "Undefined reader";
 const ERR_ZIP_NOT_EMPTY = "Zip file not empty";
 const ERR_INVALID_UID = "Invalid uid (must be integer 0..2^32-1)";
@@ -6534,10 +6534,14 @@ function resolveEntrySizes(zipWriter, hasContent, contentSize, metadata, options
 	};
 }
 
-async function getEntriesSize(writerOptions, entries) {
+async function getEntriesSize(writerOptions, entries, writeOrderGuaranteed) {
 	const zipWriter = { options: writerOptions, config: getConfiguration() };
+	if (writerOptions[OPTION_SIGN_CENTRAL_DIRECTORY]) {
+		throw new Error(ERR_UNDETERMINED_SIZE);
+	}
 	const usdz = writerOptions[OPTION_USDZ];
 	const files = new Map();
+	let layoutDependsOnWriteOrder = Boolean(usdz);
 	let offset = 0;
 	for (const entry of entries) {
 		let { name } = entry;
@@ -6573,12 +6577,18 @@ async function getEntriesSize(writerOptions, entries) {
 			appendExtraFieldUSDZ(entryInfo, offset);
 		}
 		const compressedSize = hasContent ? maximumCompressedSize : 0;
+		if (offset >= MAX_32_BITS) {
+			layoutDependsOnWriteOrder = true;
+		}
 		files.set(name, Object.assign({}, entryOptions, headerInfo, {
 			offset,
 			diskNumberStart: 0,
 			compressedSize
 		}));
 		offset += entryInfo.metadataSize + compressedSize;
+	}
+	if (layoutDependsOnWriteOrder && !writeOrderGuaranteed) {
+		throw new Error(ERR_UNDETERMINED_SIZE);
 	}
 	const directoryDataLength = createDirectoryRecords(files);
 	let zip64 = getOptionValue(zipWriter, writerOptions, PROPERTY_NAME_ZIP64);
@@ -9143,10 +9153,12 @@ class ZipDirectoryEntry extends ZipEntry {
 		if (options.bufferedWrite === UNDEFINED_VALUE) {
 			options.bufferedWrite = true;
 		}
+		const writeOrderGuaranteed = !options.bufferedWrite ||
+			(options.keepOrder !== false && zipEntry.children.every(child => !child.children.length));
 		return getEntriesSize(options, Array.from(zipEntry.getChildren({ recursive: true }), child => {
 			const { name, entryOptions } = getChildEntryOptions(child, zipEntry, options);
 			return { name, size: child.directory ? 0 : getDeterminedSize(child), options: entryOptions };
-		}));
+		}), writeOrderGuaranteed);
 	}
 
 	getChildByName(name) {

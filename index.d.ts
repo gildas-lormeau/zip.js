@@ -3185,9 +3185,17 @@ export class ZipDirectoryEntry extends ZipEntry {
    * entries added with {@link ZipDirectoryEntry#addHttpContent} only get one once their content has
    * been read. The returned size assumes a single output file, it does not apply to split zip files.
    *
+   * {@link ERR_UNDETERMINED_SIZE} is also thrown when the size depends on the order in which the
+   * entries are physically written, which the buffered write path only determines at write time.
+   * This happens when `usdz` is set, since the alignment padding depends on the offset of each
+   * entry, and when the archive exceeds 4GB, since the offsets recorded in the central directory
+   * are then extended to 64 bits. Passing `bufferedWrite: false` makes both determinable again,
+   * as does exporting a directory whose children are all files. It is thrown as well when
+   * `signCentralDirectory` is set, the length of the signature being unknown until it is computed.
+   *
    * @param options The options.
    * @returns A promise resolving to the size in bytes.
-   * @throws {@link ERR_UNDETERMINED_SIZE} if the size of an entry cannot be determined.
+   * @throws {@link ERR_UNDETERMINED_SIZE} if the size cannot be determined.
    */
   getExportedSize(options?: ZipDirectoryEntryExportOptions): Promise<number>;
 }
