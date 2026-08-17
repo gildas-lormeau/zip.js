@@ -17,6 +17,8 @@ async function test() {
 		{ name: "mode-with-type.txt", options: { unixMode: 0o100600 }, type: TYPE_FILE },
 		{ name: "symlink.txt", options: { unixMode: 0o120777 }, type: TYPE_SYMLINK },
 		{ name: "directory/", options: { directory: true }, type: TYPE_DIR },
+		{ name: "directory-file-mode/", options: { unixMode: 0o100644 }, type: TYPE_DIR },
+		{ name: "directory-symlink-mode/", options: { unixMode: 0o120777 }, type: TYPE_DIR },
 		{ name: "verbatim.txt", options: { externalFileAttributes: 0 }, type: 0 }
 	];
 
