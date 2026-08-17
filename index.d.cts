@@ -1608,11 +1608,12 @@ export interface LocalDirectory {
    */
   extraFieldNTFS?: EntryExtraField;
   /**
-   * The Unix extra field.
+   * The Info-ZIP Unix type 2 extra field (0x7855). Its uid/gid are stored in the local file header only, the
+   * central directory version carries no data and merely flags their presence.
    */
   extraFieldUnix?: EntryExtraField;
   /**
-   * The Info-ZIP Unix extra field.
+   * The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers.
    */
   extraFieldInfoZip?: EntryExtraField;
   /**
@@ -1835,10 +1836,18 @@ export interface EntryMetaData {
   };
   /**
    * Unix owner id when available.
+   *
+   * The value is read from the central directory. The Info-ZIP Unix extra fields type 1 (0x5855) and type 2
+   * (0x7855) store the ids in the local file header only, so entries carrying just these fields leave the
+   * property undefined until the data has been read; the ids are then available in
+   * {@link EntryMetaData#localDirectory}. The Info-ZIP New Unix extra field (0x7875) and the PKWARE Unix
+   * extra field (0x000d) store the ids in both headers and are unaffected.
    */
   uid?: number;
   /**
    * Unix group id when available.
+   *
+   * See {@link EntryMetaData#uid} for the fields storing the ids in the local file header only.
    */
   gid?: number;
   /**
@@ -1924,11 +1933,12 @@ export interface EntryMetaData {
    */
   extraFieldNTFS?: EntryExtraField;
   /**
-   * The Unix extra field.
+   * The Info-ZIP Unix type 2 extra field (0x7855). Its uid/gid are stored in the local file header only, the
+   * central directory version carries no data and merely flags their presence.
    */
   extraFieldUnix?: EntryExtraField;
   /**
-   * The Info-ZIP Unix extra field.
+   * The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers.
    */
   extraFieldInfoZip?: EntryExtraField;
   /**
@@ -1957,6 +1967,11 @@ export interface EntryMetaData {
   extraFieldUSDZ?: EntryExtraField;
   /**
    * The local file header fields, set when the entry data has been read.
+   *
+   * The local file header is the only place where the Info-ZIP Unix extra fields type 1 (0x5855) and type 2
+   * (0x7855) store the uid/gid, so this is where they are read for entries carrying just these fields, e.g.
+   * with `entry.localDirectory.extraFieldUnixType1.uid`. The values are not merged into
+   * {@link EntryMetaData#uid} and {@link EntryMetaData#gid}, which are read from the central directory.
    */
   localDirectory?: LocalDirectory;
 }

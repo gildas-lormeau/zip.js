@@ -78,7 +78,7 @@ The extended timestamp extra field.
 
 > `optional` **extraFieldInfoZip?**: [`EntryExtraField`](EntryExtraField.md)
 
-The Info-ZIP Unix extra field.
+The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers.
 
 ***
 
@@ -126,7 +126,8 @@ The Unicode path extra field.
 
 > `optional` **extraFieldUnix?**: [`EntryExtraField`](EntryExtraField.md)
 
-The Unix extra field.
+The Info-ZIP Unix type 2 extra field (0x7855). Its uid/gid are stored in the local file header only, the
+central directory version carries no data and merely flags their presence.
 
 ***
 

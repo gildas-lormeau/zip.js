@@ -152,7 +152,7 @@ The extended timestamp extra field.
 
 > `optional` **extraFieldInfoZip?**: [`EntryExtraField`](EntryExtraField.md)
 
-The Info-ZIP Unix extra field.
+The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers.
 
 ***
 
@@ -200,7 +200,8 @@ The Unicode path extra field.
 
 > `optional` **extraFieldUnix?**: [`EntryExtraField`](EntryExtraField.md)
 
-The Unix extra field.
+The Info-ZIP Unix type 2 extra field (0x7855). Its uid/gid are stored in the local file header only, the
+central directory version carries no data and merely flags their presence.
 
 ***
 
@@ -258,6 +259,8 @@ The length of the filename in bytes.
 
 Unix group id when available.
 
+See [EntryMetaData#uid](#uid) for the fields storing the ids in the local file header only.
+
 ***
 
 ### ~~internalFileAttribute~~
@@ -301,6 +304,11 @@ The last modification date.
 > `optional` **localDirectory?**: [`LocalDirectory`](LocalDirectory.md)
 
 The local file header fields, set when the entry data has been read.
+
+The local file header is the only place where the Info-ZIP Unix extra fields type 1 (0x5855) and type 2
+(0x7855) store the uid/gid, so this is where they are read for entries carrying just these fields, e.g.
+with `entry.localDirectory.extraFieldUnixType1.uid`. The values are not merged into
+[EntryMetaData#uid](#uid) and [EntryMetaData#gid](#gid), which are read from the central directory.
 
 ***
 
@@ -470,6 +478,12 @@ be checked before being used to resolve a file.
 > `optional` **uid?**: `number`
 
 Unix owner id when available.
+
+The value is read from the central directory. The Info-ZIP Unix extra fields type 1 (0x5855) and type 2
+(0x7855) store the ids in the local file header only, so entries carrying just these fields leave the
+property undefined until the data has been read; the ids are then available in
+[EntryMetaData#localDirectory](#localdirectory). The Info-ZIP New Unix extra field (0x7875) and the PKWARE Unix
+extra field (0x000d) store the ids in both headers and are unaffected.
 
 ***
 
