@@ -6493,11 +6493,11 @@
 					}
 				} else {
 					options.uncompressedSize = uncompressedSize = reader.size;
-					maximumCompressedSize = getMaximumCompressedSize(uncompressedSize) + encryptionOverhead;
+					maximumCompressedSize = (isCompressed(compressionMethod, level) ? getMaximumCompressedSize(uncompressedSize) : uncompressedSize) + encryptionOverhead;
 				}
 			} else {
 				options.uncompressedSize = uncompressedSize;
-				maximumCompressedSize = getMaximumCompressedSize(uncompressedSize) + encryptionOverhead;
+				maximumCompressedSize = reader.size === UNDEFINED_VALUE ? getMaximumCompressedSize(uncompressedSize) + encryptionOverhead : reader.size;
 			}
 		}
 		const zip64UncompressedSize = zip64Enabled || uncompressedSize >= MAX_32_BITS;
@@ -6896,9 +6896,7 @@
 			crc32
 		} = options;
 		let { version, compressionMethod } = options;
-		const compressed = !directory && (compressionMethod === UNDEFINED_VALUE
-			? (level === UNDEFINED_VALUE || level > 0)
-			: compressionMethod !== COMPRESSION_METHOD_STORE);
+		const compressed = !directory && isCompressed(compressionMethod, level);
 		let rawLocalExtraFieldZip64;
 		const uncompressedFile = passThrough || !compressed;
 		const zip64ExtraFieldComplete = zip64 && (options.bufferedWrite || !dataDescriptor || ((!zip64UncompressedSize && !zip64CompressedSize) || uncompressedFile));
@@ -7605,6 +7603,12 @@
 
 	function getMaximumCompressedSize(uncompressedSize) {
 		return uncompressedSize + (5 * (Math.floor(uncompressedSize / 16383) + 1));
+	}
+
+	function isCompressed(compressionMethod, level) {
+		return compressionMethod === UNDEFINED_VALUE
+			? (level === UNDEFINED_VALUE || level > 0)
+			: compressionMethod !== COMPRESSION_METHOD_STORE;
 	}
 
 	function setUint8(view, offset, value) {
