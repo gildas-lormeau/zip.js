@@ -9084,7 +9084,11 @@
 
 			async init() {
 				const zipBlobReader = this;
-				const data = await zipBlobReader.entry.getData(new BlobWriter(), Object.assign({}, options, zipBlobReader.options));
+				const data = await zipBlobReader.entry.getData(new BlobWriter(), Object.assign({}, options, zipBlobReader.options, {
+					checkPasswordOnly: false,
+					checkOverlappingEntryOnly: false,
+					preventClose: false
+				}));
 				zipBlobReader.data = data;
 				zipBlobReader.blobReader = new BlobReader(data);
 				zipBlobReader.size = data.size;

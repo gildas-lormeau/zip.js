@@ -117,6 +117,7 @@ export default ([
 	{ title: "Filesystem metadata", script: "./test-fs-metadata.js" },
 	{ title: "Filesystem metadata round-trip", script: "./test-fs-metadata-roundtrip.js" },
 	{ title: "Filesystem passthrough", script: "./test-fs-passthrough.js" },
+	{ title: "Filesystem reader options", script: "./test-fs-reader-options.js" },
 	{ title: "Filesystem passthrough sizes", script: "./test-fs-passthrough-size.js" },
 	{ title: "Filesystem replace entry", script: "./test-fs-replace.js" },
 	{ title: "Filesystem streams", script: "./test-fs-streams.js" },
