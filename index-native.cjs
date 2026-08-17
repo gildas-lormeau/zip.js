@@ -8808,7 +8808,7 @@ class ZipDirectoryEntry extends ZipEntry {
 			(options.keepOrder !== false && zipEntry.children.every(child => !child.children.length));
 		return getEntriesSize(options, Array.from(zipEntry.getChildren({ recursive: true }), child => {
 			const { name, entryOptions } = getChildEntryOptions(child, zipEntry, options);
-			return { name, size: child.directory ? 0 : getDeterminedSize(child), options: entryOptions };
+			return { name, size: child.directory ? 0 : getDeterminedSize(child, isPassThrough(child, options)), options: entryOptions };
 		}), writeOrderGuaranteed);
 	}
 
@@ -9220,7 +9220,7 @@ function getChildEntryOptions(child, selectedEntry, options) {
 				unixExtraFieldType: options.unixExtraFieldType || INFOZIP_EXTRA_FIELD_TYPE
 			});
 		}
-		if (child.passThrough) {
+		if (isPassThrough(child, options)) {
 			let level, encryptionStrength;
 			if (compressionMethod === 0) {
 				level = 0;
@@ -9246,12 +9246,17 @@ function getChildEntryOptions(child, selectedEntry, options) {
 	};
 }
 
-function getDeterminedSize(child) {
+function getDeterminedSize(child, passThrough) {
 	const { reader } = child;
 	if (reader && reader.size !== UNDEFINED_VALUE) {
 		return reader.size;
 	}
-	return child.undeterminedSize ? UNDEFINED_VALUE : child.uncompressedSize;
+	return child.undeterminedSize ? UNDEFINED_VALUE : getExtractedSize(child, passThrough);
+}
+
+function isPassThrough(child, options) {
+	const { readerOptions } = options;
+	return Boolean(!child.directory && (child.passThrough || (readerOptions && readerOptions.passThrough)));
 }
 
 function getUserExtraField(extraField) {
@@ -9355,7 +9360,6 @@ function addFileSystemHandle(zipEntry, handle, options) {
 }
 
 async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
-	const totalSize = getTotalSize([zipEntry], entry => getExtractedSize(entry, options.passThrough));
 	const abortController = new AbortController();
 	const { signal } = abortController;
 	const releaseSignal = forwardAbort(options.signal, abortController);
@@ -9363,6 +9367,7 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 		signal,
 		onprogress: UNDEFINED_VALUE
 	});
+	const totalSize = getTotalSize([zipEntry], entry => getExtractedSize(entry, getDataOptions.passThrough));
 	const exportedEntryNames = [];
 	let exportAborted = false;
 	let writtenSize = 0;

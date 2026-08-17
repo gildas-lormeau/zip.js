@@ -17,7 +17,8 @@ async function test() {
 	await exportTree(true);
 	await exportImportedTree(false);
 	await exportImportedTree(true);
-	await exportPassThroughTree();
+	await exportPassThroughTree({ passThrough: true });
+	await exportPassThroughTree({ readerOptions: { passThrough: true } });
 	await zip.terminateWorkers();
 }
 
@@ -30,7 +31,7 @@ async function exportTree(concurrent) {
 	fs.addUint8Array("data.bin", new Uint8Array([1, 2, 3, 4, 5]));
 
 	const target = createMockWriteDirectory();
-	const progress = createProgressWatcher(concurrent);
+	const progress = createProgressWatcher("concurrent=" + concurrent);
 	const returned = await fs.exportFileSystemHandle(target.handle, { concurrent, onprogress: progress.onprogress });
 	if (returned !== target.handle) {
 		throw new Error("exportFileSystemHandle did not return the target handle");
@@ -60,7 +61,7 @@ async function exportImportedTree(concurrent) {
 	await fs.importBlob(blob);
 
 	const target = createMockWriteDirectory();
-	const progress = createProgressWatcher(concurrent);
+	const progress = createProgressWatcher("concurrent=" + concurrent);
 	await fs.exportFileSystemHandle(target.handle, { concurrent, onprogress: progress.onprogress });
 	progress.assertCompleted(COMPRESSIBLE_CONTENT.length + 5);
 
@@ -71,7 +72,7 @@ async function exportImportedTree(concurrent) {
 	}
 }
 
-async function exportPassThroughTree() {
+async function exportPassThroughTree(options) {
 	const source = new zip.fs.FS();
 	source.addText("compressible.txt", COMPRESSIBLE_CONTENT);
 	const blob = await source.exportBlob({ level: 9 });
@@ -80,17 +81,17 @@ async function exportPassThroughTree() {
 	const { compressedSize } = fs.getChildByName("compressible.txt").data;
 
 	const target = createMockWriteDirectory();
-	const progress = createProgressWatcher(false);
-	await fs.exportFileSystemHandle(target.handle, { passThrough: true, onprogress: progress.onprogress });
+	const progress = createProgressWatcher(JSON.stringify(options));
+	await fs.exportFileSystemHandle(target.handle, Object.assign({ onprogress: progress.onprogress }, options));
 	progress.assertCompleted(compressedSize);
 
 	const files = flatten(target.root);
 	if (files["compressible.txt"].length != compressedSize) {
-		throw new Error("passThrough did not write the raw compressed data");
+		throw new Error("passThrough did not write the raw compressed data with " + JSON.stringify(options));
 	}
 }
 
-function createProgressWatcher(concurrent) {
+function createProgressWatcher(label) {
 	let previousProgress = 0;
 	let lastProgress = 0;
 	let progressCount = 0;
@@ -98,7 +99,7 @@ function createProgressWatcher(concurrent) {
 	return {
 		onprogress: (progress, totalSize) => {
 			if (progress < previousProgress || progress > totalSize) {
-				throw new Error("inconsistent progress " + progress + "/" + totalSize + " (concurrent=" + concurrent + ")");
+				throw new Error("inconsistent progress " + progress + "/" + totalSize + " (" + label + ")");
 			}
 			previousProgress = progress;
 			lastProgress = progress;
@@ -107,11 +108,11 @@ function createProgressWatcher(concurrent) {
 		},
 		assertCompleted(expectedTotalSize) {
 			if (!progressCount) {
-				throw new Error("no progress reported (concurrent=" + concurrent + ")");
+				throw new Error("no progress reported (" + label + ")");
 			}
 			if (totalSizes.size != 1 || !totalSizes.has(expectedTotalSize) || lastProgress != expectedTotalSize) {
 				throw new Error("progress stopped at " + lastProgress + " of " + [...totalSizes] +
-					", expected " + expectedTotalSize + " (concurrent=" + concurrent + ")");
+					", expected " + expectedTotalSize + " (" + label + ")");
 			}
 		}
 	};

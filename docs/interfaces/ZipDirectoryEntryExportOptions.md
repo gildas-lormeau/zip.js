@@ -14,6 +14,11 @@ The [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#passwo
 decrypts the entries being exported: the password of an entry imported from an encrypted zip file
 must be passed in the [ZipDirectoryEntryExportOptions#readerOptions](#readeroptions) option instead.
 
+Likewise, the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option describes the data returned
+by the Reader instances. Exporting entries imported from a zip file as-is is done with the
+[ZipReaderOptions#passThrough](ZipReaderOptions.md#passthrough) option in the
+[ZipDirectoryEntryExportOptions#readerOptions](#readeroptions) option instead.
+
 ## Extends
 
 - [`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md)
@@ -519,6 +524,10 @@ The options passed to the Reader instances.
 The [ZipReaderOptions#password](ZipReaderOptions.md#password) option must be set here to export entries imported from an
 encrypted zip file, since the [ZipDirectoryEntryExportOptions#password](ZipWriterConstructorOptions.md#password) option sets the
 password used to encrypt the exported zip file instead.
+
+The [ZipReaderOptions#passThrough](ZipReaderOptions.md#passthrough) option set here exports the entries imported from a zip
+file as-is, without decompressing and decrypting them, exactly as importing them with this option
+does. It is ignored by the entries added to the filesystem, which are compressed as usual.
 
 ***
 
