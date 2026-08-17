@@ -8,12 +8,16 @@
 import * as zip from "../zip-lib.js";
 
 const TEXT_ENCODER = new TextEncoder();
+const COMPRESSIBLE_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.".repeat(200);
 
 export { test };
 
 async function test() {
 	await exportTree(false);
 	await exportTree(true);
+	await exportImportedTree(false);
+	await exportImportedTree(true);
+	await exportPassThroughTree();
 	await zip.terminateWorkers();
 }
 
@@ -26,10 +30,12 @@ async function exportTree(concurrent) {
 	fs.addUint8Array("data.bin", new Uint8Array([1, 2, 3, 4, 5]));
 
 	const target = createMockWriteDirectory();
-	const returned = await fs.exportFileSystemHandle(target.handle, { concurrent });
+	const progress = createProgressWatcher(concurrent);
+	const returned = await fs.exportFileSystemHandle(target.handle, { concurrent, onprogress: progress.onprogress });
 	if (returned !== target.handle) {
 		throw new Error("exportFileSystemHandle did not return the target handle");
 	}
+	progress.assertCompleted(30);
 
 	const files = flatten(target.root);
 	assertText(files["readme.txt"], "hello world", concurrent);
@@ -40,6 +46,75 @@ async function exportTree(concurrent) {
 	if (!dirExists(target.root, ["sub", "empty"])) {
 		throw new Error("empty directory not created (concurrent=" + concurrent + ")");
 	}
+}
+
+async function exportImportedTree(concurrent) {
+	const source = new zip.fs.FS();
+	source.addText("compressible.txt", COMPRESSIBLE_CONTENT);
+	source.addUint8Array("stored.bin", new Uint8Array([1, 2, 3, 4, 5]), { level: 0 });
+	const blob = await source.exportBlob({ level: 9 });
+	if (blob.size >= COMPRESSIBLE_CONTENT.length) {
+		throw new Error("test archive is not compressed (concurrent=" + concurrent + ")");
+	}
+	const fs = new zip.fs.FS();
+	await fs.importBlob(blob);
+
+	const target = createMockWriteDirectory();
+	const progress = createProgressWatcher(concurrent);
+	await fs.exportFileSystemHandle(target.handle, { concurrent, onprogress: progress.onprogress });
+	progress.assertCompleted(COMPRESSIBLE_CONTENT.length + 5);
+
+	const files = flatten(target.root);
+	assertText(files["compressible.txt"], COMPRESSIBLE_CONTENT, concurrent);
+	if (!bytesEqual(files["stored.bin"], new Uint8Array([1, 2, 3, 4, 5]))) {
+		throw new Error("stored.bin mismatch (concurrent=" + concurrent + ")");
+	}
+}
+
+async function exportPassThroughTree() {
+	const source = new zip.fs.FS();
+	source.addText("compressible.txt", COMPRESSIBLE_CONTENT);
+	const blob = await source.exportBlob({ level: 9 });
+	const fs = new zip.fs.FS();
+	await fs.importBlob(blob);
+	const { compressedSize } = fs.getChildByName("compressible.txt").data;
+
+	const target = createMockWriteDirectory();
+	const progress = createProgressWatcher(false);
+	await fs.exportFileSystemHandle(target.handle, { passThrough: true, onprogress: progress.onprogress });
+	progress.assertCompleted(compressedSize);
+
+	const files = flatten(target.root);
+	if (files["compressible.txt"].length != compressedSize) {
+		throw new Error("passThrough did not write the raw compressed data");
+	}
+}
+
+function createProgressWatcher(concurrent) {
+	let previousProgress = 0;
+	let lastProgress = 0;
+	let progressCount = 0;
+	const totalSizes = new Set();
+	return {
+		onprogress: (progress, totalSize) => {
+			if (progress < previousProgress || progress > totalSize) {
+				throw new Error("inconsistent progress " + progress + "/" + totalSize + " (concurrent=" + concurrent + ")");
+			}
+			previousProgress = progress;
+			lastProgress = progress;
+			totalSizes.add(totalSize);
+			progressCount++;
+		},
+		assertCompleted(expectedTotalSize) {
+			if (!progressCount) {
+				throw new Error("no progress reported (concurrent=" + concurrent + ")");
+			}
+			if (totalSizes.size != 1 || !totalSizes.has(expectedTotalSize) || lastProgress != expectedTotalSize) {
+				throw new Error("progress stopped at " + lastProgress + " of " + [...totalSizes] +
+					", expected " + expectedTotalSize + " (concurrent=" + concurrent + ")");
+			}
+		}
+	};
 }
 
 function assertText(bytes, expected, concurrent) {

@@ -7607,7 +7607,7 @@
 			}
 			const [readers] = await Promise.all([initReaders(zipEntry, options.readerOptions), initStream(writer)]);
 			const zipWriter = new ZipWriter(writer, options);
-			await exportZip(zipWriter, zipEntry, getTotalSize([zipEntry], "uncompressedSize"), options, readers);
+			await exportZip(zipWriter, zipEntry, getTotalSize([zipEntry], getUncompressedSize), options, readers);
 			await zipWriter.close();
 			return writer.getData ? writer.getData() : writer.writable;
 		}
@@ -7848,17 +7848,26 @@
 
 	const fs = { FS, ZipDirectoryEntry, ZipFileEntry };
 
-	function getTotalSize(entries, propertyName) {
+	function getTotalSize(entries, getEntrySize) {
 		let size = 0;
 		const pendingEntries = Array.from(entries);
 		while (pendingEntries.length) {
 			const entry = pendingEntries.pop();
-			size += entry[propertyName] || 0;
+			size += getEntrySize(entry) || 0;
 			for (const child of entry.children) {
 				pendingEntries.push(child);
 			}
 		}
 		return size;
+	}
+
+	function getUncompressedSize(entry) {
+		return entry.uncompressedSize;
+	}
+
+	function getExtractedSize(entry, passThrough) {
+		const { data } = entry;
+		return passThrough && data instanceof Entry ? data.compressedSize : entry.uncompressedSize;
 	}
 
 	function getReadableReader(readable) {
@@ -8160,7 +8169,7 @@
 	}
 
 	async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
-		const totalSize = getTotalSize([zipEntry], "uncompressedSize");
+		const totalSize = getTotalSize([zipEntry], entry => getExtractedSize(entry, options.passThrough));
 		const abortController = new AbortController();
 		const { signal } = abortController;
 		const releaseSignal = forwardAbort(options.signal, abortController);
@@ -8180,6 +8189,29 @@
 			releaseSignal();
 		}
 		return directoryHandle;
+
+		function createProgressWritable(writable) {
+			const writer = writable.getWriter();
+			return new WritableStream({
+				async write(chunk) {
+					await writer.write(chunk);
+					writtenSize += chunk.length;
+					if (options.onprogress) {
+						try {
+							await options.onprogress(writtenSize, totalSize);
+						} catch {
+							// ignored
+						}
+					}
+				},
+				close() {
+					return writer.close();
+				},
+				abort(reason) {
+					return writer.abort(reason);
+				}
+			});
+		}
 
 		async function exportChildren(entry, parentHandle) {
 			if (options.concurrent) {
@@ -8211,21 +8243,10 @@
 				} else {
 					const fileHandle = await parentHandle.getFileHandle(child.name, { create: true });
 					const writable = await fileHandle.createWritable();
-					let entryWrittenSize = 0;
 					try {
-						await child.getData({ writable }, Object.assign({}, options, {
+						await child.getData({ writable: createProgressWritable(writable) }, Object.assign({}, options, {
 							signal,
-							onprogress: async progress => {
-								writtenSize += progress - entryWrittenSize;
-								entryWrittenSize = progress;
-								if (options.onprogress) {
-									try {
-										await options.onprogress(writtenSize, totalSize);
-									} catch {
-										// ignored
-									}
-								}
-							}
+							onprogress: UNDEFINED_VALUE
 						}));
 					} catch (error) {
 						throw exportAborted ? new Error(ERR_ABORT_EXPORT) : error;
