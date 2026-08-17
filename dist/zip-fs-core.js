@@ -594,6 +594,26 @@
 		}
 	}
 
+	function getTextSize(text) {
+		let size = 0;
+		for (let indexCharacter = 0; indexCharacter < text.length; indexCharacter++) {
+			const characterCode = text.charCodeAt(indexCharacter);
+			if (characterCode < 0x80) {
+				size += 1;
+			} else if (characterCode < 0x800) {
+				size += 2;
+			} else if (characterCode < 0xd800 || characterCode >= 0xe000) {
+				size += 3;
+			} else if (characterCode < 0xdc00 && (text.charCodeAt(indexCharacter + 1) & 0xfc00) == 0xdc00) {
+				size += 4;
+				indexCharacter++;
+			} else {
+				size += 3;
+			}
+		}
+		return size;
+	}
+
 	class TextWriter extends BlobWriter {
 
 		constructor(encoding) {
@@ -7391,7 +7411,7 @@
 				Reader: TextReader,
 				Writer: TextWriter,
 				options,
-				uncompressedSize: text.length
+				uncompressedSize: getTextSize(text)
 			});
 		}
 

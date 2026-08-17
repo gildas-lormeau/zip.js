@@ -12,6 +12,7 @@ export { test };
 async function test() {
 	try {
 		await testStoredEntries();
+		await testTextContentSize();
 		await testNestedTree();
 		await testEntryOptions();
 		await testExtraFields();
@@ -32,6 +33,22 @@ async function testStoredEntries() {
 		root.addUint8Array("empty.bin", new Uint8Array(0));
 		root.addUint8Array("binary.bin", BINARY_CONTENT);
 		root.addText("café-日本語.txt", TEXT_CONTENT);
+	}, { level: 0 });
+}
+
+async function testTextContentSize() {
+	for (const text of ["ascii only", "café", "日本語", "😀 emoji", "\uD800 lone surrogate", "\uDC00", ""]) {
+		await assertExportedSize(root => {
+			const entry = root.addText("text.txt", text);
+			if (entry.uncompressedSize != new Blob([text]).size) {
+				throw new Error();
+			}
+		}, { level: 0 });
+	}
+	await assertExportedSize(root => {
+		root.addText("a.txt", "café");
+		root.addData64URI("b.txt", "data:text/plain;base64,Y2Fmw6k=");
+		root.addBlob("c.txt", new Blob(["café"]));
 	}, { level: 0 });
 }
 
