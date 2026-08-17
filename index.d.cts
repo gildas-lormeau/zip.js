@@ -3014,6 +3014,10 @@ export class ZipDirectoryEntry extends ZipEntry {
   /**
    * Adds an entry with content provided via a `FileSystemEntry` instance
    *
+   * The options apply to every entry added, including the directories. The
+   * {@link ZipWriterConstructorOptions#lastModDate} option replaces the last modification date of the
+   * files, which is otherwise taken from each `FileSystemEntry` instance.
+   *
    * @param fileSystemEntry The `FileSystemEntry` instance.
    * @param options The options.
    * @returns A promise resolving to an array of {@link ZipFileEntry} or a {@link ZipDirectoryEntry} instances.
@@ -3028,6 +3032,10 @@ export class ZipDirectoryEntry extends ZipEntry {
    * If a handle cannot be read, the original error is rethrown unmodified as an {@link EntryError},
    * whose {@link EntryError#entryName} is the path of the handle that failed, relative to the parent
    * of `fileSystemHandle`.
+   *
+   * The options apply to every entry added, including the directories. The
+   * {@link ZipWriterConstructorOptions#lastModDate} option replaces the last modification date of the
+   * files, which is otherwise taken from each `FileSystemHandle` instance.
    *
    * @param fileSystemHandle The `fileSystemHandle` instance.
    * @param options The options.

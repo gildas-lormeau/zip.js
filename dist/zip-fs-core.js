@@ -8191,7 +8191,7 @@
 							})
 						);
 					} else if (handle.kind == "directory") {
-						const directoryEntry = parentEntry.addDirectory(handle.name);
+						const directoryEntry = parentEntry.addDirectory(handle.name, options);
 						addedEntries.push(directoryEntry);
 						for await (const childHandle of handle.values()) {
 							await addFile(directoryEntry, childHandle, addedEntries, entryName);

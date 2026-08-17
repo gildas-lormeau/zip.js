@@ -104,6 +104,7 @@ export default ([
 	{ title: "Filesystem export passthrough", script: "./test-fs-export-passthrough.js" },
 	{ title: "Filesystem exported size", script: "./test-fs-exported-size.js" },
 	{ title: "Filesystem export File System handle", script: "./test-fs-export-file-system-handle.js" },
+	{ title: "Filesystem add File System handle", script: "./test-fs-add-file-system-handle.js" },
 	{ title: "Filesystem getChildren", script: "./test-fs-get-children.js" },
 	{ title: "Filesystem getData progress", script: "./test-fs-get-data-progress.js" },
 	{ title: "Filesystem getData MIME type", script: "./test-fs-content-type.js" },

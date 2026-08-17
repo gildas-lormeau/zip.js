@@ -196,6 +196,10 @@ A promise resolving to a [ZipFileEntry](ZipFileEntry.md) or a [ZipDirectoryEntry
 
 Adds an entry with content provided via a `FileSystemEntry` instance
 
+The options apply to every entry added, including the directories. The
+[ZipWriterConstructorOptions#lastModDate](../interfaces/ZipWriterConstructorOptions.md#lastmoddate) option replaces the last modification date of the
+files, which is otherwise taken from each `FileSystemEntry` instance.
+
 #### Parameters
 
 ##### fileSystemEntry
@@ -231,6 +235,10 @@ Adds an entry with content provided via a `FileSystemHandle` instance
 If a handle cannot be read, the original error is rethrown unmodified as an [EntryError](../interfaces/EntryError.md),
 whose [EntryError#entryName](../interfaces/EntryError.md#entryname) is the path of the handle that failed, relative to the parent
 of `fileSystemHandle`.
+
+The options apply to every entry added, including the directories. The
+[ZipWriterConstructorOptions#lastModDate](../interfaces/ZipWriterConstructorOptions.md#lastmoddate) option replaces the last modification date of the
+files, which is otherwise taken from each `FileSystemHandle` instance.
 
 #### Parameters
 
