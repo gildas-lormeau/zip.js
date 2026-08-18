@@ -93,6 +93,9 @@ const VERSION_DEFLATE = 0x14;
 const VERSION_ZIP64 = 0x2D;
 const VERSION_AES = 0x33;
 
+const VERSION_MADE_BY_MSDOS = 0x0014;
+const VERSION_MADE_BY_UNIX = 0x0300;
+
 const DIRECTORY_SIGNATURE = "/";
 
 const HEADER_SIZE = 30;
@@ -6283,7 +6286,7 @@ async function addFile(zipWriter, name, reader, options) {
 function resolveAttributes(zipWriter, name, options) {
 	name = name.trim();
 	let msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE);
-	let versionMadeBy = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION_MADE_BY, msDosCompatible ? 20 : 768);
+	let versionMadeBy = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION_MADE_BY, msDosCompatible ? VERSION_MADE_BY_MSDOS : VERSION_MADE_BY_UNIX);
 	const executable = getOptionValue(zipWriter, options, PROPERTY_NAME_EXECUTABLE);
 	const uid = getNumberOptionValue(zipWriter, options, PROPERTY_NAME_UID);
 	const gid = getNumberOptionValue(zipWriter, options, PROPERTY_NAME_GID);
@@ -6317,7 +6320,7 @@ function resolveAttributes(zipWriter, name, options) {
 	const hasMsDosProvided = msdosAttributesRaw !== UNDEFINED_VALUE || msdosAttributes !== UNDEFINED_VALUE;
 	if (hasUnixMetadata) {
 		msDosCompatible = false;
-		versionMadeBy = (versionMadeBy & MAX_16_BITS) | (3 << 8);
+		versionMadeBy = (versionMadeBy & MAX_8_BITS) | VERSION_MADE_BY_UNIX;
 	} else if (hasMsDosProvided) {
 		msDosCompatible = true;
 		versionMadeBy = (versionMadeBy & MAX_8_BITS);
