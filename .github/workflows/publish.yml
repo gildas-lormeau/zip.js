@@ -11,13 +11,63 @@ permissions:
   contents: read
 
 jobs:
+  # nothing else guarantees that the released commit was tested: the test workflow runs on push, so
+  # this waits for its run on that exact commit and refuses to publish unless it succeeded
+  check_tests:
+    name: 'Check tests'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - name: Wait for the tests of the released commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          echo "released commit: $sha"
+          missing=0
+          for attempt in $(seq 1 60); do
+            run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/test.yml/runs?head_sha=$sha&per_page=1" \
+              --jq 'if (.workflow_runs | length) == 0 then "none none none"
+                    else (.workflow_runs[0] | "\(.status) \(.conclusion) \(.html_url)") end')
+            run_status=$(echo "$run" | cut -d' ' -f1)
+            conclusion=$(echo "$run" | cut -d' ' -f2)
+            url=$(echo "$run" | cut -d' ' -f3)
+            if [ "$run_status" = "none" ]; then
+              missing=$((missing + 1))
+              if [ "$missing" -ge 10 ]; then
+                echo "::error::no test run for $sha, run the test workflow on this commit and publish again"
+                exit 1
+              fi
+              echo "no test run found yet for $sha"
+            else
+              echo "test run: status=$run_status conclusion=$conclusion $url"
+              if [ "$run_status" = "completed" ]; then
+                if [ "$conclusion" = "success" ]; then
+                  exit 0
+                fi
+                echo "::error::the tests concluded $conclusion for $sha, see $url"
+                exit 1
+              fi
+            fi
+            sleep 30
+          done
+          echo "::error::timed out waiting for the tests of $sha"
+          exit 1
+
   publish_jsr:
+    needs: check_tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - run: npx jsr publish
 
   publish_npm:
+    needs: check_tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -30,6 +80,7 @@ jobs:
       - run: npm publish
 
   publish_docs:
+    needs: check_tests
     runs-on: ubuntu-latest
     permissions:
       contents: write
