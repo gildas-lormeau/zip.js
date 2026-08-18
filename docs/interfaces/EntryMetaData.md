@@ -475,6 +475,10 @@ character. It is read like any other entry, e.g. with `entry.getData(new TextWri
 The path is not validated: it can be absolute or escape the archive with `..` segments. It must
 be checked before being used to resolve a file.
 
+There is no option to write a symbolic link. Set the file type in
+[ZipWriterConstructorOptions#unixMode](ZipWriterConstructorOptions.md#unixmode) instead, i.e. pass `0o120777` with the path of the
+target as the content of the entry.
+
 ***
 
 ### uid?
