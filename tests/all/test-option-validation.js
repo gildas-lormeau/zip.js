@@ -1,3 +1,5 @@
+/* global TextEncoder */
+
 // Checks that options taking an enumeration of values or a bounded number reject anything else instead
 // of silently falling back to a default. Every value probed here used to be accepted: an unknown
 // strictness behaved as "balanced", a negative or non-numeric level disabled compression altogether,
@@ -21,6 +23,7 @@ async function test() {
 	await filenameValidationRejectsUnknownValues();
 	await maxAppendedDataSizeRejectsInvalidNumbers();
 	await unixIdsRejectNonIntegers();
+	await globalCommentRejectsOtherTypes();
 	await zip.terminateWorkers();
 }
 
@@ -138,6 +141,40 @@ async function unixIdsRejectNonIntegers() {
 	await assertThrows({ gid: 1.5 }, zip.ERR_INVALID_GID, "gid: 1.5");
 	await assertThrows({ unixMode: 0.5 }, zip.ERR_INVALID_UNIX_MODE, "unixMode: 0.5");
 	await readEntries(await buildZip({ uid: 1000, gid: 1000, unixMode: 0o644 }));
+}
+
+// The entry comment option is a string while the global comment of close() is raw bytes, so a string
+// is the natural mistake here. It used to pass the length check and crash in the record writer, after
+// the whole archive had been written. The size prediction must reject it too, since it is supposed to
+// throw wherever the export would.
+async function globalCommentRejectsOtherTypes() {
+	for (const globalComment of ["a global comment", 0, null, [], new ArrayBuffer(4)]) {
+		const description = "globalComment: " + String(globalComment);
+		let thrownError;
+		try {
+			await closeZip(globalComment);
+		} catch (error) {
+			thrownError = error;
+		}
+		assertMessage(thrownError, zip.ERR_INVALID_COMMENT_TYPE, description);
+		thrownError = undefined;
+		try {
+			await new zip.fs.FS().getExportedSize({ globalComment });
+		} catch (error) {
+			thrownError = error;
+		}
+		assertMessage(thrownError, zip.ERR_INVALID_COMMENT_TYPE, "getExportedSize " + description);
+	}
+	await closeZip(new TextEncoder().encode("a global comment"));
+	await closeZip();
+	await new zip.fs.FS().getExportedSize({ globalComment: new TextEncoder().encode("a global comment") });
+	await new zip.fs.FS().getExportedSize({});
+}
+
+async function closeZip(globalComment) {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.add("test.txt", new zip.TextReader(CONTENT));
+	return zipWriter.close(globalComment);
 }
 
 async function buildZip(options) {

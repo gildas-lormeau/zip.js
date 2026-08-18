@@ -5924,6 +5924,7 @@
 
 	const ERR_DUPLICATED_NAME = "File already exists";
 	const ERR_INVALID_COMMENT = "Zip file comment exceeds 64KB";
+	const ERR_INVALID_COMMENT_TYPE = "Invalid zip file comment (must be a Uint8Array)";
 	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
 	const ERR_INVALID_ENTRY_NAME = "File entry name exceeds 64KB";
 	const ERR_INVALID_VERSION = "Version exceeds 65535";
@@ -6140,6 +6141,9 @@
 			const zipWriter = this;
 			const { pendingAddFileCalls, writer } = this;
 			const { writable } = writer;
+			if (!(comment instanceof Uint8Array)) {
+				throw new Error(ERR_INVALID_COMMENT_TYPE);
+			}
 			if (getLength(comment) > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_COMMENT);
 			}
@@ -8326,6 +8330,7 @@
 	exports.ERR_INVALID_CODEC_DEFINITION = ERR_INVALID_CODEC_DEFINITION;
 	exports.ERR_INVALID_CODEC_MODULE = ERR_INVALID_CODEC_MODULE;
 	exports.ERR_INVALID_COMMENT = ERR_INVALID_COMMENT;
+	exports.ERR_INVALID_COMMENT_TYPE = ERR_INVALID_COMMENT_TYPE;
 	exports.ERR_INVALID_COMPRESSED_DATA = ERR_INVALID_COMPRESSED_DATA;
 	exports.ERR_INVALID_CRC32 = ERR_INVALID_CRC32;
 	exports.ERR_INVALID_ENCRYPTION_STRENGTH = ERR_INVALID_ENCRYPTION_STRENGTH;

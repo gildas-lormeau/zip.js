@@ -18,26 +18,14 @@ The Filesystem API.
 
 The Filesystem constructor.
 
-#### Default Value
-
-[FS](../classes/FS.md)
-
 ### ZipDirectoryEntry
 
 > **ZipDirectoryEntry**: *typeof* [`ZipDirectoryEntry`](../classes/ZipDirectoryEntry.md)
 
 The [ZipDirectoryEntry](../classes/ZipDirectoryEntry.md) constructor.
 
-#### Default Value
-
-[ZipDirectoryEntry](../classes/ZipDirectoryEntry.md)
-
 ### ZipFileEntry
 
 > **ZipFileEntry**: *typeof* [`ZipFileEntry`](../classes/ZipFileEntry.md)
 
 The [ZipFileEntry](../classes/ZipFileEntry.md) constructor.
-
-#### Default Value
-
-[ZipFileEntry](../classes/ZipFileEntry.md)

@@ -3742,20 +3742,14 @@ export class FS {
 export const fs: {
   /**
    * The Filesystem constructor.
-   *
-   * @defaultValue {@link FS}
    */
   FS: typeof FS;
   /**
    * The {@link ZipDirectoryEntry} constructor.
-   *
-   * @defaultValue {@link ZipDirectoryEntry}
    */
   ZipDirectoryEntry: typeof ZipDirectoryEntry;
   /**
    * The {@link ZipFileEntry} constructor.
-   *
-   * @defaultValue {@link ZipFileEntry}
    */
   ZipFileEntry: typeof ZipFileEntry;
 };
@@ -3872,6 +3866,10 @@ export const ERR_DUPLICATED_NAME: string;
  * Invalid comment error
  */
 export const ERR_INVALID_COMMENT: string;
+/**
+ * Invalid comment type error
+ */
+export const ERR_INVALID_COMMENT_TYPE: string;
 /**
  * Invalid entry name error
  */
