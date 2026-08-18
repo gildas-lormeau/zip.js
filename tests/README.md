@@ -2,7 +2,7 @@
 
 ## Running the tests
 
-- `npm test` runs the suite in Node.js, Deno and Bun, against the source and the built files. It also runs the web-streams-polyfill interop test and checks the TypeScript definitions.
+- `npm test` runs the suite in Node.js, Deno and Bun, against the source and the built files. It also runs the web-streams-polyfill interop test, checks the TypeScript definitions and runs the API symmetry audit.
 - `npm run test-chrome`, `npm run test-firefox` and `npm run test-safari` run the suite in a locally installed browser with selenium. Chrome and Firefox run headless unless `--headed` is passed to `node ./tests/browser-runner.js`, which also accepts `--exe-path <path>` to test a specific browser build and `--url-search <search>` to forward URL parameters. Safari always runs headed and requires enabling `safaridriver` once with `sudo safaridriver --enable`.
 - `--build wasm|native|external|dist` selects the build under test: the runner serves `tests/zip-lib.js` re-exporting `index.js` (`wasm`, the default), `lib/zip-fs-native.js`, `lib/zip-fs-external.js` or `index.min.js` instead of the file on disk.
 - `npm run test-all` runs the linters and all the tests.
@@ -33,6 +33,7 @@ Optional fields in `tests/tests-data.js`:
 
 ## Other folders
 
+- `tests/api-symmetry`: read surface against write surface audit, see [tests/api-symmetry/README.md](api-symmetry/README.md).
 - `tests/fidelity`: read, rewrite and byte-compare harness, see [tests/fidelity/README.md](fidelity/README.md).
 - `tests/types`: TypeScript definitions test, run with `npm run test-types`.
 - `tests/vendor`: vendored third-party code used by the tests, ignored by the linters.
