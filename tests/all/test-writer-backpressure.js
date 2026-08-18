@@ -1,11 +1,14 @@
 /* global ReadableStream, WritableStream, CountQueuingStrategy, setTimeout */
 
-// Regression test for streaming backpressure. The native CompressionStream and the pure-JS zlib port
-// do not signal backpressure on their writable side; a plain pipeThrough therefore pulls the whole
-// source into the codec and peak memory grows with the entry size. zip.js paces the source to the
-// codec's consumption rate, so a large entry streamed into a slow output must NOT drain the source
-// far ahead of what has been written. Incompressible data keeps output ~= input, so "chunks read but
-// not yet written out" is a faithful proxy for retained memory.
+// Regression test for streaming backpressure. A codec that does not signal backpressure on its
+// writable side leaves `writer.ready` resolved, so a ready-gated pipe pulls the whole source into
+// the codec and peak memory grows with the entry size. Bun's native CompressionStream does exactly
+// that and accepts writes without limit. The other engines bound the queue, and the pure-JS and
+// WASM codecs signal backpressure correctly everywhere. zip.js awaits each write instead of
+// trusting `ready`, which keeps one chunk in flight whatever `ready` reports. A large entry
+// streamed into a slow output must therefore NOT drain the source far ahead of what has been
+// written. The configuration below forces the native codec. Incompressible data keeps output ~=
+// input, so "chunks read but not yet written out" is a faithful proxy for retained memory.
 
 import * as zip from "../../lib/zip-core.js";
 
