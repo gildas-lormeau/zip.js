@@ -78,11 +78,8 @@ The creation date.
 
 This option is ignored if the [ZipWriterConstructorOptions#extendedTimestamp](#extendedtimestamp) option is set to `false`.
 
-#### Default Value
-
-```ts
-The current date.
-```
+Unlike [ZipWriterConstructorOptions#lastModDate](#lastmoddate), it has no default: the date is written only when the
+option is set, so that the entries do not carry a meaningless creation time.
 
 ***
 
@@ -237,11 +234,8 @@ The last access date.
 
 This option is ignored if the [ZipWriterConstructorOptions#extendedTimestamp](#extendedtimestamp) option is set to `false`.
 
-#### Default Value
-
-```ts
-The current date.
-```
+Unlike [ZipWriterConstructorOptions#lastModDate](#lastmoddate), it has no default: the date is written only when the
+option is set, so that the entries do not carry a meaningless access time.
 
 ***
 
@@ -323,6 +317,10 @@ Must be an integer between 0 and 255.
 > `optional` **msDosCompatible?**: `boolean`
 
 `true` to write [EntryMetaData#externalFileAttributes](EntryMetaData.md#externalfileattributes) in MS-DOS format for folder entries.
+
+It also selects the MS-DOS platform for [ZipWriterConstructorOptions#versionMadeBy](#versionmadeby) and leaves the Unix
+attributes out of the entries. Setting any Unix metadata option, e.g.
+[ZipWriterConstructorOptions#unixMode](#unixmode), turns it back off.
 
 #### Default Value
 

@@ -115,11 +115,13 @@ and read each entry with a single range request covering its whole remaining len
 `true` to prevent using `HEAD` HTTP request in order the get the size of the content.
 `false` to explicitly use `HEAD`, this is useful in case of CORS where `Access-Control-Expose-Headers: Content-Range` is not returned by the server.
 
+Leaving it unset is not the same as setting it to `false` when [HttpOptions#useRangeHeader](#userangeheader) or
+[HttpOptions#forceRangeRequests](#forcerangerequests) is set: the size is then read from a ranged `GET` request instead, and
+only an explicit `false` restores the `HEAD` request.
+
 #### Default Value
 
-```ts
-false
-```
+false, and `true` when [HttpOptions#useRangeHeader](#userangeheader) or [HttpOptions#forceRangeRequests](#forcerangerequests) is set
 
 ***
 

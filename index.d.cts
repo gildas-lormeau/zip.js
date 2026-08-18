@@ -272,7 +272,7 @@ export interface Configuration extends WorkerConfiguration {
   /**
    * The maximum number of web workers used to compress/decompress data simultaneously.
    *
-   * @defaultValue `navigator.hardwareConcurrency`
+   * @defaultValue `navigator.hardwareConcurrency`, or 2 when the environment does not provide it
    */
   maxWorkers?: number;
   /**
@@ -311,7 +311,7 @@ export interface Configuration extends WorkerConfiguration {
    * });
    * ```
    *
-   * @defaultValue "./core/web-worker.js"
+   * @defaultValue "./core/web-worker-wasm.js", or "./core/web-worker-native.js" for the builds using the native implementations
    */
   workerURI?: string;
   /**
@@ -351,25 +351,25 @@ export interface Configuration extends WorkerConfiguration {
   /**
    * The stream implementation used to compress data when `useCompressionStream` is set to `true`.
    *
-   * @defaultValue {@link CodecStream}
+   * @defaultValue the global `CompressionStream`, or `false` when the environment does not provide it
    */
   CompressionStream?: typeof TransformStreamLike;
   /**
    * The stream implementation used to decompress data when `useCompressionStream` is set to `true`.
    *
-   * @defaultValue {@link CodecStream}
+   * @defaultValue the global `DecompressionStream`, or `false` when the environment does not provide it
    */
   DecompressionStream?: typeof TransformStreamLike;
   /**
    * The stream implementation used to compress data when `useCompressionStream` is set to `false`.
    *
-   * @defaultValue {@link CodecStream}
+   * @defaultValue the implementation embedded in the entry point that was imported, e.g. the WebAssembly one
    */
   CompressionStreamFallback?: typeof TransformStreamLike;
   /**
    * The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
    *
-   * @defaultValue {@link CodecStream}
+   * @defaultValue the implementation embedded in the entry point that was imported, e.g. the WebAssembly one
    */
   DecompressionStreamFallback?: typeof TransformStreamLike;
   /**
@@ -783,7 +783,11 @@ export interface HttpOptions extends HttpRangeOptions {
    * `true` to prevent using `HEAD` HTTP request in order the get the size of the content.
    * `false` to explicitly use `HEAD`, this is useful in case of CORS where `Access-Control-Expose-Headers: Content-Range` is not returned by the server.
    *
-   * @defaultValue false
+   * Leaving it unset is not the same as setting it to `false` when {@link HttpOptions#useRangeHeader} or
+   * {@link HttpOptions#forceRangeRequests} is set: the size is then read from a ranged `GET` request instead, and
+   * only an explicit `false` restores the `HEAD` request.
+   *
+   * @defaultValue false, and `true` when {@link HttpOptions#useRangeHeader} or {@link HttpOptions#forceRangeRequests} is set
    */
   preventHeadRequest?: boolean;
   /**
@@ -2644,7 +2648,8 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    *
    * This option is ignored if the {@link ZipWriterConstructorOptions#extendedTimestamp} option is set to `false`.
    *
-   * @defaultValue The current date.
+   * Unlike {@link ZipWriterConstructorOptions#lastModDate}, it has no default: the date is written only when the
+   * option is set, so that the entries do not carry a meaningless access time.
    */
   lastAccessDate?: Date;
   /**
@@ -2652,7 +2657,8 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    *
    * This option is ignored if the {@link ZipWriterConstructorOptions#extendedTimestamp} option is set to `false`.
    *
-   * @defaultValue The current date.
+   * Unlike {@link ZipWriterConstructorOptions#lastModDate}, it has no default: the date is written only when the
+   * option is set, so that the entries do not carry a meaningless creation time.
    */
   creationDate?: Date;
   /**
@@ -2727,6 +2733,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   dataDescriptorSignature?: boolean;
   /**
    * `true` to write {@link EntryMetaData#externalFileAttributes} in MS-DOS format for folder entries.
+   *
+   * It also selects the MS-DOS platform for {@link ZipWriterConstructorOptions#versionMadeBy} and leaves the Unix
+   * attributes out of the entries. Setting any Unix metadata option, e.g.
+   * {@link ZipWriterConstructorOptions#unixMode}, turns it back off.
    *
    * @defaultValue false
    */

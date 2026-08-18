@@ -36,7 +36,7 @@ The stream implementation used to compress data when `useCompressionStream` is s
 
 #### Default Value
 
-[CodecStream](../classes/CodecStream.md)
+the global `CompressionStream`, or `false` when the environment does not provide it
 
 ***
 
@@ -48,7 +48,9 @@ The stream implementation used to compress data when `useCompressionStream` is s
 
 #### Default Value
 
-[CodecStream](../classes/CodecStream.md)
+```ts
+the implementation embedded in the entry point that was imported, e.g. the WebAssembly one
+```
 
 ***
 
@@ -91,7 +93,7 @@ The stream implementation used to decompress data when `useCompressionStream` is
 
 #### Default Value
 
-[CodecStream](../classes/CodecStream.md)
+the global `DecompressionStream`, or `false` when the environment does not provide it
 
 ***
 
@@ -103,7 +105,9 @@ The stream implementation used to decompress data when `useCompressionStream` is
 
 #### Default Value
 
-[CodecStream](../classes/CodecStream.md)
+```ts
+the implementation embedded in the entry point that was imported, e.g. the WebAssembly one
+```
 
 ***
 
@@ -125,7 +129,7 @@ The maximum number of web workers used to compress/decompress data simultaneousl
 
 #### Default Value
 
-`navigator.hardwareConcurrency`
+`navigator.hardwareConcurrency`, or 2 when the environment does not provide it
 
 ***
 
@@ -274,5 +278,5 @@ configure({
 #### Default Value
 
 ```ts
-"./core/web-worker.js"
+"./core/web-worker-wasm.js", or "./core/web-worker-native.js" for the builds using the native implementations
 ```
