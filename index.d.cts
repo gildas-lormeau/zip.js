@@ -1221,6 +1221,12 @@ export interface GetEntriesOptions {
    * the content of an entry, it also validates the local file header against the central directory record (see
    * {@link ZipReaderOptions#checkAmbiguity}).
    *
+   * This is the boolean form of {@link GetEntriesOptions#strictness}: `true` means `"strict"` and `false` means
+   * any value but `"strict"`. When both options are set, the value passed to {@link ZipReader#getEntries} takes
+   * precedence over the value passed to the constructor of {@link ZipReader}, and `strictness` takes precedence
+   * over `checkAmbiguity` when both are set at the same level. `false` downgrades an inherited `"strict"` value
+   * to `"balanced"` and leaves an inherited `"tolerant"` value unchanged.
+   *
    * @defaultValue false
    */
   checkAmbiguity?: boolean;
@@ -1376,6 +1382,12 @@ export interface ZipReaderOptions {
    * filenames, general purpose bit flags (encryption, data descriptor and language encoding flags), compression
    * methods, CRC-32 checksums and sizes. The extra fields are not compared because the zip specification allows
    * them to differ.
+   *
+   * This is the boolean form of {@link ZipReaderOptions#strictness}: `true` means `"strict"` and `false` means
+   * any value but `"strict"`. When both options are set, the value passed to {@link FileEntry#getData} takes
+   * precedence over the value passed to the constructor of {@link ZipReader}, and `strictness` takes precedence
+   * over `checkAmbiguity` when both are set at the same level. `false` downgrades an inherited `"strict"` value
+   * to `"balanced"` and leaves an inherited `"tolerant"` value unchanged.
    *
    * @defaultValue false
    */

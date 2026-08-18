@@ -26,6 +26,12 @@ end of central directory record disagreeing with its zip64 counterpart, and dupl
 the content of an entry, it also validates the local file header against the central directory record (see
 [ZipReaderOptions#checkAmbiguity](ZipReaderOptions.md#checkambiguity)).
 
+This is the boolean form of [GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strictness): `true` means `"strict"` and `false` means
+any value but `"strict"`. When both options are set, the value passed to [ZipReader#getEntries](../classes/ZipReader.md#getentries) takes
+precedence over the value passed to the constructor of [ZipReader](../classes/ZipReader.md), and `strictness` takes precedence
+over `checkAmbiguity` when both are set at the same level. `false` downgrades an inherited `"strict"` value
+to `"balanced"` and leaves an inherited `"tolerant"` value unchanged.
+
 #### Default Value
 
 ```ts

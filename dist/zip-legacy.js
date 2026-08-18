@@ -4642,7 +4642,7 @@
 			if (reader.size < END_OF_CENTRAL_DIR_LENGTH) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
-			const strictness = getStrictness(getOptionValue$1(zipReader, options, OPTION_STRICTNESS), getOptionValue$1(zipReader, options, OPTION_CHECK_AMBIGUITY));
+			const strictness = getStrictness(options, zipReader.options);
 			const checkAmbiguity = strictness == STRICTNESS_STRICT;
 			const rejectAmbiguousEndOfDirectory = strictness != STRICTNESS_TOLERANT;
 			const maxAppendedDataSize = getMaxAppendedDataSize(getOptionValue$1(zipReader, options, OPTION_MAX_APPENDED_DATA_SIZE), strictness);
@@ -5074,7 +5074,7 @@
 				extraFieldLength,
 				filenameLength
 			} = localDirectory;
-			const checkAmbiguity = getStrictness(getOptionValue$1(zipEntry, options, OPTION_STRICTNESS), getOptionValue$1(zipEntry, options, OPTION_CHECK_AMBIGUITY)) == STRICTNESS_STRICT;
+			const checkAmbiguity = getStrictness(options, zipEntry.options) == STRICTNESS_STRICT;
 			let rawLocalFilename = EMPTY_UINT8_ARRAY;
 			if (checkAmbiguity && (filenameLength || extraFieldLength)) {
 				const trailingDataArray = await readUint8Array(reader, localHeaderOffset + HEADER_SIZE, filenameLength + extraFieldLength);
@@ -5597,14 +5597,26 @@
 		return value === STRICTNESS_STRICT || value === STRICTNESS_BALANCED || value === STRICTNESS_TOLERANT;
 	}
 
-	function getStrictness(strictness, checkAmbiguity) {
-		if (strictness === UNDEFINED_VALUE) {
-			return checkAmbiguity ? STRICTNESS_STRICT : STRICTNESS_BALANCED;
+	function getStrictness(options, inheritedOptions) {
+		return resolveStrictness(options, resolveStrictness(inheritedOptions, STRICTNESS_BALANCED));
+	}
+
+	function resolveStrictness(options, inheritedStrictness) {
+		const strictness = options[OPTION_STRICTNESS];
+		if (strictness !== UNDEFINED_VALUE) {
+			if (!isStrictnessValue(strictness)) {
+				throw new Error(ERR_INVALID_STRICTNESS);
+			}
+			return strictness;
 		}
-		if (!isStrictnessValue(strictness)) {
-			throw new Error(ERR_INVALID_STRICTNESS);
+		const checkAmbiguity = options[OPTION_CHECK_AMBIGUITY];
+		if (checkAmbiguity === UNDEFINED_VALUE) {
+			return inheritedStrictness;
 		}
-		return strictness;
+		if (checkAmbiguity) {
+			return STRICTNESS_STRICT;
+		}
+		return inheritedStrictness == STRICTNESS_TOLERANT ? STRICTNESS_TOLERANT : STRICTNESS_BALANCED;
 	}
 
 	function getFilenameValidation(filenameValidation, strictness) {

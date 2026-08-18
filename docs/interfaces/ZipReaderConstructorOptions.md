@@ -29,6 +29,12 @@ filenames, general purpose bit flags (encryption, data descriptor and language e
 methods, CRC-32 checksums and sizes. The extra fields are not compared because the zip specification allows
 them to differ.
 
+This is the boolean form of [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness): `true` means `"strict"` and `false` means
+any value but `"strict"`. When both options are set, the value passed to [FileEntry#getData](FileEntry.md#getdata) takes
+precedence over the value passed to the constructor of [ZipReader](../classes/ZipReader.md), and `strictness` takes precedence
+over `checkAmbiguity` when both are set at the same level. `false` downgrades an inherited `"strict"` value
+to `"balanced"` and leaves an inherited `"tolerant"` value unchanged.
+
 #### Default Value
 
 ```ts
