@@ -2654,7 +2654,8 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
  * When passed to `{@link ZipDirectory}.export*`, these functions report the progress of the whole archive instead
  * of the progress of each entry: {@link EntryDataOnprogressOptions#onstart} and
  * {@link EntryDataOnprogressOptions#onend} are called once, and the total number of bytes is the sum of the sizes
- * of all the entries.
+ * of all the entries. Use {@link ZipDirectoryEntryExportOptions#onentryprogress} to be notified when each entry
+ * is written.
  */
 export interface EntryDataOnprogressOptions {
   /**
@@ -3328,6 +3329,28 @@ export interface ZipDirectoryEntryExportOptions
    * The MIME type of the exported data when relevant.
    */
   mimeType?: string;
+  /**
+   * The function called each time an entry is written.
+   *
+   * @remarks
+   * This function reports the entries whereas {@link EntryDataOnprogressOptions#onprogress} reports the
+   * bytes. It is called once per entry, after the entry has been written, so `progress` reaches `total`
+   * when the last entry is written.
+   *
+   * When {@link ZipWriterConstructorOptions#bufferedWrite} is enabled, the entries are written
+   * concurrently: `progress` counts the entries written instead of giving the position of the entry in
+   * the zip file.
+   *
+   * @param progress The number of entries written.
+   * @param total The total number of entries.
+   * @param entry The entry written.
+   * @returns An empty promise or `undefined`.
+   */
+  onentryprogress?(
+    progress: number,
+    total: number,
+    entry: EntryMetaData
+  ): Promise<void> | void;
   /**
    * The global comment of the zip file, see {@link ZipWriter#close}.
    *

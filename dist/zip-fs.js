@@ -9702,9 +9702,11 @@
 	}
 
 	async function exportZip(zipWriter, entry, totalSize, options, readers) {
-		const { onstart, onprogress, onend } = options;
+		const { onstart, onprogress, onend, onentryprogress } = options;
 		const selectedEntry = entry;
+		const totalEntries = getTotalSize(entry.children, () => 1);
 		let writtenSize = 0;
+		let writtenEntries = 0;
 		if (onstart) {
 			await callHandler(onstart, totalSize);
 		}
@@ -9733,7 +9735,7 @@
 		async function addChild(child) {
 			const { name, entryOptions } = getChildEntryOptions(child, selectedEntry, options);
 			let entryWrittenSize = 0;
-			await zipWriter.add(name, readers.get(child), Object.assign(entryOptions, {
+			const entryMetadata = await zipWriter.add(name, readers.get(child), Object.assign(entryOptions, {
 				onstart: UNDEFINED_VALUE,
 				onend: UNDEFINED_VALUE,
 				onprogress: async indexProgress => {
@@ -9744,6 +9746,10 @@
 					}
 				}
 			}));
+			writtenEntries++;
+			if (onentryprogress) {
+				await callHandler(onentryprogress, writtenEntries, totalEntries, entryMetadata);
+			}
 		}
 	}
 

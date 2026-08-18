@@ -2,6 +2,10 @@
 // `onend` are documented together, so they must all report the archive as a whole: one `onstart`
 // with the total size of the entries, one monotonic series of progress events covering all of them,
 // and one `onend`, whatever the number of entries and whether they are imported from a zip file.
+// `onentryprogress` is the entry counterpart: one event per written entry, directories included,
+// counting up to the number of entries the export writes. It only follows the order of the entries
+// in the zip file when the entries are written one after another, since `bufferedWrite` writes them
+// concurrently.
 
 import * as zip from "../zip-lib.js";
 
@@ -9,6 +13,8 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
 const LARGE_CONTENT = new Uint8Array(256 * 1024).fill(65);
 const SMALL_CONTENT = new Uint8Array(1024).fill(66);
 const EXPECTED_SIZE = LARGE_CONTENT.length + SMALL_CONTENT.length * 2 + TEXT_CONTENT.length;
+const EXPECTED_ENTRY_NAMES = ["docs/", "docs/empty/", "docs/readme.txt", "docs/small.bin", "empty.bin", "large.bin", "last.bin"];
+const WRITE_ORDER_ENTRY_NAMES = ["large.bin", "docs/", "empty.bin", "last.bin", "docs/readme.txt", "docs/small.bin", "docs/empty/"];
 
 export { test };
 
@@ -30,7 +36,8 @@ async function test() {
 }
 
 async function testProgress(options) {
-	const watcher = createProgressWatcher(JSON.stringify(options));
+	const orderedNames = options.bufferedWrite === false ? WRITE_ORDER_ENTRY_NAMES : null;
+	const watcher = createProgressWatcher(JSON.stringify(options), orderedNames);
 	await createTree().exportUint8Array(Object.assign({}, options, watcher.options));
 	watcher.assertCompleted(7);
 }
@@ -56,16 +63,24 @@ function createTree() {
 	return zipFs;
 }
 
-function createProgressWatcher(label) {
+function createProgressWatcher(label, orderedNames) {
 	const starts = [];
 	const ends = [];
 	const totalSizes = new Set();
+	const entryProgresses = [];
+	const entryNames = [];
+	const totalEntries = new Set();
 	let previousProgress = 0;
 	let lastProgress = 0;
 	let progressCount = 0;
 	return {
 		options: {
 			onstart: total => starts.push(total),
+			onentryprogress: (progress, total, entry) => {
+				entryProgresses.push(progress);
+				totalEntries.add(total);
+				entryNames.push(entry.filename);
+			},
 			onprogress: (progress, totalSize) => {
 				if (!starts.length) {
 					throw new Error("progress reported before onstart (" + label + ")");
@@ -87,8 +102,26 @@ function createProgressWatcher(label) {
 			}
 			assertSingleEvent(starts, "onstart", label);
 			assertSingleEvent(ends, "onend", label);
+			assertEntryProgress(label);
 		}
 	};
+
+	function assertEntryProgress(label) {
+		const expectedProgresses = EXPECTED_ENTRY_NAMES.map((name, index) => index + 1);
+		if (entryProgresses.join() != expectedProgresses.join()) {
+			throw new Error("expected onentryprogress to count [" + expectedProgresses + "], got [" + entryProgresses + "] (" + label + ")");
+		}
+		if (totalEntries.size != 1 || !totalEntries.has(EXPECTED_ENTRY_NAMES.length)) {
+			throw new Error("expected onentryprogress to report " + EXPECTED_ENTRY_NAMES.length + " entries, got [" + [...totalEntries] + "] (" + label + ")");
+		}
+		const sortedNames = Array.from(entryNames).sort();
+		if (sortedNames.join() != EXPECTED_ENTRY_NAMES.join()) {
+			throw new Error("expected onentryprogress to report [" + EXPECTED_ENTRY_NAMES + "], got [" + sortedNames + "] (" + label + ")");
+		}
+		if (orderedNames && entryNames.join() != orderedNames.join()) {
+			throw new Error("expected onentryprogress to follow the write order [" + orderedNames + "], got [" + entryNames + "] (" + label + ")");
+		}
+	}
 }
 
 function assertSingleEvent(sizes, name, label) {

@@ -2,7 +2,7 @@
 // Compile with: npm run test-types
 import { fs as zipFs } from "../../index.js";
 import { ZipReader } from "../../index.js";
-import type { ZipEntry, ZipDirectoryEntry, ZipFileEntry } from "../../index.js";
+import type { ZipEntry, ZipDirectoryEntry, ZipFileEntry, EntryMetaData } from "../../index.js";
 
 const fs = new zipFs.FS();
 
@@ -28,12 +28,16 @@ const exportHandlePromise: Promise<unknown> = fs.exportFileSystemHandle(new Obje
 const signedExportPromise: Promise<Uint8Array> = fs.exportUint8Array({ signCentralDirectory: () => new Uint8Array(8) });
 const commentedExportPromise: Promise<Uint8Array> = fs.exportUint8Array({ globalComment: new Uint8Array(4) });
 const importZipReaderPromise: Promise<[ZipEntry]> = fs.importZip(new ZipReader(new Blob().stream(), { extractPrependedData: true }));
+const entryProgressExportPromise: Promise<Uint8Array> = fs.exportUint8Array({
+	onentryprogress: (progress: number, total: number, entry: EntryMetaData) => void [progress, total, entry.filename]
+});
 
 // silence unused-variable diagnostics
 void [root, entries, children, byName, byId, found, directory, textEntry,
 	importPromise, exportBlobPromise, importZipPromise, exportZipPromise,
 	protectedFlag, passwordPromise, readerPasswordPromise, exportHandlePromise,
-	signedExportPromise, commentedExportPromise, importZipReaderPromise];
+	signedExportPromise, commentedExportPromise, importZipReaderPromise,
+	entryProgressExportPromise];
 
 // members that do NOT exist on FS at runtime must NOT type-check
 // @ts-expect-error FS is not a file entry

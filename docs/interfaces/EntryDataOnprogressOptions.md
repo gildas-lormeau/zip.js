@@ -13,7 +13,8 @@ Represents options passed to [FileEntry#getData](FileEntry.md#getdata), [ZipWrit
 When passed to `{@link ZipDirectory}.export*`, these functions report the progress of the whole archive instead
 of the progress of each entry: [EntryDataOnprogressOptions#onstart](#onstart) and
 [EntryDataOnprogressOptions#onend](#onend) are called once, and the total number of bytes is the sum of the sizes
-of all the entries.
+of all the entries. Use [ZipDirectoryEntryExportOptions#onentryprogress](ZipDirectoryEntryExportOptions.md#onentryprogress) to be notified when each entry
+is written.
 
 ## Extended by
 

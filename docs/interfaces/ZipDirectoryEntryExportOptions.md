@@ -935,6 +935,50 @@ An empty promise or `undefined`.
 
 ***
 
+### onentryprogress()?
+
+> `optional` **onentryprogress**(`progress`, `total`, `entry`): `void` \| `Promise`\<`void`\>
+
+The function called each time an entry is written.
+
+#### Parameters
+
+##### progress
+
+`number`
+
+The number of entries written.
+
+##### total
+
+`number`
+
+The total number of entries.
+
+##### entry
+
+[`EntryMetaData`](EntryMetaData.md)
+
+The entry written.
+
+#### Returns
+
+`void` \| `Promise`\<`void`\>
+
+An empty promise or `undefined`.
+
+#### Remarks
+
+This function reports the entries whereas [EntryDataOnprogressOptions#onprogress](EntryDataOnprogressOptions.md#onprogress) reports the
+bytes. It is called once per entry, after the entry has been written, so `progress` reaches `total`
+when the last entry is written.
+
+When [ZipWriterConstructorOptions#bufferedWrite](ZipWriterConstructorOptions.md#bufferedwrite) is enabled, the entries are written
+concurrently: `progress` counts the entries written instead of giving the position of the entry in
+the zip file.
+
+***
+
 ### onprogress()?
 
 > `optional` **onprogress**(`progress`, `total`): `void` \| `Promise`\<`void`\>
