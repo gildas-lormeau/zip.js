@@ -1155,10 +1155,11 @@ export class ZipReader<Type> {
   /**
    * Closes the zip file
    *
-   * @remarks It currently does nothing: a {@link ZipReader} instance holds no resource of its own, and it
-   * neither closes nor cancels the {@link Reader} instance it reads from, which belongs to the caller. The
-   * entries returned by {@link ZipReader#getEntries} can therefore still be read after calling it. It
-   * remains the way to signal that the zip file will not be read anymore.
+   * @remarks It cancels the `ReadableStream` instance passed to the constructor when nothing has been read
+   * from it, which is the only resource a {@link ZipReader} instance can hold. It does nothing otherwise: the
+   * stream is already consumed once {@link ZipReader#getEntries} has read the entries into memory, and the
+   * {@link Reader} instances are never closed, they belong to the caller. The entries returned by
+   * {@link ZipReader#getEntries} can therefore still be read after calling it.
    */
   close(): Promise<void>;
 }

@@ -135,10 +135,11 @@ Closes the zip file
 
 #### Remarks
 
-It currently does nothing: a ZipReader instance holds no resource of its own, and it
-neither closes nor cancels the [Reader](Reader.md) instance it reads from, which belongs to the caller. The
-entries returned by [ZipReader#getEntries](#getentries) can therefore still be read after calling it. It
-remains the way to signal that the zip file will not be read anymore.
+It cancels the `ReadableStream` instance passed to the constructor when nothing has been read
+from it, which is the only resource a ZipReader instance can hold. It does nothing otherwise: the
+stream is already consumed once [ZipReader#getEntries](#getentries) has read the entries into memory, and the
+[Reader](Reader.md) instances are never closed, they belong to the caller. The entries returned by
+[ZipReader#getEntries](#getentries) can therefore still be read after calling it.
 
 ***
 

@@ -4970,6 +4970,10 @@
 		}
 
 		async close() {
+			const { reader } = this;
+			if (!reader.readUint8Array && reader.readable && !reader.readable.locked) {
+				await reader.readable.cancel();
+			}
 		}
 	}
 

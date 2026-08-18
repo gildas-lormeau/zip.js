@@ -178,6 +178,7 @@ export default ([
 	{ title: "Unix file type", script: "./test-unix-file-type.js" },
 	{ title: "Readable Stream", script: "./test-readable-stream.js" },
 	{ title: "Readable Zip Stream", script: "./test-readable-zip-stream.js" },
+	{ title: "Reader close", script: "./test-reader-close.js" },
 	{ title: "Remove entry", script: "./test-remove-entry.js" },
 	{ title: "Replace entry", script: "./test-replace-entry.js" },
 	{ title: "Safe closing", script: "./test-safe-closing.js" },
