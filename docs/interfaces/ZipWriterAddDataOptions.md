@@ -84,10 +84,12 @@ See [createOPFSTempStream](../functions/createOPFSTempStream.md) for a ready-mad
 
 #### Remarks
 
-The `readable` side is consumed only once the `writable` side has been closed, so the object must
-be able to hold a whole entry: a factory returning `new TransformStream()` deadlocks, its default queuing
-strategy holding a single chunk. The three implementations above buffer the entry in full, and
-`new TransformStream({}, undefined, { highWaterMark: entrySize })` does as well.
+The `readable` side is consumed only once the `writable` side has been closed, since the local
+header written before it holds the size and the CRC-32 of the entry. The object must therefore be able to
+hold a whole entry, either by buffering it like the default
+`new TransformStream(undefined, undefined, { highWaterMark: Infinity })` does, or by draining it like the
+three implementations above do. A factory returning `new TransformStream()` deadlocks instead, its default
+queuing strategy holding a single chunk.
 
 #### Inherited from
 
