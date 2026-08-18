@@ -25,7 +25,7 @@ async function test() {
 	const containedEntryOffset = view.getUint32(recordOffsets[1] + 42, true);
 	view.setUint32(recordOffsets[2] + 42, 0, true);
 	view.setUint32(recordOffsets[2] + 20, containedEntryOffset + 200, true);
-	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array), { checkOverlappingEntry: true });
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array), { checkOverlappingEntry: true, checkLocalDirectory: false });
 	const entries = await zipReader.getEntries();
 	try {
 		// the contained entry must be checked first to test that detection does not depend on the order

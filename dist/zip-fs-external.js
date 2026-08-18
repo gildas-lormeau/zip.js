@@ -5124,9 +5124,12 @@ let ZipEntry$1 = class ZipEntry {
 			extraFieldLength,
 			filenameLength
 		} = localDirectory;
-		const checkLocalDirectory = getCheckLocalDirectory(getOptionValue$1(zipEntry, options, OPTION_CHECK_LOCAL_DIRECTORY), getStrictness(options, zipEntry.options));
+		const checkLocalDirectoryOption = getOptionValue$1(zipEntry, options, OPTION_CHECK_LOCAL_DIRECTORY);
+		const entryStrictness = getStrictness(options, zipEntry.options);
+		const checkLocalDirectory = getCheckLocalDirectory(checkLocalDirectoryOption, entryStrictness);
+		const checkLocalFilename = getCheckLocalFilename(checkLocalDirectoryOption, entryStrictness);
 		let rawLocalFilename = EMPTY_UINT8_ARRAY;
-		if (checkLocalDirectory && (filenameLength || extraFieldLength)) {
+		if (checkLocalFilename && (filenameLength || extraFieldLength)) {
 			const trailingDataArray = await readUint8Array(reader, localHeaderOffset + HEADER_SIZE, filenameLength + extraFieldLength);
 			rawLocalFilename = trailingDataArray.subarray(0, filenameLength);
 			localDirectory.rawExtraField = trailingDataArray.subarray(filenameLength);
@@ -5137,7 +5140,7 @@ let ZipEntry$1 = class ZipEntry {
 		}
 		readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
 		if (checkLocalDirectory) {
-			validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename);
+			validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename, checkLocalFilename);
 		}
 		const { lastAccessDate, creationDate } = localDirectory;
 		if (lastAccessDate) {
@@ -5671,9 +5674,16 @@ function resolveStrictness(options, inheritedStrictness) {
 
 function getCheckLocalDirectory(checkLocalDirectory, strictness) {
 	if (checkLocalDirectory === UNDEFINED_VALUE) {
-		return strictness == STRICTNESS_STRICT;
+		return strictness != STRICTNESS_TOLERANT;
 	}
 	return Boolean(checkLocalDirectory);
+}
+
+function getCheckLocalFilename(checkLocalFilename, strictness) {
+	if (checkLocalFilename === UNDEFINED_VALUE) {
+		return strictness == STRICTNESS_STRICT;
+	}
+	return Boolean(checkLocalFilename);
 }
 
 function getFilenameValidation(filenameValidation, strictness) {
@@ -5821,10 +5831,11 @@ async function readSignature(reader, view, anchoredOffset, signatureOffset, size
 	return UNDEFINED_VALUE;
 }
 
-function validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename) {
+function validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename, checkLocalFilename) {
 	const { rawFilename } = zipEntry;
-	if (rawLocalFilename.length != rawFilename.length ||
-		rawLocalFilename.some((byteValue, indexByte) => byteValue != rawFilename[indexByte])) {
+	if (checkLocalFilename &&
+		(rawLocalFilename.length != rawFilename.length ||
+			rawLocalFilename.some((byteValue, indexByte) => byteValue != rawFilename[indexByte]))) {
 		throwAmbiguousArchive("mismatched local file header (filename)");
 	}
 	if ((localDirectory.rawBitFlag & BITFLAG_AMBIGUITY_MASK) != (zipEntry.rawBitFlag & BITFLAG_AMBIGUITY_MASK)) {

@@ -98,15 +98,14 @@ checks and disabled without giving up the rest of [ZipReaderOptions#strictness](
 validate the local file headers of a self-extracting archive, since
 [GetEntriesOptions#checkAmbiguity](ZipReaderGetEntriesOptions.md#checkambiguity) rejects prepended data outright.
 
-Comparing the general purpose bit flag, the compression method, the CRC-32 checksum and the sizes reads no
-additional data, because the local file header is read anyway to locate the entry data. Comparing the
-filename also reads the filename bytes.
-
-An explicit value takes precedence over the strictness default at every level.
+`true` compares the filename as well, like [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) set to `"strict"`; `false`
+compares nothing, like `"tolerant"`. An explicit value takes precedence over the strictness default at
+every level.
 
 #### Default Value
 
-`true` when [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) is `"strict"`, `false` otherwise.
+`true` when [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) is `"strict"` or `"balanced"`, `false` when
+it is `"tolerant"`.
 
 #### Inherited from
 
@@ -305,9 +304,18 @@ The `AbortSignal` instance used to cancel the decompression.
 > `optional` **strictness?**: `"balanced"` \| `"strict"` \| `"tolerant"`
 
 How tolerant the reader should be when the local file header of an entry disagrees with its central
-directory record. `"strict"` throws an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error (equivalent to
-[ZipReaderOptions#checkAmbiguity](ZipReaderOptions.md#checkambiguity) set to `true`); `"balanced"` and `"tolerant"` trust the central
-directory record.
+directory record. Any difference throws an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error.
+
+- `"strict"`: compare the filename, the general purpose bit flag, the compression method, the CRC-32
+checksum and the sizes.
+- `"balanced"`: compare everything except the filename.
+- `"tolerant"`: compare nothing and trust the central directory record.
+
+Every field except the filename is read from the local file header anyway, to locate the entry data, so
+the comparison `"balanced"` performs reads no additional bytes. Comparing the filename reads the filename
+bytes as well, which costs one extra read per entry whenever the local file header carries no extra field
+— the common case in practice. Use [ZipReaderOptions#checkLocalDirectory](ZipReaderOptions.md#checklocaldirectory) to request or suppress the
+whole comparison explicitly.
 
 #### Default Value
 

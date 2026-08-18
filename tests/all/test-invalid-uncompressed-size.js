@@ -7,7 +7,7 @@ export { test };
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const readable = (await fetch(new URL("../data/lorem-invalid-uncompressed-size.zip", import.meta.url))).body;
-	const zipReader = new zip.ZipReader(readable);
+	const zipReader = new zip.ZipReader(readable, { checkLocalDirectory: false });
 	const entries = await zipReader.getEntries();
 	try {
 		await entries[0].arrayBuffer();

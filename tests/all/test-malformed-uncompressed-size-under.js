@@ -8,7 +8,20 @@ async function test() {
 	zip.configure({ useWebWorkers: false });
 	try {
 		const bytes = new Uint8Array(await (await fetch(new URL("../data/malformed-uncompressed-size-under.zip", import.meta.url))).arrayBuffer());
-		const reader = new zip.ZipReader(new zip.Uint8ArrayReader(bytes));
+		const ambiguousReader = new zip.ZipReader(new zip.Uint8ArrayReader(bytes));
+		const [ambiguousEntry] = await ambiguousReader.getEntries();
+		let ambiguousError;
+		try {
+			await ambiguousEntry.getData(new zip.Uint8ArrayWriter());
+		} catch (thrown) {
+			ambiguousError = thrown;
+		} finally {
+			await ambiguousReader.close();
+		}
+		if (!ambiguousError || ambiguousError.message != zip.ERR_AMBIGUOUS_ARCHIVE) {
+			throw new Error("expected " + zip.ERR_AMBIGUOUS_ARCHIVE + ", got " + (ambiguousError && ambiguousError.message));
+		}
+		const reader = new zip.ZipReader(new zip.Uint8ArrayReader(bytes), { checkLocalDirectory: false });
 		const [entry] = await reader.getEntries();
 		let error;
 		try {
