@@ -59,8 +59,9 @@ async function testWriterPassThroughIsRejected() {
 }
 
 async function testWriterPassThroughWithKnownSizes() {
-	// the same source for both spellings: two source blobs would carry two write times, and the dos
-	// date of an entry only has a two second resolution
+	// the same source for both spellings: two source blobs would be written at two different times,
+	// and that time lands in the compared bytes twice, as a dos date and as a 0x5455 extra field
+	// whose one second resolution is what actually bounds how close the two writes must be
 	const source = await createSourceBlob({});
 	const importedFs = await importBlob(source, { passThrough: true });
 	const importedBytes = await exportBytes(source, {}, EXPORT_PASS_THROUGH_OPTIONS);
