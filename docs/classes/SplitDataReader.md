@@ -6,7 +6,13 @@
 
 # Class: SplitDataReader
 
-Represents a [Reader](Reader.md) instance used to read data provided as an array of [ReadableReader](../interfaces/ReadableReader.md) instances (e.g. split zip files).
+Represents a [Reader](Reader.md) instance used to read data provided as an array of [Reader](Reader.md) instances,
+[ReadableReader](../interfaces/ReadableReader.md) instances or `ReadableStream` instances (e.g. split zip files).
+
+## Remarks
+
+Elements that only provide a `ReadableStream` are buffered when the reader is initialized, since
+mapping a global offset onto a disk requires the size of every disk.
 
 ## Extends
 

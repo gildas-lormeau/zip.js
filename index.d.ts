@@ -724,7 +724,11 @@ export class Data64URIReader extends Reader<string> {}
 export class Uint8ArrayReader extends Reader<Uint8Array> {}
 
 /**
- * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
+ * Represents a {@link Reader} instance used to read data provided as an array of {@link Reader} instances,
+ * {@link ReadableReader} instances or `ReadableStream` instances (e.g. split zip files).
+ *
+ * @remarks Elements that only provide a `ReadableStream` are buffered when the reader is initialized, since
+ * mapping a global offset onto a disk requires the size of every disk.
  */
 export class SplitDataReader extends Reader<
   Reader<unknown>[] | ReadableReader[] | ReadableStream[]

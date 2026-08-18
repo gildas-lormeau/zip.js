@@ -4083,9 +4083,8 @@ class SplitDataReader extends Reader {
 
 	async init() {
 		const reader = this;
-		const { readers } = reader;
 		reader.lastDiskNumber = 0;
-		await Promise.all(readers.map(diskReader => initStream(diskReader)));
+		const readers = reader.readers = await Promise.all(reader.readers.map(initDiskReader));
 		reader.diskOffsets = readers.map(diskReader => {
 			const diskOffset = reader.size;
 			reader.size += diskReader.size;
@@ -4278,6 +4277,16 @@ async function initStream(stream, initSize) {
 	} else {
 		return Promise.resolve();
 	}
+}
+
+async function initDiskReader(diskReader) {
+	diskReader = new GenericReader(diskReader);
+	await initStream(diskReader);
+	if (diskReader.size === UNDEFINED_VALUE || !diskReader.readUint8Array) {
+		diskReader = new BlobReader(await streamToBlob(diskReader.readable));
+		await initStream(diskReader);
+	}
+	return diskReader;
 }
 
 function readUint8Array(reader, offset, size) {
