@@ -59,8 +59,11 @@ async function testWriterPassThroughIsRejected() {
 }
 
 async function testWriterPassThroughWithKnownSizes() {
-	const importedFs = await importBlob(await createSourceBlob({}), { passThrough: true });
-	const importedBytes = await exportBytes(await createSourceBlob({}), {}, EXPORT_PASS_THROUGH_OPTIONS);
+	// the same source for both spellings: two source blobs would carry two write times, and the dos
+	// date of an entry only has a two second resolution
+	const source = await createSourceBlob({});
+	const importedFs = await importBlob(source, { passThrough: true });
+	const importedBytes = await exportBytes(source, {}, EXPORT_PASS_THROUGH_OPTIONS);
 	const bothSpellings = new Uint8Array(await (await importedFs.exportBlob({ passThrough: true })).arrayBuffer());
 	if (!bytesEqual(bothSpellings, importedBytes)) {
 		throw new Error("the writer option should be redundant when every entry is already exported as-is");
