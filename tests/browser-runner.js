@@ -12,6 +12,10 @@ import safari from "selenium-webdriver/safari.js";
 
 const SUITE_TIMEOUT = 600000;
 const POLL_INTERVAL = 500;
+// safari on the macos runner sometimes loses its window or its whole session mid-suite, which says
+// nothing about the code under test, so the suite is run again once with a fresh browser
+const MAX_SUITE_ATTEMPTS = 2;
+const BROWSER_LOST_ERRORS = ["NoSuchWindowError", "NoSuchSessionError"];
 const ZIP_LIB_PATH = "/tests/zip-lib.js";
 const BUILD_MODULES = {
 	wasm: null,
@@ -80,19 +84,36 @@ async function main({ browserName, headless, executablePath, urlSearch, buildMod
 	const server = httpServer.createServer(serverOptions);
 	await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 	const { port } = server.server.address();
+	let testResults;
+	try {
+		for (let attempt = 1; !testResults; attempt++) {
+			try {
+				testResults = await runSuite({ browserName, headless, executablePath, urlSearch, port });
+			} catch (error) {
+				if (attempt >= MAX_SUITE_ATTEMPTS || !BROWSER_LOST_ERRORS.includes(error.name)) {
+					throw error;
+				}
+				console.error(browserName + ": the browser was lost (" + error.name + "), starting it again");
+			}
+		}
+	} finally {
+		server.close();
+	}
+	for (const failure of testResults.failures) {
+		console.error("FAIL " + failure.title + " (" + failure.script + ")");
+		console.error("  " + (failure.stack || failure.message || "unknown error"));
+	}
+	console.log(browserName + ": " + testResults.passed + " pass, " + testResults.failures.length + " fail" +
+		(testResults.skipped ? ", " + testResults.skipped + " skipped" : ""));
+	process.exit(testResults.failures.length || !testResults.done ? 1 : 0);
+}
+
+async function runSuite({ browserName, headless, executablePath, urlSearch, port }) {
 	const profileDirectory = await mkdtemp(join(tmpdir(), "zip-js-tests-"));
 	const driver = await launchBrowserDriver(profileDirectory, { browserName, headless, executablePath });
-
 	try {
 		await driver.get(`http://127.0.0.1:${port}/tests/${urlSearch ? "?" + urlSearch : ""}`);
-		const testResults = await getTestResults(driver);
-		for (const failure of testResults.failures) {
-			console.error("FAIL " + failure.title + " (" + failure.script + ")");
-			console.error("  " + (failure.stack || failure.message || "unknown error"));
-		}
-		console.log(browserName + ": " + testResults.passed + " pass, " + testResults.failures.length + " fail" +
-			(testResults.skipped ? ", " + testResults.skipped + " skipped" : ""));
-		process.exit(testResults.failures.length || !testResults.done ? 1 : 0);
+		return await getTestResults(driver);
 	} finally {
 		try {
 			await driver.quit();
@@ -100,7 +121,6 @@ async function main({ browserName, headless, executablePath, urlSearch, buildMod
 			// ignore quit error for legacy browsers
 		}
 		await rm(profileDirectory, { recursive: true, force: true });
-		server.close();
 	}
 }
 
