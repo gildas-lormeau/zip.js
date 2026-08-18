@@ -1393,6 +1393,23 @@ export interface ZipReaderOptions {
    */
   checkAmbiguity?: boolean;
   /**
+   * `true` to validate the local file header of the entry against its central directory record when calling
+   * {@link FileEntry#getData}, `false` to skip that validation. This is the entry-level half of
+   * {@link ZipReaderOptions#checkAmbiguity}, exposed on its own so it can be enabled without the archive-level
+   * checks and disabled without giving up the rest of {@link ZipReaderOptions#strictness}. It is the only way to
+   * validate the local file headers of a self-extracting archive, since
+   * {@link GetEntriesOptions#checkAmbiguity} rejects prepended data outright.
+   *
+   * Comparing the general purpose bit flag, the compression method, the CRC-32 checksum and the sizes reads no
+   * additional data, because the local file header is read anyway to locate the entry data. Comparing the
+   * filename also reads the filename bytes.
+   *
+   * An explicit value takes precedence over the strictness default at every level.
+   *
+   * @defaultValue `true` when {@link ZipReaderOptions#strictness} is `"strict"`, `false` otherwise.
+   */
+  checkLocalDirectory?: boolean;
+  /**
    * `true` to check only if the password is valid.
    *
    * @defaultValue false

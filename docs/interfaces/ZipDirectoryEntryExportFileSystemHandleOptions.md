@@ -87,6 +87,33 @@ false
 
 ***
 
+### checkLocalDirectory?
+
+> `optional` **checkLocalDirectory?**: `boolean`
+
+`true` to validate the local file header of the entry against its central directory record when calling
+[FileEntry#getData](FileEntry.md#getdata), `false` to skip that validation. This is the entry-level half of
+[ZipReaderOptions#checkAmbiguity](ZipReaderOptions.md#checkambiguity), exposed on its own so it can be enabled without the archive-level
+checks and disabled without giving up the rest of [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness). It is the only way to
+validate the local file headers of a self-extracting archive, since
+[GetEntriesOptions#checkAmbiguity](ZipReaderGetEntriesOptions.md#checkambiguity) rejects prepended data outright.
+
+Comparing the general purpose bit flag, the compression method, the CRC-32 checksum and the sizes reads no
+additional data, because the local file header is read anyway to locate the entry data. Comparing the
+filename also reads the filename bytes.
+
+An explicit value takes precedence over the strictness default at every level.
+
+#### Default Value
+
+`true` when [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) is `"strict"`, `false` otherwise.
+
+#### Inherited from
+
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`checkLocalDirectory`](EntryGetDataOptions.md#checklocaldirectory)
+
+***
+
 ### checkOverlappingEntry?
 
 > `optional` **checkOverlappingEntry?**: `boolean`

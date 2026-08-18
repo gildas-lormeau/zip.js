@@ -5,6 +5,7 @@ export { test };
 const APPENDED_DATA_LENGTH = 30;
 const OVER_BALANCED_APPENDED_DATA_LENGTH = 70000;
 const LOCAL_HEADER_CRC32_OFFSET = 14;
+const PREPENDED_DATA_LENGTH = 64;
 
 const CASES = [
 	{ name: "no option", readerOptions: {}, callOptions: {}, strict: false },
@@ -35,6 +36,12 @@ async function test() {
 		await assertInvalidStrictness({ strictness: "bogus" }, {}, "invalid strictness on the reader");
 		await assertInvalidStrictness({}, { strictness: "bogus" }, "invalid strictness on the call");
 		await assertInvalidStrictness({ strictness: "bogus" }, { strictness: "tolerant" }, "invalid strictness on the reader with a valid call value");
+		await assertLocalDirectoryChecked(mismatchedData, {}, { checkLocalDirectory: true }, true, "checkLocalDirectory on the call");
+		await assertLocalDirectoryChecked(mismatchedData, { checkLocalDirectory: true }, {}, true, "checkLocalDirectory on the reader");
+		await assertLocalDirectoryChecked(mismatchedData, { strictness: "strict" }, { checkLocalDirectory: false }, false, "checkLocalDirectory false over a strict reader");
+		await assertLocalDirectoryChecked(mismatchedData, { checkLocalDirectory: false }, { strictness: "strict" }, false, "checkLocalDirectory false beats a strict call");
+		await assertLocalDirectoryChecked(mismatchedData, { checkAmbiguity: true }, {}, true, "checkAmbiguity still implies the local directory check");
+		await assertSelfExtractingChecked(mismatchedData);
 	} finally {
 		await zip.terminateWorkers();
 	}
@@ -109,6 +116,42 @@ async function assertRejected(data, readerOptions, callOptions, name) {
 		return;
 	}
 	throw new Error(`${name}: expected an ambiguous archive error`);
+}
+
+async function assertLocalDirectoryChecked(data, readerOptions, callOptions, expected, name) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), readerOptions);
+	const entries = await zipReader.getEntries();
+	let rejected = false;
+	try {
+		await entries[0].getData(new zip.Uint8ArrayWriter(), callOptions);
+	} catch (error) {
+		if (error.message != zip.ERR_AMBIGUOUS_ARCHIVE) {
+			throw error;
+		}
+		rejected = true;
+	}
+	await zipReader.close();
+	if (rejected !== expected) {
+		throw new Error(`${name}: getData ${rejected ? "rejected" : "accepted"} a mismatched local file header, expected the opposite`);
+	}
+}
+
+async function assertSelfExtractingChecked(data) {
+	const selfExtractingData = new Uint8Array(PREPENDED_DATA_LENGTH + data.length);
+	selfExtractingData.fill(0x4d, 0, PREPENDED_DATA_LENGTH);
+	selfExtractingData.set(data, PREPENDED_DATA_LENGTH);
+	await assertLocalDirectoryChecked(selfExtractingData, { extractPrependedData: true }, {}, false, "self-extracting archive without the check");
+	await assertLocalDirectoryChecked(selfExtractingData, { extractPrependedData: true, checkLocalDirectory: true }, {}, true, "self-extracting archive with the check");
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(selfExtractingData), { extractPrependedData: true, checkAmbiguity: true });
+	try {
+		await zipReader.getEntries();
+	} catch (error) {
+		if (error.reason != "prepended data") {
+			throw error;
+		}
+		return;
+	}
+	throw new Error("self-extracting archive: checkAmbiguity was expected to reject prepended data");
 }
 
 async function assertInvalidStrictness(readerOptions, callOptions, name) {

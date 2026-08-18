@@ -4560,6 +4560,7 @@ const OPTION_CHECK_PASSWORD_ONLY = "checkPasswordOnly";
 const OPTION_CHECK_OVERLAPPING_ENTRY_ONLY = "checkOverlappingEntryOnly";
 const OPTION_CHECK_OVERLAPPING_ENTRY = "checkOverlappingEntry";
 const OPTION_CHECK_AMBIGUITY = "checkAmbiguity";
+const OPTION_CHECK_LOCAL_DIRECTORY = "checkLocalDirectory";
 const OPTION_CHECK_SIGNATURE = "checkSignature";
 const OPTION_CHECK_CRC32 = "checkCrc32";
 const OPTION_CHECK_AUTHENTICATION_CODE = "checkAuthenticationCode";
@@ -5123,9 +5124,9 @@ let ZipEntry$1 = class ZipEntry {
 			extraFieldLength,
 			filenameLength
 		} = localDirectory;
-		const checkAmbiguity = getStrictness(options, zipEntry.options) == STRICTNESS_STRICT;
+		const checkLocalDirectory = getCheckLocalDirectory(getOptionValue$1(zipEntry, options, OPTION_CHECK_LOCAL_DIRECTORY), getStrictness(options, zipEntry.options));
 		let rawLocalFilename = EMPTY_UINT8_ARRAY;
-		if (checkAmbiguity && (filenameLength || extraFieldLength)) {
+		if (checkLocalDirectory && (filenameLength || extraFieldLength)) {
 			const trailingDataArray = await readUint8Array(reader, localHeaderOffset + HEADER_SIZE, filenameLength + extraFieldLength);
 			rawLocalFilename = trailingDataArray.subarray(0, filenameLength);
 			localDirectory.rawExtraField = trailingDataArray.subarray(filenameLength);
@@ -5135,8 +5136,8 @@ let ZipEntry$1 = class ZipEntry {
 				EMPTY_UINT8_ARRAY;
 		}
 		readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
-		if (checkAmbiguity) {
-			checkLocalDirectory(zipEntry, localDirectory, rawLocalFilename);
+		if (checkLocalDirectory) {
+			validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename);
 		}
 		const { lastAccessDate, creationDate } = localDirectory;
 		if (lastAccessDate) {
@@ -5668,6 +5669,13 @@ function resolveStrictness(options, inheritedStrictness) {
 	return inheritedStrictness == STRICTNESS_TOLERANT ? STRICTNESS_TOLERANT : STRICTNESS_BALANCED;
 }
 
+function getCheckLocalDirectory(checkLocalDirectory, strictness) {
+	if (checkLocalDirectory === UNDEFINED_VALUE) {
+		return strictness == STRICTNESS_STRICT;
+	}
+	return Boolean(checkLocalDirectory);
+}
+
 function getFilenameValidation(filenameValidation, strictness) {
 	if (filenameValidation === UNDEFINED_VALUE) {
 		return strictness;
@@ -5813,7 +5821,7 @@ async function readSignature(reader, view, anchoredOffset, signatureOffset, size
 	return UNDEFINED_VALUE;
 }
 
-function checkLocalDirectory(zipEntry, localDirectory, rawLocalFilename) {
+function validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename) {
 	const { rawFilename } = zipEntry;
 	if (rawLocalFilename.length != rawFilename.length ||
 		rawLocalFilename.some((byteValue, indexByte) => byteValue != rawFilename[indexByte])) {
