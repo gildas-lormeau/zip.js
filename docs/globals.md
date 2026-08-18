@@ -61,6 +61,7 @@
 - [HttpOptions](interfaces/HttpOptions.md)
 - [HttpRangeOptions](interfaces/HttpRangeOptions.md)
 - [Initializable](interfaces/Initializable.md)
+- [LocalDataDescriptor](interfaces/LocalDataDescriptor.md)
 - [LocalDirectory](interfaces/LocalDirectory.md)
 - [OPFSTempStreamOptions](interfaces/OPFSTempStreamOptions.md)
 - [ReadableReader](interfaces/ReadableReader.md)

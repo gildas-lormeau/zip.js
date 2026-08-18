@@ -122,9 +122,7 @@ const WRITER_OPTIONS = {
 	versionMadeBy: { properties: ["versionMadeBy"] },
 	useUnicodeFileNames: { properties: ["filenameUTF8", "commentUTF8"] },
 	dataDescriptor: { properties: ["bitFlag.dataDescriptor"] },
-	dataDescriptorSignature: {
-		writeOnly: "the reader locates the end of the data descriptor from the central directory sizes, so it never has to read the signature, and reporting it would cost a read after the data of every entry for a value only a byte-level rewriter acts on"
-	},
+	dataDescriptorSignature: { properties: ["localDirectory.dataDescriptor"] },
 	msDosCompatible: { properties: ["msDosCompatible"] },
 	externalFileAttributes: { properties: ["externalFileAttributes"] },
 	externalFileAttribute: { deprecated: "externalFileAttributes" },

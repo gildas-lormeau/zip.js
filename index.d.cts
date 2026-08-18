@@ -1696,6 +1696,35 @@ export interface EntryExtraFieldUnix extends EntryExtraField {
   gid?: number;
 }
 /**
+ * Represents the data descriptor record written after the content of an entry, when
+ * {@link EntryBitFlag#dataDescriptor} is set.
+ */
+export interface LocalDataDescriptor {
+  /**
+   * `true` if the record is preceded by its optional signature.
+   *
+   * The signature is not part of the original format, it is a later convention writers are free to follow. It is
+   * reported as absent when the values following it disagree with the central directory, since the record is then
+   * read as starting at the first byte.
+   */
+  signature: boolean;
+  /**
+   * The CRC-32 checksum stored in the record, which is allowed to differ from {@link EntryMetaData#crc32}.
+   */
+  crc32: number;
+  /**
+   * The compressed size stored in the record, which is allowed to differ from
+   * {@link EntryMetaData#compressedSize}.
+   */
+  compressedSize: number;
+  /**
+   * The uncompressed size stored in the record, which is allowed to differ from
+   * {@link EntryMetaData#uncompressedSize}.
+   */
+  uncompressedSize: number;
+}
+
+/**
  * Represents the local file header fields of an entry, read when getting the entry data.
  */
 export interface LocalDirectory {
@@ -1739,6 +1768,23 @@ export interface LocalDirectory {
    * The extra field.
    */
   extraField?: Map<number, EntryExtraField>;
+  /**
+   * The filename of the entry stored in the local file header (raw), which is allowed to differ from
+   * {@link EntryMetaData#rawFilename}.
+   *
+   * Only defined when the local filename has been read, i.e. when the {@link ZipReaderOptions#strictness} option
+   * is set to `"strict"` or when the {@link ZipReaderOptions#checkLocalDirectory} option is set to `true`, since
+   * reading it costs one read the central directory does not need.
+   */
+  rawFilename?: Uint8Array;
+  /**
+   * The data descriptor record written after the content, when the entry has one.
+   *
+   * Only defined when the record has been read, i.e. when the {@link ZipReaderOptions#checkOverlappingEntry} or
+   * the {@link ZipReaderOptions#checkOverlappingEntryOnly} option is set to `true`, since the sizes stored in the
+   * central directory make it unnecessary to read it otherwise.
+   */
+  dataDescriptor?: LocalDataDescriptor;
   /**
    * The CRC-32 checksum of the content.
    */

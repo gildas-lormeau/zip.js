@@ -5103,6 +5103,9 @@ let ZipEntry$1 = class ZipEntry {
 				await readUint8Array(reader, localHeaderOffset + HEADER_SIZE + filenameLength, extraFieldLength) :
 				EMPTY_UINT8_ARRAY;
 		}
+		if (checkLocalFilename) {
+			localDirectory.rawFilename = rawLocalFilename;
+		}
 		readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
 		if (checkLocalDirectory) {
 			validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename, checkLocalFilename);
@@ -5571,25 +5574,24 @@ async function detectOverlappingEntry({
 	}
 	if (dataDescriptorLength) {
 		const dataDescriptorArray = await readUint8Array(reader, dataOffset + compressedSize, dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH);
-		const dataDescriptorSignature = dataDescriptorArray.length == dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH &&
-			getUint32(getDataView(dataDescriptorArray), 0) == DATA_DESCRIPTOR_RECORD_SIGNATURE;
-		if (dataDescriptorSignature) {
-			const readCrc32 = getUint32(getDataView(dataDescriptorArray), 4);
-			let readCompressedSize;
-			let readUncompressedSize;
-			if (extraFieldZip64) {
-				readCompressedSize = getBigUint64(getDataView(dataDescriptorArray), 8);
-				readUncompressedSize = getBigUint64(getDataView(dataDescriptorArray), 16);
-			} else {
-				readCompressedSize = getUint32(getDataView(dataDescriptorArray), 8);
-				readUncompressedSize = getUint32(getDataView(dataDescriptorArray), 12);
-			}
-			const matchCrc32 = (fileEntry.encrypted && !fileEntry.zipCrypto) || readCrc32 == crc32;
+		const dataDescriptorView = getDataView(dataDescriptorArray);
+		let signature = dataDescriptorArray.length == dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH &&
+			getUint32(dataDescriptorView, 0) == DATA_DESCRIPTOR_RECORD_SIGNATURE;
+		if (signature) {
+			const signedDataDescriptor = readDataDescriptor(dataDescriptorView, DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH, extraFieldZip64);
+			const matchCrc32 = (fileEntry.encrypted && !fileEntry.zipCrypto) || signedDataDescriptor.crc32 == crc32;
 			if (matchCrc32 &&
-				readCompressedSize == compressedSize &&
-				readUncompressedSize == uncompressedSize) {
+				signedDataDescriptor.compressedSize == compressedSize &&
+				signedDataDescriptor.uncompressedSize == uncompressedSize) {
 				dataDescriptorLength += DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH;
+			} else {
+				signature = false;
 			}
+		}
+		if (dataDescriptorArray.length >= dataDescriptorLength) {
+			const localDataDescriptor = readDataDescriptor(dataDescriptorView, signature ? DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH : 0, extraFieldZip64);
+			localDataDescriptor.signature = signature;
+			fileEntry.localDirectory.dataDescriptor = localDataDescriptor;
 		}
 	}
 	const range = {
@@ -5605,6 +5607,20 @@ async function detectOverlappingEntry({
 		}
 	}
 	readRanges.set(index, range);
+}
+
+function readDataDescriptor(dataDescriptorView, offset, extraFieldZip64) {
+	const crc32 = getUint32(dataDescriptorView, offset);
+	let compressedSize;
+	let uncompressedSize;
+	if (extraFieldZip64) {
+		compressedSize = getBigUint64(dataDescriptorView, offset + 4);
+		uncompressedSize = getBigUint64(dataDescriptorView, offset + 12);
+	} else {
+		compressedSize = getUint32(dataDescriptorView, offset + 4);
+		uncompressedSize = getUint32(dataDescriptorView, offset + 8);
+	}
+	return { crc32, compressedSize, uncompressedSize };
 }
 
 function getDiskOffset$1(reader, diskNumber) {

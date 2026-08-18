@@ -19,6 +19,7 @@ export default ([
 	{ title: "Foreign streams", script: "./test-foreign-streams.js" },
 	{ title: "Ambiguity check", script: "./test-check-ambiguity.js" },
 	{ title: "Strictness precedence", script: "./test-strictness-precedence.js" },
+	{ title: "Local directory fields", script: "./test-local-directory-fields.js" },
 	{ title: "End of central directory selection", script: "./test-end-of-central-directory.js" },
 	{ title: "Malformed zip files", script: "./test-malformed-zip.js" },
 	{ title: "Malformed: EOCD too short", script: "./test-malformed-eocd-too-short.js" },

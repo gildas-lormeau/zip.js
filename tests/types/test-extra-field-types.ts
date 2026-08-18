@@ -76,7 +76,17 @@ const data: (Uint8Array | undefined)[] = [
 // the raw NTFS dates reach the entry as well
 const entryRawDates: (number | bigint | undefined)[] = [entry.rawLastModDate, entry.rawLastAccessDate, entry.rawCreationDate];
 
+// the local file header reports the values it had to read
+const dataDescriptorSignature: boolean | undefined = localDirectory.dataDescriptor?.signature;
+const dataDescriptorValues: (number | undefined)[] = [
+	localDirectory.dataDescriptor?.crc32,
+	localDirectory.dataDescriptor?.compressedSize,
+	localDirectory.dataDescriptor?.uncompressedSize
+];
+const localRawFilename: Uint8Array | undefined = localDirectory.rawFilename;
+
 export {
 	zip64Sizes, ntfsDates, ntfsRawDates, timestampDates, timestampRawDates, unixIds,
-	unicodeVersion, unicodeFilename, unicodeComment, unicodeValid, aesMethods, types, data, entryRawDates
+	unicodeVersion, unicodeFilename, unicodeComment, unicodeValid, aesMethods, types, data, entryRawDates,
+	dataDescriptorSignature, dataDescriptorValues, localRawFilename
 };

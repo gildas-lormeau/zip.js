@@ -42,6 +42,18 @@ The CRC-32 checksum of the content.
 
 ***
 
+### dataDescriptor?
+
+> `optional` **dataDescriptor?**: [`LocalDataDescriptor`](LocalDataDescriptor.md)
+
+The data descriptor record written after the content, when the entry has one.
+
+Only defined when the record has been read, i.e. when the [ZipReaderOptions#checkOverlappingEntry](ZipReaderOptions.md#checkoverlappingentry) or
+the [ZipReaderOptions#checkOverlappingEntryOnly](ZipReaderOptions.md#checkoverlappingentryonly) option is set to `true`, since the sizes stored in the
+central directory make it unnecessary to read it otherwise.
+
+***
+
 ### encrypted
 
 > **encrypted**: `boolean`
@@ -184,6 +196,19 @@ The general purpose bit flag (raw).
 > **rawExtraField**: `Uint8Array`
 
 The extra field (raw).
+
+***
+
+### rawFilename?
+
+> `optional` **rawFilename?**: `Uint8Array`\<`ArrayBufferLike`\>
+
+The filename of the entry stored in the local file header (raw), which is allowed to differ from
+[EntryMetaData#rawFilename](EntryMetaData.md#rawfilename).
+
+Only defined when the local filename has been read, i.e. when the [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) option
+is set to `"strict"` or when the [ZipReaderOptions#checkLocalDirectory](ZipReaderOptions.md#checklocaldirectory) option is set to `true`, since
+reading it costs one read the central directory does not need.
 
 ***
 

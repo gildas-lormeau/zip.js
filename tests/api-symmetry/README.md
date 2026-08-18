@@ -68,10 +68,12 @@ that reason is the point: an asymmetry nobody can justify is a gap, one with a r
 | `extraFieldPkwareUnix` (0x000d) | read only | the PKWARE Unix field, written by no current tool and superseded by the Info-ZIP fields the writer emits |
 | `extraFieldUnicodePath` (0x7075) | read only | the writer marks UTF-8 filenames with the language encoding flag, which every current reader honors |
 | `extraFieldUnicodeComment` (0x6375) | read only | the writer marks UTF-8 comments with the language encoding flag, which every current reader honors |
-| `dataDescriptorSignature` | write only | the reader locates the end of the data descriptor from the central directory sizes, so it never has to read the signature, and reporting it would cost a read after the data of every entry for a value only a byte-level rewriter acts on |
 
 The four extra fields can still be written with the `extraField` and `localExtraField` options, which
 take the raw bytes of any type.
+
+Nothing is currently `writeOnly`. `dataDescriptorSignature` was, until the audit surfaced it and the
+reader started reporting the data descriptor it had already read.
 
 ## What the audit does not see
 
