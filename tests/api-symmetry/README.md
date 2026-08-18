@@ -75,8 +75,31 @@ take the raw bytes of any type.
 Nothing is currently `writeOnly`. `dataDescriptorSignature` was, until the audit surfaced it and the
 reader started reporting the data descriptor it had already read.
 
-## What the audit does not see
+## Shape audit
 
-It walks the extra field types zip.js already declares, so it cannot report a type nobody has
-implemented. The types found in real archives and parsed by no one, e.g. 0x4453 Windows NT security
-descriptors and 0x0017 strong encryption headers, are visible to the corpus runner instead.
+`npm run test-api-shape` runs [shape.js](shape.js), which answers a different question: not whether a
+member has a counterpart, but whether the objects the library builds match what `index.d.ts` says
+about them. It reads the interfaces, produces real entries through the public API, then checks that
+every non-optional member is defined and that every defined member holds a value of the declared
+type, recursing into the nested interfaces.
+
+The assertions are generated from the declarations, never from the observed values, so a declaration
+that promises what the library does not deliver fails here. A probe written the other way round, i.e.
+asserting the value it just read, always passes and proves nothing.
+
+A member legitimately absent on a given specimen goes in [shape-decisions.js](shape-decisions.js),
+keyed by specimen label and member path. An exception that stops firing fails too, so the file cannot
+accumulate rows that no longer describe anything.
+
+It also prints the declared members no specimen ever produced. That list is informative rather than a
+failure: it is where a member declared but unreachable would show up, and it grows shorter as the
+specimens get richer.
+
+## What the audits do not see
+
+The symmetry audit walks the extra field types zip.js already declares, so it cannot report a type
+nobody has implemented. The types found in real archives and parsed by no one, e.g. 0x4453 Windows NT
+security descriptors and 0x0017 strong encryption headers, are visible to the corpus runner instead.
+
+The shape audit compares each object against its declaration, never two objects against each other,
+so it does not see the reader and the writer disagreeing about a value they both define.

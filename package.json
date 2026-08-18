@@ -35,7 +35,7 @@
   },
   "scripts": {
     "lint": "npx eslint . && deno lint",
-    "test": "npm run test-node && npm run test-deno && npm run test-bun && npm run test-node-dist && npm run test-deno-dist && npm run test-bun-dist && npm run test-web-streams-polyfill && npm run test-types && npm run test-api-symmetry",
+    "test": "npm run test-node && npm run test-deno && npm run test-bun && npm run test-node-dist && npm run test-deno-dist && npm run test-bun-dist && npm run test-web-streams-polyfill && npm run test-types && npm run test-api-symmetry && npm run test-api-shape",
     "test-browsers": "npm run test-chrome && npm run test-firefox && npm run test-safari",
     "serve-tests": "http-server -p 8888 -c-1 .",
     "test-all": "npm run lint && npm run test && npm run test-browsers",
@@ -52,6 +52,7 @@
     "test-bun-dist": "./tests/dist-runner.sh bun",
     "test-types": "tsc -p ./tests/types/tsconfig.json",
     "test-api-symmetry": "node ./tests/api-symmetry/audit.js",
+    "test-api-shape": "node ./tests/api-symmetry/shape.js",
     "test-firefox": "node ./tests/browser-runner.js firefox",
     "test-chrome": "node ./tests/browser-runner.js chrome",
     "test-safari": "node ./tests/browser-runner.js safari"
