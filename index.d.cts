@@ -1790,15 +1790,19 @@ export interface EntryMetaData {
    */
   creationDate?: Date;
   /**
-   * The last modification date (raw).
+   * The last modification date (raw), as the MS-DOS date and time stored in the header. Unlike
+   * {@link EntryMetaData#lastModDate}, it is not replaced by the value of the NTFS extra field when that field
+   * is present; read {@link EntryMetaData#extraFieldNTFS} for the raw NTFS value.
    */
   rawLastModDate: number | bigint;
   /**
-   * The last access date (raw).
+   * The last access date (raw), as the Windows `FILETIME` value stored in the NTFS extra field. Only defined
+   * when that extra field is present.
    */
   rawLastAccessDate?: number | bigint;
   /**
-   * The creation date (raw).
+   * The creation date (raw), as the Windows `FILETIME` value stored in the NTFS extra field. Only defined when
+   * that extra field is present.
    */
   rawCreationDate?: number | bigint;
   /**

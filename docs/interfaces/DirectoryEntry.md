@@ -552,7 +552,8 @@ The comment of the entry (raw).
 
 > `optional` **rawCreationDate?**: `number` \| `bigint`
 
-The creation date (raw).
+The creation date (raw), as the Windows `FILETIME` value stored in the NTFS extra field. Only defined when
+that extra field is present.
 
 #### Inherited from
 
@@ -588,7 +589,8 @@ The filename of the entry (raw).
 
 > `optional` **rawLastAccessDate?**: `number` \| `bigint`
 
-The last access date (raw).
+The last access date (raw), as the Windows `FILETIME` value stored in the NTFS extra field. Only defined
+when that extra field is present.
 
 #### Inherited from
 
@@ -600,7 +602,9 @@ The last access date (raw).
 
 > **rawLastModDate**: `number` \| `bigint`
 
-The last modification date (raw).
+The last modification date (raw), as the MS-DOS date and time stored in the header. Unlike
+[EntryMetaData#lastModDate](EntryMetaData.md#lastmoddate), it is not replaced by the value of the NTFS extra field when that field
+is present; read [EntryMetaData#extraFieldNTFS](EntryMetaData.md#extrafieldntfs) for the raw NTFS value.
 
 #### Inherited from
 

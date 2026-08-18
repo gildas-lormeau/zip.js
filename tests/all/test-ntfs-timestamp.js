@@ -30,6 +30,12 @@ async function test() {
 	if (!creationDateEntry.extraFieldNTFS || creationDateEntry.creationDate.getTime() != IN_RANGE_DATE.getTime()) {
 		throw new Error();
 	}
+	if (creationDateEntry.rawCreationDate !== creationDateEntry.extraFieldNTFS.rawCreationDate ||
+		creationDateEntry.rawLastAccessDate !== creationDateEntry.extraFieldNTFS.rawLastAccessDate ||
+		typeof creationDateEntry.rawCreationDate != "bigint" ||
+		typeof creationDateEntry.rawLastModDate != "number") {
+		throw new Error();
+	}
 	const forcedEntry = await writeAndReadEntry({ lastModDate: IN_RANGE_DATE }, { ntfsTimestamp: true });
 	if (!forcedEntry.extraFieldNTFS) {
 		throw new Error();

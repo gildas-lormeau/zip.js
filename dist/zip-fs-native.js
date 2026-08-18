@@ -5461,7 +5461,7 @@
 			const creationDate = getDateNTFS(rawCreationDate);
 			const extraFieldData = { lastModDate, lastAccessDate, creationDate };
 			Object.assign(extraFieldNTFS, extraFieldData);
-			Object.assign(directory, extraFieldData);
+			Object.assign(directory, extraFieldData, { rawLastAccessDate, rawCreationDate });
 		}
 	}
 
