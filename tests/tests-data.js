@@ -33,6 +33,7 @@ export default ([
 	{ title: "Invalid chunk size configuration", script: "./test-config-chunk-size.js" },
 	{ title: "Writer edge cases", script: "./test-writer-edge-cases.js" },
 	{ title: "Writer streaming backpressure", script: "./test-writer-backpressure.js" },
+	{ title: "Writer streaming backpressure with a worker", script: "./test-writer-backpressure-worker.js" },
 	{ title: "Writer JS codec fallback on WASM load failure", script: "./test-writer-js-codec-fallback.js", features: ["compressionStream"] },
 	{ title: "WASM module load error", script: "./test-wasm-module-error.js", features: ["wasmBuild"] },
 	{ title: "Gzip fallback on missing deflate-raw", script: "./test-gzip-fallback.js", features: ["compressionStream"] },
