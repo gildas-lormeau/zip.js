@@ -27,7 +27,7 @@ const args = parseArgs({
 			type: "boolean",
 			short: "h",
 		},
-		"headful": {
+		"headed": {
 			type: "boolean",
 		},
 		"exe-path": {
@@ -54,14 +54,14 @@ if (args.values.build && !(args.values.build in BUILD_MODULES)) {
 
 main({
 	browserName: args.positionals[0],
-	headless: !args.values["headful"],
+	headless: !args.values["headed"],
 	executablePath: args.values["exe-path"],
 	urlSearch: args.values["url-search"],
 	buildModule: BUILD_MODULES[args.values.build],
 });
 
 function showHelp() {
-	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|safari [-h|--help] [--headful] [--exe-path <path>] [--url-search <search>] [--build wasm|native|external|dist]";
+	const usage = "usage: node ./tests/browser-runner.js chrome|firefox|safari [-h|--help] [--headed] [--exe-path <path>] [--url-search <search>] [--build wasm|native|external|dist]";
 	process.stdout.write(usage);
 }
 
