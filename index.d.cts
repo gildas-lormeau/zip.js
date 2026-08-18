@@ -1154,6 +1154,11 @@ export class ZipReader<Type> {
   ): AsyncGenerator<Entry, boolean>;
   /**
    * Closes the zip file
+   *
+   * @remarks It currently does nothing: a {@link ZipReader} instance holds no resource of its own, and it
+   * neither closes nor cancels the {@link Reader} instance it reads from, which belongs to the caller. The
+   * entries returned by {@link ZipReader#getEntries} can therefore still be read after calling it. It
+   * remains the way to signal that the zip file will not be read anymore.
    */
   close(): Promise<void>;
 }
@@ -2373,6 +2378,11 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * The optional `dispose` method is called once the entry has been processed (on success, error, or abort) so a resource-backed buffer can release its resource.
    *
    * See {@link createOPFSTempStream} for a ready-made OPFS-backed implementation, {@link createSyncAccessHandleTempStream} for a faster worker-only variant, and {@link createBlobTempStream} for a `Blob`-backed one.
+   *
+   * @remarks The `readable` side is consumed only once the `writable` side has been closed, so the object must
+   * be able to hold a whole entry: a factory returning `new TransformStream()` deadlocks, its default queuing
+   * strategy holding a single chunk. The three implementations above buffer the entry in full, and
+   * `new TransformStream({}, undefined, { highWaterMark: entrySize })` does as well.
    */
   createTempStream?: () => TempStream | Promise<TempStream>;
   /**
