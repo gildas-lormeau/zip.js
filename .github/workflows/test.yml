@@ -70,9 +70,11 @@ jobs:
             version: '79.0'
             url: 'https://ftp.mozilla.org/pub/firefox/releases/79.0/win64/en-US/Firefox%20Setup%2079.0.exe'
             search: 'withStreamsPolyfill'
+          # safari on the runner loses its whole session around the same test when 16 run at once
           - os: macos-latest
             browser: safari
             version: 'latest'
+            search: 'maxParallelTests=4'
 
           # native build
           - os: windows-latest
