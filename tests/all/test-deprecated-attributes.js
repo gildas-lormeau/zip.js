@@ -40,8 +40,17 @@ async function test() {
 	for (const testCase of CASES) {
 		const blobWriter = new zip.BlobWriter("application/zip");
 		const zipWriter = new zip.ZipWriter(blobWriter);
-		await zipWriter.add("hello.txt", new zip.TextReader("Hi"), testCase.options);
+		const addedEntry = await zipWriter.add("hello.txt", new zip.TextReader("Hi"), testCase.options);
 		await zipWriter.close();
+		if (addedEntry.externalFileAttribute !== addedEntry.externalFileAttributes) {
+			throw new Error(`${testCase.name}: ZipWriter#add should return externalFileAttribute (got ${addedEntry.externalFileAttribute})`);
+		}
+		if (addedEntry.internalFileAttribute !== addedEntry.internalFileAttributes) {
+			throw new Error(`${testCase.name}: ZipWriter#add should return internalFileAttribute (got ${addedEntry.internalFileAttribute})`);
+		}
+		if ((addedEntry.externalFileAttributes >>> 0) !== EXTERNAL_FILE_ATTRIBUTES) {
+			throw new Error(`${testCase.name}: ZipWriter#add externalFileAttributes mismatch (got ${(addedEntry.externalFileAttributes >>> 0).toString(16)})`);
+		}
 		const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 		const entries = await zipReader.getEntries();
 		await zipReader.close();

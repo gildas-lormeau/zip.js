@@ -4318,6 +4318,7 @@
 					index: indexFile,
 					versionMadeBy,
 					msDosCompatible,
+					zip64: false,
 					compressedSize: 0,
 					uncompressedSize: 0,
 					commentLength,
@@ -5581,8 +5582,6 @@
 			const diskOffset = getDiskOffset(zipWriter.writer);
 			const diskNumber = getDiskNumber(zipWriter.writer);
 			options = Object.assign({}, options, attributesInfo.resolvedOptions, metadataInfo.resolvedOptions, sizesInfo.resolvedOptions, {
-				internalFileAttribute: metadataInfo.resolvedOptions.internalFileAttributes,
-				externalFileAttribute: attributesInfo.resolvedOptions.externalFileAttributes,
 				signature: options[PROPERTY_NAME_SIGNATURE],
 				crc32: options.crc32 === UNDEFINED_VALUE ? options[PROPERTY_NAME_SIGNATURE] : options.crc32,
 				offset: zipWriter.offset - diskOffset,
@@ -5596,7 +5595,13 @@
 			zipWriter.files.delete(name);
 			throw error;
 		}
-		Object.assign(fileEntry, { name, comment, extraField });
+		Object.assign(fileEntry, {
+			name,
+			comment,
+			extraField,
+			[PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES]: fileEntry.internalFileAttributes,
+			[PROPERTY_NAME_DEPRECATED_EXTERNAL_FILE_ATTRIBUTES]: fileEntry.externalFileAttributes
+		});
 		return new Entry(fileEntry);
 	}
 
@@ -5710,17 +5715,19 @@
 		if (hasMsDosProvided) {
 			externalFileAttributes = (externalFileAttributes & MAX_32_BITS) | (msdosAttributesRaw & MAX_8_BITS);
 		}
+		const symlink = unixMode !== UNDEFINED_VALUE && ((unixMode & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_SYMLINK);
 		return {
 			name,
 			resolvedOptions: {
 				versionMadeBy,
-				msDosCompatible,
+				msDosCompatible: Boolean(msDosCompatible),
 				externalFileAttributes,
 				unixExternalUpper,
 				uid,
 				gid,
 				unixMode,
 				unixExtraFieldType,
+				symlink,
 				setuid,
 				setgid,
 				sticky,
@@ -6234,6 +6241,7 @@
 			uid,
 			gid,
 			unixMode,
+			symlink,
 			setuid,
 			setgid,
 			sticky,
@@ -6270,6 +6278,7 @@
 			uid,
 			gid,
 			unixMode,
+			symlink: Boolean(symlink),
 			setuid,
 			setgid,
 			sticky,
@@ -6350,8 +6359,8 @@
 			rawLastModDate,
 			creationDate,
 			lastAccessDate,
-			encrypted,
-			zipCrypto,
+			encrypted: Boolean(encrypted),
+			zipCrypto: Boolean(zipCrypto),
 			size: metadataSize + compressedSize,
 			compressionMethod,
 			version,

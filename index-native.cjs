@@ -4882,6 +4882,7 @@ class ZipReader {
 				index: indexFile,
 				versionMadeBy,
 				msDosCompatible,
+				zip64: false,
 				compressedSize: 0,
 				uncompressedSize: 0,
 				commentLength,
@@ -6249,8 +6250,6 @@ async function addFile(zipWriter, name, reader, options) {
 		const diskOffset = getDiskOffset(zipWriter.writer);
 		const diskNumber = getDiskNumber(zipWriter.writer);
 		options = Object.assign({}, options, attributesInfo.resolvedOptions, metadataInfo.resolvedOptions, sizesInfo.resolvedOptions, {
-			internalFileAttribute: metadataInfo.resolvedOptions.internalFileAttributes,
-			externalFileAttribute: attributesInfo.resolvedOptions.externalFileAttributes,
 			signature: options[PROPERTY_NAME_SIGNATURE],
 			crc32: options.crc32 === UNDEFINED_VALUE ? options[PROPERTY_NAME_SIGNATURE] : options.crc32,
 			offset: zipWriter.offset - diskOffset,
@@ -6264,7 +6263,13 @@ async function addFile(zipWriter, name, reader, options) {
 		zipWriter.files.delete(name);
 		throw error;
 	}
-	Object.assign(fileEntry, { name, comment, extraField });
+	Object.assign(fileEntry, {
+		name,
+		comment,
+		extraField,
+		[PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES]: fileEntry.internalFileAttributes,
+		[PROPERTY_NAME_DEPRECATED_EXTERNAL_FILE_ATTRIBUTES]: fileEntry.externalFileAttributes
+	});
 	return new Entry(fileEntry);
 }
 
@@ -6378,17 +6383,19 @@ function resolveAttributes(zipWriter, name, options) {
 	if (hasMsDosProvided) {
 		externalFileAttributes = (externalFileAttributes & MAX_32_BITS) | (msdosAttributesRaw & MAX_8_BITS);
 	}
+	const symlink = unixMode !== UNDEFINED_VALUE && ((unixMode & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_SYMLINK);
 	return {
 		name,
 		resolvedOptions: {
 			versionMadeBy,
-			msDosCompatible,
+			msDosCompatible: Boolean(msDosCompatible),
 			externalFileAttributes,
 			unixExternalUpper,
 			uid,
 			gid,
 			unixMode,
 			unixExtraFieldType,
+			symlink,
 			setuid,
 			setgid,
 			sticky,
@@ -6902,6 +6909,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		uid,
 		gid,
 		unixMode,
+		symlink,
 		setuid,
 		setgid,
 		sticky,
@@ -6938,6 +6946,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		uid,
 		gid,
 		unixMode,
+		symlink: Boolean(symlink),
 		setuid,
 		setgid,
 		sticky,
@@ -7018,8 +7027,8 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		rawLastModDate,
 		creationDate,
 		lastAccessDate,
-		encrypted,
-		zipCrypto,
+		encrypted: Boolean(encrypted),
+		zipCrypto: Boolean(zipCrypto),
 		size: metadataSize + compressedSize,
 		compressionMethod,
 		version,
