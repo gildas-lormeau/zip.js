@@ -36,12 +36,16 @@ export { test };
 
 async function test() {
 	const recordedNames = new Set();
+	let workerReplied = false;
 	const NativeWorker = Worker;
 	await zip.terminateWorkers();
 	globalThis.Worker = class extends NativeWorker {
 		constructor(...parameters) {
 			super(...parameters);
-			super.addEventListener("message", ({ data }) => recordNames(recordedNames, data));
+			super.addEventListener("message", ({ data }) => {
+				workerReplied = true;
+				recordNames(recordedNames, data);
+			});
 		}
 		postMessage(message, transfer) {
 			recordNames(recordedNames, message);
@@ -73,7 +77,11 @@ async function test() {
 	if (undeclaredNames.length) {
 		throw new Error("undeclared worker message properties: " + undeclaredNames.join(", "));
 	}
-	if (!recordedNames.has("codecImportFailed")) {
+	// an engine needing the streams polyfill cannot run the worker at all: the polyfill is loaded in
+	// the page, not in the worker, so the worker sees no TransformStream and dies before replying.
+	// zip.js then runs everything in the main scope, which leaves the names sent to the worker worth
+	// checking but makes the names it would have sent back unreachable.
+	if (workerReplied && !recordedNames.has("codecImportFailed")) {
 		throw new Error("the codec import failure was not reported by the worker");
 	}
 }
