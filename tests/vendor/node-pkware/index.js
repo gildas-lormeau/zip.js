@@ -1205,7 +1205,7 @@ var Explode = class {
 // package/dist/simple/Implode.js
 var SIZE_OF_HEADER = 3;
 var MAX_SIZE_OF_TERMINATION_LITERAL = 2;
-var lastOccurrences = {};
+var lastOccurrences;
 function getSizeOfMatching(view, a, b) {
   const limit = clamp(b - a, 2, LONGEST_ALLOWED_REPETITION);
   for (let i = 2; i <= limit; i++) {
@@ -1267,8 +1267,6 @@ var Implode = class {
   nChBits;
   nChCodes;
   constructor(input, compressionType, dictionarySize) {
-    // local patch: reset the module-level match table leaking between implode() calls
-    lastOccurrences = {};
     this.dictionarySizeMask = 0;
     this.distCodes = structuredClone(DistCode);
     this.distBits = structuredClone(DistBits);
@@ -1361,6 +1359,7 @@ var Implode = class {
     this.outputBufferSize = 3;
   }
   processInput(dictionarySize) {
+    lastOccurrences = {};
     if (this.inputBufferSize === 0) {
       return;
     }
