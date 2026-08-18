@@ -6042,6 +6042,10 @@ class ZipWriter {
 		}
 		reader = new GenericReader(reader);
 		await initStream(reader);
+		if (reader.size === UNDEFINED_VALUE || !reader.readUint8Array) {
+			reader = new BlobReader(await streamToBlob(reader.readable));
+			await initStream(reader);
+		}
 		const { ZipReader } = await Promise.resolve().then(function () { return zipReader; });
 		const zipReader$1 = new ZipReader(reader.readable);
 		const entries = await zipReader$1.getEntries();
