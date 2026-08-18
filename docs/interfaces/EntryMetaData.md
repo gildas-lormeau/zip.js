@@ -142,7 +142,7 @@ The AES extra field.
 
 ### extraFieldExtendedTimestamp?
 
-> `optional` **extraFieldExtendedTimestamp?**: [`EntryExtraField`](EntryExtraField.md)
+> `optional` **extraFieldExtendedTimestamp?**: [`EntryExtraFieldExtendedTimestamp`](EntryExtraFieldExtendedTimestamp.md)
 
 The extended timestamp extra field.
 
@@ -150,7 +150,7 @@ The extended timestamp extra field.
 
 ### extraFieldInfoZip?
 
-> `optional` **extraFieldInfoZip?**: [`EntryExtraField`](EntryExtraField.md)
+> `optional` **extraFieldInfoZip?**: [`EntryExtraFieldUnix`](EntryExtraFieldUnix.md)
 
 The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers.
 
@@ -166,7 +166,7 @@ The length of the extra field in bytes.
 
 ### extraFieldNTFS?
 
-> `optional` **extraFieldNTFS?**: [`EntryExtraField`](EntryExtraField.md)
+> `optional` **extraFieldNTFS?**: [`EntryExtraFieldNTFS`](EntryExtraFieldNTFS.md)
 
 The NTFS extra field.
 
@@ -198,7 +198,7 @@ The Unicode path extra field.
 
 ### extraFieldUnix?
 
-> `optional` **extraFieldUnix?**: [`EntryExtraField`](EntryExtraField.md)
+> `optional` **extraFieldUnix?**: [`EntryExtraFieldUnix`](EntryExtraFieldUnix.md)
 
 The Info-ZIP Unix type 2 extra field (0x7855). Its uid/gid are stored in the local file header only, the
 central directory version carries no data and merely flags their presence.
@@ -223,7 +223,7 @@ The USDZ extra field.
 
 ### extraFieldZip64?
 
-> `optional` **extraFieldZip64?**: [`EntryExtraField`](EntryExtraField.md)
+> `optional` **extraFieldZip64?**: [`EntryExtraFieldZip64`](EntryExtraFieldZip64.md)
 
 The Zip64 extra field.
 

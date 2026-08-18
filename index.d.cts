@@ -1540,9 +1540,14 @@ export interface EntryExtraFieldAES extends EntryExtraField {
    */
   vendorId?: number;
   /**
-   * The compression method stored in the AES extra field.
+   * The compression method stored in the header of the entry, i.e. `99` for a WinZip AES entry.
    */
   originalCompressionMethod?: number;
+  /**
+   * The real compression method of the entry, stored in the AES extra field because the header carries `99`
+   * instead. This is the value reported by {@link EntryMetaData#compressionMethod}.
+   */
+  compressionMethod?: number;
 }
 /**
  * Represents a Unix extra field record storing timestamps: the Info-ZIP Unix type 1 extra field (0x5855),
@@ -1576,6 +1581,119 @@ export interface EntryExtraFieldUnicode extends EntryExtraField {
    * `true` if the extra field is consistent with the entry metadata.
    */
   valid?: boolean;
+  /**
+   * The version of the extra field.
+   */
+  version?: number;
+  /**
+   * The filename stored in the extra field, when it is a Unicode path extra field (0x7075).
+   */
+  filename?: string;
+  /**
+   * The comment stored in the extra field, when it is a Unicode comment extra field (0x6375).
+   */
+  comment?: string;
+}
+/**
+ * Represents the Zip64 extra field record of an entry. Each property is only defined when the matching field
+ * of the header was set to its maximum value, i.e. when the real value had to be stored in the extra field.
+ */
+export interface EntryExtraFieldZip64 extends EntryExtraField {
+  /**
+   * The uncompressed size of the entry.
+   */
+  uncompressedSize?: number;
+  /**
+   * The compressed size of the entry.
+   */
+  compressedSize?: number;
+  /**
+   * The offset of the local file header of the entry.
+   */
+  offset?: number;
+  /**
+   * The number of the disk where the entry data starts.
+   */
+  diskNumberStart?: number;
+}
+/**
+ * Represents the NTFS extra field record of an entry (0x000a), storing the dates as Windows `FILETIME` values.
+ */
+export interface EntryExtraFieldNTFS extends EntryExtraField {
+  /**
+   * The last modification date.
+   */
+  lastModDate?: Date;
+  /**
+   * The last access date.
+   */
+  lastAccessDate?: Date;
+  /**
+   * The creation date.
+   */
+  creationDate?: Date;
+  /**
+   * The last modification date (raw), as a Windows `FILETIME` value.
+   */
+  rawLastModDate?: bigint;
+  /**
+   * The last access date (raw), as a Windows `FILETIME` value.
+   */
+  rawLastAccessDate?: bigint;
+  /**
+   * The creation date (raw), as a Windows `FILETIME` value.
+   */
+  rawCreationDate?: bigint;
+}
+/**
+ * Represents the extended timestamp extra field record of an entry (0x5455), storing the dates as 32-bit Unix
+ * times. The central directory record only carries the last modification date, the local file header carries
+ * the dates selected by the flags of the extra field.
+ */
+export interface EntryExtraFieldExtendedTimestamp extends EntryExtraField {
+  /**
+   * The last modification date.
+   */
+  lastModDate?: Date;
+  /**
+   * The last access date.
+   */
+  lastAccessDate?: Date;
+  /**
+   * The creation date.
+   */
+  creationDate?: Date;
+  /**
+   * The last modification date (raw), as a 32-bit Unix time.
+   */
+  rawLastModDate?: number;
+  /**
+   * The last access date (raw), as a 32-bit Unix time.
+   */
+  rawLastAccessDate?: number;
+  /**
+   * The creation date (raw), as a 32-bit Unix time.
+   */
+  rawCreationDate?: number;
+}
+/**
+ * Represents a Unix extra field record storing ownership: the Info-ZIP "new" Unix extra field (0x7875), read
+ * into {@link EntryMetaData#extraFieldInfoZip}, or the Info-ZIP "old" Unix extra field (0x7855), read into
+ * {@link EntryMetaData#extraFieldUnix}.
+ */
+export interface EntryExtraFieldUnix extends EntryExtraField {
+  /**
+   * The version of the extra field, only defined for the Info-ZIP "new" Unix extra field (0x7875).
+   */
+  version?: number;
+  /**
+   * The Unix user id.
+   */
+  uid?: number;
+  /**
+   * The Unix group id.
+   */
+  gid?: number;
 }
 /**
  * Represents the local file header fields of an entry, read when getting the entry data.
@@ -1646,7 +1764,7 @@ export interface LocalDirectory {
   /**
    * The Zip64 extra field.
    */
-  extraFieldZip64?: EntryExtraField;
+  extraFieldZip64?: EntryExtraFieldZip64;
   /**
    * The AES extra field.
    */
@@ -1654,16 +1772,16 @@ export interface LocalDirectory {
   /**
    * The NTFS extra field.
    */
-  extraFieldNTFS?: EntryExtraField;
+  extraFieldNTFS?: EntryExtraFieldNTFS;
   /**
    * The Info-ZIP Unix type 2 extra field (0x7855). Its uid/gid are stored in the local file header only, the
    * central directory version carries no data and merely flags their presence.
    */
-  extraFieldUnix?: EntryExtraField;
+  extraFieldUnix?: EntryExtraFieldUnix;
   /**
    * The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers.
    */
-  extraFieldInfoZip?: EntryExtraField;
+  extraFieldInfoZip?: EntryExtraFieldUnix;
   /**
    * The Info-ZIP Unix type 1 extra field (0x5855).
    */
@@ -1675,7 +1793,7 @@ export interface LocalDirectory {
   /**
    * The extended timestamp extra field.
    */
-  extraFieldExtendedTimestamp?: EntryExtraField;
+  extraFieldExtendedTimestamp?: EntryExtraFieldExtendedTimestamp;
   /**
    * The Unicode path extra field.
    */
@@ -1975,7 +2093,7 @@ export interface EntryMetaData {
   /**
    * The Zip64 extra field.
    */
-  extraFieldZip64?: EntryExtraField;
+  extraFieldZip64?: EntryExtraFieldZip64;
   /**
    * The AES extra field.
    */
@@ -1983,16 +2101,16 @@ export interface EntryMetaData {
   /**
    * The NTFS extra field.
    */
-  extraFieldNTFS?: EntryExtraField;
+  extraFieldNTFS?: EntryExtraFieldNTFS;
   /**
    * The Info-ZIP Unix type 2 extra field (0x7855). Its uid/gid are stored in the local file header only, the
    * central directory version carries no data and merely flags their presence.
    */
-  extraFieldUnix?: EntryExtraField;
+  extraFieldUnix?: EntryExtraFieldUnix;
   /**
    * The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers.
    */
-  extraFieldInfoZip?: EntryExtraField;
+  extraFieldInfoZip?: EntryExtraFieldUnix;
   /**
    * The Info-ZIP Unix type 1 extra field (0x5855).
    */
@@ -2004,7 +2122,7 @@ export interface EntryMetaData {
   /**
    * The extended timestamp extra field.
    */
-  extraFieldExtendedTimestamp?: EntryExtraField;
+  extraFieldExtendedTimestamp?: EntryExtraFieldExtendedTimestamp;
   /**
    * The Unicode path extra field.
    */

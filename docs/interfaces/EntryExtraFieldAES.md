@@ -14,6 +14,15 @@ Represents the AES extra field record of an entry.
 
 ## Properties
 
+### compressionMethod?
+
+> `optional` **compressionMethod?**: `number`
+
+The real compression method of the entry, stored in the AES extra field because the header carries `99`
+instead. This is the value reported by [EntryMetaData#compressionMethod](EntryMetaData.md#compressionmethod).
+
+***
+
 ### data
 
 > **data**: `Uint8Array`
@@ -30,7 +39,7 @@ The data of the extra field.
 
 > `optional` **originalCompressionMethod?**: `number`
 
-The compression method stored in the AES extra field.
+The compression method stored in the header of the entry, i.e. `99` for a WinZip AES entry.
 
 ***
 

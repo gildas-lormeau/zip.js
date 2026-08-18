@@ -13,6 +13,10 @@ Represents an extra field record of an entry.
 - [`EntryExtraFieldAES`](EntryExtraFieldAES.md)
 - [`EntryExtraFieldUnixDates`](EntryExtraFieldUnixDates.md)
 - [`EntryExtraFieldUnicode`](EntryExtraFieldUnicode.md)
+- [`EntryExtraFieldZip64`](EntryExtraFieldZip64.md)
+- [`EntryExtraFieldNTFS`](EntryExtraFieldNTFS.md)
+- [`EntryExtraFieldExtendedTimestamp`](EntryExtraFieldExtendedTimestamp.md)
+- [`EntryExtraFieldUnix`](EntryExtraFieldUnix.md)
 
 ## Properties
 
