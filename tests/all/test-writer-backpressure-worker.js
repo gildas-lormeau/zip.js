@@ -9,9 +9,10 @@
 // what has been written. Incompressible data keeps output ~= input, so "chunks read but not yet
 // written out" is a faithful proxy for retained memory.
 //
-// The in-process pump is not on this path: removing its awaited write leaves this test green and
-// fails the sibling instead. What this one catches is a deeper message pipeline, e.g. raising the
-// high water mark of the worker message streams.
+// The pump that paces the in-process path is bundled into the worker too, but it is not what bounds
+// this one: removing its awaited write and rebuilding the worker leaves this test green and fails
+// the sibling instead. What this one catches is a deeper message pipeline, e.g. raising the high
+// water mark of the worker message streams.
 
 import * as zip from "../zip-lib.js";
 
