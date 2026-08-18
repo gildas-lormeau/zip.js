@@ -20,9 +20,12 @@ jobs:
       contents: read
       actions: read
     steps:
+      # only used to resolve the tag to a commit, so it runs no code from the repository and keeps no
+      # git credentials behind
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
       - name: Wait for the tests of the released commit
         env:
           GH_TOKEN: ${{ github.token }}
