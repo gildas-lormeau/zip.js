@@ -2687,9 +2687,18 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    */
   version?: number;
   /**
-   * The "Version made by" field.
+   * The "Version made by" field, whose upper byte is the platform and lower byte the version of the
+   * specification.
    *
-   * @defaultValue 20
+   * The platform is not taken from the value passed here. It is forced to Unix (`3`) when the entry carries Unix
+   * metadata, i.e. when {@link ZipWriterConstructorOptions#uid}, {@link ZipWriterConstructorOptions#gid},
+   * {@link ZipWriterConstructorOptions#unixMode} or {@link ZipWriterConstructorOptions#unixExtraFieldType} is set,
+   * since Unix mode bits stored under another platform are ignored by the extractors. It is forced to MS-DOS (`0`)
+   * when {@link ZipWriterConstructorOptions#msdosAttributes} or
+   * {@link ZipWriterConstructorOptions#msdosAttributesRaw} is set. Only the lower byte of the value survives in
+   * both cases.
+   *
+   * @defaultValue 768, i.e. `3 << 8`, or 20 when {@link ZipWriterConstructorOptions#msDosCompatible} is set to `true`
    */
   versionMadeBy?: number;
   /**
@@ -2752,8 +2761,9 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * `0o120777` and use the path of the link target as the content of the entry. Extractors that
    * support symbolic links, e.g. Info-ZIP `unzip`, then restore the entry as a link.
    *
-   * When the value carries no file type, the type of the entry is added: `S_IFDIR` (`0o040000`)
-   * for a folder entry, `S_IFREG` (`0o100000`) otherwise. Set
+   * A folder entry is always written with `S_IFDIR` (`0o040000`), replacing any file type carried by the
+   * value, so the same mode can be set once on the writer and reused for every entry. Any other entry keeps
+   * the file type it is given, and is written with `S_IFREG` (`0o100000`) when the value carries none. Set
    * {@link ZipWriterConstructorOptions#externalFileAttributes} instead to write a mode with no
    * file type.
    */
