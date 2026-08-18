@@ -70,7 +70,8 @@ jobs:
             version: '79.0'
             url: 'https://ftp.mozilla.org/pub/firefox/releases/79.0/win64/en-US/Firefox%20Setup%2079.0.exe'
             search: 'withStreamsPolyfill'
-          - os: macos-latest
+          # pinned: safari loses its window or its session mid-suite on macos-latest, i.e. macos-26
+          - os: macos-15
             browser: safari
             version: 'latest'
 
