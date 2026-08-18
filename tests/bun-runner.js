@@ -5,6 +5,8 @@ import { test, beforeEach } from "bun:test";
 import tests from "./tests-data.js";
 import { resetConfiguration, terminateWorkers } from "./zip-lib.js";
 
+const TEST_TIMEOUT = 30000;
+
 beforeEach(() => globalThis.fetch = async url => {
 	const file = await Bun.file("." + url.toString().match(/(\/data\/.*)/)[1]);
 	return {
@@ -12,7 +14,7 @@ beforeEach(() => globalThis.fetch = async url => {
 		body: file.stream(),
 		arrayBuffer: () => file.arrayBuffer()
 	};
-});
+}, TEST_TIMEOUT);
 
 for (const testData of tests) {
 	if (!testData.env || testData.env.includes("bun")) {
@@ -23,6 +25,6 @@ for (const testData of tests) {
 				await terminateWorkers();
 				resetConfiguration();
 			}
-		});
+		}, TEST_TIMEOUT);
 	}
 }

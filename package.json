@@ -46,7 +46,7 @@
     "test-deno": "cd ./tests && deno test --allow-read ./deno-runner.js",
     "test-web-streams-polyfill": "cd ./tests && deno run --allow-read ./web-streams-polyfill-runner.js",
     "test-node": "cd ./tests && node ./node-runner.js",
-    "test-bun": "cd ./tests && bun test ./bun-runner.js --timeout 30000",
+    "test-bun": "cd ./tests && bun test ./bun-runner.js",
     "test-deno-dist": "./tests/dist-runner.sh deno",
     "test-node-dist": "./tests/dist-runner.sh node",
     "test-bun-dist": "./tests/dist-runner.sh bun",
