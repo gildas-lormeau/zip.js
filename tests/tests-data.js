@@ -82,6 +82,7 @@ export default ([
 	{ title: "Duplicated Filename", script: "./test-duplicated-filename.js" },
 	{ title: "Empty zip file", script: "./test-empty.js" },
 	{ title: "Entry count from total field", script: "./test-entry-count-total.js" },
+	{ title: "Entry header fields", script: "./test-entry-header-fields.js" },
 	{ title: "Extended timestamp", script: "./test-extended-timestamp.js" },
 	{ title: "NTFS timestamp", script: "./test-ntfs-timestamp.js" },
 	{ title: "DOS date rounding", script: "./test-dos-date-rounding.js" },
