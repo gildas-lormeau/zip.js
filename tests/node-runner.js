@@ -3,7 +3,7 @@ import { setMaxListeners } from "node:events";
 import { openAsBlob } from "node:fs";
 
 import tests from "./tests-data.js";
-import { resetConfiguration } from "./zip-lib.js";
+import { resetConfiguration, terminateWorkers } from "./zip-lib.js";
 
 setMaxListeners(100);
 
@@ -24,6 +24,7 @@ for (const testData of tests) {
 				try {
 					await (await import("./all/" + testData.script)).test();
 				} finally {
+					await terminateWorkers();
 					resetConfiguration();
 				}
 			}

@@ -1,7 +1,7 @@
 /* global Deno */
 
 import tests from "./tests-data.js";
-import { resetConfiguration } from "./zip-lib.js";
+import { resetConfiguration, terminateWorkers } from "./zip-lib.js";
 
 for (const testData of tests) {
 	if (!testData.env || testData.env.includes("deno")) {
@@ -11,6 +11,7 @@ for (const testData of tests) {
 				try {
 					await (await import("./all/" + testData.script)).test();
 				} finally {
+					await terminateWorkers();
 					resetConfiguration();
 				}
 			},
