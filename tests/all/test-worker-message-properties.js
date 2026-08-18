@@ -1,4 +1,4 @@
-/* global Worker, TextEncoder, ReadableStream, WritableStream */
+/* global Worker, TextEncoder, ReadableStream, WritableStream, btoa */
 
 import * as zip from "../zip-lib.js";
 import { WORKER_MESSAGE_PROPERTY_NAMES } from "../../worker-message-property-names.js";
@@ -10,6 +10,27 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 const FILENAME = "lorem.txt";
 const PASSWORD = "secret";
 const MAXIMUM_RECORDED_DEPTH = 3;
+const COMPRESSION_METHOD_XOR = 93;
+const FORMAT_XOR = "xor-worker-message-properties";
+const XOR_MASK = 0x55;
+const MAIN_SCOPE_FLAG = "__zipMainScopeFlag";
+const CODEC_MODULE_CODE = `if (!globalThis.${MAIN_SCOPE_FLAG}) {
+	throw new Error("codec module loaded outside the main scope");
+}
+class XorStream extends TransformStream {
+	constructor() {
+		super({
+			transform(chunk, controller) {
+				const output = new Uint8Array(chunk.length);
+				for (let indexByte = 0; indexByte < chunk.length; indexByte++) {
+					output[indexByte] = chunk[indexByte] ^ ${XOR_MASK};
+				}
+				controller.enqueue(output);
+			}
+		});
+	}
+}
+export { XorStream as CompressionStream, XorStream as DecompressionStream };`;
 
 export { test };
 
@@ -39,6 +60,7 @@ async function test() {
 			await testEntry(options, false);
 		}
 		await testCheckPasswordOnly();
+		await testCodecImportFailure();
 	} finally {
 		globalThis.Worker = NativeWorker;
 		await zip.terminateWorkers();
@@ -50,6 +72,39 @@ async function test() {
 	const undeclaredNames = [...recordedNames].filter(name => !WORKER_MESSAGE_PROPERTY_NAMES.includes(name));
 	if (undeclaredNames.length) {
 		throw new Error("undeclared worker message properties: " + undeclaredNames.join(", "));
+	}
+	if (!recordedNames.has("codecImportFailed")) {
+		throw new Error("the codec import failure was not reported by the worker");
+	}
+}
+
+// the worker reports a failed codec import back to the main scope, which none of the scenarios above
+// reaches although the reported property name is declared
+async function testCodecImportFailure() {
+	globalThis[MAIN_SCOPE_FLAG] = true;
+	zip.registerCodec({
+		compressionMethod: COMPRESSION_METHOD_XOR,
+		format: FORMAT_XOR,
+		codecURI: "data:text/javascript;base64," + btoa(CODEC_MODULE_CODE)
+	});
+	try {
+		configure(true);
+		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT), { compressionMethod: COMPRESSION_METHOD_XOR });
+		const data = await zipWriter.close();
+		const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+		try {
+			const [entry] = await zipReader.getEntries();
+			const text = await entry.getData(new zip.TextWriter());
+			if (text != TEXT_CONTENT) {
+				throw new Error("the entry did not round-trip through the codec running in the main scope");
+			}
+		} finally {
+			await zipReader.close();
+		}
+	} finally {
+		zip.unregisterCodec(COMPRESSION_METHOD_XOR);
+		delete globalThis[MAIN_SCOPE_FLAG];
 	}
 }
 
