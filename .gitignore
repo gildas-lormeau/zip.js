@@ -5,3 +5,4 @@ benchmarks/.corpus
 tests/corpus
 tests/fidelity/corpus
 tests/fidelity/.cov
+deno.lock
