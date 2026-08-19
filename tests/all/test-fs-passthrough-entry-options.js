@@ -44,12 +44,12 @@ async function reexportWithForcedEntryOptions(source) {
 	const zipFs = new zip.fs.FS();
 	await zipFs.importUint8Array(source, { passThrough: true });
 	for (const child of zipFs.root.children) {
-		child.options = {
+		child.setOptions({
 			compressionMethod: 0x00,
 			crc32: 0,
 			uncompressedSize: 1,
 			comment: ENTRY_COMMENT
-		};
+		});
 	}
 	return await zipFs.exportUint8Array({ passThrough: true });
 }

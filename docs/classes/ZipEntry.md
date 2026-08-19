@@ -57,6 +57,20 @@ The relative filename of the entry.
 
 ***
 
+### options?
+
+> `readonly` `optional` **options?**: [`ZipWriterAddDataOptions`](../interfaces/ZipWriterAddDataOptions.md)
+
+The options applied to the entry when the zip file is exported.
+
+#### Remarks
+
+These are the options passed when the entry was added to the filesystem, updated by
+[ZipEntry#setOptions](#setoptions). An entry imported from a zip file has none until
+[ZipEntry#setOptions](#setoptions) is called.
+
+***
+
 ### parent?
 
 > `optional` **parent?**: `ZipEntry`
@@ -200,3 +214,36 @@ The new name of the entry.
 #### Returns
 
 `void`
+
+***
+
+### setOptions()
+
+> **setOptions**(`options`): `void`
+
+Sets the options applied to the entry when the zip file is exported
+
+#### Parameters
+
+##### options
+
+[`ZipWriterAddDataOptions`](../interfaces/ZipWriterAddDataOptions.md)
+
+The options.
+
+#### Returns
+
+`void`
+
+#### Remarks
+
+The options are merged into [ZipEntry#options](#options), and an option set to `undefined` is removed
+from it instead of being stored. They take precedence over the options passed to
+`{@link ZipDirectoryEntry}#export*()` and over the metadata of the entry they were imported from,
+exactly like the options passed when adding an entry to the filesystem.
+
+The options describing the data of an entry exported as-is, e.g.
+[ZipWriterConstructorOptions#compressionMethod](../interfaces/ZipWriterConstructorOptions.md#compressionmethod) and
+[ZipWriterAddDataOptions#uncompressedSize](../interfaces/ZipWriterAddDataOptions.md#uncompressedsize), are ignored: they are always the ones of the
+original entry. The [ZipWriterAddDataOptions#directory](../interfaces/ZipWriterAddDataOptions.md#directory) option and the progress callbacks
+are ignored as well. Invalid option values are reported when the zip file is exported.

@@ -103,6 +103,7 @@ export default ([
 	{ title: "Filesystem base 64", script: "./test-fs-base64.js" },
 	{ title: "Filesystem check password", script: "./test-fs-check-password.js", sanitizeResources: false },
 	{ title: "Filesystem export", script: "./test-fs-export-options.js" },
+	{ title: "Filesystem entry options", script: "./test-fs-entry-options.js" },
 	{ title: "Filesystem passThrough entry options", script: "./test-fs-passthrough-entry-options.js" },
 	{ title: "Filesystem export error", script: "./test-fs-export-error.js" },
 	{ title: "Filesystem export zip", script: "./test-fs-export-zip.js" },

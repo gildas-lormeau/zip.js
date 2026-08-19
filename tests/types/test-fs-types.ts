@@ -2,7 +2,7 @@
 // Compile with: npm run test-types
 import { fs as zipFs } from "../../index.js";
 import { ZipReader } from "../../index.js";
-import type { ZipEntry, ZipDirectoryEntry, ZipFileEntry, EntryMetaData } from "../../index.js";
+import type { ZipEntry, ZipDirectoryEntry, ZipFileEntry, EntryMetaData, ZipWriterAddDataOptions } from "../../index.js";
 
 const fs = new zipFs.FS();
 
@@ -15,6 +15,8 @@ const byId: ZipEntry | undefined = fs.getById(0);
 const found: ZipEntry | undefined = fs.find("dir/file.txt");
 const directory: ZipDirectoryEntry = fs.addDirectory("dir");
 const textEntry: ZipFileEntry<string, string> = fs.addText("file.txt", "content");
+textEntry.setOptions({ comment: "comment", level: 0 });
+const entryOptions: ZipWriterAddDataOptions | undefined = textEntry.options;
 fs.remove(textEntry);
 fs.move(textEntry, root);
 const importPromise: Promise<ZipEntry[]> = fs.importBlob(new Blob());
@@ -33,7 +35,7 @@ const entryProgressExportPromise: Promise<Uint8Array> = fs.exportUint8Array({
 });
 
 // silence unused-variable diagnostics
-void [root, entries, children, byName, byId, found, directory, textEntry,
+void [root, entries, children, byName, byId, found, directory, textEntry, entryOptions,
 	importPromise, exportBlobPromise, importZipPromise, exportZipPromise,
 	protectedFlag, passwordPromise, readerPasswordPromise, exportHandlePromise,
 	signedExportPromise, commentedExportPromise, importZipReaderPromise,
@@ -48,6 +50,10 @@ fs.getFullname();
 fs.getRelativeName(root);
 // @ts-expect-error FS cannot be renamed
 fs.rename("name");
+// @ts-expect-error FS has no entry options
+fs.setOptions({});
+// @ts-expect-error the options of an entry are set with setOptions
+textEntry.options = { comment: "comment" };
 // @ts-expect-error FS is not a descendant of anything
 fs.isDescendantOf(root);
 // @ts-expect-error FS cannot be cloned as an entry

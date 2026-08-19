@@ -7372,6 +7372,11 @@
 				this.name = name;
 			}
 		}
+
+		setOptions(options) {
+			const entryOptions = Object.assign({}, this.options, options);
+			this.options = Object.fromEntries(Object.entries(entryOptions).filter(([, value]) => value !== UNDEFINED_VALUE));
+		}
 	}
 
 	class ZipFileEntry extends ZipEntry {

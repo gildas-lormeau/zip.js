@@ -2974,6 +2974,15 @@ declare class ZipEntry {
    */
   children: ZipEntry[];
   /**
+   * The options applied to the entry when the zip file is exported.
+   *
+   * @remarks
+   * These are the options passed when the entry was added to the filesystem, updated by
+   * {@link ZipEntry#setOptions}. An entry imported from a zip file has none until
+   * {@link ZipEntry#setOptions} is called.
+   */
+  readonly options?: ZipWriterAddDataOptions;
+  /**
    * Clones the entry
    *
    * @param deepClone `true` to clone all the descendants.
@@ -3010,6 +3019,24 @@ declare class ZipEntry {
    * @param name The new name of the entry.
    */
   rename(name: string): void;
+  /**
+   * Sets the options applied to the entry when the zip file is exported
+   *
+   * @remarks
+   * The options are merged into {@link ZipEntry#options}, and an option set to `undefined` is removed
+   * from it instead of being stored. They take precedence over the options passed to
+   * `{@link ZipDirectoryEntry}#export*()` and over the metadata of the entry they were imported from,
+   * exactly like the options passed when adding an entry to the filesystem.
+   *
+   * The options describing the data of an entry exported as-is, e.g.
+   * {@link ZipWriterConstructorOptions#compressionMethod} and
+   * {@link ZipWriterAddDataOptions#uncompressedSize}, are ignored: they are always the ones of the
+   * original entry. The {@link ZipWriterAddDataOptions#directory} option and the progress callbacks
+   * are ignored as well. Invalid option values are reported when the zip file is exported.
+   *
+   * @param options The options.
+   */
+  setOptions(options: ZipWriterAddDataOptions): void;
 }
 
 /**
