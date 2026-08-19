@@ -3360,7 +3360,7 @@
 					if (data.length) {
 						controller.enqueue(data);
 					}
-					if ((chunkOffset + chunkSize >= size) || (size === UNDEFINED_VALUE && !data.length && dataSize)) {
+					if ((chunkOffset + chunkSize >= size) || (!data.length && dataSize)) {
 						controller.close();
 					} else {
 						chunkOffset += chunkSize;
@@ -4606,6 +4606,7 @@
 	const ERR_UNSUPPORTED_COMPRESSION$1 = "Compression method not supported";
 	const ERR_SPLIT_ZIP_FILE = "Split zip file";
 	const ERR_OVERLAPPING_ENTRY = "Overlapping entry found";
+	const ERR_ENTRY_DATA_OUT_OF_BOUNDS = "Entry data out of bounds";
 	const ERR_AMBIGUOUS_ARCHIVE = "Ambiguous archive";
 	const ERR_ENCRYPTED_CENTRAL_DIRECTORY = "Encrypted central directory is not supported";
 	const ERR_UNSAFE_FILENAME = "Unsafe filename";
@@ -5149,6 +5150,9 @@
 				}
 			}
 			const dataOffset = localHeaderOffset + HEADER_SIZE + filenameLength + extraFieldLength;
+			if (dataOffset + compressedSize > reader.size) {
+				throw new Error(ERR_ENTRY_DATA_OUT_OF_BOUNDS);
+			}
 			const size = compressedSize;
 			const readable = toCompatibleReadable(reader.createReadable({ offset: dataOffset, size }));
 			const signal = getOptionValue$1(zipEntry, options, OPTION_SIGNAL);
@@ -5895,6 +5899,7 @@
 		ERR_CENTRAL_DIRECTORY_NOT_FOUND: ERR_CENTRAL_DIRECTORY_NOT_FOUND,
 		ERR_ENCRYPTED: ERR_ENCRYPTED,
 		ERR_ENCRYPTED_CENTRAL_DIRECTORY: ERR_ENCRYPTED_CENTRAL_DIRECTORY,
+		ERR_ENTRY_DATA_OUT_OF_BOUNDS: ERR_ENTRY_DATA_OUT_OF_BOUNDS,
 		ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND: ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND,
 		ERR_EOCDR_NOT_FOUND: ERR_EOCDR_NOT_FOUND,
 		ERR_EXTRAFIELD_ZIP64_NOT_FOUND: ERR_EXTRAFIELD_ZIP64_NOT_FOUND,
@@ -8319,6 +8324,7 @@
 	exports.ERR_DUPLICATED_NAME = ERR_DUPLICATED_NAME;
 	exports.ERR_ENCRYPTED = ERR_ENCRYPTED;
 	exports.ERR_ENCRYPTED_CENTRAL_DIRECTORY = ERR_ENCRYPTED_CENTRAL_DIRECTORY;
+	exports.ERR_ENTRY_DATA_OUT_OF_BOUNDS = ERR_ENTRY_DATA_OUT_OF_BOUNDS;
 	exports.ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND;
 	exports.ERR_EOCDR_NOT_FOUND = ERR_EOCDR_NOT_FOUND;
 	exports.ERR_EXTRAFIELD_ZIP64_NOT_FOUND = ERR_EXTRAFIELD_ZIP64_NOT_FOUND;

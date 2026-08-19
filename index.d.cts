@@ -3926,6 +3926,12 @@ export const ERR_SPLIT_ZIP_FILE: string;
  */
 export const ERR_OVERLAPPING_ENTRY: string;
 /**
+ * Entry data out of bounds error
+ *
+ * @remarks Thrown by {@link FileEntry#getData} when the declared extent of the entry data (i.e. its offset plus its compressed size) ends past the end of the zip file.
+ */
+export const ERR_ENTRY_DATA_OUT_OF_BOUNDS: string;
+/**
  * Ambiguous archive error
  *
  * @remarks The thrown error carries a `reason` property describing the ambiguity: `"appended data"`, `"prepended data"`, `"trailing central directory data"`, `"mismatched zip64 end of central directory record"`, or `"duplicate filename"`.

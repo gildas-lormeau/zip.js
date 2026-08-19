@@ -151,6 +151,7 @@ export default ([
 	{ title: "Option validation", script: "./test-option-validation.js" },
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js" },
 	{ title: "Invalid uncompressed size", script: "./test-invalid-uncompressed-size.js", sanitizeResources: false },
+	{ title: "Entry data out of bounds", script: "./test-entry-data-out-of-bounds.js" },
 	{ title: "Failed read commit (real OPFS)", script: "./test-failed-read-commit-browser.js", env: ["browser"], features: ["opfs"] },
 	{ title: "Multiple writers", script: "./test-multiple-writers.js" },
 	{ title: "MS-DOS attributes", script: "./test-msdos-attributes.js" },
