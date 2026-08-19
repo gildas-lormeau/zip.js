@@ -311,6 +311,9 @@ export interface Configuration extends WorkerConfiguration {
    * });
    * ```
    *
+   * The worker is created as a module worker, unless the URI is a Data URI or a Blob URI, in which case it is created as a classic
+   * worker. See {@link Configuration#createWorker} for an example of classic worker script installing a polyfill of the Streams API.
+   *
    * @defaultValue "./core/web-worker-wasm.js", or "./core/web-worker-native.js" for the builds using the native implementations
    */
   workerURI?: string;
@@ -325,6 +328,24 @@ export interface Configuration extends WorkerConfiguration {
    *   createWorker: () => new Worker(new URL("./zip-worker.js", import.meta.url), { type: "module" })
    * });
    * ```
+   *
+   * It is also the way to run the web workers on engines where `TransformStream` is missing from the scope of the workers, e.g. Firefox
+   * before version 102. There, the worker script of zip.js throws when it is evaluated and the data is silently compressed/decompressed
+   * in the main scope instead. A polyfill imported by the page does not help, because the worker reads the globals of the Streams API
+   * from its own scope, so it has to be installed by the worker itself before the worker script of zip.js runs. These engines predate
+   * the support of module workers, hence the classic worker script below:
+   * ```
+   * // zip-worker-with-polyfill.js
+   * importScripts("./web-streams-polyfill.js", "./zip-web-worker.js");
+   * ```
+   * ```
+   * configure({
+   *   createWorker: () => new Worker("./zip-worker-with-polyfill.js"),
+   *   transferStreams: false
+   * });
+   * ```
+   * {@link WorkerConfiguration#transferStreams} must be disabled: the streams transferred to the worker are created by the engine and
+   * cannot be piped through a polyfilled `TransformStream`.
    */
   createWorker?: () => Worker;
   /**
