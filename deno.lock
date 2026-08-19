@@ -1,0 +1,28 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@std/yaml@1": "1.2.0"
+  },
+  "jsr": {
+    "@std/yaml@1.2.0": {
+      "integrity": "20beb41e4983ba3437dbefac62b14061ab058e8a187596f19d28ff9035f6e6cf"
+    }
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@eslint/js@^10.0.1",
+        "npm:@rollup/plugin-replace@^6.0.3",
+        "npm:@rollup/plugin-terser@1",
+        "npm:eslint@^10.8.1",
+        "npm:http-server@^14.1.1",
+        "npm:rollup@^4.62.4",
+        "npm:selenium-webdriver@^4.47.0",
+        "npm:typedoc-plugin-markdown@^4.12.0",
+        "npm:typedoc@~0.28.20",
+        "npm:web-streams-polyfill@^4.3.0",
+        "npm:web-worker@^1.5.0"
+      ]
+    }
+  }
+}

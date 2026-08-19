@@ -25,8 +25,11 @@ jobs:
         with:
           node-version: '24'
 
+      # npm ci instead of npm install: both freshness checks below regenerate committed files, so the
+      # build must run against the locked dependency versions, otherwise a caret-range resolution alone
+      # turns them red
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Verify no code issue
         run: npx eslint .
@@ -35,6 +38,15 @@ jobs:
         run: |
           npm run build-doc-markdown
           git diff --exit-code docs
+
+      # the release workflow publishes the committed files as they are, it never rebuilds, so a stale
+      # dist/ or index.min.js at a tag ships to npm and JSR. Pull requests are exempt: asking outside
+      # contributors to commit build output would add an unreviewable diff to every change
+      - name: Verify build output is up to date
+        if: github.event_name == 'push'
+        run: |
+          npm run build
+          git diff --exit-code
 
   test:
     name: Test ${{ matrix.browser }} ${{ matrix.version }}${{ format(matrix.build && ' ({0})' || '', matrix.build) }} on ${{ matrix.os }}
