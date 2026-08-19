@@ -9781,7 +9781,7 @@ function getChildEntryOptions(child, selectedEntry, options) {
 			};
 		}
 	}
-	const entryOptions = Object.assign({}, zipEntryMetadata, options, passThroughOptions, childOptions, { directory: child.directory });
+	const entryOptions = Object.assign({}, zipEntryMetadata, options, childOptions, passThroughOptions, { directory: child.directory });
 	if (!child.directory && entryOptions.passThrough && entryOptions.uncompressedSize === UNDEFINED_VALUE) {
 		throw new Error(ERR_INVALID_PASS_THROUGH);
 	}
