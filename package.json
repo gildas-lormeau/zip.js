@@ -34,6 +34,7 @@
     "bun": ">=0.7.0"
   },
   "scripts": {
+    "version": "node ./sync-deno-version.js && git add deno.json",
     "lint": "npx eslint . && deno lint",
     "test": "npm run test-node && npm run test-deno && npm run test-bun && npm run test-node-dist && npm run test-deno-dist && npm run test-bun-dist && npm run test-web-streams-polyfill && npm run test-types && npm run test-api-symmetry && npm run test-api-shape",
     "test-browsers": "npm run test-chrome && npm run test-firefox && npm run test-safari",
