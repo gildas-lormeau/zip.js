@@ -55,6 +55,7 @@ export default ([
 	{ title: "External core entries", script: "./test-external-core-entries.js" },
 	{ title: "Custom codec registration", script: "./test-register-codec.js" },
 	{ title: "Custom worker factory", script: "./test-create-worker.js" },
+	{ title: "Web worker with a streams polyfill", script: "./test-worker-streams-polyfill.js", env: ["browser"], features: ["wasmBuild"] },
 	{ title: "Custom engine composition", script: "./test-custom-engine.js" },
 	{ title: "Common JS", script: "./test-common-js.cjs", env: ["node", "deno", "bun"] },
 	{ title: "Core", script: "./test-core.js", features: ["compressionStream"] },
