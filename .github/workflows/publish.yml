@@ -26,6 +26,17 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name }}
           persist-credentials: false
+      # the tag is typed in the release UI, so nothing ties it to the version that is about to be
+      # published: a mistyped tag, or a bump that was never pushed, publishes a version nobody asked for
+      - name: Verify the tag matches the declared version
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          version=$(jq -r .version package.json)
+          if [ "$TAG_NAME" != "v$version" ]; then
+            echo "::error::release $TAG_NAME but package.json declares $version"
+            exit 1
+          fi
       - name: Wait for the tests of the released commit
         env:
           GH_TOKEN: ${{ github.token }}
