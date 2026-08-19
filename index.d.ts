@@ -3921,9 +3921,17 @@ export const ERR_INVALID_ENTRY_COMMENT: string;
  */
 export const ERR_INVALID_VERSION: string;
 /**
+ * Invalid extra field error
+ */
+export const ERR_INVALID_EXTRAFIELD: string;
+/**
  * Invalid extra field type error
  */
 export const ERR_INVALID_EXTRAFIELD_TYPE: string;
+/**
+ * Invalid extra field data type error
+ */
+export const ERR_INVALID_EXTRAFIELD_DATA_TYPE: string;
 /**
  * Invalid extra field data error
  */

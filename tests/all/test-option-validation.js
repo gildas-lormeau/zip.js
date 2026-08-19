@@ -24,6 +24,8 @@ async function test() {
 	await maxAppendedDataSizeRejectsInvalidNumbers();
 	await unixIdsRejectNonIntegers();
 	await globalCommentRejectsOtherTypes();
+	await extraFieldRejectsOtherShapes();
+	await extraFieldKeepsAcceptingValidMaps();
 	await zip.terminateWorkers();
 }
 
@@ -169,6 +171,35 @@ async function globalCommentRejectsOtherTypes() {
 	await closeZip();
 	await new zip.fs.FS().getExportedSize({ globalComment: new TextEncoder().encode("a global comment") });
 	await new zip.fs.FS().getExportedSize({});
+}
+
+// Three of these shapes used to write a corrupt extra field instead of throwing: an array of pairs made
+// forEach pass (pair, index), so the index became the id and the pair became the data; a value of another
+// type was written as as many zero bytes as its length; and a negative id was wrapped to 0xFFFF by
+// setUint16. The other shapes threw a DataView RangeError naming nothing. The Map of the read side pairs
+// each id with an { type, data } object, which is why it must be rejected as data rather than serialized.
+async function extraFieldRejectsOtherShapes() {
+	const data = new Uint8Array([1, 2, 3, 4]);
+	for (const extraField of [new Uint8Array([0xFE, 0xFF, 4, 0, 1, 2, 3, 4]), { 0xFFFE: data }, [[0xFFFE, data]], "extra field", 0xFFFE]) {
+		await assertThrows({ extraField }, zip.ERR_INVALID_EXTRAFIELD, "extraField: " + String(extraField));
+		await assertThrows({ localExtraField: extraField }, zip.ERR_INVALID_EXTRAFIELD, "localExtraField: " + String(extraField));
+	}
+	for (const type of [-1, 1.5, 0x10000, NaN, "65534", null]) {
+		await assertThrows({ extraField: new Map([[type, data]]) }, zip.ERR_INVALID_EXTRAFIELD_TYPE, "extra field id: " + String(type));
+	}
+	for (const value of ["text", [1, 2, 3, 4], new ArrayBuffer(4), { type: 0xFFFE, data }, null]) {
+		await assertThrows({ extraField: new Map([[0xFFFE, value]]) }, zip.ERR_INVALID_EXTRAFIELD_DATA_TYPE, "extra field data: " + String(value));
+	}
+	await assertThrows({ extraField: new Map([[0xFFFE, new Uint8Array(0x10000)]]) }, zip.ERR_INVALID_EXTRAFIELD_DATA, "extra field data: 64KB");
+}
+
+async function extraFieldKeepsAcceptingValidMaps() {
+	const [entry] = await readEntries(await buildZip({ extraField: new Map([[0xFFFE, new Uint8Array([1, 2, 3, 4])], [0xFFFD, new Uint8Array()]]) }));
+	const rawExtraField = Array.from(entry.extraField.get(0xFFFE).data);
+	if (rawExtraField.join() != "1,2,3,4" || entry.extraField.get(0xFFFD).data.length) {
+		throw new Error("expected the extra fields to be written verbatim, got " + JSON.stringify(rawExtraField));
+	}
+	await buildZip({ extraField: new Map(), localExtraField: new Map() });
 }
 
 async function closeZip(globalComment) {

@@ -5984,7 +5984,9 @@ const ERR_INVALID_VERSION = "Version exceeds 65535";
 const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
 const ERR_UNSUPPORTED_ENCRYPTION_USDZ = "Encryption is not supported in USDZ files";
 const ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = "Encryption is not supported when the 'passThrough' option is set";
-const ERR_INVALID_EXTRAFIELD_TYPE = "Extra field type exceeds 65535";
+const ERR_INVALID_EXTRAFIELD = "Invalid extra field (must be a Map)";
+const ERR_INVALID_EXTRAFIELD_TYPE = "Invalid extra field type (must be integer 0..65535)";
+const ERR_INVALID_EXTRAFIELD_DATA_TYPE = "Invalid extra field data (must be a Uint8Array)";
 const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
 const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 const MIN_UNIX_TIME = -2147483648;
@@ -6573,18 +6575,26 @@ function serializeExtraField(extraField) {
 	if (!extraField) {
 		return EMPTY_UINT8_ARRAY;
 	}
+	if (!(extraField instanceof Map)) {
+		throw new Error(ERR_INVALID_EXTRAFIELD);
+	}
 	let extraFieldSize = 0;
 	let offset = 0;
-	extraField.forEach(data => extraFieldSize += 4 + getLength(data));
-	const rawExtraField = new Uint8Array(extraFieldSize);
-	const rawExtraFieldView = getDataView(rawExtraField);
 	extraField.forEach((data, type) => {
-		if (type > MAX_16_BITS) {
+		if (!Number.isInteger(type) || type < 0 || type > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
+		}
+		if (!(data instanceof Uint8Array)) {
+			throw new Error(ERR_INVALID_EXTRAFIELD_DATA_TYPE);
 		}
 		if (getLength(data) > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
 		}
+		extraFieldSize += 4 + getLength(data);
+	});
+	const rawExtraField = new Uint8Array(extraFieldSize);
+	const rawExtraFieldView = getDataView(rawExtraField);
+	extraField.forEach((data, type) => {
 		setUint16(rawExtraFieldView, offset, type);
 		setUint16(rawExtraFieldView, offset + 2, getLength(data));
 		arraySet(rawExtraField, data, offset + 4);
@@ -9867,7 +9877,9 @@ exports.ERR_INVALID_CRC32 = ERR_INVALID_CRC32;
 exports.ERR_INVALID_ENCRYPTION_STRENGTH = ERR_INVALID_ENCRYPTION_STRENGTH;
 exports.ERR_INVALID_ENTRY_COMMENT = ERR_INVALID_ENTRY_COMMENT;
 exports.ERR_INVALID_ENTRY_NAME = ERR_INVALID_ENTRY_NAME;
+exports.ERR_INVALID_EXTRAFIELD = ERR_INVALID_EXTRAFIELD;
 exports.ERR_INVALID_EXTRAFIELD_DATA = ERR_INVALID_EXTRAFIELD_DATA;
+exports.ERR_INVALID_EXTRAFIELD_DATA_TYPE = ERR_INVALID_EXTRAFIELD_DATA_TYPE;
 exports.ERR_INVALID_EXTRAFIELD_TYPE = ERR_INVALID_EXTRAFIELD_TYPE;
 exports.ERR_INVALID_FILENAME_VALIDATION = ERR_INVALID_FILENAME_VALIDATION;
 exports.ERR_INVALID_GID = ERR_INVALID_GID;
