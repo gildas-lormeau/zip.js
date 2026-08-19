@@ -90,7 +90,9 @@ The extended timestamp extra field.
 
 > `optional` **extraFieldInfoZip?**: [`EntryExtraFieldUnix`](EntryExtraFieldUnix.md)
 
-The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers.
+The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers. It is read
+whenever the type 2 extra field (0x7855) is absent or carries no ids, which is its usual state in the
+central directory.
 
 ***
 

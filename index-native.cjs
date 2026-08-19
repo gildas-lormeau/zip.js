@@ -5123,12 +5123,18 @@ let ZipEntry$1 = class ZipEntry {
 		if (checkLocalDirectory) {
 			validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename, checkLocalFilename);
 		}
-		const { lastAccessDate, creationDate } = localDirectory;
+		const { lastAccessDate, creationDate, uid, gid } = localDirectory;
 		if (lastAccessDate) {
 			fileEntry.lastAccessDate = lastAccessDate;
 		}
 		if (creationDate) {
 			fileEntry.creationDate = creationDate;
+		}
+		if (uid !== UNDEFINED_VALUE && fileEntry.uid === UNDEFINED_VALUE) {
+			fileEntry.uid = uid;
+		}
+		if (gid !== UNDEFINED_VALUE && fileEntry.gid === UNDEFINED_VALUE) {
+			fileEntry.gid = gid;
 		}
 		const encrypted = zipEntry.encrypted && localDirectory.encrypted && !passThrough;
 		const zipCrypto = encrypted && !extraFieldAES;
@@ -5365,10 +5371,12 @@ function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory
 		directory.extraFieldNTFS = extraFieldNTFS;
 	}
 	const extraFieldUnix = extraField.get(EXTRAFIELD_TYPE_UNIX);
+	let unixIdsRead;
 	if (extraFieldUnix) {
-		readExtraFieldUnix(extraFieldUnix, directory, false);
+		unixIdsRead = readExtraFieldUnix(extraFieldUnix, directory, false);
 		directory.extraFieldUnix = extraFieldUnix;
-	} else {
+	}
+	if (!unixIdsRead) {
 		const extraFieldInfoZip = extraField.get(EXTRAFIELD_TYPE_INFOZIP);
 		if (extraFieldInfoZip) {
 			readExtraFieldUnix(extraFieldInfoZip, directory, true);
@@ -5515,6 +5523,7 @@ function readExtraFieldUnix(extraField, directory, isInfoZip) {
 		if (gid !== UNDEFINED_VALUE) {
 			directory.gid = gid;
 		}
+		return uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE;
 	} catch {
 		// ignored
 	}

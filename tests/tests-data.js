@@ -204,6 +204,7 @@ export default ([
 	{ title: "Unicode file names", script: "./test-use-unicode-file-names.js" },
 	{ title: "Text UNIX metadata", script: "./test-unix-metadata.js" },
 	{ title: "Text UNIX extra field layout", script: "./test-unix-extra-field-layout.js" },
+	{ title: "UNIX ids in the local header", script: "./test-unix-ids-local-header.js" },
 	{ title: "Text UNIX special bits (no mode)", script: "./test-unix-special-bits-no-mode.js" },
 	{ title: "Text UNIX special bits", script: "./test-unix-special-bits.js" },
 	{ title: "Text UNIX unpack", script: "./test-unix-unpack.js" },

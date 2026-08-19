@@ -152,7 +152,9 @@ The extended timestamp extra field.
 
 > `optional` **extraFieldInfoZip?**: [`EntryExtraFieldUnix`](EntryExtraFieldUnix.md)
 
-The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers.
+The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers. It is read
+whenever the type 2 extra field (0x7855) is absent or carries no ids, which is its usual state in the
+central directory.
 
 ***
 
@@ -489,9 +491,14 @@ Unix owner id when available.
 
 The value is read from the central directory. The Info-ZIP Unix extra fields type 1 (0x5855) and type 2
 (0x7855) store the ids in the local file header only, so entries carrying just these fields leave the
-property undefined until the data has been read; the ids are then available in
+property undefined until the data has been read, at which point it is filled in from
 [EntryMetaData#localDirectory](#localdirectory). The Info-ZIP New Unix extra field (0x7875) and the PKWARE Unix
 extra field (0x000d) store the ids in both headers and are unaffected.
+
+#### Remarks
+
+A value read from the central directory is never overwritten by the local file header, since the
+type 2 field truncates the ids to 16 bits while the New Unix field does not.
 
 ***
 
