@@ -4652,6 +4652,7 @@ const ZIP64_EXTRACTION = {
 	}
 };
 const MAX_END_OF_CENTRAL_DIR_PROBES = 64;
+const MAX_DEFLATE_EXPANSION_RATIO = 1032;
 const CENTRAL_DIRECTORY_UNREACHABLE = 0;
 const CENTRAL_DIRECTORY_PLAUSIBLE = 1;
 const CENTRAL_DIRECTORY_REACHABLE = 2;
@@ -5179,6 +5180,8 @@ let ZipEntry$1 = class ZipEntry {
 			checkOverlappingEntry = true;
 		}
 		const { onstart, onprogress, onend } = options;
+		const compressed = compressionMethod != COMPRESSION_METHOD_STORE && !passThrough;
+		const outputSize = passThrough ? compressedSize : uncompressedSize;
 		const deflate64 = compressionMethod == COMPRESSION_METHOD_DEFLATE_64;
 		let useCompressionStream = getOptionValue$1(zipEntry, options, OPTION_USE_COMPRESSION_STREAM);
 		if (deflate64) {
@@ -5199,9 +5202,9 @@ let ZipEntry$1 = class ZipEntry {
 				checkCrc32,
 				checkAuthenticationCode: getOptionValue$1(zipEntry, options, OPTION_CHECK_AUTHENTICATION_CODE),
 				passwordVerification: zipCrypto && (dataDescriptor ? ((rawLastModDate >>> 8) & MAX_8_BITS) : ((crc32 >>> 24) & MAX_8_BITS)),
-				outputSize: passThrough ? compressedSize : uncompressedSize,
+				outputSize,
 				crc32,
-				compressed: compressionMethod != 0 && !passThrough,
+				compressed,
 				encrypted,
 				useWebWorkers: getOptionValue$1(zipEntry, options, OPTION_USE_WEB_WORKERS),
 				useCompressionStream,
@@ -5238,11 +5241,11 @@ let ZipEntry$1 = class ZipEntry {
 					writer = new WritableStream();
 				}
 				writer = new GenericWriter(writer);
-				await initStream(writer, passThrough ? compressedSize : uncompressedSize);
+				await initStream(writer, getDecodableOutputSize(outputSize, compressedSize, compressed));
 				({ writable } = writer);
-				const { outputSize } = await runWorker({ readable, writable }, workerOptions);
-				writer.size += outputSize;
-				if (outputSize != (passThrough ? compressedSize : uncompressedSize)) {
+				const { outputSize: writtenSize } = await runWorker({ readable, writable }, workerOptions);
+				writer.size += writtenSize;
+				if (writtenSize != outputSize) {
 					throw new Error(ERR_INVALID_UNCOMPRESSED_SIZE);
 				}
 			}
@@ -5664,6 +5667,10 @@ function getDiskOffset$1(reader, diskNumber) {
 
 function isStrictnessValue(value) {
 	return value === STRICTNESS_STRICT || value === STRICTNESS_BALANCED || value === STRICTNESS_TOLERANT;
+}
+
+function getDecodableOutputSize(outputSize, compressedSize, compressed) {
+	return Math.min(outputSize, compressed ? compressedSize * MAX_DEFLATE_EXPANSION_RATIO : compressedSize);
 }
 
 function getStrictness(options, inheritedOptions) {

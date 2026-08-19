@@ -13,35 +13,46 @@ async function test() {
 	zip.configure({ useWebWorkers: false });
 	try {
 		for (const compressionMethod of [0, 8]) {
-			const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { dataDescriptor: false });
-			await zipWriter.add("filename.txt", new zip.TextReader("Lorem ipsum"), { compressionMethod });
-			const zipData = await zipWriter.close();
-			declareSizeBeyondArchive(zipData);
-			const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(zipData));
-			const entries = await zipReader.getEntries();
-			try {
-				await entries[0].getData(new zip.Uint8ArrayWriter());
-				throw new Error();
-			} catch (error) {
-				if (error.message != zip.ERR_ENTRY_DATA_OUT_OF_BOUNDS) {
-					throw error;
-				}
-			}
-			await zipReader.close();
+			await testRejectedEntry(compressionMethod, true, zip.ERR_ENTRY_DATA_OUT_OF_BOUNDS);
+			await testRejectedEntry(compressionMethod, false, zip.ERR_INVALID_UNCOMPRESSED_SIZE);
 		}
 	} finally {
 		await zip.terminateWorkers();
 	}
 }
 
-function declareSizeBeyondArchive(zipData) {
+async function testRejectedEntry(compressionMethod, declareCompressedSize, expectedError) {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { dataDescriptor: false });
+	await zipWriter.add("filename.txt", new zip.TextReader("Lorem ipsum"), { compressionMethod });
+	const zipData = await zipWriter.close();
+	declareSizeBeyondArchive(zipData, declareCompressedSize);
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(zipData));
+	const entries = await zipReader.getEntries();
+	const writer = new zip.Uint8ArrayWriter();
+	try {
+		await entries[0].getData(writer);
+		throw new Error();
+	} catch (error) {
+		if (error.message != expectedError) {
+			throw error;
+		}
+	}
+	if (writer.array !== undefined && writer.array.length >= DECLARED_SIZE) {
+		throw new Error("declared size drove the output allocation");
+	}
+	await zipReader.close();
+}
+
+function declareSizeBeyondArchive(zipData, declareCompressedSize) {
 	const dataView = new DataView(zipData.buffer, zipData.byteOffset, zipData.byteLength);
-	dataView.setUint32(LOCAL_HEADER_COMPRESSED_SIZE_OFFSET, DECLARED_SIZE, true);
-	dataView.setUint32(LOCAL_HEADER_UNCOMPRESSED_SIZE_OFFSET, DECLARED_SIZE, true);
 	let centralHeaderOffset = 0;
 	while (dataView.getUint32(centralHeaderOffset, true) != CENTRAL_FILE_HEADER_SIGNATURE) {
 		centralHeaderOffset++;
 	}
-	dataView.setUint32(centralHeaderOffset + CENTRAL_HEADER_COMPRESSED_SIZE_OFFSET, DECLARED_SIZE, true);
+	if (declareCompressedSize) {
+		dataView.setUint32(LOCAL_HEADER_COMPRESSED_SIZE_OFFSET, DECLARED_SIZE, true);
+		dataView.setUint32(centralHeaderOffset + CENTRAL_HEADER_COMPRESSED_SIZE_OFFSET, DECLARED_SIZE, true);
+	}
+	dataView.setUint32(LOCAL_HEADER_UNCOMPRESSED_SIZE_OFFSET, DECLARED_SIZE, true);
 	dataView.setUint32(centralHeaderOffset + CENTRAL_HEADER_UNCOMPRESSED_SIZE_OFFSET, DECLARED_SIZE, true);
 }
