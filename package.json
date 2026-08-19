@@ -35,6 +35,10 @@
   },
   "scripts": {
     "version": "node ./sync-deno-version.js && git add deno.json",
+    "bump-patch": "npm version patch --no-git-tag-version && npm run bump-commit",
+    "bump-minor": "npm version minor --no-git-tag-version && npm run bump-commit",
+    "bump-major": "npm version major --no-git-tag-version && npm run bump-commit",
+    "bump-commit": "git commit -m \"bump up version\" package.json package-lock.json deno.json",
     "lint": "npx eslint . && deno lint",
     "test": "npm run test-node && npm run test-deno && npm run test-bun && npm run test-node-dist && npm run test-deno-dist && npm run test-bun-dist && npm run test-web-streams-polyfill && npm run test-types && npm run test-api-symmetry && npm run test-api-shape",
     "test-browsers": "npm run test-chrome && npm run test-firefox && npm run test-safari",
