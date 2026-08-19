@@ -106,6 +106,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"resourceValidators",
 	"signatureLength",
 	"skip",
+	"startupError",
 	"startupTimeout",
 	"streamHandle",
 	"streamOptions",

@@ -47,6 +47,7 @@ export default ([
 	{ title: "Compression method and level", script: "./test-compression-method-level.js" },
 	{ title: "Compression stream fallback", script: "./test-compression-stream-fallback.js", features: ["compressionStream"] },
 	{ title: "Web worker startup fallback", script: "./test-worker-startup-fallback.js", sanitizeResources: false },
+	{ title: "Web worker error before start", script: "./test-worker-error-before-start.js", sanitizeResources: false },
 	{ title: "Codec import fallback", script: "./test-codec-import-fallback.js", sanitizeResources: false },
 	{ title: "Web worker polyfill", script: "./test-node-worker-polyfill.js", env: ["node"] },
 	{ title: "External assets entry", script: "./test-external-assets.js", features: ["workerStreams"],

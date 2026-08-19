@@ -2761,6 +2761,7 @@
 				worker,
 				workerAlive: false,
 				terminated: false,
+				startupError: null,
 				interface: {
 					run: async () => {
 						try {
@@ -2788,6 +2789,13 @@
 	}
 
 	async function runWebWorker(workerData, config) {
+		if (!workerData.worker) {
+			const { startupError } = workerData;
+			workerData.startupError = null;
+			const error = startupError || new Error(ERR_WORKER_STARTUP_TIMEOUT);
+			error.workerStartupFailed = true;
+			throw error;
+		}
 		let resolveResult, rejectResult;
 		const result = new Promise((resolve, reject) => {
 			resolveResult = resolve;
@@ -3001,11 +3009,12 @@
 		if (!workerAlive) {
 			workerData.worker = null;
 		}
+		let error = event.error || new Error(event.message || ERROR_EVENT_TYPE);
+		if (!workerAlive) {
+			error = Object.assign(new Error(error.message || ERROR_EVENT_TYPE), { workerStartupFailed: true });
+			workerData.startupError = error;
+		}
 		if (rejectResult) {
-			let error = event.error || new Error(event.message || ERROR_EVENT_TYPE);
-			if (!workerAlive) {
-				error = Object.assign(new Error(error.message || ERROR_EVENT_TYPE), { workerStartupFailed: true });
-			}
 			rejectResult(error);
 			if (writer) {
 				writer.releaseLock();
