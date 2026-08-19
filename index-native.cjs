@@ -6376,11 +6376,10 @@ function resolveAttributes(zipWriter, name, options) {
 			externalFileAttributes = FILE_ATTR_UNIX_DEFAULT_MASK << 16;
 		}
 	}
-	let unixExternalUpper;
 	if (!msDosCompatible) {
 		const unixModeProvided = unixMode !== UNDEFINED_VALUE || Boolean(setuid || setgid || sticky);
-		unixExternalUpper = (externalFileAttributes >> 16) & MAX_16_BITS;
-		unixMode = unixMode === UNDEFINED_VALUE ? unixExternalUpper : (unixMode & MAX_16_BITS);
+		const defaultUnixMode = (externalFileAttributes >> 16) & MAX_16_BITS;
+		unixMode = unixMode === UNDEFINED_VALUE ? defaultUnixMode : (unixMode & MAX_16_BITS);
 		if (setuid) {
 			unixMode |= FILE_ATTR_UNIX_SETUID_MASK;
 		} else {
@@ -6409,6 +6408,7 @@ function resolveAttributes(zipWriter, name, options) {
 	if (hasMsDosProvided) {
 		externalFileAttributes = (externalFileAttributes & MAX_32_BITS) | (msdosAttributesRaw & MAX_8_BITS);
 	}
+	const unixExternalUpper = (externalFileAttributes >> 16) & MAX_16_BITS;
 	const symlink = unixMode !== UNDEFINED_VALUE && ((unixMode & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_SYMLINK);
 	return {
 		name,

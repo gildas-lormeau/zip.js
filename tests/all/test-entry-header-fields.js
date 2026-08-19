@@ -24,7 +24,7 @@ async function test() {
 		for (const testCase of CASES) {
 			const blobWriter = new zip.BlobWriter("application/zip");
 			const zipWriter = new zip.ZipWriter(blobWriter);
-			await zipWriter.add(testCase.filename, new zip.Uint8ArrayReader(new Uint8Array([0x48, 0x69])), testCase.options);
+			const addedEntry = await zipWriter.add(testCase.filename, new zip.Uint8ArrayReader(new Uint8Array([0x48, 0x69])), testCase.options);
 			await zipWriter.close();
 			const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()), { password: "secret" });
 			const entries = await zipReader.getEntries();
@@ -59,6 +59,12 @@ async function test() {
 			}
 			if (testCase.unixExternalUpper !== undefined && entry.unixExternalUpper !== testCase.unixExternalUpper) {
 				throw new Error(`case ${testCase.name}: expected unixExternalUpper ${testCase.unixExternalUpper}, got ${entry.unixExternalUpper}`);
+			}
+			if (addedEntry.unixExternalUpper !== ((addedEntry.externalFileAttributes >> 16) & MAX_16_BITS)) {
+				throw new Error(`case ${testCase.name}: unixExternalUpper ${addedEntry.unixExternalUpper} returned by add() does not match its externalFileAttributes ${addedEntry.externalFileAttributes}`);
+			}
+			if (addedEntry.unixExternalUpper !== entry.unixExternalUpper) {
+				throw new Error(`case ${testCase.name}: add() returned unixExternalUpper ${addedEntry.unixExternalUpper}, the reader returned ${entry.unixExternalUpper}`);
 			}
 			await zipReader.close();
 		}
