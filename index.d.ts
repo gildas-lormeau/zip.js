@@ -3420,6 +3420,11 @@ export class ZipDirectoryEntry extends ZipEntry {
    * the same `"a/b.txt"` entry. Filenames are normalized and validated beforehand, see
    * {@link GetEntriesOptions#normalizeFilename} and {@link GetEntriesOptions#filenameValidation}.
    *
+   * The directories created that way are navigable like any other entry but are not written back when the
+   * tree is exported: only the directories carried by the source zip file and the ones created with
+   * {@link ZipDirectoryEntry#addDirectory} are written. A zip file storing no directory entry therefore
+   * round-trips to a zip file storing no directory entry, instead of gaining one entry per path component.
+   *
    * Passing a {@link ZipReader} instance is the way to read the data of the zip file itself, e.g. its
    * {@link ZipReader#prependedData} or its {@link ZipReader#comment} property, since the instance created
    * otherwise is not exposed. Its options are used as defaults for the options passed here, and it must not

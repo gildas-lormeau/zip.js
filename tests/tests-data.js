@@ -124,6 +124,7 @@ export default ([
 	{ title: "Filesystem find (verbatim slash name)", script: "./test-fs-find-slash-name.js" },
 	{ title: "Filesystem HTTP import", script: "./test-fs-http-import.js" },
 	{ title: "Filesystem import edge cases", script: "./test-fs-import-edge-cases.js" },
+	{ title: "Filesystem implicit directory export", script: "./test-fs-implicit-directory-export.js" },
 	{ title: "Filesystem import ZipReader", script: "./test-fs-import-zip-reader.js" },
 	{ title: "Filesystem remove", script: "./test-fs-remove.js" },
 	{ title: "Filesystem deep tree", script: "./test-fs-deep-tree.js" },

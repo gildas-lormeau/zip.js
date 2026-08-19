@@ -1119,6 +1119,13 @@ export class ZipReader<Type> {
   );
   /**
    * The global comment of the zip file.
+   *
+   * @remarks
+   * Unlike {@link EntryMetaData#comment}, it is exposed as raw bytes because the zip format defines no
+   * way to record its encoding: section 4.4.26 of the zip specification says nothing about it, and the
+   * end of central directory record has neither a general purpose bit flag nor an extra field, so the
+   * language encoding flag (see Appendix D - Language Encoding (EFS)) cannot apply to it. Decode it with
+   * the encoding agreed with the producer of the zip file.
    */
   comment: Uint8Array;
   /**
@@ -2466,6 +2473,10 @@ export class ZipWriter<Type> {
   /**
    * Writes the entries directory, writes the global comment, and returns the content of the zip file
    *
+   * @remarks
+   * The global comment is passed as raw bytes and the comment of an entry
+   * ({@link ZipWriterAddDataOptions#comment}) as a string on purpose, see {@link ZipReader#comment}.
+   *
    * @param comment The global comment of the zip file.
    * @param options The options.
    * @returns The content of the zip file.
@@ -2494,6 +2505,11 @@ export interface ZipWriterAddDataOptions
   executable?: boolean;
   /**
    * The comment of the entry.
+   *
+   * @remarks
+   * It is a string, unlike the global comment passed to {@link ZipWriter#close}, because the encoding of
+   * the comment of an entry is recorded in the header by the general purpose bit 11 (see Appendix D -
+   * Language Encoding (EFS)), set by {@link ZipWriterConstructorOptions#useUnicodeFileNames}.
    */
   comment?: string;
   /**
@@ -3403,6 +3419,11 @@ export class ZipDirectoryEntry extends ZipEntry {
    * components and `"."` components are ignored, so `"a//b.txt"`, `"./a/b.txt"` and `"a/./b.txt"` all produce
    * the same `"a/b.txt"` entry. Filenames are normalized and validated beforehand, see
    * {@link GetEntriesOptions#normalizeFilename} and {@link GetEntriesOptions#filenameValidation}.
+   *
+   * The directories created that way are navigable like any other entry but are not written back when the
+   * tree is exported: only the directories carried by the source zip file and the ones created with
+   * {@link ZipDirectoryEntry#addDirectory} are written. A zip file storing no directory entry therefore
+   * round-trips to a zip file storing no directory entry, instead of gaining one entry per path component.
    *
    * Passing a {@link ZipReader} instance is the way to read the data of the zip file itself, e.g. its
    * {@link ZipReader#prependedData} or its {@link ZipReader#comment} property, since the instance created

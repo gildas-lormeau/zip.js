@@ -9333,7 +9333,7 @@
 			}
 			const writeOrderGuaranteed = !options.bufferedWrite ||
 				(options.keepOrder !== false && zipEntry.children.every(child => !child.children.length));
-			return getEntriesSize(options, Array.from(zipEntry.getChildren({ recursive: true }), child => {
+			return getEntriesSize(options, zipEntry.getChildren({ recursive: true }).filter(child => !isImplicitDirectory(child)).map(child => {
 				const { name, entryOptions } = getChildEntryOptions(child, zipEntry, options);
 				return { name, size: child.directory ? 0 : getDeterminedSize(child, isPassThrough(child, options)), options: entryOptions };
 			}), writeOrderGuaranteed, options.globalComment);
@@ -9819,6 +9819,10 @@
 		return Boolean(!child.directory && (child.passThrough || (readerOptions && readerOptions.passThrough)));
 	}
 
+	function isImplicitDirectory(child) {
+		return child.directory && child.data === null;
+	}
+
 	function getUserExtraField(extraField) {
 		if (extraField) {
 			const userExtraField = new Map();
@@ -9836,7 +9840,7 @@
 	async function exportZip(zipWriter, entry, totalSize, options, readers) {
 		const { onstart, onprogress, onend, onentryprogress } = options;
 		const selectedEntry = entry;
-		const totalEntries = getTotalSize(entry.children, () => 1);
+		const totalEntries = getTotalSize(entry.children, child => isImplicitDirectory(child) ? 0 : 1);
 		let writtenSize = 0;
 		let writtenEntries = 0;
 		if (onstart) {
@@ -9865,6 +9869,9 @@
 		}
 
 		async function addChild(child) {
+			if (isImplicitDirectory(child)) {
+				return;
+			}
 			const { name, entryOptions } = getChildEntryOptions(child, selectedEntry, options);
 			let entryWrittenSize = 0;
 			const entryMetadata = await zipWriter.add(name, readers.get(child), Object.assign(entryOptions, {

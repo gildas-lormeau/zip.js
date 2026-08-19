@@ -1013,6 +1013,11 @@ components and `"."` components are ignored, so `"a//b.txt"`, `"./a/b.txt"` and 
 the same `"a/b.txt"` entry. Filenames are normalized and validated beforehand, see
 [GetEntriesOptions#normalizeFilename](../interfaces/GetEntriesOptions.md#normalizefilename) and [GetEntriesOptions#filenameValidation](../interfaces/GetEntriesOptions.md#filenamevalidation).
 
+The directories created that way are navigable like any other entry but are not written back when the
+tree is exported: only the directories carried by the source zip file and the ones created with
+[ZipDirectoryEntry#addDirectory](#adddirectory) are written. A zip file storing no directory entry therefore
+round-trips to a zip file storing no directory entry, instead of gaining one entry per path component.
+
 Passing a [ZipReader](ZipReader.md) instance is the way to read the data of the zip file itself, e.g. its
 [ZipReader#prependedData](ZipReader.md#prependeddata) or its [ZipReader#comment](ZipReader.md#comment) property, since the instance created
 otherwise is not exposed. Its options are used as defaults for the options passed here, and it must not
