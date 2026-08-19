@@ -86,6 +86,14 @@ The data appended after the zip file.
 
 The global comment of the zip file.
 
+#### Remarks
+
+Unlike [EntryMetaData#comment](../interfaces/EntryMetaData.md#comment), it is exposed as raw bytes because the zip format defines no
+way to record its encoding: section 4.4.26 of the zip specification says nothing about it, and the
+end of central directory record has neither a general purpose bit flag nor an extra field, so the
+language encoding flag (see Appendix D - Language Encoding (EFS)) cannot apply to it. Decode it with
+the encoding agreed with the producer of the zip file.
+
 ***
 
 ### digitalSignature?

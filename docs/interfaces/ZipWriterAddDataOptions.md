@@ -40,6 +40,12 @@ false
 
 The comment of the entry.
 
+#### Remarks
+
+It is a string, unlike the global comment passed to [ZipWriter#close](../classes/ZipWriter.md#close), because the encoding of
+the comment of an entry is recorded in the header by the general purpose bit 11 (see Appendix D -
+Language Encoding (EFS)), set by [ZipWriterConstructorOptions#useUnicodeFileNames](ZipWriterConstructorOptions.md#useunicodefilenames).
+
 ***
 
 ### compressionMethod?

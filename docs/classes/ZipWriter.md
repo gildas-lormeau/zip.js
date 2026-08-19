@@ -137,6 +137,11 @@ The options.
 
 The content of the zip file.
 
+#### Remarks
+
+The global comment is passed as raw bytes and the comment of an entry
+([ZipWriterAddDataOptions#comment](../interfaces/ZipWriterAddDataOptions.md#comment)) as a string on purpose, see [ZipReader#comment](ZipReader.md#comment).
+
 ***
 
 ### prependZip()
