@@ -208,6 +208,7 @@ export default ([
 	{ title: "Split zip file (corrupted entry)", script: "./test-split-corrupted-entry.js" },
 	{ title: "Split zip file (zip64 boundaries)", script: "./test-split-zip64-boundaries.js" },
 	{ title: "Split zip file (stream disks)", script: "./test-split-zip-streams.js" },
+	{ title: "Split zip file (strictness)", script: "./test-split-zip-strictness.js" },
 	{ title: "Golden output", script: "./test-golden-output.js" },
 	{ title: "Store", script: "./test-store.js" },
 	{ title: "Streams", script: "./test-streams.js" },

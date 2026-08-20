@@ -61,6 +61,7 @@
 	const DATA_DESCRIPTOR_RECORD_LENGTH = 12;
 	const DATA_DESCRIPTOR_RECORD_ZIP_64_LENGTH = 20;
 	const DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH = 4;
+	const SPLIT_ZIP_FILE_SIGNATURE_LENGTH = 4;
 
 	const EXTRAFIELD_TYPE_ZIP64 = 0x0001;
 	const EXTRAFIELD_TYPE_AES = 0x9901;
@@ -4719,9 +4720,7 @@
 			const normalizeFilename = getOptionValue$1(zipReader, options, OPTION_NORMALIZE_FILENAME);
 			const { endOfDirectoryInfo, endOfDirectoryReachingEndCount } = await findEndOfCentralDirectory(reader, rejectAmbiguousEndOfDirectory, maxAppendedDataSize);
 			if (!endOfDirectoryInfo) {
-				const signatureArray = await readUint8Array(reader, 0, 4);
-				const signatureView = getDataView(signatureArray);
-				if (getUint32(signatureView) == SPLIT_ZIP_FILE_SIGNATURE) {
+				if (await startsWithSplitZipSignature(reader)) {
 					throw new Error(ERR_SPLIT_ZIP_FILE);
 				} else {
 					throw new Error(ERR_EOCDR_NOT_FOUND);
@@ -5020,13 +5019,17 @@
 			if (duplicateFilename) {
 				throwAmbiguousArchive("duplicate filename");
 			}
-			if (checkAmbiguity && (prependedDataLength || (filesLength && startOffset > 0))) {
-				throwAmbiguousArchive("prepended data");
-			}
 			const extractPrependedData = getOptionValue$1(zipReader, options, OPTION_EXTRACT_PREPENDED_DATA);
 			const extractAppendedData = getOptionValue$1(zipReader, options, OPTION_EXTRACT_APPENDED_DATA);
+			const splitZipSignatureLength = (checkAmbiguity || extractPrependedData) && filesLength &&
+				startOffset == SPLIT_ZIP_FILE_SIGNATURE_LENGTH && await startsWithSplitZipSignature(reader) ? SPLIT_ZIP_FILE_SIGNATURE_LENGTH : 0;
+			if (checkAmbiguity && (prependedDataLength || (filesLength && startOffset > splitZipSignatureLength))) {
+				throwAmbiguousArchive("prepended data");
+			}
 			if (extractPrependedData) {
-				zipReader.prependedData = startOffset > 0 ? await readUint8Array(reader, 0, startOffset) : EMPTY_UINT8_ARRAY;
+				zipReader.prependedData = startOffset > splitZipSignatureLength ?
+					await readUint8Array(reader, splitZipSignatureLength, startOffset - splitZipSignatureLength) :
+					EMPTY_UINT8_ARRAY;
 			}
 			zipReader.comment = commentLength ? await readUint8Array(reader, commentOffset + END_OF_CENTRAL_DIR_LENGTH, commentLength) : EMPTY_UINT8_ARRAY;
 			if (extractAppendedData) {
@@ -5694,6 +5697,11 @@
 
 	function getDiskOffset$1(reader, diskNumber) {
 		return reader.getDiskOffset ? reader.getDiskOffset(diskNumber) : 0;
+	}
+
+	async function startsWithSplitZipSignature(reader) {
+		const signatureArray = await readUint8Array(reader, 0, SPLIT_ZIP_FILE_SIGNATURE_LENGTH);
+		return getUint32(getDataView(signatureArray)) == SPLIT_ZIP_FILE_SIGNATURE;
 	}
 
 	function isStrictnessValue(value) {
