@@ -8565,12 +8565,6 @@
 			}
 		}
 
-		moveTo(target) {
-			// deprecated
-			const zipEntry = this;
-			zipEntry.fs.move(zipEntry, target);
-		}
-
 		getFullname() {
 			return this.getRelativeName();
 		}
