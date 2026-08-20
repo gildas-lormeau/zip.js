@@ -11,6 +11,7 @@
 import * as zip from "../zip-lib.js";
 
 const CONTENT = "The quick brown fox jumps over the lazy dog.".repeat(20);
+const STREAM_PROPERTY_NAMES = ["createWorker", "CompressionStream", "DecompressionStream", "CompressionStreamFallback", "DecompressionStreamFallback"];
 
 export { test };
 
@@ -39,6 +40,13 @@ async function test() {
 	await signalAcceptsAnythingShapedLikeASignal();
 	await readerPasswordRejectsOtherTypes();
 	await readerPasswordKeepsAcceptingEmptyValues();
+	configureRejectsValuesThatUsedToHang();
+	configureKeepsAcceptingValidValues();
+	configureRejectsStreamsOfAnotherType();
+	configureKeepsAcceptingFalsyStreams();
+	await configureLeavesTheConfigurationUntouchedWhenItThrows();
+	configureAcceptsAnythingWithoutConfigurableProperties();
+	await createReadableNormalizesChunkSizesThatUsedToHang();
 	await zip.terminateWorkers();
 }
 
@@ -436,6 +444,105 @@ async function readEntries(data, options) {
 	const entries = await zipReader.getEntries();
 	await zipReader.close();
 	return entries;
+}
+
+// A maxWorkers lower than 1 used to deadlock ZipWriter#add for ever, since no entry could start and none
+// could release the next one, so it hung with no error at all instead of failing.
+function configureRejectsValuesThatUsedToHang() {
+	for (const maxWorkers of [0, -1, 0.5, NaN, Infinity, null, true, false, "", " ", "many", {}, []]) {
+		assertConfigureThrows({ maxWorkers }, zip.ERR_INVALID_MAX_WORKERS, "maxWorkers: " + describe(maxWorkers));
+	}
+}
+
+// Numeric strings must keep working here too, and the timeouts must accept them: they gate on
+// Number.isFinite(), so a string used to disable the timer silently, leaving every web worker alive.
+function configureKeepsAcceptingValidValues() {
+	for (const maxWorkers of [1, 4, "4", " 8 "]) {
+		zip.configure({ maxWorkers });
+	}
+	for (const chunkSize of [1, 64, 65536, "65536", 0, -1, null, "big"]) {
+		zip.configure({ chunkSize });
+	}
+	for (const timeout of [0, 300, "300", Infinity]) {
+		zip.configure({
+			terminateWorkerTimeout: timeout,
+			workerStarvationTimeout: timeout,
+			workerStartupTimeout: timeout
+		});
+	}
+	zip.resetConfiguration();
+}
+
+function configureRejectsStreamsOfAnotherType() {
+	for (const propertyName of STREAM_PROPERTY_NAMES) {
+		for (const propertyValue of ["nope", {}, 42, []]) {
+			assertConfigureThrows({ [propertyName]: propertyValue }, zip.ERR_INVALID_FUNCTION_OPTION,
+				propertyName + ": " + describe(propertyValue));
+		}
+	}
+}
+
+// false is the documented value of CompressionStream and DecompressionStream when the environment does not
+// provide them, and null is how the entry points excluding a web worker or the WASM module unset their URI.
+function configureKeepsAcceptingFalsyStreams() {
+	for (const propertyName of STREAM_PROPERTY_NAMES) {
+		for (const propertyValue of [false, null, 0, ""]) {
+			zip.configure({ [propertyName]: propertyValue });
+		}
+	}
+	zip.resetConfiguration();
+}
+
+// A configuration is applied once every value it holds has been checked, so a bag mixing a valid property
+// and an invalid one leaves the configuration exactly as it was.
+async function configureLeavesTheConfigurationUntouchedWhenItThrows() {
+	zip.configure({ chunkSize: 8192 });
+	assertConfigureThrows({ chunkSize: 4096, maxWorkers: 0 }, zip.ERR_INVALID_MAX_WORKERS, "a partially valid configuration");
+	const readable = new zip.Uint8ArrayReader(new Uint8Array(10000)).createReadable();
+	const { value } = await readable.getReader().read();
+	if (value.length != 8192) {
+		throw new Error("expected the previous chunkSize to be kept, got chunks of " + value.length + " bytes");
+	}
+	zip.resetConfiguration();
+}
+
+// configure() used to throw a TypeError naming a deprecated property when it was called without any argument.
+function configureAcceptsAnythingWithoutConfigurableProperties() {
+	for (const configuration of [undefined, null, "x", 42, [], true]) {
+		zip.configure(configuration);
+	}
+}
+
+// An invalid chunkSize is tolerated, and the configuration is not the only place it is read from: a chunkSize
+// that does not represent a number used to make the readable of createReadable() loop for ever without
+// emitting anything, and 0 or a fractional value closed it before any data was read.
+async function createReadableNormalizesChunkSizesThatUsedToHang() {
+	for (const chunkSize of [0, -1, 0.5, NaN, Infinity, null, true, "big", {}, []]) {
+		const readable = new zip.Uint8ArrayReader(new Uint8Array(10)).createReadable({ chunkSize });
+		const { value } = await readable.getReader().read();
+		if (!value || value.length != 10) {
+			throw new Error("expected the whole data for createReadable chunkSize: " + describe(chunkSize));
+		}
+	}
+	const readable = new zip.Uint8ArrayReader(new Uint8Array(10000)).createReadable({ chunkSize: "4096" });
+	const { value } = await readable.getReader().read();
+	if (value.length != 4096) {
+		throw new Error("expected a numeric string chunkSize to be used, got chunks of " + value.length + " bytes");
+	}
+}
+
+function assertConfigureThrows(configuration, expectedMessage, description) {
+	let thrownError;
+	try {
+		zip.configure(configuration);
+	} catch (error) {
+		thrownError = error;
+	}
+	assertMessage(thrownError, expectedMessage, description);
+}
+
+function describe(value) {
+	return typeof value == "string" ? JSON.stringify(value) : String(value);
 }
 
 async function assertThrows(options, expectedMessage, description) {

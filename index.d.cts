@@ -357,6 +357,8 @@ export interface Configuration extends WorkerConfiguration {
   /**
    * The maximum number of web workers used to compress/decompress data simultaneously.
    *
+   * It must be an integer greater than 0, see {@link ERR_INVALID_MAX_WORKERS}.
+   *
    * @defaultValue `navigator.hardwareConcurrency`, or 2 when the environment does not provide it
    */
   maxWorkers?: number;
@@ -454,6 +456,9 @@ export interface Configuration extends WorkerConfiguration {
   wasmURI?: string;
   /**
    * The size of the chunks in bytes during data compression/decompression.
+   *
+   * Values lower than 64 are raised to 64, and a value that is not an integer greater than 0 is replaced with the default
+   * value.
    *
    * @defaultValue 65536
    */
@@ -804,6 +809,8 @@ export interface CreateReadableOptions {
   /**
    * The size in bytes of the chunks emitted by the default implementation (the `chunkSize` value
    * of the global configuration by default).
+   *
+   * It is normalized like {@link Configuration#chunkSize}.
    */
   chunkSize?: number;
 }
@@ -4147,8 +4154,10 @@ export const ERR_INVALID_DATE: string;
  * @remarks
  * Thrown when an option expecting a function is given a value of another type: {@link ZipWriterConstructorOptions#encodeText},
  * {@link GetEntriesOptions#decodeText}, {@link ZipWriterConstructorOptions#createTempStream},
- * {@link ZipWriterCloseOptions#signCentralDirectory} and {@link GetEntriesOptions#decryptCentralDirectory}. A falsy value
- * keeps meaning "use the default".
+ * {@link ZipWriterCloseOptions#signCentralDirectory} and {@link GetEntriesOptions#decryptCentralDirectory}. It is also
+ * thrown by {@link configure} for {@link Configuration#createWorker}, {@link Configuration#CompressionStream},
+ * {@link Configuration#DecompressionStream}, {@link Configuration#CompressionStreamFallback} and
+ * {@link Configuration#DecompressionStreamFallback}. A falsy value keeps meaning "use the default".
  */
 export const ERR_INVALID_FUNCTION_OPTION: string;
 /**
@@ -4159,6 +4168,15 @@ export const ERR_INVALID_FUNCTION_OPTION: string;
  * property is accepted, so a signal coming from another realm keeps working.
  */
 export const ERR_INVALID_SIGNAL: string;
+/**
+ * Invalid maxWorkers error
+ *
+ * @remarks
+ * Thrown by {@link configure} when {@link Configuration#maxWorkers} is not an integer greater than 0. A value lower than 1
+ * used to deadlock {@link ZipWriter#add} for ever, since no entry could start and none could release the next one. Pass
+ * {@link Configuration#useWebWorkers} set to `false` to compress and decompress data in the main thread instead.
+ */
+export const ERR_INVALID_MAX_WORKERS: string;
 /**
  * Invalid version error
  */

@@ -17,6 +17,8 @@ Represents the options passed to [Reader#createReadable](../classes/Reader.md#cr
 The size in bytes of the chunks emitted by the default implementation (the `chunkSize` value
 of the global configuration by default).
 
+It is normalized like [Configuration#chunkSize](Configuration.md#chunksize).
+
 ***
 
 ### offset?

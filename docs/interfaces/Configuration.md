@@ -35,6 +35,9 @@ the URL of the module of zip.js
 
 The size of the chunks in bytes during data compression/decompression.
 
+Values lower than 64 are raised to 64, and a value that is not an integer greater than 0 is replaced with the default
+value.
+
 #### Default Value
 
 ```ts
@@ -156,6 +159,8 @@ Use [Configuration#DecompressionStreamFallback](#decompressionstreamfallback) in
 > `optional` **maxWorkers?**: `number`
 
 The maximum number of web workers used to compress/decompress data simultaneously.
+
+It must be an integer greater than 0, see [ERR\_INVALID\_MAX\_WORKERS](../variables/ERR_INVALID_MAX_WORKERS.md).
 
 #### Default Value
 
