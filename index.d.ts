@@ -191,6 +191,32 @@ declare class TransformStreamLike {
 }
 
 /**
+ * Represents a generic class compressing data, e.g. the native `CompressionStream` class.
+ */
+declare class CompressionStreamLike extends TransformStreamLike {
+  /**
+   * Creates the stream
+   *
+   * @param format The compression format.
+   * @param options The options.
+   */
+  constructor(format: string, options?: CompressionStreamOptions);
+}
+
+/**
+ * Represents a generic class decompressing data, e.g. the native `DecompressionStream` class.
+ */
+declare class DecompressionStreamLike extends TransformStreamLike {
+  /**
+   * Creates the stream
+   *
+   * @param format The decompression format.
+   * @param options The options.
+   */
+  constructor(format: string, options?: DecompressionStreamOptions);
+}
+
+/**
  * Configures zip.js
  *
  * @param configuration The configuration.
@@ -237,32 +263,91 @@ export interface CodecDefinition {
   format: string;
   /**
    * The URL of a module exporting the `CompressionStream` and/or `DecompressionStream` classes of
-   * the codec. Relative URLs are resolved against `Configuration#baseURI`; passing an absolute URL
-   * (e.g. via `import.meta.resolve()`) is recommended.
+   * the codec. Relative URLs are resolved against {@link Configuration#baseURI}; passing an absolute
+   * URL (e.g. via `import.meta.resolve()`) is recommended.
    */
   codecURI?: string;
   /**
-   * The stream implementation used to compress data, constructed with
-   * `(format, { level, chunkSize, compressionMethod })`.
+   * The stream implementation used to compress data, constructed with `(format, options)`, see
+   * {@link CompressionStreamOptions}.
    */
-  CompressionStream?: typeof TransformStreamLike;
+  CompressionStream?: typeof CompressionStreamLike;
   /**
-   * The stream implementation used to decompress data, constructed with
-   * `(format, { chunkSize, compressionMethod, rawBitFlag, uncompressedSize })`.
-   *
-   * `compressionMethod` allows codecs registered for multiple methods with the same format to
-   * distinguish them (e.g. Reduce, methods 2 to 5). `rawBitFlag` exposes the general purpose bit
-   * flag of the entry, which some methods need to decode the data (e.g. the dictionary size and
-   * number of trees of Implode, or the end-of-stream marker presence of LZMA). `uncompressedSize`
-   * allows size-driven decoders (e.g. Shrink, Reduce, Implode, LZMA without end-of-stream marker)
-   * to stop at the exact output size instead of decoding trailing padding bits.
+   * The stream implementation used to decompress data, constructed with `(format, options)`, see
+   * {@link DecompressionStreamOptions}.
    */
-  DecompressionStream?: typeof TransformStreamLike;
+  DecompressionStream?: typeof DecompressionStreamLike;
   /**
    * The minimum "version needed to extract" value written in zip entry headers (e.g. `63` for
    * Zstandard).
    */
   versionNeeded?: number;
+}
+
+/**
+ * Represents the options passed as the second argument to the constructor of the classes
+ * compressing data, i.e. {@link CodecDefinition#CompressionStream},
+ * {@link Configuration#CompressionStream} and {@link Configuration#CompressionStreamFallback}.
+ */
+export interface CompressionStreamOptions {
+  /**
+   * The compression level, see {@link ZipWriterConstructorOptions#level}.
+   */
+  level?: number;
+  /**
+   * The size of the chunks in bytes, see {@link Configuration#chunkSize}.
+   */
+  chunkSize?: number;
+  /**
+   * The compression method of the entry. It allows codecs registered for several methods sharing
+   * the same format to distinguish them (e.g. Reduce, methods 2 to 5).
+   *
+   * It is only set for the codecs registered with {@link registerCodec}.
+   */
+  compressionMethod?: number;
+}
+
+/**
+ * Represents the options passed as the second argument to the constructor of the classes
+ * decompressing data, i.e. {@link CodecDefinition#DecompressionStream},
+ * {@link Configuration#DecompressionStream} and {@link Configuration#DecompressionStreamFallback}.
+ */
+export interface DecompressionStreamOptions {
+  /**
+   * The size of the chunks in bytes, see {@link Configuration#chunkSize}.
+   */
+  chunkSize?: number;
+  /**
+   * `true` when the data is compressed with the Deflate64 method, the format passed as the first
+   * argument being `"deflate64-raw"` instead of `"deflate-raw"`.
+   *
+   * It is only set for the classes decompressing the deflate methods, i.e.
+   * {@link Configuration#DecompressionStream} and {@link Configuration#DecompressionStreamFallback}.
+   */
+  deflate64?: boolean;
+  /**
+   * The compression method of the entry. It allows codecs registered for several methods sharing
+   * the same format to distinguish them (e.g. Reduce, methods 2 to 5).
+   *
+   * It is only set for the codecs registered with {@link registerCodec}.
+   */
+  compressionMethod?: number;
+  /**
+   * The general purpose bit flag of the entry, which some methods need to decode the data (e.g. the
+   * dictionary size and the number of trees of Implode, or the presence of the end-of-stream marker
+   * of LZMA).
+   *
+   * It is only set for the codecs registered with {@link registerCodec}.
+   */
+  rawBitFlag?: number;
+  /**
+   * The uncompressed size of the entry declared in its header, undefined when the size is unknown.
+   * It allows size-driven decoders (e.g. Shrink, Reduce, Implode, LZMA without end-of-stream
+   * marker) to stop at the exact output size instead of decoding trailing padding bits.
+   *
+   * It is only set for the codecs registered with {@link registerCodec}.
+   */
+  uncompressedSize?: number;
 }
 
 /**
@@ -297,6 +382,13 @@ export interface Configuration extends WorkerConfiguration {
    * @defaultValue 5000
    */
   workerStartupTimeout?: number;
+  /**
+   * The base URL against which the relative URIs are resolved, i.e. {@link Configuration#workerURI},
+   * {@link Configuration#wasmURI} and {@link CodecDefinition#codecURI}.
+   *
+   * @defaultValue the URL of the module of zip.js
+   */
+  baseURI?: string;
   /**
    * The URI of the web worker.
    *
@@ -371,33 +463,33 @@ export interface Configuration extends WorkerConfiguration {
    *
    * @defaultValue the global `CompressionStream`, or `false` when the environment does not provide it
    */
-  CompressionStream?: typeof TransformStreamLike;
+  CompressionStream?: typeof CompressionStreamLike;
   /**
    * The stream implementation used to decompress data when `useCompressionStream` is set to `true`.
    *
    * @defaultValue the global `DecompressionStream`, or `false` when the environment does not provide it
    */
-  DecompressionStream?: typeof TransformStreamLike;
+  DecompressionStream?: typeof DecompressionStreamLike;
   /**
    * The stream implementation used to compress data when `useCompressionStream` is set to `false`.
    *
    * @defaultValue the implementation embedded in the entry point that was imported, e.g. the WebAssembly one
    */
-  CompressionStreamFallback?: typeof TransformStreamLike;
+  CompressionStreamFallback?: typeof CompressionStreamLike;
   /**
    * The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
    *
    * @defaultValue the implementation embedded in the entry point that was imported, e.g. the WebAssembly one
    */
-  DecompressionStreamFallback?: typeof TransformStreamLike;
+  DecompressionStreamFallback?: typeof DecompressionStreamLike;
   /**
    * @deprecated Use {@link Configuration#CompressionStreamFallback} instead.
    */
-  CompressionStreamZlib?: typeof TransformStreamLike;
+  CompressionStreamZlib?: typeof CompressionStreamLike;
   /**
    * @deprecated Use {@link Configuration#DecompressionStreamFallback} instead.
    */
-  DecompressionStreamZlib?: typeof TransformStreamLike;
+  DecompressionStreamZlib?: typeof DecompressionStreamLike;
 }
 
 /**
@@ -489,11 +581,11 @@ export function initWorker(options?: {
   /**
    * The stream implementation used to compress data when `useCompressionStream` is set to `false` or when `CompressionStream` is unsupported.
    */
-  CompressionStreamFallback?: typeof TransformStreamLike;
+  CompressionStreamFallback?: typeof CompressionStreamLike;
   /**
    * The stream implementation used to decompress data when `useCompressionStream` is set to `false` or when `DecompressionStream` is unsupported.
    */
-  DecompressionStreamFallback?: typeof TransformStreamLike;
+  DecompressionStreamFallback?: typeof DecompressionStreamLike;
   /**
    * The function called before resolving the stream implementations, e.g. to load a WebAssembly module.
    */
@@ -878,6 +970,12 @@ export interface WritableWriter {
    */
   writable: WritableStream;
   /**
+   * The number of bytes written into the instance. It is set to 0 before the first write and
+   * updated as the data is written, so a writer needing the value (e.g. to compute the offset of a
+   * disk) can read it.
+   */
+  size?: number;
+  /**
    * The maximum size of split data when creating a {@link ZipWriter} instance or when calling {@link FileEntry#getData} with a generator of {@link WritableWriter} instances.
    */
   maxSize?: number;
@@ -913,6 +1011,10 @@ export class Writer<Type> implements Initializable, WritableWriter {
    * The `WritableStream` instance.
    */
   writable: WritableStream;
+  /**
+   * The number of bytes written into the instance.
+   */
+  size: number;
   /**
    * Initializes the instance asynchronously
    *
@@ -956,6 +1058,15 @@ export class BlobWriter implements Initializable, WritableWriter {
    */
   writable: WritableStream;
   /**
+   * The number of bytes written into the instance.
+   */
+  size: number;
+  /**
+   * The MIME type of the content, i.e. the type of the `Blob` instance returned by
+   * {@link BlobWriter#getData}.
+   */
+  contentType?: string;
+  /**
    * Initializes the instance asynchronously
    */
   init(): Promise<void>;
@@ -978,6 +1089,11 @@ export class BlobWriter implements Initializable, WritableWriter {
  */
 export class Data64URIWriter extends Writer<string> {
   /**
+   * The MIME type of the content, i.e. the type declared by the Data URI returned by
+   * {@link Data64URIWriter#getData}.
+   */
+  contentType?: string;
+  /**
    * Creates the {@link Data64URIWriter} instance
    *
    * @param mimeString The MIME type of the content.
@@ -993,6 +1109,10 @@ export class SplitDataWriter implements Initializable, WritableWriter {
    * The `WritableStream` instance.
    */
   writable: WritableStream;
+  /**
+   * The number of bytes written into the instance.
+   */
+  size: number;
   /**
    * The number of the disk being written.
    */
@@ -1898,7 +2018,7 @@ export interface EntryError extends Error {
   corruptedEntry?: boolean;
   /**
    * The entry whose data overlaps the data of the entry being read, set on the
-   * {@link ERR_OVERLAPPING_ENTRY} error raised by {@link GetEntriesOptions#checkOverlappingEntry}.
+   * {@link ERR_OVERLAPPING_ENTRY} error raised by {@link ZipReaderOptions#checkOverlappingEntry}.
    * It is the only way to identify the other entry of the pair.
    */
   overlappingEntry?: Entry;
@@ -4031,7 +4151,7 @@ export const ERR_SPLIT_ZIP_FILE: string;
 /**
  * Overlapping entry error
  *
- * @remarks Thrown by {@link FileEntry#getData} when {@link GetEntriesOptions#checkOverlappingEntry} is set and the
+ * @remarks Thrown by {@link FileEntry#getData} when {@link ZipReaderOptions#checkOverlappingEntry} is set and the
  * data of the entry overlaps the data of an entry already read. The thrown error carries the other entry in its
  * `overlappingEntry` property.
  */
@@ -4048,7 +4168,7 @@ export const ERR_ENTRY_DATA_OUT_OF_BOUNDS: string;
  * @remarks The thrown error carries a `reason` property describing the ambiguity: `"appended data"`,
  * `"prepended data"`, `"trailing central directory data"`, `"multiple end of central directory records"`,
  * `"mismatched zip64 end of central directory record"`, `"duplicate filename"`, or, when
- * {@link GetEntriesOptions#checkLocalDirectory} compares the local header of an entry with its central
+ * {@link ZipReaderOptions#checkLocalDirectory} compares the local header of an entry with its central
  * directory record, `"mismatched local file header (filename)"`,
  * `"mismatched local file header (general purpose bit flag)"`,
  * `"mismatched local file header (compression method)"` or

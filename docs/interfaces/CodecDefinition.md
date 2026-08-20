@@ -15,8 +15,8 @@ Represents a codec definition passed to [registerCodec](../functions/registerCod
 > `optional` **codecURI?**: `string`
 
 The URL of a module exporting the `CompressionStream` and/or `DecompressionStream` classes of
-the codec. Relative URLs are resolved against `Configuration#baseURI`; passing an absolute URL
-(e.g. via `import.meta.resolve()`) is recommended.
+the codec. Relative URLs are resolved against [Configuration#baseURI](Configuration.md#baseuri); passing an absolute
+URL (e.g. via `import.meta.resolve()`) is recommended.
 
 ***
 
@@ -31,26 +31,19 @@ The compression method stored in zip entry headers (e.g. `93` for Zstandard). Th
 
 ### CompressionStream?
 
-> `optional` **CompressionStream?**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+> `optional` **CompressionStream?**: *typeof* [`CompressionStreamLike`](../classes/CompressionStreamLike.md)
 
-The stream implementation used to compress data, constructed with
-`(format, { level, chunkSize, compressionMethod })`.
+The stream implementation used to compress data, constructed with `(format, options)`, see
+[CompressionStreamOptions](CompressionStreamOptions.md).
 
 ***
 
 ### DecompressionStream?
 
-> `optional` **DecompressionStream?**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+> `optional` **DecompressionStream?**: *typeof* [`DecompressionStreamLike`](../classes/DecompressionStreamLike.md)
 
-The stream implementation used to decompress data, constructed with
-`(format, { chunkSize, compressionMethod, rawBitFlag, uncompressedSize })`.
-
-`compressionMethod` allows codecs registered for multiple methods with the same format to
-distinguish them (e.g. Reduce, methods 2 to 5). `rawBitFlag` exposes the general purpose bit
-flag of the entry, which some methods need to decode the data (e.g. the dictionary size and
-number of trees of Implode, or the end-of-stream marker presence of LZMA). `uncompressedSize`
-allows size-driven decoders (e.g. Shrink, Reduce, Implode, LZMA without end-of-stream marker)
-to stop at the exact output size instead of decoding trailing padding bits.
+The stream implementation used to decompress data, constructed with `(format, options)`, see
+[DecompressionStreamOptions](DecompressionStreamOptions.md).
 
 ***
 

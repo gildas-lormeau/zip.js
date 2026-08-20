@@ -35,6 +35,27 @@ The MIME type of the content.
 
 ## Properties
 
+### contentType?
+
+> `optional` **contentType?**: `string`
+
+The MIME type of the content, i.e. the type of the `Blob` instance returned by
+[BlobWriter#getData](#getdata).
+
+***
+
+### size
+
+> **size**: `number`
+
+The number of bytes written into the instance.
+
+#### Implementation of
+
+[`WritableWriter`](../interfaces/WritableWriter.md).[`size`](../interfaces/WritableWriter.md#size)
+
+***
+
 ### writable
 
 > **writable**: `WritableStream`

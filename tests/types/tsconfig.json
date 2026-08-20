@@ -9,5 +9,5 @@
     "lib": ["es2022", "dom"],
     "types": []
   },
-  "files": ["./test-fs-types.ts", "./test-extra-field-types.ts"]
+  "files": ["./test-fs-types.ts", "./test-extra-field-types.ts", "./test-codec-types.ts", "./test-writer-types.ts"]
 }

@@ -14,6 +14,21 @@ Represents the configuration passed to [configure](../functions/configure.md).
 
 ## Properties
 
+### baseURI?
+
+> `optional` **baseURI?**: `string`
+
+The base URL against which the relative URIs are resolved, i.e. [Configuration#workerURI](#workeruri),
+[Configuration#wasmURI](#wasmuri) and [CodecDefinition#codecURI](CodecDefinition.md#codecuri).
+
+#### Default Value
+
+```ts
+the URL of the module of zip.js
+```
+
+***
+
 ### chunkSize?
 
 > `optional` **chunkSize?**: `number`
@@ -30,7 +45,7 @@ The size of the chunks in bytes during data compression/decompression.
 
 ### CompressionStream?
 
-> `optional` **CompressionStream?**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+> `optional` **CompressionStream?**: *typeof* [`CompressionStreamLike`](../classes/CompressionStreamLike.md)
 
 The stream implementation used to compress data when `useCompressionStream` is set to `true`.
 
@@ -42,7 +57,7 @@ the global `CompressionStream`, or `false` when the environment does not provide
 
 ### CompressionStreamFallback?
 
-> `optional` **CompressionStreamFallback?**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+> `optional` **CompressionStreamFallback?**: *typeof* [`CompressionStreamLike`](../classes/CompressionStreamLike.md)
 
 The stream implementation used to compress data when `useCompressionStream` is set to `false`.
 
@@ -56,7 +71,7 @@ the implementation embedded in the entry point that was imported, e.g. the WebAs
 
 ### ~~CompressionStreamZlib?~~
 
-> `optional` **CompressionStreamZlib?**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+> `optional` **CompressionStreamZlib?**: *typeof* [`CompressionStreamLike`](../classes/CompressionStreamLike.md)
 
 #### Deprecated
 
@@ -102,7 +117,7 @@ configure({
 
 ### DecompressionStream?
 
-> `optional` **DecompressionStream?**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+> `optional` **DecompressionStream?**: *typeof* [`DecompressionStreamLike`](../classes/DecompressionStreamLike.md)
 
 The stream implementation used to decompress data when `useCompressionStream` is set to `true`.
 
@@ -114,7 +129,7 @@ the global `DecompressionStream`, or `false` when the environment does not provi
 
 ### DecompressionStreamFallback?
 
-> `optional` **DecompressionStreamFallback?**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+> `optional` **DecompressionStreamFallback?**: *typeof* [`DecompressionStreamLike`](../classes/DecompressionStreamLike.md)
 
 The stream implementation used to decompress data when `useCompressionStream` is set to `false`.
 
@@ -128,7 +143,7 @@ the implementation embedded in the entry point that was imported, e.g. the WebAs
 
 ### ~~DecompressionStreamZlib?~~
 
-> `optional` **DecompressionStreamZlib?**: *typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+> `optional` **DecompressionStreamZlib?**: *typeof* [`DecompressionStreamLike`](../classes/DecompressionStreamLike.md)
 
 #### Deprecated
 

@@ -38,6 +38,27 @@ The MIME type of the content.
 
 ## Properties
 
+### contentType?
+
+> `optional` **contentType?**: `string`
+
+The MIME type of the content, i.e. the type declared by the Data URI returned by
+[Data64URIWriter#getData](#getdata).
+
+***
+
+### size
+
+> **size**: `number`
+
+The number of bytes written into the instance.
+
+#### Inherited from
+
+[`Writer`](Writer.md).[`size`](Writer.md#size)
+
+***
+
 ### writable
 
 > **writable**: `WritableStream`

@@ -67,13 +67,13 @@ initWorker({ CompressionStreamFallback, DecompressionStreamFallback });
 
 #### CompressionStreamFallback?
 
-*typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+*typeof* [`CompressionStreamLike`](../classes/CompressionStreamLike.md)
 
 The stream implementation used to compress data when `useCompressionStream` is set to `false` or when `CompressionStream` is unsupported.
 
 #### DecompressionStreamFallback?
 
-*typeof* [`TransformStreamLike`](../classes/TransformStreamLike.md)
+*typeof* [`DecompressionStreamLike`](../classes/DecompressionStreamLike.md)
 
 The stream implementation used to decompress data when `useCompressionStream` is set to `false` or when `DecompressionStream` is unsupported.
 

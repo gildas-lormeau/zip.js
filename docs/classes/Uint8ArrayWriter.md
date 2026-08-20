@@ -38,6 +38,18 @@ The initial size of the internal buffer (default: 256KB).
 
 ## Properties
 
+### size
+
+> **size**: `number`
+
+The number of bytes written into the instance.
+
+#### Inherited from
+
+[`Writer`](Writer.md).[`size`](Writer.md#size)
+
+***
+
 ### writable
 
 > **writable**: `WritableStream`

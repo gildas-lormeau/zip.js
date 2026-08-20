@@ -12,6 +12,11 @@ Represents a generic `TransformStream` class.
 
 [https://streams.spec.whatwg.org/#generictransformstream\|specification](https://streams.spec.whatwg.org/#generictransformstream|specification)
 
+## Extended by
+
+- [`CompressionStreamLike`](CompressionStreamLike.md)
+- [`DecompressionStreamLike`](DecompressionStreamLike.md)
+
 ## Constructors
 
 ### Constructor

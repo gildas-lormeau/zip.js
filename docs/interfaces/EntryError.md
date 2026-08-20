@@ -88,7 +88,7 @@ export completed from one it created but never filled.
 > `optional` **overlappingEntry?**: [`Entry`](../type-aliases/Entry.md)
 
 The entry whose data overlaps the data of the entry being read, set on the
-[ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error raised by GetEntriesOptions#checkOverlappingEntry.
+[ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error raised by [ZipReaderOptions#checkOverlappingEntry](ZipReaderOptions.md#checkoverlappingentry).
 It is the only way to identify the other entry of the pair.
 
 ***

@@ -18,6 +18,16 @@ The maximum size of split data when creating a [ZipWriter](../classes/ZipWriter.
 
 ***
 
+### size?
+
+> `optional` **size?**: `number`
+
+The number of bytes written into the instance. It is set to 0 before the first write and
+updated as the data is written, so a writer needing the value (e.g. to compute the offset of a
+disk) can read it.
+
+***
+
 ### writable
 
 > **writable**: `WritableStream`

@@ -60,6 +60,18 @@ class BinaryStringWriter extends Writer {
 
 ## Properties
 
+### size
+
+> **size**: `number`
+
+The number of bytes written into the instance.
+
+#### Implementation of
+
+[`WritableWriter`](../interfaces/WritableWriter.md).[`size`](../interfaces/WritableWriter.md#size)
+
+***
+
 ### writable
 
 > **writable**: `WritableStream`
