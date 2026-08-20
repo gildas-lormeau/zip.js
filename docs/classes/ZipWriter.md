@@ -161,7 +161,7 @@ cannot be called after the first call to [ZipWriter#add](#add).
 
 ##### reader
 
-`ReadableStream`\<`any`\> \| `ReadableStream`\<`any`\>[] \| [`ReadableReader`](../interfaces/ReadableReader.md) \| [`Reader`](Reader.md)\<`unknown`\>[] \| [`ReadableReader`](../interfaces/ReadableReader.md)[] \| [`Reader`](Reader.md)\<`ReaderType`\>
+`ReadableStream`\<`any`\> \| [`ReadableReader`](../interfaces/ReadableReader.md) \| [`Reader`](Reader.md)\<`ReaderType`\>
 
 The [Reader](Reader.md) instance used to read the content of the zip file.
 
@@ -170,6 +170,12 @@ The [Reader](Reader.md) instance used to read the content of the zip file.
 `Promise`\<`void`\>
 
 A promise resolving when the zip file has been added.
+
+#### Remarks
+
+Split zip files are not supported: the source is flattened into a single output and the per-disk offsets
+stored in its central directory are not rewritten. An array of readers is therefore rejected with
+[ERR\_UNSUPPORTED\_SPLIT\_ZIP](../variables/ERR_UNSUPPORTED_SPLIT_ZIP.md), unlike [ZipReader](ZipReader.md) where it denotes the disks of a split zip file.
 
 ***
 

@@ -1359,6 +1359,10 @@
 		return Boolean(writer && writer.getData);
 	}
 
+	function isSplitDataReader(reader) {
+		return Boolean(reader.getDiskOffset);
+	}
+
 	function isHttpFamily(url) {
 		const { baseURI } = getConfiguration();
 		const { protocol } = new URL(url, baseURI);
@@ -5414,6 +5418,7 @@
 	const ERR_UNDETERMINED_SIZE = "Undetermined size";
 	const ERR_UNDEFINED_READER = "Undefined reader";
 	const ERR_ZIP_NOT_EMPTY = "Zip file not empty";
+	const ERR_UNSUPPORTED_SPLIT_ZIP = "Split zip files are not supported when prepending a zip file";
 	const ERR_INVALID_UID = "Invalid uid (must be integer 0..2^32-1)";
 	const ERR_INVALID_GID = "Invalid gid (must be integer 0..2^32-1)";
 	const ERR_INVALID_UNIX_MODE = "Invalid UNIX mode (must be integer 0..65535)";
@@ -5460,15 +5465,17 @@
 			if (this.filenames.size) {
 				throw new Error(ERR_ZIP_NOT_EMPTY);
 			}
-			const concatenatedReaders = Array.isArray(reader);
 			reader = new GenericReader(reader);
+			if (isSplitDataReader(reader)) {
+				throw new Error(ERR_UNSUPPORTED_SPLIT_ZIP);
+			}
 			await initStream(reader);
 			if (reader.size === UNDEFINED_VALUE || !reader.readUint8Array) {
 				reader = new BlobReader(await streamToBlob(reader.readable));
 				await initStream(reader);
 			}
 			const { ZipReader } = await Promise.resolve().then(function () { return zipReader; });
-			const zipReader$1 = new ZipReader(concatenatedReaders ? reader.readable : reader);
+			const zipReader$1 = new ZipReader(reader);
 			const entries = await zipReader$1.getEntries();
 			await zipReader$1.close();
 			await initStream(this.writer);

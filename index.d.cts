@@ -2595,17 +2595,15 @@ export class ZipWriter<Type> {
    * Adds an existing zip file at the beginning of the current zip. This method
    * cannot be called after the first call to {@link ZipWriter#add}.
    *
+   * @remarks Split zip files are not supported: the source is flattened into a single output and the per-disk offsets
+   * stored in its central directory are not rewritten. An array of readers is therefore rejected with
+   * {@link ERR_UNSUPPORTED_SPLIT_ZIP}, unlike {@link ZipReader} where it denotes the disks of a split zip file.
+   *
    * @param reader The {@link Reader} instance used to read the content of the zip file.
    * @returns A promise resolving when the zip file has been added.
    */
   prependZip<ReaderType>(
-    reader:
-      | Reader<ReaderType>
-      | ReadableReader
-      | ReadableStream
-      | Reader<unknown>[]
-      | ReadableReader[]
-      | ReadableStream[]
+    reader: Reader<ReaderType> | ReadableReader | ReadableStream
   ): Promise<void>;
 
   /**
@@ -4274,6 +4272,16 @@ export const ERR_WRITER_NOT_INITIALIZED: string;
  * Zip file not empty error
  */
 export const ERR_ZIP_NOT_EMPTY: string;
+/**
+ * Unsupported split zip file error
+ *
+ * @remarks
+ * Thrown by {@link ZipWriter#prependZip} when the reader is an array, which everywhere else in the API denotes the disks
+ * of a split zip file. Prepending flattens its source into a single output without rewriting the per-disk offsets stored
+ * in the central directory, so a split zip file cannot be prepended. Concatenate the data beforehand to prepend an
+ * archive held as several pieces.
+ */
+export const ERR_UNSUPPORTED_SPLIT_ZIP: string;
 /**
  * Signature data exceeding 64KB error (see {@link ZipWriterCloseOptions#signCentralDirectory})
  */
