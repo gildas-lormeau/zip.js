@@ -45,6 +45,7 @@
 
 	const LOCAL_FILE_HEADER_SIGNATURE = 0x04034b50;
 	const SPLIT_ZIP_FILE_SIGNATURE = 0x08074b50;
+	const TEMPORARY_SPLIT_ZIP_FILE_SIGNATURE = 0x30304b50;
 	const DATA_DESCRIPTOR_RECORD_SIGNATURE = SPLIT_ZIP_FILE_SIGNATURE;
 	const ARCHIVE_EXTRA_DATA_SIGNATURE = 0x08064b50;
 	const DIGITAL_SIGNATURE_RECORD_SIGNATURE = 0x05054b50;
@@ -5038,7 +5039,7 @@
 			const extractPrependedData = getOptionValue$1(zipReader, options, OPTION_EXTRACT_PREPENDED_DATA);
 			const extractAppendedData = getOptionValue$1(zipReader, options, OPTION_EXTRACT_APPENDED_DATA);
 			const splitZipSignatureLength = (checkAmbiguity || extractPrependedData) && filesLength &&
-				startOffset == SPLIT_ZIP_FILE_SIGNATURE_LENGTH && await startsWithSplitZipSignature$1(reader) ? SPLIT_ZIP_FILE_SIGNATURE_LENGTH : 0;
+				startOffset == SPLIT_ZIP_FILE_SIGNATURE_LENGTH && await startsWithSplitZipMarker(reader) ? SPLIT_ZIP_FILE_SIGNATURE_LENGTH : 0;
 			if (checkAmbiguity && (prependedDataLength || (filesLength && startOffset > splitZipSignatureLength))) {
 				throwAmbiguousArchive("prepended data");
 			}
@@ -5716,8 +5717,17 @@
 	}
 
 	async function startsWithSplitZipSignature$1(reader) {
+		return await getFirstSignature(reader) == SPLIT_ZIP_FILE_SIGNATURE;
+	}
+
+	async function startsWithSplitZipMarker(reader) {
+		const signature = await getFirstSignature(reader);
+		return signature == SPLIT_ZIP_FILE_SIGNATURE || signature == TEMPORARY_SPLIT_ZIP_FILE_SIGNATURE;
+	}
+
+	async function getFirstSignature(reader) {
 		const signatureArray = await readUint8Array(reader, 0, SPLIT_ZIP_FILE_SIGNATURE_LENGTH);
-		return getUint32$1(getDataView(signatureArray)) == SPLIT_ZIP_FILE_SIGNATURE;
+		return getUint32$1(getDataView(signatureArray));
 	}
 
 	function isStrictnessValue(value) {

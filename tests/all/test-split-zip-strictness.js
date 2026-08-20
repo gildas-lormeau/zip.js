@@ -3,7 +3,9 @@
 // rejected every split zip file, including the ones zip.js writes. The value, the length and the position of
 // those bytes are defined by the format, and the offsets stored in the central directory already account for
 // them, so no other parser can read the archive differently: they are neither an ambiguity nor prepended data.
-// Any other 4 bytes in front of the first entry still are both.
+// A splitting process that ends up needing a single segment writes the temporary spanning marker instead
+// (APPNOTE 8.5.4), which is the same 4 bytes at the same place and means the same thing to a reader.
+// Any other 4 bytes in front of the first entry still are both an ambiguity and prepended data.
 
 import * as zip from "../zip-lib.js";
 
@@ -11,15 +13,23 @@ const TEXT_CONTENT = "x".repeat(50000);
 const ENTRY_COUNT = 8;
 const DISK_SIZE = 100000;
 const SPLIT_ZIP_SIGNATURE = new Uint8Array([0x50, 0x4b, 0x07, 0x08]);
-const OTHER_PREFIX = new Uint8Array([0x4d, 0x4d, 0x4d, 0x4d]);
+const TEMPORARY_SPLIT_ZIP_SIGNATURE = new Uint8Array([0x50, 0x4b, 0x30, 0x30]);
+const OTHER_PREFIXES = [
+	new Uint8Array([0x4d, 0x4d, 0x4d, 0x4d]),
+	new Uint8Array([0x50, 0x4b, 0x07, 0x09]),
+	new Uint8Array([0x50, 0x4b, 0x30, 0x31])
+];
 
 export { test };
 
 async function test() {
 	await readsASplitZipFileInStrictMode();
-	await acceptsTheSpanningSignatureAsTheArchiveStart();
-	await rejectsAnyOtherPrefix();
-	await extractsAnyOtherPrefixAsPrependedData();
+	await acceptsTheMarkerAsTheArchiveStart(SPLIT_ZIP_SIGNATURE, "the spanning signature");
+	await acceptsTheMarkerAsTheArchiveStart(TEMPORARY_SPLIT_ZIP_SIGNATURE, "the temporary spanning marker");
+	for (const prefix of OTHER_PREFIXES) {
+		await rejectsAnyOtherPrefix(prefix);
+		await extractsAnyOtherPrefixAsPrependedData(prefix);
+	}
 	await zip.terminateWorkers();
 }
 
@@ -49,23 +59,25 @@ async function readsASplitZipFileInStrictMode() {
 	}
 }
 
-async function acceptsTheSpanningSignatureAsTheArchiveStart() {
-	const data = await buildPrefixedZipFile(SPLIT_ZIP_SIGNATURE);
+async function acceptsTheMarkerAsTheArchiveStart(marker, description) {
+	const data = await buildPrefixedZipFile(marker);
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data),
 		{ strictness: "strict", extractPrependedData: true });
 	const entries = await zipReader.getEntries();
 	const { prependedData } = zipReader;
 	await zipReader.close();
-	if (entries[0].offset != SPLIT_ZIP_SIGNATURE.length) {
-		throw new Error("expected the entry at offset " + SPLIT_ZIP_SIGNATURE.length + ", got " + entries[0].offset);
+	if (entries[0].offset != marker.length) {
+		throw new Error("expected the entry after " + description + " at offset " + marker.length +
+			", got " + entries[0].offset);
 	}
 	if (prependedData.length) {
-		throw new Error("expected no prepended data, got " + prependedData.length + " bytes");
+		throw new Error("expected " + description + " not to be reported as prepended data, got " +
+			prependedData.length + " bytes");
 	}
 }
 
-async function rejectsAnyOtherPrefix() {
-	const data = await buildPrefixedZipFile(OTHER_PREFIX);
+async function rejectsAnyOtherPrefix(prefix) {
+	const data = await buildPrefixedZipFile(prefix);
 	let error;
 	try {
 		const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { strictness: "strict" });
@@ -75,20 +87,25 @@ async function rejectsAnyOtherPrefix() {
 		error = thrown;
 	}
 	if (!error || error.message != zip.ERR_AMBIGUOUS_ARCHIVE || error.reason != "prepended data") {
-		throw new Error("expected " + zip.ERR_AMBIGUOUS_ARCHIVE + " (prepended data), got " +
-			(error ? error.message + " (" + error.reason + ")" : "no error"));
+		throw new Error("expected " + zip.ERR_AMBIGUOUS_ARCHIVE + " (prepended data) for the prefix " +
+			getHexadecimalValue(prefix) + ", got " + (error ? error.message + " (" + error.reason + ")" : "no error"));
 	}
 }
 
-async function extractsAnyOtherPrefixAsPrependedData() {
-	const data = await buildPrefixedZipFile(OTHER_PREFIX);
+async function extractsAnyOtherPrefixAsPrependedData(prefix) {
+	const data = await buildPrefixedZipFile(prefix);
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { extractPrependedData: true });
 	await zipReader.getEntries();
 	const { prependedData } = zipReader;
 	await zipReader.close();
-	if (OTHER_PREFIX.some((byte, index) => prependedData[index] != byte) || prependedData.length != OTHER_PREFIX.length) {
-		throw new Error("expected " + OTHER_PREFIX.length + " bytes of prepended data, got " + prependedData.length);
+	if (prefix.some((byte, index) => prependedData[index] != byte) || prependedData.length != prefix.length) {
+		throw new Error("expected " + prefix.length + " bytes of prepended data for the prefix " +
+			getHexadecimalValue(prefix) + ", got " + prependedData.length);
 	}
+}
+
+function getHexadecimalValue(prefix) {
+	return Array.from(prefix).map(byte => byte.toString(16).padStart(2, "0")).join(" ");
 }
 
 async function buildSplitZipFile() {
