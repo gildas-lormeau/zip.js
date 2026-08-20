@@ -69,7 +69,7 @@ async function prependAndCheck(source, description) {
 	await zipWriter.prependZip(source);
 	await zipWriter.add(ADDED_FILENAME, new zip.TextReader(TEXT_CONTENT));
 	const data = await zipWriter.close();
-	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { checkSignature: true });
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { checkCrc32: true });
 	const entries = await zipReader.getEntries();
 	const contents = await Promise.all(entries.map(entry => entry.getData(new zip.TextWriter())));
 	await zipReader.close();
