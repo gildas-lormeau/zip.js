@@ -4138,6 +4138,24 @@ export const ERR_INVALID_ENTRY_COMMENT_TYPE: string;
  */
 export const ERR_INVALID_DATE: string;
 /**
+ * Invalid function option error
+ *
+ * @remarks
+ * Thrown when an option expecting a function is given a value of another type: {@link ZipWriterConstructorOptions#encodeText},
+ * {@link GetEntriesOptions#decodeText}, {@link ZipWriterConstructorOptions#createTempStream},
+ * {@link ZipWriterCloseOptions#signCentralDirectory} and {@link GetEntriesOptions#decryptCentralDirectory}. A falsy value
+ * keeps meaning "use the default".
+ */
+export const ERR_INVALID_FUNCTION_OPTION: string;
+/**
+ * Invalid signal error
+ *
+ * @remarks
+ * Thrown when the `signal` option is not an `AbortSignal`. Any object exposing `addEventListener()` and a boolean `aborted`
+ * property is accepted, so a signal coming from another realm keeps working.
+ */
+export const ERR_INVALID_SIGNAL: string;
+/**
  * Invalid version error
  */
 export const ERR_INVALID_VERSION: string;
@@ -4296,7 +4314,9 @@ export const ERR_INVALID_LEVEL: string;
  * Invalid password error (thrown when the `password` option is not a string, or the `rawPassword` option is not a `Uint8Array`)
  *
  * @remarks A value of another type would silently produce an unencrypted archive, and a `rawPassword` passed as a string
- * would produce an archive that cannot be opened with the equivalent {@link ZipWriterConstructorOptions#password}.
+ * would produce an archive that cannot be opened with the equivalent {@link ZipWriterConstructorOptions#password}. The
+ * reader applies the same check, where a value of another type used to fail with the unrelated {@link ERR_ENCRYPTED} or
+ * {@link ERR_INVALID_PASSWORD}.
  */
 export const ERR_INVALID_PASSWORD_TYPE: string;
 /**

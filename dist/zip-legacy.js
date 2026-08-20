@@ -124,6 +124,7 @@
 	const OBJECT_TYPE = "object";
 	const STRING_TYPE = "string";
 	const NUMBER_TYPE = "number";
+	const BOOLEAN_TYPE = "boolean";
 
 	const EMPTY_UINT8_ARRAY = new Uint8Array();
 
@@ -4520,6 +4521,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	const OPTION_FILENAME_ENCODING = "filenameEncoding";
 	const OPTION_COMMENT_ENCODING = "commentEncoding";
 	const OPTION_DECODE_TEXT = "decodeText";
@@ -4568,6 +4570,30 @@
 	const STRICTNESS_STRICT = "strict";
 	const STRICTNESS_BALANCED = "balanced";
 	const STRICTNESS_TOLERANT = "tolerant";
+
+	const ERR_INVALID_FUNCTION_OPTION = "Invalid option (must be a function)";
+	const ERR_INVALID_SIGNAL = "Invalid signal (must be an AbortSignal instance)";
+	const ERR_INVALID_PASSWORD_TYPE = "Invalid password (password must be a string, rawPassword must be a Uint8Array)";
+
+	function checkFunctionOption(value) {
+		if (value && typeof value != FUNCTION_TYPE) {
+			throw new Error(ERR_INVALID_FUNCTION_OPTION);
+		}
+		return value;
+	}
+
+	function checkSignalOption(signal) {
+		if (signal && (typeof signal.addEventListener != FUNCTION_TYPE || typeof signal.aborted != BOOLEAN_TYPE)) {
+			throw new Error(ERR_INVALID_SIGNAL);
+		}
+		return signal || UNDEFINED_VALUE;
+	}
+
+	function checkPasswordOption(password, rawPassword) {
+		if ((password && typeof password != STRING_TYPE) || (rawPassword && !(rawPassword instanceof Uint8Array))) {
+			throw new Error(ERR_INVALID_PASSWORD_TYPE);
+		}
+	}
 
 	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
@@ -4814,7 +4840,7 @@
 			}
 			zipReader.directoryOffset = directoryDataOffset;
 			zipReader.directoryLength = declaredDirectoryDataLength;
-			const decryptCentralDirectory = getOptionValue$1(zipReader, options, OPTION_DECRYPT_CENTRAL_DIRECTORY);
+			const decryptCentralDirectory = getFunctionOptionValue$1(zipReader, options, OPTION_DECRYPT_CENTRAL_DIRECTORY);
 			let decryptedDirectory;
 			if (decryptCentralDirectory && filesLength && directoryArray.length >= 4 &&
 				getUint32(directoryView, 0) != CENTRAL_FILE_HEADER_SIGNATURE &&
@@ -4861,7 +4887,7 @@
 					archive: Boolean(msdosAttributesRaw & FILE_ATTR_MSDOS_ARCHIVE_MASK)
 				};
 				const offsetFileEntry = getUint32(directoryView, offset + 42);
-				const decode = getOptionValue$1(zipReader, options, OPTION_DECODE_TEXT) || decodeText;
+				const decode = getFunctionOptionValue$1(zipReader, options, OPTION_DECODE_TEXT) || decodeText;
 				const rawFilenameEncoding = filenameUTF8 ? CHARSET_UTF8 : filenameEncoding || CHARSET_CP437;
 				const rawCommentEncoding = commentUTF8 ? CHARSET_UTF8 : commentEncoding || CHARSET_CP437;
 				let filename = decode(rawFilename, rawFilenameEncoding, TEXT_TYPE_FILENAME);
@@ -5082,6 +5108,7 @@
 			let password = getOptionValue$1(zipEntry, options, OPTION_PASSWORD);
 			let rawPassword = getOptionValue$1(zipEntry, options, OPTION_RAW_PASSWORD);
 			const passThrough = getOptionValue$1(zipEntry, options, OPTION_PASS_THROUGH);
+			checkPasswordOption(password, rawPassword);
 			password = password && password.length && password;
 			rawPassword = rawPassword && rawPassword.length && rawPassword;
 			if (extraFieldAES) {
@@ -5156,7 +5183,7 @@
 			}
 			const size = compressedSize;
 			const readable = toCompatibleReadable(reader.createReadable({ offset: dataOffset, size }));
-			const signal = getOptionValue$1(zipEntry, options, OPTION_SIGNAL);
+			const signal = checkSignalOption(getOptionValue$1(zipEntry, options, OPTION_SIGNAL));
 			const checkPasswordOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_PASSWORD_ONLY);
 			let checkOverlappingEntry = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY);
 			const checkOverlappingEntryOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY_ONLY);
@@ -5870,6 +5897,10 @@
 		return options[name] === UNDEFINED_VALUE ? zipReader.options[name] : options[name];
 	}
 
+	function getFunctionOptionValue$1(zipReader, options, name) {
+		return checkFunctionOption(getOptionValue$1(zipReader, options, name));
+	}
+
 	function toNumber$1(value) {
 		return typeof value == STRING_TYPE && value.trim() ? Number(value) : value;
 	}
@@ -5992,7 +6023,6 @@
 	const ERR_INVALID_MSDOS_ATTRIBUTES = "Invalid msdosAttributesRaw (must be integer 0..255)";
 	const ERR_INVALID_MSDOS_DATA = "Invalid msdosAttributes (must be an object with boolean flags)";
 	const ERR_INVALID_LEVEL = "Invalid level (must be integer 0..9)";
-	const ERR_INVALID_PASSWORD_TYPE = "Invalid password (password must be a string, rawPassword must be a Uint8Array)";
 	const ERR_INVALID_SIGNATURE_DATA = "Signature data exceeds 64KB";
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
@@ -6438,7 +6468,7 @@
 	}
 
 	function resolveMetadata(zipWriter, name, options) {
-		const encode = getOptionValue(zipWriter, options, OPTION_ENCODE_TEXT, encodeText);
+		const encode = getFunctionOptionValue(zipWriter, options, OPTION_ENCODE_TEXT) || encodeText;
 		let rawFilename = encode(name, TEXT_TYPE_FILENAME);
 		if (rawFilename === UNDEFINED_VALUE) {
 			rawFilename = encodeText(name);
@@ -6469,9 +6499,7 @@
 		const passThrough = getOptionValue(zipWriter, options, OPTION_PASS_THROUGH);
 		const password = getOptionValue(zipWriter, options, OPTION_PASSWORD);
 		const rawPassword = getOptionValue(zipWriter, options, OPTION_RAW_PASSWORD);
-		if ((password && typeof password != STRING_TYPE) || (rawPassword && !(rawPassword instanceof Uint8Array))) {
-			throw new Error(ERR_INVALID_PASSWORD_TYPE);
-		}
+		checkPasswordOption(password, rawPassword);
 		const encryptionStrength = getNumberOptionValue(zipWriter, options, OPTION_ENCRYPTION_STRENGTH, 3);
 		const zipCrypto = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIPCRYPTO);
 		const extendedTimestamp = getOptionValue(zipWriter, options, OPTION_EXTENDED_TIMESTAMP, true);
@@ -6480,9 +6508,9 @@
 		const useWebWorkers = getOptionValue(zipWriter, options, OPTION_USE_WEB_WORKERS);
 		const transferStreams = getOptionValue(zipWriter, options, OPTION_TRANSFER_STREAMS);
 		const bufferedWrite = getOptionValue(zipWriter, options, OPTION_BUFFERED_WRITE);
-		const createTempStream = getOptionValue(zipWriter, options, OPTION_CREATE_TEMP_STREAM);
+		const createTempStream = getFunctionOptionValue(zipWriter, options, OPTION_CREATE_TEMP_STREAM);
 		const dataDescriptorSignature = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR_SIGNATURE, true);
-		const signal = getOptionValue(zipWriter, options, OPTION_SIGNAL);
+		const signal = checkSignalOption(getOptionValue(zipWriter, options, OPTION_SIGNAL));
 		const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES, true);
 		const compressionMethod = getOptionValue(zipWriter, options, PROPERTY_NAME_COMPRESSION_METHOD);
 		const registeredCodec = passThrough || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
@@ -7559,7 +7587,7 @@
 	}
 
 	async function writeDigitalSignatureRecord(zipWriter, directoryArray, options) {
-		const signCentralDirectory = getOptionValue(zipWriter, options, OPTION_SIGN_CENTRAL_DIRECTORY);
+		const signCentralDirectory = getFunctionOptionValue(zipWriter, options, OPTION_SIGN_CENTRAL_DIRECTORY);
 		if (signCentralDirectory) {
 			const signatureData = await signCentralDirectory(directoryArray);
 			const signatureDataLength = getLength(signatureData);
@@ -7736,6 +7764,10 @@
 			throw new Error(ERR_INVALID_DATE);
 		}
 		return date;
+	}
+
+	function getFunctionOptionValue(zipWriter, options, name) {
+		return checkFunctionOption(getOptionValue(zipWriter, options, name));
 	}
 
 	function getAliasedOptionValue(zipWriter, options, name, deprecatedName, defaultValue) {
@@ -8409,6 +8441,7 @@
 	exports.ERR_INVALID_EXTRAFIELD_DATA_TYPE = ERR_INVALID_EXTRAFIELD_DATA_TYPE;
 	exports.ERR_INVALID_EXTRAFIELD_TYPE = ERR_INVALID_EXTRAFIELD_TYPE;
 	exports.ERR_INVALID_FILENAME_VALIDATION = ERR_INVALID_FILENAME_VALIDATION;
+	exports.ERR_INVALID_FUNCTION_OPTION = ERR_INVALID_FUNCTION_OPTION;
 	exports.ERR_INVALID_GID = ERR_INVALID_GID;
 	exports.ERR_INVALID_LEVEL = ERR_INVALID_LEVEL;
 	exports.ERR_INVALID_MAX_APPENDED_DATA_SIZE = ERR_INVALID_MAX_APPENDED_DATA_SIZE;
@@ -8416,6 +8449,7 @@
 	exports.ERR_INVALID_MSDOS_DATA = ERR_INVALID_MSDOS_DATA;
 	exports.ERR_INVALID_PASSWORD = ERR_INVALID_PASSWORD;
 	exports.ERR_INVALID_PASSWORD_TYPE = ERR_INVALID_PASSWORD_TYPE;
+	exports.ERR_INVALID_SIGNAL = ERR_INVALID_SIGNAL;
 	exports.ERR_INVALID_SIGNATURE = ERR_INVALID_SIGNATURE;
 	exports.ERR_INVALID_SIGNATURE_DATA = ERR_INVALID_SIGNATURE_DATA;
 	exports.ERR_INVALID_STRICTNESS = ERR_INVALID_STRICTNESS;

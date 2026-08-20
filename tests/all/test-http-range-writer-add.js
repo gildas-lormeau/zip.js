@@ -14,7 +14,7 @@ async function test() {
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
-	const text = await entries[0].getData(new zip.TextWriter(zip.getMimeType(entries[0].filename)));
+	const text = await entries[0].getData(new zip.TextWriter());
 	await zipReader.close();
 	await zip.terminateWorkers();
 	if (TEXT_CONTENT != text) {

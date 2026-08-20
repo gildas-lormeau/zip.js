@@ -1,10 +1,12 @@
-/* global TextEncoder */
+/* global TextEncoder, AbortController, EventTarget */
 
-// Checks that options taking an enumeration of values or a bounded number reject anything else instead
-// of silently falling back to a default. Every value probed here used to be accepted: an unknown
-// strictness behaved as "balanced", a negative or non-numeric level disabled compression altogether,
-// and a password of another type produced an unencrypted archive. Values meaning "no value" (undefined,
-// and the falsy passwords that already stood for "no password") must keep working.
+// Checks that options taking an enumeration of values, a bounded number, or a given shape reject anything
+// else instead of silently falling back to a default or failing much later with an error naming an internal
+// variable. Every value probed here used to be accepted: an unknown strictness behaved as "balanced", a
+// negative or non-numeric level disabled compression altogether, a password of another type produced an
+// unencrypted archive, and the function and signal options reached their call site untouched. Values meaning
+// "no value" (undefined, the falsy passwords that already stood for "no password", and the falsy functions
+// standing for "use the default") must keep working.
 
 import * as zip from "../zip-lib.js";
 
@@ -30,6 +32,13 @@ async function test() {
 	await datesKeepAcceptingEmptyValues();
 	await extraFieldRejectsOtherShapes();
 	await extraFieldKeepsAcceptingValidMaps();
+	await functionOptionsRejectOtherValues();
+	await functionOptionsKeepAcceptingFalsyValues();
+	await signalRejectsOtherValues();
+	await signalKeepsAcceptingAbortSignals();
+	await signalAcceptsAnythingShapedLikeASignal();
+	await readerPasswordRejectsOtherTypes();
+	await readerPasswordKeepsAcceptingEmptyValues();
 	await zip.terminateWorkers();
 }
 
@@ -276,10 +285,144 @@ async function extraFieldKeepsAcceptingValidMaps() {
 	await buildZip({ extraField: new Map(), localExtraField: new Map() });
 }
 
-async function closeZip(globalComment) {
+// Every one of these used to reach the call site untouched and fail there with a raw "X is not a function"
+// naming an internal variable, except the two that were not reached at all: createTempStream is only called
+// when the buffered write actually spills, so a wrong value survived a small archive, and the central
+// directory decryption is skipped unless the directory really is encrypted, so a wrong value was ignored
+// outright. The size prediction must reject them too, since it is supposed to throw wherever the export would.
+async function functionOptionsRejectOtherValues() {
+	for (const value of [42, "encode", {}, [], true, new Uint8Array()]) {
+		const description = ": " + String(value);
+		await assertThrows({ encodeText: value }, zip.ERR_INVALID_FUNCTION_OPTION, "encodeText" + description);
+		await assertThrows({ createTempStream: value }, zip.ERR_INVALID_FUNCTION_OPTION, "createTempStream" + description);
+		await assertThrows({ createTempStream: value, bufferedWrite: true }, zip.ERR_INVALID_FUNCTION_OPTION, "createTempStream with bufferedWrite" + description);
+		await assertThrows({ signCentralDirectory: value }, zip.ERR_INVALID_FUNCTION_OPTION, "signCentralDirectory" + description);
+		await assertCloseThrows({ signCentralDirectory: value }, zip.ERR_INVALID_FUNCTION_OPTION, "close signCentralDirectory" + description);
+		await assertExportedSizeThrows({ signCentralDirectory: value }, zip.ERR_INVALID_FUNCTION_OPTION, "getExportedSize signCentralDirectory" + description);
+		await assertReadThrows(await buildZip({}), { decodeText: value }, zip.ERR_INVALID_FUNCTION_OPTION, "decodeText" + description);
+		await assertReadThrows(await buildZip({}), { decryptCentralDirectory: value }, zip.ERR_INVALID_FUNCTION_OPTION, "decryptCentralDirectory" + description);
+	}
+}
+
+// A falsy value keeps meaning "use the default". The reader already worked that way, the writer used to
+// crash on null since only undefined fell back to the built-in text encoder.
+async function functionOptionsKeepAcceptingFalsyValues() {
+	for (const value of [undefined, null, 0, ""]) {
+		const description = String(value);
+		const [entry] = await readEntries(await buildZip({ encodeText: value, createTempStream: value, bufferedWrite: true }), { decodeText: value, decryptCentralDirectory: value });
+		if (entry.filename != "test.txt") {
+			throw new Error("expected the default text codecs for " + description + " got \"" + entry.filename + "\"");
+		}
+		await closeZip(undefined, { signCentralDirectory: value });
+	}
+	let signed = false;
+	await closeZip(undefined, { signCentralDirectory: () => { signed = true; return new Uint8Array([1, 2, 3]); } });
+	if (!signed) {
+		throw new Error("expected the signature function to be called");
+	}
+}
+
+// The likeliest mistake is passing the AbortController itself instead of its signal, which used to reach
+// pipeThrough and fail there with a WebIDL message naming StreamPipeOptions. The three surfaces accepting
+// a signal must agree: the writer, the reader and the entries of a filesystem.
+async function signalRejectsOtherValues() {
+	const data = await buildZip({});
+	for (const signal of [42, {}, "abort", new AbortController(), new EventTarget()]) {
+		const description = "signal: " + String(signal);
+		await assertThrows({ signal }, zip.ERR_INVALID_SIGNAL, description);
+		await assertGetDataThrows(data, { signal }, zip.ERR_INVALID_SIGNAL, "reader " + description);
+		let thrownError;
+		try {
+			await buildFileSystem().zipEntry.getData(new zip.Uint8ArrayWriter(), { signal });
+		} catch (error) {
+			thrownError = error;
+		}
+		assertMessage(thrownError, zip.ERR_INVALID_SIGNAL, "filesystem entry " + description);
+		thrownError = undefined;
+		try {
+			await buildFileSystem().fileSystem.exportUint8Array({ signal });
+		} catch (error) {
+			thrownError = error;
+		}
+		assertMessage(thrownError, zip.ERR_INVALID_SIGNAL, "filesystem export " + description);
+	}
+}
+
+// A real signal must go through untouched on the three surfaces, and an already aborted one must still abort
+// rather than be rejected as invalid.
+async function signalKeepsAcceptingAbortSignals() {
+	for (const signal of [undefined, null, new AbortController().signal]) {
+		await buildFileSystem().zipEntry.getData(new zip.Uint8ArrayWriter(), { signal });
+		const [entry] = await readEntries(await buildZip({ signal }), { signal });
+		await entry.getData(new zip.Uint8ArrayWriter(), { signal });
+	}
+	const abortController = new AbortController();
+	abortController.abort();
+	let thrownError;
+	try {
+		await buildZip({ signal: abortController.signal });
+	} catch (error) {
+		thrownError = error;
+	}
+	if (!thrownError || thrownError.name != "AbortError") {
+		throw new Error("expected an aborted signal to abort, got " + thrownError);
+	}
+}
+
+// The check is duck typed rather than an instanceof so that a signal built in another realm keeps working,
+// which means an object merely shaped like a signal passes it too. Engines with native streams then reject
+// it in pipeTo, and that is their call: what this asserts is that the guard does not claim it is invalid.
+async function signalAcceptsAnythingShapedLikeASignal() {
+	const signal = { aborted: false, addEventListener() { }, removeEventListener() { } };
+	let thrownError;
+	try {
+		await buildZip({ signal });
+	} catch (error) {
+		thrownError = error;
+	}
+	if (thrownError && thrownError.message == zip.ERR_INVALID_SIGNAL) {
+		throw new Error("expected a signal shaped object to reach the engine rather than the guard");
+	}
+}
+
+// The writer has rejected these since c1c4916d while the reader silently dropped them: a number failed the
+// truthiness test of the password normalization and the entry died with "File contains encrypted entry", and
+// a Uint8Array derived another key and died with "Invalid password". Both hid the actual mistake.
+async function readerPasswordRejectsOtherTypes() {
+	const data = await buildZip({ password: "secret" });
+	for (const password of [42, {}, [], true, new TextEncoder().encode("secret")]) {
+		await assertGetDataThrows(data, { password }, zip.ERR_INVALID_PASSWORD_TYPE, "reader password: " + String(password));
+	}
+	for (const rawPassword of [42, {}, "secret", true]) {
+		await assertGetDataThrows(data, { rawPassword }, zip.ERR_INVALID_PASSWORD_TYPE, "reader rawPassword: " + String(rawPassword));
+	}
+}
+
+// The falsy values standing for "no password" must keep reaching the encrypted entry error rather than the
+// new type error, and both spellings of a valid password must still decrypt.
+async function readerPasswordKeepsAcceptingEmptyValues() {
+	const data = await buildZip({ password: "secret" });
+	for (const options of [{}, { password: undefined }, { password: "" }, { password: null }, { rawPassword: new Uint8Array() }]) {
+		await assertGetDataThrows(data, options, zip.ERR_ENCRYPTED, "reader " + JSON.stringify(options));
+	}
+	for (const options of [{ password: "secret" }, { rawPassword: new TextEncoder().encode("secret") }]) {
+		const [entry] = await readEntries(data, options);
+		const content = await entry.getData(new zip.TextWriter(), options);
+		if (content != CONTENT) {
+			throw new Error("expected the entry to be decrypted with " + JSON.stringify(options));
+		}
+	}
+}
+
+function buildFileSystem() {
+	const fileSystem = new zip.ZipFS();
+	return { fileSystem, zipEntry: fileSystem.addText("test.txt", CONTENT) };
+}
+
+async function closeZip(globalComment, closeOptions) {
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
 	await zipWriter.add("test.txt", new zip.TextReader(CONTENT));
-	return zipWriter.close(globalComment);
+	return zipWriter.close(globalComment, closeOptions);
 }
 
 async function buildZip(options) {
@@ -309,6 +452,38 @@ async function assertReadThrows(data, options, expectedMessage, description) {
 	let thrownError;
 	try {
 		await readEntries(data, options);
+	} catch (error) {
+		thrownError = error;
+	}
+	assertMessage(thrownError, expectedMessage, description);
+}
+
+async function assertGetDataThrows(data, options, expectedMessage, description) {
+	let thrownError;
+	try {
+		const [entry] = await readEntries(data, options);
+		await entry.getData(new zip.Uint8ArrayWriter(), options);
+	} catch (error) {
+		thrownError = error;
+	}
+	assertMessage(thrownError, expectedMessage, description);
+}
+
+async function assertCloseThrows(closeOptions, expectedMessage, description) {
+	let thrownError;
+	try {
+		await closeZip(undefined, closeOptions);
+	} catch (error) {
+		thrownError = error;
+	}
+	assertMessage(thrownError, expectedMessage, description);
+}
+
+async function assertExportedSizeThrows(options, expectedMessage, description) {
+	let thrownError;
+	try {
+		const { fileSystem } = buildFileSystem();
+		await fileSystem.getExportedSize(options);
 	} catch (error) {
 		thrownError = error;
 	}
