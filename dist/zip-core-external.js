@@ -3607,14 +3607,7 @@ class TextWriter extends BlobWriter {
 		if (blob.text && utf8) {
 			return blob.text();
 		} else {
-			const reader = new FileReader();
-			return new Promise((resolve, reject) => {
-				Object.assign(reader, {
-					onload: ({ target }) => resolve(target.result),
-					onerror: () => reject(reader.error)
-				});
-				reader.readAsText(blob, encoding);
-			});
+			return new TextDecoder(encoding).decode(await blob.arrayBuffer());
 		}
 	}
 }

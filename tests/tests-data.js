@@ -212,6 +212,7 @@ export default ([
 	{ title: "Store", script: "./test-store.js" },
 	{ title: "Streams", script: "./test-streams.js" },
 	{ title: "Text encoding ", script: "./test-text-encoding.js" },
+	{ title: "Text writer encoding", script: "./test-text-writer-encoding.js" },
 	{ title: "Unicode file names", script: "./test-use-unicode-file-names.js" },
 	{ title: "Text UNIX metadata", script: "./test-unix-metadata.js" },
 	{ title: "Text UNIX extra field layout", script: "./test-unix-extra-field-layout.js" },
