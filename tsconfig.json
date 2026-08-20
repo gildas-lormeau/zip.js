@@ -3,7 +3,12 @@
 		"entryPoints": [
 			"index.d.ts"
 		],
-		"out": "../doc/api"
+		"out": "../doc/api",
+		"externalSymbolLinkMappings": {
+			"typescript": {
+				"File.lastModified": "https://developer.mozilla.org/en-US/docs/Web/API/File/lastModified"
+			}
+		}
 	},
 	"compilerOptions": {
 		"lib": [

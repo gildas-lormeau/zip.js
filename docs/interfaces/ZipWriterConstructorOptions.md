@@ -248,7 +248,7 @@ The last modification date.
 #### Remarks
 
 This option and the two below must be `Date` instances: a timestamp expressed in milliseconds, e.g.
-File#lastModified, and an invalid `Date` are both rejected with [ERR\_INVALID\_DATE](../variables/ERR_INVALID_DATE.md). An
+[File#lastModified](https://developer.mozilla.org/en-US/docs/Web/API/File/lastModified), and an invalid `Date` are both rejected with [ERR\_INVALID\_DATE](../variables/ERR_INVALID_DATE.md). An
 invalid `Date` used to be written as an entry carrying no timestamp at all.
 
 #### Default Value
