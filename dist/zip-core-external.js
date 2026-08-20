@@ -4678,7 +4678,6 @@ class ZipReader {
 		Object.assign(this, {
 			reader: new GenericReader(reader),
 			options,
-			config: getConfiguration(),
 			readRanges: new Map()
 		});
 	}
@@ -4686,7 +4685,6 @@ class ZipReader {
 	async* getEntriesGenerator(options = {}) {
 		const zipReader = this;
 		let { reader } = zipReader;
-		const { config } = zipReader;
 		await initStream(reader);
 		if (reader.size === UNDEFINED_VALUE || !reader.readUint8Array) {
 			reader = new BlobReader(await streamToBlob(reader.readable));
@@ -4860,7 +4858,7 @@ class ZipReader {
 		const filenames = checkAmbiguity ? new Set() : UNDEFINED_VALUE;
 		let duplicateFilename;
 		for (let indexFile = 0; indexFile < filesLength; indexFile++) {
-			const fileEntry = new ZipEntry(reader, config, zipReader.options);
+			const fileEntry = new ZipEntry(reader, zipReader.options);
 			if (offset + CENTRAL_FILE_HEADER_LENGTH > directoryArray.length || getUint32(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE) {
 				if (indexFile == 0 && !decryptedDirectory && (zip64EndOfDirectoryVersion2 || detectEncryptedCentralDirectory(directoryView))) {
 					throw new Error(ERR_ENCRYPTED_CENTRAL_DIRECTORY);
@@ -5077,16 +5075,16 @@ class ZipReaderStream {
 
 class ZipEntry {
 
-	constructor(reader, config, options) {
+	constructor(reader, options) {
 		Object.assign(this, {
 			reader,
-			config,
 			options
 		});
 	}
 
 	async getData(writer, fileEntry, readRanges, options = {}) {
 		const zipEntry = this;
+		const config = getConfiguration();
 		const {
 			reader,
 			index,
@@ -5095,7 +5093,6 @@ class ZipEntry {
 			extraFieldAES,
 			extraFieldZip64,
 			compressionMethod,
-			config,
 			bitFlag,
 			rawBitFlag,
 			crc32,
@@ -6048,7 +6045,6 @@ class ZipWriter {
 			writer,
 			addSplitZipSignature,
 			options,
-			config: getConfiguration(),
 			fileEntries: new Map(),
 			filenames: new Set(),
 			offset: options[OPTION_OFFSET] === UNDEFINED_VALUE ? writer.size || writer.writable.size || 0 : options[OPTION_OFFSET],
@@ -6157,11 +6153,8 @@ class ZipWriter {
 	async add(name = "", reader, options = {}) {
 		const zipWriter = this;
 		options = Object.assign({}, options);
-		const {
-			pendingAddFileCalls,
-			config
-		} = zipWriter;
-		if (workers < config.maxWorkers) {
+		const { pendingAddFileCalls } = zipWriter;
+		if (workers < getConfiguration().maxWorkers) {
 			workers++;
 		} else {
 			await new Promise(resolve => pendingEntries.push(resolve));
@@ -6309,7 +6302,7 @@ async function addFile(zipWriter, name, reader, options) {
 	try {
 		const { resolvedOptions } = metadataInfo;
 		if (resolvedOptions.level != 0 && resolvedOptions.compressionMethod === UNDEFINED_VALUE &&
-			!resolvedOptions.passThrough && !(await supportsDeflate(zipWriter.config))) {
+			!resolvedOptions.passThrough && !(await supportsDeflate(getConfiguration()))) {
 			resolvedOptions.level = 0;
 		}
 		const sizesInfo = await resolveSizes(zipWriter, reader, metadataInfo, options);
@@ -6774,7 +6767,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 			writerSizeBeforeEntry = writer.size;
 			await writeData(fileWriter, localHeaderArray);
 		}
-		fileEntry = await createFileEntry(reader, fileWriter, fileEntry, entryInfo, zipWriter.config, options);
+		fileEntry = await createFileEntry(reader, fileWriter, fileEntry, entryInfo, getConfiguration(), options);
 		if (!bufferedWrite) {
 			writingEntryData = false;
 		}
