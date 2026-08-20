@@ -6524,14 +6524,14 @@
 		if (zip64 && (zip64UncompressedSize || zip64CompressedSize)) {
 			const length = 4 + 16;
 			const extraFieldZip64 = createRecordWriter(length);
-			extraFieldZip64.uint16(EXTRAFIELD_TYPE_ZIP64);
-			extraFieldZip64.uint16(length - 4);
+			extraFieldZip64.writeUint16(EXTRAFIELD_TYPE_ZIP64);
+			extraFieldZip64.writeUint16(length - 4);
 			rawLocalExtraFieldZip64 = extraFieldZip64.array;
 			if (zip64ExtraFieldComplete) {
-				extraFieldZip64.uint64(uncompressedSize);
+				extraFieldZip64.writeUint64(uncompressedSize);
 				if (uncompressedFile) {
 					const encryptionOverhead = encrypted ? (zipCrypto ? 12 : 16 + encryptionStrength * 4) : 0;
-					extraFieldZip64.uint64(passThrough ? 0 : uncompressedSize + encryptionOverhead);
+					extraFieldZip64.writeUint64(passThrough ? 0 : uncompressedSize + encryptionOverhead);
 				}
 			}
 		} else {
@@ -6540,8 +6540,8 @@
 		let rawExtraFieldAES;
 		if (encrypted && !zipCrypto) {
 			const extraFieldAES = createRecordWriter(getLength(EXTRAFIELD_DATA_AES) + 2);
-			extraFieldAES.uint16(EXTRAFIELD_TYPE_AES);
-			extraFieldAES.bytes(EXTRAFIELD_DATA_AES);
+			extraFieldAES.writeUint16(EXTRAFIELD_TYPE_AES);
+			extraFieldAES.writeBytes(EXTRAFIELD_DATA_AES);
 			rawExtraFieldAES = extraFieldAES.array;
 			rawExtraFieldAES[8] = encryptionStrength;
 		} else {
@@ -6557,15 +6557,15 @@
 				const extraFieldTimestampLength = 9 + (lastAccessDate ? 4 : 0) + (creationDate ? 4 : 0);
 				const extraFieldTimestamp = createRecordWriter(extraFieldTimestampLength);
 				extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0);
-				extraFieldTimestamp.uint16(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
-				extraFieldTimestamp.uint16(extraFieldTimestampLength - 4);
-				extraFieldTimestamp.uint8(extraFieldExtendedTimestampFlag);
-				extraFieldTimestamp.uint32(lastModTimeUnix);
+				extraFieldTimestamp.writeUint16(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
+				extraFieldTimestamp.writeUint16(extraFieldTimestampLength - 4);
+				extraFieldTimestamp.writeUint8(extraFieldExtendedTimestampFlag);
+				extraFieldTimestamp.writeUint32(lastModTimeUnix);
 				if (lastAccessDate) {
-					extraFieldTimestamp.uint32(clampUnixTime(getTimeUnix(lastAccessDate)));
+					extraFieldTimestamp.writeUint32(clampUnixTime(getTimeUnix(lastAccessDate)));
 				}
 				if (creationDate) {
-					extraFieldTimestamp.uint32(clampUnixTime(getTimeUnix(creationDate)));
+					extraFieldTimestamp.writeUint32(clampUnixTime(getTimeUnix(creationDate)));
 				}
 				rawExtraFieldExtendedTimestamp = extraFieldTimestamp.array;
 			} else {
@@ -6578,14 +6578,14 @@
 				try {
 					const lastModTimeNTFS = getTimeNTFS(lastModDate);
 					const extraFieldNTFS = createRecordWriter(36);
-					extraFieldNTFS.uint16(EXTRAFIELD_TYPE_NTFS);
-					extraFieldNTFS.uint16(32);
+					extraFieldNTFS.writeUint16(EXTRAFIELD_TYPE_NTFS);
+					extraFieldNTFS.writeUint16(32);
 					extraFieldNTFS.skip(4);
-					extraFieldNTFS.uint16(EXTRAFIELD_TYPE_NTFS_TAG1);
-					extraFieldNTFS.uint16(24);
-					extraFieldNTFS.uint64(lastModTimeNTFS);
-					extraFieldNTFS.uint64(lastAccessDate ? getTimeNTFS(lastAccessDate) : lastModTimeNTFS);
-					extraFieldNTFS.uint64(creationDate ? getTimeNTFS(creationDate) : lastModTimeNTFS);
+					extraFieldNTFS.writeUint16(EXTRAFIELD_TYPE_NTFS_TAG1);
+					extraFieldNTFS.writeUint16(24);
+					extraFieldNTFS.writeUint64(lastModTimeNTFS);
+					extraFieldNTFS.writeUint64(lastAccessDate ? getTimeNTFS(lastAccessDate) : lastModTimeNTFS);
+					extraFieldNTFS.writeUint64(creationDate ? getTimeNTFS(creationDate) : lastModTimeNTFS);
 					rawExtraFieldNTFS = extraFieldNTFS.array;
 				} catch {
 					rawExtraFieldNTFS = EMPTY_UINT8_ARRAY;
@@ -6604,20 +6604,20 @@
 				const gidBytes = packUnixId(gid);
 				const payloadLength = 3 + uidBytes.length + gidBytes.length;
 				const extraFieldUnix = createRecordWriter(4 + payloadLength);
-				extraFieldUnix.uint16(EXTRAFIELD_TYPE_INFOZIP);
-				extraFieldUnix.uint16(payloadLength);
-				extraFieldUnix.uint8(1);
-				extraFieldUnix.uint8(uidBytes.length);
-				extraFieldUnix.bytes(uidBytes);
-				extraFieldUnix.uint8(gidBytes.length);
-				extraFieldUnix.bytes(gidBytes);
+				extraFieldUnix.writeUint16(EXTRAFIELD_TYPE_INFOZIP);
+				extraFieldUnix.writeUint16(payloadLength);
+				extraFieldUnix.writeUint8(1);
+				extraFieldUnix.writeUint8(uidBytes.length);
+				extraFieldUnix.writeBytes(uidBytes);
+				extraFieldUnix.writeUint8(gidBytes.length);
+				extraFieldUnix.writeBytes(gidBytes);
 				rawExtraFieldUnix = extraFieldUnix.array;
 			} else if (unixExtraFieldType == UNIX_EXTRA_FIELD_TYPE && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
 				const extraFieldUnix = createRecordWriter(8);
-				extraFieldUnix.uint16(EXTRAFIELD_TYPE_UNIX);
-				extraFieldUnix.uint16(4);
-				extraFieldUnix.uint16((uid === UNDEFINED_VALUE ? 0 : uid) & MAX_16_BITS);
-				extraFieldUnix.uint16((gid === UNDEFINED_VALUE ? 0 : gid) & MAX_16_BITS);
+				extraFieldUnix.writeUint16(EXTRAFIELD_TYPE_UNIX);
+				extraFieldUnix.writeUint16(4);
+				extraFieldUnix.writeUint16((uid === UNDEFINED_VALUE ? 0 : uid) & MAX_16_BITS);
+				extraFieldUnix.writeUint16((gid === UNDEFINED_VALUE ? 0 : gid) & MAX_16_BITS);
 				rawExtraFieldUnix = extraFieldUnix.array;
 			} else {
 				rawExtraFieldUnix = EMPTY_UINT8_ARRAY;
@@ -6667,18 +6667,18 @@
 		const localHeader = createRecordWriter(HEADER_SIZE + getLength(rawFilename) + extraFieldLength);
 		const localHeaderArray = localHeader.array;
 		const localHeaderView = getDataView(localHeaderArray);
-		localHeader.uint32(LOCAL_FILE_HEADER_SIGNATURE);
-		localHeader.bytes(headerArray);
-		localHeader.bytes(rawFilename);
+		localHeader.writeUint32(LOCAL_FILE_HEADER_SIGNATURE);
+		localHeader.writeBytes(headerArray);
+		localHeader.writeBytes(rawFilename);
 		if (writeLocalExtraFieldZip64) {
-			localHeader.bytes(rawLocalExtraFieldZip64);
+			localHeader.writeBytes(rawLocalExtraFieldZip64);
 		}
-		localHeader.bytes(rawExtraFieldAES);
-		localHeader.bytes(rawExtraFieldExtendedTimestamp);
-		localHeader.bytes(rawExtraFieldNTFS);
-		localHeader.bytes(rawExtraFieldUnix);
-		localHeader.bytes(rawExtraField);
-		localHeader.bytes(rawLocalExtraField);
+		localHeader.writeBytes(rawExtraFieldAES);
+		localHeader.writeBytes(rawExtraFieldExtendedTimestamp);
+		localHeader.writeBytes(rawExtraFieldNTFS);
+		localHeader.writeBytes(rawExtraFieldUnix);
+		localHeader.writeBytes(rawExtraField);
+		localHeader.writeBytes(rawLocalExtraField);
 		if (dataDescriptor) {
 			if (!zip64CompressedSize) {
 				setUint32(localHeaderView, HEADER_OFFSET_COMPRESSED_SIZE + LOCAL_HEADER_COMMON_OFFSET, 0);
@@ -6898,19 +6898,19 @@
 			if (zip64Offset || zip64DiskNumberStart || zip64UncompressedSize || zip64CompressedSize) {
 				const length = 4 + (zip64UncompressedSize ? 8 : 0) + (zip64CompressedSize ? 8 : 0) + (zip64Offset ? 8 : 0) + (zip64DiskNumberStart ? 4 : 0);
 				const extraFieldZip64 = createRecordWriter(length);
-				extraFieldZip64.uint16(EXTRAFIELD_TYPE_ZIP64);
-				extraFieldZip64.uint16(length - 4);
+				extraFieldZip64.writeUint16(EXTRAFIELD_TYPE_ZIP64);
+				extraFieldZip64.writeUint16(length - 4);
 				if (zip64UncompressedSize) {
-					extraFieldZip64.uint64(uncompressedSize);
+					extraFieldZip64.writeUint64(uncompressedSize);
 				}
 				if (zip64CompressedSize) {
-					extraFieldZip64.uint64(compressedSize);
+					extraFieldZip64.writeUint64(compressedSize);
 				}
 				if (zip64Offset) {
-					extraFieldZip64.uint64(fileEntry.offset);
+					extraFieldZip64.writeUint64(fileEntry.offset);
 				}
 				if (zip64DiskNumberStart) {
-					extraFieldZip64.uint32(fileEntry.diskNumberStart);
+					extraFieldZip64.writeUint32(fileEntry.diskNumberStart);
 				}
 				rawExtraFieldZip64 = extraFieldZip64.array;
 			} else {
@@ -6923,10 +6923,10 @@
 			const lastModTimeUnix = getTimeUnix(lastModDate);
 			if (extendedTimestamp && inUnixTimeRange(lastModTimeUnix)) {
 				const extraFieldTimestamp = createRecordWriter(9);
-				extraFieldTimestamp.uint16(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
-				extraFieldTimestamp.uint16(5);
-				extraFieldTimestamp.uint8(extraFieldExtendedTimestampFlag);
-				extraFieldTimestamp.uint32(lastModTimeUnix);
+				extraFieldTimestamp.writeUint16(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
+				extraFieldTimestamp.writeUint16(5);
+				extraFieldTimestamp.writeUint8(extraFieldExtendedTimestampFlag);
+				extraFieldTimestamp.writeUint32(lastModTimeUnix);
 				rawExtraFieldTimestamp = extraFieldTimestamp.array;
 			} else {
 				rawExtraFieldTimestamp = EMPTY_UINT8_ARRAY;
@@ -7000,23 +7000,23 @@
 				setUint16(headerView, HEADER_OFFSET_VERSION, VERSION_ZIP64);
 			}
 			const directoryRecord = createRecordWriter(directoryRecordLength);
-			directoryRecord.uint32(CENTRAL_FILE_HEADER_SIGNATURE);
-			directoryRecord.uint16(versionMadeBy);
-			directoryRecord.bytes(headerArray.subarray(0, HEADER_SIZE - 4 - 2));
-			directoryRecord.uint16(extraFieldLength);
-			directoryRecord.uint16(getLength(rawComment));
-			directoryRecord.uint16(zip64DiskNumberStart ? MAX_16_BITS : diskNumberStart);
-			directoryRecord.uint16(internalFileAttributes);
-			directoryRecord.uint32(externalFileAttributes);
-			directoryRecord.uint32(zip64Offset ? MAX_32_BITS : fileEntryOffset);
-			directoryRecord.bytes(rawFilename);
-			directoryRecord.bytes(rawExtraFieldZip64);
-			directoryRecord.bytes(rawExtraFieldAES);
-			directoryRecord.bytes(rawExtraFieldExtendedTimestamp);
-			directoryRecord.bytes(rawExtraFieldNTFS);
-			directoryRecord.bytes(rawExtraFieldUnix);
-			directoryRecord.bytes(rawExtraField);
-			directoryRecord.bytes(rawComment);
+			directoryRecord.writeUint32(CENTRAL_FILE_HEADER_SIGNATURE);
+			directoryRecord.writeUint16(versionMadeBy);
+			directoryRecord.writeBytes(headerArray.subarray(0, HEADER_SIZE - 4 - 2));
+			directoryRecord.writeUint16(extraFieldLength);
+			directoryRecord.writeUint16(getLength(rawComment));
+			directoryRecord.writeUint16(zip64DiskNumberStart ? MAX_16_BITS : diskNumberStart);
+			directoryRecord.writeUint16(internalFileAttributes);
+			directoryRecord.writeUint32(externalFileAttributes);
+			directoryRecord.writeUint32(zip64Offset ? MAX_32_BITS : fileEntryOffset);
+			directoryRecord.writeBytes(rawFilename);
+			directoryRecord.writeBytes(rawExtraFieldZip64);
+			directoryRecord.writeBytes(rawExtraFieldAES);
+			directoryRecord.writeBytes(rawExtraFieldExtendedTimestamp);
+			directoryRecord.writeBytes(rawExtraFieldNTFS);
+			directoryRecord.writeBytes(rawExtraFieldUnix);
+			directoryRecord.writeBytes(rawExtraField);
+			directoryRecord.writeBytes(rawComment);
 			arraySet(directoryArray, directoryRecord.array, offset);
 			offset += directoryRecordLength;
 			if (options.onprogress) {
@@ -7043,9 +7043,9 @@
 				throw new Error(ERR_INVALID_SIGNATURE_DATA);
 			}
 			const signatureRecord = createRecordWriter(6 + signatureDataLength);
-			signatureRecord.uint32(DIGITAL_SIGNATURE_RECORD_SIGNATURE);
-			signatureRecord.uint16(signatureDataLength);
-			signatureRecord.bytes(signatureData);
+			signatureRecord.writeUint32(DIGITAL_SIGNATURE_RECORD_SIGNATURE);
+			signatureRecord.writeUint16(signatureDataLength);
+			signatureRecord.writeBytes(signatureData);
 			await writeData(zipWriter.writer, signatureRecord.array);
 			return 6 + signatureDataLength;
 		}
@@ -7081,20 +7081,20 @@
 		}
 		lastDiskNumber = getDiskNumber(writer);
 		if (zip64) {
-			endOfdirectoryRecord.uint32(ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
-			endOfdirectoryRecord.uint64(44);
-			endOfdirectoryRecord.uint16(45);
-			endOfdirectoryRecord.uint16(45);
-			endOfdirectoryRecord.uint32(lastDiskNumber);
-			endOfdirectoryRecord.uint32(diskNumber);
-			endOfdirectoryRecord.uint64(fileEntriesLength);
-			endOfdirectoryRecord.uint64(fileEntriesLength);
-			endOfdirectoryRecord.uint64(directoryDataLength);
-			endOfdirectoryRecord.uint64(directoryOffset);
-			endOfdirectoryRecord.uint32(ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
-			endOfdirectoryRecord.uint32(lastDiskNumber);
-			endOfdirectoryRecord.uint64(BigInt(getSegmentOffset(zipWriter, writer)) + BigInt(directoryDataLength) + BigInt(signatureLength));
-			endOfdirectoryRecord.uint32(lastDiskNumber + 1);
+			endOfdirectoryRecord.writeUint32(ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
+			endOfdirectoryRecord.writeUint64(44);
+			endOfdirectoryRecord.writeUint16(45);
+			endOfdirectoryRecord.writeUint16(45);
+			endOfdirectoryRecord.writeUint32(lastDiskNumber);
+			endOfdirectoryRecord.writeUint32(diskNumber);
+			endOfdirectoryRecord.writeUint64(fileEntriesLength);
+			endOfdirectoryRecord.writeUint64(fileEntriesLength);
+			endOfdirectoryRecord.writeUint64(directoryDataLength);
+			endOfdirectoryRecord.writeUint64(directoryOffset);
+			endOfdirectoryRecord.writeUint32(ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
+			endOfdirectoryRecord.writeUint32(lastDiskNumber);
+			endOfdirectoryRecord.writeUint64(BigInt(getSegmentOffset(zipWriter, writer)) + BigInt(directoryDataLength) + BigInt(signatureLength));
+			endOfdirectoryRecord.writeUint32(lastDiskNumber + 1);
 			const supportZip64SplitFile = getOptionValue(zipWriter, options, OPTION_SUPPORT_ZIP64_SPLIT_FILE, true);
 			if (supportZip64SplitFile) {
 				lastDiskNumber = MAX_16_BITS;
@@ -7104,14 +7104,14 @@
 			directoryOffset = MAX_32_BITS;
 			directoryDataLength = MAX_32_BITS;
 		}
-		endOfdirectoryRecord.uint32(END_OF_CENTRAL_DIR_SIGNATURE);
-		endOfdirectoryRecord.uint16(lastDiskNumber);
-		endOfdirectoryRecord.uint16(diskNumber);
-		endOfdirectoryRecord.uint16(fileEntriesLength);
-		endOfdirectoryRecord.uint16(fileEntriesLength);
-		endOfdirectoryRecord.uint32(directoryDataLength);
-		endOfdirectoryRecord.uint32(directoryOffset);
-		endOfdirectoryRecord.uint16(commentLength);
+		endOfdirectoryRecord.writeUint32(END_OF_CENTRAL_DIR_SIGNATURE);
+		endOfdirectoryRecord.writeUint16(lastDiskNumber);
+		endOfdirectoryRecord.writeUint16(diskNumber);
+		endOfdirectoryRecord.writeUint16(fileEntriesLength);
+		endOfdirectoryRecord.writeUint16(fileEntriesLength);
+		endOfdirectoryRecord.writeUint32(directoryDataLength);
+		endOfdirectoryRecord.writeUint32(directoryOffset);
+		endOfdirectoryRecord.writeUint16(commentLength);
 		await writeData(writer, endOfdirectoryRecord.array);
 		if (commentLength) {
 			await writeData(writer, comment);
@@ -7124,11 +7124,11 @@
 		let offset = 0;
 		return {
 			array,
-			uint8: value => { setUint8(view, offset, value); offset += 1; },
-			uint16: value => { setUint16(view, offset, value); offset += 2; },
-			uint32: value => { setUint32(view, offset, value); offset += 4; },
-			uint64: value => { setBigUint64(view, offset, BigInt(value)); offset += 8; },
-			bytes: value => { arraySet(array, value, offset); offset += getLength(value); },
+			writeUint8: value => { setUint8(view, offset, value); offset += 1; },
+			writeUint16: value => { setUint16(view, offset, value); offset += 2; },
+			writeUint32: value => { setUint32(view, offset, value); offset += 4; },
+			writeUint64: value => { setBigUint64(view, offset, BigInt(value)); offset += 8; },
+			writeBytes: value => { arraySet(array, value, offset); offset += getLength(value); },
 			skip: count => offset += count
 		};
 	}
@@ -7362,9 +7362,9 @@
 		const headerRecord = createRecordWriter(HEADER_SIZE - 4);
 		const headerArray = headerRecord.array;
 		const headerView = getDataView(headerArray);
-		headerRecord.uint16(version);
-		headerRecord.uint16(bitFlag);
-		headerRecord.uint16(compressionMethod);
+		headerRecord.writeUint16(version);
+		headerRecord.writeUint16(bitFlag);
+		headerRecord.writeUint16(compressionMethod);
 		if (rawLastModDate === UNDEFINED_VALUE) {
 			const dateArray = new Uint32Array(1);
 			const dateView = getDataView(dateArray);
@@ -7372,20 +7372,20 @@
 			setUint16(dateView, 2, ((((lastModDate.getFullYear() - 1980) << 4) | (lastModDate.getMonth() + 1)) << 5) | lastModDate.getDate());
 			rawLastModDate = dateArray[0];
 		}
-		headerRecord.uint32(rawLastModDate);
+		headerRecord.writeUint32(rawLastModDate);
 		headerRecord.skip(4);
 		if (zip64CompressedSize || compressedSize !== UNDEFINED_VALUE) {
-			headerRecord.uint32(zip64CompressedSize ? MAX_32_BITS : compressedSize);
+			headerRecord.writeUint32(zip64CompressedSize ? MAX_32_BITS : compressedSize);
 		} else {
 			headerRecord.skip(4);
 		}
 		if (zip64UncompressedSize || uncompressedSize !== UNDEFINED_VALUE) {
-			headerRecord.uint32(zip64UncompressedSize ? MAX_32_BITS : uncompressedSize);
+			headerRecord.writeUint32(zip64UncompressedSize ? MAX_32_BITS : uncompressedSize);
 		} else {
 			headerRecord.skip(4);
 		}
-		headerRecord.uint16(getLength(rawFilename));
-		headerRecord.uint16(extraFieldLength);
+		headerRecord.writeUint16(getLength(rawFilename));
+		headerRecord.writeUint16(extraFieldLength);
 		return {
 			headerArray,
 			headerView,
