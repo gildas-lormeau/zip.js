@@ -160,6 +160,7 @@ export default ([
 	{ title: "Writer exact chunks", script: "./test-writer-exact-chunks.js" },
 	{ title: "Filename validation", script: "./test-filename-validation.js" },
 	{ title: "Option validation", script: "./test-option-validation.js" },
+	{ title: "Option validation (aborted signal)", script: "./test-option-validation-abort-signal.js", features: ["pipeToSignal"] },
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js" },
 	{ title: "Invalid uncompressed size", script: "./test-invalid-uncompressed-size.js", sanitizeResources: false },
 	{ title: "Entry data out of bounds", script: "./test-entry-data-out-of-bounds.js" },

@@ -391,24 +391,14 @@ async function signalRejectsOtherValues() {
 	}
 }
 
-// A real signal must go through untouched on the three surfaces, and an already aborted one must still abort
-// rather than be rejected as invalid.
+// A real signal must go through untouched on the three surfaces. That an already aborted one still aborts
+// rather than being rejected as invalid is asserted by test-option-validation-abort-signal.js, which needs a
+// feature this file does not.
 async function signalKeepsAcceptingAbortSignals() {
 	for (const signal of [undefined, null, new AbortController().signal]) {
 		await buildFileSystem().zipEntry.getData(new zip.Uint8ArrayWriter(), { signal });
 		const [entry] = await readEntries(await buildZip({ signal }), { signal });
 		await entry.getData(new zip.Uint8ArrayWriter(), { signal });
-	}
-	const abortController = new AbortController();
-	abortController.abort();
-	let thrownError;
-	try {
-		await buildZip({ signal: abortController.signal });
-	} catch (error) {
-		thrownError = error;
-	}
-	if (!thrownError || thrownError.name != "AbortError") {
-		throw new Error("expected an aborted signal to abort, got " + thrownError);
 	}
 }
 
