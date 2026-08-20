@@ -4015,6 +4015,13 @@ export class ZipFS {
 }
 
 /**
+ * The type of the filesystem.
+ *
+ * @deprecated Use {@link ZipFS} instead.
+ */
+export type FS = ZipFS;
+
+/**
  * The Filesystem API.
  *
  * @deprecated Use the {@link ZipFS}, {@link ZipDirectoryEntry} and {@link ZipFileEntry} exports instead.

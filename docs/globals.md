@@ -85,6 +85,7 @@
 ## Type Aliases
 
 - [Entry](type-aliases/Entry.md)
+- [~~FS~~](type-aliases/FS.md)
 - [URLString](type-aliases/URLString.md)
 
 ## Variables

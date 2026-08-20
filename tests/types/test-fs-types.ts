@@ -2,7 +2,7 @@
 // Compile with: npm run test-types
 import { ZipFS } from "../../index.js";
 import { ZipReader } from "../../index.js";
-import type { ZipEntry, ZipDirectoryEntry, ZipFileEntry, EntryMetaData, ZipWriterAddDataOptions } from "../../index.js";
+import type { FS, ZipEntry, ZipDirectoryEntry, ZipFileEntry, EntryMetaData, ZipWriterAddDataOptions } from "../../index.js";
 
 const fs = new ZipFS();
 
@@ -34,12 +34,15 @@ const entryProgressExportPromise: Promise<Uint8Array> = fs.exportUint8Array({
 	onentryprogress: (progress: number, total: number, entry: EntryMetaData) => void [progress, total, entry.filename]
 });
 
+// the deprecated FS alias must keep type-checking until it dies with the zip.fs namespace it belongs to
+const deprecatedFS: FS = fs;
+
 // silence unused-variable diagnostics
 void [root, entries, children, byName, byId, found, directory, textEntry, entryOptions,
 	importPromise, exportBlobPromise, importZipPromise, exportZipPromise,
 	protectedFlag, passwordPromise, readerPasswordPromise, exportHandlePromise,
 	signedExportPromise, commentedExportPromise, importZipReaderPromise,
-	entryProgressExportPromise];
+	entryProgressExportPromise, deprecatedFS];
 
 // members that do NOT exist on ZipFS at runtime must NOT type-check
 // @ts-expect-error ZipFS is not a file entry
