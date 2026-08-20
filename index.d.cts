@@ -2527,7 +2527,9 @@ export interface ZipWriterAddDataOptions
    * @remarks
    * It is a string, unlike the global comment passed to {@link ZipWriter#close}, because the encoding of
    * the comment of an entry is recorded in the header by the general purpose bit 11 (see Appendix D -
-   * Language Encoding (EFS)), set by {@link ZipWriterConstructorOptions#useUnicodeFileNames}.
+   * Language Encoding (EFS)), set by {@link ZipWriterConstructorOptions#useUnicodeFileNames}. Passing raw
+   * bytes here throws {@link ERR_INVALID_ENTRY_COMMENT_TYPE} instead of writing their textual
+   * representation.
    */
   comment?: string;
   /**
@@ -3955,6 +3957,10 @@ export const ERR_INVALID_ENTRY_NAME: string;
  * Invalid entry comment error
  */
 export const ERR_INVALID_ENTRY_COMMENT: string;
+/**
+ * Invalid entry comment type error
+ */
+export const ERR_INVALID_ENTRY_COMMENT_TYPE: string;
 /**
  * Invalid version error
  */

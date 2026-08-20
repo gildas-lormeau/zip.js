@@ -5969,6 +5969,7 @@
 	const ERR_INVALID_COMMENT = "Zip file comment exceeds 64KB";
 	const ERR_INVALID_COMMENT_TYPE = "Invalid zip file comment (must be a Uint8Array)";
 	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
+	const ERR_INVALID_ENTRY_COMMENT_TYPE = "Invalid file entry comment (must be a string)";
 	const ERR_INVALID_ENTRY_NAME = "File entry name exceeds 64KB";
 	const ERR_INVALID_VERSION = "Version exceeds 65535";
 	const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
@@ -6454,6 +6455,10 @@
 			throw new Error(ERR_INVALID_ENTRY_NAME);
 		}
 		const comment = options[PROPERTY_NAME_COMMENT] || "";
+		// deno-lint-ignore valid-typeof
+		if (typeof comment != STRING_TYPE) {
+			throw new Error(ERR_INVALID_ENTRY_COMMENT_TYPE);
+		}
 		let rawComment = encode(comment, TEXT_TYPE_COMMENT);
 		if (rawComment === UNDEFINED_VALUE) {
 			rawComment = encodeText(comment);
@@ -8796,6 +8801,7 @@
 	exports.ERR_INVALID_CRC32 = ERR_INVALID_CRC32;
 	exports.ERR_INVALID_ENCRYPTION_STRENGTH = ERR_INVALID_ENCRYPTION_STRENGTH;
 	exports.ERR_INVALID_ENTRY_COMMENT = ERR_INVALID_ENTRY_COMMENT;
+	exports.ERR_INVALID_ENTRY_COMMENT_TYPE = ERR_INVALID_ENTRY_COMMENT_TYPE;
 	exports.ERR_INVALID_ENTRY_NAME = ERR_INVALID_ENTRY_NAME;
 	exports.ERR_INVALID_EXTRAFIELD = ERR_INVALID_EXTRAFIELD;
 	exports.ERR_INVALID_EXTRAFIELD_DATA = ERR_INVALID_EXTRAFIELD_DATA;

@@ -44,7 +44,9 @@ The comment of the entry.
 
 It is a string, unlike the global comment passed to [ZipWriter#close](../classes/ZipWriter.md#close), because the encoding of
 the comment of an entry is recorded in the header by the general purpose bit 11 (see Appendix D -
-Language Encoding (EFS)), set by [ZipWriterConstructorOptions#useUnicodeFileNames](ZipWriterConstructorOptions.md#useunicodefilenames).
+Language Encoding (EFS)), set by [ZipWriterConstructorOptions#useUnicodeFileNames](ZipWriterConstructorOptions.md#useunicodefilenames). Passing raw
+bytes here throws [ERR\_INVALID\_ENTRY\_COMMENT\_TYPE](../variables/ERR_INVALID_ENTRY_COMMENT_TYPE.md) instead of writing their textual
+representation.
 
 ***
 

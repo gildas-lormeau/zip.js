@@ -24,6 +24,8 @@ async function test() {
 	await maxAppendedDataSizeRejectsInvalidNumbers();
 	await unixIdsRejectNonIntegers();
 	await globalCommentRejectsOtherTypes();
+	await entryCommentRejectsOtherTypes();
+	await entryCommentKeepsAcceptingStrings();
 	await extraFieldRejectsOtherShapes();
 	await extraFieldKeepsAcceptingValidMaps();
 	await zip.terminateWorkers();
@@ -171,6 +173,40 @@ async function globalCommentRejectsOtherTypes() {
 	await closeZip();
 	await new zip.fs.FS().getExportedSize({ globalComment: new TextEncoder().encode("a global comment") });
 	await new zip.fs.FS().getExportedSize({});
+}
+
+// The mirror image of the mistake above: the caller who has just passed raw bytes to close() has every
+// reason to expect the entry comment to take bytes too. It used to be accepted silently, String() turning
+// the Uint8Array into the comma separated list of its byte values and writing that as the comment of an
+// otherwise valid archive. The size prediction must reject it too, since it is supposed to throw wherever
+// the export would.
+async function entryCommentRejectsOtherTypes() {
+	for (const comment of [new TextEncoder().encode("a comment"), 42, {}, ["a comment"], true]) {
+		await assertThrows({ comment }, zip.ERR_INVALID_ENTRY_COMMENT_TYPE, "comment: " + String(comment));
+	}
+	const fileSystem = new zip.fs.FS();
+	fileSystem.addText("test.txt", CONTENT, { comment: new TextEncoder().encode("a comment"), level: 0 });
+	let thrownError;
+	try {
+		await fileSystem.getExportedSize();
+	} catch (error) {
+		thrownError = error;
+	}
+	assertMessage(thrownError, zip.ERR_INVALID_ENTRY_COMMENT_TYPE, "getExportedSize comment");
+}
+
+// The values standing for "no comment" must keep working, and a comment must still be written verbatim.
+async function entryCommentKeepsAcceptingStrings() {
+	for (const comment of [undefined, "", null, 0]) {
+		const [entry] = await readEntries(await buildZip({ comment }));
+		if (entry.comment) {
+			throw new Error("expected no comment for " + String(comment) + " got \"" + entry.comment + "\"");
+		}
+	}
+	const [entry] = await readEntries(await buildZip({ comment: "a comment" }));
+	if (entry.comment != "a comment") {
+		throw new Error("expected the comment to be written verbatim, got \"" + entry.comment + "\"");
+	}
 }
 
 // Three of these shapes used to write a corrupt extra field instead of throwing: an array of pairs made
