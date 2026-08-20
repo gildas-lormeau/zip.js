@@ -14,14 +14,14 @@
 <div class="tsd-comment tsd-typography"><p>Represents the options passed to  <a href="../classes/ZipWriter.html#close" class="tsd-kind-method">ZipWriter#close</a>.</p>
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">ZipWriterCloseOptions</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#preventclose">preventClose</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#zip64">zip64</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#onprogress-1">onprogress</a><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">progress</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">total</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a href="EntryMetaData.html" class="tsd-signature-type tsd-kind-interface">EntryMetaData</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#signcentraldirectory-1">signCentralDirectory</a><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">directory</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">PromiseLike</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
-<section class="tsd-panel tsd-hierarchy" data-refl="967">
+<section class="tsd-panel tsd-hierarchy" data-refl="994">
 <h4>Hierarchy (<a href="../hierarchy.html#ZipWriterCloseOptions">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="EntryOnprogressOptions.html" class="tsd-signature-type tsd-kind-interface">EntryOnprogressOptions</a>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">ZipWriterCloseOptions</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L2530">index.d.ts:2530</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L2729">index.d.ts:2729</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -52,7 +52,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L2542">index.d.ts:2542</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L2741">index.d.ts:2741</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="zip64"><code class="tsd-tag">Optional</code><span>zip64</span><a href="#zip64" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">zip64</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -65,7 +65,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L2536">index.d.ts:2536</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L2735">index.d.ts:2735</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -93,7 +93,7 @@
 <aside class="tsd-sources">
 <p>Inherited from <a href="EntryOnprogressOptions.html">EntryOnprogressOptions</a>.<a href="EntryOnprogressOptions.html#onprogress">onprogress</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L2937">index.d.ts:2937</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L3161">index.d.ts:3161</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="signcentraldirectory"><code class="tsd-tag">Optional</code><span>sign<wbr/>Central<wbr/>Directory</span><a href="#signcentraldirectory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -115,7 +115,7 @@ thrown. zip.js stores the data as-is and does not implement the signature comput
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">PromiseLike</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><p>The data of the digital signature record.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L2553">index.d.ts:2553</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L2752">index.d.ts:2752</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

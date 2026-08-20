@@ -11,7 +11,7 @@
 <li><a href="" aria-current="page">ZipDirectoryEntryExportFileSystemHandleOptions</a></li></ul>
 <h1>Interface ZipDirectoryEntryExportFileSystemHandleOptions</h1></div>
 <section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>Represents the options passed to <a href="../classes/ZipDirectoryEntry.html#exportfilesystemhandle" class="tsd-kind-method">ZipDirectoryEntry#exportFileSystemHandle</a> and <a href="../classes/FS.html#exportfilesystemhandle" class="tsd-kind-method">FS#exportFileSystemHandle</a>.</p>
+<div class="tsd-comment tsd-typography"><p>Represents the options passed to <a href="../classes/ZipDirectoryEntry.html#exportfilesystemhandle" class="tsd-kind-method">ZipDirectoryEntry#exportFileSystemHandle</a> and <a href="../classes/ZipFS.html#exportfilesystemhandle" class="tsd-kind-method">ZipFS#exportFileSystemHandle</a>.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
@@ -19,14 +19,14 @@
 file it creates and must close it for the data to be written.</p>
 </div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">ZipDirectoryEntryExportFileSystemHandleOptions</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#checkambiguity">checkAmbiguity</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#checkauthenticationcode">checkAuthenticationCode</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#checkcrc32">checkCrc32</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#checklocaldirectory">checkLocalDirectory</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#checkoverlappingentry">checkOverlappingEntry</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#checkoverlappingentryonly">checkOverlappingEntryOnly</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#checkpasswordonly">checkPasswordOnly</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#checksignature">checkSignature</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#concurrent">concurrent</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#passthrough">passThrough</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#password">password</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#preventclose">preventClose</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rawpassword">rawPassword</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#readeroptions">readerOptions</a><span class="tsd-signature-symbol">?:</span> <a href="ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#signal">signal</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">AbortSignal</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#strictness">strictness</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;balanced&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;strict&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;tolerant&quot;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#transferstreams">transferStreams</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usecompressionstream">useCompressionStream</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usewebworkers">useWebWorkers</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#onend-1">onend</a><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">computedSize</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#onprogress-1">onprogress</a><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">progress</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">total</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#onstart-1">onstart</a><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">total</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
-<section class="tsd-panel tsd-hierarchy" data-refl="1418">
+<section class="tsd-panel tsd-hierarchy" data-refl="1457">
 <h4>Hierarchy (<a href="../hierarchy.html#ZipDirectoryEntryExportFileSystemHandleOptions">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="EntryGetDataOptions.html" class="tsd-signature-type tsd-kind-interface">EntryGetDataOptions</a>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">ZipDirectoryEntryExportFileSystemHandleOptions</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L3634">index.d.ts:3634</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L3899">index.d.ts:3899</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -86,7 +86,7 @@ to <code>&quot;balanced&quot;</code> and leaves an inherited <code>&quot;toleran
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#checkambiguity">checkAmbiguity</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1411">index.d.ts:1411</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1584">index.d.ts:1584</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="checkauthenticationcode"><code class="tsd-tag">Optional</code><span>check<wbr/>Authentication<wbr/>Code</span><a href="#checkauthenticationcode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">checkAuthenticationCode</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -101,7 +101,7 @@ data tampered or corrupted after the encryption.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#checkauthenticationcode">checkAuthenticationCode</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1448">index.d.ts:1448</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1621">index.d.ts:1621</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="checkcrc32"><code class="tsd-tag">Optional</code><span>check<wbr/>Crc32</span><a href="#checkcrc32" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">checkCrc32</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -117,7 +117,7 @@ AES in AE-1 format. It is skipped for entries in AE-2 format because they store 
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#checkcrc32">checkCrc32</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1441">index.d.ts:1441</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1614">index.d.ts:1614</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="checklocaldirectory"><code class="tsd-tag">Optional</code><span>check<wbr/>Local<wbr/>Directory</span><a href="#checklocaldirectory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">checkLocalDirectory</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -138,7 +138,7 @@ it is <code>&quot;tolerant&quot;</code>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#checklocaldirectory">checkLocalDirectory</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1427">index.d.ts:1427</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1600">index.d.ts:1600</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="checkoverlappingentry"><code class="tsd-tag">Optional</code><span>check<wbr/>Overlapping<wbr/>Entry</span><a href="#checkoverlappingentry" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">checkOverlappingEntry</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -154,7 +154,7 @@ overlaps with another entry on which <a href="FileEntry.html#getdata" class="tsd
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#checkoverlappingentry">checkOverlappingEntry</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1464">index.d.ts:1464</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1637">index.d.ts:1637</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="checkoverlappingentryonly"><code class="tsd-tag">Optional</code><span>check<wbr/>Overlapping<wbr/>Entry<wbr/>Only</span><a href="#checkoverlappingentryonly" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">checkOverlappingEntryOnly</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -171,7 +171,7 @@ entry.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#checkoverlappingentryonly">checkOverlappingEntryOnly</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1473">index.d.ts:1473</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1646">index.d.ts:1646</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="checkpasswordonly"><code class="tsd-tag">Optional</code><span>check<wbr/>Password<wbr/>Only</span><a href="#checkpasswordonly" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">checkPasswordOnly</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -185,7 +185,7 @@ entry.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#checkpasswordonly">checkPasswordOnly</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1433">index.d.ts:1433</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1606">index.d.ts:1606</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="checksignature"><code class="tsd-tag">Optional</code><span class="deprecated">check<wbr/>Signature</span><a href="#checksignature" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">checkSignature</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -202,7 +202,7 @@ entry.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#checksignature">checkSignature</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1456">index.d.ts:1456</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1629">index.d.ts:1629</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="concurrent"><code class="tsd-tag">Optional</code><span>concurrent</span><a href="#concurrent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">concurrent</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -219,7 +219,7 @@ Access API cannot cancel a pending <code>getFileHandle</code> or <code>getDirect
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L3646">index.d.ts:3646</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L3911">index.d.ts:3911</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="passthrough"><code class="tsd-tag">Optional</code><span>pass<wbr/>Through</span><a href="#passthrough" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">passThrough</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -227,7 +227,7 @@ Access API cannot cancel a pending <code>getFileHandle</code> or <code>getDirect
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#passthrough">passThrough</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1481">index.d.ts:1481</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1654">index.d.ts:1654</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="password"><code class="tsd-tag">Optional</code><span>password</span><a href="#password" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">password</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -235,7 +235,7 @@ Access API cannot cancel a pending <code>getFileHandle</code> or <code>getDirect
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#password">password</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1477">index.d.ts:1477</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1650">index.d.ts:1650</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="preventclose"><code class="tsd-tag">Optional</code><span>prevent<wbr/>Close</span><a href="#preventclose" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">preventClose</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -254,7 +254,7 @@ created internally and must be closed for <a href="../classes/Writer.html#getdat
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#preventclose">preventClose</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1500">index.d.ts:1500</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1673">index.d.ts:1673</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="rawpassword"><code class="tsd-tag">Optional</code><span>raw<wbr/>Password</span><a href="#rawpassword" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">rawPassword</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span></div>
@@ -262,7 +262,7 @@ created internally and must be closed for <a href="../classes/Writer.html#getdat
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#rawpassword">rawPassword</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1485">index.d.ts:1485</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1658">index.d.ts:1658</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="readeroptions"><code class="tsd-tag">Optional</code><span>reader<wbr/>Options</span><a href="#readeroptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">readerOptions</span><span class="tsd-signature-symbol">?:</span> <a href="ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a></div>
@@ -273,9 +273,10 @@ created internally and must be closed for <a href="../classes/Writer.html#getdat
 <h4 class="tsd-anchor-link" id="remarks-2">Remarks<a href="#remarks-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>These options override the ones passed at the top level. The <a href="ZipReaderOptions.html#password" class="tsd-kind-property">ZipReaderOptions#password</a>
 option can be set here or at the top level, unlike <a href="ZipDirectoryEntryExportOptions.html" class="tsd-kind-interface">ZipDirectoryEntryExportOptions</a> where
 the top-level password encrypts the exported zip file instead.</p>
+<p>A value which is neither an object nor unset throws an <a href="../variables/ERR_INVALID_READER_OPTIONS.html" class="tsd-kind-variable">ERR_INVALID_READER_OPTIONS</a> error.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L3655">index.d.ts:3655</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L3922">index.d.ts:3922</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="signal"><code class="tsd-tag">Optional</code><span>signal</span><a href="#signal" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">signal</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">AbortSignal</span></div>
@@ -283,7 +284,7 @@ the top-level password encrypts the exported zip file instead.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#signal">signal</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1489">index.d.ts:1489</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1662">index.d.ts:1662</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="strictness"><code class="tsd-tag">Optional</code><span>strictness</span><a href="#strictness" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">strictness</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;balanced&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;strict&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;tolerant&quot;</span></div>
@@ -309,7 +310,7 @@ whole comparison explicitly.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#strictness">strictness</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L1394">index.d.ts:1394</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1567">index.d.ts:1567</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="transferstreams"><code class="tsd-tag">Optional</code><span>transfer<wbr/>Streams</span><a href="#transferstreams" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">transferStreams</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -323,7 +324,7 @@ whole comparison explicitly.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#transferstreams">transferStreams</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L408">index.d.ts:408</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L523">index.d.ts:523</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="usecompressionstream"><code class="tsd-tag">Optional</code><span>use<wbr/>Compression<wbr/>Stream</span><a href="#usecompressionstream" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">useCompressionStream</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -338,7 +339,7 @@ whole comparison explicitly.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#usecompressionstream">useCompressionStream</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L402">index.d.ts:402</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L517">index.d.ts:517</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="usewebworkers"><code class="tsd-tag">Optional</code><span>use<wbr/>Web<wbr/>Workers</span><a href="#usewebworkers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">useWebWorkers</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -352,7 +353,7 @@ whole comparison explicitly.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#usewebworkers">useWebWorkers</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L394">index.d.ts:394</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L509">index.d.ts:509</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -374,7 +375,7 @@ whole comparison explicitly.</p>
 <aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#onend">onend</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L2922">index.d.ts:2922</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L3146">index.d.ts:3146</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="onprogress"><code class="tsd-tag">Optional</code><span>onprogress</span><a href="#onprogress" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -396,7 +397,7 @@ whole comparison explicitly.</p>
 <aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#onprogress">onprogress</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L2915">index.d.ts:2915</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L3139">index.d.ts:3139</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="onstart"><code class="tsd-tag">Optional</code><span>onstart</span><a href="#onstart" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -415,7 +416,7 @@ whole comparison explicitly.</p>
 <aside class="tsd-sources">
 <p>Inherited from <a href="EntryGetDataOptions.html">EntryGetDataOptions</a>.<a href="EntryGetDataOptions.html#onstart">onstart</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L2907">index.d.ts:2907</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L3131">index.d.ts:3131</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

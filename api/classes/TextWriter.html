@@ -13,14 +13,13 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>Represents a <a href="Writer.html" class="tsd-kind-class">Writer</a> instance used to retrieve the written data as a <code>string</code>.</p>
 </div></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="275">
-<h4>Hierarchy (<a href="../hierarchy.html#TextWriter">View Summary</a>)</h4>
+<section class="tsd-panel">
+<h4>Implements</h4>
 <ul class="tsd-hierarchy">
-<li class="tsd-hierarchy-item"><a href="Writer.html" class="tsd-signature-type tsd-kind-class">Writer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span>
-<ul class="tsd-hierarchy">
-<li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">TextWriter</span></li></ul></li></ul></section><aside class="tsd-sources">
+<li><a href="../interfaces/Initializable.html" class="tsd-signature-type tsd-kind-interface">Initializable</a></li>
+<li><a href="../interfaces/WritableWriter.html" class="tsd-signature-type tsd-kind-interface">WritableWriter</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L923">index.d.ts:923</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1049">index.d.ts:1049</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -32,13 +31,14 @@
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-index-list"><a href="#writable" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>writable</span></a>
+<div class="tsd-index-list"><a href="#encoding" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>encoding?</span></a>
+<a href="#size" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>size</span></a>
+<a href="#writable" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>writable</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-index-list"><a href="#getdata" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Data</span></a>
-<a href="#init" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>init?</span></a>
-<a href="#writeuint8array" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>write<wbr/>Uint8<wbr/>Array</span></a>
+<div class="tsd-index-list"><a href="#getdata" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Data</span></a>
+<a href="#init" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>init</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="constructors-1">Constructors<a href="#constructors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
@@ -58,72 +58,61 @@
 <div class="tsd-comment tsd-typography"><p>The encoding of the text.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">TextWriter</a></h4><aside class="tsd-sources">
-<p>Overrides <a href="Writer.html">Writer</a>.<a href="Writer.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L929">index.d.ts:929</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1071">index.d.ts:1071</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
-<section class="tsd-panel tsd-member tsd-is-inherited">
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="encoding"><code class="tsd-tag">Optional</code><span>encoding</span><a href="#encoding" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">encoding</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
+<div class="tsd-comment tsd-typography"><p>The encoding of the text returned by <a href="#getdata" class="tsd-kind-method">TextWriter#getData</a>.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1061">index.d.ts:1061</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">size</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>The number of bytes written into the instance.</p>
+</div><aside class="tsd-sources">
+<p>Implementation of <a href="../interfaces/WritableWriter.html">WritableWriter</a>.<a href="../interfaces/WritableWriter.html#size">size</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1057">index.d.ts:1057</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="writable"><span>writable</span><a href="#writable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">writable</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">WritableStream</span></div>
 <div class="tsd-comment tsd-typography"><p>The <code>WritableStream</code> instance.</p>
 </div><aside class="tsd-sources">
-<p>Inherited from <a href="Writer.html">Writer</a>.<a href="Writer.html#writable">writable</a></p>
+<p>Implementation of <a href="../interfaces/WritableWriter.html">WritableWriter</a>.<a href="../interfaces/WritableWriter.html#writable">writable</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L897">index.d.ts:897</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1053">index.d.ts:1053</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
-<section class="tsd-panel tsd-member tsd-is-inherited">
+<section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdata"><span>get<wbr/>Data</span><a href="#getdata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-is-inherited">
+<ul class="tsd-signatures">
+<li class="">
 <div class="tsd-signature tsd-anchor-link" id="getdata-1"><span class="tsd-kind-call-signature">getData</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><a href="#getdata-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Retrieves all the written data</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving to the written data.</p>
 <aside class="tsd-sources">
-<p>Inherited from <a href="Writer.html">Writer</a>.<a href="Writer.html#getdata">getData</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L917">index.d.ts:917</a></li></ul></aside></div></li></ul></section>
-<section class="tsd-panel tsd-member tsd-is-inherited">
-<h3 class="tsd-anchor-link" id="init"><code class="tsd-tag">Optional</code><span>init</span><a href="#init" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-is-inherited">
-<div class="tsd-signature tsd-anchor-link" id="init-1"><span class="tsd-kind-call-signature">init</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">size</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#init-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1077">index.d.ts:1077</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="init"><span>init</span><a href="#init" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="init-1"><span class="tsd-kind-call-signature">init</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#init-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Initializes the instance asynchronously</p>
 </div>
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">size</span>: <span class="tsd-signature-type">number</span></span>
-<div class="tsd-comment tsd-typography"><p>the total size of the written data in bytes.</p>
-</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from <a href="Writer.html">Writer</a>.<a href="Writer.html#init">init</a></p>
+<p>Implementation of <a href="../interfaces/Initializable.html">Initializable</a>.<a href="../interfaces/Initializable.html#init">init</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L903">index.d.ts:903</a></li></ul></aside></div></li></ul></section>
-<section class="tsd-panel tsd-member tsd-is-inherited">
-<h3 class="tsd-anchor-link" id="writeuint8array"><span>write<wbr/>Uint8<wbr/>Array</span><a href="#writeuint8array" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-is-inherited">
-<div class="tsd-signature tsd-anchor-link" id="writeuint8array-1"><span class="tsd-kind-call-signature">writeUint8Array</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">array</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#writeuint8array-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Appends a chunk of data</p>
-</div>
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">array</span>: <span class="tsd-signature-type">Uint8Array</span></span>
-<div class="tsd-comment tsd-typography"><p>The chunk data to append.</p>
-</div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from <a href="Writer.html">Writer</a>.<a href="Writer.html#writeuint8array">writeUint8Array</a></p>
-<ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L911">index.d.ts:911</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1065">index.d.ts:1065</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -142,9 +131,9 @@
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
 <div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
-<div><a href="#writable" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>writable</span></a></div></details>
+<div><a href="#encoding"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>encoding</span></a><a href="#size"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>size</span></a><a href="#writable"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>writable</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#getdata" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Data</span></a><a href="#init" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>init</span></a><a href="#writeuint8array" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>write<wbr/>Uint8<wbr/>Array</span></a></div></details></div></details></div>
+<div><a href="#getdata"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Data</span></a><a href="#init"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>init</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">@zip.js/zip.js</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

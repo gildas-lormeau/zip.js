@@ -13,9 +13,9 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>Represents a codec definition passed to <a href="../functions/registerCodec.html" class="tsd-kind-function">registerCodec</a>.</p>
 </div></section>
-<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">CodecDefinition</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#codecuri">codecURI</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#compressionmethod">compressionMethod</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#compressionstream">CompressionStream</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-keyword">typeof</span> <a href="../classes/TransformStreamLike.html" class="tsd-signature-type tsd-kind-class">TransformStreamLike</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#decompressionstream">DecompressionStream</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-keyword">typeof</span> <a href="../classes/TransformStreamLike.html" class="tsd-signature-type tsd-kind-class">TransformStreamLike</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#format">format</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#versionneeded">versionNeeded</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">CodecDefinition</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#codecuri">codecURI</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#compressionmethod">compressionMethod</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#compressionstream">CompressionStream</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-keyword">typeof</span> <a href="../classes/CompressionStreamLike.html" class="tsd-signature-type tsd-kind-class">CompressionStreamLike</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#decompressionstream">DecompressionStream</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-keyword">typeof</span> <a href="../classes/DecompressionStreamLike.html" class="tsd-signature-type tsd-kind-class">DecompressionStreamLike</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#format">format</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#versionneeded">versionNeeded</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L227">index.d.ts:227</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L253">index.d.ts:253</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -37,11 +37,11 @@
 <h3 class="tsd-anchor-link" id="codecuri"><code class="tsd-tag">Optional</code><span>codec<wbr/>URI</span><a href="#codecuri" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">codecURI</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The URL of a module exporting the <code>CompressionStream</code> and/or <code>DecompressionStream</code> classes of
-the codec. Relative URLs are resolved against <code>Configuration#baseURI</code>; passing an absolute URL
-(e.g. via <code>import.meta.resolve()</code>) is recommended.</p>
+the codec. Relative URLs are resolved against <a href="Configuration.html#baseuri" class="tsd-kind-property">Configuration#baseURI</a>; passing an absolute
+URL (e.g. via <code>import.meta.resolve()</code>) is recommended.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L243">index.d.ts:243</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L269">index.d.ts:269</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="compressionmethod"><span>compression<wbr/>Method</span><a href="#compressionmethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">compressionMethod</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
@@ -49,29 +49,23 @@ the codec. Relative URLs are resolved against <code>Configuration#baseURI</code>
 (store), <code>8</code> (deflate), <code>9</code> (deflate64) and <code>99</code> (AES) are reserved.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L232">index.d.ts:232</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L258">index.d.ts:258</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="compressionstream"><code class="tsd-tag">Optional</code><span>Compression<wbr/>Stream</span><a href="#compressionstream" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">CompressionStream</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-keyword">typeof</span> <a href="../classes/TransformStreamLike.html" class="tsd-signature-type tsd-kind-class">TransformStreamLike</a></div>
-<div class="tsd-comment tsd-typography"><p>The stream implementation used to compress data, constructed with
-<code>(format, { level, chunkSize, compressionMethod })</code>.</p>
+<div class="tsd-signature"><span class="tsd-kind-property">CompressionStream</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-keyword">typeof</span> <a href="../classes/CompressionStreamLike.html" class="tsd-signature-type tsd-kind-class">CompressionStreamLike</a></div>
+<div class="tsd-comment tsd-typography"><p>The stream implementation used to compress data, constructed with <code>(format, options)</code>, see
+<a href="CompressionStreamOptions.html" class="tsd-kind-interface">CompressionStreamOptions</a>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L248">index.d.ts:248</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L274">index.d.ts:274</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="decompressionstream"><code class="tsd-tag">Optional</code><span>Decompression<wbr/>Stream</span><a href="#decompressionstream" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">DecompressionStream</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-keyword">typeof</span> <a href="../classes/TransformStreamLike.html" class="tsd-signature-type tsd-kind-class">TransformStreamLike</a></div>
-<div class="tsd-comment tsd-typography"><p>The stream implementation used to decompress data, constructed with
-<code>(format, { chunkSize, compressionMethod, rawBitFlag, uncompressedSize })</code>.</p>
-<p><code>compressionMethod</code> allows codecs registered for multiple methods with the same format to
-distinguish them (e.g. Reduce, methods 2 to 5). <code>rawBitFlag</code> exposes the general purpose bit
-flag of the entry, which some methods need to decode the data (e.g. the dictionary size and
-number of trees of Implode, or the end-of-stream marker presence of LZMA). <code>uncompressedSize</code>
-allows size-driven decoders (e.g. Shrink, Reduce, Implode, LZMA without end-of-stream marker)
-to stop at the exact output size instead of decoding trailing padding bits.</p>
+<div class="tsd-signature"><span class="tsd-kind-property">DecompressionStream</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-keyword">typeof</span> <a href="../classes/DecompressionStreamLike.html" class="tsd-signature-type tsd-kind-class">DecompressionStreamLike</a></div>
+<div class="tsd-comment tsd-typography"><p>The stream implementation used to decompress data, constructed with <code>(format, options)</code>, see
+<a href="DecompressionStreamOptions.html" class="tsd-kind-interface">DecompressionStreamOptions</a>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L260">index.d.ts:260</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L279">index.d.ts:279</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="format"><span>format</span><a href="#format" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">format</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
@@ -79,7 +73,7 @@ to stop at the exact output size instead of decoding trailing padding bits.</p>
 the constructors of <code>CompressionStream</code> and <code>DecompressionStream</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L237">index.d.ts:237</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L263">index.d.ts:263</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="versionneeded"><code class="tsd-tag">Optional</code><span>version<wbr/>Needed</span><a href="#versionneeded" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">versionNeeded</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -87,7 +81,7 @@ the constructors of <code>CompressionStream</code> and <code>DecompressionStream
 Zstandard).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4ad4eff08e05ad7bd0de02cb2dc82aaa7f54c582/index.d.ts#L265">index.d.ts:265</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L284">index.d.ts:284</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
