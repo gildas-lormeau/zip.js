@@ -173,8 +173,9 @@ A promise resolving when the zip file has been added.
 
 #### Remarks
 
-A split zip file is read as usual and written as a single zip file, its entries being relocated to the
-offsets they get once the disks are concatenated.
+The data of the zip file is copied, its central directory is rebuilt and its entries are relocated to
+the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
+the disks of the output, which is a single zip file unless the writer is a split zip file writer.
 
 ***
 
