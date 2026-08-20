@@ -73,6 +73,7 @@ export default [
 				TextEncoder: "readonly",
 				TransformStream: "readonly",
 				URL: "readonly",
+				WritableStream: "readonly",
 				Worker: "readonly"
 			}
 		},

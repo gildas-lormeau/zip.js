@@ -16,6 +16,11 @@
 // The audit reads the source build, where nothing is mangled, because that is the only build in which an
 // internal member is still visible under its real name.
 //
+// A prototype is reachable from the class, but the members an instance carries are only reachable from an
+// instance, so an exported class the audit never constructs is a blind spot: contentType, encoding and url
+// all hid in one. Every exported class is therefore required to be instantiated here, and failing to do so
+// fails the audit rather than quietly shrinking what it covers.
+//
 // Run with: npm run test-api-mangling
 
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -31,6 +36,8 @@ const zip = await import(pathToFileURL(ROOT + "index.js"));
 const declared = collectDeclarationNames(ROOT + "index.d.ts");
 const mangled = new Set(MANGLED_PROPERTY_NAMES);
 const members = new Map();
+const exportedClasses = new Map();
+const instantiatedClasses = new Set();
 const failures = [];
 const usedExceptions = new Set();
 
@@ -41,21 +48,25 @@ await collectInstances();
 await zip.terminateWorkers();
 classify();
 checkExceptions();
+checkClassesInstantiated();
 summarize();
 
 function collectClasses() {
 	Object.entries(zip).forEach(([name, value]) => {
 		if (name == "fs") {
-			Object.entries(value).forEach(([fsName, fsValue]) => collectPrototype(fsValue, "zip.fs." + fsName));
+			Object.entries(value).forEach(([fsName, fsValue]) => collectClass(fsValue, "zip.fs." + fsName));
 		} else {
-			collectPrototype(value, "zip." + name);
+			collectClass(value, "zip." + name);
 		}
 	});
 }
 
-function collectPrototype(value, label) {
+function collectClass(value, label) {
 	if (typeof value != "function" || !value.prototype) {
 		return;
+	}
+	if (value.toString().startsWith("class ")) {
+		exportedClasses.set(value, label);
 	}
 	let prototype = value.prototype;
 	while (prototype && prototype != Object.prototype) {
@@ -67,6 +78,7 @@ function collectPrototype(value, label) {
 
 function collectInstance(value, label) {
 	if (value && typeof value == "object") {
+		instantiatedClasses.add(value.constructor);
 		Object.getOwnPropertyNames(value).forEach(name => record(name, label + "." + name));
 	}
 }
@@ -119,6 +131,8 @@ async function collectInstances() {
 	collectInstance(new zip.Uint8ArrayWriter(), "Uint8ArrayWriter");
 	collectInstance(new zip.SplitDataWriter(() => new zip.Uint8ArrayWriter()), "SplitDataWriter");
 	await collectReaderWriterInstances(data);
+	await collectStreamInstances(data);
+	collectTempStreamInstances();
 }
 
 // the readers and the writers keep their state on the instance, so each one is reached through an
@@ -129,8 +143,19 @@ async function collectReaderWriterInstances(data) {
 		TextReader: new zip.TextReader("content"),
 		Data64URIReader: new zip.Data64URIReader("data:;base64,AAAA"),
 		Uint8ArrayReader: new zip.Uint8ArrayReader(data),
-		HttpReader: new zip.HttpReader("https://example.com/")
+		HttpReader: new zip.HttpReader("https://example.com/"),
+		HttpRangeReader: new zip.HttpRangeReader("https://example.com/")
 	}).forEach(([label, reader]) => collectInstance(reader, label));
+	const splitDataReader = new zip.SplitDataReader([new zip.Uint8ArrayReader(data)]);
+	await splitDataReader.init();
+	collectInstance(splitDataReader, "SplitDataReader");
+	Object.entries({
+		Reader: new zip.Reader(),
+		Writer: new zip.Writer()
+	}).forEach(([label, stream]) => {
+		stream.init();
+		collectInstance(stream, label);
+	});
 	for (const [label, writer] of Object.entries({
 		BlobWriter: new zip.BlobWriter("text/plain"),
 		Data64URIWriter: new zip.Data64URIWriter("text/plain"),
@@ -143,6 +168,36 @@ async function collectReaderWriterInstances(data) {
 		await writer.getData();
 		collectInstance(writer, label);
 	}
+}
+
+// the stream classes only hold the members the transformation needs, so each one is driven end to end
+// and the entries the reader stream emits are collected too since they are a shape of their own
+async function collectStreamInstances(data) {
+	const readerStream = new zip.ZipReaderStream({ password: PASSWORD });
+	collectInstance(readerStream, "ZipReaderStream");
+	const readerStreamWritten = new Blob([data]).stream().pipeTo(readerStream.writable);
+	for await (const entry of readerStream.readable) {
+		collectInstance(entry, "ZipReaderStream entry");
+		await entry.readable.pipeTo(new WritableStream());
+	}
+	await readerStreamWritten;
+	const writerStream = new zip.ZipWriterStream();
+	collectInstance(writerStream, "ZipWriterStream");
+	const writerStreamRead = writerStream.readable.pipeTo(new WritableStream());
+	await new Blob(["content"]).stream().pipeTo(writerStream.writable("streamed.txt"));
+	await writerStream.close();
+	await writerStreamRead;
+}
+
+// the temporary streams are factories, so the object a call returns is what the archive holds. the two
+// storage-backed ones get a directory that is never opened, since nothing here writes enough to spill
+function collectTempStreamInstances() {
+	const options = { getDirectory: () => { throw new Error("the audit must not spill to storage"); } };
+	Object.entries({
+		createBlobTempStream: zip.createBlobTempStream(),
+		createOPFSTempStream: zip.createOPFSTempStream(options),
+		createSyncAccessHandleTempStream: zip.createSyncAccessHandleTempStream(options)
+	}).forEach(([label, createTempStream]) => collectInstance(createTempStream(), label));
 }
 
 function classify() {
@@ -181,10 +236,18 @@ function checkExceptions() {
 	});
 }
 
+function checkClassesInstantiated() {
+	exportedClasses.forEach((label, exportedClass) => {
+		if (!instantiatedClasses.has(exportedClass)) {
+			failures.push(`${label} is never instantiated, so the members its instances carry stay invisible here`);
+		}
+	});
+}
+
 function summarize() {
 	if (failures.length) {
 		failures.forEach(failure => console.log(`FAIL ${failure}`));
-		console.log(`\n${failures.length} member(s) whose survival in the minified builds is undecided`);
+		console.log(`\n${failures.length} problem(s) in what the minified builds keep`);
 		process.exit(1);
 	}
 	console.log("every member of the public API is either declared in index.d.ts or mangled on purpose");
