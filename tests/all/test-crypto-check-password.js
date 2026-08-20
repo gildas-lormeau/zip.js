@@ -22,7 +22,7 @@ async function test() {
 				undefinedData = await entries[0].getData(null, { password: "notagoodpassword" });
 			} catch (error) {
 				if (error.message == zip.ERR_INVALID_PASSWORD) {
-					undefinedData = await entries[0].getData(null, { password: "password", checkSignature: true });
+					undefinedData = await entries[0].getData(null, { password: "password", checkCrc32: true });
 					const textWriter = new zip.TextWriter();
 					data = await entries[0].getData(textWriter, { password: "password", checkPasswordOnly: false });
 				} else {

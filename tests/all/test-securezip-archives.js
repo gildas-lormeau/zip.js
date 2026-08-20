@@ -58,7 +58,7 @@ async function testDeflate64() {
 
 async function testSelfExtracting() {
 	const entry = await getFirstEntry("lorem.exe.zip");
-	const text = await entry.getData(new zip.TextWriter(), { checkSignature: true });
+	const text = await entry.getData(new zip.TextWriter(), { checkCrc32: true });
 	return entry.compressionMethod == 9 && text.startsWith(LOREM_PREFIX);
 }
 

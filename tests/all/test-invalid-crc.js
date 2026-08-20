@@ -13,11 +13,11 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	let data;
 	try {
-		data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { checkSignature: true });
+		data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { checkCrc32: true });
 		data = null;
 	} catch (error) {
 		if (error.message == zip.ERR_INVALID_CRC32) {
-			data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { checkSignature: false });
+			data = await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { checkCrc32: false });
 			await zipReader.close();
 		} else {
 			throw error;

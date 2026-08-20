@@ -34,7 +34,7 @@ async function test() {
 
 async function checkFixture(variant) {
 	const url = new URL(`../data/lorem-dcl-implode-${variant}.zip`, import.meta.url).href;
-	const zipReader = new zip.ZipReader(new zip.HttpReader(url, { preventHeadRequest: true }), { checkSignature: true });
+	const zipReader = new zip.ZipReader(new zip.HttpReader(url, { preventHeadRequest: true }), { checkCrc32: true });
 	const [entry] = await zipReader.getEntries();
 	const text = await entry.getData(new zip.TextWriter());
 	await zipReader.close();
@@ -50,7 +50,7 @@ async function checkRoundTrip(encryptionOptions = {}) {
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), encryptionOptions);
 	await zipWriter.add("entry.txt", new zip.TextReader(TEXT_CONTENT), { compressionMethod: COMPRESSION_METHOD_DCL_IMPLODE });
 	const bytes = await zipWriter.close();
-	const zipReader = new zip.ZipReader(new zip.BlobReader(new Blob([bytes])), { checkSignature: true });
+	const zipReader = new zip.ZipReader(new zip.BlobReader(new Blob([bytes])), { checkCrc32: true });
 	const [entry] = await zipReader.getEntries();
 	const text = await entry.getData(new zip.TextWriter(), { password: encryptionOptions.password });
 	await zipReader.close();

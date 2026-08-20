@@ -49,7 +49,7 @@ async function test() {
 			throw new Error();
 		}
 		await expectError(corruptedAe1Data, { checkCrc32: true }, zip.ERR_INVALID_CRC32);
-		await expectError(corruptedAe1Data, { checkSignature: true }, zip.ERR_INVALID_CRC32);
+		await expectError(corruptedAe1Data, { checkCrc32: true }, zip.ERR_INVALID_CRC32);
 		const tamperedData = tamperAuthenticationCode(aes2Data);
 		await expectError(tamperedData, {}, zip.ERR_INVALID_AUTHENTICATION_CODE);
 		if (await readEntry(tamperedData, { checkAuthenticationCode: false }) != TEXT_CONTENT) {

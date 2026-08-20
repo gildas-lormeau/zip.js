@@ -55,7 +55,7 @@ async function test() {
 			throw new Error();
 		}
 		for (let indexEntry = 0; indexEntry < entries.length; indexEntry++) {
-			const data = await entries[indexEntry].getData(new zip.TextWriter(), { checkSignature: true });
+			const data = await entries[indexEntry].getData(new zip.TextWriter(), { checkCrc32: true });
 			if (data != CONTENTS[indexEntry]) {
 				throw new Error();
 			}

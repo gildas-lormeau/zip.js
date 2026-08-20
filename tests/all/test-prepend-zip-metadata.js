@@ -24,7 +24,7 @@ async function test() {
 	await zipWriter.add("extra.txt", new zip.BlobReader(BLOB));
 	await zipWriter.close();
 	const blob = await blobWriter.getData();
-	const zipReader = new zip.ZipReader(new zip.BlobReader(blob), { checkSignature: true });
+	const zipReader = new zip.ZipReader(new zip.BlobReader(blob), { checkCrc32: true });
 	const entries = await zipReader.getEntries();
 	const [plainText, secretText, extraText] = await Promise.all([
 		entries.find(entry => entry.filename == "plain.txt").getData(new zip.TextWriter()),

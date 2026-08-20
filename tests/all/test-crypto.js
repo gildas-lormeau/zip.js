@@ -30,7 +30,7 @@ async function test() {
 			} catch (error) {
 				const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
 				if (error.message == zip.ERR_INVALID_PASSWORD) {
-					data = await entries[0].getData(dataBlobWriter, { password: "password", checkSignature: true });
+					data = await entries[0].getData(dataBlobWriter, { password: "password", checkCrc32: true });
 				} else {
 					throw error;
 				}

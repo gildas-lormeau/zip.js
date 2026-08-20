@@ -50,7 +50,7 @@ async function test() {
 				throw new Error();
 			}
 			for (const entry of goodEntries) {
-				const data = await entry.getData(new zip.TextWriter(), { checkSignature: true });
+				const data = await entry.getData(new zip.TextWriter(), { checkCrc32: true });
 				if (data != GOOD_CONTENT) {
 					throw new Error();
 				}

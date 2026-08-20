@@ -75,7 +75,7 @@ async function checkPassThrough() {
 	}
 	reader = new zip.ZipReader(new zip.BlobReader(new Blob([passThroughZip])));
 	[entry] = await reader.getEntries();
-	const back = await entry.getData(new zip.TextWriter(), { checkSignature: true });
+	const back = await entry.getData(new zip.TextWriter(), { checkCrc32: true });
 	await reader.close();
 	if (back != text) {
 		throw new Error("passthrough: entry did not round-trip");

@@ -115,7 +115,7 @@ async function readFixture(name) {
 
 async function checkFixture(name, expectedData, expectedMethod) {
 	const url = new URL(`../data/${name}`, import.meta.url).href;
-	const zipReader = new zip.ZipReader(new zip.HttpReader(url, { preventHeadRequest: true }), { checkSignature: true });
+	const zipReader = new zip.ZipReader(new zip.HttpReader(url, { preventHeadRequest: true }), { checkCrc32: true });
 	const [entry] = await zipReader.getEntries();
 	const data = await entry.getData(new zip.Uint8ArrayWriter());
 	await zipReader.close();

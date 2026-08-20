@@ -53,7 +53,7 @@ async function roundTrip(options = {}) {
 	await zipWriter.close();
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
-	const text = await entries[0].getData(new zip.TextWriter(), { checkSignature: true, password: options.password });
+	const text = await entries[0].getData(new zip.TextWriter(), { checkCrc32: true, password: options.password });
 	await zipReader.close();
 	return text;
 }

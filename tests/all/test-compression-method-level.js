@@ -45,7 +45,7 @@ async function check(options, expectedMethod, expectDeflateFormat) {
 			" but the method says " + (expectedMethod == COMPRESSION_METHOD_STORE ? "STORE" : "DEFLATE"));
 	}
 	// the entry must read back to the original content
-	const reader = new zip.ZipReader(new zip.BlobReader(new Blob([bytes])), { checkSignature: true });
+	const reader = new zip.ZipReader(new zip.BlobReader(new Blob([bytes])), { checkCrc32: true });
 	const [entry] = await reader.getEntries();
 	const content = await entry.getData(new zip.TextWriter());
 	await reader.close();

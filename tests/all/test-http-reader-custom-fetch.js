@@ -62,7 +62,7 @@ async function test() {
 }
 
 async function readEntry(options) {
-	const zipReader = new zip.ZipReader(new zip.HttpReader(CONTENT_URL, options), { checkSignature: true });
+	const zipReader = new zip.ZipReader(new zip.HttpReader(CONTENT_URL, options), { checkCrc32: true });
 	try {
 		const entries = await zipReader.getEntries();
 		if (entries.length != 1 || entries[0].filename != FILENAME) {

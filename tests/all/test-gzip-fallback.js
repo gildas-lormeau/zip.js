@@ -46,11 +46,11 @@ async function test() {
 		if (entries[0].compressedSize >= entries[0].uncompressedSize) {
 			throw new Error("expected a compressed entry");
 		}
-		const text = await entries[0].getData(new zip.TextWriter(), { checkSignature: true });
+		const text = await entries[0].getData(new zip.TextWriter(), { checkCrc32: true });
 		if (text != CONTENT) {
 			throw new Error("unexpected content");
 		}
-		const emptyText = await entries[1].getData(new zip.TextWriter(), { checkSignature: true });
+		const emptyText = await entries[1].getData(new zip.TextWriter(), { checkCrc32: true });
 		if (emptyText != "") {
 			throw new Error("unexpected empty entry content");
 		}
@@ -60,13 +60,13 @@ async function test() {
 		}
 		const corruptedCrcData = patchFirstCentralHeader(data, CENTRAL_HEADER_CRC32_OFFSET, 0xdeadbeef);
 		entries = await getEntries(corruptedCrcData);
-		const corruptedCrcText = await entries[0].getData(new zip.TextWriter(), { checkSignature: false });
+		const corruptedCrcText = await entries[0].getData(new zip.TextWriter(), { checkCrc32: false });
 		if (corruptedCrcText != CONTENT) {
 			throw new Error("unexpected content with a corrupted signature");
 		}
 		let caughtError;
 		try {
-			await entries[0].getData(new zip.TextWriter(), { checkSignature: true });
+			await entries[0].getData(new zip.TextWriter(), { checkCrc32: true });
 		} catch (error) {
 			caughtError = error;
 		}
@@ -99,7 +99,7 @@ async function test() {
 		zip.configure({ useWebWorkers: false });
 		entries = await getEntries(data);
 		for (const entry of [entries[0], entries[2]]) {
-			const entryText = await entry.getData(new zip.TextWriter(), { checkSignature: true, password: PASSWORD });
+			const entryText = await entry.getData(new zip.TextWriter(), { checkCrc32: true, password: PASSWORD });
 			if (entryText != CONTENT) {
 				throw new Error("unexpected content read back with the default config");
 			}

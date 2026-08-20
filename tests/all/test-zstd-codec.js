@@ -17,7 +17,7 @@ async function test() {
 			format: FORMAT_ZSTD,
 			codecURI: CODEC_URI
 		});
-		const zipReader = new zip.ZipReader(new zip.HttpReader(ZIP_URL, { preventHeadRequest: true }), { checkSignature: true });
+		const zipReader = new zip.ZipReader(new zip.HttpReader(ZIP_URL, { preventHeadRequest: true }), { checkCrc32: true });
 		const [entry] = await zipReader.getEntries();
 		const text = await entry.getData(new zip.TextWriter());
 		await zipReader.close();

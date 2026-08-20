@@ -37,7 +37,7 @@ async function test() {
 	if (result != "done") {
 		throw new Error(result);
 	}
-	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()), { checkSignature: true });
+	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()), { checkCrc32: true });
 	const entries = await zipReader.getEntries();
 	const [firstText, secondText] = await Promise.all(entries.map(entry => entry.getData(new zip.TextWriter())));
 	await zipReader.close();

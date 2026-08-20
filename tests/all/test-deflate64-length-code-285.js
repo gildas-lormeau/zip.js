@@ -33,7 +33,7 @@ async function test() {
 
 async function testEntry() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	const zipReader = new zip.ZipReader(new zip.HttpReader(url, { preventHeadRequest: true }), { checkSignature: true });
+	const zipReader = new zip.ZipReader(new zip.HttpReader(url, { preventHeadRequest: true }), { checkCrc32: true });
 	try {
 		const entries = await zipReader.getEntries();
 		const text = await entries[0].getData(new zip.TextWriter());

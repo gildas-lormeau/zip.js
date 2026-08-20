@@ -31,7 +31,7 @@ async function test() {
 
 async function checkFixture(name, expectedText) {
 	const url = new URL(`../data/${name}`, import.meta.url).href;
-	const zipReader = new zip.ZipReader(new zip.HttpReader(url, { preventHeadRequest: true }), { checkSignature: true });
+	const zipReader = new zip.ZipReader(new zip.HttpReader(url, { preventHeadRequest: true }), { checkCrc32: true });
 	const [entry] = await zipReader.getEntries();
 	const text = await entry.getData(new zip.TextWriter());
 	await zipReader.close();

@@ -29,7 +29,7 @@ async function test() {
 	await zipWriter.close();
 	zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	entries = await zipReader.getEntries();
-	data = await entries[0].getData(new zip.TextWriter(), { password: "password", checkSignature: true });
+	data = await entries[0].getData(new zip.TextWriter(), { password: "password", checkCrc32: true });
 	await zipReader.close();
 	await zip.terminateWorkers();
 	if (data != TEXT_CONTENT) {

@@ -122,7 +122,7 @@ function dataDescriptorWidth(bytes) {
 }
 
 async function verifyRoundTrip(bytes, expected) {
-	const reader = new zip.ZipReader(new zip.BlobReader(new Blob([bytes])), { checkSignature: true });
+	const reader = new zip.ZipReader(new zip.BlobReader(new Blob([bytes])), { checkCrc32: true });
 	const entries = await reader.getEntries();
 	const content = await entries[0].getData(new zip.TextWriter());
 	await reader.close();

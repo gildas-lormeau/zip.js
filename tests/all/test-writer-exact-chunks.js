@@ -52,7 +52,7 @@ async function test() {
 
 		const zipReader = new zip.ZipReader(
 			new zip.HttpReader(CONTENT_URL, { fetch: fetchContent, preventHeadRequest: true }),
-			{ useWebWorkers: false, transferStreams: false, checkSignature: false });
+			{ useWebWorkers: false, transferStreams: false, checkCrc32: false });
 		try {
 			const entries = await zipReader.getEntries();
 			const writer = new BufferConsumingWriter();

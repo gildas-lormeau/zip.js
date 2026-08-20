@@ -93,8 +93,8 @@ async function checkDecompressionOptions() {
 	try {
 		zip.registerCodec({ compressionMethod: COMPRESSION_METHOD_PPMD, format: FORMAT_FAKE, DecompressionStream: FakeDecompressionStream });
 		zip.registerCodec({ compressionMethod: COMPRESSION_METHOD_LZMA, format: FORMAT_FAKE, DecompressionStream: FakeDecompressionStream });
-		const contentPpmd = await readFixtureEntry("lorem-ppmd.zip", { checkSignature: true });
-		const contentAes = await readFixtureEntry("lorem-ppmd-aes.zip", { checkSignature: true, password: FIXTURE_PASSWORD });
+		const contentPpmd = await readFixtureEntry("lorem-ppmd.zip", { checkCrc32: true });
+		const contentAes = await readFixtureEntry("lorem-ppmd-aes.zip", { checkCrc32: true, password: FIXTURE_PASSWORD });
 		await readFixtureEntry("lorem-lzma.zip", {});
 		await readFixtureEntry("lorem-lzma-eos.zip", {});
 		if (!contentPpmd.startsWith(LOREM_PREFIX) || !contentAes.startsWith(LOREM_PREFIX)) {
@@ -247,7 +247,7 @@ async function checkRejects(callback) {
 }
 
 async function readFirstEntry(bytes, options) {
-	const reader = new zip.ZipReader(new zip.BlobReader(new Blob([bytes])), { checkSignature: true });
+	const reader = new zip.ZipReader(new zip.BlobReader(new Blob([bytes])), { checkCrc32: true });
 	try {
 		const [entry] = await reader.getEntries();
 		return await entry.getData(new zip.TextWriter(), options);

@@ -21,7 +21,7 @@ async function test() {
 		if (entry.compressionMethod != 0) {
 			throw new Error("expected a stored entry");
 		}
-		const text = await entry.getData(new zip.TextWriter(), { checkSignature: true });
+		const text = await entry.getData(new zip.TextWriter(), { checkCrc32: true });
 		if (text != CONTENT) {
 			throw new Error("unexpected content");
 		}

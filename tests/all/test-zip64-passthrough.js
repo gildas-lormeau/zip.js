@@ -31,7 +31,7 @@ async function test() {
 	const passThroughZip64Blob = await zipWriter.close();
 	zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	entries = await zipReader.getEntries();
-	data = await entries[0].getData(new zip.TextWriter(), { checkSignature: true });
+	data = await entries[0].getData(new zip.TextWriter(), { checkCrc32: true });
 	await zipReader.close();
 	await zip.terminateWorkers();
 	// the passThrough round-trip must reproduce the original content, and both zip64 entries

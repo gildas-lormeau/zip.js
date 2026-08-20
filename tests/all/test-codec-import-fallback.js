@@ -50,7 +50,7 @@ async function test() {
 		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
 		await zipWriter.add("entry.txt", new zip.TextReader(TEXT_CONTENT), { compressionMethod: COMPRESSION_METHOD_XOR });
 		const data = await zipWriter.close();
-		const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { checkSignature: true });
+		const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { checkCrc32: true });
 		const [entry] = await zipReader.getEntries();
 		const text = await entry.getData(new zip.TextWriter());
 		await zipReader.close();

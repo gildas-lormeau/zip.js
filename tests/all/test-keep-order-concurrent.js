@@ -81,7 +81,7 @@ async function writeZip(addEntries) {
 }
 
 async function readZip(blob) {
-	const zipReader = new zip.ZipReader(new zip.BlobReader(blob), { checkSignature: true });
+	const zipReader = new zip.ZipReader(new zip.BlobReader(blob), { checkCrc32: true });
 	const entries = await zipReader.getEntries();
 	const contents = await Promise.all(entries.map(entry => entry.getData(new zip.TextWriter())));
 	await zipReader.close();
