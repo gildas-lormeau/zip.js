@@ -6,7 +6,7 @@
 
 # Interface: ZipDirectoryEntryGetChildrenOptions
 
-Represents the options passed to [ZipDirectoryEntry#getChildren](../classes/ZipDirectoryEntry.md#getchildren) and [FS#getChildren](../classes/FS.md#getchildren).
+Represents the options passed to [ZipDirectoryEntry#getChildren](../classes/ZipDirectoryEntry.md#getchildren) and [ZipFS#getChildren](../classes/ZipFS.md#getchildren).
 
 ## Properties
 

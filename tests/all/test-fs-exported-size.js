@@ -121,7 +121,7 @@ async function testEncrypted() {
 }
 
 async function testRelativePath() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	const directory = zipFs.root.addDirectory("wrapper");
 	directory.addText("a.txt", TEXT_CONTENT);
 	directory.addUint8Array("b.bin", BINARY_CONTENT);
@@ -139,11 +139,11 @@ async function testPassThrough() {
 		{ level: 9, password: "password" },
 		{ level: 9, password: "password", zipCrypto: true }
 	]) {
-		const source = new zip.fs.FS();
+		const source = new zip.ZipFS();
 		source.root.addText("compressed.txt", TEXT_CONTENT.repeat(50));
 		source.root.addUint8Array("stored.bin", BINARY_CONTENT, { level: 0 });
 		const deflated = await source.exportBlob(sourceOptions);
-		const zipFs = new zip.fs.FS();
+		const zipFs = new zip.ZipFS();
 		await zipFs.importBlob(deflated, { passThrough: true });
 		const options = { passThrough: true };
 		const predictedSize = await zipFs.getExportedSize(options);
@@ -159,7 +159,7 @@ async function testUndeterminedSize() {
 	await assertUndeterminedSize(root => root.addText("text.txt", TEXT_CONTENT), { compressionMethod: 8 });
 	await assertUndeterminedSize(root => root.addReadable("stream.txt", new Blob([TEXT_CONTENT]).stream()), { level: 0 });
 	await assertUndeterminedSize(root => {
-		const zipFs = new zip.fs.FS();
+		const zipFs = new zip.ZipFS();
 		zipFs.root.addReadable("stream.txt", new Blob([TEXT_CONTENT]).stream());
 		const clonedEntry = zipFs.root.children[0].clone();
 		clonedEntry.parent = root;
@@ -177,7 +177,7 @@ async function testUndeterminedSize() {
 }
 
 async function testNoReaderCreated() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	zipFs.root.addUint8Array("binary.bin", BINARY_CONTENT);
 	await zipFs.getExportedSize({ level: 0 });
 	if (zipFs.root.children[0].reader !== undefined) {
@@ -187,7 +187,7 @@ async function testNoReaderCreated() {
 }
 
 async function assertExportedSize(build, options) {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	build(zipFs.root);
 	const predictedSize = await zipFs.getExportedSize(options);
 	const blob = await zipFs.exportBlob(options);
@@ -197,7 +197,7 @@ async function assertExportedSize(build, options) {
 }
 
 async function assertUndeterminedSize(build, options) {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	build(zipFs.root);
 	let errorMessage;
 	try {

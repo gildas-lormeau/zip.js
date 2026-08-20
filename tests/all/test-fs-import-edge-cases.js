@@ -30,7 +30,7 @@ async function testDirectoryWithoutSlash() {
 			array[index + 6] = 0x78;
 		}
 	}
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importBlob(new Blob([array]));
 	const folder = fs.find("folderx");
 	if (!folder || !folder.directory || !folder.data) {
@@ -42,7 +42,7 @@ async function testImplicitDirectoryMetadata() {
 	// an auto-created parent directory must not inherit the metadata of the file it contains
 	const blob = await writeZip(zipWriter =>
 		zipWriter.add("folder/file.txt", new zip.TextReader(TEXT_CONTENT), { comment: "FILECOMMENT" }));
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importBlob(blob);
 	const folder = fs.find("folder");
 	if (!folder || !folder.directory || folder.data || !fs.find("folder/file.txt")) {
@@ -63,7 +63,7 @@ async function testExplicitDirectoryMetadata() {
 				await zipWriter.add("folder/", undefined, { directory: true, comment: "DIRCOMMENT" });
 			}
 		});
-		const fs = new zip.fs.FS();
+		const fs = new zip.ZipFS();
 		await fs.importBlob(blob);
 		const folder = fs.find("folder");
 		if (!folder || !folder.data || folder.data.comment != "DIRCOMMENT") {
@@ -79,7 +79,7 @@ async function testFileUsedAsDirectory() {
 		await zipWriter.add("collision", new zip.TextReader(TEXT_CONTENT));
 		await zipWriter.add("collision/file.txt", new zip.TextReader(TEXT_CONTENT));
 	});
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	try {
 		await fs.importBlob(blob);
 		throw new Error();
@@ -94,11 +94,11 @@ async function testReadOptionsPrecedence() {
 	// options given when reading an entry must override the options given at import time
 	const blob = await writeZip(zipWriter =>
 		zipWriter.add("secret.txt", new zip.TextReader(TEXT_CONTENT), { password: "good" }));
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importBlob(blob, { password: "bad" });
 	const text = await fs.find("secret.txt").getText(undefined, { password: "good" });
 	// options given at import time still apply when reading without options
-	const fsDefault = new zip.fs.FS();
+	const fsDefault = new zip.ZipFS();
 	await fsDefault.importBlob(blob, { password: "good" });
 	const textDefault = await fsDefault.find("secret.txt").getText();
 	if (text != TEXT_CONTENT || textDefault != TEXT_CONTENT) {

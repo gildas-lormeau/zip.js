@@ -23,7 +23,7 @@ async function test() {
 }
 
 async function createEncryptedBlob() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addText(FILENAME, TEXT_CONTENT);
 	return fs.exportBlob({ password: READ_PASSWORD });
 }
@@ -81,7 +81,7 @@ async function exportToHandle(encryptedBlob, options) {
 }
 
 async function importBlob(blob) {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importBlob(blob);
 	return fs;
 }

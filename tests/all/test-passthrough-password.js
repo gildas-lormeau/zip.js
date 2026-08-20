@@ -64,7 +64,7 @@ async function passwordAcceptedWithEncryptedData() {
 async function exportRejectsPasswordWithPassThroughTree() {
 	const source = await buildFilesystemZip({});
 	for (const exportOptions of [{ password: PASSWORD }, { password: PASSWORD, readerOptions: { passThrough: true } }]) {
-		const zipFs = new zip.fs.FS();
+		const zipFs = new zip.ZipFS();
 		await zipFs.importUint8Array(source, exportOptions.readerOptions ? {} : { passThrough: true });
 		zipFs.addText("added.txt", TEXT_CONTENT);
 		let thrownError;
@@ -79,7 +79,7 @@ async function exportRejectsPasswordWithPassThroughTree() {
 
 async function exportKeepsPasswordWithEncryptedPassThroughTree() {
 	const source = await buildFilesystemZip({ password: PASSWORD });
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	await zipFs.importUint8Array(source, { passThrough: true });
 	zipFs.addText("added.txt", TEXT_CONTENT);
 	const exported = await zipFs.exportUint8Array({ password: PASSWORD });
@@ -107,7 +107,7 @@ async function getPassThroughData(writerOptions) {
 }
 
 async function buildFilesystemZip(exportOptions) {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	zipFs.addText(FILENAME, TEXT_CONTENT);
 	return await zipFs.exportUint8Array(exportOptions);
 }

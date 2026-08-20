@@ -6,7 +6,7 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	const directory = fs.addDirectory("dir");
 	const subDirectory = directory.addDirectory("sub");
 	const file = subDirectory.addText("f.txt", TEXT_CONTENT);

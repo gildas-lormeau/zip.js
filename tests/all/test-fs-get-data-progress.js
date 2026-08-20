@@ -17,7 +17,7 @@ export { test };
 
 async function test() {
 	try {
-		const zipFs = new zip.fs.FS();
+		const zipFs = new zip.ZipFS();
 		const entries = [
 			[zipFs.addText("text.txt", TEXT_CONTENT), (entry, options) => entry.getUint8Array(options)],
 			[zipFs.addBlob("blob.bin", new Blob([CONTENT])), (entry, options) => entry.getUint8Array(options)],
@@ -28,7 +28,7 @@ async function test() {
 		for (const [entry, read] of entries) {
 			await testProgress(entry.name, options => read(entry, options));
 		}
-		const importedFs = new zip.fs.FS();
+		const importedFs = new zip.ZipFS();
 		await importedFs.importBlob(await createSourceBlob());
 		const imported = importedFs.getChildByName(FILENAME);
 		await testProgress(FILENAME, options => imported.getText(null, options));
@@ -38,7 +38,7 @@ async function test() {
 }
 
 async function createSourceBlob() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	zipFs.addText(FILENAME, TEXT_CONTENT);
 	return zipFs.exportBlob();
 }

@@ -5,19 +5,19 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 export { test };
 
 async function test() {
-	let zipFs = new zip.fs.FS();
+	let zipFs = new zip.ZipFS();
 	zipFs.addText("text.txt", TEXT_CONTENT);
 	const blobEncryptedLevel1 = await zipFs.exportBlob({ password: "password", encryptionStrength: 1 });
-	zipFs = new zip.fs.FS();
+	zipFs = new zip.ZipFS();
 	zipFs.addText("text.txt", TEXT_CONTENT);
 	const blobEncrypted = await zipFs.exportBlob({ password: "password" });
-	zipFs = new zip.fs.FS();
+	zipFs = new zip.ZipFS();
 	zipFs.addText("text.txt", TEXT_CONTENT);
 	const blobZipCrypto = await zipFs.exportBlob({ password: "password", zipCrypto: true });
-	zipFs = new zip.fs.FS();
+	zipFs = new zip.ZipFS();
 	zipFs.addText("text.txt", TEXT_CONTENT);
 	const blobUncompressed = await zipFs.exportBlob({ level: 0 });
-	zipFs = new zip.fs.FS();
+	zipFs = new zip.ZipFS();
 	let directory = zipFs.addDirectory("import-encrypted-level1");
 	await directory.importBlob(blobEncryptedLevel1, { passThrough: true });
 	directory = zipFs.addDirectory("import-encrypted");
@@ -27,7 +27,7 @@ async function test() {
 	directory = zipFs.addDirectory("import-uncompressed");
 	await directory.importBlob(blobUncompressed, { passThrough: true });
 	const blob = await zipFs.exportBlob();
-	zipFs = new zip.fs.FS();
+	zipFs = new zip.ZipFS();
 	await zipFs.importBlob(blob);
 	directory = zipFs.getChildByName("import-encrypted-level1");
 	let firstEntry = directory.children[0];

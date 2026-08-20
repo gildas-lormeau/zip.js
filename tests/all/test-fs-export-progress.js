@@ -44,7 +44,7 @@ async function testProgress(options) {
 
 async function testImportedProgress() {
 	const data = await createTree().exportUint8Array({ level: 9 });
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	await zipFs.importUint8Array(data);
 	const watcher = createProgressWatcher("imported");
 	await zipFs.exportUint8Array(watcher.options);
@@ -52,7 +52,7 @@ async function testImportedProgress() {
 }
 
 function createTree() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	zipFs.root.addUint8Array("large.bin", LARGE_CONTENT);
 	const directory = zipFs.root.addDirectory("docs");
 	directory.addText("readme.txt", TEXT_CONTENT);

@@ -13,7 +13,7 @@ export { test };
 async function test() {
 	zip.configure({ useWebWorkers: false });
 	try {
-		const fs = new zip.fs.FS();
+		const fs = new zip.ZipFS();
 
 		const expected = new TextEncoder().encode(TEXT);
 		const text = fs.addText("text.txt", TEXT);
@@ -33,7 +33,7 @@ async function test() {
 
 		// options must be honored: read back an encrypted entry and decrypt via getArrayBuffer
 		const encryptedZip = await fs.exportUint8Array({ password: PASSWORD, encryptionStrength: 3 });
-		const importedFs = new zip.fs.FS();
+		const importedFs = new zip.ZipFS();
 		await importedFs.importUint8Array(encryptedZip);
 		const importedText = importedFs.find("text.txt");
 		if (!importedText) {

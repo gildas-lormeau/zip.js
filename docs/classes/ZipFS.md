@@ -2,9 +2,9 @@
 
 ***
 
-[@zip.js/zip.js](../globals.md) / FS
+[@zip.js/zip.js](../globals.md) / ZipFS
 
-# Class: FS
+# Class: ZipFS
 
 ## Extends
 
@@ -14,11 +14,11 @@
 
 ### Constructor
 
-> **new FS**(): `FS`
+> **new ZipFS**(): `ZipFS`
 
 #### Returns
 
-`FS`
+`ZipFS`
 
 #### Inherited from
 
@@ -742,7 +742,7 @@ With `recursive`, the descendants are ordered level by level, i.e. the children 
 before the children of its subdirectories, like the result of `readdir(path, { recursive: true })` in
 Node.js. This is also the order in which `{@link ZipDirectoryEntry}#export*()` writes them.
 
-Unlike [FS#entries](#entries), the directory itself is not included and removed entries leave no empty slot.
+Unlike [ZipFS#entries](#entries), the directory itself is not included and removed entries leave no empty slot.
 
 #### Inherited from
 

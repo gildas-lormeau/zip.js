@@ -17,7 +17,7 @@ async function test() {
 }
 
 function buildTree() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	const first = fs.addDirectory("a");
 	first.addText("a1.txt", "a1");
 	first.addDirectory("deep").addText("d1.txt", "d1");
@@ -43,7 +43,7 @@ async function recursiveWalksDescendants() {
 // Level by level rather than branch by branch, i.e. what readdir(path, { recursive: true }) returns in
 // Node.js. The two orders only differ once a branch is deeper than its sibling, hence the lopsided tree.
 async function recursiveIsOrderedLevelByLevel() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	const first = fs.addDirectory("A");
 	first.addDirectory("A1").addDirectory("A1a").addText("leaf.txt", "leaf");
 	fs.addDirectory("B").addDirectory("B1").addText("b1.txt", "b1");
@@ -59,7 +59,7 @@ async function recursiveIsOrderedLevelByLevel() {
 async function exportOrderDoesNotDependOnBufferedWrite() {
 	const orders = [];
 	for (const bufferedWrite of [true, false]) {
-		const fs = new zip.fs.FS();
+		const fs = new zip.ZipFS();
 		const first = fs.addDirectory("A");
 		first.addDirectory("A1").addDirectory("A1a").addText("leaf.txt", "leaf");
 		fs.addDirectory("B").addDirectory("B1").addText("b1.txt", "b1");

@@ -9378,7 +9378,7 @@
 	}
 
 
-	class FS {
+	class ZipFS {
 
 		constructor() {
 			resetFS(this);
@@ -9565,7 +9565,7 @@
 		}
 	}
 
-	const fs = { FS, ZipDirectoryEntry, ZipFileEntry };
+	const fs = { FS: ZipFS, ZipDirectoryEntry, ZipFileEntry };
 
 	function getTotalSize(entries, getEntrySize) {
 		let size = 0;
@@ -10319,6 +10319,10 @@
 	exports.Uint8ArrayReader = Uint8ArrayReader;
 	exports.Uint8ArrayWriter = Uint8ArrayWriter;
 	exports.Writer = Writer;
+	exports.ZipDirectoryEntry = ZipDirectoryEntry;
+	exports.ZipEntry = ZipEntry;
+	exports.ZipFS = ZipFS;
+	exports.ZipFileEntry = ZipFileEntry;
 	exports.ZipReader = ZipReader;
 	exports.ZipReaderStream = ZipReaderStream;
 	exports.ZipWriter = ZipWriter;

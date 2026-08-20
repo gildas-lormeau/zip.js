@@ -72,7 +72,7 @@ async function testEntryComment() {
 }
 
 function createFilesystem() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	zipFs.addDirectory(DIRECTORY_NAME).addText(FILENAME, TEXT_CONTENT);
 	return zipFs;
 }

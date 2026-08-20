@@ -41,7 +41,7 @@ async function buildSourceArchive() {
 }
 
 async function reexportWithForcedEntryOptions(source) {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	await zipFs.importUint8Array(source, { passThrough: true });
 	for (const child of zipFs.root.children) {
 		child.setOptions({

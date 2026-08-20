@@ -33,7 +33,7 @@ async function test() {
 }
 
 async function testDirectoriesIgnoreWriterPassThrough() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addDirectory(DIRECTORY_NAME);
 	const options = { lastModDate: new Date(0) };
 	const predictedSize = await fs.getExportedSize(Object.assign({ passThrough: true }, options));
@@ -69,7 +69,7 @@ async function testWriterPassThroughWithKnownSizes() {
 	if (!bytesEqual(bothSpellings, importedBytes)) {
 		throw new Error("the writer option should be redundant when every entry is already exported as-is");
 	}
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	const compressed = await getCompressedContent();
 	fs.addDirectory(DIRECTORY_NAME).addUint8Array(FILENAME, compressed.data, {
 		uncompressedSize: compressed.uncompressedSize,
@@ -142,7 +142,7 @@ async function testAddedEntriesAreCompressed() {
 }
 
 async function createSourceBlob(options) {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addDirectory(DIRECTORY_NAME).addText(FILENAME, TEXT_CONTENT);
 	fs.addUint8Array(STORED_FILENAME, STORED_CONTENT, { level: 0 });
 	return fs.exportBlob(options);
@@ -154,7 +154,7 @@ async function exportBytes(source, importOptions, exportOptions) {
 }
 
 async function importBlob(blob, options = {}) {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importBlob(blob, options);
 	return fs;
 }

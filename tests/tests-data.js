@@ -133,6 +133,7 @@ export default ([
 	{ title: "Filesystem import ZipReader", script: "./test-fs-import-zip-reader.js" },
 	{ title: "Filesystem remove", script: "./test-fs-remove.js" },
 	{ title: "Filesystem deep tree", script: "./test-fs-deep-tree.js" },
+	{ title: "Filesystem deprecated namespace", script: "./test-fs-deprecated-namespace.js" },
 	{ title: "Filesystem HTTP reader", script: "./test-fs-http-reader.js" },
 	{ title: "Filesystem metadata", script: "./test-fs-metadata.js" },
 	{ title: "Filesystem metadata round-trip", script: "./test-fs-metadata-roundtrip.js" },

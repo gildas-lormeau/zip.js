@@ -63,7 +63,7 @@ async function readChildren(source, options) {
 }
 
 async function createSourceBlob() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addText(FILENAME, TEXT_CONTENT);
 	return fs.exportBlob();
 }
@@ -79,7 +79,7 @@ async function testGetData(source, name, options) {
 }
 
 async function importBlob(blob, options) {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importBlob(blob, options);
 	return fs;
 }

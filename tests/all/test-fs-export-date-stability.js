@@ -22,7 +22,7 @@ async function test() {
 // archives; the extended timestamp has a resolution of one second, so a delay above that second is
 // enough to see it
 async function exportsDoNotChangeOverTime() {
-	const fileSystem = new zip.fs.FS();
+	const fileSystem = new zip.ZipFS();
 	fileSystem.addText("a.txt", TEXT_CONTENT);
 	fileSystem.addDirectory("d");
 	const first = await fileSystem.exportUint8Array();
@@ -36,14 +36,14 @@ async function exportsDoNotChangeOverTime() {
 // the date taken when the entry was added must stay weaker than the export option, which is how a
 // caller pins every date of an archive
 async function theExportOptionPinsAddedEntries() {
-	const fileSystem = new zip.fs.FS();
+	const fileSystem = new zip.ZipFS();
 	fileSystem.addText("a.txt", TEXT_CONTENT);
 	fileSystem.addDirectory("d");
 	await assertDates(fileSystem, { lastModDate: PINNED_DATE }, { "a.txt": PINNED_DATE, "d/": PINNED_DATE });
 }
 
 async function anEntryDateBeatsTheExportOption() {
-	const fileSystem = new zip.fs.FS();
+	const fileSystem = new zip.ZipFS();
 	fileSystem.addText("a.txt", TEXT_CONTENT, { lastModDate: ENTRY_DATE });
 	await assertDates(fileSystem, { lastModDate: PINNED_DATE }, { "a.txt": ENTRY_DATE });
 }
@@ -52,7 +52,7 @@ async function anImportedDateIsKeptAndCanBePinned() {
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
 	await zipWriter.add("imported.txt", new zip.TextReader(TEXT_CONTENT), { lastModDate: ENTRY_DATE });
 	const data = await zipWriter.close();
-	const fileSystem = new zip.fs.FS();
+	const fileSystem = new zip.ZipFS();
 	await fileSystem.importUint8Array(data);
 	await assertDates(fileSystem, {}, { "imported.txt": ENTRY_DATE });
 	await assertDates(fileSystem, { lastModDate: PINNED_DATE }, { "imported.txt": PINNED_DATE });

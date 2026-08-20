@@ -1,10 +1,10 @@
-// Type-level test: the FS class must expose only the members it has at runtime.
+// Type-level test: the ZipFS class must expose only the members it has at runtime.
 // Compile with: npm run test-types
-import { fs as zipFs } from "../../index.js";
+import { ZipFS } from "../../index.js";
 import { ZipReader } from "../../index.js";
 import type { ZipEntry, ZipDirectoryEntry, ZipFileEntry, EntryMetaData, ZipWriterAddDataOptions } from "../../index.js";
 
-const fs = new zipFs.FS();
+const fs = new ZipFS();
 
 // real members must type-check
 const root: ZipDirectoryEntry = fs.root;
@@ -41,28 +41,28 @@ void [root, entries, children, byName, byId, found, directory, textEntry, entryO
 	signedExportPromise, commentedExportPromise, importZipReaderPromise,
 	entryProgressExportPromise];
 
-// members that do NOT exist on FS at runtime must NOT type-check
-// @ts-expect-error FS is not a file entry
+// members that do NOT exist on ZipFS at runtime must NOT type-check
+// @ts-expect-error ZipFS is not a file entry
 fs.getData();
-// @ts-expect-error FS has no name in the tree
+// @ts-expect-error ZipFS has no name in the tree
 fs.getFullname();
-// @ts-expect-error FS has no relative name
+// @ts-expect-error ZipFS has no relative name
 fs.getRelativeName(root);
-// @ts-expect-error FS cannot be renamed
+// @ts-expect-error ZipFS cannot be renamed
 fs.rename("name");
-// @ts-expect-error FS has no entry options
+// @ts-expect-error ZipFS has no entry options
 fs.setOptions({});
 // @ts-expect-error the options of an entry are set with setOptions
 textEntry.options = { comment: "comment" };
-// @ts-expect-error FS is not a descendant of anything
+// @ts-expect-error ZipFS is not a descendant of anything
 fs.isDescendantOf(root);
-// @ts-expect-error FS cannot be cloned as an entry
+// @ts-expect-error ZipFS cannot be cloned as an entry
 fs.clone();
-// @ts-expect-error FS has no directory marker property
+// @ts-expect-error ZipFS has no directory marker property
 fs.directory;
-// @ts-expect-error FS has no name property
+// @ts-expect-error ZipFS has no name property
 fs.name;
-// @ts-expect-error FS has no id property
+// @ts-expect-error ZipFS has no id property
 fs.id;
-// @ts-expect-error FS has no parent property
+// @ts-expect-error ZipFS has no parent property
 fs.parent;

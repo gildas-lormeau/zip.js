@@ -9,7 +9,7 @@ export { test };
 // name into path segments, so such a name is stored on a single entry).
 async function test() {
 	zip.configure({ useWebWorkers: false });
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 
 	// entry added with a literal "/" in its name, directly under the root
 	const flat = fs.addText("dir/file.txt", TEXT_CONTENT);

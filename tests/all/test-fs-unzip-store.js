@@ -9,11 +9,11 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	let zipFs = new zip.fs.FS();
+	let zipFs = new zip.ZipFS();
 	let directory = zipFs.addDirectory("import");
 	await directory.importHttpContent(url, { preventHeadRequest: true });
 	const zippedBlob = await zipFs.exportBlob();
-	zipFs = new zip.fs.FS();
+	zipFs = new zip.ZipFS();
 	await zipFs.importBlob(zippedBlob);
 	directory = zipFs.getChildByName("import");
 	const firstEntry = directory.children[0];

@@ -18,7 +18,7 @@ async function test() {
 	const root = await navigator.storage.getDirectory();
 	await removeDirectory(root);
 
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addText("readme.txt", "hello world");
 	const subDirectory = fs.addDirectory("sub");
 	subDirectory.addText("nested.txt", "nested content");
@@ -28,7 +28,7 @@ async function test() {
 	await fs.exportFileSystemHandle(targetHandle);
 
 	// re-import the exported directory and compare
-	const importedFs = new zip.fs.FS();
+	const importedFs = new zip.ZipFS();
 	await importedFs.addFileSystemHandle(targetHandle);
 	const exportedRoot = importedFs.find(DIRECTORY_NAME);
 

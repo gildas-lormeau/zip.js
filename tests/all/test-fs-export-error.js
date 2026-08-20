@@ -9,7 +9,7 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addText("good1.txt", TEXT_CONTENT);
 	fs.addText("good2.txt", TEXT_CONTENT);
 	fs.addReadable("bad.txt", new ReadableStream({

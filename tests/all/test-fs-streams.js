@@ -10,10 +10,10 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	const sourceFS = new zip.fs.FS();
+	const sourceFS = new zip.ZipFS();
 	sourceFS.addReadable(FILENAME, new Blob([TEXT_CONTENT]).stream());
 	let transformStream = new TransformStream();
-	const destinationFS = new zip.fs.FS();
+	const destinationFS = new zip.ZipFS();
 	await Promise.all([sourceFS.exportWritable(transformStream.writable), destinationFS.importReadable(transformStream.readable)]);
 	const firstEntry = destinationFS.children[0];
 	transformStream = new TransformStream();

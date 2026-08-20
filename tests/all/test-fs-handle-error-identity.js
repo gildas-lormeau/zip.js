@@ -26,7 +26,7 @@ async function test() {
 }
 
 async function manifestListsCompletedFiles() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addUint8Array("a.bin", new Uint8Array(8));
 	fs.addDirectory("sub").addUint8Array("b.bin", new Uint8Array(8));
 	fs.addDirectory("boom");
@@ -41,7 +41,7 @@ async function manifestListsCompletedFiles() {
 
 async function concurrentSiblingsAreCancelled() {
 	zip.configure({ chunkSize: 128 });
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addUint8Array("slow.bin", new Uint8Array(512 * 1024));
 	fs.addDirectory("bad");
 	const target = createCancellationTarget();
@@ -114,7 +114,7 @@ async function sequentialStopsAtFirstFailure() {
 }
 
 function buildFailingTree() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	const first = fs.addDirectory("a");
 	first.addDirectory("bad1");
 	first.addDirectory("bad2");
@@ -123,14 +123,14 @@ function buildFailingTree() {
 }
 
 async function exportDirectoryFailure(concurrent) {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addDirectory("sub").addDirectory("deep").addText("leaf.txt", "content");
 	const error = await captureError(() => fs.exportFileSystemHandle(createTargetHandle("deep"), { concurrent }));
 	assertError(error, "TypeError", "sub/deep", "export directory (concurrent=" + concurrent + ")");
 }
 
 async function exportEntryFailure() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addDirectory("sub").addReadable("bad.txt", new ReadableStream({
 		start(controller) {
 			controller.enqueue(new TextEncoder().encode("partial"));
@@ -144,7 +144,7 @@ async function exportEntryFailure() {
 }
 
 async function importHandleFailure() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	const error = await captureError(() => fs.addFileSystemHandle(createSourceHandle()));
 	assertError(error, "TypeError", "root/sub/bad.bin", "import handle");
 }

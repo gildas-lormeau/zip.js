@@ -88,7 +88,7 @@ async function testPassThroughOptionsAreNotOverridden() {
 }
 
 async function testEntryOptionsWin() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	zipFs.root.addText(ADDED_FILENAME, TEXT_CONTENT, { comment: "entry comment" });
 	const [entry] = await readArchive(await zipFs.exportUint8Array(EXPORT_OPTIONS));
 	if (entry.comment != "entry comment") {
@@ -103,7 +103,7 @@ async function createSourceArchive() {
 }
 
 async function exportTree(exportOptions, importOptions = {}) {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	await zipFs.importUint8Array(await createSourceArchive(), importOptions);
 	zipFs.root.addText(ADDED_FILENAME, TEXT_CONTENT);
 	const entries = await readArchive(await zipFs.exportUint8Array(exportOptions));

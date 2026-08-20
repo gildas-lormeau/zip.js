@@ -3124,7 +3124,7 @@ export interface EntryOnprogressOptions {
 /**
  * Represents an entry in a zip file (Filesystem API).
  */
-declare class ZipEntry {
+export class ZipEntry {
   /**
    * The relative filename of the entry.
    */
@@ -3370,7 +3370,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    * before the children of its subdirectories, like the result of `readdir(path, { recursive: true })` in
    * Node.js. This is also the order in which `{@link ZipDirectoryEntry}#export*()` writes them.
    *
-   * Unlike {@link FS#entries}, the directory itself is not included and removed entries leave no empty slot.
+   * Unlike {@link ZipFS#entries}, the directory itself is not included and removed entries leave no empty slot.
    *
    * @param options The options.
    * @returns The array of {@link ZipEntry} instances.
@@ -3725,7 +3725,7 @@ export interface ZipDirectoryEntryImportHttpOptions
     HttpOptions {}
 
 /**
- * Represents the options passed to {@link ZipDirectoryEntry#getChildren} and {@link FS#getChildren}.
+ * Represents the options passed to {@link ZipDirectoryEntry#getChildren} and {@link ZipFS#getChildren}.
  */
 export interface ZipDirectoryEntryGetChildrenOptions {
   /**
@@ -3844,7 +3844,7 @@ export interface ZipDirectoryEntryExportOptions
 }
 
 /**
- * Represents the options passed to {@link ZipDirectoryEntry#exportFileSystemHandle} and {@link FS#exportFileSystemHandle}.
+ * Represents the options passed to {@link ZipDirectoryEntry#exportFileSystemHandle} and {@link ZipFS#exportFileSystemHandle}.
  *
  * @remarks
  * The {@link ZipReaderOptions#preventClose} option is ignored: the export owns the writable of each
@@ -3883,16 +3883,16 @@ export interface ZipDirectoryEntryExportFileSystemHandleOptions
  * const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.";
  * const FILENAME = "lorem.txt";
  * const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
- * let zipFs = new zip.fs.FS();
+ * let zipFs = new zip.ZipFS();
  * zipFs.addBlob("lorem.txt", BLOB);
  * const zippedBlob = await zipFs.exportBlob();
- * zipFs = new zip.fs.FS();
+ * zipFs = new zip.ZipFS();
  * await zipFs.importBlob(zippedBlob);
  * const firstEntry = zipFs.children[0];
  * const unzippedBlob = await firstEntry.getBlob(zip.getMimeType(firstEntry.name));
  * ```
  */
-export interface FS
+export interface ZipFS
   extends Pick<
     ZipDirectoryEntry,
     | "getChildByName"
@@ -3924,7 +3924,7 @@ export interface FS
     | "checkPassword"
   > {}
 
-export class FS {
+export class ZipFS {
   /**
    * The root directory.
    */
@@ -3968,18 +3968,26 @@ export class FS {
 
 /**
  * The Filesystem API.
+ *
+ * @deprecated Use the {@link ZipFS}, {@link ZipDirectoryEntry} and {@link ZipFileEntry} exports instead.
  */
 export const fs: {
   /**
    * The Filesystem constructor.
+   *
+   * @deprecated Use {@link ZipFS} instead.
    */
-  FS: typeof FS;
+  FS: typeof ZipFS;
   /**
    * The {@link ZipDirectoryEntry} constructor.
+   *
+   * @deprecated Use the {@link ZipDirectoryEntry} export instead.
    */
   ZipDirectoryEntry: typeof ZipDirectoryEntry;
   /**
    * The {@link ZipFileEntry} constructor.
+   *
+   * @deprecated Use the {@link ZipFileEntry} export instead.
    */
   ZipFileEntry: typeof ZipFileEntry;
 };

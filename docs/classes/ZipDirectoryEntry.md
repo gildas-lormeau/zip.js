@@ -736,7 +736,7 @@ With `recursive`, the descendants are ordered level by level, i.e. the children 
 before the children of its subdirectories, like the result of `readdir(path, { recursive: true })` in
 Node.js. This is also the order in which `{@link ZipDirectoryEntry}#export*()` writes them.
 
-Unlike [FS#entries](FS.md#entries), the directory itself is not included and removed entries leave no empty slot.
+Unlike [ZipFS#entries](ZipFS.md#entries), the directory itself is not included and removed entries leave no empty slot.
 
 ***
 

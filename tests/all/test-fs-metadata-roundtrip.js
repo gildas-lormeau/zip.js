@@ -24,7 +24,7 @@ async function test() {
 	await zipWriter.close();
 	const sourceBlob = await blobWriter.getData();
 	for (const passThrough of [false, true]) {
-		const zipFs = new zip.fs.FS();
+		const zipFs = new zip.ZipFS();
 		await zipFs.importBlob(sourceBlob, passThrough ? { passThrough: true } : {});
 		const exportedBlob = await zipFs.exportBlob();
 		const zipReader = new zip.ZipReader(new zip.BlobReader(exportedBlob));

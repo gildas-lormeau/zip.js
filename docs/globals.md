@@ -13,7 +13,6 @@
 - [Data64URIReader](classes/Data64URIReader.md)
 - [Data64URIWriter](classes/Data64URIWriter.md)
 - [DecompressionStreamLike](classes/DecompressionStreamLike.md)
-- [FS](classes/FS.md)
 - [HttpRangeReader](classes/HttpRangeReader.md)
 - [HttpReader](classes/HttpReader.md)
 - [Reader](classes/Reader.md)
@@ -28,6 +27,7 @@
 - [ZipDirectoryEntry](classes/ZipDirectoryEntry.md)
 - [ZipEntry](classes/ZipEntry.md)
 - [ZipFileEntry](classes/ZipFileEntry.md)
+- [ZipFS](classes/ZipFS.md)
 - [ZipReader](classes/ZipReader.md)
 - [ZipReaderStream](classes/ZipReaderStream.md)
 - [ZipWriter](classes/ZipWriter.md)
@@ -158,7 +158,7 @@
 - [ERR\_WORKER\_STARTUP\_TIMEOUT](variables/ERR_WORKER_STARTUP_TIMEOUT.md)
 - [ERR\_WRITER\_NOT\_INITIALIZED](variables/ERR_WRITER_NOT_INITIALIZED.md)
 - [ERR\_ZIP\_NOT\_EMPTY](variables/ERR_ZIP_NOT_EMPTY.md)
-- [fs](variables/fs.md)
+- [~~fs~~](variables/fs.md)
 
 ## Functions
 

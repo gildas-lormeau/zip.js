@@ -77,7 +77,7 @@ async function normalizationDetectsCollisions() {
 }
 
 async function filesystemInheritsNormalization() {
-	const filesystem = new zip.fs.FS();
+	const filesystem = new zip.ZipFS();
 	await filesystem.importUint8Array(await buildZip(["../evil.txt", "sub/../ok.txt"]), {
 		normalizeFilename: stripLeadingParents
 	});
@@ -131,7 +131,7 @@ async function strictnessDrivesTheDefaultLevel() {
 // identically by getFullname().
 async function filesystemDropsRedundantPathComponents() {
 	const data = await buildZip(["a//b.txt", "./cur.txt", "/abs.txt", "sub/./deep/x.txt"]);
-	const filesystem = new zip.fs.FS();
+	const filesystem = new zip.ZipFS();
 	await filesystem.importUint8Array(data, { filenameValidation: "tolerant" });
 	const names = collectNames(filesystem.root).sort().join(",");
 	const expectedNames = "abs.txt,a,a/b.txt,cur.txt,sub,sub/deep,sub/deep/x.txt".split(",").sort().join(",");

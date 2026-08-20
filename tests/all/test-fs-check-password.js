@@ -8,13 +8,13 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	let zipFs = new zip.fs.FS();
+	let zipFs = new zip.ZipFS();
 	const directory = zipFs.addDirectory("import");
 	await directory.importHttpContent(url, { preventHeadRequest: true });
 	let result;
 	if (!zipFs.isPasswordProtected()) {
 		const blob = await zipFs.exportBlob({ password: "password" });
-		zipFs = new zip.fs.FS();
+		zipFs = new zip.ZipFS();
 		await zipFs.importBlob(blob);
 		if (zipFs.isPasswordProtected()) {
 			// checkPassword must not mutate the caller-supplied options object

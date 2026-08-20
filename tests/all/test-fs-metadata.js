@@ -9,13 +9,13 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	let zipFs = new zip.fs.FS();
+	let zipFs = new zip.ZipFS();
 	const lastModDate = new Date(1982, 0, 1, 0, 0, 0, 0);
 	let directory = zipFs.addDirectory("import", { lastModDate });
 	await directory.importHttpContent(url, { preventHeadRequest: true });
 	directory.addText("test.txt", TEXT_CONTENT, { comment: "test", versionMadeBy: 42 });
 	const blob = await zipFs.exportBlob();
-	zipFs = new zip.fs.FS();
+	zipFs = new zip.ZipFS();
 	await zipFs.importBlob(blob);
 	directory = zipFs.getChildByName("import");
 	const importedTextFile = directory.children[0];

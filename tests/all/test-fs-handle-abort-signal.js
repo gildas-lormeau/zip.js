@@ -19,7 +19,7 @@ async function test() {
 }
 
 async function abortedBeforeExport() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addUint8Array("data.bin", new Uint8Array(1024));
 	const controller = new AbortController();
 	controller.abort(new Error(USER_ABORT_MESSAGE));
@@ -33,7 +33,7 @@ async function abortedBeforeExport() {
 // of the caller rather than the internal cancellation error.
 async function abortedDuringExport() {
 	zip.configure({ chunkSize: 128 });
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addUint8Array("slow.bin", new Uint8Array(512 * 1024));
 	const controller = new AbortController();
 	const error = await captureError(() => fs.exportFileSystemHandle(

@@ -21,7 +21,7 @@ async function test() {
 }
 
 async function testMergedOptions() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	const zipEntry = zipFs.addText("file.txt", TEXT_CONTENT, { comment: ENTRY_COMMENT, level: 0 });
 	zipEntry.setOptions({ lastModDate: new Date(0) });
 	zipEntry.setOptions({ comment: EXPORT_COMMENT });
@@ -35,7 +35,7 @@ async function testMergedOptions() {
 }
 
 async function testClearedOptions() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	const zipEntry = zipFs.addText("file.txt", TEXT_CONTENT, { comment: ENTRY_COMMENT, level: 0 });
 	zipEntry.setOptions({ level: undefined });
 	if ("level" in zipEntry.options) {
@@ -78,7 +78,7 @@ async function testPrecedence() {
 }
 
 async function testDistinctOptionsPerEntry() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	const directoryEntry = zipFs.addDirectory("directory");
 	directoryEntry.setOptions({ comment: ENTRY_COMMENT });
 	directoryEntry.addText("stored.txt", TEXT_CONTENT).setOptions({ level: 0 });
@@ -96,7 +96,7 @@ async function testDistinctOptionsPerEntry() {
 }
 
 async function testUnsharedOptions() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	const sharedOptions = { comment: ENTRY_COMMENT };
 	const firstEntry = zipFs.addText("first.txt", TEXT_CONTENT, sharedOptions);
 	const secondEntry = zipFs.addText("second.txt", TEXT_CONTENT, sharedOptions);
@@ -118,7 +118,7 @@ async function buildSourceArchive() {
 }
 
 async function getExportedComment(source, setEntryOptions, exportOptions) {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	await zipFs.importUint8Array(source);
 	setEntryOptions(zipFs.find("file.txt"));
 	const [entry] = await getEntries(await zipFs.exportUint8Array(exportOptions));

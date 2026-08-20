@@ -165,7 +165,7 @@ async function globalCommentRejectsOtherTypes() {
 		assertMessage(thrownError, zip.ERR_INVALID_COMMENT_TYPE, description);
 		thrownError = undefined;
 		try {
-			await new zip.fs.FS().getExportedSize({ globalComment });
+			await new zip.ZipFS().getExportedSize({ globalComment });
 		} catch (error) {
 			thrownError = error;
 		}
@@ -173,8 +173,8 @@ async function globalCommentRejectsOtherTypes() {
 	}
 	await closeZip(new TextEncoder().encode("a global comment"));
 	await closeZip();
-	await new zip.fs.FS().getExportedSize({ globalComment: new TextEncoder().encode("a global comment") });
-	await new zip.fs.FS().getExportedSize({});
+	await new zip.ZipFS().getExportedSize({ globalComment: new TextEncoder().encode("a global comment") });
+	await new zip.ZipFS().getExportedSize({});
 }
 
 // The mirror image of the mistake above: the caller who has just passed raw bytes to close() has every
@@ -186,7 +186,7 @@ async function entryCommentRejectsOtherTypes() {
 	for (const comment of [new TextEncoder().encode("a comment"), 42, {}, ["a comment"], true]) {
 		await assertThrows({ comment }, zip.ERR_INVALID_ENTRY_COMMENT_TYPE, "comment: " + String(comment));
 	}
-	const fileSystem = new zip.fs.FS();
+	const fileSystem = new zip.ZipFS();
 	fileSystem.addText("test.txt", CONTENT, { comment: new TextEncoder().encode("a comment"), level: 0 });
 	let thrownError;
 	try {

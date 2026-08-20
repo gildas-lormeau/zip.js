@@ -10,10 +10,10 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	let zipFs = new zip.fs.FS();
+	let zipFs = new zip.ZipFS();
 	zipFs.addData64URI(FILENAME, DATA_URI);
 	const data = await zipFs.exportData64URI();
-	zipFs = new zip.fs.FS();
+	zipFs = new zip.ZipFS();
 	await zipFs.importData64URI(data);
 	const firstEntry = zipFs.children[0];
 	const dataURI = await firstEntry.getData64URI("text/plain");

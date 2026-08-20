@@ -9,10 +9,10 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	let zipFs = new zip.fs.FS();
+	let zipFs = new zip.ZipFS();
 	zipFs.addText(FILENAME, TEXT_CONTENT);
 	const data = await zipFs.exportBlob();
-	zipFs = new zip.fs.FS();
+	zipFs = new zip.ZipFS();
 	await zipFs.importBlob(data);
 	const firstEntry = zipFs.children[0];
 	const arraybuffer = await firstEntry.getArrayBuffer();

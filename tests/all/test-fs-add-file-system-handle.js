@@ -28,7 +28,7 @@ async function test() {
 }
 
 async function testOptions(options, expectedFileDate) {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	await zipFs.addFileSystemHandle(createSourceHandle(), options);
 	const entries = await readEntries(await zipFs.exportUint8Array());
 	assertNames(entries);

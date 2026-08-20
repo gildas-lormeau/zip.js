@@ -26,7 +26,7 @@ async function test() {
 }
 
 async function exportTree(concurrent) {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addText("readme.txt", "hello world");
 	const subDirectory = fs.addDirectory("sub");
 	subDirectory.addText("nested.txt", "nested content");
@@ -53,14 +53,14 @@ async function exportTree(concurrent) {
 }
 
 async function exportImportedTree(concurrent) {
-	const source = new zip.fs.FS();
+	const source = new zip.ZipFS();
 	source.addText("compressible.txt", COMPRESSIBLE_CONTENT);
 	source.addUint8Array("stored.bin", new Uint8Array([1, 2, 3, 4, 5]), { level: 0 });
 	const blob = await source.exportBlob({ level: 9 });
 	if (blob.size >= COMPRESSIBLE_CONTENT.length) {
 		throw new Error("test archive is not compressed (concurrent=" + concurrent + ")");
 	}
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importBlob(blob);
 
 	const target = createMockWriteDirectory();
@@ -76,10 +76,10 @@ async function exportImportedTree(concurrent) {
 }
 
 async function exportPassThroughTree(options) {
-	const source = new zip.fs.FS();
+	const source = new zip.ZipFS();
 	source.addText("compressible.txt", COMPRESSIBLE_CONTENT);
 	const blob = await source.exportBlob({ level: 9 });
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importBlob(blob);
 	const { compressedSize } = fs.getChildByName("compressible.txt").data;
 
@@ -95,7 +95,7 @@ async function exportPassThroughTree(options) {
 }
 
 async function exportTreeIgnoringPreventClose(options) {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addText("readme.txt", "hello world");
 	fs.addDirectory("sub").addText("nested.txt", "nested content");
 

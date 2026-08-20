@@ -72,7 +72,7 @@ async function testZip64() {
 
 async function testFilesystem() {
 	let signedDirectory;
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	zipFs.addText("entry.txt", TEXT_CONTENT);
 	const data = await zipFs.exportUint8Array({
 		signCentralDirectory(directory) {

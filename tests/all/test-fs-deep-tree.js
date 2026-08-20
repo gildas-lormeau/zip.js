@@ -15,10 +15,10 @@ async function test() {
 		const zipWriter = new zip.ZipWriter(blobWriter);
 		await zipWriter.add(filename, new zip.TextReader(TEXT_CONTENT));
 		await zipWriter.close();
-		const fs = new zip.fs.FS();
+		const fs = new zip.ZipFS();
 		await fs.importBlob(await blobWriter.getData());
 		const exportedBlob = await fs.exportBlob();
-		const importedFs = new zip.fs.FS();
+		const importedFs = new zip.ZipFS();
 		await importedFs.importBlob(exportedBlob);
 		const fileEntry = importedFs.find(filename);
 		if (!fileEntry || await fileEntry.getText() != TEXT_CONTENT) {

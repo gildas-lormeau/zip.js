@@ -122,12 +122,12 @@ async function collectInstances() {
 	});
 	await entries.find(entry => entry.filename == "file.txt").getData(new zip.TextWriter());
 	await reader.close();
-	const filesystem = new zip.fs.FS();
-	collectInstance(filesystem, "zip.fs.FS");
-	collectInstance(filesystem.addText("added.txt", "content"), "zip.fs.FS#addText");
-	collectInstance(filesystem.addDirectory("added"), "zip.fs.FS#addDirectory");
+	const filesystem = new zip.ZipFS();
+	collectInstance(filesystem, "ZipFS");
+	collectInstance(filesystem.addText("added.txt", "content"), "ZipFS#addText");
+	collectInstance(filesystem.addDirectory("added"), "ZipFS#addDirectory");
 	await filesystem.importUint8Array(data, { password: PASSWORD });
-	filesystem.entries.forEach(entry => collectInstance(entry, "zip.fs entry"));
+	filesystem.entries.forEach(entry => collectInstance(entry, "ZipFS entry"));
 	collectInstance(new zip.Uint8ArrayWriter(), "Uint8ArrayWriter");
 	collectInstance(new zip.SplitDataWriter(() => new zip.Uint8ArrayWriter()), "SplitDataWriter");
 	await collectReaderWriterInstances(data);
@@ -236,9 +236,13 @@ function checkExceptions() {
 	});
 }
 
+// a base class is covered by an instance of any of its subclasses, since the fields its constructor sets are
+// own properties of that instance, so only a class no instance derives from is a blind spot
 function checkClassesInstantiated() {
 	exportedClasses.forEach((label, exportedClass) => {
-		if (!instantiatedClasses.has(exportedClass)) {
+		const covered = [...instantiatedClasses].some(instantiatedClass =>
+			instantiatedClass == exportedClass || Object.prototype.isPrototypeOf.call(exportedClass, instantiatedClass));
+		if (!covered) {
 			failures.push(`${label} is never instantiated, so the members its instances carry stay invisible here`);
 		}
 	});

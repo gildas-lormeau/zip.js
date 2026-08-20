@@ -13,10 +13,10 @@ async function test() {
 }
 
 async function testSizes(options) {
-	let zipFs = new zip.fs.FS();
+	let zipFs = new zip.ZipFS();
 	zipFs.addText("text.txt", TEXT_CONTENT);
 	const blob = await zipFs.exportBlob(options);
-	zipFs = new zip.fs.FS();
+	zipFs = new zip.ZipFS();
 	await zipFs.importBlob(blob, { passThrough: true });
 	const entry = zipFs.getChildByName("text.txt");
 	const compressedSize = entry.data.compressedSize;

@@ -7808,7 +7808,7 @@
 	}
 
 
-	class FS {
+	class ZipFS {
 
 		constructor() {
 			resetFS(this);
@@ -7995,7 +7995,7 @@
 		}
 	}
 
-	const fs = { FS, ZipDirectoryEntry, ZipFileEntry };
+	const fs = { FS: ZipFS, ZipDirectoryEntry, ZipFileEntry };
 
 	function getTotalSize(entries, getEntrySize) {
 		let size = 0;
@@ -8576,6 +8576,10 @@
 	exports.ERR_ENTRY_EXISTS = ERR_ENTRY_EXISTS;
 	exports.ERR_INVALID_PASS_THROUGH = ERR_INVALID_PASS_THROUGH;
 	exports.ERR_READABLE_CONSUMED = ERR_READABLE_CONSUMED;
+	exports.ZipDirectoryEntry = ZipDirectoryEntry;
+	exports.ZipEntry = ZipEntry;
+	exports.ZipFS = ZipFS;
+	exports.ZipFileEntry = ZipFileEntry;
 	exports.fs = fs;
 
 }));

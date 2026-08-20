@@ -44,7 +44,7 @@ async function sourceDirectoriesAreExported(bufferedWrite) {
 }
 
 async function addedDirectoriesAreExported(bufferedWrite) {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.root.addDirectory("a").addDirectory("b").addText("c.txt", TEXT_CONTENT);
 	await assertExportedNames(fs, ["a/", "a/b/", "a/b/c.txt"], bufferedWrite);
 }
@@ -64,7 +64,7 @@ async function exportedNamesAreStableAcrossRoundTrips(bufferedWrite) {
 	for (let round = 0; round < 3; round++) {
 		const blob = await fs.exportBlob({ bufferedWrite });
 		await assertNames(blob, ["a/b/c.txt"]);
-		fs = new zip.fs.FS();
+		fs = new zip.ZipFS();
 		await fs.importBlob(blob);
 	}
 }
@@ -91,7 +91,7 @@ async function exportedSizeMatchesTheExport() {
 async function aDeepNameDoesNotAmplify() {
 	const filename = "d/".repeat(DEPTH) + "f.txt";
 	const sourceBlob = await writeZip(zipWriter => zipWriter.add(filename, new zip.TextReader(TEXT_CONTENT)));
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importBlob(sourceBlob);
 	const exportedBlob = await fs.exportBlob();
 	await assertNames(exportedBlob, [filename]);
@@ -114,7 +114,7 @@ async function assertNames(blob, expectedNames) {
 }
 
 async function importZip(addEntries) {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importBlob(await writeZip(addEntries));
 	return fs;
 }

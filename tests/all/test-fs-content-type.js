@@ -17,7 +17,7 @@ export { test };
 
 async function test() {
 	try {
-		const zipFs = new zip.fs.FS();
+		const zipFs = new zip.ZipFS();
 		const blobEntry = zipFs.addBlob("blob.bin", new Blob([TEXT_CONTENT], { type: SOURCE_TYPE }));
 		const uriEntry = zipFs.addData64URI("uri.bin", DATA_URI);
 		const textEntry = zipFs.addText("text.txt", TEXT_CONTENT);

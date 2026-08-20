@@ -31,14 +31,14 @@ async function testZipFileData() {
 		extractAppendedData: true,
 		maxAppendedDataSize: APPENDED_DATA.length
 	});
-	await new zip.fs.FS().importZip(zipReader);
+	await new zip.ZipFS().importZip(zipReader);
 	assertBytesEqual("prependedData", zipReader.prependedData, PREPENDED_DATA);
 	assertBytesEqual("appendedData", zipReader.appendedData, APPENDED_DATA);
 	assertBytesEqual("comment", zipReader.comment, GLOBAL_COMMENT);
 }
 
 async function testEntries() {
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(await createArchive()), { maxAppendedDataSize: APPENDED_DATA.length });
 	const importedEntries = await zipFs.importZip(zipReader);
 	const entry = zipFs.find(DIRECTORY_NAME + "/" + FILENAME);
@@ -56,7 +56,7 @@ async function testReaderOptions() {
 		maxAppendedDataSize: APPENDED_DATA.length,
 		passThrough: true
 	});
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	await zipFs.importZip(zipReader);
 	const entry = zipFs.find(DIRECTORY_NAME + "/" + FILENAME);
 	const exportedEntries = await readArchive(await zipFs.exportUint8Array({ readerOptions: { passThrough: true } }));
@@ -77,14 +77,14 @@ async function testReaderOptionsAreDefaults() {
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { maxAppendedDataSize: 0 });
 	let error;
 	try {
-		await new zip.fs.FS().importZip(zipReader);
+		await new zip.ZipFS().importZip(zipReader);
 	} catch (importError) {
 		error = importError;
 	}
 	if (!error) {
 		throw new Error("expected the options of the ZipReader instance to be used");
 	}
-	await new zip.fs.FS().importZip(new zip.ZipReader(new zip.Uint8ArrayReader(data), { maxAppendedDataSize: 0 }), {
+	await new zip.ZipFS().importZip(new zip.ZipReader(new zip.Uint8ArrayReader(data), { maxAppendedDataSize: 0 }), {
 		maxAppendedDataSize: APPENDED_DATA.length
 	});
 }

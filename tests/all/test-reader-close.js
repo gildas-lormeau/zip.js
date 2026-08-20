@@ -69,7 +69,7 @@ async function testLeavesSeekableReadersAlone() {
 
 async function testImportedReader() {
 	const { readable } = createWatchedStream(await createArchive());
-	const zipFs = new zip.fs.FS();
+	const zipFs = new zip.ZipFS();
 	const zipReader = new zip.ZipReader(readable);
 	await zipFs.importZip(zipReader);
 	await zipReader.close();

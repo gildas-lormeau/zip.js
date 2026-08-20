@@ -23,7 +23,7 @@ async function test() {
 		if (getMimeType("image.png") != "image/png") {
 			throw new Error("unexpected mime type");
 		}
-		const zipFs = new zip.fs.FS();
+		const zipFs = new zip.ZipFS();
 		const entry = zipFs.addText("entry.txt", "content");
 		if (!entry || zipFs.children.length != 1) {
 			throw new Error("unexpected filesystem content");

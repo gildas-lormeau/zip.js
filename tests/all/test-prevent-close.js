@@ -83,7 +83,7 @@ async function testEntryPreventClose(entry, label) {
 }
 
 async function testEntriesConcatenatedIntoOneWritable() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addText("first.txt", "first");
 	fs.addText("second.txt", "second");
 	const target = createTarget();
@@ -115,17 +115,17 @@ async function testExportPreventClose() {
 }
 
 function createExportedFS() {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	fs.addText(FILENAME, TEXT_CONTENT);
 	return fs;
 }
 
 function createAddedEntry() {
-	return new zip.fs.FS().addText(FILENAME, TEXT_CONTENT);
+	return new zip.ZipFS().addText(FILENAME, TEXT_CONTENT);
 }
 
 async function createImportedEntry() {
-	const importedFS = new zip.fs.FS();
+	const importedFS = new zip.ZipFS();
 	await importedFS.importBlob(await createExportedFS().exportBlob());
 	return importedFS.getChildByName(FILENAME);
 }
@@ -136,7 +136,7 @@ async function getFirstEntry(options) {
 }
 
 async function assertExportedContent(bytes, label) {
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importUint8Array(bytes);
 	assertText(await fs.getChildByName(FILENAME).getText(), label);
 }

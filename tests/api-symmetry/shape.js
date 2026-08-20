@@ -94,7 +94,7 @@ async function getSpecimens() {
 	const entries = await reader.getEntries();
 	await entries[0].getData(new zip.TextWriter());
 	await reader.close();
-	const filesystem = new zip.fs.FS();
+	const filesystem = new zip.ZipFS();
 	await filesystem.importUint8Array(data, { password: PASSWORD });
 	await zip.terminateWorkers();
 	return [

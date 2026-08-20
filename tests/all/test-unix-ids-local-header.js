@@ -43,7 +43,7 @@ async function idsComeFromTheLocalHeader() {
 	if (entry.uid != UID || entry.gid != GID) {
 		throw new Error("expected " + UID + "/" + GID + " from the local header, got " + entry.uid + "/" + entry.gid);
 	}
-	const fs = new zip.fs.FS();
+	const fs = new zip.ZipFS();
 	await fs.importUint8Array(data);
 	const exportedEntry = await readEntry(await fs.exportUint8Array());
 	if (exportedEntry.uid != UID || exportedEntry.gid != GID) {

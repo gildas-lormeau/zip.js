@@ -6,7 +6,7 @@
 
 # Interface: ZipDirectoryEntryExportFileSystemHandleOptions
 
-Represents the options passed to [ZipDirectoryEntry#exportFileSystemHandle](../classes/ZipDirectoryEntry.md#exportfilesystemhandle) and [FS#exportFileSystemHandle](../classes/FS.md#exportfilesystemhandle).
+Represents the options passed to [ZipDirectoryEntry#exportFileSystemHandle](../classes/ZipDirectoryEntry.md#exportfilesystemhandle) and [ZipFS#exportFileSystemHandle](../classes/ZipFS.md#exportfilesystemhandle).
 
 ## Remarks
 

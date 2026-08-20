@@ -8,14 +8,14 @@ export { test };
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	try {
-		const fs = new zip.fs.FS();
+		const fs = new zip.ZipFS();
 		fs.addText(FILENAME, TEXT_CONTENT);
 		// FS.exportZip writes to a caller-supplied writer, mirroring FS.importZip
 		const blobWriter = new zip.BlobWriter("application/zip");
 		await fs.exportZip(blobWriter);
 		const blob = await blobWriter.getData();
 		// FS.importZip reads from a caller-supplied reader
-		const importedFs = new zip.fs.FS();
+		const importedFs = new zip.ZipFS();
 		// a pre-existing entry must be cleared: importZip replaces the tree like the other import* methods
 		importedFs.addText("stale.txt", "stale");
 		await importedFs.importZip(new zip.BlobReader(blob));
