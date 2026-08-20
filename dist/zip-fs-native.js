@@ -5986,6 +5986,7 @@
 	const ERR_INVALID_COMMENT_TYPE = "Invalid zip file comment (must be a Uint8Array)";
 	const ERR_INVALID_ENTRY_COMMENT = "File entry comment exceeds 64KB";
 	const ERR_INVALID_ENTRY_COMMENT_TYPE = "Invalid file entry comment (must be a string)";
+	const ERR_INVALID_DATE = "Invalid date (must be a valid Date instance)";
 	const ERR_INVALID_ENTRY_NAME = "File entry name exceeds 64KB";
 	const ERR_INVALID_VERSION = "Version exceeds 65535";
 	const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
@@ -6486,9 +6487,9 @@
 		if (version > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_VERSION);
 		}
-		const lastModDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE, new Date());
-		const lastAccessDate = getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
-		const creationDate = getOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
+		const lastModDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE, new Date());
+		const lastAccessDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
+		const creationDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
 		const internalFileAttributes = getAliasedOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES, 0);
 		const passThrough = getOptionValue(zipWriter, options, OPTION_PASS_THROUGH);
 		const password = getOptionValue(zipWriter, options, OPTION_PASSWORD);
@@ -7824,6 +7825,17 @@
 	function getOptionValue(zipWriter, options, name, defaultValue) {
 		const result = options[name] === UNDEFINED_VALUE ? zipWriter.options[name] : options[name];
 		return result === UNDEFINED_VALUE ? defaultValue : result;
+	}
+
+	function getDateOptionValue(zipWriter, options, name, defaultValue) {
+		const date = getOptionValue(zipWriter, options, name, defaultValue);
+		if (date === null) {
+			return defaultValue;
+		}
+		if (date !== UNDEFINED_VALUE && (typeof date.getTime != FUNCTION_TYPE || Number.isNaN(date.getTime()))) {
+			throw new Error(ERR_INVALID_DATE);
+		}
+		return date;
 	}
 
 	function getAliasedOptionValue(zipWriter, options, name, deprecatedName, defaultValue) {
@@ -9892,6 +9904,7 @@
 	exports.ERR_INVALID_COMMENT_TYPE = ERR_INVALID_COMMENT_TYPE;
 	exports.ERR_INVALID_COMPRESSED_DATA = ERR_INVALID_COMPRESSED_DATA;
 	exports.ERR_INVALID_CRC32 = ERR_INVALID_CRC32;
+	exports.ERR_INVALID_DATE = ERR_INVALID_DATE;
 	exports.ERR_INVALID_ENCRYPTION_STRENGTH = ERR_INVALID_ENCRYPTION_STRENGTH;
 	exports.ERR_INVALID_ENTRY_COMMENT = ERR_INVALID_ENTRY_COMMENT;
 	exports.ERR_INVALID_ENTRY_COMMENT_TYPE = ERR_INVALID_ENTRY_COMMENT_TYPE;

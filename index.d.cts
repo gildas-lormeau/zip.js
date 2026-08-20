@@ -2687,6 +2687,11 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   /**
    * The last modification date.
    *
+   * @remarks
+   * This option and the two below must be `Date` instances: a timestamp expressed in milliseconds, e.g.
+   * {@link File#lastModified}, and an invalid `Date` are both rejected with {@link ERR_INVALID_DATE}. An
+   * invalid `Date` used to be written as an entry carrying no timestamp at all.
+   *
    * @defaultValue The current date.
    */
   lastModDate?: Date;
@@ -3961,6 +3966,10 @@ export const ERR_INVALID_ENTRY_COMMENT: string;
  * Invalid entry comment type error
  */
 export const ERR_INVALID_ENTRY_COMMENT_TYPE: string;
+/**
+ * Invalid date error
+ */
+export const ERR_INVALID_DATE: string;
 /**
  * Invalid version error
  */

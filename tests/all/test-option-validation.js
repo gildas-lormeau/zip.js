@@ -26,6 +26,8 @@ async function test() {
 	await globalCommentRejectsOtherTypes();
 	await entryCommentRejectsOtherTypes();
 	await entryCommentKeepsAcceptingStrings();
+	await datesRejectOtherValues();
+	await datesKeepAcceptingEmptyValues();
 	await extraFieldRejectsOtherShapes();
 	await extraFieldKeepsAcceptingValidMaps();
 	await zip.terminateWorkers();
@@ -206,6 +208,42 @@ async function entryCommentKeepsAcceptingStrings() {
 	const [entry] = await readEntries(await buildZip({ comment: "a comment" }));
 	if (entry.comment != "a comment") {
 		throw new Error("expected the comment to be written verbatim, got \"" + entry.comment + "\"");
+	}
+}
+
+// An invalid Date used to produce an entry carrying no timestamp at all: NaN fails the Unix range test so
+// no extended timestamp is written, the NTFS fallback that this failed test enables throws on BigInt(NaN)
+// into a catch that empties the field, and the MIN_DATE/MAX_DATE clamp lets it through since both of its
+// comparisons against NaN are false, leaving getHours() and friends to coerce the raw DOS date to 0. A
+// timestamp in milliseconds is the other likely mistake, since it is what File#lastModified returns.
+async function datesRejectOtherValues() {
+	for (const propertyName of ["lastModDate", "lastAccessDate", "creationDate"]) {
+		for (const date of [new Date("invalid"), 1700000000000, "2023-11-14T22:13:20Z", 0, {}, true]) {
+			await assertThrows({ [propertyName]: date }, zip.ERR_INVALID_DATE, propertyName + ": " + String(date));
+		}
+	}
+}
+
+// undefined and null keep meaning "no date": the default applies to the modification date and the two
+// others are left out of the extra fields.
+async function datesKeepAcceptingEmptyValues() {
+	const now = new Date();
+	for (const options of [{}, { lastModDate: undefined }, { lastModDate: null }]) {
+		const [entry] = await readEntries(await buildZip(options));
+		if (Math.abs(entry.lastModDate.getTime() - now.getTime()) > 60000) {
+			throw new Error("expected the current date for " + JSON.stringify(options) + " got " + entry.lastModDate.toISOString());
+		}
+	}
+	const [entry] = await readEntries(await buildZip({ lastAccessDate: null, creationDate: null }));
+	if (entry.lastAccessDate !== undefined || entry.creationDate !== undefined) {
+		throw new Error("expected no access and creation dates, got " + entry.lastAccessDate + " and " + entry.creationDate);
+	}
+	const dates = { lastModDate: new Date(1700000000000), lastAccessDate: new Date(1700000001000), creationDate: new Date(1700000002000) };
+	const [datedEntry] = await readEntries(await buildZip(dates));
+	for (const [propertyName, date] of Object.entries(dates)) {
+		if (datedEntry[propertyName].getTime() != date.getTime()) {
+			throw new Error("expected " + propertyName + " " + date.toISOString() + " got " + datedEntry[propertyName].toISOString());
+		}
 	}
 }
 
