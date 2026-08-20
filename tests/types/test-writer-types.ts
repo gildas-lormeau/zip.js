@@ -26,4 +26,16 @@ const writtenSize: number | undefined = writer.size;
 // the MIME type passed to the constructor stays readable
 const contentTypes: (string | undefined)[] = [blobWriter.contentType, data64URIWriter.contentType];
 
-export { writtenSizes, writtenSize, contentTypes };
+// TextWriter and BlobWriter accumulate through their writable and have no writeUint8Array at runtime,
+// so declaring either of them as a Writer would promise a method that throws
+// @ts-expect-error TextWriter has no writeUint8Array
+new TextWriter().writeUint8Array(new Uint8Array());
+// @ts-expect-error BlobWriter has no writeUint8Array
+blobWriter.writeUint8Array(new Uint8Array());
+// the writers that do extend Writer keep it
+const writeResults: Promise<void>[] = [
+	data64URIWriter.writeUint8Array(new Uint8Array()),
+	new Uint8ArrayWriter().writeUint8Array(new Uint8Array())
+];
+
+export { writtenSizes, writtenSize, contentTypes, writeResults };

@@ -3591,7 +3591,7 @@ class TextReader extends BlobReader {
 class TextWriter extends BlobWriter {
 
 	constructor(encoding) {
-		super(encoding);
+		super();
 		Object.assign(this, {
 			encoding,
 			utf8: !encoding || encoding.toLowerCase() == "utf-8"

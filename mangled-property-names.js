@@ -23,7 +23,6 @@ const MANGLED_PROPERTY_NAMES = [
 	"_tables",
 	"_updated",
 	"abortPipe",
-	"addData",
 	"addSplitZipSignature",
 	"array",
 	"authentication",

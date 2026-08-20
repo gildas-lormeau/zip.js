@@ -593,11 +593,6 @@ export function initWorker(options?: {
 }): void;
 
 /**
- * Represents a class implementing `CompressionStream` or `DecompressionStream` interfaces.
- */
-declare class CodecStream extends TransformStream {}
-
-/**
  * Returns the MIME type corresponding to a filename extension.
  *
  * @param fileExtension the extension of the filename.
@@ -1044,17 +1039,35 @@ export class Writer<Type> implements Initializable, WritableWriter {
 /**
  * Represents a {@link Writer} instance used to retrieve the written data as a `string`.
  */
-export class TextWriter extends Writer<string> {
+export class TextWriter implements Initializable, WritableWriter {
+  /**
+   * The `WritableStream` instance.
+   */
+  writable: WritableStream;
+  /**
+   * The number of bytes written into the instance.
+   */
+  size: number;
   /**
    * The encoding of the text returned by {@link TextWriter#getData}.
    */
   encoding?: string;
+  /**
+   * Initializes the instance asynchronously
+   */
+  init(): Promise<void>;
   /**
    * Creates the {@link TextWriter} instance
    *
    * @param encoding The encoding of the text.
    */
   constructor(encoding?: string);
+  /**
+   * Retrieves all the written data
+   *
+   * @returns A promise resolving to the written data.
+   */
+  getData(): Promise<string>;
 }
 
 /**

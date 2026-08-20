@@ -8,7 +8,6 @@
 
 - [BlobReader](classes/BlobReader.md)
 - [BlobWriter](classes/BlobWriter.md)
-- [CodecStream](classes/CodecStream.md)
 - [CompressionStreamLike](classes/CompressionStreamLike.md)
 - [Data64URIReader](classes/Data64URIReader.md)
 - [Data64URIWriter](classes/Data64URIWriter.md)

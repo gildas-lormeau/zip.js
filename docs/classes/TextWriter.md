@@ -8,9 +8,10 @@
 
 Represents a [Writer](Writer.md) instance used to retrieve the written data as a `string`.
 
-## Extends
+## Implements
 
-- [`Writer`](Writer.md)\<`string`\>
+- [`Initializable`](../interfaces/Initializable.md)
+- [`WritableWriter`](../interfaces/WritableWriter.md)
 
 ## Constructors
 
@@ -32,10 +33,6 @@ The encoding of the text.
 
 `TextWriter`
 
-#### Overrides
-
-[`Writer`](Writer.md).[`constructor`](Writer.md#constructor)
-
 ## Properties
 
 ### encoding?
@@ -52,9 +49,9 @@ The encoding of the text returned by [TextWriter#getData](#getdata).
 
 The number of bytes written into the instance.
 
-#### Inherited from
+#### Implementation of
 
-[`Writer`](Writer.md).[`size`](Writer.md#size)
+[`WritableWriter`](../interfaces/WritableWriter.md).[`size`](../interfaces/WritableWriter.md#size)
 
 ***
 
@@ -64,9 +61,9 @@ The number of bytes written into the instance.
 
 The `WritableStream` instance.
 
-#### Inherited from
+#### Implementation of
 
-[`Writer`](Writer.md).[`writable`](Writer.md#writable)
+[`WritableWriter`](../interfaces/WritableWriter.md).[`writable`](../interfaces/WritableWriter.md#writable)
 
 ## Methods
 
@@ -82,54 +79,18 @@ Retrieves all the written data
 
 A promise resolving to the written data.
 
-#### Inherited from
-
-[`Writer`](Writer.md).[`getData`](Writer.md#getdata)
-
 ***
 
-### init()?
+### init()
 
-> `optional` **init**(`size?`): `Promise`\<`void`\>
+> **init**(): `Promise`\<`void`\>
 
 Initializes the instance asynchronously
 
-#### Parameters
-
-##### size?
-
-`number`
-
-the total size of the written data in bytes.
-
 #### Returns
 
 `Promise`\<`void`\>
 
-#### Inherited from
+#### Implementation of
 
-[`Writer`](Writer.md).[`init`](Writer.md#init)
-
-***
-
-### writeUint8Array()
-
-> **writeUint8Array**(`array`): `Promise`\<`void`\>
-
-Appends a chunk of data
-
-#### Parameters
-
-##### array
-
-`Uint8Array`
-
-The chunk data to append.
-
-#### Returns
-
-`Promise`\<`void`\>
-
-#### Inherited from
-
-[`Writer`](Writer.md).[`writeUint8Array`](Writer.md#writeuint8array)
+[`Initializable`](../interfaces/Initializable.md).[`init`](../interfaces/Initializable.md#init)

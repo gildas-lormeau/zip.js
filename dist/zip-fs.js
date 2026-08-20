@@ -3586,7 +3586,7 @@
 	class TextWriter extends BlobWriter {
 
 		constructor(encoding) {
-			super(encoding);
+			super();
 			Object.assign(this, {
 				encoding,
 				utf8: !encoding || encoding.toLowerCase() == "utf-8"
@@ -9207,10 +9207,6 @@
 			});
 		}
 
-		addData(name, params) {
-			return addChild(this, name, params);
-		}
-
 		importBlob(blob, options) {
 			return this.importZip(new BlobReader(blob), options);
 		}
@@ -9492,10 +9488,6 @@
 
 		addFile(file, options) {
 			return this.root.addFile(file, options);
-		}
-
-		addData(name, params) {
-			return this.root.addData(name, params);
 		}
 
 		importBlob(blob, options) {
@@ -9911,7 +9903,7 @@
 					if (handle.kind == "file") {
 						const file = await handle.getFile();
 						addedEntries.push(
-							parentEntry.addData(file.name, {
+							addChild(parentEntry, file.name, {
 								Reader: function () {
 									const readable = file.stream();
 									const size = file.size;

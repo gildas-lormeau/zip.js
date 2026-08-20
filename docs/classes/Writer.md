@@ -33,7 +33,6 @@ class BinaryStringWriter extends Writer {
 
 ## Extended by
 
-- [`TextWriter`](TextWriter.md)
 - [`Data64URIWriter`](Data64URIWriter.md)
 - [`Uint8ArrayWriter`](Uint8ArrayWriter.md)
 

@@ -4,7 +4,11 @@
 // accepted; without it they had an implicit zero-argument constructor and every custom codec class
 // was rejected, including the one documented on initWorker.
 // Compile with: npm run test-types
-import { configure, initWorker, registerCodec } from "../../index.js";
+import { configure, registerCodec } from "../../index.js";
+// initWorker is exported from the "./worker" entry point, not from index.js, so it is imported the way
+// a user would import it; every entry point maps to the same index.d.ts, which is why the wrong import
+// used to type-check
+import { initWorker } from "@zip.js/zip.js/worker";
 import type { CompressionStreamOptions, DecompressionStreamOptions } from "../../index.js";
 
 // the classes of the environment must stay assignable
