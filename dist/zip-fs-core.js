@@ -1388,6 +1388,16 @@
 		return reader.readUint8Array(offset, size);
 	}
 
+	function createReadable(reader, options) {
+		if (reader.createReadable) {
+			return reader.createReadable(options);
+		} else if (reader.readUint8Array) {
+			return Reader.prototype.createReadable.call(reader, options);
+		} else {
+			return reader.readable;
+		}
+	}
+
 	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
@@ -5479,8 +5489,9 @@
 			const entries = await zipReader$1.getEntries();
 			await zipReader$1.close();
 			await initStream(this.writer);
-			await reader.readable.pipeTo(this.writer.writable, { preventClose: true, preventAbort: true });
-			this.writer.size = this.offset = reader.size;
+			const { directoryOffset } = zipReader$1;
+			await createReadable(reader, { size: directoryOffset }).pipeTo(this.writer.writable, { preventClose: true, preventAbort: true });
+			this.writer.size = this.offset = directoryOffset;
 			this.filenames = new Set(entries.map(entry => entry.filename));
 			this.fileEntries = new Map(entries.map(entry => {
 				const {
@@ -6383,7 +6394,7 @@
 		}
 		const { writable } = writer;
 		if (reader) {
-			const readable = toCompatibleReadable(reader.createReadable ? reader.createReadable() : reader.readable);
+			const readable = toCompatibleReadable(createReadable(reader));
 			const size = reader.size;
 			const workerOptions = {
 				options: {
