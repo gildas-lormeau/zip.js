@@ -15,7 +15,6 @@ async function test() {
 	const workerErrors = [];
 	let createdWorkers = 0;
 	zip.configure({
-		transferStreams: false,
 		createWorker: () => {
 			createdWorkers++;
 			const worker = new Worker(WORKER_SCRIPT_URI);
@@ -47,7 +46,7 @@ async function test() {
 			throw new Error("Invalid entry content");
 		}
 	} finally {
-		zip.configure({ createWorker: null, transferStreams: true });
+		zip.configure({ createWorker: null });
 		await zip.terminateWorkers();
 	}
 }

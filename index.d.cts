@@ -340,12 +340,9 @@ export interface Configuration extends WorkerConfiguration {
    * ```
    * ```
    * configure({
-   *   createWorker: () => new Worker("./zip-worker-with-polyfill.js"),
-   *   transferStreams: false
+   *   createWorker: () => new Worker("./zip-worker-with-polyfill.js")
    * });
    * ```
-   * {@link WorkerConfiguration#transferStreams} must be disabled: the streams transferred to the worker are created by the engine and
-   * cannot be piped through a polyfilled `TransformStream`.
    */
   createWorker?: () => Worker;
   /**

@@ -90,12 +90,9 @@ importScripts("./web-streams-polyfill.js", "./zip-web-worker.js");
 ```
 ```
 configure({
-  createWorker: () => new Worker("./zip-worker-with-polyfill.js"),
-  transferStreams: false
+  createWorker: () => new Worker("./zip-worker-with-polyfill.js")
 });
 ```
-[WorkerConfiguration#transferStreams](WorkerConfiguration.md#transferstreams) must be disabled: the streams transferred to the worker are created by the engine and
-cannot be piped through a polyfilled `TransformStream`.
 
 #### Returns
 
