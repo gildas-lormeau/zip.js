@@ -57,6 +57,7 @@ export default ([
 	{ title: "Custom codec registration", script: "./test-register-codec.js" },
 	{ title: "Custom worker factory", script: "./test-create-worker.js" },
 	{ title: "Web worker with a streams polyfill", script: "./test-worker-streams-polyfill.js", env: ["browser"], features: ["wasmBuild"] },
+	{ title: "Web worker with a streams polyfill (native build)", script: "./test-worker-streams-polyfill-native.js", env: ["browser"], features: ["nativeBuild"] },
 	{ title: "Module web worker with a streams polyfill", script: "./test-worker-streams-polyfill-module.js", env: ["deno", "bun"] },
 	{ title: "Custom engine composition", script: "./test-custom-engine.js" },
 	{ title: "Common JS", script: "./test-common-js.cjs", env: ["node", "deno", "bun"] },

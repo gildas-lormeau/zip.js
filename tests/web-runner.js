@@ -39,29 +39,11 @@ const FEATURE_PROBES = {
 	},
 	moduleWorker: () => probeWorker("export {};\npostMessage(true);", { type: "module" }),
 	workerStreams: () => probeWorker("postMessage(typeof TransformStream != \"undefined\");"),
-	wasmBuild: async () => {
-		const zip = await import("./zip-lib.js");
-		let wasmURIRead = false;
-		try {
-			zip.configure({
-				useWebWorkers: false,
-				useCompressionStream: false,
-				wasmURI: () => {
-					wasmURIRead = true;
-					return "data:application/wasm;base64,";
-				}
-			});
-			const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
-			await zipWriter.add("probe.txt", new zip.TextReader("probe"));
-			await zipWriter.close();
-		} catch {
-			// ignored
-		} finally {
-			zip.resetConfiguration();
-		}
-		return wasmURIRead;
-	}
+	wasmBuild: () => usesWasmBuild(),
+	nativeBuild: async () => !(await usesWasmBuild())
 };
+
+let wasmBuildProbe;
 
 const urlParams = new URLSearchParams(location.search);
 const browserTests = tests.filter(test => !test.env || test.env.includes("browser"));
@@ -120,6 +102,36 @@ async function getMissingFeatures(tests) {
 		}
 	}));
 	return missingFeatures;
+}
+
+function usesWasmBuild() {
+	if (!wasmBuildProbe) {
+		wasmBuildProbe = probeWasmBuild();
+	}
+	return wasmBuildProbe;
+}
+
+async function probeWasmBuild() {
+	const zip = await import("./zip-lib.js");
+	let wasmURIRead = false;
+	try {
+		zip.configure({
+			useWebWorkers: false,
+			useCompressionStream: false,
+			wasmURI: () => {
+				wasmURIRead = true;
+				return "data:application/wasm;base64,";
+			}
+		});
+		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await zipWriter.add("probe.txt", new zip.TextReader("probe"));
+		await zipWriter.close();
+	} catch {
+		// ignored
+	} finally {
+		zip.resetConfiguration();
+	}
+	return wasmURIRead;
 }
 
 function probeWorker(code, options) {

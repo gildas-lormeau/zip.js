@@ -6,18 +6,22 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
 const FILENAME = "lorem.txt";
 const WORKER_SCRIPT_URI = new URL("./worker-streams-polyfill.js", import.meta.url);
 
-export { test };
+export { test, testWithWorkerScript };
 
 // the worker script installs the polyfill before importing the zip.js worker, which is the only
 // moment where it can help: the worker reads TransformStream and the other stream globals when it
 // is evaluated, so a polyfill installed in the page never reaches it
-async function test() {
+function test() {
+	return testWithWorkerScript(WORKER_SCRIPT_URI);
+}
+
+async function testWithWorkerScript(workerScriptURI) {
 	const workerErrors = [];
 	let createdWorkers = 0;
 	zip.configure({
 		createWorker: () => {
 			createdWorkers++;
-			const worker = new Worker(WORKER_SCRIPT_URI);
+			const worker = new Worker(workerScriptURI);
 			worker.addEventListener("error", event => {
 				event.preventDefault();
 				workerErrors.push(event.message);
