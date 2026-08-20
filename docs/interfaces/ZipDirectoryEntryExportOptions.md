@@ -40,6 +40,13 @@ writable, i.e. when a [WritableWriter](WritableWriter.md) instance is passed to
 other `{@link ZipDirectoryEntry}#export*()` methods, whose Writer instance can only return its data
 once its writable is closed.
 
+An entry added without a [ZipWriterAddDataOptions#lastModDate](ZipWriterConstructorOptions.md#lastmoddate) option is dated with the moment
+it was added, so exporting an unchanged tree twice produces the same bytes. That date is the weakest
+one: it is replaced by the date of the entry the tree was imported from, which is itself replaced by
+the [ZipWriterConstructorOptions#lastModDate](ZipWriterConstructorOptions.md#lastmoddate) option passed here, which pins every date of the
+exported zip file. Only a [ZipWriterAddDataOptions#lastModDate](ZipWriterConstructorOptions.md#lastmoddate) option passed when the entry
+was added takes precedence over all of them.
+
 ## Extends
 
 - [`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md)

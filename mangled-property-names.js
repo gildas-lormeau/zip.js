@@ -43,6 +43,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"dataDescriptorView",
 	"dataOffset",
 	"dataStart",
+	"defaultLastModDate",
 	"directoryArray",
 	"directoryDataLength",
 	"directoryStart",

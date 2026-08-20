@@ -8554,7 +8554,8 @@
 				children: [],
 				uncompressedSize: params.uncompressedSize || 0,
 				undeterminedSize: params.undeterminedSize || params.uncompressedSize === UNDEFINED_VALUE,
-				passThrough: params.passThrough
+				passThrough: params.passThrough,
+				defaultLastModDate: params.defaultLastModDate || new Date()
 			});
 			if (parent || !fs.root) {
 				fs.entries[zipEntry.id] = zipEntry;
@@ -9448,7 +9449,7 @@
 				};
 			}
 		}
-		const entryOptions = Object.assign({}, zipEntryMetadata, options, childOptions, passThroughOptions, { directory: child.directory });
+		const entryOptions = Object.assign({ lastModDate: child.defaultLastModDate }, zipEntryMetadata, options, childOptions, passThroughOptions, { directory: child.directory });
 		if (!child.directory && entryOptions.passThrough && entryOptions.uncompressedSize === UNDEFINED_VALUE) {
 			throw new Error(ERR_INVALID_PASS_THROUGH);
 		}

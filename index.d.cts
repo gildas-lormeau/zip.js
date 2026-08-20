@@ -3630,6 +3630,13 @@ export interface ZipDirectoryEntryGetChildrenOptions {
  * {@link ZipDirectoryEntry#exportZip} or {@link ZipDirectoryEntry#exportWritable}. It is ignored by the
  * other `{@link ZipDirectoryEntry}#export*()` methods, whose Writer instance can only return its data
  * once its writable is closed.
+ *
+ * An entry added without a {@link ZipWriterAddDataOptions#lastModDate} option is dated with the moment
+ * it was added, so exporting an unchanged tree twice produces the same bytes. That date is the weakest
+ * one: it is replaced by the date of the entry the tree was imported from, which is itself replaced by
+ * the {@link ZipWriterConstructorOptions#lastModDate} option passed here, which pins every date of the
+ * exported zip file. Only a {@link ZipWriterAddDataOptions#lastModDate} option passed when the entry
+ * was added takes precedence over all of them.
  */
 export interface ZipDirectoryEntryExportOptions
   extends ZipWriterConstructorOptions,
