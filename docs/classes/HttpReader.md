@@ -70,6 +70,14 @@ The total size of the data in bytes.
 
 [`Reader`](Reader.md).[`size`](Reader.md#size)
 
+***
+
+### url
+
+> **url**: `string` \| `URL`
+
+The URL of the data, as passed to the constructor.
+
 ## Methods
 
 ### createReadable()

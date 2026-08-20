@@ -68,6 +68,18 @@ The total size of the data in bytes.
 
 [`HttpReader`](HttpReader.md).[`size`](HttpReader.md#size)
 
+***
+
+### url
+
+> **url**: `string` \| `URL`
+
+The URL of the data, as passed to the constructor.
+
+#### Inherited from
+
+[`HttpReader`](HttpReader.md).[`url`](HttpReader.md#url)
+
 ## Methods
 
 ### createReadable()

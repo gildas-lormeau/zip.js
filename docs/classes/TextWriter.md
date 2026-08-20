@@ -38,6 +38,14 @@ The encoding of the text.
 
 ## Properties
 
+### encoding?
+
+> `optional` **encoding?**: `string`
+
+The encoding of the text returned by [TextWriter#getData](#getdata).
+
+***
+
 ### size
 
 > **size**: `number`

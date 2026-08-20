@@ -84,7 +84,7 @@ function collectDeclarationNames(filePath, membersOnly) {
 	}
 
 	function isTypeDeclaration(node) {
-		return ts.isParameter(node) || ts.isClassDeclaration(node) || ts.isInterfaceDeclaration(node) ||
+		return ts.isClassDeclaration(node) || ts.isInterfaceDeclaration(node) ||
 			ts.isFunctionDeclaration(node) || ts.isTypeAliasDeclaration(node) || ts.isVariableDeclaration(node);
 	}
 }

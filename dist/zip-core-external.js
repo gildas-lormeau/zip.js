@@ -1425,13 +1425,13 @@ class AESDecryptionStream extends TransformStream {
 				const {
 					ctr,
 					hmac,
-					pending,
+					pendingInput,
 					ready
 				} = this;
 				if (hmac && ctr) {
 					await ready;
-					const chunkToDecrypt = subarray(pending, 0, pending.length - AUTHENTICATION_CODE_LENGTH);
-					const originalAuthenticationCode = subarray(pending, pending.length - AUTHENTICATION_CODE_LENGTH);
+					const chunkToDecrypt = subarray(pendingInput, 0, pendingInput.length - AUTHENTICATION_CODE_LENGTH);
+					const originalAuthenticationCode = subarray(pendingInput, pendingInput.length - AUTHENTICATION_CODE_LENGTH);
 					let decryptedChunkArray = EMPTY_UINT8_ARRAY;
 					if (chunkToDecrypt.length) {
 						const encryptedChunk = toBits(codecBytes, chunkToDecrypt);
@@ -1440,7 +1440,7 @@ class AESDecryptionStream extends TransformStream {
 						decryptedChunkArray = fromBits(codecBytes, decryptedChunk);
 					}
 					const authenticationCode = subarray(fromBits(codecBytes, hmac.digest()), 0, AUTHENTICATION_CODE_LENGTH);
-					let invalidAuthenticationCode = pending.length < AUTHENTICATION_CODE_LENGTH ? 1 : 0;
+					let invalidAuthenticationCode = pendingInput.length < AUTHENTICATION_CODE_LENGTH ? 1 : 0;
 					for (let indexByte = 0; indexByte < AUTHENTICATION_CODE_LENGTH; indexByte++) {
 						invalidAuthenticationCode |= authenticationCode[indexByte] ^ originalAuthenticationCode[indexByte];
 					}
@@ -1484,14 +1484,14 @@ class AESEncryptionStream extends TransformStream {
 				const {
 					ctr,
 					hmac,
-					pending,
+					pendingInput,
 					ready
 				} = this;
 				if (hmac && ctr) {
 					await ready;
 					let encryptedChunkArray = EMPTY_UINT8_ARRAY;
-					if (pending.length) {
-						const encryptedChunk = ctr.update(toBits(codecBytes, pending));
+					if (pendingInput.length) {
+						const encryptedChunk = ctr.update(toBits(codecBytes, pendingInput));
 						hmac.update(encryptedChunk);
 						encryptedChunkArray = fromBits(codecBytes, encryptedChunk);
 					}
@@ -1508,7 +1508,7 @@ function initAesCrypto(aesCrypto, password, rawPassword, encryptionStrength) {
 		ready: new Promise(resolve => aesCrypto.resolveReady = resolve),
 		password: encodePassword(password, rawPassword),
 		strength: encryptionStrength - 1,
-		pending: EMPTY_UINT8_ARRAY
+		pendingInput: EMPTY_UINT8_ARRAY
 	});
 }
 
@@ -1516,10 +1516,10 @@ function append(aesCrypto, input, output, paddingStart, paddingEnd, verifyAuthen
 	const {
 		ctr,
 		hmac,
-		pending
+		pendingInput
 	} = aesCrypto;
-	if (pending.length) {
-		input = concat(pending, input);
+	if (pendingInput.length) {
+		input = concat(pendingInput, input);
 	}
 	const inputLength = input.length - paddingEnd;
 	output = expand(output, paddingStart + (inputLength - (inputLength % BLOCK_LENGTH)));
@@ -1535,7 +1535,7 @@ function append(aesCrypto, input, output, paddingStart, paddingEnd, verifyAuthen
 		}
 		output.set(fromBits(codecBytes, outputChunk), offset + paddingStart);
 	}
-	aesCrypto.pending = subarray(input, offset);
+	aesCrypto.pendingInput = subarray(input, offset);
 	return output;
 }
 
@@ -3471,31 +3471,31 @@ class Data64URIWriter extends Writer {
 		Object.assign(this, {
 			contentType,
 			data: "data:" + (contentType || "") + ";base64,",
-			pending: []
+			pendingCharacters: ""
 		});
 	}
 
 	writeUint8Array(array) {
 		const writer = this;
 		let indexArray;
-		let dataString = writer.pending;
-		const delta = writer.pending.length;
-		writer.pending = "";
+		let dataString = writer.pendingCharacters;
+		const delta = writer.pendingCharacters.length;
+		writer.pendingCharacters = "";
 		for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
 			dataString += String.fromCharCode(array[indexArray]);
 		}
 		for (; indexArray < array.length; indexArray++) {
-			writer.pending += String.fromCharCode(array[indexArray]);
+			writer.pendingCharacters += String.fromCharCode(array[indexArray]);
 		}
 		if (dataString.length > 2) {
 			writer.data += btoa(dataString);
 		} else {
-			writer.pending = dataString + writer.pending;
+			writer.pendingCharacters = dataString + writer.pendingCharacters;
 		}
 	}
 
 	getData() {
-		return this.data + btoa(this.pending);
+		return this.data + btoa(this.pendingCharacters);
 	}
 }
 
@@ -3525,7 +3525,7 @@ class BlobReader extends Reader {
 	constructor(blob) {
 		super();
 		Object.assign(this, {
-			blob,
+			sourceBlob: blob,
 			size: blob.size
 		});
 		if (!blobSliceProbe) {
@@ -3535,13 +3535,13 @@ class BlobReader extends Reader {
 
 	createReadable(options) {
 		const reader = this;
-		const { blob, size } = reader;
+		const { sourceBlob, size } = reader;
 		const { offset = 0, size: readSize = size - offset } = options || {};
 		if (!offset && readSize >= size) {
-			return toCompatibleReadable(blob.stream());
+			return toCompatibleReadable(sourceBlob.stream());
 		}
 		if (blobSliceReliable) {
-			return toCompatibleReadable(blob.slice(offset, offset + readSize).stream());
+			return toCompatibleReadable(sourceBlob.slice(offset, offset + readSize).stream());
 		}
 		return super.createReadable(options);
 	}
@@ -3550,7 +3550,7 @@ class BlobReader extends Reader {
 		const reader = this;
 		const offsetEnd = offset + length;
 		const readsWholeBlob = !offset && offsetEnd >= reader.size;
-		const blob = readsWholeBlob ? reader.blob : reader.blob.slice(offset, offsetEnd);
+		const blob = readsWholeBlob ? reader.sourceBlob : reader.sourceBlob.slice(offset, offsetEnd);
 		let arrayBuffer = await blob.arrayBuffer();
 		const sliceIgnoredByBuggyImplementation = arrayBuffer.byteLength > length;
 		if (sliceIgnoredByBuggyImplementation) {
@@ -3572,12 +3572,12 @@ class BlobWriter extends Stream {
 			}
 		});
 		writer.contentType = contentType;
-		writer.blob = streamToBlob(transformStream.readable, contentType);
-		writer.blob.catch(() => { });
+		writer.blobPromise = streamToBlob(transformStream.readable, contentType);
+		writer.blobPromise.catch(() => { });
 	}
 
 	getData() {
-		return this.blob;
+		return this.blobPromise;
 	}
 }
 
@@ -6731,7 +6731,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 	try {
 		let lockPreviousFileEntry;
 		if (keepOrder) {
-			lockPreviousFileEntry = previousFileEntry && previousFileEntry.lock;
+			lockPreviousFileEntry = previousFileEntry && previousFileEntry.lockFileEntry;
 			requestLockCurrentFileEntry();
 		}
 		if (options.bufferedWrite || !keepOrder || zipWriter.writerLocked || zipWriter.bufferedWrites || !dataDescriptor) {
@@ -6841,7 +6841,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 	}
 
 	function requestLockCurrentFileEntry() {
-		fileEntry.lock = new Promise(resolve => releaseLockCurrentFileEntry = resolve);
+		fileEntry.lockFileEntry = new Promise(resolve => releaseLockCurrentFileEntry = resolve);
 	}
 
 	async function requestLockWriter() {
@@ -6861,7 +6861,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 	}
 }
 
-async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryInfo, config, options) {
+async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry }, entryInfo, config, options) {
 	const {
 		headerInfo,
 		dataDescriptorInfo,
@@ -6929,7 +6929,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lock }, entryI
 		codecURI
 	} = options;
 	const fileEntry = {
-		lock,
+		lockFileEntry,
 		versionMadeBy,
 		zip64,
 		directory: Boolean(directory),

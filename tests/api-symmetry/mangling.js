@@ -116,9 +116,33 @@ async function collectInstances() {
 	collectInstance(filesystem.addDirectory("added"), "zip.fs.FS#addDirectory");
 	await filesystem.importUint8Array(data, { password: PASSWORD });
 	filesystem.entries.forEach(entry => collectInstance(entry, "zip.fs entry"));
-	collectInstance(new zip.Uint8ArrayReader(data), "Uint8ArrayReader");
 	collectInstance(new zip.Uint8ArrayWriter(), "Uint8ArrayWriter");
 	collectInstance(new zip.SplitDataWriter(() => new zip.Uint8ArrayWriter()), "SplitDataWriter");
+	await collectReaderWriterInstances(data);
+}
+
+// the readers and the writers keep their state on the instance, so each one is reached through an
+// instance, the writers after a write since some of their members only exist once data went through
+async function collectReaderWriterInstances(data) {
+	Object.entries({
+		BlobReader: new zip.BlobReader(new Blob([data])),
+		TextReader: new zip.TextReader("content"),
+		Data64URIReader: new zip.Data64URIReader("data:;base64,AAAA"),
+		Uint8ArrayReader: new zip.Uint8ArrayReader(data),
+		HttpReader: new zip.HttpReader("https://example.com/")
+	}).forEach(([label, reader]) => collectInstance(reader, label));
+	for (const [label, writer] of Object.entries({
+		BlobWriter: new zip.BlobWriter("text/plain"),
+		Data64URIWriter: new zip.Data64URIWriter("text/plain"),
+		TextWriter: new zip.TextWriter()
+	})) {
+		await writer.init(3);
+		const streamWriter = writer.writable.getWriter();
+		await streamWriter.write(new Uint8Array([1, 2, 3]));
+		await streamWriter.close();
+		await writer.getData();
+		collectInstance(writer, label);
+	}
 }
 
 function classify() {

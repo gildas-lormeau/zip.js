@@ -854,6 +854,10 @@ type URLString = string;
  */
 export class HttpReader extends Reader<URLString> {
   /**
+   * The URL of the data, as passed to the constructor.
+   */
+  url: URLString | URL;
+  /**
    * Creates the {@link HttpReader} instance
    *
    * @param url The URL of the data.
@@ -1041,6 +1045,10 @@ export class Writer<Type> implements Initializable, WritableWriter {
  * Represents a {@link Writer} instance used to retrieve the written data as a `string`.
  */
 export class TextWriter extends Writer<string> {
+  /**
+   * The encoding of the text returned by {@link TextWriter#getData}.
+   */
+  encoding?: string;
   /**
    * Creates the {@link TextWriter} instance
    *
