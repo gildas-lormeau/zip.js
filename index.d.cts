@@ -2951,7 +2951,9 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    *
    * It also selects the MS-DOS platform for {@link ZipWriterConstructorOptions#versionMadeBy} and leaves the Unix
    * attributes out of the entries. Setting any Unix metadata option, e.g.
-   * {@link ZipWriterConstructorOptions#unixMode}, turns it back off.
+   * {@link ZipWriterConstructorOptions#unixMode}, turns it back off, and setting
+   * {@link ZipWriterConstructorOptions#msdosAttributesRaw} or {@link ZipWriterConstructorOptions#msdosAttributes}
+   * turns it on, overriding an explicit `false`.
    *
    * @defaultValue false
    */
@@ -3028,10 +3030,29 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   /**
    * When provided, the low 8-bit MS-DOS attributes to write into external file attributes.
    * Must be an integer between 0 and 255.
+   *
+   * @remarks
+   * Setting this option or {@link ZipWriterConstructorOptions#msdosAttributes} selects the MS-DOS platform for
+   * the entry exactly as {@link ZipWriterConstructorOptions#msDosCompatible} does, and overrides that option
+   * when it is explicitly set to `false`. {@link EntryMetaData#versionMadeBy} then loses its Unix upper byte
+   * and no Unix mode is written, so the `0o100644` of a file entry and the `0o040755` of a folder entry are
+   * lost. What counts is that the option is provided, not its value: `0` and `{}` trigger it too.
+   *
+   * Setting any Unix metadata option, i.e. {@link ZipWriterConstructorOptions#uid},
+   * {@link ZipWriterConstructorOptions#gid}, {@link ZipWriterConstructorOptions#unixMode} or
+   * {@link ZipWriterConstructorOptions#unixExtraFieldType}, takes precedence and keeps the Unix attributes,
+   * with the MS-DOS attributes written into the low byte.
+   * {@link ZipWriterConstructorOptions#externalFileAttributes} is preserved as well, although the entry still
+   * declares the MS-DOS platform. {@link ZipWriterAddDataOptions#executable} does not count as Unix metadata
+   * here and is dropped.
    */
   msdosAttributesRaw?: number;
   /**
    * When provided, MS-DOS attribute flags (boolean object) to write into external file attributes low byte.
+   *
+   * @remarks
+   * See {@link ZipWriterConstructorOptions#msdosAttributesRaw} for the platform this option selects and for
+   * the Unix metadata it leaves out of the entry.
    */
   msdosAttributes?: {
     readOnly?: boolean;

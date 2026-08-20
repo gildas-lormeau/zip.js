@@ -48,7 +48,42 @@ async function test() {
 			}
 			await zipReader.close();
 		}
+		await testPlatformSelection();
 	} finally {
 		await zip.terminateWorkers();
+	}
+}
+
+// Providing either MS-DOS attribute option selects the MS-DOS platform for the entry, which drops the Unix
+// mode and the Unix byte of versionMadeBy, and overrides an explicit msDosCompatible: false. Any Unix
+// metadata option takes precedence and keeps them, with the MS-DOS attributes in the low byte. An explicit
+// externalFileAttributes is preserved as well. Documented on ZipWriterConstructorOptions#msdosAttributesRaw.
+async function testPlatformSelection() {
+	const cases = [
+		{ name: "omitted", options: {}, platform: 3, externalFileAttributes: 0x81a40000, unixMode: 0o100644 },
+		{ name: "empty flags", options: { msdosAttributes: {} }, platform: 0, externalFileAttributes: 0x00000000 },
+		{ name: "raw zero", options: { msdosAttributesRaw: 0 }, platform: 0, externalFileAttributes: 0x00000000 },
+		{ name: "explicit msDosCompatible false", options: { msDosCompatible: false, msdosAttributes: { readOnly: true } }, platform: 0, externalFileAttributes: 0x00000001 },
+		{ name: "unix mode wins", options: { unixMode: 0o600, msdosAttributes: { readOnly: true } }, platform: 3, externalFileAttributes: 0x81800001, unixMode: 0o100600 },
+		{ name: "uid wins", options: { uid: 1000, msdosAttributes: { readOnly: true } }, platform: 3, externalFileAttributes: 0x81a40001, unixMode: 0o100644 },
+		{ name: "external attributes preserved", options: { externalFileAttributes: 0x81a40000, msdosAttributes: { readOnly: true } }, platform: 0, externalFileAttributes: 0x81a40001, unixMode: 0o100644 }
+	];
+	for (const testCase of cases) {
+		const blobWriter = new zip.BlobWriter("application/zip");
+		const zipWriter = new zip.ZipWriter(blobWriter);
+		await zipWriter.add("file.txt", new zip.Uint8ArrayReader(new Uint8Array([0x41])), testCase.options);
+		await zipWriter.close();
+		const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
+		const [entry] = await zipReader.getEntries();
+		await zipReader.close();
+		if (entry.versionMadeBy >> 8 !== testCase.platform) {
+			throw new Error(`${testCase.name} expected platform ${testCase.platform} got ${entry.versionMadeBy >> 8}`);
+		}
+		if (entry.externalFileAttributes !== testCase.externalFileAttributes) {
+			throw new Error(`${testCase.name} expected externalFileAttributes 0x${testCase.externalFileAttributes.toString(16)} got 0x${entry.externalFileAttributes.toString(16)}`);
+		}
+		if (entry.unixMode !== testCase.unixMode) {
+			throw new Error(`${testCase.name} expected unixMode ${testCase.unixMode} got ${entry.unixMode}`);
+		}
 	}
 }

@@ -307,6 +307,11 @@ When provided, MS-DOS attribute flags (boolean object) to write into external fi
 
 > `optional` **system?**: `boolean`
 
+#### Remarks
+
+See [ZipWriterConstructorOptions#msdosAttributesRaw](#msdosattributesraw) for the platform this option selects and for
+the Unix metadata it leaves out of the entry.
+
 ***
 
 ### msdosAttributesRaw?
@@ -315,6 +320,22 @@ When provided, MS-DOS attribute flags (boolean object) to write into external fi
 
 When provided, the low 8-bit MS-DOS attributes to write into external file attributes.
 Must be an integer between 0 and 255.
+
+#### Remarks
+
+Setting this option or [ZipWriterConstructorOptions#msdosAttributes](#msdosattributes) selects the MS-DOS platform for
+the entry exactly as [ZipWriterConstructorOptions#msDosCompatible](#msdoscompatible) does, and overrides that option
+when it is explicitly set to `false`. [EntryMetaData#versionMadeBy](EntryMetaData.md#versionmadeby) then loses its Unix upper byte
+and no Unix mode is written, so the `0o100644` of a file entry and the `0o040755` of a folder entry are
+lost. What counts is that the option is provided, not its value: `0` and `{}` trigger it too.
+
+Setting any Unix metadata option, i.e. [ZipWriterConstructorOptions#uid](#uid),
+[ZipWriterConstructorOptions#gid](#gid), [ZipWriterConstructorOptions#unixMode](#unixmode) or
+[ZipWriterConstructorOptions#unixExtraFieldType](#unixextrafieldtype), takes precedence and keeps the Unix attributes,
+with the MS-DOS attributes written into the low byte.
+[ZipWriterConstructorOptions#externalFileAttributes](#externalfileattributes) is preserved as well, although the entry still
+declares the MS-DOS platform. [ZipWriterAddDataOptions#executable](ZipWriterAddDataOptions.md#executable) does not count as Unix metadata
+here and is dropped.
 
 ***
 
@@ -326,7 +347,9 @@ Must be an integer between 0 and 255.
 
 It also selects the MS-DOS platform for [ZipWriterConstructorOptions#versionMadeBy](#versionmadeby) and leaves the Unix
 attributes out of the entries. Setting any Unix metadata option, e.g.
-[ZipWriterConstructorOptions#unixMode](#unixmode), turns it back off.
+[ZipWriterConstructorOptions#unixMode](#unixmode), turns it back off, and setting
+[ZipWriterConstructorOptions#msdosAttributesRaw](#msdosattributesraw) or [ZipWriterConstructorOptions#msdosAttributes](#msdosattributes)
+turns it on, overriding an explicit `false`.
 
 #### Default Value
 
