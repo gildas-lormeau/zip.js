@@ -285,6 +285,8 @@ These options override the ones passed at the top level. The [ZipReaderOptions#p
 option can be set here or at the top level, unlike [ZipDirectoryEntryExportOptions](ZipDirectoryEntryExportOptions.md) where
 the top-level password encrypts the exported zip file instead.
 
+A value which is neither an object nor unset throws an [ERR\_INVALID\_READER\_OPTIONS](../variables/ERR_INVALID_READER_OPTIONS.md) error.
+
 ***
 
 ### signal?

@@ -3863,6 +3863,8 @@ export interface ZipDirectoryEntryExportOptions
    * The {@link ZipReaderOptions#passThrough} option set here exports the entries imported from a zip
    * file as-is, without decompressing and decrypting them, exactly as importing them with this option
    * does. It is ignored by the entries added to the filesystem, which are compressed as usual.
+   *
+   * A value which is neither an object nor unset throws an {@link ERR_INVALID_READER_OPTIONS} error.
    */
   readerOptions?: ZipReaderConstructorOptions;
 }
@@ -3894,6 +3896,8 @@ export interface ZipDirectoryEntryExportFileSystemHandleOptions
    * These options override the ones passed at the top level. The {@link ZipReaderOptions#password}
    * option can be set here or at the top level, unlike {@link ZipDirectoryEntryExportOptions} where
    * the top-level password encrypts the exported zip file instead.
+   *
+   * A value which is neither an object nor unset throws an {@link ERR_INVALID_READER_OPTIONS} error.
    */
   readerOptions?: ZipReaderConstructorOptions;
 }
@@ -4351,6 +4355,16 @@ export const ERR_INVALID_PASSWORD_TYPE: string;
  * or set the {@link ZipWriterAddDataOptions#uncompressedSize} option of each entry holding compressed data.
  */
 export const ERR_INVALID_PASS_THROUGH: string;
+/**
+ * Invalid readerOptions error (thrown by `{@link ZipDirectoryEntry}#export*()`,
+ * {@link ZipDirectoryEntry#getExportedSize} and {@link ZipDirectoryEntry#exportFileSystemHandle} when the
+ * {@link ZipDirectoryEntryExportOptions#readerOptions} option is neither an object nor unset)
+ *
+ * @remarks A value of another type was silently ignored: a password passed as a string instead of an object failed
+ * with the unrelated {@link ERR_ENCRYPTED}, while the other options were dropped without any error. Note that an
+ * unknown property of a `readerOptions` object is still ignored, as everywhere else in the API.
+ */
+export const ERR_INVALID_READER_OPTIONS: string;
 /**
  * Entry already exists error (thrown by the filesystem API when adding an entry whose filename already exists)
  */

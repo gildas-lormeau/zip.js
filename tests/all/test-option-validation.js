@@ -40,6 +40,10 @@ async function test() {
 	await signalAcceptsAnythingShapedLikeASignal();
 	await readerPasswordRejectsOtherTypes();
 	await readerPasswordKeepsAcceptingEmptyValues();
+	await readerOptionsRejectOtherShapes();
+	await readerOptionsKeepAcceptingObjectsAndFalsyValues();
+	await msdosAttributesRejectOtherShapes();
+	await msdosAttributesKeepAcceptingValidValues();
 	configureRejectsValuesThatUsedToHang();
 	configureKeepsAcceptingValidValues();
 	configureRejectsStreamsOfAnotherType();
@@ -164,6 +168,37 @@ async function unixIdsRejectNonIntegers() {
 	await assertThrows({ gid: 1.5 }, zip.ERR_INVALID_GID, "gid: 1.5");
 	await assertThrows({ unixMode: 0.5 }, zip.ERR_INVALID_UNIX_MODE, "unixMode: 0.5");
 	await readEntries(await buildZip({ uid: 1000, gid: 1000, unixMode: 0o644 }));
+}
+
+// msdosAttributesRaw was the only one of the four attribute guards checking the range without checking the
+// type, although the message it throws and the documentation both promise an integer: NaN, {} and [] compare
+// false against both bounds and used to write 0, while 1.5 wrote 1. msdosAttributes rejected a string but not
+// an array, which walks past typeof and used to reset the whole attribute word, dropping the unix mode and
+// the made-by-unix marker of the entry without any error.
+async function msdosAttributesRejectOtherShapes() {
+	for (const msdosAttributesRaw of [NaN, 1.5, -1, 256, {}, [], [1], true, "attributes"]) {
+		await assertThrows({ msdosAttributesRaw }, zip.ERR_INVALID_MSDOS_ATTRIBUTES, "msdosAttributesRaw: " + describe(msdosAttributesRaw));
+	}
+	for (const msdosAttributes of ["readOnly", 42, true, [], [true]]) {
+		await assertThrows({ msdosAttributes }, zip.ERR_INVALID_MSDOS_DATA, "msdosAttributes: " + describe(msdosAttributes));
+	}
+}
+
+// A numeric string keeps working, like every other numeric option.
+async function msdosAttributesKeepAcceptingValidValues() {
+	const attributeCases = [
+		[{ msdosAttributesRaw: 0 }, 0],
+		[{ msdosAttributesRaw: 255 }, 255],
+		[{ msdosAttributesRaw: "1" }, 1],
+		[{ msdosAttributes: {} }, 0],
+		[{ msdosAttributes: { readOnly: true, archive: true } }, 0x21]
+	];
+	for (const [options, expectedAttributes] of attributeCases) {
+		const [entry] = await readEntries(await buildZip(options));
+		if (entry.msdosAttributesRaw != expectedAttributes) {
+			throw new Error("expected msdosAttributesRaw " + expectedAttributes + " for " + JSON.stringify(options) + " got " + entry.msdosAttributesRaw);
+		}
+	}
 }
 
 // The entry comment option is a string while the global comment of close() is raw bytes, so a string
@@ -422,6 +457,37 @@ async function readerPasswordKeepsAcceptingEmptyValues() {
 	}
 }
 
+// readerOptions is the only object-shaped option of the filesystem API which was not checked, msdosAttributes
+// already rejected the same mistake. A value of another type was spread blind into the option bag, where a
+// string contributes numeric keys and nothing else: passing the password there instead of in an object failed
+// with the unrelated ERR_ENCRYPTED, passing passThrough there wrote decompressed bytes without any error, and
+// getExportedSize answered ERR_UNDETERMINED_SIZE. The three entry points must agree, and reject before doing
+// any work: the directory handle below is an empty object which no export could write to. An array is rejected
+// too, since it is ignored in exactly the same way and typeof alone would let it through.
+async function readerOptionsRejectOtherShapes() {
+	for (const readerOptions of ["secret", 42, true, ["secret"], [], () => "secret"]) {
+		const description = "readerOptions: " + describe(readerOptions);
+		await assertExportThrows({ readerOptions }, zip.ERR_INVALID_READER_OPTIONS, "export " + description);
+		await assertExportedSizeThrows({ readerOptions }, zip.ERR_INVALID_READER_OPTIONS, "getExportedSize " + description);
+		await assertExportHandleThrows({ readerOptions }, zip.ERR_INVALID_READER_OPTIONS, "exportFileSystemHandle " + description);
+	}
+}
+
+// A falsy value keeps meaning "not set", like everywhere else in the API.
+async function readerOptionsKeepAcceptingObjectsAndFalsyValues() {
+	for (const readerOptions of [undefined, null, false, 0, "", {}, { passThrough: false }]) {
+		const description = "readerOptions: " + describe(readerOptions);
+		const { fileSystem } = buildFileSystem();
+		const [entry] = await readEntries(await fileSystem.exportUint8Array({ readerOptions }));
+		if (entry.filename != "test.txt") {
+			throw new Error("expected the entry to be exported with " + description + " got \"" + entry.filename + "\"");
+		}
+		if (typeof await new zip.ZipFS().getExportedSize({ readerOptions }) != "number") {
+			throw new Error("expected a size with " + description);
+		}
+	}
+}
+
 function buildFileSystem() {
 	const fileSystem = new zip.ZipFS();
 	return { fileSystem, zipEntry: fileSystem.addText("test.txt", CONTENT) };
@@ -542,7 +608,7 @@ function assertConfigureThrows(configuration, expectedMessage, description) {
 }
 
 function describe(value) {
-	return typeof value == "string" ? JSON.stringify(value) : String(value);
+	return typeof value == "string" || Array.isArray(value) ? JSON.stringify(value) : String(value);
 }
 
 async function assertThrows(options, expectedMessage, description) {
@@ -580,6 +646,28 @@ async function assertCloseThrows(closeOptions, expectedMessage, description) {
 	let thrownError;
 	try {
 		await closeZip(undefined, closeOptions);
+	} catch (error) {
+		thrownError = error;
+	}
+	assertMessage(thrownError, expectedMessage, description);
+}
+
+async function assertExportThrows(options, expectedMessage, description) {
+	let thrownError;
+	try {
+		const { fileSystem } = buildFileSystem();
+		await fileSystem.exportUint8Array(options);
+	} catch (error) {
+		thrownError = error;
+	}
+	assertMessage(thrownError, expectedMessage, description);
+}
+
+async function assertExportHandleThrows(options, expectedMessage, description) {
+	let thrownError;
+	try {
+		const { fileSystem } = buildFileSystem();
+		await fileSystem.exportFileSystemHandle({}, options);
 	} catch (error) {
 		thrownError = error;
 	}

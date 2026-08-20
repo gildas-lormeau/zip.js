@@ -6446,7 +6446,7 @@
 		if (unixExtraFieldType === UNDEFINED_VALUE && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
 			unixExtraFieldType = INFOZIP_EXTRA_FIELD_TYPE;
 		}
-		let msdosAttributesRaw = getOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW);
+		let msdosAttributesRaw = getNumberOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW);
 		let msdosAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES);
 		const hasUnixMetadata = uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE || unixMode !== UNDEFINED_VALUE || unixExtraFieldType;
 		const hasMsDosProvided = msdosAttributesRaw !== UNDEFINED_VALUE || msdosAttributes !== UNDEFINED_VALUE;
@@ -6457,10 +6457,10 @@
 			msDosCompatible = true;
 			versionMadeBy = (versionMadeBy & MAX_8_BITS);
 		}
-		if (msdosAttributesRaw !== UNDEFINED_VALUE && (msdosAttributesRaw < 0 || msdosAttributesRaw > MAX_8_BITS)) {
+		if (msdosAttributesRaw !== UNDEFINED_VALUE && (!Number.isInteger(msdosAttributesRaw) || msdosAttributesRaw < 0 || msdosAttributesRaw > MAX_8_BITS)) {
 			throw new Error(ERR_INVALID_MSDOS_ATTRIBUTES);
 		}
-		if (msdosAttributes && typeof msdosAttributes !== OBJECT_TYPE) {
+		if (msdosAttributes && (typeof msdosAttributes !== OBJECT_TYPE || Array.isArray(msdosAttributes))) {
 			throw new Error(ERR_INVALID_MSDOS_DATA);
 		}
 		if (versionMadeBy > MAX_16_BITS) {

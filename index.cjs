@@ -6460,7 +6460,7 @@ function resolveAttributes(zipWriter, name, options) {
 	if (unixExtraFieldType === UNDEFINED_VALUE && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
 		unixExtraFieldType = INFOZIP_EXTRA_FIELD_TYPE$1;
 	}
-	let msdosAttributesRaw = getOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW);
+	let msdosAttributesRaw = getNumberOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW);
 	let msdosAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES);
 	const hasUnixMetadata = uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE || unixMode !== UNDEFINED_VALUE || unixExtraFieldType;
 	const hasMsDosProvided = msdosAttributesRaw !== UNDEFINED_VALUE || msdosAttributes !== UNDEFINED_VALUE;
@@ -6471,10 +6471,10 @@ function resolveAttributes(zipWriter, name, options) {
 		msDosCompatible = true;
 		versionMadeBy = (versionMadeBy & MAX_8_BITS);
 	}
-	if (msdosAttributesRaw !== UNDEFINED_VALUE && (msdosAttributesRaw < 0 || msdosAttributesRaw > MAX_8_BITS)) {
+	if (msdosAttributesRaw !== UNDEFINED_VALUE && (!Number.isInteger(msdosAttributesRaw) || msdosAttributesRaw < 0 || msdosAttributesRaw > MAX_8_BITS)) {
 		throw new Error(ERR_INVALID_MSDOS_ATTRIBUTES);
 	}
-	if (msdosAttributes && typeof msdosAttributes !== OBJECT_TYPE) {
+	if (msdosAttributes && (typeof msdosAttributes !== OBJECT_TYPE || Array.isArray(msdosAttributes))) {
 		throw new Error(ERR_INVALID_MSDOS_DATA);
 	}
 	if (versionMadeBy > MAX_16_BITS) {
@@ -9048,6 +9048,7 @@ U(setDefaultConfiguration);
 const ERR_ENTRY_EXISTS = "Entry filename already exists";
 const ERR_READABLE_CONSUMED = "Readable stream already consumed";
 const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
+const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
 const ERR_ABORT_EXPORT = "zipjs-abort-export";
 const ERR_ABORTED = "The operation was aborted";
 const ABORT_ERROR_NAME = "AbortError";
@@ -9490,7 +9491,7 @@ class ZipDirectoryEntry extends ZipEntry {
 		if (options.bufferedWrite === UNDEFINED_VALUE) {
 			options.bufferedWrite = true;
 		}
-		const [readers] = await Promise.all([initReaders(zipEntry, options.readerOptions), initStream(writer)]);
+		const [readers] = await Promise.all([initReaders(zipEntry, checkReaderOptions(options.readerOptions)), initStream(writer)]);
 		const zipWriter = new ZipWriter(writer, options);
 		await exportZip(zipWriter, zipEntry, getTotalSize([zipEntry], getUncompressedSize), options, readers);
 		await zipWriter.close(options.globalComment);
@@ -9500,6 +9501,7 @@ class ZipDirectoryEntry extends ZipEntry {
 	getExportedSize(options = {}) {
 		const zipEntry = this;
 		options = Object.assign({}, options);
+		checkReaderOptions(options.readerOptions);
 		if (options.bufferedWrite === UNDEFINED_VALUE) {
 			options.bufferedWrite = true;
 		}
@@ -9982,6 +9984,13 @@ function getDeterminedSize(child, passThrough) {
 	return child.undeterminedSize ? UNDEFINED_VALUE : getExtractedSize(child, passThrough);
 }
 
+function checkReaderOptions(readerOptions) {
+	if (readerOptions && (typeof readerOptions != OBJECT_TYPE || Array.isArray(readerOptions))) {
+		throw new Error(ERR_INVALID_READER_OPTIONS);
+	}
+	return readerOptions;
+}
+
 function isPassThrough(child, options) {
 	const { readerOptions } = options;
 	return Boolean(!child.directory && (child.passThrough || (readerOptions && readerOptions.passThrough)));
@@ -10107,10 +10116,11 @@ function addFileSystemHandle(zipEntry, handle, options) {
 
 async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 	const { onstart, onprogress, onend } = options;
+	const readerOptions = checkReaderOptions(options.readerOptions);
 	const abortController = new AbortController();
 	const { signal } = abortController;
 	const releaseSignal = forwardAbort(options.signal, abortController);
-	const getDataOptions = Object.assign({}, options, options.readerOptions, {
+	const getDataOptions = Object.assign({}, options, readerOptions, {
 		signal,
 		onstart: UNDEFINED_VALUE,
 		onprogress: UNDEFINED_VALUE,
@@ -10444,6 +10454,7 @@ exports.ERR_INVALID_MSDOS_DATA = ERR_INVALID_MSDOS_DATA;
 exports.ERR_INVALID_PASSWORD = ERR_INVALID_PASSWORD;
 exports.ERR_INVALID_PASSWORD_TYPE = ERR_INVALID_PASSWORD_TYPE;
 exports.ERR_INVALID_PASS_THROUGH = ERR_INVALID_PASS_THROUGH;
+exports.ERR_INVALID_READER_OPTIONS = ERR_INVALID_READER_OPTIONS;
 exports.ERR_INVALID_SIGNAL = ERR_INVALID_SIGNAL;
 exports.ERR_INVALID_SIGNATURE = ERR_INVALID_SIGNATURE;
 exports.ERR_INVALID_SIGNATURE_DATA = ERR_INVALID_SIGNATURE_DATA;

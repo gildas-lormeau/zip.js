@@ -594,6 +594,8 @@ The [ZipReaderOptions#passThrough](ZipReaderOptions.md#passthrough) option set h
 file as-is, without decompressing and decrypting them, exactly as importing them with this option
 does. It is ignored by the entries added to the filesystem, which are compressed as usual.
 
+A value which is neither an object nor unset throws an [ERR\_INVALID\_READER\_OPTIONS](../variables/ERR_INVALID_READER_OPTIONS.md) error.
+
 ***
 
 ### relativePath?
