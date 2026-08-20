@@ -30,6 +30,11 @@ async function test() {
 		if (error.message != zip.ERR_OVERLAPPING_ENTRY) {
 			throw error;
 		}
+		// the property naming the other entry of the pair is the only way to identify it, and it was
+		// mangled out of the minified builds until it was declared in index.d.ts
+		if (error.overlappingEntry !== entries[0]) {
+			throw new Error("expected the error to carry the overlapping entry, got " + error.overlappingEntry, { cause: error });
+		}
 	} finally {
 		await zipReader.close();
 		await zip.terminateWorkers();

@@ -6,7 +6,7 @@
 
 # Interface: EntryError
 
-Represents an error raised while processing an entry, decorated with entry context.
+Represents an error raised while processing an archive or one of its entries, decorated with context.
 
 ## Extends
 
@@ -80,6 +80,25 @@ export completed from one it created but never filled.
 #### Inherited from
 
 `Error.name`
+
+***
+
+### overlappingEntry?
+
+> `optional` **overlappingEntry?**: [`Entry`](../type-aliases/Entry.md)
+
+The entry whose data overlaps the data of the entry being read, set on the
+[ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) error raised by GetEntriesOptions#checkOverlappingEntry.
+It is the only way to identify the other entry of the pair.
+
+***
+
+### reason?
+
+> `optional` **reason?**: `string`
+
+The ambiguity that was detected, set on the [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error raised by
+[GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strictness). See [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) for the values it takes.
 
 ***
 

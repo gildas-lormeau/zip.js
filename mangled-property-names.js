@@ -87,7 +87,6 @@ const MANGLED_PROPERTY_NAMES = [
 	"metadataSize",
 	"onTaskFinished",
 	"out",
-	"overlappingEntry",
 	"partial",
 	"pbkdf2",
 	"pendingAddFileCalls",

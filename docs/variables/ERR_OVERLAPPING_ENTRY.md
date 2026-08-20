@@ -9,3 +9,9 @@
 > `const` **ERR\_OVERLAPPING\_ENTRY**: `string`
 
 Overlapping entry error
+
+## Remarks
+
+Thrown by [FileEntry#getData](../interfaces/FileEntry.md#getdata) when GetEntriesOptions#checkOverlappingEntry is set and the
+data of the entry overlaps the data of an entry already read. The thrown error carries the other entry in its
+`overlappingEntry` property.

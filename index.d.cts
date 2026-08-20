@@ -1889,13 +1889,24 @@ export interface LocalDirectory {
   extraFieldUSDZ?: EntryExtraField;
 }
 /**
- * Represents an error raised while processing an entry, decorated with entry context.
+ * Represents an error raised while processing an archive or one of its entries, decorated with context.
  */
 export interface EntryError extends Error {
   /**
    * `true` if the zip file is corrupted because the entry data could not be written entirely.
    */
   corruptedEntry?: boolean;
+  /**
+   * The entry whose data overlaps the data of the entry being read, set on the
+   * {@link ERR_OVERLAPPING_ENTRY} error raised by {@link GetEntriesOptions#checkOverlappingEntry}.
+   * It is the only way to identify the other entry of the pair.
+   */
+  overlappingEntry?: Entry;
+  /**
+   * The ambiguity that was detected, set on the {@link ERR_AMBIGUOUS_ARCHIVE} error raised by
+   * {@link GetEntriesOptions#strictness}. See {@link ERR_AMBIGUOUS_ARCHIVE} for the values it takes.
+   */
+  reason?: string;
   /**
    * The id of the related {@link ZipEntry} (filesystem API).
    */
@@ -4019,6 +4030,10 @@ export const ERR_UNSUPPORTED_FORMAT: string;
 export const ERR_SPLIT_ZIP_FILE: string;
 /**
  * Overlapping entry error
+ *
+ * @remarks Thrown by {@link FileEntry#getData} when {@link GetEntriesOptions#checkOverlappingEntry} is set and the
+ * data of the entry overlaps the data of an entry already read. The thrown error carries the other entry in its
+ * `overlappingEntry` property.
  */
 export const ERR_OVERLAPPING_ENTRY: string;
 /**
@@ -4030,7 +4045,14 @@ export const ERR_ENTRY_DATA_OUT_OF_BOUNDS: string;
 /**
  * Ambiguous archive error
  *
- * @remarks The thrown error carries a `reason` property describing the ambiguity: `"appended data"`, `"prepended data"`, `"trailing central directory data"`, `"mismatched zip64 end of central directory record"`, or `"duplicate filename"`.
+ * @remarks The thrown error carries a `reason` property describing the ambiguity: `"appended data"`,
+ * `"prepended data"`, `"trailing central directory data"`, `"multiple end of central directory records"`,
+ * `"mismatched zip64 end of central directory record"`, `"duplicate filename"`, or, when
+ * {@link GetEntriesOptions#checkLocalDirectory} compares the local header of an entry with its central
+ * directory record, `"mismatched local file header (filename)"`,
+ * `"mismatched local file header (general purpose bit flag)"`,
+ * `"mismatched local file header (compression method)"` or
+ * `"mismatched local file header (crc32 or sizes)"`.
  */
 export const ERR_AMBIGUOUS_ARCHIVE: string;
 /**
