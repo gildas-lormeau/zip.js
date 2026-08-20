@@ -110,7 +110,10 @@
 				<code>createWorker</code>, also lifts the requirements of the "core" builds.</li>
 			<li>When <a href="https://github.com/MattiasBuelens/web-streams-polyfill">web-streams-polyfill</a> is
 				loaded on browsers without <code>TransformStream</code>, the WebAssembly builds work down to
-				Firefox 79, and the "native" JavaScript builds down to Firefox 72.</li>
+				Firefox 79, and the "native" JavaScript builds down to Firefox 72. It only patches the scope
+				where it is loaded, so running the codecs in the web workers requires a worker script importing
+				the polyfill before the worker script of zip.js, cf. <code>createWorker</code>. Otherwise the
+				worker script throws when it is evaluated and the codecs run in the main scope.</li>
 			<li>Chrome 76 to 79 ignore the <code>signal</code> option of <code>pipeTo()</code>: aborting operations
 				in progress has no effect on these versions, the data read or written remains correct.</li>
 			<li>Deflate64 decompression and custom compression <code>level</code> values require an embedded deflate
