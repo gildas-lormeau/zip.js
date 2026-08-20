@@ -8908,7 +8908,7 @@ class ZipEntry {
 			fs,
 			name,
 			data: params.data,
-			options: params.options,
+			options: params.options && Object.assign({}, params.options),
 			id: fs.entryIdCounter++,
 			parent,
 			children: [],

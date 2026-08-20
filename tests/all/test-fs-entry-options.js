@@ -109,6 +109,18 @@ async function testUnsharedOptions() {
 	if (clonedEntry.options.comment != EXPORT_COMMENT) {
 		throw new Error("setOptions modified the options of a clone");
 	}
+	// every entry owns its options, so reaching into them directly reaches nothing else
+	const directoryEntry = zipFs.addDirectory("directory", sharedOptions);
+	if (firstEntry.options == sharedOptions || directoryEntry.options == sharedOptions || clonedEntry.options == firstEntry.options) {
+		throw new Error("an entry kept a reference to the options object it was given");
+	}
+	directoryEntry.options.comment = EXPORT_COMMENT;
+	if (sharedOptions.comment != ENTRY_COMMENT || secondEntry.options.comment != ENTRY_COMMENT) {
+		throw new Error("writing into the options of an entry reached the caller or another entry");
+	}
+	if (directoryEntry.options.comment != EXPORT_COMMENT) {
+		throw new Error("the options of an entry are not writable");
+	}
 }
 
 async function buildSourceArchive() {
