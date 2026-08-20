@@ -6038,7 +6038,7 @@ class ZipWriter {
 			addSplitZipSignature,
 			options,
 			config: getConfiguration(),
-			files: new Map(),
+			fileEntries: new Map(),
 			filenames: new Set(),
 			offset: options[OPTION_OFFSET] === UNDEFINED_VALUE ? writer.size || writer.writable.size || 0 : options[OPTION_OFFSET],
 			initialOffset: options[OPTION_OFFSET] === UNDEFINED_VALUE ? 0 : options[OPTION_OFFSET] - (writer.size || writer.writable.size || 0),
@@ -6067,7 +6067,7 @@ class ZipWriter {
 		await reader.readable.pipeTo(this.writer.writable, { preventClose: true, preventAbort: true });
 		this.writer.size = this.offset = reader.size;
 		this.filenames = new Set(entries.map(entry => entry.filename));
-		this.files = new Map(entries.map(entry => {
+		this.fileEntries = new Map(entries.map(entry => {
 			const {
 				version,
 				rawLastModDate,
@@ -6187,16 +6187,16 @@ class ZipWriter {
 	}
 
 	remove(entry) {
-		const { filenames, files } = this;
+		const { filenames, fileEntries } = this;
 		// deno-lint-ignore valid-typeof
 		if (typeof entry == STRING_TYPE) {
-			entry = files.get(entry);
+			entry = fileEntries.get(entry);
 		}
 		if (entry && entry.filename !== UNDEFINED_VALUE) {
 			const { filename } = entry;
-			if (filenames.has(filename) && files.has(filename)) {
+			if (filenames.has(filename) && fileEntries.has(filename)) {
 				filenames.delete(filename);
-				files.delete(filename);
+				fileEntries.delete(filename);
 				return true;
 			}
 		}
@@ -6293,7 +6293,7 @@ async function addFile(zipWriter, name, reader, options) {
 	const metadataInfo = resolveMetadata(zipWriter, name, options);
 	const { comment } = metadataInfo;
 	const extraField = options[PROPERTY_NAME_EXTRA_FIELD];
-	zipWriter.files.set(name, UNDEFINED_VALUE);
+	zipWriter.fileEntries.set(name, UNDEFINED_VALUE);
 	let fileEntry;
 	try {
 		const { resolvedOptions } = metadataInfo;
@@ -6316,7 +6316,7 @@ async function addFile(zipWriter, name, reader, options) {
 		const metadataSize = getLength(headerInfo.localHeaderArray, dataDescriptorInfo.dataDescriptorArray);
 		fileEntry = await getFileEntry(zipWriter, name, reader, { headerInfo, dataDescriptorInfo, metadataSize }, options);
 	} catch (error) {
-		zipWriter.files.delete(name);
+		zipWriter.fileEntries.delete(name);
 		throw error;
 	}
 	Object.assign(fileEntry, {
@@ -6768,7 +6768,7 @@ async function getEntriesSize(writerOptions, entries, writeOrderGuaranteed, comm
 
 async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 	const {
-		files,
+		fileEntries,
 		writer
 	} = zipWriter;
 	const {
@@ -6790,7 +6790,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 	let writerSizeBeforeEntry;
 	let flushedBufferedSize = 0;
 	let fileWriter;
-	files.set(name, fileEntry);
+	fileEntries.set(name, fileEntry);
 	zipWriter.lastFileEntry = fileEntry;
 	try {
 		let lockPreviousFileEntry;
@@ -6842,7 +6842,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		if (!bufferedWrite) {
 			writingEntryData = false;
 		}
-		files.set(name, fileEntry);
+		fileEntries.set(name, fileEntry);
 		fileEntry.filename = name;
 		if (bufferedWrite) {
 			await Promise.all([fileWriter.writable.getWriter().close(), lockPreviousFileEntry]);
@@ -6883,7 +6883,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 				zipWriter.offset += flushedBufferedSize;
 			}
 		}
-		files.delete(name);
+		fileEntries.delete(name);
 		throw error;
 	} finally {
 		if (bufferedWrite) {
@@ -7491,7 +7491,7 @@ function updateLocalHeader({
 
 
 async function closeFile(zipWriter, comment, options) {
-	const directoryDataLength = createDirectoryRecords(zipWriter.files);
+	const directoryDataLength = createDirectoryRecords(zipWriter.fileEntries);
 	const { directoryStart, directoryArray } = await writeDirectoryRecords(zipWriter, directoryDataLength, options);
 	const signatureLength = await writeDigitalSignatureRecord(zipWriter, directoryArray, options);
 	await writeEndOfDirectoryRecord(zipWriter, comment, options, { directoryStart, directoryDataLength, signatureLength });
@@ -7571,14 +7571,14 @@ function createDirectoryRecords(files) {
 }
 
 async function writeDirectoryRecords(zipWriter, directoryDataLength, options) {
-	const { files, writer } = zipWriter;
+	const { fileEntries, writer } = zipWriter;
 	const directoryArray = new Uint8Array(directoryDataLength);
 	await initStream(writer);
 	let offset = 0;
 	let directoryDiskOffset = 0;
 	let directoryStartDiskNumber = getDiskNumber(writer);
 	let directoryStartDiskOffset = getDiskOffset(writer);
-	for (const [indexFileEntry, fileEntry] of Array.from(files.values()).entries()) {
+	for (const [indexFileEntry, fileEntry] of Array.from(fileEntries.values()).entries()) {
 		const {
 			offset: fileEntryOffset,
 			rawFilename,
@@ -7644,7 +7644,7 @@ async function writeDirectoryRecords(zipWriter, directoryDataLength, options) {
 		offset += directoryRecordLength;
 		if (options.onprogress) {
 			try {
-				await options.onprogress(indexFileEntry + 1, files.size, new Entry(fileEntry));
+				await options.onprogress(indexFileEntry + 1, fileEntries.size, new Entry(fileEntry));
 			} catch {
 				// ignored
 			}
@@ -7679,7 +7679,7 @@ async function writeEndOfDirectoryRecord(zipWriter, comment, options, cdInfo) {
 	const { writer } = zipWriter;
 	const { directoryStart, signatureLength } = cdInfo;
 	let { directoryDataLength } = cdInfo;
-	let filesLength = zipWriter.files.size;
+	let fileEntriesLength = zipWriter.fileEntries.size;
 	let diskNumber = directoryStart.diskNumber;
 	let directoryOffset = getSegmentOffset(zipWriter, directoryStart);
 	let lastDiskNumber = getDiskNumber(writer);
@@ -7687,7 +7687,7 @@ async function writeEndOfDirectoryRecord(zipWriter, comment, options, cdInfo) {
 		lastDiskNumber++;
 	}
 	let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
-	if (directoryOffset >= MAX_32_BITS || directoryDataLength >= MAX_32_BITS || filesLength >= MAX_16_BITS || lastDiskNumber >= MAX_16_BITS) {
+	if (directoryOffset >= MAX_32_BITS || directoryDataLength >= MAX_32_BITS || fileEntriesLength >= MAX_16_BITS || lastDiskNumber >= MAX_16_BITS) {
 		if (zip64 === false) {
 			throw new Error(ERR_UNSUPPORTED_FORMAT);
 		} else {
@@ -7710,8 +7710,8 @@ async function writeEndOfDirectoryRecord(zipWriter, comment, options, cdInfo) {
 		endOfdirectoryRecord.uint16(45);
 		endOfdirectoryRecord.uint32(lastDiskNumber);
 		endOfdirectoryRecord.uint32(diskNumber);
-		endOfdirectoryRecord.uint64(filesLength);
-		endOfdirectoryRecord.uint64(filesLength);
+		endOfdirectoryRecord.uint64(fileEntriesLength);
+		endOfdirectoryRecord.uint64(fileEntriesLength);
 		endOfdirectoryRecord.uint64(directoryDataLength);
 		endOfdirectoryRecord.uint64(directoryOffset);
 		endOfdirectoryRecord.uint32(ZIP64_END_OF_CENTRAL_DIR_LOCATOR_SIGNATURE);
@@ -7723,15 +7723,15 @@ async function writeEndOfDirectoryRecord(zipWriter, comment, options, cdInfo) {
 			lastDiskNumber = MAX_16_BITS;
 			diskNumber = MAX_16_BITS;
 		}
-		filesLength = MAX_16_BITS;
+		fileEntriesLength = MAX_16_BITS;
 		directoryOffset = MAX_32_BITS;
 		directoryDataLength = MAX_32_BITS;
 	}
 	endOfdirectoryRecord.uint32(END_OF_CENTRAL_DIR_SIGNATURE);
 	endOfdirectoryRecord.uint16(lastDiskNumber);
 	endOfdirectoryRecord.uint16(diskNumber);
-	endOfdirectoryRecord.uint16(filesLength);
-	endOfdirectoryRecord.uint16(filesLength);
+	endOfdirectoryRecord.uint16(fileEntriesLength);
+	endOfdirectoryRecord.uint16(fileEntriesLength);
 	endOfdirectoryRecord.uint32(directoryDataLength);
 	endOfdirectoryRecord.uint32(directoryOffset);
 	endOfdirectoryRecord.uint16(commentLength);

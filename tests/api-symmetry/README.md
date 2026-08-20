@@ -95,6 +95,35 @@ It also prints the declared members no specimen ever produced. That list is info
 failure: it is where a member declared but unreachable would show up, and it grows shorter as the
 specimens get richer.
 
+## Mangling audit
+
+`npm run test-api-mangling` runs [mangling.js](mangling.js), which answers a third question: whether
+the minified builds keep each member of the public API on purpose.
+
+terser mangles every property name except those on the reserved list built by
+[reserved-property-names.js](../../reserved-property-names.js), whose first and largest source is
+`index.d.ts`. A member of a public class therefore has exactly two correct states:
+
+- declared in `index.d.ts`, so the minified builds keep it deliberately,
+- absent from `index.d.ts` and present in [mangled-property-names.js](../../mangled-property-names.js),
+  so the minified builds rename it deliberately.
+
+A member in neither list is the failure this audit exists for. It is undeclared, so nothing in the
+build intends to keep it, yet it survives anyway because its name collides with one terser protects on
+its own, i.e. a DOM property or a member of `lib.dom`/`lib.webworker`. It works until terser updates
+that list, then it disappears from every minified build with no test failing in between. `moveTo` was
+in that state, and `ZipWriter#files` was too: an internal map exposed under a readable name only
+because `files` is a DOM property, while its sibling `filenames` was mangled like the internal field
+it is. It is now `fileEntries`, which nothing protects.
+
+The audit reads the source build, where nothing is mangled, because that is the only build in which
+an internal member is still visible under its real name. A member that must stay undeclared and
+unmangled goes in [mangling-decisions.js](mangling-decisions.js) with its reason, and an entry that
+stops applying fails too.
+
+The reverse failure, a member declared in `index.d.ts` and mangled anyway, cannot happen while the
+reserved list is built from the declarations, so it is asserted rather than reported.
+
 ## What the audits do not see
 
 The symmetry audit walks the extra field types zip.js already declares, so it cannot report a type
@@ -103,3 +132,7 @@ security descriptors and 0x0017 strong encryption headers, are visible to the co
 
 The shape audit compares each object against its declaration, never two objects against each other,
 so it does not see the reader and the writer disagreeing about a value they both define.
+
+The mangling audit only reaches members that exist on the objects it builds, so a member reachable
+only under a configuration it does not exercise is invisible to it, exactly as it is to the shape
+audit. It also says nothing about whether a declared member is one the API should have.

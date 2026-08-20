@@ -55,6 +55,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"eocdCache",
 	"etag",
 	"extraFieldExtendedTimestampFlag",
+	"fileEntries",
 	"fileEntry",
 	"filenames",
 	"finalize",
