@@ -58,6 +58,8 @@ async function test() {
 // mode and the Unix byte of versionMadeBy, and overrides an explicit msDosCompatible: false. Any Unix
 // metadata option takes precedence and keeps them, with the MS-DOS attributes in the low byte. An explicit
 // externalFileAttributes is preserved as well. Documented on ZipWriterConstructorOptions#msdosAttributesRaw.
+// executable counts as Unix metadata like unixMode does, since it means a mode of 0o755: it used to be the
+// only one taking the opposite branch, so the executable bit was dropped without a word.
 async function testPlatformSelection() {
 	const cases = [
 		{ name: "omitted", options: {}, platform: 3, externalFileAttributes: 0x81a40000, unixMode: 0o100644 },
@@ -66,7 +68,12 @@ async function testPlatformSelection() {
 		{ name: "explicit msDosCompatible false", options: { msDosCompatible: false, msdosAttributes: { readOnly: true } }, platform: 0, externalFileAttributes: 0x00000001 },
 		{ name: "unix mode wins", options: { unixMode: 0o600, msdosAttributes: { readOnly: true } }, platform: 3, externalFileAttributes: 0x81800001, unixMode: 0o100600 },
 		{ name: "uid wins", options: { uid: 1000, msdosAttributes: { readOnly: true } }, platform: 3, externalFileAttributes: 0x81a40001, unixMode: 0o100644 },
-		{ name: "external attributes preserved", options: { externalFileAttributes: 0x81a40000, msdosAttributes: { readOnly: true } }, platform: 0, externalFileAttributes: 0x81a40001, unixMode: 0o100644 }
+		{ name: "external attributes preserved", options: { externalFileAttributes: 0x81a40000, msdosAttributes: { readOnly: true } }, platform: 0, externalFileAttributes: 0x81a40001, unixMode: 0o100644 },
+		{ name: "executable", options: { executable: true }, platform: 3, externalFileAttributes: 0x81ed0000, unixMode: 0o100755 },
+		{ name: "executable wins over flags", options: { executable: true, msdosAttributes: { readOnly: true } }, platform: 3, externalFileAttributes: 0x81ed0001, unixMode: 0o100755 },
+		{ name: "executable wins over raw", options: { executable: true, msdosAttributesRaw: 1 }, platform: 3, externalFileAttributes: 0x81ed0001, unixMode: 0o100755 },
+		{ name: "executable wins over msDosCompatible", options: { executable: true, msDosCompatible: true }, platform: 3, externalFileAttributes: 0x81ed0000, unixMode: 0o100755 },
+		{ name: "executable false changes nothing", options: { executable: false, msdosAttributes: { readOnly: true } }, platform: 0, externalFileAttributes: 0x00000001 }
 	];
 	for (const testCase of cases) {
 		const blobWriter = new zip.BlobWriter("application/zip");

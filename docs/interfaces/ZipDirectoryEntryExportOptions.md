@@ -461,12 +461,11 @@ and no Unix mode is written, so the `0o100644` of a file entry and the `0o040755
 lost. What counts is that the option is provided, not its value: `0` and `{}` trigger it too.
 
 Setting any Unix metadata option, i.e. [ZipWriterConstructorOptions#uid](ZipWriterConstructorOptions.md#uid),
-[ZipWriterConstructorOptions#gid](ZipWriterConstructorOptions.md#gid), [ZipWriterConstructorOptions#unixMode](ZipWriterConstructorOptions.md#unixmode) or
-[ZipWriterConstructorOptions#unixExtraFieldType](ZipWriterConstructorOptions.md#unixextrafieldtype), takes precedence and keeps the Unix attributes,
-with the MS-DOS attributes written into the low byte.
+[ZipWriterConstructorOptions#gid](ZipWriterConstructorOptions.md#gid), [ZipWriterConstructorOptions#unixMode](ZipWriterConstructorOptions.md#unixmode),
+[ZipWriterConstructorOptions#unixExtraFieldType](ZipWriterConstructorOptions.md#unixextrafieldtype) or [ZipWriterAddDataOptions#executable](ZipWriterAddDataOptions.md#executable),
+takes precedence and keeps the Unix attributes, with the MS-DOS attributes written into the low byte.
 [ZipWriterConstructorOptions#externalFileAttributes](ZipWriterConstructorOptions.md#externalfileattributes) is preserved as well, although the entry still
-declares the MS-DOS platform. [ZipWriterAddDataOptions#executable](ZipWriterAddDataOptions.md#executable) does not count as Unix metadata
-here and is dropped.
+declares the MS-DOS platform.
 
 #### Inherited from
 
@@ -482,7 +481,7 @@ here and is dropped.
 
 It also selects the MS-DOS platform for [ZipWriterConstructorOptions#versionMadeBy](ZipWriterConstructorOptions.md#versionmadeby) and leaves the Unix
 attributes out of the entries. Setting any Unix metadata option, e.g.
-[ZipWriterConstructorOptions#unixMode](ZipWriterConstructorOptions.md#unixmode), turns it back off, and setting
+[ZipWriterConstructorOptions#unixMode](ZipWriterConstructorOptions.md#unixmode) or [ZipWriterAddDataOptions#executable](ZipWriterAddDataOptions.md#executable), turns it back off, and setting
 [ZipWriterConstructorOptions#msdosAttributesRaw](ZipWriterConstructorOptions.md#msdosattributesraw) or [ZipWriterConstructorOptions#msdosAttributes](ZipWriterConstructorOptions.md#msdosattributes)
 turns it on, overriding an explicit `false`.
 

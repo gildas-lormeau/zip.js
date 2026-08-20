@@ -330,12 +330,11 @@ and no Unix mode is written, so the `0o100644` of a file entry and the `0o040755
 lost. What counts is that the option is provided, not its value: `0` and `{}` trigger it too.
 
 Setting any Unix metadata option, i.e. [ZipWriterConstructorOptions#uid](#uid),
-[ZipWriterConstructorOptions#gid](#gid), [ZipWriterConstructorOptions#unixMode](#unixmode) or
-[ZipWriterConstructorOptions#unixExtraFieldType](#unixextrafieldtype), takes precedence and keeps the Unix attributes,
-with the MS-DOS attributes written into the low byte.
+[ZipWriterConstructorOptions#gid](#gid), [ZipWriterConstructorOptions#unixMode](#unixmode),
+[ZipWriterConstructorOptions#unixExtraFieldType](#unixextrafieldtype) or [ZipWriterAddDataOptions#executable](ZipWriterAddDataOptions.md#executable),
+takes precedence and keeps the Unix attributes, with the MS-DOS attributes written into the low byte.
 [ZipWriterConstructorOptions#externalFileAttributes](#externalfileattributes) is preserved as well, although the entry still
-declares the MS-DOS platform. [ZipWriterAddDataOptions#executable](ZipWriterAddDataOptions.md#executable) does not count as Unix metadata
-here and is dropped.
+declares the MS-DOS platform.
 
 ***
 
@@ -347,7 +346,7 @@ here and is dropped.
 
 It also selects the MS-DOS platform for [ZipWriterConstructorOptions#versionMadeBy](#versionmadeby) and leaves the Unix
 attributes out of the entries. Setting any Unix metadata option, e.g.
-[ZipWriterConstructorOptions#unixMode](#unixmode), turns it back off, and setting
+[ZipWriterConstructorOptions#unixMode](#unixmode) or [ZipWriterAddDataOptions#executable](ZipWriterAddDataOptions.md#executable), turns it back off, and setting
 [ZipWriterConstructorOptions#msdosAttributesRaw](#msdosattributesraw) or [ZipWriterConstructorOptions#msdosAttributes](#msdosattributes)
 turns it on, overriding an explicit `false`.
 

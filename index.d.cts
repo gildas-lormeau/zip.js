@@ -2951,7 +2951,7 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    *
    * It also selects the MS-DOS platform for {@link ZipWriterConstructorOptions#versionMadeBy} and leaves the Unix
    * attributes out of the entries. Setting any Unix metadata option, e.g.
-   * {@link ZipWriterConstructorOptions#unixMode}, turns it back off, and setting
+   * {@link ZipWriterConstructorOptions#unixMode} or {@link ZipWriterAddDataOptions#executable}, turns it back off, and setting
    * {@link ZipWriterConstructorOptions#msdosAttributesRaw} or {@link ZipWriterConstructorOptions#msdosAttributes}
    * turns it on, overriding an explicit `false`.
    *
@@ -3039,12 +3039,11 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * lost. What counts is that the option is provided, not its value: `0` and `{}` trigger it too.
    *
    * Setting any Unix metadata option, i.e. {@link ZipWriterConstructorOptions#uid},
-   * {@link ZipWriterConstructorOptions#gid}, {@link ZipWriterConstructorOptions#unixMode} or
-   * {@link ZipWriterConstructorOptions#unixExtraFieldType}, takes precedence and keeps the Unix attributes,
-   * with the MS-DOS attributes written into the low byte.
+   * {@link ZipWriterConstructorOptions#gid}, {@link ZipWriterConstructorOptions#unixMode},
+   * {@link ZipWriterConstructorOptions#unixExtraFieldType} or {@link ZipWriterAddDataOptions#executable},
+   * takes precedence and keeps the Unix attributes, with the MS-DOS attributes written into the low byte.
    * {@link ZipWriterConstructorOptions#externalFileAttributes} is preserved as well, although the entry still
-   * declares the MS-DOS platform. {@link ZipWriterAddDataOptions#executable} does not count as Unix metadata
-   * here and is dropped.
+   * declares the MS-DOS platform.
    */
   msdosAttributesRaw?: number;
   /**
