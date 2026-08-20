@@ -101,7 +101,7 @@ async function collectInstances() {
 	await writer.add("plain.txt", new zip.TextReader("content"), { dataDescriptor: false });
 	await writer.add("link", new zip.TextReader("plain.txt"), { unixMode: 0o120777 });
 	const data = await writer.close(new TextEncoder().encode("archive comment"));
-	const reader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { password: PASSWORD, checkLocalFilename: true });
+	const reader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { password: PASSWORD, checkLocalDirectory: true });
 	collectInstance(reader, "ZipReader");
 	const entries = await reader.getEntries();
 	entries.forEach(entry => {

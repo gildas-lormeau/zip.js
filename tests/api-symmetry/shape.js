@@ -88,7 +88,7 @@ async function getSpecimens() {
 	const data = await writer.close(new TextEncoder().encode("archive comment"));
 	const reader = new zip.ZipReader(new zip.Uint8ArrayReader(data), {
 		password: PASSWORD,
-		checkLocalFilename: true,
+		checkLocalDirectory: true,
 		checkOverlappingEntry: true
 	});
 	const entries = await reader.getEntries();
