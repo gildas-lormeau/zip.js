@@ -101,9 +101,14 @@ the encoding agreed with the producer of the zip file.
 > `optional` **digitalSignature?**: `Uint8Array`\<`ArrayBufferLike`\>
 
 The data of the digital signature record of the central directory (see
-[ZipWriterCloseOptions#signCentralDirectory](../interfaces/ZipWriterCloseOptions.md#signcentraldirectory)), if the zip file contains one. zip.js does not verify
-signatures; use [ZipReader#directoryOffset](#directoryoffset) and [ZipReader#directoryLength](#directorylength) to read the signed
-central directory data and verify it.
+[ZipWriterCloseOptions#signCentralDirectory](../interfaces/ZipWriterCloseOptions.md#signcentraldirectory)), if the zip file contains one.
+
+#### Remarks
+
+zip.js does not verify signatures. The signed data is the central directory records, read at
+[ZipReader#directoryOffset](#directoryoffset), and it never includes the digital signature record itself. Some writers
+(e.g. SecureZIP) store that record inside [ZipReader#directoryLength](#directorylength), so verifying the whole declared
+range would always fail.
 
 ***
 

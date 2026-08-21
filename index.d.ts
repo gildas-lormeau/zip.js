@@ -1309,9 +1309,13 @@ export class ZipReader<Type> {
   appendedData?: Uint8Array;
   /**
    * The data of the digital signature record of the central directory (see
-   * {@link ZipWriterCloseOptions#signCentralDirectory}), if the zip file contains one. zip.js does not verify
-   * signatures; use {@link ZipReader#directoryOffset} and {@link ZipReader#directoryLength} to read the signed
-   * central directory data and verify it.
+   * {@link ZipWriterCloseOptions#signCentralDirectory}), if the zip file contains one.
+   *
+   * @remarks
+   * zip.js does not verify signatures. The signed data is the central directory records, read at
+   * {@link ZipReader#directoryOffset}, and it never includes the digital signature record itself. Some writers
+   * (e.g. SecureZIP) store that record inside {@link ZipReader#directoryLength}, so verifying the whole declared
+   * range would always fail.
    */
   digitalSignature?: Uint8Array;
   /**
@@ -3086,9 +3090,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * `true` to write the data as-is without compressing it and without crypting it.
    *
    * @remarks
-   * The {@link ZipWriterConstructorOptions#level} and {@link ZipWriterAddDataOptions#compressionMethod} options
-   * do not apply to data written as-is, and the entries with no content, e.g. the directories, ignore this
-   * option entirely. Setting the {@link ZipWriterConstructorOptions#password} or the
+   * The data is never compressed, so the {@link ZipWriterConstructorOptions#level} and
+   * {@link ZipWriterAddDataOptions#compressionMethod} options select no codec. They are still recorded in the
+   * headers to describe the data: `compressionMethod` is written as-is, and when it is left unset `level` selects
+   * the value written, i.e. 0 (stored) when `level` is 0 and 8 (deflated) otherwise. Set them to match the way the
+   * data was compressed, otherwise the entry cannot be read back. The entries with no content, e.g. the
+   * directories, ignore this option entirely. Setting the {@link ZipWriterConstructorOptions#password} or the
    * {@link ZipWriterConstructorOptions#rawPassword} option throws an
    * {@link ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH} error, unless the
    * {@link ZipWriterConstructorOptions#encrypted} option is set to `true` to declare that the data is already
