@@ -61,7 +61,6 @@ const bundledTerserOptions = {
 	compress: {
 		unsafe: true,
 		unsafe_arrows: true,
-		unsafe_comps: true,
 		unsafe_symbols: true,
 		unsafe_proto: true,
 		keep_fargs: false,
@@ -83,7 +82,6 @@ const inlineTerserOptions = {
 	compress: {
 		unsafe: true,
 		unsafe_arrows: true,
-		unsafe_comps: true,
 		unsafe_math: true,
 		unsafe_symbols: true,
 		unsafe_proto: true,
