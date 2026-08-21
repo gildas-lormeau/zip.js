@@ -10,12 +10,18 @@ export { test };
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const zipReader = new zip.ZipReader(new zip.HttpReader(url, { preventHeadRequest: true }));
-	const entries = await zipReader.getEntries();
-	const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
-	const data = await entries[0].getData(dataBlobWriter);
+	const [entry] = await zipReader.getEntries();
+	const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entry.filename));
+	const data = await entry.getData(dataBlobWriter);
 	await zipReader.close();
 	await zip.terminateWorkers();
+	if (!entry.zip64) {
+		throw new Error("the entry does not use zip64");
+	}
+	if (entry.uncompressedSize != TEXT_CONTENT.length) {
+		throw new Error("uncompressed size read from the zip64 extra field: " + entry.uncompressedSize);
+	}
 	if (TEXT_CONTENT != await data.text()) {
-		throw new Error();
+		throw new Error("content mismatch");
 	}
 }
