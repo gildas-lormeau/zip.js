@@ -1,4 +1,4 @@
-/* global fetch, URL, DataView, Uint8Array */
+/* global fetch, URL */
 
 import * as zip from "../zip-lib.js";
 
