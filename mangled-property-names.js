@@ -45,6 +45,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"dataOffset",
 	"dataStart",
 	"dataURI",
+	"decryptedDirectory",
 	"defaultBufferSize",
 	"defaultLastModDate",
 	"directoryArray",

@@ -111,7 +111,9 @@ central directory data and verify it.
 
 > `optional` **directoryLength?**: `number`
 
-The length in bytes of the central directory as declared in the end of central directory record.
+The length in bytes of the central directory as declared in the end of central directory record. Some
+writers (e.g. SecureZIP) include the digital signature record in that length, so subtract
+`6 + digitalSignature.length` from it when the record is stored inside the declared range.
 
 ***
 
