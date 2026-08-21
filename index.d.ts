@@ -1195,6 +1195,11 @@ export class Uint8ArrayWriter extends Writer<Uint8Array<ArrayBuffer>> {
 /**
  * Represents an instance used to create an unzipped stream.
  *
+ * @remarks
+ * The input is entirely read into a `Blob` before the first entry is emitted, because a zip file stores its
+ * central directory at the end. This class is a convenience wrapper around {@link ZipReader} for stream
+ * sources, it does not extract entries while the data is still arriving.
+ *
  * @example
  * This example will take a zip file, decompress it and then save its files and directories to disk.
  * ```
