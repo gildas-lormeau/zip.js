@@ -3090,11 +3090,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * `true` to write the data as-is without compressing it and without crypting it.
    *
    * @remarks
-   * The data is never compressed, so the {@link ZipWriterConstructorOptions#level} and
-   * {@link ZipWriterAddDataOptions#compressionMethod} options select no codec. They are still recorded in the
-   * headers to describe the data: `compressionMethod` is written as-is, and when it is left unset `level` selects
-   * the value written, i.e. 0 (stored) when `level` is 0 and 8 (deflated) otherwise. Set them to match the way the
-   * data was compressed, otherwise the entry cannot be read back. The entries with no content, e.g. the
+   * The data is never compressed, so the {@link ZipWriterConstructorOptions#level} option does not apply and is
+   * ignored. The {@link ZipWriterAddDataOptions#compressionMethod} option selects no codec either, it declares
+   * how the data is already compressed and is written as-is in the entry headers. It must be set, otherwise an
+   * {@link ERR_UNDEFINED_COMPRESSION_METHOD} error is thrown. The entries with no content, e.g. the
    * directories, ignore this option entirely. Setting the {@link ZipWriterConstructorOptions#password} or the
    * {@link ZipWriterConstructorOptions#rawPassword} option throws an
    * {@link ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH} error, unless the
@@ -4324,6 +4323,10 @@ export const ERR_ITERATOR_COMPLETED_TOO_SOON: string;
  * Undefined uncompressed size error
  */
 export const ERR_UNDEFINED_UNCOMPRESSED_SIZE: string;
+/**
+ * Undefined compression method error
+ */
+export const ERR_UNDEFINED_COMPRESSION_METHOD: string;
 export const ERR_UNDETERMINED_SIZE: string;
 /**
  * Undefined reader error

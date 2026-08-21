@@ -6107,6 +6107,7 @@
 	const MAX_NTFS_TIME = BigInt("0x7fffffffffffffff");
 	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (set the 'zip64' option to 'true')";
 	const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
+	const ERR_UNDEFINED_COMPRESSION_METHOD = "Undefined compression method";
 	const ERR_UNDETERMINED_SIZE = "Undetermined size";
 	const ERR_UNDEFINED_READER = "Undefined reader";
 	const ERR_ZIP_NOT_EMPTY = "Zip file not empty";
@@ -6634,6 +6635,9 @@
 				level = 0;
 			}
 		}
+		if (passThrough) {
+			level = UNDEFINED_VALUE;
+		}
 		let useCompressionStream = getOptionValue(zipWriter, options, OPTION_USE_COMPRESSION_STREAM);
 		let dataDescriptor = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR);
 		if (bufferedWrite && dataDescriptor === UNDEFINED_VALUE) {
@@ -6744,6 +6748,9 @@
 			uncompressedSize = options[PROPERTY_NAME_UNCOMPRESSED_SIZE];
 			if (uncompressedSize === UNDEFINED_VALUE) {
 				throw new Error(ERR_UNDEFINED_UNCOMPRESSED_SIZE);
+			}
+			if (compressionMethod === UNDEFINED_VALUE) {
+				throw new Error(ERR_UNDEFINED_COMPRESSION_METHOD);
 			}
 		}
 		const zip64Enabled = zip64 === true;
@@ -8605,6 +8612,7 @@
 	exports.ERR_OVERLAPPING_ENTRY = ERR_OVERLAPPING_ENTRY;
 	exports.ERR_RESERVED_COMPRESSION_METHOD = ERR_RESERVED_COMPRESSION_METHOD;
 	exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
+	exports.ERR_UNDEFINED_COMPRESSION_METHOD = ERR_UNDEFINED_COMPRESSION_METHOD;
 	exports.ERR_UNDEFINED_READER = ERR_UNDEFINED_READER;
 	exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
 	exports.ERR_UNDETERMINED_SIZE = ERR_UNDETERMINED_SIZE;

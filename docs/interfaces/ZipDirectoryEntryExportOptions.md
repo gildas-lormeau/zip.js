@@ -535,11 +535,10 @@ The offset of the first entry in the zip file.
 
 #### Remarks
 
-The data is never compressed, so the [ZipWriterConstructorOptions#level](ZipWriterConstructorOptions.md#level) and
-[ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) options select no codec. They are still recorded in the
-headers to describe the data: `compressionMethod` is written as-is, and when it is left unset `level` selects
-the value written, i.e. 0 (stored) when `level` is 0 and 8 (deflated) otherwise. Set them to match the way the
-data was compressed, otherwise the entry cannot be read back. The entries with no content, e.g. the
+The data is never compressed, so the [ZipWriterConstructorOptions#level](ZipWriterConstructorOptions.md#level) option does not apply and is
+ignored. The [ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) option selects no codec either, it declares
+how the data is already compressed and is written as-is in the entry headers. It must be set, otherwise an
+[ERR\_UNDEFINED\_COMPRESSION\_METHOD](../variables/ERR_UNDEFINED_COMPRESSION_METHOD.md) error is thrown. The entries with no content, e.g. the
 directories, ignore this option entirely. Setting the [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) or the
 [ZipWriterConstructorOptions#rawPassword](ZipWriterConstructorOptions.md#rawpassword) option throws an
 [ERR\_UNSUPPORTED\_ENCRYPTION\_PASS\_THROUGH](../variables/ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH.md) error, unless the

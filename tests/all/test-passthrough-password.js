@@ -24,16 +24,16 @@ async function test() {
 }
 
 async function passwordRejectedWithPassThrough() {
-	const { data, uncompressedSize, signature } = await getPassThroughData({});
-	await assertThrows({ password: PASSWORD }, { passThrough: true, uncompressedSize, signature }, data, "constructor password");
-	await assertThrows({}, { passThrough: true, uncompressedSize, signature, password: PASSWORD }, data, "entry password");
-	await assertThrows({}, { passThrough: true, uncompressedSize, signature, rawPassword: new TextEncoder().encode(PASSWORD) }, data, "entry rawPassword");
+	const { data, uncompressedSize, signature, compressionMethod } = await getPassThroughData({});
+	await assertThrows({ password: PASSWORD }, { passThrough: true, uncompressedSize, signature, compressionMethod }, data, "constructor password");
+	await assertThrows({}, { passThrough: true, uncompressedSize, signature, compressionMethod, password: PASSWORD }, data, "entry password");
+	await assertThrows({}, { passThrough: true, uncompressedSize, signature, compressionMethod, rawPassword: new TextEncoder().encode(PASSWORD) }, data, "entry rawPassword");
 }
 
 async function emptyPasswordsKeepBeingIgnored() {
-	const { data, uncompressedSize, signature } = await getPassThroughData({});
+	const { data, uncompressedSize, signature, compressionMethod } = await getPassThroughData({});
 	for (const passwordOptions of [{}, { password: undefined }, { password: "" }, { password: null }, { rawPassword: new Uint8Array() }]) {
-		const entryOptions = Object.assign({ passThrough: true, uncompressedSize, signature }, passwordOptions);
+		const entryOptions = Object.assign({ passThrough: true, uncompressedSize, signature, compressionMethod }, passwordOptions);
 		const [entry] = await readEntries(await buildZip({}, entryOptions, data));
 		if (entry.encrypted) {
 			throw new Error("expected no encryption for " + JSON.stringify(passwordOptions));
@@ -43,14 +43,14 @@ async function emptyPasswordsKeepBeingIgnored() {
 
 // The type of the password used to be checked only when the data was compressed by the writer.
 async function passwordTypeCheckedWithPassThrough() {
-	const { data, uncompressedSize, signature } = await getPassThroughData({});
-	const entryOptions = { passThrough: true, uncompressedSize, signature, password: 42 };
+	const { data, uncompressedSize, signature, compressionMethod } = await getPassThroughData({});
+	const entryOptions = { passThrough: true, uncompressedSize, signature, compressionMethod, password: 42 };
 	await assertThrows({}, entryOptions, data, "invalid password type", zip.ERR_INVALID_PASSWORD_TYPE);
 }
 
 async function passwordAcceptedWithEncryptedData() {
-	const { data, uncompressedSize } = await getPassThroughData({ password: PASSWORD, encryptionStrength: 3 });
-	const entryOptions = { passThrough: true, uncompressedSize, encrypted: true, encryptionStrength: 3, password: PASSWORD };
+	const { data, uncompressedSize, compressionMethod } = await getPassThroughData({ password: PASSWORD, encryptionStrength: 3 });
+	const entryOptions = { passThrough: true, uncompressedSize, compressionMethod, encrypted: true, encryptionStrength: 3, password: PASSWORD };
 	const [entry] = await readEntries(await buildZip({}, entryOptions, data));
 	if (!entry.encrypted) {
 		throw new Error("expected an encrypted entry");
@@ -103,7 +103,7 @@ async function getPassThroughData(writerOptions) {
 	await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT));
 	const [entry] = await readEntries(await zipWriter.close());
 	const data = await entry.getData(new zip.Uint8ArrayWriter(), { passThrough: true });
-	return { data, uncompressedSize: entry.uncompressedSize, signature: entry.signature };
+	return { data, uncompressedSize: entry.uncompressedSize, signature: entry.signature, compressionMethod: entry.compressionMethod };
 }
 
 async function buildFilesystemZip(exportOptions) {

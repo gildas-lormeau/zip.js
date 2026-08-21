@@ -23,11 +23,11 @@ async function test() {
 		throw new Error();
 	}
 	// re-wrap the already-compressed data as a zip64 passThrough entry
-	const signature = entries[0].signature;
+	const { signature, compressionMethod } = entries[0];
 	const uncompressedSize = TEXT_CONTENT.length;
 	blobWriter = new zip.BlobWriter("application/zip");
 	zipWriter = new zip.ZipWriter(blobWriter);
-	await zipWriter.add(FILENAME, new zip.BlobReader(data), { zip64: true, passThrough: true, uncompressedSize, signature });
+	await zipWriter.add(FILENAME, new zip.BlobReader(data), { zip64: true, passThrough: true, uncompressedSize, signature, compressionMethod });
 	const passThroughZip64Blob = await zipWriter.close();
 	zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	entries = await zipReader.getEntries();

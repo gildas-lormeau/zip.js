@@ -57,12 +57,12 @@ async function checkPassThrough() {
 	let reader = new zip.ZipReader(new zip.BlobReader(new Blob([compressedZip])));
 	let [entry] = await reader.getEntries();
 	const raw = await entry.getData(new zip.Uint8ArrayWriter(), { passThrough: true });
-	const signature = entry.signature;
+	const { signature, compressionMethod } = entry;
 	await reader.close();
 	// re-wrap the raw deflated bytes as a zip64 passthrough entry on the direct path
 	writer = new zip.ZipWriter(new zip.Uint8ArrayWriter());
 	await writer.add("lorem.txt", new zip.Uint8ArrayReader(raw),
-		{ zip64: true, passThrough: true, uncompressedSize: text.length, signature });
+		{ zip64: true, passThrough: true, uncompressedSize: text.length, signature, compressionMethod });
 	const passThroughZip = await writer.close();
 	const { localCompressed, centralCompressed } = zip64CompressedSizes(passThroughZip);
 	// the raw deflated data is far smaller than the text, so the uncompressed size is a clear "lie"
