@@ -14,6 +14,11 @@
 <div class="tsd-comment tsd-typography"><p>Represents an instance used to create an unzipped stream.</p>
 </div>
 <div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The input is entirely read into a <code>Blob</code> before the first entry is emitted, because a zip file stores its
+central directory at the end. This class is a convenience wrapper around <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> for stream
+sources, it does not extract entries while the data is still arriving.</p>
+</div>
 <div class="tsd-tag-example">
 <h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>This example will take a zip file, decompress it and then save its files and directories to disk.</p>
 <pre><code><span class="hl-0">import</span><span class="hl-1"> {</span><span class="hl-2">resolve</span><span class="hl-1">} </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;https://deno.land/std/path/mod.ts&quot;</span><span class="hl-1">;</span><br/><span class="hl-0">import</span><span class="hl-1"> {</span><span class="hl-2">ensureDir</span><span class="hl-1">, </span><span class="hl-2">ensureFile</span><span class="hl-1">} </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;https://deno.land/std/fs/mod.ts&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-0">for</span><span class="hl-1"> </span><span class="hl-0">await</span><span class="hl-1"> (</span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">entry</span><span class="hl-1"> </span><span class="hl-5">of</span><span class="hl-1"> (</span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-7">fetch</span><span class="hl-1">(</span><span class="hl-2">urlToZippedFile</span><span class="hl-1">)).</span><span class="hl-2">body</span><span class="hl-1">.</span><span class="hl-7">pipeThrough</span><span class="hl-1">(</span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-7">ZipReaderStream</span><span class="hl-1">())) {</span><br/><span class="hl-1">  </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">fullPath</span><span class="hl-1"> = </span><span class="hl-7">resolve</span><span class="hl-1">(</span><span class="hl-2">destination</span><span class="hl-1">, </span><span class="hl-2">entry</span><span class="hl-1">.</span><span class="hl-2">filename</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-0">if</span><span class="hl-1"> (</span><span class="hl-2">entry</span><span class="hl-1">.</span><span class="hl-2">directory</span><span class="hl-1">) {</span><br/><span class="hl-1">    </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-7">ensureDir</span><span class="hl-1">(</span><span class="hl-2">fullPath</span><span class="hl-1">);</span><br/><span class="hl-1">    </span><span class="hl-0">continue</span><span class="hl-1">;</span><br/><span class="hl-1">  }</span><br/><br/><span class="hl-1">  </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-7">ensureFile</span><span class="hl-1">(</span><span class="hl-2">fullPath</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">entry</span><span class="hl-1">.</span><span class="hl-2">readable</span><span class="hl-1">?.</span><span class="hl-7">pipeTo</span><span class="hl-1">((</span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">Deno</span><span class="hl-1">.</span><span class="hl-7">create</span><span class="hl-1">(</span><span class="hl-2">fullPath</span><span class="hl-1">)).</span><span class="hl-2">writable</span><span class="hl-1">);</span><br/><span class="hl-1">}</span>
@@ -25,7 +30,7 @@
 <ul class="tsd-type-parameter-list">
 <li><span id="t"><span class="tsd-kind-type-parameter">T</span></span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1216">index.d.ts:1216</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/3a02937913228ae3dd5f5e19d6fabd07ecc6a465/index.d.ts#L1221">index.d.ts:1221</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -63,7 +68,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ZipReaderStream</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1222">index.d.ts:1222</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/3a02937913228ae3dd5f5e19d6fabd07ecc6a465/index.d.ts#L1227">index.d.ts:1227</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -73,14 +78,14 @@
 <div class="tsd-comment tsd-typography"><p>The readable stream.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1227">index.d.ts:1227</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/3a02937913228ae3dd5f5e19d6fabd07ecc6a465/index.d.ts#L1232">index.d.ts:1232</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="writable"><span>writable</span><a href="#writable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">writable</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">WritableStream</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography"><p>The writable stream.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/2f2add299f1cc7843e549ab41877f445668bf681/index.d.ts#L1234">index.d.ts:1234</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/3a02937913228ae3dd5f5e19d6fabd07ecc6a465/index.d.ts#L1239">index.d.ts:1239</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
