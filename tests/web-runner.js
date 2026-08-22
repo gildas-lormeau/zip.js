@@ -4,6 +4,8 @@ import tests from "./tests-data.js";
 
 const MAX_PARALLEL_TESTS = 16;
 const TEST_TIMEOUT = 120000;
+const CLEANUP_TIMEOUT = 10000;
+const RECENTLY_COMPLETED_LENGTH = 8;
 const PROBE_TIMEOUT = 5000;
 const LOADER_PATH = "/tests/all/loader.html#";
 
@@ -50,12 +52,13 @@ const browserTests = tests.filter(test => !test.env || test.env.includes("browse
 const keepTests = urlParams.has("keepTests");
 const withStreamsPolyfill = urlParams.has("withStreamsPolyfill");
 const maxParallelTests = Number(urlParams.get("maxParallelTests")) || MAX_PARALLEL_TESTS;
-const testResults = { done: false, total: browserTests.length, passed: 0, skipped: 0, failures: [] };
+const testResults = { done: false, total: browserTests.length, passed: 0, skipped: 0, failures: [], pending: [], recentlyCompleted: [], slowCleanups: [] };
 globalThis.testResults = testResults;
 
 const statusElement = document.getElementById("status");
 const tableElement = document.getElementById("tests");
 const pendingTests = new Map();
+const cleanupPendingTests = new Map();
 const runnableTests = [];
 let nextTestIndex = 0;
 
@@ -68,9 +71,13 @@ async function main() {
 	const missingFeatures = await getMissingFeatures(browserTests);
 	addEventListener("message", event => {
 		const result = JSON.parse(event.data);
-		const pendingTest = pendingTests.get(result.script);
-		if (pendingTest) {
-			completeTest(pendingTest, result.error);
+		if (result.cleanupDone) {
+			completeCleanup(result.script);
+		} else {
+			const pendingTest = pendingTests.get(result.script);
+			if (pendingTest) {
+				completeTest(pendingTest, result.error);
+			}
 		}
 	});
 	for (const test of browserTests) {
@@ -192,11 +199,20 @@ function startTest(test) {
 		}
 	}, TEST_TIMEOUT);
 	pendingTests.set(test.script, { test, row, timeoutId });
+	testResults.pending.push(test.title);
 }
 
 function completeTest({ test, row, timeoutId }, error) {
 	clearTimeout(timeoutId);
 	pendingTests.delete(test.script);
+	const pendingIndex = testResults.pending.indexOf(test.title);
+	if (pendingIndex != -1) {
+		testResults.pending.splice(pendingIndex, 1);
+	}
+	testResults.recentlyCompleted.unshift(test.title);
+	if (testResults.recentlyCompleted.length > RECENTLY_COMPLETED_LENGTH) {
+		testResults.recentlyCompleted.pop();
+	}
 	if (error) {
 		testResults.failures.push({ title: test.title, script: test.script, message: error.message, stack: error.stack });
 		row.className = "failed";
@@ -208,12 +224,30 @@ function completeTest({ test, row, timeoutId }, error) {
 		row.className = "passed";
 	} else {
 		testResults.passed++;
-		row.remove();
+		awaitCleanup(test, row);
 	}
 	if (nextTestIndex < runnableTests.length) {
 		startTest(runnableTests[nextTestIndex++]);
 	}
 	updateStatus();
+}
+
+function awaitCleanup(test, row) {
+	const timeoutId = setTimeout(() => {
+		cleanupPendingTests.delete(test.script);
+		testResults.slowCleanups.push(test.title);
+		row.remove();
+	}, CLEANUP_TIMEOUT);
+	cleanupPendingTests.set(test.script, { row, timeoutId });
+}
+
+function completeCleanup(script) {
+	const cleanupPendingTest = cleanupPendingTests.get(script);
+	if (cleanupPendingTest) {
+		clearTimeout(cleanupPendingTest.timeoutId);
+		cleanupPendingTests.delete(script);
+		cleanupPendingTest.row.remove();
+	}
 }
 
 function updateStatus() {

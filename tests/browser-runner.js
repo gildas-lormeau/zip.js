@@ -24,6 +24,8 @@ const BUILD_MODULES = {
 	dist: "../index.min.js"
 };
 
+let lastPolledResults;
+
 const args = parseArgs({
 	allowPositionals: true,
 	options: {
@@ -94,6 +96,7 @@ async function main({ browserName, headless, executablePath, urlSearch, buildMod
 					throw error;
 				}
 				console.error(browserName + ": the browser was lost (" + error.name + "), starting it again");
+				logBrowserLossContext(browserName);
 			}
 		}
 	} finally {
@@ -102,6 +105,9 @@ async function main({ browserName, headless, executablePath, urlSearch, buildMod
 	for (const failure of testResults.failures) {
 		console.error("FAIL " + failure.title + " (" + failure.script + ")");
 		console.error("  " + (failure.stack || failure.message || "unknown error"));
+	}
+	if (testResults.slowCleanups && testResults.slowCleanups.length) {
+		console.error(browserName + ": frame cleanup timed out for: " + testResults.slowCleanups.join(", "));
 	}
 	console.log(browserName + ": " + testResults.passed + " pass, " + testResults.failures.length + " fail" +
 		(testResults.skipped ? ", " + testResults.skipped + " skipped" : ""));
@@ -154,12 +160,25 @@ async function launchBrowserDriver(profileDirectory, { browserName, headless, ex
 	process.exit(1);
 }
 
+function logBrowserLossContext(browserName) {
+	if (lastPolledResults) {
+		const { passed, skipped, failures, total, pending, recentlyCompleted, slowCleanups } = lastPolledResults;
+		const finishedCount = passed + (skipped || 0) + failures.length;
+		console.error(browserName + ": last poll " + finishedCount + "/" + total +
+			(pending && pending.length ? ", in flight: " + pending.join(", ") : "") +
+			(recentlyCompleted && recentlyCompleted.length ? ", recently completed: " + recentlyCompleted.join(", ") : "") +
+			(slowCleanups && slowCleanups.length ? ", slow cleanups: " + slowCleanups.join(", ") : ""));
+	}
+}
+
 async function getTestResults(driver) {
 	const startTime = Date.now();
 	let lastFinishedCount = 0;
+	lastPolledResults = undefined;
 	while (Date.now() - startTime < SUITE_TIMEOUT) {
 		const testResults = await driver.executeScript("return globalThis.testResults;");
 		if (testResults) {
+			lastPolledResults = testResults;
 			if (testResults.done) {
 				return testResults;
 			}
