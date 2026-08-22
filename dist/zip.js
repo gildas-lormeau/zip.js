@@ -7421,16 +7421,15 @@
 	function packUnixId(id) {
 		if (id === UNDEFINED_VALUE) {
 			return EMPTY_UINT8_ARRAY;
-		} else {
-			const dataArray = new Uint8Array(4);
-			const dataView = getDataView(dataArray);
-			dataView.setUint32(0, id, true);
-			let length = 4;
-			while (length > 1 && dataArray[length - 1] === 0) {
-				length--;
-			}
-			return dataArray.subarray(0, length);
 		}
+		const dataArray = new Uint8Array(4);
+		const dataView = getDataView(dataArray);
+		dataView.setUint32(0, id, true);
+		let length = 4;
+		while (length > 1 && dataArray[length - 1] === 0) {
+			length--;
+		}
+		return dataArray.subarray(0, length);
 	}
 
 	function normalizeMsdosAttributes(msdosAttributesRaw, msdosAttributes) {
