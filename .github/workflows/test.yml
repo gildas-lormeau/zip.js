@@ -140,28 +140,28 @@ jobs:
         run: |
           $browser = "${{ matrix.browser }}"
           $version = "${{ matrix.version }}"
-          $targetDir = "$env:USERPROFILE\browsers"
+          $targetDir = "$env:USERPROFILE/browsers"
           New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
 
           if ($browser -eq "chrome") {
             $url = "${{ matrix.url }}"
             if ($url) {
-              $zipFile = "$targetDir\chrome-win.zip"
-              $exeDir = "$targetDir\chrome"
+              $zipFile = "$targetDir/chrome-win.zip"
+              $exeDir = "$targetDir/chrome"
               Invoke-WebRequest -Uri $url -OutFile $zipFile
               Expand-Archive -Path $zipFile -DestinationPath $exeDir -Force
-              $exePath = "$exeDir\chrome-win\chrome.exe"
+              $exePath = "$exeDir/chrome-win/chrome.exe"
               echo "EXE_PATH=$exePath" >> $env:GITHUB_ENV
             }
           }
           elseif ($browser -eq "firefox") {
             $url = "${{ matrix.url }}"
             if ($url) {
-              $exeFile = "$targetDir\firefox-setup.exe"
-              $exeDir = "$targetDir\firefox"
+              $exeFile = "$targetDir/firefox-setup.exe"
+              $exeDir = "$targetDir/firefox"
               Invoke-WebRequest -Uri $url -OutFile $exeFile
-              7z x $exeFile -o"$targetDir\firefox" -y | Out-Null
-              $exePath = "$exeDir\core\firefox.exe"
+              7z x $exeFile -o"$targetDir/firefox" -y | Out-Null
+              $exePath = "$exeDir/core/firefox.exe"
               echo "EXE_PATH=$exePath" >> $env:GITHUB_ENV
             }
           }
