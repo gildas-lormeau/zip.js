@@ -6145,6 +6145,8 @@
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
 	const EXTRAFIELD_OFFSET_AES_VENDOR_VERSION = 4;
+	const EXTRAFIELD_OFFSET_AES_COMPRESSION_METHOD = 9;
+	const EXTRAFIELD_USDZ_MAX_LENGTH = 67;
 	const VENDOR_VERSION_AE_1 = 1;
 	const INFOZIP_EXTRA_FIELD_TYPE$1 = "infozip";
 	const UNIX_EXTRA_FIELD_TYPE = "unix";
@@ -6200,7 +6202,7 @@
 					this.offset += splitZipSignatureLength;
 				}
 			}
-			const entryPositions = await copyZipData(this, reader, entries, directoryOffset, splitZipSignatureLength);
+			const entryPositions = await copyZipData(this, reader, entries, directoryOffset);
 			this.filenames = new Set(entries.map(entry => entry.filename));
 			this.fileEntries = new Map(entries.map(entry => {
 				const {
@@ -6442,7 +6444,8 @@
 				signature: options[PROPERTY_NAME_SIGNATURE],
 				crc32: options.crc32 === UNDEFINED_VALUE ? options[PROPERTY_NAME_SIGNATURE] : options.crc32,
 				offset: zipWriter.offset - diskOffset,
-				diskNumberStart: diskNumber
+				diskNumberStart: diskNumber,
+				[OPTION_USDZ]: zipWriter.options[OPTION_USDZ]
 			});
 			const headerInfo = getHeaderInfo(options);
 			const dataDescriptorInfo = getDataDescriptorInfo(options);
@@ -6844,6 +6847,7 @@
 		const files = new Map();
 		let layoutDependsOnWriteOrder = Boolean(usdz);
 		let offset = 0;
+		let minimumEntrySize = INFINITY_VALUE;
 		for (const entry of entries) {
 			let { name } = entry;
 			const { size } = entry;
@@ -6867,7 +6871,7 @@
 			if (hasContent && !metadata.passThrough && isCompressed(sizes.compressionMethod, sizes.level)) {
 				throw new Error(ERR_UNDETERMINED_SIZE);
 			}
-			const entryOptions = Object.assign({}, options, attributesInfo.resolvedOptions, metadata, sizes);
+			const entryOptions = Object.assign({}, options, attributesInfo.resolvedOptions, metadata, sizes, { [OPTION_USDZ]: usdz });
 			const headerInfo = getHeaderInfo(entryOptions);
 			const dataDescriptorInfo = getDataDescriptorInfo(entryOptions);
 			const entryInfo = {
@@ -6878,15 +6882,17 @@
 				appendExtraFieldUSDZ(entryInfo, offset);
 			}
 			const compressedSize = hasContent ? maximumCompressedSize : 0;
-			if (offset >= MAX_32_BITS) {
-				layoutDependsOnWriteOrder = true;
-			}
 			files.set(name, Object.assign({}, entryOptions, headerInfo, {
 				offset,
 				diskNumberStart: 0,
 				compressedSize
 			}));
-			offset += entryInfo.metadataSize + compressedSize;
+			const entrySize = entryInfo.metadataSize + compressedSize;
+			minimumEntrySize = Math.min(minimumEntrySize, entrySize);
+			offset += entrySize;
+		}
+		if (files.size && offset - minimumEntrySize >= MAX_32_BITS) {
+			layoutDependsOnWriteOrder = true;
 		}
 		if (layoutDependsOnWriteOrder && !writeOrderGuaranteed) {
 			throw new Error(ERR_UNDETERMINED_SIZE);
@@ -7397,12 +7403,13 @@
 			if (passThrough && crc32 !== UNDEFINED_VALUE) {
 				rawExtraFieldAES[EXTRAFIELD_OFFSET_AES_VENDOR_VERSION] = VENDOR_VERSION_AE_1;
 			}
-			rawExtraFieldAES[9] = compressionMethod;
+			setUint16(getDataView(rawExtraFieldAES), EXTRAFIELD_OFFSET_AES_COMPRESSION_METHOD, compressionMethod);
 			compressionMethod = COMPRESSION_METHOD_AES;
 		}
 		const localExtraFieldZip64Length = writeLocalExtraFieldZip64 ? getLength(rawLocalExtraFieldZip64) : 0;
 		const extraFieldLength = localExtraFieldZip64Length + getLength(rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField, rawLocalExtraField);
-		if (extraFieldLength > MAX_16_BITS) {
+		const maximumUsdzExtraFieldLength = options[OPTION_USDZ] ? EXTRAFIELD_USDZ_MAX_LENGTH : 0;
+		if (extraFieldLength + maximumUsdzExtraFieldLength > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
 		}
 		const dosLastModDate = new Date(Math.ceil(Math.floor(lastModDate.getTime() / 1000) / 2) * 2000);
@@ -7803,7 +7810,11 @@
 			signatureRecord.writeUint32(DIGITAL_SIGNATURE_RECORD_SIGNATURE);
 			signatureRecord.writeUint16(signatureDataLength);
 			signatureRecord.writeBytes(signatureData);
-			await writeData(zipWriter.writer, signatureRecord.array);
+			const { writer } = zipWriter;
+			if (exceedsAvailableSize(writer, getLength(signatureRecord.array))) {
+				await writer.closeDisk();
+			}
+			await writeData(writer, signatureRecord.array);
 			return 6 + signatureDataLength;
 		}
 		return 0;
@@ -7914,7 +7925,7 @@
 		return getUint32(getDataView(signatureArray), 0) == SPLIT_ZIP_FILE_SIGNATURE;
 	}
 
-	async function copyZipData(zipWriter, reader, entries, directoryOffset, splitZipSignatureLength) {
+	async function copyZipData(zipWriter, reader, entries, directoryOffset) {
 		const { writer } = zipWriter;
 		const entryPositions = new Map();
 		if (writer.closeDisk) {
@@ -7935,9 +7946,10 @@
 			}
 			await copyData(zipWriter, reader, copiedLength, directoryOffset - copiedLength);
 		} else {
+			const baseOffset = zipWriter.offset;
 			await copyData(zipWriter, reader, 0, directoryOffset);
 			entries.forEach(entry => entryPositions.set(entry, {
-				offset: splitZipSignatureLength + getSourceOffset(reader, entry),
+				offset: baseOffset + getSourceOffset(reader, entry),
 				diskNumberStart: 0
 			}));
 		}

@@ -183,8 +183,7 @@ async function testOrderDependentZip64Offsets() {
 	function build(root, sizes) {
 		sizes.forEach((size, indexSize) => {
 			const entry = root.addReadable("entry" + indexSize + ".bin", new Blob([]).stream());
-			entry.uncompressedSize = size;
-			entry.undeterminedSize = false;
+			entry.reader = { size };
 		});
 	}
 	const orderDependentSizes = [1.5 * GiB, 1024, 3 * GiB];
