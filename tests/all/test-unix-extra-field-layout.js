@@ -14,6 +14,7 @@ async function test() {
 	try {
 		await checkUnixField();
 		await checkInfoZipField();
+		await checkInfoZipFieldSingleId();
 	} finally {
 		await zip.terminateWorkers();
 	}
@@ -60,6 +61,24 @@ async function checkInfoZipField() {
 	const entry = await read(bytes);
 	if (entry.uid != 1000 || entry.gid != 1234) {
 		throw new Error("0x7875 uid/gid did not round-trip");
+	}
+}
+
+// When only one of uid/gid is set, the other defaults to 0 and is still written with a size of at
+// least 1: Info-ZIP always emits both ids, and a size of 0 is at the mercy of other parsers.
+async function checkInfoZipFieldSingleId() {
+	const bytes = await write({ compressionMethod: 0, uid: 1000 });
+	const field = localExtraField(bytes, 0x7875);
+	if (!field) {
+		throw new Error("missing local 0x7875 field");
+	}
+	// version=1, uidSize=2, uid=1000, gidSize=1, gid=0
+	if (field.length != 6 || field[0] != 1 || field[1] != 2 || field[4] != 1 || field[5] != 0) {
+		throw new Error("expected the missing gid to be written as a 1-byte 0, got body " + Array.from(field).join(","));
+	}
+	const entry = await read(bytes);
+	if (entry.uid != 1000 || entry.gid != 0) {
+		throw new Error("uid-only entry did not round-trip, got " + entry.uid + "/" + entry.gid);
 	}
 }
 

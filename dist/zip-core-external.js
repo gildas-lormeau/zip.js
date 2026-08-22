@@ -7312,8 +7312,8 @@ function getHeaderInfo(options) {
 	try {
 		const { uid, gid, unixExtraFieldType } = options;
 		if (unixExtraFieldType == INFOZIP_EXTRA_FIELD_TYPE && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
-			const uidBytes = packUnixId(uid);
-			const gidBytes = packUnixId(gid);
+			const uidBytes = packUnixId(uid === UNDEFINED_VALUE ? 0 : uid);
+			const gidBytes = packUnixId(gid === UNDEFINED_VALUE ? 0 : gid);
 			const payloadLength = 3 + uidBytes.length + gidBytes.length;
 			const extraFieldUnix = createRecordWriter(4 + payloadLength);
 			extraFieldUnix.writeUint16(EXTRAFIELD_TYPE_INFOZIP);
@@ -7444,9 +7444,6 @@ function appendExtraFieldUSDZ(entryInfo, zipWriterOffset) {
 }
 
 function packUnixId(id) {
-	if (id === UNDEFINED_VALUE) {
-		return EMPTY_UINT8_ARRAY;
-	}
 	const dataArray = new Uint8Array(4);
 	const dataView = getDataView(dataArray);
 	dataView.setUint32(0, id, true);
