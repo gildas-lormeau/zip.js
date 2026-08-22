@@ -33,8 +33,10 @@ async function test() {
 	const errorTooLarge = await getCloseError({ signCentralDirectory: () => new Uint8Array(0x10000) });
 	const zip64OK = await testZip64();
 	const filesystemOK = await testFilesystem();
+	const splitOutputOK = await testSplitOutput();
 	if (!zip64OK ||
 		!filesystemOK ||
+		!splitOutputOK ||
 		entries.length != 2 ||
 		entries[0].filename != "first.txt" ||
 		entries[1].filename != "second.txt" ||
@@ -86,6 +88,44 @@ async function testFilesystem() {
 	return entries.length == 1 &&
 		equalArrays(zipReader.digitalSignature, SIGNATURE_DATA) &&
 		equalArrays(signedRegion, signedDirectory);
+}
+
+async function testSplitOutput() {
+	const signatureData = new Uint8Array(40).fill(0xab);
+	const recordLength = 6 + signatureData.length;
+	for (let segmentSize = 300; segmentSize <= 450; segmentSize++) {
+		const writers = [];
+		function* writerGenerator() {
+			while (true) {
+				const writer = new zip.Uint8ArrayWriter();
+				writer.maxSize = segmentSize;
+				writers.push(writer);
+				yield writer;
+			}
+		}
+		const zipWriter = new zip.ZipWriter(writerGenerator());
+		await zipWriter.add("first.txt", new zip.TextReader(TEXT_CONTENT), { level: 0 });
+		await zipWriter.add("second.txt", new zip.TextReader(TEXT_CONTENT), { level: 0 });
+		await zipWriter.close(undefined, { signCentralDirectory: () => signatureData });
+		const disks = await Promise.all(writers.map(writer => writer.getData()));
+		const zipReader = new zip.ZipReader(new zip.SplitDataReader(disks.map(disk => new zip.Uint8ArrayReader(disk))));
+		await zipReader.getEntries();
+		const recordOffset = zipReader.directoryOffset + zipReader.directoryLength;
+		let diskStart = 0;
+		let recordInSingleDisk = false;
+		for (const disk of disks) {
+			if (recordOffset >= diskStart && recordOffset < diskStart + disk.length) {
+				recordInSingleDisk = recordOffset + recordLength <= diskStart + disk.length;
+				break;
+			}
+			diskStart += disk.length;
+		}
+		await zipReader.close();
+		if (!recordInSingleDisk) {
+			return false;
+		}
+	}
+	return true;
 }
 
 async function getCloseError(options) {
