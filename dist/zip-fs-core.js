@@ -6140,7 +6140,8 @@
 		const usdz = writerOptions[OPTION_USDZ];
 		const files = new Map();
 		let layoutDependsOnWriteOrder = Boolean(usdz);
-		let offset = 0;
+		const initialOffset = writerOptions[OPTION_OFFSET] === UNDEFINED_VALUE ? 0 : writerOptions[OPTION_OFFSET];
+		let offset = initialOffset;
 		let minimumEntrySize = INFINITY_VALUE;
 		for (const entry of entries) {
 			let { name } = entry;
@@ -6200,7 +6201,7 @@
 				zip64 = true;
 			}
 		}
-		return offset + directoryDataLength + commentLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH);
+		return offset - initialOffset + directoryDataLength + commentLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH);
 	}
 
 	async function getFileEntry(zipWriter, name, reader, entryInfo, options) {

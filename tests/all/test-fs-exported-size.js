@@ -73,6 +73,8 @@ async function testEntryOptions() {
 	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, zip64: true });
 	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, extendedTimestamp: false });
 	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, bufferedWrite: false });
+	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, offset: 1024 });
+	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, offset: 4 * 1024 * 1024 * 1024 });
 	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, globalComment: new TextEncoder().encode("a global comment") });
 }
 
