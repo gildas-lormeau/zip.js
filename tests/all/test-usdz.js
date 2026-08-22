@@ -36,8 +36,17 @@ async function test() {
 	} catch (error) {
 		testPasswordRejected = error.message == zip.ERR_UNSUPPORTED_ENCRYPTION_USDZ;
 	}
+	let testHugeExtraFieldRejected = false;
+	const hugeExtraFieldZipWriter = new zip.ZipWriter(new zip.BlobWriter("model/vnd.usdz+zip"), { usdz: true, extendedTimestamp: false });
+	try {
+		await hugeExtraFieldZipWriter.add(ENTRIES_DATA[0].name, new zip.BlobReader(ENTRIES_DATA[0].blob), {
+			extraField: new Map([[0x7000, new Uint8Array(65520)]])
+		});
+	} catch (error) {
+		testHugeExtraFieldRejected = error.message == zip.ERR_INVALID_EXTRAFIELD_DATA;
+	}
 	await zip.terminateWorkers();
-	if (!testOK || !testPasswordRejected) {
+	if (!testOK || !testPasswordRejected || !testHugeExtraFieldRejected) {
 		throw new Error();
 	}
 }
