@@ -199,4 +199,4 @@ jobs:
             $env:SE_SKIP_DRIVER_IN_PATH = "true"
           }
 
-          & node tests/browser-runner.js $argsList
+          node tests/browser-runner.js $argsList
