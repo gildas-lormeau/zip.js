@@ -52,6 +52,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"directoryDataLength",
 	"directoryStart",
 	"diskOffsets",
+	"emptyEntry",
 	"endOfDirectoryInfo",
 	"endOfDirectoryReachingEndCount",
 	"entryIdCounter",

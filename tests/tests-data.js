@@ -17,6 +17,7 @@ export default ([
 	{ title: "Append to zip (split output)", script: "./test-prepend-zip-split-output.js" },
 	{ title: "Append to zip (copied bytes)", script: "./test-prepend-zip-copied-bytes.js" },
 	{ title: "Append to zip (zip64 layout)", script: "./test-prepend-zip-zip64.js" },
+	{ title: "Empty entry data descriptor", script: "./test-empty-entry-data-descriptor.js" },
 	{ title: "Uint8Array", script: "./test-array.js" },
 	{ title: "Arraybuffer", script: "./test-arrayBuffer.js" },
 	{ title: "Filesystem getArrayBuffer", script: "./test-fs-array-buffer.js" },

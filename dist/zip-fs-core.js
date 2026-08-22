@@ -6107,6 +6107,10 @@
 				maximumCompressedSize = contentSize === UNDEFINED_VALUE ? getMaximumCompressedSize(uncompressedSize) + encryptionOverhead : contentSize;
 			}
 		}
+		const emptyEntry = !encryptedEntry && (!hasContent || (contentSize === 0 && !passThrough)) && !isCompressed(compressionMethod, level);
+		if (emptyEntry && !zipCrypto && getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR) === UNDEFINED_VALUE) {
+			dataDescriptor = false;
+		}
 		const zip64UncompressedSize = zip64Enabled || uncompressedSize >= MAX_32_BITS;
 		const zip64CompressedSize = zip64Enabled || maximumCompressedSize >= MAX_32_BITS;
 		if (zip64UncompressedSize || zip64CompressedSize) {
@@ -6121,6 +6125,7 @@
 			maximumCompressedSize,
 			resolvedOptions: {
 				dataDescriptor,
+				emptyEntry,
 				zip64,
 				zip64UncompressedSize,
 				zip64CompressedSize,
@@ -6219,6 +6224,7 @@
 		const {
 			keepOrder,
 			dataDescriptor,
+			emptyEntry,
 			signal
 		} = options;
 		const {
@@ -6243,7 +6249,7 @@
 				lockPreviousFileEntry = previousFileEntry && previousFileEntry.lockFileEntry;
 				requestLockCurrentFileEntry();
 			}
-			if (options.bufferedWrite || !keepOrder || zipWriter.writerLocked || zipWriter.bufferedWrites || !dataDescriptor) {
+			if (options.bufferedWrite || !keepOrder || zipWriter.writerLocked || zipWriter.bufferedWrites || (!dataDescriptor && !emptyEntry)) {
 				bufferedWrite = true;
 				zipWriter.bufferedWrites++;
 				if (options.createTempStream) {

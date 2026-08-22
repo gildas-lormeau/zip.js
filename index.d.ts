@@ -2952,7 +2952,9 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    *
    * When set to `false`, the {@link ZipWriterConstructorOptions#bufferedWrite} option will automatically be
    * set to `true`. It will be automatically set to `false` when it is `undefined` and the
-   * {@link ZipWriterConstructorOptions#bufferedWrite} option is set to `true`, or when the
+   * {@link ZipWriterConstructorOptions#bufferedWrite} option is set to `true`, or when the entry is a folder
+   * or an empty entry stored without compression or encryption, since the header can then carry the sizes and
+   * the CRC-32 directly. It will be automatically set to `true` when the
    * {@link ZipWriterConstructorOptions#zipCrypto} option is set to `true`. Otherwise, the default value is `true`.
    */
   dataDescriptor?: boolean;

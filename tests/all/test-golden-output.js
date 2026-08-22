@@ -3,7 +3,7 @@
 import * as zip from "../zip-lib.js";
 
 // deterministic archive: any change to this hash means the serialization format changed
-const EXPECTED_SHA256 = "2d4204564f11117c930e9e5ac75a753d1facc3c19ac0ec62b2ef9786ba53c0ac";
+const EXPECTED_SHA256 = "8cc659f7562564237ce3bd5bfabf15c8912d70d155add2baf08c2da04f33fc2a";
 const SEGMENT_SIZE = 1500;
 const LAST_MOD_DATE = new Date(2020, 0, 1, 12, 0, 0);
 
