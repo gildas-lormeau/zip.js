@@ -6193,13 +6193,11 @@
 			await zipReader$1.close();
 			await initStream(this.writer);
 			const { directoryOffset } = zipReader$1;
-			let splitZipSignatureLength = 0;
 			if (this.addSplitZipSignature) {
 				delete this.addSplitZipSignature;
 				if (!await startsWithSplitZipSignature(reader)) {
 					await writeData(this.writer, getSplitZipSignatureArray());
-					splitZipSignatureLength = SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
-					this.offset += splitZipSignatureLength;
+					this.offset += SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
 				}
 			}
 			const entryPositions = await copyZipData(this, reader, entries, directoryOffset);
