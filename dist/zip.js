@@ -235,6 +235,18 @@
 		}
 	}
 
+	function checkInteger(value, maxValue, errorMessage) {
+		if (!Number.isInteger(value) || value < 0 || value > maxValue) {
+			throw new Error(errorMessage);
+		}
+	}
+
+	function checkIntegerOption(value, maxValue, errorMessage) {
+		if (value !== UNDEFINED_VALUE) {
+			checkInteger(value, maxValue, errorMessage);
+		}
+	}
+
 	function toNumber(value) {
 		return typeof value == STRING_TYPE && value.trim() ? Number(value) : value;
 	}
@@ -6466,15 +6478,9 @@
 		let setuid = getOptionValue(zipWriter, options, PROPERTY_NAME_SETUID);
 		let setgid = getOptionValue(zipWriter, options, PROPERTY_NAME_SETGID);
 		let sticky = getOptionValue(zipWriter, options, PROPERTY_NAME_STICKY);
-		if (uid !== UNDEFINED_VALUE && (!Number.isInteger(uid) || uid < 0 || uid > MAX_32_BITS)) {
-			throw new Error(ERR_INVALID_UID);
-		}
-		if (gid !== UNDEFINED_VALUE && (!Number.isInteger(gid) || gid < 0 || gid > MAX_32_BITS)) {
-			throw new Error(ERR_INVALID_GID);
-		}
-		if (unixMode !== UNDEFINED_VALUE && (!Number.isInteger(unixMode) || unixMode < 0 || unixMode > MAX_16_BITS)) {
-			throw new Error(ERR_INVALID_UNIX_MODE);
-		}
+		checkIntegerOption(uid, MAX_32_BITS, ERR_INVALID_UID);
+		checkIntegerOption(gid, MAX_32_BITS, ERR_INVALID_GID);
+		checkIntegerOption(unixMode, MAX_16_BITS, ERR_INVALID_UNIX_MODE);
 		if (unixExtraFieldType !== UNDEFINED_VALUE && unixExtraFieldType !== INFOZIP_EXTRA_FIELD_TYPE && unixExtraFieldType !== UNIX_EXTRA_FIELD_TYPE) {
 			throw new Error(ERR_INVALID_UNIX_EXTRA_FIELD_TYPE);
 		}
@@ -6496,9 +6502,7 @@
 			msDosCompatible = true;
 			versionMadeBy = (versionMadeBy & MAX_8_BITS);
 		}
-		if (msdosAttributesRaw !== UNDEFINED_VALUE && (!Number.isInteger(msdosAttributesRaw) || msdosAttributesRaw < 0 || msdosAttributesRaw > MAX_8_BITS)) {
-			throw new Error(ERR_INVALID_MSDOS_ATTRIBUTES);
-		}
+		checkIntegerOption(msdosAttributesRaw, MAX_8_BITS, ERR_INVALID_MSDOS_ATTRIBUTES);
 		if (msdosAttributes && (typeof msdosAttributes !== OBJECT_TYPE || Array.isArray(msdosAttributes))) {
 			throw new Error(ERR_INVALID_MSDOS_DATA);
 		}
@@ -6638,9 +6642,7 @@
 			throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 		}
 		let level = getNumberOptionValue(zipWriter, options, OPTION_LEVEL);
-		if (level !== UNDEFINED_VALUE && (!Number.isInteger(level) || level < 0 || level > MAX_LEVEL)) {
-			throw new Error(ERR_INVALID_LEVEL);
-		}
+		checkIntegerOption(level, MAX_LEVEL, ERR_INVALID_LEVEL);
 		if (zipWriter.options[OPTION_USDZ]) {
 			if (password !== UNDEFINED_VALUE || rawPassword !== UNDEFINED_VALUE) {
 				throw new Error(ERR_UNSUPPORTED_ENCRYPTION_USDZ);
@@ -6718,9 +6720,7 @@
 		let extraFieldSize = 0;
 		let offset = 0;
 		extraField.forEach((data, type) => {
-			if (!Number.isInteger(type) || type < 0 || type > MAX_16_BITS) {
-				throw new Error(ERR_INVALID_EXTRAFIELD_TYPE);
-			}
+			checkInteger(type, MAX_16_BITS, ERR_INVALID_EXTRAFIELD_TYPE);
 			if (!(data instanceof Uint8Array)) {
 				throw new Error(ERR_INVALID_EXTRAFIELD_DATA_TYPE);
 			}
