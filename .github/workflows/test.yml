@@ -76,10 +76,12 @@ jobs:
           - os: windows-latest
             browser: chrome
             version: '87.0.4279.4'
+            position: '811961'
             search: 'maxParallelTests=4'
           - os: windows-latest
             browser: chrome
             version: '76.0.3808.4'
+            position: '664573'
           - os: windows-latest
             browser: firefox
             version: 'latest'
@@ -99,11 +101,13 @@ jobs:
           - os: windows-latest
             browser: chrome
             version: '87.0.4279.4'
+            position: '811961'
             search: 'maxParallelTests=4'
             build: 'native'
           - os: windows-latest
             browser: chrome
             version: '76.0.3808.4'
+            position: '664573'
             build: 'native'
           - os: windows-latest
             browser: firefox
@@ -146,12 +150,9 @@ jobs:
                 echo "appSubpath: $appSubpath"
               }
               else {
-                # Use portable chromium
+                # Use a portable chromium snapshot, located by the position pinned in the matrix
                 # https://www.chromium.org/getting-involved/download-chromium/
-                $data = Invoke-RestMethod `
-                    -Uri "https://github.com/vikyd/chromium-history-version-position/raw/refs/heads/master/json/ver-pos-os/version-position-Win_x64.json"
-                $position = $data.$version
-                # $appDir = "https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Win_x64/${position}/"
+                $position = "${{ matrix.position }}"
                 $appSrc = "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F${position}%2Fchrome-win.zip?alt=media"
                 $appSubpath = "chrome-win/chrome.exe"
                 echo "appSrc: $appSrc"
