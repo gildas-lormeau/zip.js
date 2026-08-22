@@ -77,13 +77,11 @@ jobs:
             browser: chrome
             version: '87.0'
             url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchrome-win.zip?alt=media'
-            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchromedriver_win32.zip?alt=media'
             search: 'maxParallelTests=4'
           - os: windows-latest
             browser: chrome
             version: '76.0'
             url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchrome-win.zip?alt=media'
-            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchromedriver_win32.zip?alt=media'
           - os: windows-latest
             browser: firefox
             version: 'latest'
@@ -106,14 +104,12 @@ jobs:
             browser: chrome
             version: '87.0'
             url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchrome-win.zip?alt=media'
-            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchromedriver_win32.zip?alt=media'
             search: 'maxParallelTests=4'
             build: 'native'
           - os: windows-latest
             browser: chrome
             version: '76.0'
             url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchrome-win.zip?alt=media'
-            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchromedriver_win32.zip?alt=media'
             build: 'native'
           - os: windows-latest
             browser: firefox
@@ -157,16 +153,6 @@ jobs:
               $exePath = "$exeDir\chrome-win\chrome.exe"
               echo "EXE_PATH=$exePath" >> $env:GITHUB_ENV
             }
-
-            $driverUrl = "${{ matrix.driver }}"
-            if ($driverUrl) {
-              $driverZip = "$targetDir\chromedriver.zip"
-              $driverDir = "$targetDir\chromedriver"
-              Invoke-WebRequest -Uri $driverUrl -OutFile $driverZip
-              Expand-Archive -Path $driverZip -DestinationPath $driverDir -Force
-              $driverExePath = "$driverDir\chromedriver_win32"
-              Add-Content -Path $env:GITHUB_PATH -Value $driverExePath
-            }
           }
           elseif ($browser -eq "firefox") {
             $url = "${{ matrix.url }}"
@@ -186,7 +172,9 @@ jobs:
       - name: Run tests
         shell: pwsh
         run: |
-          $argsList = @("${{ matrix.browser }}")
+          $browser = "${{ matrix.browser }}"
+
+          $argsList = @($browser)
 
           if ($env:EXE_PATH) {
             $argsList += "--exe-path"
@@ -203,6 +191,12 @@ jobs:
           if ($build) {
             $argsList += "--build"
             $argsList += "$build"
+          }
+
+          if ($browser -eq "chrome") {
+            # Skip the preinstalled browser drivers in PATH and let selenium determine
+            # according to the passed executable.
+            $env:SE_SKIP_DRIVER_IN_PATH = "true"
           }
 
           & node tests/browser-runner.js $argsList
