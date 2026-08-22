@@ -18,6 +18,12 @@ The URL of a module exporting the `CompressionStream` and/or `DecompressionStrea
 the codec. Relative URLs are resolved against [Configuration#baseURI](Configuration.md#baseuri); passing an absolute
 URL (e.g. via `import.meta.resolve()`) is recommended.
 
+#### Remarks
+
+The module is imported dynamically at runtime. Bundlers and single-file builds (e.g.
+`deno compile`) cannot follow this import, so the module must be included explicitly
+(e.g. with `deno compile --include` or the equivalent option of the bundler).
+
 ***
 
 ### compressionMethod

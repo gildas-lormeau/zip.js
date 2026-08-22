@@ -265,6 +265,11 @@ export interface CodecDefinition {
    * The URL of a module exporting the `CompressionStream` and/or `DecompressionStream` classes of
    * the codec. Relative URLs are resolved against {@link Configuration#baseURI}; passing an absolute
    * URL (e.g. via `import.meta.resolve()`) is recommended.
+   *
+   * @remarks
+   * The module is imported dynamically at runtime. Bundlers and single-file builds (e.g.
+   * `deno compile`) cannot follow this import, so the module must be included explicitly
+   * (e.g. with `deno compile --include` or the equivalent option of the bundler).
    */
   codecURI?: string;
   /**
