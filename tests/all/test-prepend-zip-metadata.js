@@ -41,6 +41,31 @@ async function test() {
 		secretDirectoryEntry.compressionMethod != COMPRESSION_METHOD_AES) {
 		throw new Error();
 	}
+	await testInitialOffset();
+}
+
+async function testInitialOffset() {
+	const prependedDataLength = 4;
+	const srcWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await srcWriter.add("plain.txt", new zip.BlobReader(BLOB));
+	const srcData = await srcWriter.close();
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { offset: prependedDataLength });
+	await zipWriter.prependZip(new zip.Uint8ArrayReader(srcData));
+	await zipWriter.add("extra.txt", new zip.BlobReader(BLOB));
+	const data = await zipWriter.close();
+	const fullData = new Uint8Array(prependedDataLength + data.length);
+	fullData.set(data, prependedDataLength);
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(fullData), { checkCrc32: true });
+	const entries = await zipReader.getEntries();
+	const [plainText, extraText] = await Promise.all([
+		entries.find(entry => entry.filename == "plain.txt").getData(new zip.TextWriter()),
+		entries.find(entry => entry.filename == "extra.txt").getData(new zip.TextWriter())
+	]);
+	await zipReader.close();
+	await zip.terminateWorkers();
+	if (plainText != TEXT_CONTENT || extraText != TEXT_CONTENT) {
+		throw new Error();
+	}
 }
 
 function readCentralDirectory(array) {
