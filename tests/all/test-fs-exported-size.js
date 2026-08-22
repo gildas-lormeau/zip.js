@@ -174,6 +174,41 @@ async function testUndeterminedSize() {
 		root.addText("root.txt", TEXT_CONTENT);
 	}, { level: 0, usdz: true });
 	await assertUndeterminedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, usdz: true, keepOrder: false });
+	await testOrderDependentZip64Offsets();
+}
+
+async function testOrderDependentZip64Offsets() {
+	const GiB = 1024 * 1024 * 1024;
+	const options = { level: 0, dataDescriptor: false, extendedTimestamp: false };
+	function build(root, sizes) {
+		sizes.forEach((size, indexSize) => {
+			const entry = root.addReadable("entry" + indexSize + ".bin", new Blob([]).stream());
+			entry.uncompressedSize = size;
+			entry.undeterminedSize = false;
+		});
+	}
+	const orderDependentSizes = [1.5 * GiB, 1024, 3 * GiB];
+	const zipFsUnordered = new zip.ZipFS();
+	build(zipFsUnordered.root, orderDependentSizes);
+	let errorMessage;
+	try {
+		await zipFsUnordered.getExportedSize(Object.assign({ keepOrder: false }, options));
+	} catch (error) {
+		errorMessage = error.message;
+	}
+	if (errorMessage != zip.ERR_UNDETERMINED_SIZE) {
+		throw new Error();
+	}
+	const zipFsOrdered = new zip.ZipFS();
+	build(zipFsOrdered.root, orderDependentSizes);
+	if (!(await zipFsOrdered.getExportedSize(Object.assign({ bufferedWrite: false }, options)) > 4 * GiB)) {
+		throw new Error();
+	}
+	const zipFsSmall = new zip.ZipFS();
+	build(zipFsSmall.root, [1024, 2048]);
+	if (!(await zipFsSmall.getExportedSize(Object.assign({ keepOrder: false }, options)) > 0)) {
+		throw new Error();
+	}
 }
 
 async function testNoReaderCreated() {
