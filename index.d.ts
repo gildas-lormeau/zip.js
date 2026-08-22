@@ -4321,6 +4321,13 @@ export const ERR_INVALID_FILENAME_VALIDATION: string;
  */
 export const ERR_INVALID_MAX_APPENDED_DATA_SIZE: string;
 /**
+ * Unsupported 64-bit value error
+ *
+ * @remarks Thrown when a 64-bit size, offset, or entry count read from a zip file exceeds `Number.MAX_SAFE_INTEGER`,
+ * instead of processing the value with a loss of precision.
+ */
+export const ERR_UNSUPPORTED_UINT64: string;
+/**
  * Iteration completed too soon error
  */
 export const ERR_ITERATOR_COMPLETED_TOO_SOON: string;

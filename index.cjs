@@ -4727,6 +4727,7 @@ const ERR_UNSAFE_FILENAME = "Unsafe filename";
 const ERR_INVALID_STRICTNESS = "Invalid strictness (must be 'strict', 'balanced' or 'tolerant')";
 const ERR_INVALID_FILENAME_VALIDATION = "Invalid filenameValidation (must be 'strict', 'balanced' or 'tolerant')";
 const ERR_INVALID_MAX_APPENDED_DATA_SIZE = "Invalid maxAppendedDataSize (must be a number greater than or equal to 0)";
+const ERR_UNSUPPORTED_UINT64 = "64-bit value exceeds Number.MAX_SAFE_INTEGER";
 const DRIVE_LETTER_REGEXP = /^[a-zA-Z]:/;
 const CHARSET_UTF8 = "utf-8";
 const PROPERTY_NAME_UTF8_SUFFIX = "UTF8";
@@ -4749,6 +4750,7 @@ const ZIP64_EXTRACTION = {
 		bytes: 8
 	}
 };
+const MAX_SAFE_UINT64 = BigInt(Number.MAX_SAFE_INTEGER);
 const MAX_END_OF_CENTRAL_DIR_PROBES = 64;
 const MAX_DEFLATE_EXPANSION_RATIO = 1032;
 const CENTRAL_DIRECTORY_UNREACHABLE = 0;
@@ -4844,7 +4846,7 @@ class ZipReader {
 				zip64EndOfDirectoryVersion2 = getBigUint64(endOfDirectoryView, 4) > ZIP64_END_OF_CENTRAL_DIR_LENGTH - 12;
 				if (zip64EndOfDirectoryVersion2) {
 					const extensibleDataLength = Math.min(
-						Number(getBigUint64(endOfDirectoryView, 4)) - (ZIP64_END_OF_CENTRAL_DIR_LENGTH - 12),
+						getBigUint64(endOfDirectoryView, 4) - (ZIP64_END_OF_CENTRAL_DIR_LENGTH - 12),
 						reader.size - directoryDataOffset - ZIP64_END_OF_CENTRAL_DIR_LENGTH);
 					if (extensibleDataLength > 0) {
 						zip64EndOfDirectoryLength += extensibleDataLength;
@@ -5425,8 +5427,8 @@ function getDirectoryEncryptionInfo(rawExtensibleData) {
 		const hashDataLength = getUint16$1(extensibleDataView, 26);
 		Object.assign(directoryEncryptionInfo, {
 			compressionMethod: getUint16$1(extensibleDataView, 0),
-			compressedSize: Number(getBigUint64(extensibleDataView, 2)),
-			uncompressedSize: Number(getBigUint64(extensibleDataView, 10)),
+			compressedSize: getBigUint64(extensibleDataView, 2),
+			uncompressedSize: getBigUint64(extensibleDataView, 10),
 			encryptionAlgorithm: getUint16$1(extensibleDataView, 18),
 			bitLength: getUint16$1(extensibleDataView, 20),
 			flags: getUint16$1(extensibleDataView, 22),
@@ -6061,7 +6063,11 @@ function getUint32$1(view, offset) {
 }
 
 function getBigUint64(view, offset) {
-	return Number(view.getBigUint64(offset, true));
+	const value = view.getBigUint64(offset, true);
+	if (value > MAX_SAFE_UINT64) {
+		throw new Error(ERR_UNSUPPORTED_UINT64);
+	}
+	return Number(value);
 }
 
 var zipReader = /*#__PURE__*/Object.freeze({
@@ -6090,6 +6096,7 @@ var zipReader = /*#__PURE__*/Object.freeze({
 	ERR_UNSAFE_FILENAME: ERR_UNSAFE_FILENAME,
 	ERR_UNSUPPORTED_COMPRESSION: ERR_UNSUPPORTED_COMPRESSION$1,
 	ERR_UNSUPPORTED_ENCRYPTION: ERR_UNSUPPORTED_ENCRYPTION,
+	ERR_UNSUPPORTED_UINT64: ERR_UNSUPPORTED_UINT64,
 	ERR_WORKER_STARTUP_TIMEOUT: ERR_WORKER_STARTUP_TIMEOUT,
 	ZipReader: ZipReader,
 	ZipReaderStream: ZipReaderStream
@@ -10534,6 +10541,7 @@ exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
 exports.ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH;
 exports.ERR_UNSUPPORTED_ENCRYPTION_USDZ = ERR_UNSUPPORTED_ENCRYPTION_USDZ;
 exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
+exports.ERR_UNSUPPORTED_UINT64 = ERR_UNSUPPORTED_UINT64;
 exports.ERR_WORKER_STARTUP_TIMEOUT = ERR_WORKER_STARTUP_TIMEOUT;
 exports.ERR_WRITER_NOT_INITIALIZED = ERR_WRITER_NOT_INITIALIZED;
 exports.ERR_ZIP_NOT_EMPTY = ERR_ZIP_NOT_EMPTY;
