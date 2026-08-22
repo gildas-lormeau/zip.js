@@ -6223,7 +6223,7 @@
 					encrypted,
 					uncompressedSize,
 					compressedSize,
-					zip64
+					extraFieldZip64
 				} = entry;
 				let {
 					compressionMethod,
@@ -6240,13 +6240,13 @@
 				rawExtraFieldExtendedTimestamp = rawExtraFieldExtendedTimestamp || EMPTY_UINT8_ARRAY;
 				rawExtraFieldNTFS = rawExtraFieldNTFS || EMPTY_UINT8_ARRAY;
 				rawExtraFieldUnix = rawExtraFieldUnix || EMPTY_UINT8_ARRAY;
-				rawExtraField = rawExtraField || EMPTY_UINT8_ARRAY;
+				rawExtraField = removeExtraFieldZip64(rawExtraField || EMPTY_UINT8_ARRAY);
 				if (entry.extraFieldAES) {
 					compressionMethod = COMPRESSION_METHOD_AES;
 				}
 				const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
-				const zip64UncompressedSize = zip64 && uncompressedSize >= MAX_32_BITS;
-				const zip64CompressedSize = zip64 && compressedSize >= MAX_32_BITS;
+				const zip64UncompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.uncompressedSize !== UNDEFINED_VALUE;
+				const zip64CompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.compressedSize !== UNDEFINED_VALUE;
 				const bitFlagValue = (getBitFlag(level, languageEncodingFlag, dataDescriptor, encrypted, compressionMethod) & ~BITFLAG_LEVEL) | (level << 1);
 				const {
 					headerArray,
@@ -7841,6 +7841,21 @@
 	async function startsWithSplitZipSignature(reader) {
 		const signatureArray = await readUint8Array(reader, 0, SPLIT_ZIP_FILE_SIGNATURE_LENGTH);
 		return getUint32(getDataView(signatureArray), 0) == SPLIT_ZIP_FILE_SIGNATURE;
+	}
+
+	function removeExtraFieldZip64(rawExtraField) {
+		const rawExtraFieldView = getDataView(rawExtraField);
+		let offsetExtraField = 0;
+		while (offsetExtraField + 4 <= getLength(rawExtraField)) {
+			const size = 4 + getUint16(rawExtraFieldView, offsetExtraField + 2);
+			if (getUint16(rawExtraFieldView, offsetExtraField) == EXTRAFIELD_TYPE_ZIP64) {
+				return removeExtraFieldZip64(concat(
+					rawExtraField.subarray(0, offsetExtraField),
+					rawExtraField.subarray(Math.min(offsetExtraField + size, getLength(rawExtraField)))));
+			}
+			offsetExtraField += size;
+		}
+		return rawExtraField;
 	}
 
 	async function copyZipData(zipWriter, reader, entries, directoryOffset) {
