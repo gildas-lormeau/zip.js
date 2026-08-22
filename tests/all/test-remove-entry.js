@@ -1,4 +1,4 @@
-/* global Blob */
+/* global Blob, ReadableStream, TextEncoder, setTimeout */
 
 import * as zip from "../zip-lib.js";
 
@@ -8,6 +8,11 @@ const BLOB = new Blob([TEXT_CONTENT], { type: "text/plain" });
 export { test };
 
 async function test() {
+	await removeAddedEntry();
+	await removePendingEntry();
+}
+
+async function removeAddedEntry() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const blobWriter = new zip.BlobWriter("application/zip");
 	const zipWriter = new zip.ZipWriter(blobWriter, {});
@@ -29,5 +34,35 @@ async function test() {
 		}
 	} else {
 		throw new Error();
+	}
+}
+
+// remove() must not touch an entry whose add() is still in flight: it returns false and the entry
+// is written normally once the add completes
+async function removePendingEntry() {
+	zip.configure({ useWebWorkers: false });
+	let releaseReader;
+	const gate = new Promise(resolve => releaseReader = resolve);
+	const readable = new ReadableStream({
+		async pull(controller) {
+			await gate;
+			controller.enqueue(new TextEncoder().encode(TEXT_CONTENT));
+			controller.close();
+		}
+	});
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	const pendingAdd = zipWriter.add("pending.txt", { readable, size: TEXT_CONTENT.length });
+	await new Promise(resolve => setTimeout(resolve, 10));
+	const removed = zipWriter.remove("pending.txt");
+	releaseReader();
+	await pendingAdd;
+	const data = await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+	const entries = await zipReader.getEntries();
+	await zipReader.close();
+	await zip.terminateWorkers();
+	if (removed || entries.length != 1 || entries[0].filename != "pending.txt") {
+		throw new Error("expected remove() to return false for a pending entry and keep it, got " +
+			removed + " and " + entries.length + " entries");
 	}
 }
