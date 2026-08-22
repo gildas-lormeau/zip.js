@@ -75,26 +75,22 @@ jobs:
             version: 'latest'
           - os: windows-latest
             browser: chrome
-            version: '87.0'
-            url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchrome-win.zip?alt=media'
-            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchromedriver_win32.zip?alt=media'
+            version: '87.0.4279.4'
+            position: '811961'
             search: 'maxParallelTests=4'
           - os: windows-latest
             browser: chrome
-            version: '76.0'
-            url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchrome-win.zip?alt=media'
-            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchromedriver_win32.zip?alt=media'
+            version: '76.0.3808.4'
+            position: '664573'
           - os: windows-latest
             browser: firefox
             version: 'latest'
           - os: windows-latest
             browser: firefox
-            version: '102.0'
-            url: 'https://ftp.mozilla.org/pub/firefox/releases/102.0.1/win64/en-US/Firefox%20Setup%20102.0.1.exe'
+            version: '102.0.1'
           - os: windows-latest
             browser: firefox
             version: '79.0'
-            url: 'https://ftp.mozilla.org/pub/firefox/releases/79.0/win64/en-US/Firefox%20Setup%2079.0.exe'
             search: 'withStreamsPolyfill'
           # pinned: safari loses its window or its session mid-suite on macos-latest, i.e. macos-26
           - os: macos-15
@@ -104,26 +100,22 @@ jobs:
           # native build
           - os: windows-latest
             browser: chrome
-            version: '87.0'
-            url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchrome-win.zip?alt=media'
-            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F811961%2Fchromedriver_win32.zip?alt=media'
+            version: '87.0.4279.4'
+            position: '811961'
             search: 'maxParallelTests=4'
             build: 'native'
           - os: windows-latest
             browser: chrome
-            version: '76.0'
-            url: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchrome-win.zip?alt=media'
-            driver: 'https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F664573%2Fchromedriver_win32.zip?alt=media'
+            version: '76.0.3808.4'
+            position: '664573'
             build: 'native'
           - os: windows-latest
             browser: firefox
-            version: '102.0'
-            url: 'https://ftp.mozilla.org/pub/firefox/releases/102.0.1/win64/en-US/Firefox%20Setup%20102.0.1.exe'
+            version: '102.0.1'
             build: 'native'
           - os: windows-latest
             browser: firefox
             version: '71.0'
-            url: 'https://ftp.mozilla.org/pub/firefox/releases/71.0/win64/en-US/Firefox%20Setup%2071.0.exe'
             build: 'native'
             search: 'withStreamsPolyfill'
 
@@ -144,39 +136,48 @@ jobs:
         run: |
           $browser = "${{ matrix.browser }}"
           $version = "${{ matrix.version }}"
-          $targetDir = "$env:USERPROFILE\browsers"
+          $targetDir = "$env:USERPROFILE/browsers"
           New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
 
           if ($browser -eq "chrome") {
-            $url = "${{ matrix.url }}"
-            if ($url) {
-              $zipFile = "$targetDir\chrome-win.zip"
-              $exeDir = "$targetDir\chrome"
-              Invoke-WebRequest -Uri $url -OutFile $zipFile
-              Expand-Archive -Path $zipFile -DestinationPath $exeDir -Force
-              $exePath = "$exeDir\chrome-win\chrome.exe"
-              echo "EXE_PATH=$exePath" >> $env:GITHUB_ENV
-            }
+            if ($version -ne "latest") {
+              if ([version]$version -ge [version]"113.0") {
+                # Use Chrome for Testing when available
+                # https://googlechromelabs.github.io/chrome-for-testing/
+                $appSrc = "https://storage.googleapis.com/chrome-for-testing-public/${version}/win64/chrome-win64.zip"
+                $appSubpath = "chrome-win64/chrome.exe"
+                echo "appSrc: $appSrc"
+                echo "appSubpath: $appSubpath"
+              }
+              else {
+                # Use a portable chromium snapshot, located by the position pinned in the matrix
+                # https://www.chromium.org/getting-involved/download-chromium/
+                $position = "${{ matrix.position }}"
+                $appSrc = "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Win_x64%2F${position}%2Fchrome-win.zip?alt=media"
+                $appSubpath = "chrome-win/chrome.exe"
+                echo "appSrc: $appSrc"
+                echo "appSubpath: $appSubpath"
+              }
 
-            $driverUrl = "${{ matrix.driver }}"
-            if ($driverUrl) {
-              $driverZip = "$targetDir\chromedriver.zip"
-              $driverDir = "$targetDir\chromedriver"
-              Invoke-WebRequest -Uri $driverUrl -OutFile $driverZip
-              Expand-Archive -Path $driverZip -DestinationPath $driverDir -Force
-              $driverExePath = "$driverDir\chromedriver_win32"
-              Add-Content -Path $env:GITHUB_PATH -Value $driverExePath
+              $appZip = "$targetDir/chrome.zip"
+              $appDir = "$targetDir/chrome"
+              Invoke-WebRequest -Uri $appSrc -OutFile $appZip
+              Expand-Archive -Path $appZip -DestinationPath $appDir -Force
+              echo "EXE_PATH=$appDir/$appSubpath" >> $env:GITHUB_ENV
             }
           }
           elseif ($browser -eq "firefox") {
-            $url = "${{ matrix.url }}"
-            if ($url) {
-              $exeFile = "$targetDir\firefox-setup.exe"
-              $exeDir = "$targetDir\firefox"
-              Invoke-WebRequest -Uri $url -OutFile $exeFile
-              7z x $exeFile -o"$targetDir\firefox" -y | Out-Null
-              $exePath = "$exeDir\core\firefox.exe"
-              echo "EXE_PATH=$exePath" >> $env:GITHUB_ENV
+            if ($version -ne "latest") {
+              $appSrc = "https://ftp.mozilla.org/pub/firefox/releases/$version/win64/en-US/Firefox%20Setup%20$version.exe"
+              $appSubpath = "core/firefox.exe"
+              echo "appSrc: $appSrc"
+              echo "appSubpath: $appSubpath"
+
+              $appFile = "$targetDir/firefox-setup.exe"
+              $appDir = "$targetDir/firefox"
+              Invoke-WebRequest -Uri $appSrc -OutFile $appFile
+              7z x $appFile -o"$appDir" -y | Out-Null
+              echo "EXE_PATH=$appDir/$appSubpath" >> $env:GITHUB_ENV
             }
           }
           elseif ($browser -eq "safari") {
@@ -186,7 +187,9 @@ jobs:
       - name: Run tests
         shell: pwsh
         run: |
-          $argsList = @("${{ matrix.browser }}")
+          $browser = "${{ matrix.browser }}"
+
+          $argsList = @($browser)
 
           if ($env:EXE_PATH) {
             $argsList += "--exe-path"
@@ -205,4 +208,10 @@ jobs:
             $argsList += "$build"
           }
 
-          & node tests/browser-runner.js $argsList
+          if ($browser -eq "chrome") {
+            # Skip the preinstalled browser drivers in PATH and let selenium determine
+            # according to the passed executable.
+            $env:SE_SKIP_DRIVER_IN_PATH = "true"
+          }
+
+          node tests/browser-runner.js $argsList
