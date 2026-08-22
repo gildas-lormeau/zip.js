@@ -120,8 +120,9 @@ async function testSplitOutput() {
 			}
 			diskStart += disk.length;
 		}
+		const digitalSignatureOK = equalArrays(zipReader.digitalSignature, signatureData);
 		await zipReader.close();
-		if (!recordInSingleDisk) {
+		if (!recordInSingleDisk || !digitalSignatureOK) {
 			return false;
 		}
 	}

@@ -5067,8 +5067,15 @@
 				yield entry;
 			}
 			let offsetAfterSignature = offset;
-			const digitalSignature = readDigitalSignature(directoryArray.subarray(offset)) ||
+			let digitalSignature = readDigitalSignature(directoryArray.subarray(offset)) ||
 				(decryptedDirectory ? readDigitalSignature(dataAfterEncryptedDirectory) : UNDEFINED_VALUE);
+			if (!digitalSignature && !decryptedDirectory) {
+				const signatureRecordOffset = directoryDataOffset + offset;
+				const signatureRecordLength = Math.min(centralDirectoryEndOffset - signatureRecordOffset, 6 + MAX_16_BITS);
+				if (signatureRecordLength >= 6) {
+					digitalSignature = readDigitalSignature(await readUint8Array(reader, signatureRecordOffset, signatureRecordLength));
+				}
+			}
 			if (digitalSignature) {
 				zipReader.digitalSignature = digitalSignature;
 				offsetAfterSignature = offset + 6 + digitalSignature.length;
