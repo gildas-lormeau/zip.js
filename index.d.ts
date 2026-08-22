@@ -3031,6 +3031,9 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * - "unix": Info-ZIP Unix extra field type 2 (0x7855), storing fixed 2-byte uid/gid (0..65535); a
    *   larger uid or gid is rejected. The Unix mode is not part of this field; it is written to the
    *   external file attributes.
+   *
+   * When {@link ZipFS} exports imported entries, their uid/gid are re-emitted as "infozip" regardless
+   * of the field type found in the imported zip file, unless this option is set explicitly.
    */
   unixExtraFieldType?: "infozip" | "unix";
   /**

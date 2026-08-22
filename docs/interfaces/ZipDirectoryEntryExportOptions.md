@@ -738,6 +738,9 @@ Which Unix extra field format to write when creating entries that include Unix m
   larger uid or gid is rejected. The Unix mode is not part of this field; it is written to the
   external file attributes.
 
+When [ZipFS](../classes/ZipFS.md) exports imported entries, their uid/gid are re-emitted as "infozip" regardless
+of the field type found in the imported zip file, unless this option is set explicitly.
+
 #### Inherited from
 
 [`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`unixExtraFieldType`](ZipWriterConstructorOptions.md#unixextrafieldtype)
