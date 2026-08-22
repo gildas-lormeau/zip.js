@@ -13,6 +13,7 @@ const LOREM_PREFIX = "Lorem ipsum";
 
 const TEXT_CONTENT = "The quick brown fox jumps over the lazy dog. ".repeat(40);
 const COMPRESSION_METHOD_XOR = 93;
+const COMPRESSION_METHOD_XOR_HIGH = 0x1234;
 const FORMAT_XOR = "xor-test";
 const FORMAT_XOR_URI = "xor-test-uri";
 const VERSION_NEEDED_XOR = 63;
@@ -59,6 +60,7 @@ async function test() {
 		checkInvalidDefinitions();
 		const bytes = await checkRoundTrip();
 		await checkEncryptedRoundTrip();
+		await checkEncryptedHighMethodRoundTrip();
 		zip.unregisterCodec(COMPRESSION_METHOD_XOR);
 		await checkUnsupported(bytes);
 		zip.registerCodec({
@@ -225,6 +227,36 @@ async function checkEncryptedRoundTrip() {
 	const content = await readFirstEntry(bytes, { password: "password" });
 	if (content != TEXT_CONTENT) {
 		throw new Error("encrypted entry did not round-trip");
+	}
+}
+
+async function checkEncryptedHighMethodRoundTrip() {
+	try {
+		zip.registerCodec({
+			compressionMethod: COMPRESSION_METHOD_XOR_HIGH,
+			format: FORMAT_XOR,
+			CompressionStream: XorStream,
+			DecompressionStream: XorStream,
+			versionNeeded: VERSION_NEEDED_XOR
+		});
+		const writer = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { password: "password" });
+		await writer.add("entry.txt", new zip.TextReader(TEXT_CONTENT), { compressionMethod: COMPRESSION_METHOD_XOR_HIGH });
+		const bytes = await writer.close();
+		const reader = new zip.ZipReader(new zip.BlobReader(new Blob([bytes])), { checkCrc32: true });
+		try {
+			const [entry] = await reader.getEntries();
+			if (entry.compressionMethod != COMPRESSION_METHOD_XOR_HIGH) {
+				throw new Error("AES extra field method " + entry.compressionMethod + ", expected " + COMPRESSION_METHOD_XOR_HIGH);
+			}
+			const content = await entry.getData(new zip.TextWriter(), { password: "password" });
+			if (content != TEXT_CONTENT) {
+				throw new Error("encrypted high-method entry did not round-trip");
+			}
+		} finally {
+			await reader.close();
+		}
+	} finally {
+		zip.unregisterCodec(COMPRESSION_METHOD_XOR_HIGH);
 	}
 }
 
