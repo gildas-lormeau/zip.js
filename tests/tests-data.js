@@ -105,6 +105,7 @@ export default ([
 	{ title: "Decrypt central directory", script: "./test-decrypt-central-directory.js" },
 	{ title: "Digital signature record", script: "./test-digital-signature.js" },
 	{ title: "SecureZIP archives", script: "./test-securezip-archives.js" },
+	{ title: "PKZIP 2.04g archives", script: "./test-pkzip204-archives.js" },
 	{ title: "Empty entry deflate", script: "./test-empty-entry-deflate.js" },
 	{ title: "Extra field", script: "./test-extra-field.js" },
 	{ title: "Last access date and creation date", script: "./test-last-access-date.js" },
