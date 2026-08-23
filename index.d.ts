@@ -2977,6 +2977,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * {@link ZipWriterConstructorOptions#msdosAttributesRaw} or {@link ZipWriterConstructorOptions#msdosAttributes}
    * turns it on, overriding an explicit `false`.
    *
+   * MS-DOS era extractors, e.g. PKUNZIP 2.04g, only honor the directory attribute of entries declaring the
+   * MS-DOS platform. Without this option, they extract folder entries as zero-length files, which can then
+   * prevent extracting the files stored below the folders.
+   *
    * @defaultValue false
    */
   msDosCompatible?: boolean;

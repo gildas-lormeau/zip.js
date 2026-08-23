@@ -499,6 +499,10 @@ attributes out of the entries. Setting any Unix metadata option, e.g.
 [ZipWriterConstructorOptions#msdosAttributesRaw](ZipWriterConstructorOptions.md#msdosattributesraw) or [ZipWriterConstructorOptions#msdosAttributes](ZipWriterConstructorOptions.md#msdosattributes)
 turns it on, overriding an explicit `false`.
 
+MS-DOS era extractors, e.g. PKUNZIP 2.04g, only honor the directory attribute of entries declaring the
+MS-DOS platform. Without this option, they extract folder entries as zero-length files, which can then
+prevent extracting the files stored below the folders.
+
 #### Default Value
 
 ```ts
