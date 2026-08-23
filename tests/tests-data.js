@@ -94,6 +94,7 @@ export default ([
 	{ title: "Duplicated Filename", script: "./test-duplicated-filename.js" },
 	{ title: "Empty zip file", script: "./test-empty.js" },
 	{ title: "Entry count from total field", script: "./test-entry-count-total.js" },
+	{ title: "Entry count wrapped modulo 65536", script: "./test-entry-count-wrapped.js" },
 	{ title: "Entry header fields", script: "./test-entry-header-fields.js" },
 	{ title: "Extended timestamp", script: "./test-extended-timestamp.js" },
 	{ title: "NTFS timestamp", script: "./test-ntfs-timestamp.js" },

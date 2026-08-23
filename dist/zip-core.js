@@ -4927,6 +4927,10 @@
 			const commentEncoding = getOptionValue$1(zipReader, options, OPTION_COMMENT_ENCODING);
 			const filenames = checkAmbiguity ? new Set() : UNDEFINED_VALUE;
 			let duplicateFilename;
+			const recoverWrappedFilesLength = !checkAmbiguity && !zip64EndOfDirectory;
+			if (!filesLength && recoverWrappedFilesLength) {
+				filesLength = getWrappedFilesLength(directoryView, directoryArray, offset);
+			}
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
 				const fileEntry = new ZipEntry(reader, zipReader.options);
 				if (offset + CENTRAL_FILE_HEADER_LENGTH > directoryArray.length || getUint32$1(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE) {
@@ -5049,6 +5053,9 @@
 					return arrayBufferPromise;
 				};
 				offset = endOffset;
+				if (indexFile == filesLength - 1 && recoverWrappedFilesLength) {
+					filesLength += getWrappedFilesLength(directoryView, directoryArray, offset);
+				}
 				const { onprogress } = options;
 				if (onprogress) {
 					try {
@@ -5380,6 +5387,16 @@
 		return false;
 	}
 
+	function getWrappedFilesLength(directoryView, directoryArray, offset) {
+		let wrappedFilesLength = 0;
+		while (offset + CENTRAL_FILE_HEADER_LENGTH <= directoryArray.length && getUint32$1(directoryView, offset) == CENTRAL_FILE_HEADER_SIGNATURE) {
+			offset += CENTRAL_FILE_HEADER_LENGTH +
+				getUint16$1(directoryView, offset + 28) + getUint16$1(directoryView, offset + 30) + getUint16$1(directoryView, offset + 32);
+			wrappedFilesLength++;
+		}
+		return wrappedFilesLength % (MAX_16_BITS + 1) ? 0 : wrappedFilesLength;
+	}
+
 	function readDigitalSignature(signatureRecordArray) {
 		if (signatureRecordArray.length >= 6) {
 			const signatureRecordView = getDataView(signatureRecordArray);
@@ -5552,10 +5569,11 @@
 		const computedCrc32View = getDataView(new Uint8Array(4));
 		computedCrc32View.setUint32(0, computedCrc32.get(), true);
 		const nameCrc32 = getUint32$1(extraFieldView, 1);
+		const version = getUint8(extraFieldView, 0);
 		Object.assign(extraFieldUnicode, {
-			version: getUint8(extraFieldView, 0),
+			version,
 			[propertyName]: decodeText(extraFieldUnicode.data.subarray(5)),
-			valid: !fileEntry.bitFlag.languageEncodingFlag && nameCrc32 == getUint32$1(computedCrc32View, 0)
+			valid: version == 1 && !fileEntry.bitFlag.languageEncodingFlag && nameCrc32 == getUint32$1(computedCrc32View, 0)
 		});
 		if (extraFieldUnicode.valid) {
 			directory[propertyName] = extraFieldUnicode[propertyName];
