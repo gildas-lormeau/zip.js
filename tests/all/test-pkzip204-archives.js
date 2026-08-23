@@ -17,6 +17,8 @@ async function test() {
 	testOK = testOK && await testSelfExtracting("lorem-204-sfx.exe", 15349);
 	testOK = testOK && await testSelfExtracting("lorem-204-sfx-junior.exe", 3002);
 	testOK = testOK && await testSpanned();
+	testOK = testOK && await testAttributes();
+	testOK = testOK && await testComments();
 	await zip.terminateWorkers();
 	if (!testOK) {
 		throw new Error();
@@ -48,6 +50,27 @@ async function testSelfExtracting(name, expectedPrependedDataLength) {
 	const [entry] = await zipReader.getEntries();
 	const text = await entry.getData(new zip.TextWriter());
 	return zipReader.prependedData.length == expectedPrependedDataLength && text.startsWith(LOREM_PREFIX);
+}
+
+async function testAttributes() {
+	const expectedAttributes = new Map([
+		["HIDDEN.TXT", 0x22],
+		["SYSTEM.TXT", 0x24],
+		["RDONLY.TXT", 0x21],
+		["PLAIN.TXT", 0x20]
+	]);
+	const entries = await getReader("lorem-204-attributes.zip").getEntries();
+	const text = await entries[0].getData(new zip.TextWriter());
+	return entries.length == expectedAttributes.size && text.startsWith(LOREM_PREFIX) &&
+		entries.every(entry => entry.externalFileAttributes == expectedAttributes.get(entry.filename));
+}
+
+async function testComments() {
+	const zipReader = getReader("lorem-204-comments.zip", { commentEncoding: "cp437" });
+	const [entry] = await zipReader.getEntries();
+	const globalComment = zipReader.comment;
+	return entry.comment == "Comentario: Café ñoño ▓▒░" && entry.rawComment.length == 25 &&
+		globalComment.length == 36 && globalComment.includes(0xa0) && globalComment.includes(0xb0);
 }
 
 async function testSpanned() {
