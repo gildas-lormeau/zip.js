@@ -1,9 +1,10 @@
-/* global URL */
+/* global fetch, URL */
 
 import * as zip from "../zip-lib.js";
 
 const LOREM_PREFIX = "Lorem ipsum";
 const VOLUME_LABEL_ATTRIBUTE = 0x08;
+const SPANNING_SIGNATURE = 0x08074b50;
 
 export { test };
 
@@ -15,6 +16,7 @@ async function test() {
 	testOK = testOK && await testVolumeLabel();
 	testOK = testOK && await testSelfExtracting("lorem-204-sfx.exe", 15349);
 	testOK = testOK && await testSelfExtracting("lorem-204-sfx-junior.exe", 3002);
+	testOK = testOK && await testSpanned();
 	await zip.terminateWorkers();
 	if (!testOK) {
 		throw new Error();
@@ -46,4 +48,18 @@ async function testSelfExtracting(name, expectedPrependedDataLength) {
 	const [entry] = await zipReader.getEntries();
 	const text = await entry.getData(new zip.TextWriter());
 	return zipReader.prependedData.length == expectedPrependedDataLength && text.startsWith(LOREM_PREFIX);
+}
+
+async function testSpanned() {
+	const urls = ["random-204-span.z01", "random-204-span.zip"]
+		.map(name => new URL(`./../data/${name}`, import.meta.url).href);
+	const readers = urls.map(url => new zip.HttpReader(url, { preventHeadRequest: true }));
+	const zipReader = new zip.ZipReader(new zip.SplitDataReader(readers));
+	const [entry] = await zipReader.getEntries();
+	const data = await entry.getData(new zip.Uint8ArrayWriter());
+	const firstSegment = new Uint8Array(await (await fetch(urls[0])).arrayBuffer());
+	const signature = new DataView(firstSegment.buffer).getUint32(0, true);
+	await zipReader.close();
+	return signature == SPANNING_SIGNATURE && entry.filename == "BIG.BIN" &&
+		entry.compressionMethod == 0 && data.length == 200000;
 }
