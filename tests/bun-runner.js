@@ -1,6 +1,7 @@
 /* global Bun */
 
 import { test, beforeEach } from "bun:test";
+import { fileURLToPath } from "node:url";
 
 import tests from "./tests-data.js";
 import { resetConfiguration, terminateWorkers } from "./zip-lib.js";
@@ -8,7 +9,7 @@ import { resetConfiguration, terminateWorkers } from "./zip-lib.js";
 const TEST_TIMEOUT = 30000;
 
 beforeEach(() => globalThis.fetch = async url => {
-	const file = await Bun.file("." + url.toString().match(/(\/data\/.*)/)[1]);
+	const file = await Bun.file(fileURLToPath(url));
 	return {
 		status: 200,
 		body: file.stream(),

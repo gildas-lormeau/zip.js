@@ -1,6 +1,7 @@
 import { test, mock, beforeEach } from "node:test";
 import { setMaxListeners } from "node:events";
 import { openAsBlob } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import tests from "./tests-data.js";
 import { resetConfiguration, terminateWorkers } from "./zip-lib.js";
@@ -8,7 +9,7 @@ import { resetConfiguration, terminateWorkers } from "./zip-lib.js";
 setMaxListeners(100);
 
 beforeEach(() => globalThis.fetch = mock.fn(async url => {
-	const blob = await openAsBlob("." + url.toString().match(/(\/data\/.*)/)[1]);
+	const blob = await openAsBlob(fileURLToPath(url));
 	return {
 		status: 200,
 		body: blob.stream(),
