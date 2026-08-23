@@ -6663,6 +6663,7 @@
 			throw new Error(ERR_INVALID_VERSION);
 		}
 		const lastModDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE, new Date());
+		const rawLastModDate = getOptionValue(zipWriter, options, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE);
 		const lastAccessDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
 		const creationDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
 		const internalFileAttributes = getAliasedOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES, 0);
@@ -6706,7 +6707,7 @@
 		if (bufferedWrite && dataDescriptor === UNDEFINED_VALUE) {
 			dataDescriptor = false;
 		}
-		if (dataDescriptor === UNDEFINED_VALUE || zipCrypto) {
+		if (dataDescriptor === UNDEFINED_VALUE || (zipCrypto && !passThrough)) {
 			dataDescriptor = true;
 		}
 		if (level !== UNDEFINED_VALUE && level != 6) {
@@ -6725,6 +6726,7 @@
 				rawComment,
 				version,
 				lastModDate,
+				rawLastModDate,
 				lastAccessDate,
 				creationDate,
 				internalFileAttributes,
@@ -7301,6 +7303,7 @@
 		const {
 			rawFilename,
 			lastModDate,
+			rawLastModDate: rawLastModDateOption,
 			lastAccessDate,
 			creationDate,
 			level,
@@ -7469,6 +7472,7 @@
 			compressionMethod,
 			uncompressedSize,
 			lastModDate: dosLastModDate < MIN_DATE ? MIN_DATE : dosLastModDate > MAX_DATE ? MAX_DATE : dosLastModDate,
+			rawLastModDate: rawLastModDateOption,
 			rawFilename,
 			zip64CompressedSize,
 			zip64UncompressedSize,
@@ -9157,6 +9161,7 @@
 	const ERR_READABLE_CONSUMED = "Readable stream already consumed";
 	const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
 	const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
+	const ERR_ZIP_CRYPTO_LAST_MOD_DATE = "The last modification date of an entry encrypted with ZipCrypto cannot be changed when passThrough is set";
 	const ERR_ABORT_EXPORT = "zipjs-abort-export";
 	const ERR_ABORTED = "The operation was aborted";
 	const ABORT_ERROR_NAME = "AbortError";
@@ -10024,6 +10029,7 @@
 				versionMadeBy,
 				comment,
 				lastModDate,
+				rawLastModDate,
 				creationDate,
 				lastAccessDate,
 				uncompressedSize,
@@ -10034,6 +10040,7 @@
 				extraFieldAES,
 				internalFileAttributes,
 				extraField,
+				bitFlag,
 				uid,
 				gid
 			} = child.data;
@@ -10071,6 +10078,16 @@
 					encryptionStrength,
 					compressionMethod
 				};
+				if (bitFlag) {
+					passThroughOptions.dataDescriptor = bitFlag.dataDescriptor;
+				}
+				const lastModDateOverride = childOptions.lastModDate === UNDEFINED_VALUE ? options.lastModDate : childOptions.lastModDate;
+				if (lastModDateOverride === UNDEFINED_VALUE) {
+					passThroughOptions.rawLastModDate = rawLastModDate;
+				} else if (zipCrypto && (!bitFlag || bitFlag.dataDescriptor) && lastModDateOverride instanceof Date &&
+					getDosTimeHighByte(lastModDateOverride) != ((rawLastModDate >>> 8) & MAX_8_BITS)) {
+					throw new Error(ERR_ZIP_CRYPTO_LAST_MOD_DATE);
+				}
 			}
 		}
 		const entryOptions = Object.assign({ lastModDate: child.defaultLastModDate }, zipEntryMetadata, options, childOptions, passThroughOptions, { directory: child.directory });
@@ -10078,6 +10095,16 @@
 			throw new Error(ERR_INVALID_PASS_THROUGH);
 		}
 		return { name, entryOptions };
+	}
+
+	function getDosTimeHighByte(lastModDate) {
+		let dosLastModDate = new Date(Math.ceil(Math.floor(lastModDate.getTime() / 1000) / 2) * 2000);
+		if (dosLastModDate < MIN_DATE) {
+			dosLastModDate = MIN_DATE;
+		} else if (dosLastModDate > MAX_DATE) {
+			dosLastModDate = MAX_DATE;
+		}
+		return ((dosLastModDate.getHours() << 3) | (dosLastModDate.getMinutes() >> 3)) & MAX_8_BITS;
 	}
 
 	function getDeterminedSize(child, passThrough) {
@@ -10590,6 +10617,7 @@
 	exports.ERR_UNSUPPORTED_UINT64 = ERR_UNSUPPORTED_UINT64;
 	exports.ERR_WORKER_STARTUP_TIMEOUT = ERR_WORKER_STARTUP_TIMEOUT;
 	exports.ERR_WRITER_NOT_INITIALIZED = ERR_WRITER_NOT_INITIALIZED;
+	exports.ERR_ZIP_CRYPTO_LAST_MOD_DATE = ERR_ZIP_CRYPTO_LAST_MOD_DATE;
 	exports.ERR_ZIP_NOT_EMPTY = ERR_ZIP_NOT_EMPTY;
 	exports.HttpRangeReader = HttpRangeReader;
 	exports.HttpReader = HttpReader;

@@ -437,6 +437,22 @@ false
 
 ***
 
+### rawLastModDate?
+
+> `optional` **rawLastModDate?**: `number`
+
+The last modification date, as its raw 32-bit MS-DOS date and time value.
+
+#### Remarks
+
+The value is written verbatim into the local and central directory headers and takes precedence over
+[ZipWriterConstructorOptions#lastModDate](#lastmoddate), which still fills the extended timestamp and NTFS extra
+fields. The filesystem API sets it when exporting entries with [ZipReaderOptions#passThrough](ZipReaderOptions.md#passthrough) set in
+[ZipDirectoryEntryExportOptions#readerOptions](ZipDirectoryEntryExportOptions.md#readeroptions), so that the entries copied as-is keep the exact date
+and time of the source zip file.
+
+***
+
 ### rawPassword?
 
 > `optional` **rawPassword?**: `Uint8Array`\<`ArrayBufferLike`\>

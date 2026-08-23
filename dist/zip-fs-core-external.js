@@ -6688,6 +6688,7 @@ function resolveMetadata(zipWriter, name, options) {
 		throw new Error(ERR_INVALID_VERSION);
 	}
 	const lastModDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE, new Date());
+	const rawLastModDate = getOptionValue(zipWriter, options, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE);
 	const lastAccessDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
 	const creationDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
 	const internalFileAttributes = getAliasedOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES, 0);
@@ -6731,7 +6732,7 @@ function resolveMetadata(zipWriter, name, options) {
 	if (bufferedWrite && dataDescriptor === UNDEFINED_VALUE) {
 		dataDescriptor = false;
 	}
-	if (dataDescriptor === UNDEFINED_VALUE || zipCrypto) {
+	if (dataDescriptor === UNDEFINED_VALUE || (zipCrypto && !passThrough)) {
 		dataDescriptor = true;
 	}
 	if (level !== UNDEFINED_VALUE && level != 6) {
@@ -6750,6 +6751,7 @@ function resolveMetadata(zipWriter, name, options) {
 			rawComment,
 			version,
 			lastModDate,
+			rawLastModDate,
 			lastAccessDate,
 			creationDate,
 			internalFileAttributes,
@@ -7326,6 +7328,7 @@ function getHeaderInfo(options) {
 	const {
 		rawFilename,
 		lastModDate,
+		rawLastModDate: rawLastModDateOption,
 		lastAccessDate,
 		creationDate,
 		level,
@@ -7494,6 +7497,7 @@ function getHeaderInfo(options) {
 		compressionMethod,
 		uncompressedSize,
 		lastModDate: dosLastModDate < MIN_DATE ? MIN_DATE : dosLastModDate > MAX_DATE ? MAX_DATE : dosLastModDate,
+		rawLastModDate: rawLastModDateOption,
 		rawFilename,
 		zip64CompressedSize,
 		zip64UncompressedSize,
@@ -9154,6 +9158,7 @@ const ERR_ENTRY_EXISTS = "Entry filename already exists";
 const ERR_READABLE_CONSUMED = "Readable stream already consumed";
 const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
 const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
+const ERR_ZIP_CRYPTO_LAST_MOD_DATE = "The last modification date of an entry encrypted with ZipCrypto cannot be changed when passThrough is set";
 const ERR_ABORT_EXPORT = "zipjs-abort-export";
 const ERR_ABORTED = "The operation was aborted";
 const ABORT_ERROR_NAME = "AbortError";
@@ -10021,6 +10026,7 @@ function getChildEntryOptions(child, selectedEntry, options) {
 			versionMadeBy,
 			comment,
 			lastModDate,
+			rawLastModDate,
 			creationDate,
 			lastAccessDate,
 			uncompressedSize,
@@ -10031,6 +10037,7 @@ function getChildEntryOptions(child, selectedEntry, options) {
 			extraFieldAES,
 			internalFileAttributes,
 			extraField,
+			bitFlag,
 			uid,
 			gid
 		} = child.data;
@@ -10068,6 +10075,16 @@ function getChildEntryOptions(child, selectedEntry, options) {
 				encryptionStrength,
 				compressionMethod
 			};
+			if (bitFlag) {
+				passThroughOptions.dataDescriptor = bitFlag.dataDescriptor;
+			}
+			const lastModDateOverride = childOptions.lastModDate === UNDEFINED_VALUE ? options.lastModDate : childOptions.lastModDate;
+			if (lastModDateOverride === UNDEFINED_VALUE) {
+				passThroughOptions.rawLastModDate = rawLastModDate;
+			} else if (zipCrypto && (!bitFlag || bitFlag.dataDescriptor) && lastModDateOverride instanceof Date &&
+				getDosTimeHighByte(lastModDateOverride) != ((rawLastModDate >>> 8) & MAX_8_BITS)) {
+				throw new Error(ERR_ZIP_CRYPTO_LAST_MOD_DATE);
+			}
 		}
 	}
 	const entryOptions = Object.assign({ lastModDate: child.defaultLastModDate }, zipEntryMetadata, options, childOptions, passThroughOptions, { directory: child.directory });
@@ -10075,6 +10092,16 @@ function getChildEntryOptions(child, selectedEntry, options) {
 		throw new Error(ERR_INVALID_PASS_THROUGH);
 	}
 	return { name, entryOptions };
+}
+
+function getDosTimeHighByte(lastModDate) {
+	let dosLastModDate = new Date(Math.ceil(Math.floor(lastModDate.getTime() / 1000) / 2) * 2000);
+	if (dosLastModDate < MIN_DATE) {
+		dosLastModDate = MIN_DATE;
+	} else if (dosLastModDate > MAX_DATE) {
+		dosLastModDate = MAX_DATE;
+	}
+	return ((dosLastModDate.getHours() << 3) | (dosLastModDate.getMinutes() >> 3)) & MAX_8_BITS;
 }
 
 function getDeterminedSize(child, passThrough) {
@@ -10415,4 +10442,4 @@ function addChild(parent, name, params, directory) {
 	}
 }
 
-export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_ENTRY_EXISTS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH, ERR_INVALID_READER_OPTIONS, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_READABLE_CONSUMED, ERR_RESERVED_COMPRESSION_METHOD, ERR_SPLIT_ZIP_FILE, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION$1 as ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, Writer, ZipDirectoryEntry, ZipEntry, ZipFS, ZipFileEntry, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, fs, getMimeType, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };
+export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_ENTRY_EXISTS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH, ERR_INVALID_READER_OPTIONS, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_READABLE_CONSUMED, ERR_RESERVED_COMPRESSION_METHOD, ERR_SPLIT_ZIP_FILE, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION$1 as ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_ZIP_CRYPTO_LAST_MOD_DATE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, Writer, ZipDirectoryEntry, ZipEntry, ZipFS, ZipFileEntry, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, fs, getMimeType, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };

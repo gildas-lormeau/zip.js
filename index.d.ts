@@ -2878,6 +2878,17 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    */
   lastModDate?: Date;
   /**
+   * The last modification date, as its raw 32-bit MS-DOS date and time value.
+   *
+   * @remarks
+   * The value is written verbatim into the local and central directory headers and takes precedence over
+   * {@link ZipWriterConstructorOptions#lastModDate}, which still fills the extended timestamp and NTFS extra
+   * fields. The filesystem API sets it when exporting entries with {@link ZipReaderOptions#passThrough} set in
+   * {@link ZipDirectoryEntryExportOptions#readerOptions}, so that the entries copied as-is keep the exact date
+   * and time of the source zip file.
+   */
+  rawLastModDate?: number;
+  /**
    * The last access date.
    *
    * This option is ignored if the {@link ZipWriterConstructorOptions#extendedTimestamp} option is set to `false`.
@@ -4437,6 +4448,17 @@ export const ERR_INVALID_PASS_THROUGH: string;
  * unknown property of a `readerOptions` object is still ignored, as everywhere else in the API.
  */
 export const ERR_INVALID_READER_OPTIONS: string;
+/**
+ * Locked last modification date error (thrown by `{@link ZipDirectoryEntry}#export*()` and
+ * {@link ZipDirectoryEntry#getExportedSize} when the date of an entry encrypted with ZipCrypto and exported with
+ * {@link ZipReaderOptions#passThrough} set in {@link ZipDirectoryEntryExportOptions#readerOptions} is changed)
+ *
+ * @remarks The ZipCrypto encryption header embeds a password verification byte derived from the time of the
+ * entry: the encrypted data, copied as-is, only decrypts when the time in the rewritten headers still matches.
+ * The error is thrown when the new date would prevent the entry from being decrypted; changes which keep the
+ * verification byte intact, e.g. a change of the day only, are written normally.
+ */
+export const ERR_ZIP_CRYPTO_LAST_MOD_DATE: string;
 /**
  * Entry already exists error (thrown by the filesystem API when adding an entry whose filename already exists)
  */

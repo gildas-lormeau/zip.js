@@ -6668,6 +6668,7 @@ function resolveMetadata(zipWriter, name, options) {
 		throw new Error(ERR_INVALID_VERSION);
 	}
 	const lastModDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE, new Date());
+	const rawLastModDate = getOptionValue(zipWriter, options, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE);
 	const lastAccessDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
 	const creationDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
 	const internalFileAttributes = getAliasedOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES, 0);
@@ -6711,7 +6712,7 @@ function resolveMetadata(zipWriter, name, options) {
 	if (bufferedWrite && dataDescriptor === UNDEFINED_VALUE) {
 		dataDescriptor = false;
 	}
-	if (dataDescriptor === UNDEFINED_VALUE || zipCrypto) {
+	if (dataDescriptor === UNDEFINED_VALUE || (zipCrypto && !passThrough)) {
 		dataDescriptor = true;
 	}
 	if (level !== UNDEFINED_VALUE && level != 6) {
@@ -6730,6 +6731,7 @@ function resolveMetadata(zipWriter, name, options) {
 			rawComment,
 			version,
 			lastModDate,
+			rawLastModDate,
 			lastAccessDate,
 			creationDate,
 			internalFileAttributes,
@@ -7227,6 +7229,7 @@ function getHeaderInfo(options) {
 	const {
 		rawFilename,
 		lastModDate,
+		rawLastModDate: rawLastModDateOption,
 		lastAccessDate,
 		creationDate,
 		level,
@@ -7395,6 +7398,7 @@ function getHeaderInfo(options) {
 		compressionMethod,
 		uncompressedSize,
 		lastModDate: dosLastModDate < MIN_DATE ? MIN_DATE : dosLastModDate > MAX_DATE ? MAX_DATE : dosLastModDate,
+		rawLastModDate: rawLastModDateOption,
 		rawFilename,
 		zip64CompressedSize,
 		zip64UncompressedSize,
