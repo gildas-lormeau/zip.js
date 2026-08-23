@@ -54,6 +54,16 @@ central directory make it unnecessary to read it otherwise.
 
 ***
 
+### dataOffset
+
+> **dataOffset**: `number`
+
+The byte offset of the entry data, i.e. [EntryMetaData#offset](EntryMetaData.md#offset) plus the size of the local file header,
+of the filename and of the extra field. It can be used with [Reader#createReadable](../classes/Reader.md#createreadable) to read the stored
+data directly, e.g. to serve ranged requests into an entry compressed with the `"store"` method.
+
+***
+
 ### encrypted
 
 > **encrypted**: `boolean`

@@ -4582,6 +4582,7 @@
 				extraFieldLength,
 				filenameLength
 			} = localDirectory;
+			const dataOffset = localDirectory.dataOffset = localHeaderOffset + HEADER_SIZE + filenameLength + extraFieldLength;
 			const checkLocalDirectoryOption = getOptionValue$1(zipEntry, options, OPTION_CHECK_LOCAL_DIRECTORY);
 			const entryStrictness = getStrictness(options, zipEntry.options);
 			const checkLocalDirectory = getCheckLocalDirectory(checkLocalDirectoryOption, entryStrictness);
@@ -4635,7 +4636,6 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			const dataOffset = localHeaderOffset + HEADER_SIZE + filenameLength + extraFieldLength;
 			if (dataOffset + compressedSize > reader.size) {
 				throw new Error(ERR_ENTRY_DATA_OUT_OF_BOUNDS);
 			}

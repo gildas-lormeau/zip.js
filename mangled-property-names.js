@@ -42,7 +42,6 @@ const MANGLED_PROPERTY_NAMES = [
 	"dataDescriptorInfo",
 	"dataDescriptorOffset",
 	"dataDescriptorView",
-	"dataOffset",
 	"dataStart",
 	"dataURI",
 	"decryptedDirectory",

@@ -8,6 +8,7 @@ export { test };
 async function test() {
 	try {
 		await checkLocalDirectoryFields();
+		await checkDataOffset();
 	} finally {
 		await zip.terminateWorkers();
 	}
@@ -44,6 +45,24 @@ async function checkLocalDirectoryFields() {
 	const balancedEntry = await readEntry({}, {});
 	if (balancedEntry.localDirectory.rawFilename !== undefined) {
 		throw new Error("the local filename must not be read when nothing else needs it");
+	}
+}
+
+async function checkDataOffset() {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { bufferedWrite: false });
+	await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT), { level: 0 });
+	const data = await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+	const [entry] = await zipReader.getEntries();
+	await entry.getData(new zip.TextWriter());
+	await zipReader.close();
+	const { dataOffset, filenameLength, extraFieldLength } = entry.localDirectory;
+	if (dataOffset != entry.offset + 30 + filenameLength + extraFieldLength) {
+		throw new Error("the data offset must point past the local file header, the filename and the extra field");
+	}
+	const storedContent = new TextDecoder().decode(data.subarray(dataOffset, dataOffset + entry.compressedSize));
+	if (storedContent != TEXT_CONTENT) {
+		throw new Error("the data offset must locate the stored entry data");
 	}
 }
 

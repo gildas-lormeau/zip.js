@@ -1958,6 +1958,12 @@ export interface LocalDirectory {
    */
   extraFieldLength: number;
   /**
+   * The byte offset of the entry data, i.e. {@link EntryMetaData#offset} plus the size of the local file header,
+   * of the filename and of the extra field. It can be used with {@link Reader#createReadable} to read the stored
+   * data directly, e.g. to serve ranged requests into an entry compressed with the `"store"` method.
+   */
+  dataOffset: number;
+  /**
    * The extra field (raw).
    */
   rawExtraField: Uint8Array;
@@ -2976,6 +2982,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * {@link ZipWriterConstructorOptions#unixMode} or {@link ZipWriterAddDataOptions#executable}, turns it back off, and setting
    * {@link ZipWriterConstructorOptions#msdosAttributesRaw} or {@link ZipWriterConstructorOptions#msdosAttributes}
    * turns it on, overriding an explicit `false`.
+   *
+   * MS-DOS era extractors, e.g. PKUNZIP 2.04g, only honor the directory attribute of entries declaring the
+   * MS-DOS platform. Without this option, they extract folder entries as zero-length files, which can then
+   * prevent extracting the files stored below the folders.
    *
    * @defaultValue false
    */

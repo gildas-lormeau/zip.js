@@ -1958,6 +1958,12 @@ export interface LocalDirectory {
    */
   extraFieldLength: number;
   /**
+   * The byte offset of the entry data, i.e. {@link EntryMetaData#offset} plus the size of the local file header,
+   * of the filename and of the extra field. It can be used with {@link Reader#createReadable} to read the stored
+   * data directly, e.g. to serve ranged requests into an entry compressed with the `"store"` method.
+   */
+  dataOffset: number;
+  /**
    * The extra field (raw).
    */
   rawExtraField: Uint8Array;
