@@ -5042,7 +5042,7 @@
 					internalFileAttribute: fileEntry.internalFileAttributes,
 					externalFileAttribute: fileEntry.externalFileAttributes,
 					executable,
-					directory: modeIsDir || upperIsDir || (msDosCompatible && msdosAttributes.directory) || (fileEntry.filename.endsWith(DIRECTORY_SIGNATURE) && !fileEntry.uncompressedSize),
+					directory: modeIsDir || upperIsDir || (msDosCompatible && msdosAttributes.directory) || fileEntry.filename.endsWith(DIRECTORY_SIGNATURE),
 					zipCrypto: fileEntry.encrypted && !fileEntry.extraFieldAES
 				});
 				const entry = new Entry(fileEntry);
