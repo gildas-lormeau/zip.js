@@ -173,6 +173,7 @@ export default ([
 	{ title: "Multiple writers", script: "./test-multiple-writers.js" },
 	{ title: "MS-DOS attributes", script: "./test-msdos-attributes.js" },
 	{ title: "Version made by", script: "./test-version-made-by.js" },
+	{ title: "Version needed to extract", script: "./test-version-needed.js" },
 	{ title: "No worker", script: "./test-no-worker.js" },
 	{ title: "Overlapping entries only", script: "./test-overlapping-entries-only.js" },
 	{ title: "Overlapping entries", script: "./test-overlapping-entries.js" },

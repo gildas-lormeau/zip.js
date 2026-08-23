@@ -101,6 +101,7 @@
 	const FILE_ATTR_UNIX_SETGID_MASK = 0o2000;
 	const FILE_ATTR_UNIX_STICKY_MASK = 0o1000;
 
+	const VERSION_STORE = 0x0A;
 	const VERSION_DEFLATE = 0x14;
 	const VERSION_ZIP64 = 0x2D;
 	const VERSION_AES = 0x33;
@@ -6615,8 +6616,8 @@
 		if (getLength(rawComment) > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_ENTRY_COMMENT);
 		}
-		const version = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION, VERSION_DEFLATE);
-		if (version > MAX_16_BITS) {
+		const version = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION);
+		if (version !== UNDEFINED_VALUE && version > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_VERSION);
 		}
 		const lastModDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE, new Date());
@@ -7311,6 +7312,9 @@
 		}
 		if (compressionMethod === UNDEFINED_VALUE) {
 			compressionMethod = compressed ? COMPRESSION_METHOD_DEFLATE : COMPRESSION_METHOD_STORE;
+		}
+		if (version === UNDEFINED_VALUE) {
+			version = compressionMethod == COMPRESSION_METHOD_STORE && !directory && !encrypted ? VERSION_STORE : VERSION_DEFLATE;
 		}
 		const { codecVersionNeeded } = options;
 		if (compressed && codecVersionNeeded !== UNDEFINED_VALUE) {

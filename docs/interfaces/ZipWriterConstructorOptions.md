@@ -622,7 +622,15 @@ true
 
 > `optional` **version?**: `number`
 
-The "Version" field.
+The "Version" field, i.e. the minimum version needed to extract the entry.
+
+#### Default Value
+
+```ts
+the minimum version required by the features of the entry: 10 for entries stored without
+compression or encryption, 20 for deflated, folder or ZipCrypto-encrypted entries, raised to 45 for Zip64
+entries and 51 for AES-encrypted entries.
+```
 
 ***
 
