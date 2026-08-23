@@ -2323,9 +2323,6 @@ export interface EntryMetaData {
    */
   unixExternalUpper?: number;
   /**
-   * The number of the disk where the entry data starts.
-   */
-  /**
    * The internal file attribute (raw).
    * @deprecated Use {@link EntryMetaData#internalFileAttributes} instead.
    */
