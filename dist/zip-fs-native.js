@@ -6045,7 +6045,8 @@
 
 	function getDate(timeRaw) {
 		const date = (timeRaw & 0xffff0000) >> 16, time = timeRaw & MAX_16_BITS;
-		return new Date(1980 + ((date & 0xFE00) >> 9), ((date & 0x01E0) >> 5) - 1, date & 0x001F, (time & 0xF800) >> 11, (time & 0x07E0) >> 5, (time & 0x001F) * 2, 0);
+		const result = new Date(1980 + ((date & 0xFE00) >> 9), ((date & 0x01E0) >> 5) - 1, date & 0x001F, (time & 0xF800) >> 11, (time & 0x07E0) >> 5, (time & 0x001F) * 2, 0);
+		return result < MIN_DATE ? MIN_DATE : result;
 	}
 
 	function getDateNTFS(timeRaw) {

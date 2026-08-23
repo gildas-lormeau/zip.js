@@ -42,6 +42,7 @@ async function testVolumeLabel() {
 	return labelEntry.filename == "LOREMVOL" && !labelEntry.directory &&
 		(labelEntry.externalFileAttributes & VOLUME_LABEL_ATTRIBUTE) == VOLUME_LABEL_ATTRIBUTE &&
 		labelEntry.uncompressedSize == 0 && labelEntry.rawLastModDate == 0 &&
+		labelEntry.lastModDate.getTime() == new Date(1980, 0, 1).getTime() &&
 		text.startsWith(LOREM_PREFIX);
 }
 
