@@ -147,7 +147,9 @@ A promise resolving when the zip file has been added.
 
 The data of the zip file is copied, its central directory is rebuilt and its entries are relocated to
 the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
-the disks of the output, which is a single zip file unless the writer is a split zip file writer.
+the disks of the output, which is a single zip file unless the writer is a split zip file writer. The data of
+the entries is copied as-is; in particular, the constraints set by [ZipWriterConstructorOptions#usdz](../interfaces/ZipWriterConstructorOptions.md#usdz)
+are not applied to the copied entries.
 
 Pending [ZipWriter#add](#add) calls are completed before the data is copied, and add() calls made
 while the copy is in progress are written after it. If an entry of the zip file has the same

@@ -70,6 +70,14 @@ The options.
 
 `ZipReader`\<`Type`\>
 
+#### Remarks
+
+Reading a zip file requires random access because the central directory located at the end of the
+file is read first. A `ReadableStream` instance, or an object providing only a `readable` property
+(e.g. a file handle), is therefore buffered entirely in memory when the instance is initialized. To
+read a large seekable resource without buffering it, pass a custom [Reader](Reader.md) implementation
+that reads the requested byte ranges directly.
+
 ## Properties
 
 ### appendedData?

@@ -813,6 +813,11 @@ boundaries and stored uncompressed unless the [ZipWriterConstructorOptions#level
 [ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) options are set explicitly. Setting the
 [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) option throws an [ERR\_UNSUPPORTED\_ENCRYPTION\_USDZ](../variables/ERR_UNSUPPORTED_ENCRYPTION_USDZ.md) error.
 
+These constraints apply to the entries written with [ZipWriter#add](../classes/ZipWriter.md#add) only. The entries copied with
+[ZipWriter#appendZip](../classes/ZipWriter.md#appendzip) keep the layout of the source zip file and are not checked, so appending a
+zip file that does not comply with the USDZ specification, or appending it when the size of the output
+is not a multiple of 64 bytes, silently produces a non-compliant file.
+
 #### Default Value
 
 ```ts
@@ -852,7 +857,9 @@ true
 `true` to mark the file names as UTF-8 setting the general purpose bit 11 in the header (see Appendix D -
 Language Encoding (EFS)), `false` to mark the names as compliant with the original IBM Code Page 437.
 
-Note that this does not ensure that the file names are in the correct encoding.
+Note that this option only sets the flag, it does not ensure that the file names are in the correct
+encoding: when it is set to `false`, the names are still encoded in UTF-8 unless the
+[ZipWriterConstructorOptions#encodeText](ZipWriterConstructorOptions.md#encodetext) option is also set to encode them in the intended code page.
 
 #### Default Value
 

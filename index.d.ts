@@ -983,7 +983,8 @@ export interface WritableWriter {
   /**
    * The number of bytes written into the instance. It is set to 0 before the first write and
    * updated as the data is written, so a writer needing the value (e.g. to compute the offset of a
-   * disk) can read it.
+   * disk) can read it. A value set before the first write is kept and used as the starting offset
+   * instead of being reset to 0.
    */
   size?: number;
   /**
@@ -1279,6 +1280,13 @@ export class ZipReaderStream<T> {
 export class ZipReader<Type> {
   /**
    * Creates the instance
+   *
+   * @remarks
+   * Reading a zip file requires random access because the central directory located at the end of the
+   * file is read first. A `ReadableStream` instance, or an object providing only a `readable` property
+   * (e.g. a file handle), is therefore buffered entirely in memory when the instance is initialized. To
+   * read a large seekable resource without buffering it, pass a custom {@link Reader} implementation
+   * that reads the requested byte ranges directly.
    *
    * @param reader The {@link Reader} instance used to read data.
    * @param options The options.
@@ -2629,7 +2637,9 @@ export class ZipWriter<Type> {
    * @remarks
    * The data of the zip file is copied, its central directory is rebuilt and its entries are relocated to
    * the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
-   * the disks of the output, which is a single zip file unless the writer is a split zip file writer.
+   * the disks of the output, which is a single zip file unless the writer is a split zip file writer. The data of
+   * the entries is copied as-is; in particular, the constraints set by {@link ZipWriterConstructorOptions#usdz}
+   * are not applied to the copied entries.
    *
    * Pending {@link ZipWriter#add} calls are completed before the data is copied, and add() calls made
    * while the copy is in progress are written after it. If an entry of the zip file has the same
@@ -3007,7 +3017,9 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * `true` to mark the file names as UTF-8 setting the general purpose bit 11 in the header (see Appendix D -
    * Language Encoding (EFS)), `false` to mark the names as compliant with the original IBM Code Page 437.
    *
-   * Note that this does not ensure that the file names are in the correct encoding.
+   * Note that this option only sets the flag, it does not ensure that the file names are in the correct
+   * encoding: when it is set to `false`, the names are still encoded in UTF-8 unless the
+   * {@link ZipWriterConstructorOptions#encodeText} option is also set to encode them in the intended code page.
    *
    * @defaultValue true
    */
@@ -3161,6 +3173,11 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * boundaries and stored uncompressed unless the {@link ZipWriterConstructorOptions#level} or
    * {@link ZipWriterAddDataOptions#compressionMethod} options are set explicitly. Setting the
    * {@link ZipWriterConstructorOptions#password} option throws an {@link ERR_UNSUPPORTED_ENCRYPTION_USDZ} error.
+   *
+   * These constraints apply to the entries written with {@link ZipWriter#add} only. The entries copied with
+   * {@link ZipWriter#appendZip} keep the layout of the source zip file and are not checked, so appending a
+   * zip file that does not comply with the USDZ specification, or appending it when the size of the output
+   * is not a multiple of 64 bytes, silently produces a non-compliant file.
    *
    * @defaultValue false
    */
