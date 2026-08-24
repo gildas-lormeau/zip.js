@@ -142,7 +142,9 @@
 			<code>checkOverlappingEntry</code> option detects entries sharing bytes with other entries, the
 			<code>checkCrc32</code> option verifies the CRC-32 checksum of the extracted data, and
 			<code>strictness: "strict"</code> detects duplicate filenames, ambiguous end of central directory records,
-			and local file headers contradicting the central directory.
+			and local file headers contradicting the central directory. The filename validation can be relaxed or
+			disabled with the <code>filenameValidation</code> option; an application resolving paths from
+			<code>entry.filename</code>, e.g. to write extracted files to disk, relies on it staying enabled.
 		</p>
 		<p>Some checks remain the responsibility of the application:</p>
 		<ul>
@@ -153,6 +155,12 @@
 			<li>Filenames are validated, never rewritten. Characters that are illegal on the target filesystem, e.g.
 				reserved device names on Windows, must be handled before writing files to disk, for example with the
 				<code>normalizeFilename</code> option.</li>
+			<li>Only the decoded <code>filename</code> is validated. The <code>rawFilename</code> and
+				<code>rawComment</code> properties expose the stored bytes as-is, and the global
+				<code>comment</code> of the zip file is raw bytes too.</li>
+			<li>The target of a symbolic link entry, exposed by the <code>symlink</code> property, is never
+				validated: it can be absolute or escape the extraction directory with <code>..</code> segments.
+				It must be checked before being used to resolve a file.</li>
 			<li>Entries which are themselves zip files are not extracted recursively.</li>
 		</ul>
 
