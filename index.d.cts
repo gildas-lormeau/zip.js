@@ -2720,7 +2720,9 @@ export class ZipWriter<Type> {
    * never handled — e.g. the returned promise was not awaited — this method throws the first of
    * these errors instead of finalizing the zip file. The `entryErrors` property of the thrown error
    * contains all of them. Errors already caught by the caller do not resurface here, so entries can
-   * still be skipped by awaiting {@link ZipWriter#add} and catching the error.
+   * still be skipped by awaiting {@link ZipWriter#add} and catching the error. Throwing the errors
+   * counts as reporting them: catching the error of this method and calling it again finalizes the
+   * zip file without the failed entries.
    *
    * @param comment The global comment of the zip file.
    * @param options The options.

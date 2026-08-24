@@ -6390,8 +6390,10 @@
 				await Promise.allSettled(Array.from(pendingAddFileCalls));
 			}
 			await Promise.allSettled(zipWriter.pendingErrors.map(watcher => watcher.recorded));
-			const unobservedErrors = zipWriter.pendingErrors.filter(watcher => watcher.error && !watcher.observed).map(watcher => watcher.error);
-			if (unobservedErrors.length) {
+			const unobservedWatchers = zipWriter.pendingErrors.filter(watcher => watcher.error && !watcher.observed);
+			if (unobservedWatchers.length) {
+				const unobservedErrors = unobservedWatchers.map(watcher => watcher.error);
+				unobservedWatchers.forEach(watcher => watcher.observed = true);
 				const [error] = unobservedErrors;
 				try {
 					error.entryErrors = unobservedErrors;

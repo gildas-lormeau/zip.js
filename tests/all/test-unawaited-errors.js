@@ -32,6 +32,14 @@ async function throwsUnawaitedAddErrorsOnClose() {
 	if (!error || error.message != "first error" || error.entryErrors.length != 2 || error.entryErrors[1].message != "second error") {
 		throw new Error("expected close() to throw the unawaited entry errors, got " + (error ? error.message : "no error"));
 	}
+	const data = await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+	const entries = await zipReader.getEntries();
+	const content = await entries.find(entry => entry.filename == "ok.txt").getData(new zip.TextWriter());
+	await zipReader.close();
+	if (content != "content") {
+		throw new Error("expected close() to finalize the zip file once the errors were reported");
+	}
 }
 
 async function keepsCaughtErrorsSilentOnClose() {

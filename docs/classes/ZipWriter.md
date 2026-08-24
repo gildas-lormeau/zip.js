@@ -195,7 +195,9 @@ If [ZipWriter#add](#add) or [ZipWriter#appendZip](#appendzip) calls failed and t
 never handled — e.g. the returned promise was not awaited — this method throws the first of
 these errors instead of finalizing the zip file. The `entryErrors` property of the thrown error
 contains all of them. Errors already caught by the caller do not resurface here, so entries can
-still be skipped by awaiting [ZipWriter#add](#add) and catching the error.
+still be skipped by awaiting [ZipWriter#add](#add) and catching the error. Throwing the errors
+counts as reporting them: catching the error of this method and calling it again finalizes the
+zip file without the failed entries.
 
 ***
 
