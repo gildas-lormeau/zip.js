@@ -21,11 +21,12 @@ async function test() {
 	if (data.size != entries[0].compressedSize) {
 		throw new Error();
 	}
-	const { signature, compressionMethod } = entries[0];
+	const { signature, compressionMethod, rawLastModDate } = entries[0];
 	const uncompressedSize = TEXT_CONTENT.length;
 	blobWriter = new zip.BlobWriter("application/zip");
 	zipWriter = new zip.ZipWriter(blobWriter);
-	await zipWriter.add(FILENAME, new zip.BlobReader(data), { passThrough: true, uncompressedSize, encrypted: true, zipCrypto: true, signature, compressionMethod });
+	// the zipCrypto verification byte derives from the DOS time, so a copied entry must keep it
+	await zipWriter.add(FILENAME, new zip.BlobReader(data), { passThrough: true, uncompressedSize, encrypted: true, zipCrypto: true, signature, compressionMethod, rawLastModDate });
 	await zipWriter.close();
 	zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	entries = await zipReader.getEntries();

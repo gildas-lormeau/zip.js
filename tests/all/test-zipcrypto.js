@@ -18,18 +18,24 @@ async function test() {
 	const entries = await zipReader.getEntries();
 	let data;
 	if (entries[0].encrypted) {
-		const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
-		try {
-			data = await entries[0].getData(dataBlobWriter, { password: "notagoodpassword" });
-			data = null;
-		} catch (error) {
-			if (error.message == zip.ERR_INVALID_PASSWORD) {
-				const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
-				data = await entries[0].getData(dataBlobWriter, { password: "password" });
-			} else {
-				throw error;
+		// the 8-bit zipCrypto verification byte lets 1 in 256 wrong passwords through to the
+		// codec, which then fails with another error, so several wrong passwords are tried
+		let invalidPasswordDetected;
+		for (const wrongPassword of ["notagoodpassword", "notabetterpassword", "stillnotthepassword"]) {
+			try {
+				await entries[0].getData(new zip.BlobWriter(zip.getMimeType(entries[0].filename)), { password: wrongPassword });
+			} catch (error) {
+				if (error.message == zip.ERR_INVALID_PASSWORD) {
+					invalidPasswordDetected = true;
+					break;
+				}
 			}
 		}
+		if (!invalidPasswordDetected) {
+			throw new Error("expected an invalid password error");
+		}
+		const dataBlobWriter = new zip.BlobWriter(zip.getMimeType(entries[0].filename));
+		data = await entries[0].getData(dataBlobWriter, { password: "password" });
 	} else {
 		throw new Error();
 	}
