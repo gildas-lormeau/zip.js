@@ -99,6 +99,7 @@ const WRITER_OPTIONS = {
 	comment: { properties: ["comment", "rawComment"] },
 	extraField: { properties: ["extraField", "rawExtraField"] },
 	localExtraField: { properties: ["localDirectory.extraField"] },
+	centralExtraField: { properties: ["extraField"] },
 	uncompressedSize: { properties: ["uncompressedSize"] },
 	crc32: { properties: ["crc32"] },
 	signature: { deprecated: "crc32" },

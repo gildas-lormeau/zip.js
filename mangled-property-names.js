@@ -102,6 +102,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"pendingCharacters",
 	"pendingErrors",
 	"pendingInput",
+	"rawCentralExtraField",
 	"rawExtraFieldAES",
 	"rawExtraFieldExtendedTimestamp",
 	"rawExtraFieldNTFS",

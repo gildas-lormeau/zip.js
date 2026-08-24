@@ -103,6 +103,7 @@ async function collectInstances() {
 		gid: 20,
 		extraField: new Map([[0x1234, new Uint8Array([1, 2])]]),
 		localExtraField: new Map([[0x1235, new Uint8Array([3])]]),
+		centralExtraField: new Map([[0x1236, new Uint8Array([4])]]),
 		password: PASSWORD,
 		zip64: true
 	};

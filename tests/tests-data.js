@@ -106,6 +106,7 @@ export default ([
 	{ title: "DOS date rounding", script: "./test-dos-date-rounding.js" },
 	{ title: "Unix extra field dates", script: "./test-unix-extra-field.js" },
 	{ title: "Local extra field", script: "./test-local-extra-field.js" },
+	{ title: "Central extra field", script: "./test-central-extra-field.js" },
 	{ title: "MIME type lookup", script: "./test-mime-type.js" },
 	{ title: "Encrypted central directory", script: "./test-encrypted-central-directory.js" },
 	{ title: "Decrypt central directory", script: "./test-decrypt-central-directory.js" },

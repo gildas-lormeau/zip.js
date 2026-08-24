@@ -34,6 +34,14 @@ false
 
 ***
 
+### centralExtraField?
+
+> `optional` **centralExtraField?**: `Map`\<`number`, `Uint8Array`\<`ArrayBufferLike`\>\>
+
+The extra field of the entry written only in the central directory record.
+
+***
+
 ### comment?
 
 > `optional` **comment?**: `string`

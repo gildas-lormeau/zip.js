@@ -200,6 +200,7 @@
 	const OPTION_USDZ = "usdz";
 	const OPTION_UNIX_EXTRA_FIELD_TYPE = "unixExtraFieldType";
 	const OPTION_LOCAL_EXTRA_FIELD = "localExtraField";
+	const OPTION_CENTRAL_EXTRA_FIELD = "centralExtraField";
 	const OPTION_STRICTNESS = "strictness";
 	const OPTION_FILENAME_VALIDATION = "filenameValidation";
 	const OPTION_NORMALIZE_FILENAME = "normalizeFilename";
@@ -6357,6 +6358,7 @@
 						rawExtraFieldNTFS: EMPTY_UINT8_ARRAY,
 						rawExtraFieldUnix: EMPTY_UINT8_ARRAY,
 						rawExtraField,
+						rawCentralExtraField: EMPTY_UINT8_ARRAY,
 						extendedTimestamp: false,
 						headerArray,
 						headerView
@@ -6824,6 +6826,7 @@
 		}
 		const rawExtraField = serializeExtraField(options[PROPERTY_NAME_EXTRA_FIELD]);
 		const rawLocalExtraField = serializeExtraField(options[OPTION_LOCAL_EXTRA_FIELD]);
+		const rawCentralExtraField = serializeExtraField(options[OPTION_CENTRAL_EXTRA_FIELD]);
 		return {
 			comment,
 			resolvedOptions: {
@@ -6859,7 +6862,8 @@
 				dataDescriptor,
 				zip64,
 				rawExtraField,
-				rawLocalExtraField
+				rawLocalExtraField,
+				rawCentralExtraField
 			}
 		};
 	}
@@ -7256,6 +7260,7 @@
 			versionMadeBy,
 			rawComment,
 			rawExtraField,
+			rawCentralExtraField,
 			useWebWorkers,
 			transferStreams,
 			onstart,
@@ -7299,6 +7304,7 @@
 			rawExtraFieldUnix,
 			rawExtraFieldAES,
 			rawExtraField,
+			rawCentralExtraField,
 			extendedTimestamp,
 			msDosCompatible,
 			internalFileAttributes,
@@ -7799,6 +7805,7 @@
 				rawExtraFieldNTFS,
 				rawExtraFieldUnix,
 				rawExtraField,
+				rawCentralExtraField,
 				extendedTimestamp,
 				extraFieldExtendedTimestampFlag,
 				lastModDate,
@@ -7853,7 +7860,8 @@
 				rawExtraFieldNTFS,
 				rawExtraFieldUnix,
 				rawExtraFieldTimestamp,
-				rawExtraField);
+				rawExtraField,
+				rawCentralExtraField);
 			if (extraFieldLength > MAX_16_BITS) {
 				throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
 			}
@@ -7881,6 +7889,7 @@
 				rawExtraFieldNTFS,
 				rawExtraFieldUnix,
 				rawExtraField,
+				rawCentralExtraField,
 				rawComment,
 				versionMadeBy,
 				headerArray,
@@ -7895,7 +7904,7 @@
 				uncompressedSize,
 				compressedSize
 			} = fileEntry;
-			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
+			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField, rawCentralExtraField);
 			const directoryRecordLength = CENTRAL_FILE_HEADER_LENGTH + getLength(rawFilename, rawComment) + extraFieldLength;
 			if (exceedsAvailableSize(writer, offset + directoryRecordLength - directoryDiskOffset)) {
 				await writeData(writer, directoryArray.slice(directoryDiskOffset, offset));
@@ -7933,6 +7942,7 @@
 			directoryRecord.writeBytes(rawExtraFieldNTFS);
 			directoryRecord.writeBytes(rawExtraFieldUnix);
 			directoryRecord.writeBytes(rawExtraField);
+			directoryRecord.writeBytes(rawCentralExtraField);
 			directoryRecord.writeBytes(rawComment);
 			arraySet(directoryArray, directoryRecord.array, offset);
 			offset += directoryRecordLength;

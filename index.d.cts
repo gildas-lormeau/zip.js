@@ -2833,6 +2833,10 @@ export interface ZipWriterAddDataOptions
    */
   localExtraField?: Map<number, Uint8Array>;
   /**
+   * The extra field of the entry written only in the central directory record.
+   */
+  centralExtraField?: Map<number, Uint8Array>;
+  /**
    * The uncompressed size of the entry. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
    */
   uncompressedSize?: number;

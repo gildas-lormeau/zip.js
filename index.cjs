@@ -194,6 +194,7 @@ const OPTION_OFFSET = "offset";
 const OPTION_USDZ = "usdz";
 const OPTION_UNIX_EXTRA_FIELD_TYPE = "unixExtraFieldType";
 const OPTION_LOCAL_EXTRA_FIELD = "localExtraField";
+const OPTION_CENTRAL_EXTRA_FIELD = "centralExtraField";
 const OPTION_STRICTNESS = "strictness";
 const OPTION_FILENAME_VALIDATION = "filenameValidation";
 const OPTION_NORMALIZE_FILENAME = "normalizeFilename";
@@ -6355,6 +6356,7 @@ class ZipWriter {
 					rawExtraFieldNTFS: EMPTY_UINT8_ARRAY,
 					rawExtraFieldUnix: EMPTY_UINT8_ARRAY,
 					rawExtraField,
+					rawCentralExtraField: EMPTY_UINT8_ARRAY,
 					extendedTimestamp: false,
 					headerArray,
 					headerView
@@ -6822,6 +6824,7 @@ function resolveMetadata(zipWriter, name, options) {
 	}
 	const rawExtraField = serializeExtraField(options[PROPERTY_NAME_EXTRA_FIELD]);
 	const rawLocalExtraField = serializeExtraField(options[OPTION_LOCAL_EXTRA_FIELD]);
+	const rawCentralExtraField = serializeExtraField(options[OPTION_CENTRAL_EXTRA_FIELD]);
 	return {
 		comment,
 		resolvedOptions: {
@@ -6857,7 +6860,8 @@ function resolveMetadata(zipWriter, name, options) {
 			dataDescriptor,
 			zip64,
 			rawExtraField,
-			rawLocalExtraField
+			rawLocalExtraField,
+			rawCentralExtraField
 		}
 	};
 }
@@ -7254,6 +7258,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 		versionMadeBy,
 		rawComment,
 		rawExtraField,
+		rawCentralExtraField,
 		useWebWorkers,
 		transferStreams,
 		onstart,
@@ -7297,6 +7302,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 		rawExtraFieldUnix,
 		rawExtraFieldAES,
 		rawExtraField,
+		rawCentralExtraField,
 		extendedTimestamp,
 		msDosCompatible,
 		internalFileAttributes,
@@ -7797,6 +7803,7 @@ function createDirectoryRecords(files) {
 			rawExtraFieldNTFS,
 			rawExtraFieldUnix,
 			rawExtraField,
+			rawCentralExtraField,
 			extendedTimestamp,
 			extraFieldExtendedTimestampFlag,
 			lastModDate,
@@ -7851,7 +7858,8 @@ function createDirectoryRecords(files) {
 			rawExtraFieldNTFS,
 			rawExtraFieldUnix,
 			rawExtraFieldTimestamp,
-			rawExtraField);
+			rawExtraField,
+			rawCentralExtraField);
 		if (extraFieldLength > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
 		}
@@ -7879,6 +7887,7 @@ async function writeDirectoryRecords(zipWriter, directoryDataLength, options) {
 			rawExtraFieldNTFS,
 			rawExtraFieldUnix,
 			rawExtraField,
+			rawCentralExtraField,
 			rawComment,
 			versionMadeBy,
 			headerArray,
@@ -7893,7 +7902,7 @@ async function writeDirectoryRecords(zipWriter, directoryDataLength, options) {
 			uncompressedSize,
 			compressedSize
 		} = fileEntry;
-		const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
+		const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField, rawCentralExtraField);
 		const directoryRecordLength = CENTRAL_FILE_HEADER_LENGTH + getLength(rawFilename, rawComment) + extraFieldLength;
 		if (exceedsAvailableSize(writer, offset + directoryRecordLength - directoryDiskOffset)) {
 			await writeData(writer, directoryArray.slice(directoryDiskOffset, offset));
@@ -7931,6 +7940,7 @@ async function writeDirectoryRecords(zipWriter, directoryDataLength, options) {
 		directoryRecord.writeBytes(rawExtraFieldNTFS);
 		directoryRecord.writeBytes(rawExtraFieldUnix);
 		directoryRecord.writeBytes(rawExtraField);
+		directoryRecord.writeBytes(rawCentralExtraField);
 		directoryRecord.writeBytes(rawComment);
 		arraySet(directoryArray, directoryRecord.array, offset);
 		offset += directoryRecordLength;
