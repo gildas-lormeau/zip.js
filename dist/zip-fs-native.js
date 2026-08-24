@@ -6490,7 +6490,7 @@
 	}
 
 	function watchPromiseError(zipWriter, promise) {
-		const watchedPromise = WatchedPromise.resolve(promise);
+		const watchedPromise = new WatchedPromise((resolve, reject) => Promise.prototype.then.call(promise, resolve, reject));
 		const watcher = {};
 		watchedPromise.watcher = watcher;
 		watcher.recorded = Promise.prototype.then.call(watchedPromise, UNDEFINED_VALUE, error => watcher.error = error);
