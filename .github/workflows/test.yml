@@ -92,7 +92,9 @@ jobs:
             browser: firefox
             version: '79.0'
             search: 'withStreamsPolyfill'
-          # pinned: safari loses its window or its session mid-suite on macos-latest, i.e. macos-26
+          # safari loses its WebDriver session probabilistically on the 3-core mac tier, on both
+          # images (actions/runner-images#14585, closed without a fix); macos-15 fails measurably
+          # less often than macos-26, and browser-runner.js retries the suite with a fresh browser
           - os: macos-15
             browser: safari
             version: 'latest'

@@ -12,9 +12,11 @@ import safari from "selenium-webdriver/safari.js";
 
 const SUITE_TIMEOUT = 600000;
 const POLL_INTERVAL = 500;
-// safari on the macos runner sometimes loses its window or its whole session mid-suite, which says
-// nothing about the code under test, so the suite is run again once with a fresh browser
-const MAX_SUITE_ATTEMPTS = 2;
+// safari on the macos runners sometimes loses its window or its whole session mid-suite
+// (actions/runner-images#14585, closed without a fix), which says nothing about the code
+// under test, so the suite is run again with a fresh browser; a genuine crash still fails
+// every attempt the same way
+const MAX_SUITE_ATTEMPTS = 4;
 const BROWSER_LOST_ERRORS = ["NoSuchWindowError", "NoSuchSessionError"];
 const ZIP_LIB_PATH = "/tests/zip-lib.js";
 const BUILD_MODULES = {
