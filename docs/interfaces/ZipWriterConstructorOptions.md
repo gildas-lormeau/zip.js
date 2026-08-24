@@ -405,6 +405,13 @@ directories, ignore this option entirely. Setting the [ZipWriterConstructorOptio
 encrypted. In that case the password encrypts the other entries only, and the data written as-is keeps the
 password it was encrypted with, which is not verified.
 
+When the data was encrypted with ZipCrypto, the verification byte stored in the encrypted data depends on
+the last modification date of the source entry if the data descriptor is used. The
+[ZipWriterConstructorOptions#dataDescriptor](#datadescriptor) and [ZipWriterConstructorOptions#rawLastModDate](#rawlastmoddate)
+values of the source entry must then be forwarded, otherwise reading the copied entry fails with an
+[ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error. The filesystem API forwards them when exporting entries and throws an
+[ERR\_ZIP\_CRYPTO\_LAST\_MOD\_DATE](../variables/ERR_ZIP_CRYPTO_LAST_MOD_DATE.md) error if the date is overridden.
+
 ***
 
 ### password?

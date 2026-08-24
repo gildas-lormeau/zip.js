@@ -3179,6 +3179,13 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * {@link ZipWriterConstructorOptions#encrypted} option is set to `true` to declare that the data is already
    * encrypted. In that case the password encrypts the other entries only, and the data written as-is keeps the
    * password it was encrypted with, which is not verified.
+   *
+   * When the data was encrypted with ZipCrypto, the verification byte stored in the encrypted data depends on
+   * the last modification date of the source entry if the data descriptor is used. The
+   * {@link ZipWriterConstructorOptions#dataDescriptor} and {@link ZipWriterConstructorOptions#rawLastModDate}
+   * values of the source entry must then be forwarded, otherwise reading the copied entry fails with an
+   * {@link ERR_INVALID_PASSWORD} error. The filesystem API forwards them when exporting entries and throws an
+   * {@link ERR_ZIP_CRYPTO_LAST_MOD_DATE} error if the date is overridden.
    */
   passThrough?: boolean;
   /**
