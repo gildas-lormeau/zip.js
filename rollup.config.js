@@ -59,10 +59,6 @@ function checkMangledPropertyNames() {
 
 const bundledTerserOptions = {
 	compress: {
-		unsafe: true,
-		unsafe_arrows: true,
-		unsafe_symbols: true,
-		unsafe_proto: true,
 		keep_fargs: false,
 		passes: 3,
 		ecma: "2020"
@@ -80,11 +76,6 @@ const bundledTerserOptions = {
 
 const inlineTerserOptions = {
 	compress: {
-		unsafe: true,
-		unsafe_arrows: true,
-		unsafe_math: true,
-		unsafe_symbols: true,
-		unsafe_proto: true,
 		keep_fargs: false,
 		passes: 3,
 		ecma: "2020"
