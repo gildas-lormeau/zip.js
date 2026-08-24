@@ -6231,132 +6231,166 @@
 			if (this.filenames.size) {
 				throw new Error(ERR_ZIP_NOT_EMPTY);
 			}
-			reader = new GenericReader(reader);
-			await initStream(reader);
-			if (reader.size === UNDEFINED_VALUE || !reader.readUint8Array) {
-				reader = new BlobReader(await streamToBlob(reader.readable));
+			await this.appendZip(reader);
+		}
+
+		async appendZip(reader) {
+			const zipWriter = this;
+			const { pendingAddFileCalls, filenames, fileEntries } = zipWriter;
+			while (pendingAddFileCalls.size) {
+				await Promise.allSettled(Array.from(pendingAddFileCalls));
+			}
+			let resolveAppendZip;
+			const promiseAppendZip = new Promise(resolve => resolveAppendZip = resolve);
+			pendingAddFileCalls.add(promiseAppendZip);
+			const appendedFilenames = [];
+			let releaseLockWriter;
+			try {
+				reader = new GenericReader(reader);
 				await initStream(reader);
-			}
-			const { ZipReader } = await Promise.resolve().then(function () { return zipReader; });
-			const zipReader$1 = new ZipReader(reader);
-			const entries = await zipReader$1.getEntries();
-			await zipReader$1.close();
-			await initStream(this.writer);
-			const { directoryOffset } = zipReader$1;
-			if (this.addSplitZipSignature) {
-				delete this.addSplitZipSignature;
-				if (!await startsWithSplitZipSignature(reader)) {
-					await writeData(this.writer, getSplitZipSignatureArray());
-					this.offset += SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
+				if (reader.size === UNDEFINED_VALUE || !reader.readUint8Array) {
+					reader = new BlobReader(await streamToBlob(reader.readable));
+					await initStream(reader);
 				}
-			}
-			const entryPositions = await copyZipData(this, reader, entries, directoryOffset);
-			this.filenames = new Set(entries.map(entry => entry.filename));
-			this.fileEntries = new Map(entries.map(entry => {
-				const {
-					version,
-					rawLastModDate,
-					lastAccessDate,
-					creationDate,
-					rawFilename,
-					bitFlag,
-					encrypted,
-					uncompressedSize,
-					compressedSize,
-					extraFieldZip64
-				} = entry;
-				let {
-					compressionMethod,
-					rawExtraFieldZip64,
-					rawExtraFieldAES,
-					rawExtraFieldExtendedTimestamp,
-					rawExtraFieldNTFS,
-					rawExtraFieldUnix,
-					rawExtraField,
-				} = entry;
-				const { level, languageEncodingFlag, dataDescriptor } = bitFlag;
-				rawExtraFieldZip64 = rawExtraFieldZip64 || EMPTY_UINT8_ARRAY;
-				rawExtraFieldAES = rawExtraFieldAES || EMPTY_UINT8_ARRAY;
-				rawExtraFieldExtendedTimestamp = rawExtraFieldExtendedTimestamp || EMPTY_UINT8_ARRAY;
-				rawExtraFieldNTFS = rawExtraFieldNTFS || EMPTY_UINT8_ARRAY;
-				rawExtraFieldUnix = rawExtraFieldUnix || EMPTY_UINT8_ARRAY;
-				rawExtraField = removeExtraFieldZip64(rawExtraField || EMPTY_UINT8_ARRAY);
-				if (entry.extraFieldAES) {
-					compressionMethod = COMPRESSION_METHOD_AES;
-				}
-				const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
-				const zip64UncompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.uncompressedSize !== UNDEFINED_VALUE;
-				const zip64CompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.compressedSize !== UNDEFINED_VALUE;
-				const bitFlagValue = (getBitFlag(level, languageEncodingFlag, dataDescriptor, encrypted, compressionMethod) & ~BITFLAG_LEVEL) | (level << 1);
-				const {
-					headerArray,
-					headerView
-				} = getHeaderArrayData({
-					version,
-					bitFlag: bitFlagValue,
-					compressionMethod,
-					uncompressedSize,
-					compressedSize,
-					rawLastModDate,
-					rawFilename,
-					zip64CompressedSize,
-					zip64UncompressedSize,
-					extraFieldLength
+				const { ZipReader } = await Promise.resolve().then(function () { return zipReader; });
+				const zipReader$1 = new ZipReader(reader);
+				const entries = await zipReader$1.getEntries();
+				await zipReader$1.close();
+				await initStream(zipWriter.writer);
+				const { directoryOffset } = zipReader$1;
+				entries.forEach(({ filename }) => {
+					if (filenames.has(filename)) {
+						throw new Error(ERR_DUPLICATED_NAME);
+					}
+					filenames.add(filename);
+					appendedFilenames.push(filename);
 				});
-				const { crc32 } = entry;
-				if (crc32 !== UNDEFINED_VALUE) {
-					setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
-				}
-				const { offset, diskNumberStart } = entryPositions.get(entry);
-				Object.assign(entry, {
-					zip64UncompressedSize,
-					zip64CompressedSize,
-					offset,
-					diskNumberStart,
-					zip64DiskNumberStart: false,
-					rawExtraFieldZip64,
-					rawExtraFieldAES,
-					rawExtraFieldExtendedTimestamp,
-					rawExtraFieldNTFS,
-					rawExtraFieldUnix,
-					rawExtraField,
-					extendedTimestamp: rawExtraFieldExtendedTimestamp.length > 0 || rawExtraFieldNTFS.length > 0,
-					extraFieldExtendedTimestampFlag: 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0),
-					headerArray,
-					headerView
+				zipWriter.writerLocked = true;
+				const { lockWriter } = zipWriter;
+				zipWriter.lockWriter = new Promise(resolve => releaseLockWriter = () => {
+					zipWriter.writerLocked = false;
+					resolve();
 				});
-				return [entry.filename, entry];
-			}));
+				await lockWriter;
+				if (zipWriter.addSplitZipSignature) {
+					delete zipWriter.addSplitZipSignature;
+					if (!await startsWithSplitZipSignature(reader)) {
+						await writeData(zipWriter.writer, getSplitZipSignatureArray());
+						zipWriter.offset += SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
+					}
+				}
+				const entryPositions = await copyZipData(zipWriter, reader, entries, directoryOffset);
+				entries.forEach(entry => {
+					const {
+						version,
+						rawLastModDate,
+						lastAccessDate,
+						creationDate,
+						rawFilename,
+						bitFlag,
+						encrypted,
+						uncompressedSize,
+						compressedSize,
+						extraFieldZip64
+					} = entry;
+					let {
+						compressionMethod,
+						rawExtraFieldZip64,
+						rawExtraFieldAES,
+						rawExtraFieldExtendedTimestamp,
+						rawExtraFieldNTFS,
+						rawExtraFieldUnix,
+						rawExtraField,
+					} = entry;
+					const { level, languageEncodingFlag, dataDescriptor } = bitFlag;
+					rawExtraFieldZip64 = rawExtraFieldZip64 || EMPTY_UINT8_ARRAY;
+					rawExtraFieldAES = rawExtraFieldAES || EMPTY_UINT8_ARRAY;
+					rawExtraFieldExtendedTimestamp = rawExtraFieldExtendedTimestamp || EMPTY_UINT8_ARRAY;
+					rawExtraFieldNTFS = rawExtraFieldNTFS || EMPTY_UINT8_ARRAY;
+					rawExtraFieldUnix = rawExtraFieldUnix || EMPTY_UINT8_ARRAY;
+					rawExtraField = removeExtraFieldZip64(rawExtraField || EMPTY_UINT8_ARRAY);
+					if (entry.extraFieldAES) {
+						compressionMethod = COMPRESSION_METHOD_AES;
+					}
+					const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
+					const zip64UncompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.uncompressedSize !== UNDEFINED_VALUE;
+					const zip64CompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.compressedSize !== UNDEFINED_VALUE;
+					const bitFlagValue = (getBitFlag(level, languageEncodingFlag, dataDescriptor, encrypted, compressionMethod) & ~BITFLAG_LEVEL) | (level << 1);
+					const {
+						headerArray,
+						headerView
+					} = getHeaderArrayData({
+						version,
+						bitFlag: bitFlagValue,
+						compressionMethod,
+						uncompressedSize,
+						compressedSize,
+						rawLastModDate,
+						rawFilename,
+						zip64CompressedSize,
+						zip64UncompressedSize,
+						extraFieldLength
+					});
+					const { crc32 } = entry;
+					if (crc32 !== UNDEFINED_VALUE) {
+						setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
+					}
+					const { offset, diskNumberStart } = entryPositions.get(entry);
+					Object.assign(entry, {
+						zip64UncompressedSize,
+						zip64CompressedSize,
+						offset,
+						diskNumberStart,
+						zip64DiskNumberStart: false,
+						rawExtraFieldZip64,
+						rawExtraFieldAES,
+						rawExtraFieldExtendedTimestamp,
+						rawExtraFieldNTFS,
+						rawExtraFieldUnix,
+						rawExtraField,
+						extendedTimestamp: rawExtraFieldExtendedTimestamp.length > 0 || rawExtraFieldNTFS.length > 0,
+						extraFieldExtendedTimestampFlag: 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0),
+						headerArray,
+						headerView
+					});
+					fileEntries.set(entry.filename, entry);
+				});
+			} catch (error) {
+				appendedFilenames.forEach(filename => filenames.delete(filename));
+				throw error;
+			} finally {
+				resolveAppendZip();
+				pendingAddFileCalls.delete(promiseAppendZip);
+				if (releaseLockWriter) {
+					releaseLockWriter();
+				}
+			}
 		}
 
 		async add(name = "", reader, options = {}) {
 			const zipWriter = this;
 			options = Object.assign({}, options);
 			const { pendingAddFileCalls } = zipWriter;
+			name = name.trim();
+			if (getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY) && !name.endsWith(DIRECTORY_SIGNATURE)) {
+				name += DIRECTORY_SIGNATURE;
+			}
+			if (zipWriter.filenames.has(name)) {
+				throw new Error(ERR_DUPLICATED_NAME);
+			}
+			zipWriter.filenames.add(name);
 			if (workers < getConfiguration().maxWorkers) {
 				workers++;
 			} else {
 				await new Promise(resolve => pendingEntries.push(resolve));
 			}
 			let promiseAddFile;
-			let nameAdded;
 			try {
-				name = name.trim();
-				if (getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY) && !name.endsWith(DIRECTORY_SIGNATURE)) {
-					name += DIRECTORY_SIGNATURE;
-				}
-				if (zipWriter.filenames.has(name)) {
-					throw new Error(ERR_DUPLICATED_NAME);
-				}
-				zipWriter.filenames.add(name);
-				nameAdded = true;
 				promiseAddFile = addFile(zipWriter, name, reader, options);
 				pendingAddFileCalls.add(promiseAddFile);
 				return await promiseAddFile;
 			} catch (error) {
-				if (nameAdded) {
-					zipWriter.filenames.delete(name);
-				}
+				zipWriter.filenames.delete(name);
 				throw error;
 			} finally {
 				pendingAddFileCalls.delete(promiseAddFile);

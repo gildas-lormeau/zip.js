@@ -2618,12 +2618,39 @@ export class ZipWriter<Type> {
   readonly hasCorruptedEntries?: boolean;
 
   /**
+   * Adds the entries of an existing zip file into the current zip. This method can be called at any
+   * time, including between calls to {@link ZipWriter#add} and repeatedly to merge several zip files.
+   *
+   * @remarks
+   * The data of the zip file is copied, its central directory is rebuilt and its entries are relocated to
+   * the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
+   * the disks of the output, which is a single zip file unless the writer is a split zip file writer.
+   *
+   * Pending {@link ZipWriter#add} calls are completed before the data is copied, and add() calls made
+   * while the copy is in progress are written after it. If an entry of the zip file has the same
+   * filename as an entry of the current zip, the method throws with the `ERR_DUPLICATED_NAME` error
+   * message and leaves the current zip unchanged; call {@link ZipWriter#remove} beforehand to resolve
+   * the conflicts.
+   *
+   * @param reader The {@link Reader} instance used to read the content of the zip file.
+   * @returns A promise resolving when the zip file has been added.
+   */
+  appendZip<ReaderType>(
+    reader:
+      | Reader<ReaderType>
+      | ReadableReader
+      | ReadableStream
+      | Reader<unknown>[]
+      | ReadableReader[]
+      | ReadableStream[]
+  ): Promise<void>;
+
+  /**
    * Adds an existing zip file at the beginning of the current zip. This method
    * cannot be called after the first call to {@link ZipWriter#add}.
    *
-   * @remarks The data of the zip file is copied, its central directory is rebuilt and its entries are relocated to
-   * the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
-   * the disks of the output, which is a single zip file unless the writer is a split zip file writer.
+   * @deprecated Use {@link ZipWriter#appendZip} instead, which is equivalent when the zip file is
+   * empty and can also be called after entries have been added.
    *
    * @param reader The {@link Reader} instance used to read the content of the zip file.
    * @returns A promise resolving when the zip file has been added.

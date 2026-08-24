@@ -111,6 +111,47 @@ A promise resolving to an [EntryMetaData](../interfaces/EntryMetaData.md) instan
 
 ***
 
+### appendZip()
+
+> **appendZip**\<`ReaderType`\>(`reader`): `Promise`\<`void`\>
+
+Adds the entries of an existing zip file into the current zip. This method can be called at any
+time, including between calls to [ZipWriter#add](#add) and repeatedly to merge several zip files.
+
+#### Type Parameters
+
+##### ReaderType
+
+`ReaderType`
+
+#### Parameters
+
+##### reader
+
+`ReadableStream`\<`any`\> \| `ReadableStream`\<`any`\>[] \| [`ReadableReader`](../interfaces/ReadableReader.md) \| [`Reader`](Reader.md)\<`unknown`\>[] \| [`ReadableReader`](../interfaces/ReadableReader.md)[] \| [`Reader`](Reader.md)\<`ReaderType`\>
+
+The [Reader](Reader.md) instance used to read the content of the zip file.
+
+#### Returns
+
+`Promise`\<`void`\>
+
+A promise resolving when the zip file has been added.
+
+#### Remarks
+
+The data of the zip file is copied, its central directory is rebuilt and its entries are relocated to
+the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
+the disks of the output, which is a single zip file unless the writer is a split zip file writer.
+
+Pending [ZipWriter#add](#add) calls are completed before the data is copied, and add() calls made
+while the copy is in progress are written after it. If an entry of the zip file has the same
+filename as an entry of the current zip, the method throws with the `ERR_DUPLICATED_NAME` error
+message and leaves the current zip unchanged; call [ZipWriter#remove](#remove) beforehand to resolve
+the conflicts.
+
+***
+
 ### close()
 
 > **close**(`comment?`, `options?`): `Promise`\<`Type`\>
@@ -144,7 +185,7 @@ The global comment is passed as raw bytes and the comment of an entry
 
 ***
 
-### prependZip()
+### ~~prependZip()~~
 
 > **prependZip**\<`ReaderType`\>(`reader`): `Promise`\<`void`\>
 
@@ -171,11 +212,10 @@ The [Reader](Reader.md) instance used to read the content of the zip file.
 
 A promise resolving when the zip file has been added.
 
-#### Remarks
+#### Deprecated
 
-The data of the zip file is copied, its central directory is rebuilt and its entries are relocated to
-the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
-the disks of the output, which is a single zip file unless the writer is a split zip file writer.
+Use [ZipWriter#appendZip](#appendzip) instead, which is equivalent when the zip file is
+empty and can also be called after entries have been added.
 
 ***
 
