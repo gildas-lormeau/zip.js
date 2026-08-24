@@ -105,6 +105,12 @@ The options.
 
 The content of the zip file.
 
+#### Remarks
+
+If an entry could not be written, this method aborts the zipped stream with the error — the
+readable side of the stream fails instead of ending — and throws it. The `entryErrors` property
+of the thrown error contains the errors of all the failed entries.
+
 ***
 
 ### transform()

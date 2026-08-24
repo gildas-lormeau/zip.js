@@ -19,6 +19,7 @@ export default ([
 	{ title: "Append to zip (zip64 layout)", script: "./test-prepend-zip-zip64.js" },
 	{ title: "Append to zip (between added entries)", script: "./test-append-zip.js" },
 	{ title: "Append to zip (queued entry name)", script: "./test-add-queued-name.js" },
+	{ title: "Unawaited entry errors", script: "./test-unawaited-errors.js" },
 	{ title: "Empty entry data descriptor", script: "./test-empty-entry-data-descriptor.js" },
 	{ title: "Uint8Array", script: "./test-array.js" },
 	{ title: "Arraybuffer", script: "./test-arrayBuffer.js" },

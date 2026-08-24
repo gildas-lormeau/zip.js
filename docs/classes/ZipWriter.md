@@ -109,6 +109,11 @@ The options.
 
 A promise resolving to an [EntryMetaData](../interfaces/EntryMetaData.md) instance.
 
+#### Remarks
+
+The returned promise can safely be left un-awaited: [ZipWriter#close](#close) waits for the entry
+and throws its error if it was not caught.
+
 ***
 
 ### appendZip()
@@ -150,6 +155,9 @@ filename as an entry of the current zip, the method throws with the `ERR_DUPLICA
 message and leaves the current zip unchanged; call [ZipWriter#remove](#remove) beforehand to resolve
 the conflicts.
 
+The returned promise can safely be left un-awaited: [ZipWriter#close](#close) waits for the copy
+and throws its error if it was not caught.
+
 ***
 
 ### close()
@@ -182,6 +190,12 @@ The content of the zip file.
 
 The global comment is passed as raw bytes and the comment of an entry
 ([ZipWriterAddDataOptions#comment](../interfaces/ZipWriterAddDataOptions.md#comment)) as a string on purpose, see [ZipReader#comment](ZipReader.md#comment).
+
+If [ZipWriter#add](#add) or [ZipWriter#appendZip](#appendzip) calls failed and their rejection was
+never handled — e.g. the returned promise was not awaited — this method throws the first of
+these errors instead of finalizing the zip file. The `entryErrors` property of the thrown error
+contains all of them. Errors already caught by the caller do not resurface here, so entries can
+still be skipped by awaiting [ZipWriter#add](#add) and catching the error.
 
 ***
 

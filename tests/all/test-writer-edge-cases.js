@@ -76,11 +76,12 @@ async function testCommentTooLong() {
 	}
 }
 
-// a failed add() through ZipWriterStream must error the returned writable and
-// reject close() instead of triggering an unhandled promise rejection
+// a failed add() through ZipWriterStream must error the returned writable, reject close() and
+// abort the archive readable, so that a consumer piping it neither hangs nor keeps a partial file
 async function testZipWriterStreamError() {
 	const zipWriterStream = new zip.ZipWriterStream();
-	const drained = zipWriterStream.readable.pipeTo(new WritableStream({})).catch(() => { });
+	let drainError;
+	const drained = zipWriterStream.readable.pipeTo(new WritableStream({})).catch(error => drainError = error);
 	const firstWritable = zipWriterStream.writable("entry.txt");
 	const firstWriter = firstWritable.getWriter();
 	await firstWriter.write(new TextEncoder().encode(TEXT_CONTENT));
@@ -98,11 +99,10 @@ async function testZipWriterStreamError() {
 	try {
 		await zipWriterStream.close();
 	} catch (error) {
-		closeRejected = error.message == zip.ERR_DUPLICATED_NAME;
+		closeRejected = error.message == zip.ERR_DUPLICATED_NAME && error.entryErrors.length == 1;
 	}
-	await zipWriterStream.zipWriter.close();
 	await drained;
-	if (!writableErrored || !closeRejected) {
-		throw new Error();
+	if (!writableErrored || !closeRejected || !drainError || drainError.message != zip.ERR_DUPLICATED_NAME) {
+		throw new Error("expected the duplicate entry to error the writable, close() and the readable");
 	}
 }

@@ -2564,6 +2564,11 @@ export class ZipWriterStream {
   /**
    * Writes the entries directory, writes the global comment, and returns the content of the zipped file.
    *
+   * @remarks
+   * If an entry could not be written, this method aborts the zipped stream with the error — the
+   * readable side of the stream fails instead of ending — and throws it. The `entryErrors` property
+   * of the thrown error contains the errors of all the failed entries.
+   *
    * @param comment The global comment of the zip file.
    * @param options The options.
    * @returns The content of the zip file.
@@ -2632,6 +2637,9 @@ export class ZipWriter<Type> {
    * message and leaves the current zip unchanged; call {@link ZipWriter#remove} beforehand to resolve
    * the conflicts.
    *
+   * The returned promise can safely be left un-awaited: {@link ZipWriter#close} waits for the copy
+   * and throws its error if it was not caught.
+   *
    * @param reader The {@link Reader} instance used to read the content of the zip file.
    * @returns A promise resolving when the zip file has been added.
    */
@@ -2668,6 +2676,10 @@ export class ZipWriter<Type> {
   /**
    * Adds an entry into the zip file
    *
+   * @remarks
+   * The returned promise can safely be left un-awaited: {@link ZipWriter#close} waits for the entry
+   * and throws its error if it was not caught.
+   *
    * @param filename The filename of the entry. Paths must use forward slashes ("/") as separator,
    * as required by section 4.4.17.1 of the zip specification. The value is stored as-is; in
    * particular, Windows path separators ("\\") are not converted and become part of the filename,
@@ -2703,6 +2715,12 @@ export class ZipWriter<Type> {
    * @remarks
    * The global comment is passed as raw bytes and the comment of an entry
    * ({@link ZipWriterAddDataOptions#comment}) as a string on purpose, see {@link ZipReader#comment}.
+   *
+   * If {@link ZipWriter#add} or {@link ZipWriter#appendZip} calls failed and their rejection was
+   * never handled — e.g. the returned promise was not awaited — this method throws the first of
+   * these errors instead of finalizing the zip file. The `entryErrors` property of the thrown error
+   * contains all of them. Errors already caught by the caller do not resurface here, so entries can
+   * still be skipped by awaiting {@link ZipWriter#add} and catching the error.
    *
    * @param comment The global comment of the zip file.
    * @param options The options.
