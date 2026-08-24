@@ -3365,6 +3365,14 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   encrypted?: boolean;
   /**
    * The offset of the first entry in the zip file.
+   *
+   * @remarks
+   * When the option is undefined, the offset is the number of bytes already written into the
+   * destination, read from its `size` property, see {@link WritableWriter#size}. A `size` property
+   * set on a `WritableStream` instance passed directly to the {@link ZipWriter} constructor is
+   * also read, for backward compatibility. When the option is set, the bytes between the size of
+   * the destination and the offset are assumed to exist in the final zip file without being
+   * written, e.g. when writing one part of a zip file assembled by the caller.
    */
   offset?: number;
   /**
