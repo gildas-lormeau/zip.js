@@ -136,11 +136,16 @@ async function checkTrailingCentralDirectoryData() {
 	const junk = new Uint8Array(8).fill(0xaa);
 	const data = concat(original.subarray(0, centralDirectoryOffset + centralDirectoryLength), junk,
 		original.subarray(centralDirectoryOffset + centralDirectoryLength));
-	getView(data).setUint32(endOfDirectoryOffset + junk.length + 12, centralDirectoryLength + junk.length, true);
-	const { reader, entries } = await readEntries(data);
-	assertWarning(reader.warnings, zip.WARNING_TRAILING_CENTRAL_DIRECTORY_DATA);
-	assert(entries.length == 2, "the entries must stay listed with trailing central directory data");
-	await assertStrictRejection(data, zip.WARNING_TRAILING_CENTRAL_DIRECTORY_DATA);
+	const declared = data.slice();
+	getView(declared).setUint32(endOfDirectoryOffset + junk.length + 12, centralDirectoryLength + junk.length, true);
+	for (const [label, bytes] of [["declared", declared], ["undeclared gap", data]]) {
+		const { reader, entries } = await readEntries(bytes);
+		assertWarning(reader.warnings, zip.WARNING_TRAILING_CENTRAL_DIRECTORY_DATA);
+		assert(entries.length == 2, "the entries must stay listed with " + label + " trailing central directory data");
+		const content = await entries[0].getData(new zip.TextWriter());
+		assert(content == "first content", "the entries must stay readable with " + label + " trailing central directory data");
+		await assertStrictRejection(bytes, zip.WARNING_TRAILING_CENTRAL_DIRECTORY_DATA);
+	}
 }
 
 async function checkMismatchedLocalFileHeader() {

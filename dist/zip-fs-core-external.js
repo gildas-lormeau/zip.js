@@ -5176,7 +5176,8 @@ class ZipReader {
 			zipReader.digitalSignature = digitalSignature;
 			offsetAfterSignature = offset + 6 + digitalSignature.length;
 		}
-		if (offset != declaredDirectoryDataLength && offsetAfterSignature != declaredDirectoryDataLength) {
+		if ((offset != declaredDirectoryDataLength && offsetAfterSignature != declaredDirectoryDataLength) ||
+			(!decryptedDirectory && offset != directoryDataLength && offsetAfterSignature != directoryDataLength)) {
 			reportAmbiguity(checkAmbiguity, warnings, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA);
 		}
 		if (duplicateFilename) {

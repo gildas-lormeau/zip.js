@@ -4710,7 +4710,8 @@ export const WARNING_APPENDED_DATA: string;
  */
 export const WARNING_PREPENDED_DATA: string;
 /**
- * Warning reason: the declared central directory length exceeds its records (see {@link ZipReader#warnings});
+ * Warning reason: data lies between the end of the central directory records and the end of central directory
+ * record, either inside the declared central directory length or beyond it (see {@link ZipReader#warnings});
  * the reason of {@link ERR_AMBIGUOUS_ARCHIVE} under `strictness: "strict"`
  */
 export const WARNING_TRAILING_CENTRAL_DIRECTORY_DATA: string;
