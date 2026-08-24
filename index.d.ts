@@ -2693,7 +2693,8 @@ export class ZipWriter<Type> {
    * @param filename The filename of the entry. Paths must use forward slashes ("/") as separator,
    * as required by section 4.4.17.1 of the zip specification. The value is stored as-is; in
    * particular, Windows path separators ("\\") are not converted and become part of the filename,
-   * which is interpreted inconsistently by zip tools.
+   * which is interpreted inconsistently by zip tools, and leading or trailing whitespace is
+   * preserved, which Windows filesystems cannot represent at the end of a name.
    * @param reader The  {@link Reader} instance used to read the content of the entry.
    * @param options The options.
    * @returns A promise resolving to an {@link EntryMetaData} instance.

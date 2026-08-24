@@ -11,10 +11,40 @@ async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	try {
 		await testDuplicateDirectoryName();
+		await testPaddedFilenames();
 		await testCommentTooLong();
 		await testZipWriterStreamError();
 	} finally {
 		await zip.terminateWorkers();
+	}
+}
+
+// filenames with leading or trailing whitespace are legal in zip files and must be
+// preserved by the writer and by the filesystem import/export round trip
+async function testPaddedFilenames() {
+	const paddedFilenames = [" leading.txt", "trailing.txt ", " both.txt ", "dir /"];
+	const blobWriter = new zip.BlobWriter("application/zip");
+	const zipWriter = new zip.ZipWriter(blobWriter);
+	await zipWriter.add(paddedFilenames[0], new zip.TextReader(TEXT_CONTENT));
+	await zipWriter.add(paddedFilenames[1], new zip.TextReader(TEXT_CONTENT));
+	await zipWriter.add(" both.txt ", new zip.TextReader(TEXT_CONTENT));
+	await zipWriter.add("dir ", undefined, { directory: true });
+	await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
+	const entries = await zipReader.getEntries();
+	await zipReader.close();
+	const filenames = entries.map(entry => entry.filename);
+	if (filenames.length != paddedFilenames.length || paddedFilenames.some(filename => !filenames.includes(filename))) {
+		throw new Error("expected padded filenames to be preserved by the writer");
+	}
+	const zipFs = new zip.ZipFS();
+	await zipFs.importBlob(await blobWriter.getData());
+	const exportedReader = new zip.ZipReader(new zip.BlobReader(await zipFs.exportBlob()));
+	const exportedEntries = await exportedReader.getEntries();
+	await exportedReader.close();
+	const exportedFilenames = exportedEntries.map(entry => entry.filename);
+	if (paddedFilenames.some(filename => !exportedFilenames.includes(filename))) {
+		throw new Error("expected padded filenames to be preserved by the filesystem round trip");
 	}
 }
 

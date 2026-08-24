@@ -6485,7 +6485,6 @@
 
 	async function addFileEntry(zipWriter, name, reader, options) {
 		options = Object.assign({}, options);
-		name = name.trim();
 		if (getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY) && !name.endsWith(DIRECTORY_SIGNATURE)) {
 			name += DIRECTORY_SIGNATURE;
 		}
@@ -6576,7 +6575,6 @@
 	}
 
 	function resolveAttributes(zipWriter, name, options) {
-		name = name.trim();
 		let msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE);
 		let versionMadeBy = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION_MADE_BY, msDosCompatible ? VERSION_MADE_BY_MSDOS : VERSION_MADE_BY_UNIX);
 		const executable = getOptionValue(zipWriter, options, PROPERTY_NAME_EXECUTABLE);
