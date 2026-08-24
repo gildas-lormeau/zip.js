@@ -948,6 +948,10 @@ The options.
 Use [ZipDirectoryEntry#importZip](#importzip) with a [ZipReader](ZipReader.md) instance to read the data of the
 zip file itself, e.g. its [ZipReader#prependedData](ZipReader.md#prependeddata) or its [ZipReader#comment](ZipReader.md#comment) property.
 
+The stream is buffered entirely in memory, because reading a zip file requires random access. To import
+a large file without buffering it, use [ZipDirectoryEntry#importZip](#importzip) with a seekable input, see
+the [ZipReader](ZipReader.md) constructor remarks and the [Reader](Reader.md) examples.
+
 ***
 
 ### importUint8Array()
@@ -1022,6 +1026,9 @@ Passing a [ZipReader](ZipReader.md) instance is the way to read the data of the 
 [ZipReader#prependedData](ZipReader.md#prependeddata) or its [ZipReader#comment](ZipReader.md#comment) property, since the instance created
 otherwise is not exposed. Its options are used as defaults for the options passed here, and it must not
 have read its entries yet when it is created over a `ReadableStream` instance, which can only be read once.
+
+Like the [ZipReader](ZipReader.md) constructor, a `ReadableStream` input is buffered entirely in memory, see
+its remarks and the [Reader](Reader.md) examples for reading large seekable resources with random access.
 
 ***
 

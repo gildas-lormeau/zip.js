@@ -757,6 +757,48 @@ export interface ReadableReader {
  *   }
  * }
  * ```
+ *
+ * @example
+ * Reading a file on the filesystem with random access does not always require a custom {@link Reader}:
+ * on runtimes exposing files as lazily-read `Blob` instances, the `Blob` returned by
+ * `await fs.openAsBlob(path)` on Node.js or `Bun.file(path)` on Bun can be passed directly to
+ * {@link ZipReader}. Deno has no equivalent API yet, see https://github.com/denoland/deno/issues/32316.
+ * The class below reads a
+ * `Deno.FsFile` with random access instead of buffering it entirely in memory. The `seek()` and `read()`
+ * calls are serialized in a queue because zip.js can read multiple byte ranges concurrently:
+ * ```
+ * class FsFileReader extends Reader {
+ *
+ *   constructor(file) {
+ *     super();
+ *     this.file = file;
+ *     this.queue = Promise.resolve();
+ *   }
+ *
+ *   async init() {
+ *     super.init();
+ *     this.size = (await this.file.stat()).size;
+ *   }
+ *
+ *   readUint8Array(offset, length) {
+ *     const result = this.queue.then(async () => {
+ *       await this.file.seek(offset, Deno.SeekMode.Start);
+ *       const data = new Uint8Array(length);
+ *       let bytesRead = 0;
+ *       while (bytesRead < length) {
+ *         const count = await this.file.read(data.subarray(bytesRead));
+ *         if (count === null) {
+ *           return data.subarray(0, bytesRead);
+ *         }
+ *         bytesRead += count;
+ *       }
+ *       return data;
+ *     });
+ *     this.queue = result.catch(() => undefined);
+ *     return result;
+ *   }
+ * }
+ * ```
  */
 export class Reader<Type> implements Initializable, ReadableReader {
   /**
@@ -1286,7 +1328,9 @@ export class ZipReader<Type> {
    * file is read first. A `ReadableStream` instance, or an object providing only a `readable` property
    * (e.g. a file handle), is therefore buffered entirely in memory when the instance is initialized. To
    * read a large seekable resource without buffering it, pass a custom {@link Reader} implementation
-   * that reads the requested byte ranges directly.
+   * that reads the requested byte ranges directly, or a lazily-read `Blob` instance when the runtime
+   * provides one, e.g. `await fs.openAsBlob(path)` on Node.js or `Bun.file(path)` on Bun. See
+   * {@link Reader} for an example reading a `Deno.FsFile` with random access.
    *
    * @param reader The {@link Reader} instance used to read data.
    * @param options The options.
@@ -3837,6 +3881,10 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
    * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
+   *
+   * The stream is buffered entirely in memory, because reading a zip file requires random access. To import
+   * a large file without buffering it, use {@link ZipDirectoryEntry#importZip} with a seekable input, see
+   * the {@link ZipReader} constructor remarks and the {@link Reader} examples.
    */
   importReadable(
     readable: ReadableStream,
@@ -3863,6 +3911,9 @@ export class ZipDirectoryEntry extends ZipEntry {
    * {@link ZipReader#prependedData} or its {@link ZipReader#comment} property, since the instance created
    * otherwise is not exposed. Its options are used as defaults for the options passed here, and it must not
    * have read its entries yet when it is created over a `ReadableStream` instance, which can only be read once.
+   *
+   * Like the {@link ZipReader} constructor, a `ReadableStream` input is buffered entirely in memory, see
+   * its remarks and the {@link Reader} examples for reading large seekable resources with random access.
    */
   importZip(
     reader:
