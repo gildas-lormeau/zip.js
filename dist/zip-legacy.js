@@ -7951,9 +7951,21 @@
 	async function copyData(zipWriter, reader, offset, size) {
 		if (size > 0) {
 			const { writer } = zipWriter;
-			await createReadable(reader, { offset, size }).pipeTo(writer.writable, { preventClose: true, preventAbort: true });
-			writer.size += size;
-			zipWriter.offset += size;
+			let copiedLength = 0;
+			try {
+				await flushBufferedData(createReadable(reader, { offset, size }), writer, UNDEFINED_VALUE, chunkLength => copiedLength += chunkLength);
+			} catch (error) {
+				zipWriter.hasCorruptedEntries = true;
+				try {
+					error.corruptedEntry = true;
+				} catch {
+					// ignored
+				}
+				throw error;
+			} finally {
+				writer.size += copiedLength;
+				zipWriter.offset += copiedLength;
+			}
 		}
 	}
 

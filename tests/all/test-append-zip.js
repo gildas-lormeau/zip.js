@@ -12,6 +12,7 @@ async function test() {
 		await rejectsDuplicateFilenames();
 		await serializesConcurrentCalls();
 		await completesBeforeAnUnawaitedClose();
+		await marksAFailedCopyAsCorrupted();
 		await keepsThePrependZipGuard();
 	} finally {
 		await zip.terminateWorkers();
@@ -71,6 +72,41 @@ async function completesBeforeAnUnawaitedClose() {
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
 	zipWriter.appendZip(new zip.Uint8ArrayReader(source));
 	await checkEntries(await zipWriter.close(), ["s1.txt", "s2.txt"]);
+}
+
+async function marksAFailedCopyAsCorrupted() {
+	const sourceWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await sourceWriter.add("s1.txt", new zip.TextReader("x".repeat(600)), { level: 0, lastModDate: LAST_MOD_DATE });
+	await sourceWriter.add("s2.txt", new zip.TextReader("y".repeat(600)), { level: 0, lastModDate: LAST_MOD_DATE });
+	const source = await sourceWriter.close();
+	const failingReader = new zip.Uint8ArrayReader(source);
+	const readUint8Array = failingReader.readUint8Array.bind(failingReader);
+	failingReader.readUint8Array = (index, length, ...args) => {
+		if (index >= 400 && index < 800) {
+			throw new Error("failing reader");
+		}
+		return readUint8Array(index, length, ...args);
+	};
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await addEntry(zipWriter, "a.txt");
+	let error;
+	try {
+		await zipWriter.appendZip(failingReader);
+	} catch (appendError) {
+		error = appendError;
+	}
+	if (!error || !error.corruptedEntry || !zipWriter.hasCorruptedEntries) {
+		throw new Error("expected the failed copy to mark the zip as corrupted, got " + (error ? error.message : "no error"));
+	}
+	await addEntry(zipWriter, "s1.txt");
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(await zipWriter.close()), { checkCrc32: true });
+	const entries = await zipReader.getEntries();
+	const contents = await Promise.all(entries.map(entry => entry.getData(new zip.TextWriter())));
+	await zipReader.close();
+	if (entries.map(entry => entry.filename).join() != "a.txt,s1.txt" ||
+		!contents.every((content, entryIndex) => content == "content of " + entries[entryIndex].filename)) {
+		throw new Error("expected the entries written around the failed copy to stay readable");
+	}
 }
 
 async function keepsThePrependZipGuard() {
