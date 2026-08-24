@@ -6276,8 +6276,6 @@ class ZipWriter {
 				const {
 					version,
 					rawLastModDate,
-					lastAccessDate,
-					creationDate,
 					rawFilename,
 					bitFlag,
 					encrypted,
@@ -6287,24 +6285,14 @@ class ZipWriter {
 				} = entry;
 				let {
 					compressionMethod,
-					rawExtraFieldZip64,
-					rawExtraFieldAES,
-					rawExtraFieldExtendedTimestamp,
-					rawExtraFieldNTFS,
-					rawExtraFieldUnix,
 					rawExtraField,
 				} = entry;
 				const { level, languageEncodingFlag, dataDescriptor } = bitFlag;
-				rawExtraFieldZip64 = rawExtraFieldZip64 || EMPTY_UINT8_ARRAY;
-				rawExtraFieldAES = rawExtraFieldAES || EMPTY_UINT8_ARRAY;
-				rawExtraFieldExtendedTimestamp = rawExtraFieldExtendedTimestamp || EMPTY_UINT8_ARRAY;
-				rawExtraFieldNTFS = rawExtraFieldNTFS || EMPTY_UINT8_ARRAY;
-				rawExtraFieldUnix = rawExtraFieldUnix || EMPTY_UINT8_ARRAY;
 				rawExtraField = removeExtraFieldZip64(rawExtraField || EMPTY_UINT8_ARRAY);
 				if (entry.extraFieldAES) {
 					compressionMethod = COMPRESSION_METHOD_AES;
 				}
-				const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField);
+				const extraFieldLength = getLength(rawExtraField);
 				const zip64UncompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.uncompressedSize !== UNDEFINED_VALUE;
 				const zip64CompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.compressedSize !== UNDEFINED_VALUE;
 				const bitFlagValue = (getBitFlag(level, languageEncodingFlag, dataDescriptor, encrypted, compressionMethod) & ~BITFLAG_LEVEL) | (level << 1);
@@ -6334,14 +6322,13 @@ class ZipWriter {
 					offset,
 					diskNumberStart,
 					zip64DiskNumberStart: false,
-					rawExtraFieldZip64,
-					rawExtraFieldAES,
-					rawExtraFieldExtendedTimestamp,
-					rawExtraFieldNTFS,
-					rawExtraFieldUnix,
+					rawExtraFieldZip64: EMPTY_UINT8_ARRAY,
+					rawExtraFieldAES: EMPTY_UINT8_ARRAY,
+					rawExtraFieldExtendedTimestamp: EMPTY_UINT8_ARRAY,
+					rawExtraFieldNTFS: EMPTY_UINT8_ARRAY,
+					rawExtraFieldUnix: EMPTY_UINT8_ARRAY,
 					rawExtraField,
-					extendedTimestamp: rawExtraFieldExtendedTimestamp.length > 0 || rawExtraFieldNTFS.length > 0,
-					extraFieldExtendedTimestampFlag: 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0),
+					extendedTimestamp: false,
 					headerArray,
 					headerView
 				});
