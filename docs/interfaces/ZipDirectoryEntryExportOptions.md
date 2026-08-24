@@ -536,6 +536,9 @@ also read, for backward compatibility. When the option is set, the bytes between
 the destination and the offset are assumed to exist in the final zip file without being
 written, e.g. when writing one part of a zip file assembled by the caller.
 
+The option is only read when the [ZipWriter](../classes/ZipWriter.md) is created, e.g. by
+[ZipDirectoryEntry#exportZip](../classes/ZipDirectoryEntry.md#exportzip); a value passed to [ZipWriter#add](../classes/ZipWriter.md#add) is ignored.
+
 #### Inherited from
 
 [`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`offset`](ZipWriterConstructorOptions.md#offset)
@@ -822,6 +825,9 @@ These constraints apply to the entries written with [ZipWriter#add](../classes/Z
 [ZipWriter#appendZip](../classes/ZipWriter.md#appendzip) keep the layout of the source zip file and are not checked, so appending a
 zip file that does not comply with the USDZ specification, or appending it when the size of the output
 is not a multiple of 64 bytes, silently produces a non-compliant file.
+
+The option is only read when the [ZipWriter](../classes/ZipWriter.md) is created; a value passed to
+[ZipWriter#add](../classes/ZipWriter.md#add) is ignored.
 
 #### Default Value
 
