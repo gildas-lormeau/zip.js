@@ -25,7 +25,7 @@
 <ul class="tsd-type-parameter-list">
 <li><span id="type"><span class="tsd-kind-type-parameter">Type</span></span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2610">index.d.ts:2610</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/ac2a189bbf86126f3f0d463d79dbaaa7fbbbfefb/index.d.ts#L2715">index.d.ts:2715</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -73,7 +73,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ZipWriter</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2617">index.d.ts:2617</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/ac2a189bbf86126f3f0d463d79dbaaa7fbbbfefb/index.d.ts#L2722">index.d.ts:2722</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -83,7 +83,7 @@
 <div class="tsd-comment tsd-typography"><p><code>true</code> if the zip contains at least one entry that has been partially written.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2631">index.d.ts:2631</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/ac2a189bbf86126f3f0d463d79dbaaa7fbbbfefb/index.d.ts#L2736">index.d.ts:2736</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -106,7 +106,8 @@
 <div class="tsd-comment tsd-typography"><p>The filename of the entry. Paths must use forward slashes (&quot;/&quot;) as separator,
 as required by section 4.4.17.1 of the zip specification. The value is stored as-is; in
 particular, Windows path separators (&quot;\&quot;) are not converted and become part of the filename,
-which is interpreted inconsistently by zip tools.</p>
+which is interpreted inconsistently by zip tools, and leading or trailing whitespace is
+preserved, which Windows filesystems cannot represent at the end of a name.</p>
 </div></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">reader</span>: <br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><br/>    <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><span class="tsd-signature-symbol">[]</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#addreadertype">ReaderType</a><span class="tsd-signature-symbol">&gt;</span></span>
 <div class="tsd-comment tsd-typography"><p>The  <a href="Reader.html" class="tsd-kind-class">Reader</a> instance used to read the content of the entry.</p>
@@ -122,7 +123,7 @@ which is interpreted inconsistently by zip tools.</p>
 and throws its error if it was not caught.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2701">index.d.ts:2701</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/ac2a189bbf86126f3f0d463d79dbaaa7fbbbfefb/index.d.ts#L2807">index.d.ts:2807</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="appendzip"><span>append<wbr/>Zip</span><a href="#appendzip" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -160,7 +161,7 @@ the conflicts.</p>
 and throws its error if it was not caught.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2656">index.d.ts:2656</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/ac2a189bbf86126f3f0d463d79dbaaa7fbbbfefb/index.d.ts#L2761">index.d.ts:2761</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="close"><span>close</span><a href="#close" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -193,7 +194,7 @@ counts as reporting them: catching the error of this method and calling it again
 zip file without the failed entries.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2741">index.d.ts:2741</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/ac2a189bbf86126f3f0d463d79dbaaa7fbbbfefb/index.d.ts#L2847">index.d.ts:2847</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="prependzip"><span class="deprecated">prepend<wbr/>Zip</span><a href="#prependzip" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -221,7 +222,7 @@ cannot be called after the first call to <a href="#add" class="tsd-kind-method">
 empty and can also be called after entries have been added.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2676">index.d.ts:2676</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/ac2a189bbf86126f3f0d463d79dbaaa7fbbbfefb/index.d.ts#L2781">index.d.ts:2781</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="remove"><span>remove</span><a href="#remove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -240,7 +241,7 @@ data itself cannot be removed because it has already been streamed to the output
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> if the entry has been removed, <code>false</code> otherwise.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2720">index.d.ts:2720</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/ac2a189bbf86126f3f0d463d79dbaaa7fbbbfefb/index.d.ts#L2826">index.d.ts:2826</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
