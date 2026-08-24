@@ -77,6 +77,7 @@ const BITFLAG_LEVEL_MAX_MASK = 0b010;
 const BITFLAG_LEVEL_FAST_MASK = 0b100;
 const BITFLAG_LEVEL_SUPER_FAST_MASK = 0b110;
 const BITFLAG_DATA_DESCRIPTOR = 0b1000;
+const BITFLAG_COMPRESSED_PATCHED_DATA = 0b100000;
 const BITFLAG_STRONG_ENCRYPTION = 0b1000000;
 const BITFLAG_LANG_ENCODING_FLAG = 0b100000000000;
 const BITFLAG_MASKED_LOCAL_HEADERS = 0b10000000000000;
@@ -4726,6 +4727,21 @@ const ERR_INVALID_STRICTNESS = "Invalid strictness (must be 'strict', 'balanced'
 const ERR_INVALID_FILENAME_VALIDATION = "Invalid filenameValidation (must be 'strict', 'balanced' or 'tolerant')";
 const ERR_INVALID_MAX_APPENDED_DATA_SIZE = "Invalid maxAppendedDataSize (must be a number greater than or equal to 0)";
 const ERR_UNSUPPORTED_UINT64 = "64-bit value exceeds Number.MAX_SAFE_INTEGER";
+const WARNING_UNSORTED_CENTRAL_DIRECTORY = "unsorted central directory";
+const WARNING_UNKNOWN_VERSION = "unknown version needed to extract";
+const WARNING_COMPRESSED_PATCHED_DATA = "compressed patched data";
+const WARNING_MALFORMED_EXTRA_FIELD = "malformed extra field";
+const WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA = "unknown zip64 extensible data";
+const WARNING_WRAPPED_ENTRIES_COUNT = "wrapped entries count";
+const WARNING_APPENDED_DATA = "appended data";
+const WARNING_PREPENDED_DATA = "prepended data";
+const WARNING_TRAILING_CENTRAL_DIRECTORY_DATA = "trailing central directory data";
+const WARNING_DUPLICATE_FILENAME = "duplicate filename";
+const WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY = "mismatched zip64 end of central directory record";
+const WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG = "mismatched local file header (general purpose bit flag)";
+const WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD = "mismatched local file header (compression method)";
+const WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES = "mismatched local file header (crc32 or sizes)";
+const MAX_KNOWN_VERSION = 63;
 const DRIVE_LETTER_REGEXP = /^[a-zA-Z]:/;
 const CHARSET_UTF8 = "utf-8";
 const PROPERTY_NAME_UTF8_SUFFIX = "UTF8";
@@ -4776,6 +4792,7 @@ class ZipReader {
 		if (reader.size < END_OF_CENTRAL_DIR_LENGTH) {
 			throw new Error(ERR_BAD_FORMAT);
 		}
+		const warnings = zipReader.warnings = [];
 		const strictness = getStrictness(options, zipReader.options);
 		const checkAmbiguity = strictness == STRICTNESS_STRICT;
 		const rejectAmbiguousEndOfDirectory = strictness != STRICTNESS_TOLERANT;
@@ -4799,8 +4816,12 @@ class ZipReader {
 		const commentOffset = endOfDirectoryInfo.offset;
 		const commentLength = getUint16$1(endOfDirectoryView, 20);
 		const appendedDataOffset = commentOffset + END_OF_CENTRAL_DIR_LENGTH + commentLength;
-		if (reader.size - appendedDataOffset > maxAppendedDataSize) {
-			throwAmbiguousArchive("appended data");
+		const appendedDataLength = reader.size - appendedDataOffset;
+		if (appendedDataLength > maxAppendedDataSize) {
+			throwAmbiguousArchive(WARNING_APPENDED_DATA);
+		}
+		if (appendedDataLength > 0) {
+			addWarning(warnings, WARNING_APPENDED_DATA);
 		}
 		let lastDiskNumber = getUint16$1(endOfDirectoryView, 4);
 		const expectedLastDiskNumber = reader.lastDiskNumber || 0;
@@ -4854,23 +4875,23 @@ class ZipReader {
 				}
 				if (lastDiskNumber == MAX_16_BITS) {
 					lastDiskNumber = getUint32$1(endOfDirectoryView, 16);
-				} else if (checkAmbiguity && lastDiskNumber != getUint32$1(endOfDirectoryView, 16)) {
-					throwAmbiguousArchive("mismatched zip64 end of central directory record");
+				} else if (lastDiskNumber != getUint32$1(endOfDirectoryView, 16)) {
+					reportAmbiguity(checkAmbiguity, warnings, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY);
 				}
 				if (diskNumber == MAX_16_BITS) {
 					diskNumber = getUint32$1(endOfDirectoryView, 20);
-				} else if (checkAmbiguity && diskNumber != getUint32$1(endOfDirectoryView, 20)) {
-					throwAmbiguousArchive("mismatched zip64 end of central directory record");
+				} else if (diskNumber != getUint32$1(endOfDirectoryView, 20)) {
+					reportAmbiguity(checkAmbiguity, warnings, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY);
 				}
 				if (filesLength == MAX_16_BITS) {
 					filesLength = getBigUint64(endOfDirectoryView, 32);
-				} else if (checkAmbiguity && filesLength != getBigUint64(endOfDirectoryView, 32)) {
-					throwAmbiguousArchive("mismatched zip64 end of central directory record");
+				} else if (filesLength != getBigUint64(endOfDirectoryView, 32)) {
+					reportAmbiguity(checkAmbiguity, warnings, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY);
 				}
 				if (directoryDataLength == MAX_32_BITS) {
 					directoryDataLength = getBigUint64(endOfDirectoryView, 40);
-				} else if (checkAmbiguity && directoryDataLength != getBigUint64(endOfDirectoryView, 40)) {
-					throwAmbiguousArchive("mismatched zip64 end of central directory record");
+				} else if (directoryDataLength != getBigUint64(endOfDirectoryView, 40)) {
+					reportAmbiguity(checkAmbiguity, warnings, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY);
 				}
 				directoryDataOffset = getDiskOffset$1(reader, diskNumber) + getBigUint64(endOfDirectoryView, 48) + prependedDataLength;
 			}
@@ -4939,14 +4960,22 @@ class ZipReader {
 			declaredDirectoryDataLength = directoryArray.length;
 			decryptedDirectory = true;
 		}
+		if (directoryEncryptionInfo && !decryptedDirectory &&
+			(directoryArray.length < 4 || getUint32$1(directoryView, 0) == CENTRAL_FILE_HEADER_SIGNATURE)) {
+			addWarning(warnings, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA);
+		}
 		startOffset = directoryDataOffset;
 		const filenameEncoding = getOptionValue$1(zipReader, options, OPTION_FILENAME_ENCODING);
 		const commentEncoding = getOptionValue$1(zipReader, options, OPTION_COMMENT_ENCODING);
-		const filenames = checkAmbiguity ? new Set() : UNDEFINED_VALUE;
+		const filenames = new Set();
 		let duplicateFilename;
+		let previousEntryPosition = -1;
 		const recoverWrappedFilesLength = !checkAmbiguity && !zip64EndOfDirectory;
 		if (!filesLength && recoverWrappedFilesLength) {
 			filesLength = getWrappedFilesLength(directoryView, directoryArray, offset);
+			if (filesLength) {
+				addWarning(warnings, WARNING_WRAPPED_ENTRIES_COUNT);
+			}
 		}
 		for (let indexFile = 0; indexFile < filesLength; indexFile++) {
 			const fileEntry = new ZipEntry$1(reader, zipReader.options);
@@ -5025,15 +5054,26 @@ class ZipReader {
 				filename,
 				comment
 			});
-			readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
-			fileEntry.offset += prependedDataLength;
-			startOffset = Math.min(getDiskOffset$1(reader, fileEntry.diskNumberStart) + fileEntry.offset, startOffset);
-			if (checkAmbiguity) {
-				if (filenames.has(fileEntry.filename)) {
-					duplicateFilename = true;
-				}
-				filenames.add(fileEntry.filename);
+			if (readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6)) {
+				addWarning(warnings, WARNING_MALFORMED_EXTRA_FIELD, filename);
 			}
+			fileEntry.offset += prependedDataLength;
+			const entryPosition = getDiskOffset$1(reader, fileEntry.diskNumberStart) + fileEntry.offset;
+			startOffset = Math.min(entryPosition, startOffset);
+			if (entryPosition < previousEntryPosition) {
+				addWarning(warnings, WARNING_UNSORTED_CENTRAL_DIRECTORY, filename);
+			}
+			previousEntryPosition = entryPosition;
+			if ((fileEntry.version & MAX_8_BITS) > MAX_KNOWN_VERSION) {
+				addWarning(warnings, WARNING_UNKNOWN_VERSION, filename);
+			}
+			if ((fileEntry.rawBitFlag & BITFLAG_COMPRESSED_PATCHED_DATA) == BITFLAG_COMPRESSED_PATCHED_DATA) {
+				addWarning(warnings, WARNING_COMPRESSED_PATCHED_DATA, filename);
+			}
+			if (filenames.has(fileEntry.filename)) {
+				duplicateFilename = true;
+			}
+			filenames.add(fileEntry.filename);
 			const unixExternalUpper = (fileEntry.externalFileAttributes >> 16) & MAX_16_BITS;
 			if (fileEntry.unixMode === UNDEFINED_VALUE && (unixExternalUpper & (FILE_ATTR_UNIX_DEFAULT_MASK | FILE_ATTR_UNIX_EXECUTABLE_MASK | FILE_ATTR_UNIX_TYPE_DIR)) != 0) {
 				fileEntry.unixMode = unixExternalUpper;
@@ -5071,7 +5111,11 @@ class ZipReader {
 			};
 			offset = endOffset;
 			if (indexFile == filesLength - 1 && recoverWrappedFilesLength) {
-				filesLength += getWrappedFilesLength(directoryView, directoryArray, offset);
+				const wrappedFilesLength = getWrappedFilesLength(directoryView, directoryArray, offset);
+				if (wrappedFilesLength) {
+					filesLength += wrappedFilesLength;
+					addWarning(warnings, WARNING_WRAPPED_ENTRIES_COUNT);
+				}
 			}
 			const { onprogress } = options;
 			if (onprogress) {
@@ -5097,18 +5141,21 @@ class ZipReader {
 			zipReader.digitalSignature = digitalSignature;
 			offsetAfterSignature = offset + 6 + digitalSignature.length;
 		}
-		if (checkAmbiguity && offset != declaredDirectoryDataLength && offsetAfterSignature != declaredDirectoryDataLength) {
-			throwAmbiguousArchive("trailing central directory data");
+		if (offset != declaredDirectoryDataLength && offsetAfterSignature != declaredDirectoryDataLength) {
+			reportAmbiguity(checkAmbiguity, warnings, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA);
 		}
 		if (duplicateFilename) {
-			throwAmbiguousArchive("duplicate filename");
+			reportAmbiguity(checkAmbiguity, warnings, WARNING_DUPLICATE_FILENAME);
 		}
 		const extractPrependedData = getOptionValue$1(zipReader, options, OPTION_EXTRACT_PREPENDED_DATA);
 		const extractAppendedData = getOptionValue$1(zipReader, options, OPTION_EXTRACT_APPENDED_DATA);
 		const splitZipSignatureLength = (checkAmbiguity || extractPrependedData) && filesLength &&
 			startOffset == SPLIT_ZIP_FILE_SIGNATURE_LENGTH && await startsWithSplitZipMarker(reader) ? SPLIT_ZIP_FILE_SIGNATURE_LENGTH : 0;
 		if (checkAmbiguity && (prependedDataLength || (filesLength && startOffset > splitZipSignatureLength))) {
-			throwAmbiguousArchive("prepended data");
+			throwAmbiguousArchive(WARNING_PREPENDED_DATA);
+		}
+		if (prependedDataLength || (filesLength && startOffset > SPLIT_ZIP_FILE_SIGNATURE_LENGTH)) {
+			addWarning(warnings, WARNING_PREPENDED_DATA);
 		}
 		if (extractPrependedData) {
 			zipReader.prependedData = startOffset > splitZipSignatureLength ?
@@ -5231,6 +5278,7 @@ let ZipEntry$1 = class ZipEntry {
 			dataDescriptor
 		} = bitFlag;
 		const localDirectory = fileEntry.localDirectory = {};
+		const warnings = fileEntry.warnings = [];
 		const localHeaderOffset = getDiskOffset$1(reader, diskNumberStart) + offset;
 		const dataArray = await readUint8Array(reader, localHeaderOffset, HEADER_SIZE);
 		const dataView = getDataView(dataArray);
@@ -5271,10 +5319,10 @@ let ZipEntry$1 = class ZipEntry {
 		if (checkLocalFilename) {
 			localDirectory.rawFilename = rawLocalFilename;
 		}
-		readCommonFooter(zipEntry, localDirectory, dataView, 4, true);
-		if (checkLocalDirectory) {
-			validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename, checkLocalFilename);
+		if (readCommonFooter(zipEntry, localDirectory, dataView, 4, true)) {
+			addWarning(warnings, WARNING_MALFORMED_EXTRA_FIELD);
 		}
+		validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename, checkLocalFilename, checkLocalDirectory ? UNDEFINED_VALUE : warnings);
 		const { lastAccessDate, creationDate, uid, gid } = localDirectory;
 		if (lastAccessDate) {
 			fileEntry.lastAccessDate = lastAccessDate;
@@ -5500,6 +5548,7 @@ function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory
 	const extraField = directory.extraField = new Map();
 	const rawExtraFieldView = getDataView(rawExtraField);
 	let offsetExtraField = 0;
+	let malformedExtraField = false;
 	try {
 		while (offsetExtraField < rawExtraField.length) {
 			const type = getUint16$1(rawExtraFieldView, offsetExtraField);
@@ -5511,7 +5560,10 @@ function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory
 			offsetExtraField += 4 + size;
 		}
 	} catch {
-		// ignored
+		malformedExtraField = true;
+	}
+	if (offsetExtraField > rawExtraField.length) {
+		malformedExtraField = true;
 	}
 	const compressionMethod = getUint16$1(dataView, offset + 4);
 	Object.assign(directory, {
@@ -5579,6 +5631,7 @@ function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory
 	if (extraFieldUSDZ) {
 		directory.extraFieldUSDZ = extraFieldUSDZ;
 	}
+	return malformedExtraField;
 }
 
 function readExtraFieldZip64(extraFieldZip64, directory) {
@@ -6040,27 +6093,46 @@ async function readSignature(reader, view, anchoredOffset, signatureOffset, size
 	return UNDEFINED_VALUE;
 }
 
-function validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename, checkLocalFilename) {
+function validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename, checkLocalFilename, warnings) {
 	const { rawFilename } = zipEntry;
+	const reject = !warnings;
 	const maskedLocalDirectory = zipEntry.decryptedDirectory &&
 		(localDirectory.rawBitFlag & BITFLAG_MASKED_LOCAL_HEADERS) == BITFLAG_MASKED_LOCAL_HEADERS;
 	if (checkLocalFilename && !maskedLocalDirectory &&
 		(rawLocalFilename.length != rawFilename.length ||
 			rawLocalFilename.some((byteValue, indexByte) => byteValue != rawFilename[indexByte]))) {
-		throwAmbiguousArchive("mismatched local file header (filename)");
+		reportAmbiguity(reject, warnings, "mismatched local file header (filename)");
 	}
 	if ((localDirectory.rawBitFlag & BITFLAG_AMBIGUITY_MASK) != (zipEntry.rawBitFlag & BITFLAG_AMBIGUITY_MASK)) {
-		throwAmbiguousArchive("mismatched local file header (general purpose bit flag)");
+		reportAmbiguity(reject, warnings, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG);
 	}
 	if (localDirectory.compressionMethod != zipEntry.compressionMethod) {
-		throwAmbiguousArchive("mismatched local file header (compression method)");
+		reportAmbiguity(reject, warnings, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD);
 	}
 	if (!localDirectory.bitFlag.dataDescriptor && !maskedLocalDirectory &&
 		(localDirectory.crc32 || localDirectory.compressedSize || localDirectory.uncompressedSize) &&
 		(localDirectory.crc32 != zipEntry.crc32 ||
 			localDirectory.compressedSize != zipEntry.compressedSize ||
 			localDirectory.uncompressedSize != zipEntry.uncompressedSize)) {
-		throwAmbiguousArchive("mismatched local file header (crc32 or sizes)");
+		reportAmbiguity(reject, warnings, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES);
+	}
+}
+
+function reportAmbiguity(reject, warnings, reason) {
+	if (reject) {
+		throwAmbiguousArchive(reason);
+	} else {
+		addWarning(warnings, reason);
+	}
+}
+
+function addWarning(warnings, reason, filename) {
+	if (!warnings.some(warning => warning.reason == reason)) {
+		const warning = { reason };
+		if (filename !== UNDEFINED_VALUE) {
+			warning.filename = filename;
+		}
+		warnings.push(warning);
 	}
 }
 
@@ -6137,6 +6209,20 @@ var zipReader = /*#__PURE__*/Object.freeze({
 	ERR_UNSUPPORTED_ENCRYPTION: ERR_UNSUPPORTED_ENCRYPTION,
 	ERR_UNSUPPORTED_UINT64: ERR_UNSUPPORTED_UINT64,
 	ERR_WORKER_STARTUP_TIMEOUT: ERR_WORKER_STARTUP_TIMEOUT,
+	WARNING_APPENDED_DATA: WARNING_APPENDED_DATA,
+	WARNING_COMPRESSED_PATCHED_DATA: WARNING_COMPRESSED_PATCHED_DATA,
+	WARNING_DUPLICATE_FILENAME: WARNING_DUPLICATE_FILENAME,
+	WARNING_MALFORMED_EXTRA_FIELD: WARNING_MALFORMED_EXTRA_FIELD,
+	WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG: WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG,
+	WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD: WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD,
+	WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES: WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES,
+	WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY: WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY,
+	WARNING_PREPENDED_DATA: WARNING_PREPENDED_DATA,
+	WARNING_TRAILING_CENTRAL_DIRECTORY_DATA: WARNING_TRAILING_CENTRAL_DIRECTORY_DATA,
+	WARNING_UNKNOWN_VERSION: WARNING_UNKNOWN_VERSION,
+	WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA: WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA,
+	WARNING_UNSORTED_CENTRAL_DIRECTORY: WARNING_UNSORTED_CENTRAL_DIRECTORY,
+	WARNING_WRAPPED_ENTRIES_COUNT: WARNING_WRAPPED_ENTRIES_COUNT,
 	ZipReader: ZipReader,
 	ZipReaderStream: ZipReaderStream,
 	isZipFile: isZipFile
@@ -10396,6 +10482,20 @@ exports.TextReader = TextReader;
 exports.TextWriter = TextWriter;
 exports.Uint8ArrayReader = Uint8ArrayReader;
 exports.Uint8ArrayWriter = Uint8ArrayWriter;
+exports.WARNING_APPENDED_DATA = WARNING_APPENDED_DATA;
+exports.WARNING_COMPRESSED_PATCHED_DATA = WARNING_COMPRESSED_PATCHED_DATA;
+exports.WARNING_DUPLICATE_FILENAME = WARNING_DUPLICATE_FILENAME;
+exports.WARNING_MALFORMED_EXTRA_FIELD = WARNING_MALFORMED_EXTRA_FIELD;
+exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG = WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG;
+exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD = WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD;
+exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES = WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES;
+exports.WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY = WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY;
+exports.WARNING_PREPENDED_DATA = WARNING_PREPENDED_DATA;
+exports.WARNING_TRAILING_CENTRAL_DIRECTORY_DATA = WARNING_TRAILING_CENTRAL_DIRECTORY_DATA;
+exports.WARNING_UNKNOWN_VERSION = WARNING_UNKNOWN_VERSION;
+exports.WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA = WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA;
+exports.WARNING_UNSORTED_CENTRAL_DIRECTORY = WARNING_UNSORTED_CENTRAL_DIRECTORY;
+exports.WARNING_WRAPPED_ENTRIES_COUNT = WARNING_WRAPPED_ENTRIES_COUNT;
 exports.Writer = Writer;
 exports.ZipDirectoryEntry = ZipDirectoryEntry;
 exports.ZipEntry = ZipEntry;

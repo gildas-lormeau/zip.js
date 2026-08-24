@@ -542,6 +542,24 @@ The "Version made by" field.
 
 ***
 
+### warnings?
+
+> `optional` **warnings?**: [`ArchiveWarning`](ArchiveWarning.md)[]
+
+The non-fatal diagnostics deposited while reading the entry data, replaced every time the data is read.
+
+#### Remarks
+
+The reasons deposited here relate to the local file header: [WARNING\_MALFORMED\_EXTRA\_FIELD](../variables/WARNING_MALFORMED_EXTRA_FIELD.md) when its
+extra field data cannot be fully parsed, and — only when [ZipReaderOptions#checkLocalDirectory](ZipReaderOptions.md#checklocaldirectory) is
+disabled, e.g. with `strictness: "tolerant"` — the local file header mismatches the enabled check rejects
+with [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md): [WARNING\_MISMATCHED\_LOCAL\_FILE\_HEADER\_BIT\_FLAG](../variables/WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG.md),
+[WARNING\_MISMATCHED\_LOCAL\_FILE\_HEADER\_COMPRESSION\_METHOD](../variables/WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD.md) and
+[WARNING\_MISMATCHED\_LOCAL\_FILE\_HEADER\_CRC32\_OR\_SIZES](../variables/WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES.md). The archive-level warnings are deposited on
+[ZipReader#warnings](../classes/ZipReader.md#warnings) instead.
+
+***
+
 ### zip64
 
 > **zip64**: `boolean`

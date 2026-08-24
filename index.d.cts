@@ -1342,6 +1342,31 @@ export class ZipReader<Type> {
    */
   directoryLength?: number;
   /**
+   * The non-fatal diagnostics deposited while reading the entries, replaced every time
+   * {@link ZipReader#getEntries} or {@link ZipReader#getEntriesGenerator} runs.
+   *
+   * @remarks
+   * A warning reports a characteristic of the zip file observed in data the parse had already read: depositing
+   * one never costs additional I/O, and a well-formed zip file deposits none. Each
+   * {@link ArchiveWarning#reason} value is deposited at most once per call, with
+   * {@link ArchiveWarning#filename} naming the first entry it applies to when it applies to an entry.
+   *
+   * Two kinds of reasons are deposited. Observations are always non-fatal: {@link WARNING_UNSORTED_CENTRAL_DIRECTORY},
+   * {@link WARNING_UNKNOWN_VERSION} (the low byte of the "version needed to extract" field exceeds the highest
+   * known zip specification version; the high byte is ignored because some writers store a host identifier in it),
+   * {@link WARNING_COMPRESSED_PATCHED_DATA} (bit 5 of the general purpose bit flag),
+   * {@link WARNING_MALFORMED_EXTRA_FIELD}, {@link WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA} and
+   * {@link WARNING_WRAPPED_ENTRIES_COUNT}. The other reasons are the checks that
+   * `strictness: "strict"` rejects with {@link ERR_AMBIGUOUS_ARCHIVE}: when the effective strictness tolerates
+   * one of them and the evidence is already in hand, the same reason string is deposited as a warning instead —
+   * {@link WARNING_APPENDED_DATA}, {@link WARNING_PREPENDED_DATA}, {@link WARNING_TRAILING_CENTRAL_DIRECTORY_DATA},
+   * {@link WARNING_DUPLICATE_FILENAME} and {@link WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY}.
+   *
+   * The warnings related to the local file header of an entry are deposited on
+   * {@link EntryMetaData#warnings} when its data is read, not here.
+   */
+  warnings?: ArchiveWarning[];
+  /**
    * Returns all the entries in the zip file
    *
    * @param options The options.
@@ -2472,7 +2497,35 @@ export interface EntryMetaData {
    * {@link EntryMetaData#uid} and {@link EntryMetaData#gid}, which are read from the central directory.
    */
   localDirectory?: LocalDirectory;
+  /**
+   * The non-fatal diagnostics deposited while reading the entry data, replaced every time the data is read.
+   *
+   * @remarks
+   * The reasons deposited here relate to the local file header: {@link WARNING_MALFORMED_EXTRA_FIELD} when its
+   * extra field data cannot be fully parsed, and — only when {@link ZipReaderOptions#checkLocalDirectory} is
+   * disabled, e.g. with `strictness: "tolerant"` — the local file header mismatches the enabled check rejects
+   * with {@link ERR_AMBIGUOUS_ARCHIVE}: {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG},
+   * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD} and
+   * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES}. The archive-level warnings are deposited on
+   * {@link ZipReader#warnings} instead.
+   */
+  warnings?: ArchiveWarning[];
 }
+
+/**
+ * Represents a non-fatal diagnostic deposited on {@link ZipReader#warnings} or {@link EntryMetaData#warnings}.
+ */
+export interface ArchiveWarning {
+  /**
+   * The reason of the warning, one of the exported `WARNING_*` constants.
+   */
+  reason: string;
+  /**
+   * The filename of the first entry the warning applies to, when it applies to an entry.
+   */
+  filename?: string;
+}
+
 export interface DirectoryEntry extends EntryMetaData {
   /**
    * `true` if the entry is a directory.
@@ -4617,3 +4670,75 @@ export const ERR_UNSUPPORTED_CRYPTO_API: string;
  * disallowing workers; set `useWebWorkers` to `false` in {@link configure} to work around it)
  */
 export const ERR_WORKER_STARTUP_TIMEOUT: string;
+/**
+ * Warning reason: the central directory records are not ordered by entry data position (see {@link ZipReader#warnings})
+ */
+export const WARNING_UNSORTED_CENTRAL_DIRECTORY: string;
+/**
+ * Warning reason: the low byte of the "version needed to extract" field of an entry exceeds the highest known
+ * zip specification version (see {@link ZipReader#warnings})
+ */
+export const WARNING_UNKNOWN_VERSION: string;
+/**
+ * Warning reason: an entry has bit 5 of the general purpose bit flag set, i.e. declares compressed patched data
+ * (see {@link ZipReader#warnings})
+ */
+export const WARNING_COMPRESSED_PATCHED_DATA: string;
+/**
+ * Warning reason: the extra field data of a record cannot be fully parsed; the raw bytes stay available in
+ * `rawExtraField` (see {@link ZipReader#warnings} and {@link EntryMetaData#warnings})
+ */
+export const WARNING_MALFORMED_EXTRA_FIELD: string;
+/**
+ * Warning reason: the Zip64 end of central directory record carries extensible data the zip file does not use
+ * (see {@link ZipReader#warnings})
+ */
+export const WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA: string;
+/**
+ * Warning reason: the zip file contains more than 65535 entries without Zip64, recovered from the 16-bit entry
+ * count wrapped modulo 65536 (see {@link ZipReader#warnings})
+ */
+export const WARNING_WRAPPED_ENTRIES_COUNT: string;
+/**
+ * Warning reason: data is appended after the end of the zip file (see {@link ZipReader#warnings}); the reason of
+ * {@link ERR_AMBIGUOUS_ARCHIVE} when the appended data exceeds {@link GetEntriesOptions#maxAppendedDataSize}
+ */
+export const WARNING_APPENDED_DATA: string;
+/**
+ * Warning reason: data is prepended before the zip file (see {@link ZipReader#warnings}); the reason of
+ * {@link ERR_AMBIGUOUS_ARCHIVE} under `strictness: "strict"`
+ */
+export const WARNING_PREPENDED_DATA: string;
+/**
+ * Warning reason: the declared central directory length exceeds its records (see {@link ZipReader#warnings});
+ * the reason of {@link ERR_AMBIGUOUS_ARCHIVE} under `strictness: "strict"`
+ */
+export const WARNING_TRAILING_CENTRAL_DIRECTORY_DATA: string;
+/**
+ * Warning reason: several entries share the same filename (see {@link ZipReader#warnings}); the reason of
+ * {@link ERR_AMBIGUOUS_ARCHIVE} under `strictness: "strict"`
+ */
+export const WARNING_DUPLICATE_FILENAME: string;
+/**
+ * Warning reason: the end of central directory record and its Zip64 counterpart disagree on a field stored in
+ * both (see {@link ZipReader#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} under `strictness: "strict"`
+ */
+export const WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY: string;
+/**
+ * Warning reason: the general purpose bit flag of the local file header contradicts the central directory
+ * (see {@link EntryMetaData#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} when
+ * {@link ZipReaderOptions#checkLocalDirectory} is enabled
+ */
+export const WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG: string;
+/**
+ * Warning reason: the compression method of the local file header contradicts the central directory
+ * (see {@link EntryMetaData#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} when
+ * {@link ZipReaderOptions#checkLocalDirectory} is enabled
+ */
+export const WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD: string;
+/**
+ * Warning reason: the crc32 or the sizes of the local file header contradict the central directory
+ * (see {@link EntryMetaData#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} when
+ * {@link ZipReaderOptions#checkLocalDirectory} is enabled
+ */
+export const WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES: string;

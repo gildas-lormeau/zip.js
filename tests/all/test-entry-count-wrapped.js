@@ -24,12 +24,17 @@ async function test() {
 }
 
 async function checkWrappedCount(entriesLength) {
-	const entries = await readEntries(craftArchive(entriesLength));
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(craftArchive(entriesLength)));
+	const entries = await zipReader.getEntries();
+	await zipReader.close();
 	if (entries.length != entriesLength) {
 		throw new Error("all the entries must be read despite the wrapped count, got " + entries.length + " of " + entriesLength);
 	}
 	if (entries[0].filename != entryFilename(0) || entries[entriesLength - 1].filename != entryFilename(entriesLength - 1)) {
 		throw new Error("the recovered entries must be the written entries");
+	}
+	if (!zipReader.warnings.some(warning => warning.reason == zip.WARNING_WRAPPED_ENTRIES_COUNT)) {
+		throw new Error("the recovered count must deposit a warning");
 	}
 }
 

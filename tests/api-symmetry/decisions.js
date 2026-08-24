@@ -90,6 +90,7 @@ const ENTRY_PROPERTIES = {
 	},
 	extraFieldUSDZ: { options: ["usdz"] },
 	localDirectory: { computed: "the fields of the local file header, which the writer produces alongside the central directory" },
+	warnings: { computed: "the non-fatal diagnostics deposited while reading, which the writer never produces" },
 	directory: { options: ["directory"] }
 };
 
