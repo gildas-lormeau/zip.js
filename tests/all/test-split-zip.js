@@ -8,9 +8,7 @@ const BLOB = new Blob([new Array(TEXT_CONTENT_REPEAT).fill(TEXT_CONTENT).join(""
 
 export { test };
 
-const writers = [];
-
-function* blobWriterGenerator() {
+function* blobWriterGenerator(writers) {
 	while (true) {
 		const writer = new zip.BlobWriter();
 		writer.maxSize = (8192 - 512) + Math.floor(Math.random() * 1024);
@@ -21,7 +19,17 @@ function* blobWriterGenerator() {
 
 async function test() {
 	zip.configure({ chunkSize: 1024, useWebWorkers: true });
-	const splitZipWriter = blobWriterGenerator();
+	try {
+		await testConcurrentAdds();
+		await testBufferedFirstEntry();
+	} finally {
+		await zip.terminateWorkers();
+	}
+}
+
+async function testConcurrentAdds() {
+	const writers = [];
+	const splitZipWriter = blobWriterGenerator(writers);
 	const zipWriter = new zip.ZipWriter(splitZipWriter);
 	await Promise.all([
 		zipWriter.add("lorem1.txt", new zip.BlobReader(BLOB)),
@@ -29,13 +37,36 @@ async function test() {
 		zipWriter.add("lorem3.txt", new zip.BlobReader(BLOB))
 	]);
 	await zipWriter.close();
+	const results = await readEntries(writers);
+	if (results.includes(false)) {
+		throw new Error();
+	}
+}
+
+// the first entry consumes the spanning signature flag on the buffered path,
+// which must write the signature while holding the writer lock
+async function testBufferedFirstEntry() {
+	const writers = [];
+	const splitZipWriter = blobWriterGenerator(writers);
+	const zipWriter = new zip.ZipWriter(splitZipWriter);
+	zipWriter.add("lorem1.txt", new zip.BlobReader(BLOB), { bufferedWrite: true });
+	zipWriter.add("lorem2.txt", new zip.BlobReader(BLOB));
+	await zipWriter.close();
+	const firstDiskData = new Uint8Array(await writers[0].getData().then(blob => blob.arrayBuffer()));
+	const signature = [0x50, 0x4b, 0x07, 0x08];
+	const startsWithSignature = signature.every((value, offset) => firstDiskData[offset] == value);
+	const duplicatedSignature = signature.every((value, offset) => firstDiskData[offset + 4] == value);
+	const results = await readEntries(writers);
+	if (!startsWithSignature || duplicatedSignature || results.length != 2 || results.includes(false)) {
+		throw new Error("expected the spanning signature to be written once at the start of the first disk");
+	}
+}
+
+async function readEntries(writers) {
 	const readers = await Promise.all(writers.map(async writer => new zip.BlobReader(await writer.getData())));
 	const zipReader = new zip.ZipReader(new zip.SplitDataReader(readers));
 	const entries = await zipReader.getEntries();
 	const results = await Promise.all(entries.map(async entry => (await entry.getData(new zip.TextWriter())).length == TEXT_CONTENT.length * TEXT_CONTENT_REPEAT));
 	await zipReader.close();
-	await zip.terminateWorkers();
-	if (results.includes(false)) {
-		throw new Error();
-	}
+	return results;
 }

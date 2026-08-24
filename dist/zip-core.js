@@ -6998,10 +6998,8 @@
 			}
 			await initStream(fileWriter);
 			const diskOffset = getDiskOffset(writer);
-			if (zipWriter.addSplitZipSignature) {
-				delete zipWriter.addSplitZipSignature;
-				await writeData(writer, getSplitZipSignatureArray());
-				zipWriter.offset += SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
+			if (zipWriter.addSplitZipSignature && !bufferedWrite) {
+				await writeSplitZipSignature(zipWriter, writer);
 			}
 			if (usdz && !bufferedWrite) {
 				appendExtraFieldUSDZ(entryInfo, zipWriter.offset - diskOffset);
@@ -7028,6 +7026,9 @@
 			if (bufferedWrite) {
 				await Promise.all([fileWriter.writable.getWriter().close(), lockPreviousFileEntry]);
 				await requestLockWriter();
+				if (zipWriter.addSplitZipSignature) {
+					await writeSplitZipSignature(zipWriter, writer);
+				}
 				writingBufferedEntryData = true;
 				writerSizeBeforeEntry = writer.size;
 				await skipDiskIfNeeded();
@@ -8053,6 +8054,12 @@
 		const signatureArray = new Uint8Array(SPLIT_ZIP_FILE_SIGNATURE_LENGTH);
 		setUint32(getDataView(signatureArray), 0, SPLIT_ZIP_FILE_SIGNATURE);
 		return signatureArray;
+	}
+
+	async function writeSplitZipSignature(zipWriter, writer) {
+		delete zipWriter.addSplitZipSignature;
+		await writeData(writer, getSplitZipSignatureArray());
+		zipWriter.offset += SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
 	}
 
 	async function writeData(writer, array) {
