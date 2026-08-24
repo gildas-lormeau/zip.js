@@ -25,7 +25,7 @@
 <ul class="tsd-type-parameter-list">
 <li><span id="type"><span class="tsd-kind-type-parameter">Type</span></span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2594">index.d.ts:2594</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2610">index.d.ts:2610</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -42,8 +42,9 @@
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-index-list"><a href="#add" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add</span></a>
+<a href="#appendzip" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>append<wbr/>Zip</span></a>
 <a href="#close" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>close</span></a>
-<a href="#prependzip" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>prepend<wbr/>Zip</span></a>
+<a href="#prependzip" class="tsd-index-link deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>prepend<wbr/>Zip</span></a>
 <a href="#remove" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -72,7 +73,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ZipWriter</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2601">index.d.ts:2601</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2617">index.d.ts:2617</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -82,7 +83,7 @@
 <div class="tsd-comment tsd-typography"><p><code>true</code> if the zip contains at least one entry that has been partially written.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2615">index.d.ts:2615</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2631">index.d.ts:2631</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -114,9 +115,52 @@ which is interpreted inconsistently by zip tools.</p>
 <div class="tsd-comment tsd-typography"><p>The options.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/EntryMetaData.html" class="tsd-signature-type tsd-kind-interface">EntryMetaData</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving to an <a href="../interfaces/EntryMetaData.html" class="tsd-kind-interface">EntryMetaData</a> instance.</p>
-<aside class="tsd-sources">
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The returned promise can safely be left un-awaited: <a href="#close" class="tsd-kind-method">ZipWriter#close</a> waits for the entry
+and throws its error if it was not caught.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2649">index.d.ts:2649</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2701">index.d.ts:2701</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="appendzip"><span>append<wbr/>Zip</span><a href="#appendzip" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="appendzip-1"><span class="tsd-kind-call-signature">appendZip</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#appendzipreadertype">ReaderType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">reader</span><span class="tsd-signature-symbol">:</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#appendzipreadertype">ReaderType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#appendzip-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Adds the entries of an existing zip file into the current zip. This method can be called at any
+time, including between calls to <a href="#add" class="tsd-kind-method">ZipWriter#add</a> and repeatedly to merge several zip files.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="appendzipreadertype"><span class="tsd-kind-type-parameter">ReaderType</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">reader</span>: <br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><br/>    <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><span class="tsd-signature-symbol">[]</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#appendzipreadertype">ReaderType</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>The <a href="Reader.html" class="tsd-kind-class">Reader</a> instance used to read the content of the zip file.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving when the zip file has been added.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks-1">Remarks<a href="#remarks-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The data of the zip file is copied, its central directory is rebuilt and its entries are relocated to
+the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
+the disks of the output, which is a single zip file unless the writer is a split zip file writer. The data of
+the entries is copied as-is; in particular, the constraints set by <a href="../interfaces/ZipWriterConstructorOptions.html#usdz" class="tsd-kind-property">ZipWriterConstructorOptions#usdz</a>
+are not applied to the copied entries.</p>
+<p>Pending <a href="#add" class="tsd-kind-method">ZipWriter#add</a> calls are completed before the data is copied, and add() calls made
+while the copy is in progress are written after it. If an entry of the zip file has the same
+filename as an entry of the current zip, the method throws with the <code>ERR_DUPLICATED_NAME</code> error
+message and leaves the current zip unchanged; call <a href="#remove" class="tsd-kind-method">ZipWriter#remove</a> beforehand to resolve
+the conflicts.</p>
+<p>The returned promise can safely be left un-awaited: <a href="#close" class="tsd-kind-method">ZipWriter#close</a> waits for the copy
+and throws its error if it was not caught.</p>
+</div></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2656">index.d.ts:2656</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="close"><span>close</span><a href="#close" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -138,13 +182,20 @@ which is interpreted inconsistently by zip tools.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The global comment is passed as raw bytes and the comment of an entry
+<h4 class="tsd-anchor-link" id="remarks-2">Remarks<a href="#remarks-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The global comment is passed as raw bytes and the comment of an entry
 (<a href="../interfaces/ZipWriterAddDataOptions.html#comment" class="tsd-kind-property">ZipWriterAddDataOptions#comment</a>) as a string on purpose, see <a href="ZipReader.html#comment" class="tsd-kind-property">ZipReader#comment</a>.</p>
+<p>If <a href="#add" class="tsd-kind-method">ZipWriter#add</a> or <a href="#appendzip" class="tsd-kind-method">ZipWriter#appendZip</a> calls failed and their rejection was
+never handled — e.g. the returned promise was not awaited — this method throws the first of
+these errors instead of finalizing the zip file. The <code>entryErrors</code> property of the thrown error
+contains all of them. Errors already caught by the caller do not resurface here, so entries can
+still be skipped by awaiting <a href="#add" class="tsd-kind-method">ZipWriter#add</a> and catching the error. Throwing the errors
+counts as reporting them: catching the error of this method and calling it again finalizes the
+zip file without the failed entries.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2681">index.d.ts:2681</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2741">index.d.ts:2741</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="prependzip"><span>prepend<wbr/>Zip</span><a href="#prependzip" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<h3 class="tsd-anchor-link" id="prependzip"><span class="deprecated">prepend<wbr/>Zip</span><a href="#prependzip" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="prependzip-1"><span class="tsd-kind-call-signature">prependZip</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#prependzipreadertype">ReaderType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">reader</span><span class="tsd-signature-symbol">:</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#prependzipreadertype">ReaderType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#prependzip-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
@@ -165,13 +216,12 @@ cannot be called after the first call to <a href="#add" class="tsd-kind-method">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving when the zip file has been added.</p>
 
 <div class="tsd-comment tsd-typography">
-<div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-1">Remarks<a href="#remarks-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The data of the zip file is copied, its central directory is rebuilt and its entries are relocated to
-the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
-the disks of the output, which is a single zip file unless the writer is a split zip file writer.</p>
+<div class="tsd-tag-deprecated">
+<h4 class="tsd-anchor-link" id="deprecated">Deprecated<a href="#deprecated" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Use <a href="#appendzip" class="tsd-kind-method">ZipWriter#appendZip</a> instead, which is equivalent when the zip file is
+empty and can also be called after entries have been added.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2628">index.d.ts:2628</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2676">index.d.ts:2676</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="remove"><span>remove</span><a href="#remove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -190,7 +240,7 @@ data itself cannot be removed because it has already been streamed to the output
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> if the entry has been removed, <code>false</code> otherwise.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2668">index.d.ts:2668</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2720">index.d.ts:2720</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -211,7 +261,7 @@ data itself cannot be removed because it has already been streamed to the output
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
 <div><a href="#hascorruptedentries"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>has<wbr/>Corrupted<wbr/>Entries</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#add"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add</span></a><a href="#close"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>close</span></a><a href="#prependzip"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>prepend<wbr/>Zip</span></a><a href="#remove"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove</span></a></div></details></div></details></div>
+<div><a href="#add"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add</span></a><a href="#appendzip"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>append<wbr/>Zip</span></a><a href="#close"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>close</span></a><a href="#prependzip"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>prepend<wbr/>Zip</span></a><a href="#remove"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">@zip.js/zip.js</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

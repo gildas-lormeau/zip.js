@@ -14,14 +14,14 @@
 <div class="tsd-comment tsd-typography"><p>Represents an error raised while processing an archive or one of its entries, decorated with context.</p>
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">EntryError</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#corruptedentry">corruptedEntry</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#entryerrors">entryErrors</a><span class="tsd-signature-symbol">?:</span> <a href="" class="tsd-signature-type tsd-kind-interface">EntryError</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#entryid">entryId</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#entryname">entryName</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#exportedentrynames">exportedEntryNames</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#message">message</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#name">name</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#overlappingentry">overlappingEntry</a><span class="tsd-signature-symbol">?:</span> <a href="../types/Entry.html" class="tsd-signature-type tsd-kind-type-alias">Entry</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#reason">reason</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#stack">stack</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
-<section class="tsd-panel tsd-hierarchy" data-refl="591">
+<section class="tsd-panel tsd-hierarchy" data-refl="592">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-signature-type">Error</span>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">EntryError</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2058">index.d.ts:2058</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2072">index.d.ts:2072</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -49,7 +49,7 @@
 <div class="tsd-comment tsd-typography"><p><code>true</code> if the zip file is corrupted because the entry data could not be written entirely.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2062">index.d.ts:2062</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2076">index.d.ts:2076</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="entryerrors"><code class="tsd-tag">Optional</code><span>entry<wbr/>Errors</span><a href="#entryerrors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">entryErrors</span><span class="tsd-signature-symbol">?:</span> <a href="" class="tsd-signature-type tsd-kind-interface">EntryError</a><span class="tsd-signature-symbol">[]</span></div>
@@ -59,14 +59,14 @@ set on is not repeated in the list, and failures raised deeper in the tree are f
 it, so the list holds every failure of the export except this one.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2091">index.d.ts:2091</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2105">index.d.ts:2105</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="entryid"><code class="tsd-tag">Optional</code><span>entry<wbr/>Id</span><a href="#entryid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">entryId</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The id of the related <a href="../classes/ZipEntry.html" class="tsd-kind-class">ZipEntry</a> (filesystem API).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2077">index.d.ts:2077</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2091">index.d.ts:2091</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="entryname"><code class="tsd-tag">Optional</code><span>entry<wbr/>Name</span><a href="#entryname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">entryName</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -76,7 +76,7 @@ one (filesystem API). Set by <a href="../classes/ZipDirectoryEntry.html#addfiles
 wrapping it, so its <code>message</code> stays comparable to the exported <code>ERR_*</code> constants.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2084">index.d.ts:2084</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2098">index.d.ts:2098</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="exportedentrynames"><code class="tsd-tag">Optional</code><span>exported<wbr/>Entry<wbr/>Names</span><a href="#exportedentrynames" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">exportedEntryNames</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
@@ -86,7 +86,7 @@ other file of the export is either missing or empty, so this is the only way to 
 export completed from one it created but never filled.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2098">index.d.ts:2098</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2112">index.d.ts:2112</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external">
 <h3 class="tsd-anchor-link" id="message"><span>message</span><a href="#message" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">message</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
@@ -107,7 +107,7 @@ export completed from one it created but never filled.</p>
 It is the only way to identify the other entry of the pair.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2068">index.d.ts:2068</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2082">index.d.ts:2082</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="reason"><code class="tsd-tag">Optional</code><span>reason</span><a href="#reason" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">reason</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -115,7 +115,7 @@ It is the only way to identify the other entry of the pair.</p>
 <a href="ZipReaderGetEntriesOptions.html#strictness" class="tsd-kind-property">GetEntriesOptions#strictness</a>. See <a href="../variables/ERR_AMBIGUOUS_ARCHIVE.html" class="tsd-kind-variable">ERR_AMBIGUOUS_ARCHIVE</a> for the values it takes.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/6ef3ea497078a76ea0a751f683433729daae6224/index.d.ts#L2073">index.d.ts:2073</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/4bbbd7527c60a76b13d2555b20719beab0ca0835/index.d.ts#L2087">index.d.ts:2087</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external">
 <h3 class="tsd-anchor-link" id="stack"><code class="tsd-tag">Optional</code><span>stack</span><a href="#stack" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">stack</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
