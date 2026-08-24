@@ -1370,6 +1370,58 @@ export class ZipReader<Type> {
 }
 
 /**
+ * Returns `true` if the data looks like a zip file, i.e. if {@link ZipReader#getEntries} called on the same
+ * data with the same options would locate the archive structure instead of throwing
+ * {@link ERR_EOCDR_NOT_FOUND} or the {@link ERR_AMBIGUOUS_ARCHIVE} error caused by appended data.
+ *
+ * @remarks
+ * The probe runs the same search as {@link ZipReader}: it locates the end of central directory record with
+ * the end-anchored backward scan and verifies that a central directory record is stored where it points,
+ * without parsing the entries. `true` therefore means the data is a plausible zip container, not that every
+ * entry can be read: a truncated or otherwise damaged central directory is only detected by calling
+ * {@link ZipReader#getEntries}. Formats built on zip, e.g. office documents or Java archives, return `true`.
+ *
+ * Like the {@link ZipReader} constructor, a `ReadableStream` or an object providing only a `readable`
+ * property is buffered entirely in memory before probing, which defeats the purpose of a cheap probe; prefer
+ * a seekable {@link Reader} input.
+ *
+ * @param reader The {@link Reader} instance used to read data.
+ * @param options The options.
+ * @returns A promise resolving to `true` if the data looks like a zip file.
+ */
+export function isZipFile(
+  reader:
+    | Reader<unknown>
+    | ReadableReader
+    | ReadableStream
+    | Reader<unknown>[]
+    | ReadableReader[]
+    | ReadableStream[],
+  options?: IsZipFileOptions
+): Promise<boolean>;
+
+/**
+ * Represents the options passed to {@link isZipFile}.
+ */
+export interface IsZipFileOptions {
+  /**
+   * The tolerance of the probe, with the same semantics and default as
+   * {@link ZipReaderConstructorOptions#strictness}: it selects the default amount of tolerated appended data
+   * (0 for `"strict"`, 65536 bytes for `"balanced"`, unlimited for `"tolerant"`) and `"strict"` also returns
+   * `false` when multiple end of central directory records reach the end of the data.
+   *
+   * @defaultValue "balanced"
+   */
+  strictness?: "strict" | "balanced" | "tolerant";
+  /**
+   * The maximum number of bytes tolerated after the end of central directory record, overriding the default
+   * selected by {@link IsZipFileOptions#strictness}, with the same semantics as
+   * {@link ZipReaderConstructorOptions#maxAppendedDataSize}.
+   */
+  maxAppendedDataSize?: number;
+}
+
+/**
  * Represents the options passed to the constructor of {@link ZipReader}, and `{@link ZipDirectory}#import*`.
  */
 export interface ZipReaderConstructorOptions

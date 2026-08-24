@@ -43,6 +43,7 @@ export default ([
 	{ title: "Malformed: unsupported AES strength", script: "./test-malformed-aes-strength.js" },
 	{ title: "Invalid chunk size configuration", script: "./test-config-chunk-size.js" },
 	{ title: "Writer edge cases", script: "./test-writer-edge-cases.js" },
+	{ title: "Is zip file", script: "./test-is-zip-file.js" },
 	{ title: "Writer streaming backpressure", script: "./test-writer-backpressure.js" },
 	{ title: "Writer streaming backpressure with a worker", script: "./test-writer-backpressure-worker.js" },
 	{ title: "Writer JS codec fallback on WASM load failure", script: "./test-writer-js-codec-fallback.js", features: ["compressionStream"] },

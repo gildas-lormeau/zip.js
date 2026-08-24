@@ -5163,6 +5163,28 @@
 		}
 	}
 
+	async function isZipFile(reader, options = {}) {
+		reader = new GenericReader(reader);
+		await initStream(reader);
+		if (reader.size === UNDEFINED_VALUE || !reader.readUint8Array) {
+			reader = new BlobReader(await streamToBlob(reader.readable));
+			await initStream(reader);
+		}
+		if (reader.size < END_OF_CENTRAL_DIR_LENGTH) {
+			return false;
+		}
+		const strictness = getStrictness(options, {});
+		const rejectAmbiguousEndOfDirectory = strictness != STRICTNESS_TOLERANT;
+		const maxAppendedDataSize = getMaxAppendedDataSize(options[OPTION_MAX_APPENDED_DATA_SIZE], strictness);
+		const { endOfDirectoryInfo, endOfDirectoryReachingEndCount } = await findEndOfCentralDirectory(reader, rejectAmbiguousEndOfDirectory, maxAppendedDataSize);
+		if (!endOfDirectoryInfo || (strictness == STRICTNESS_STRICT && endOfDirectoryReachingEndCount > 1)) {
+			return false;
+		}
+		const commentLength = getUint16$1(getDataView(endOfDirectoryInfo), 20);
+		const appendedDataOffset = endOfDirectoryInfo.offset + END_OF_CENTRAL_DIR_LENGTH + commentLength;
+		return reader.size - appendedDataOffset <= maxAppendedDataSize;
+	}
+
 	class ZipEntry {
 
 		constructor(reader, options) {
@@ -6101,7 +6123,8 @@
 		ERR_UNSUPPORTED_UINT64: ERR_UNSUPPORTED_UINT64,
 		ERR_WORKER_STARTUP_TIMEOUT: ERR_WORKER_STARTUP_TIMEOUT,
 		ZipReader: ZipReader,
-		ZipReaderStream: ZipReaderStream
+		ZipReaderStream: ZipReaderStream,
+		isZipFile: isZipFile
 	});
 
 	/*
@@ -8856,6 +8879,7 @@
 	exports.createOPFSTempStream = createOPFSTempStream;
 	exports.createSyncAccessHandleTempStream = createSyncAccessHandleTempStream;
 	exports.getMimeType = getMimeType;
+	exports.isZipFile = isZipFile;
 	exports.registerCodec = registerCodec;
 	exports.resetConfiguration = resetConfiguration;
 	exports.terminateWorkers = terminateWorkers;
