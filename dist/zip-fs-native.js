@@ -7777,9 +7777,9 @@
 
 	async function closeFile(zipWriter, comment, options) {
 		const directoryDataLength = createDirectoryRecords(zipWriter.fileEntries);
-		const { directoryStart, directoryArray } = await writeDirectoryRecords(zipWriter, directoryDataLength, options);
+		const { directoryStart, directoryEnd, directoryArray } = await writeDirectoryRecords(zipWriter, directoryDataLength, options);
 		const signatureLength = await writeDigitalSignatureRecord(zipWriter, directoryArray, options);
-		await writeEndOfDirectoryRecord(zipWriter, comment, options, { directoryStart, directoryDataLength, signatureLength });
+		await writeEndOfDirectoryRecord(zipWriter, comment, options, { directoryStart, directoryEnd, directoryDataLength, signatureLength });
 	}
 
 	function createDirectoryRecords(files) {
@@ -7863,6 +7863,7 @@
 		let directoryDiskOffset = 0;
 		let directoryStartDiskNumber = getDiskNumber(writer);
 		let directoryStartDiskOffset = getDiskOffset(writer);
+		let directoryEndDiskEntriesLength = 0;
 		for (const [indexFileEntry, fileEntry] of Array.from(fileEntries.values()).entries()) {
 			const {
 				offset: fileEntryOffset,
@@ -7892,6 +7893,7 @@
 			if (exceedsAvailableSize(writer, offset + directoryRecordLength - directoryDiskOffset)) {
 				await writeData(writer, directoryArray.slice(directoryDiskOffset, offset));
 				directoryDiskOffset = offset;
+				directoryEndDiskEntriesLength = 0;
 				await writer.closeDisk();
 			}
 			if (indexFileEntry == 0) {
@@ -7927,6 +7929,7 @@
 			directoryRecord.writeBytes(rawComment);
 			arraySet(directoryArray, directoryRecord.array, offset);
 			offset += directoryRecordLength;
+			directoryEndDiskEntriesLength++;
 			if (options.onprogress) {
 				try {
 					await options.onprogress(indexFileEntry + 1, fileEntries.size, new Entry(fileEntry));
@@ -7938,6 +7941,7 @@
 		await writeData(writer, directoryDiskOffset ? directoryArray.slice(directoryDiskOffset) : directoryArray);
 		return {
 			directoryStart: { diskNumber: directoryStartDiskNumber, diskOffset: directoryStartDiskOffset },
+			directoryEnd: { diskNumber: getDiskNumber(writer), entriesLength: directoryEndDiskEntriesLength },
 			directoryArray
 		};
 	}
@@ -7966,16 +7970,20 @@
 
 	async function writeEndOfDirectoryRecord(zipWriter, comment, options, cdInfo) {
 		const { writer } = zipWriter;
-		const { directoryStart, signatureLength } = cdInfo;
+		const { directoryStart, directoryEnd, signatureLength } = cdInfo;
 		let { directoryDataLength } = cdInfo;
 		let fileEntriesLength = zipWriter.fileEntries.size;
 		let diskNumber = directoryStart.diskNumber;
 		let directoryOffset = getSegmentOffset(zipWriter, directoryStart);
-		let lastDiskNumber = getDiskNumber(writer);
-		if (exceedsAvailableSize(writer, END_OF_CENTRAL_DIR_LENGTH)) {
-			lastDiskNumber++;
+		const commentLength = getLength(comment);
+		if (commentLength > MAX_16_BITS) {
+			throw new Error(ERR_INVALID_COMMENT);
 		}
 		let zip64 = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIP64);
+		let lastDiskNumber = getDiskNumber(writer);
+		if (exceedsAvailableSize(writer, (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH) + commentLength)) {
+			lastDiskNumber++;
+		}
 		if (directoryOffset >= MAX_32_BITS || directoryDataLength >= MAX_32_BITS || fileEntriesLength >= MAX_16_BITS || lastDiskNumber >= MAX_16_BITS) {
 			if (zip64 === false) {
 				throw new Error(ERR_UNSUPPORTED_FORMAT);
@@ -7983,15 +7991,12 @@
 				zip64 = true;
 			}
 		}
-		const commentLength = getLength(comment);
-		if (commentLength > MAX_16_BITS) {
-			throw new Error(ERR_INVALID_COMMENT);
-		}
 		const endOfdirectoryRecord = createRecordWriter(zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH);
 		if (exceedsAvailableSize(writer, getLength(endOfdirectoryRecord.array) + commentLength)) {
 			await writer.closeDisk();
 		}
 		lastDiskNumber = getDiskNumber(writer);
+		let diskFileEntriesLength = lastDiskNumber == directoryEnd.diskNumber ? directoryEnd.entriesLength : 0;
 		if (zip64) {
 			endOfdirectoryRecord.writeUint32(ZIP64_END_OF_CENTRAL_DIR_SIGNATURE);
 			endOfdirectoryRecord.writeUint64(44);
@@ -7999,7 +8004,7 @@
 			endOfdirectoryRecord.writeUint16(45);
 			endOfdirectoryRecord.writeUint32(lastDiskNumber);
 			endOfdirectoryRecord.writeUint32(diskNumber);
-			endOfdirectoryRecord.writeUint64(fileEntriesLength);
+			endOfdirectoryRecord.writeUint64(diskFileEntriesLength);
 			endOfdirectoryRecord.writeUint64(fileEntriesLength);
 			endOfdirectoryRecord.writeUint64(directoryDataLength);
 			endOfdirectoryRecord.writeUint64(directoryOffset);
@@ -8012,6 +8017,7 @@
 				lastDiskNumber = MAX_16_BITS;
 				diskNumber = MAX_16_BITS;
 			}
+			diskFileEntriesLength = MAX_16_BITS;
 			fileEntriesLength = MAX_16_BITS;
 			directoryOffset = MAX_32_BITS;
 			directoryDataLength = MAX_32_BITS;
@@ -8019,7 +8025,7 @@
 		endOfdirectoryRecord.writeUint32(END_OF_CENTRAL_DIR_SIGNATURE);
 		endOfdirectoryRecord.writeUint16(lastDiskNumber);
 		endOfdirectoryRecord.writeUint16(diskNumber);
-		endOfdirectoryRecord.writeUint16(fileEntriesLength);
+		endOfdirectoryRecord.writeUint16(diskFileEntriesLength);
 		endOfdirectoryRecord.writeUint16(fileEntriesLength);
 		endOfdirectoryRecord.writeUint32(directoryDataLength);
 		endOfdirectoryRecord.writeUint32(directoryOffset);

@@ -22,6 +22,8 @@ async function test() {
 	try {
 		await testConcurrentAdds();
 		await testBufferedFirstEntry();
+		await testSpanningCentralDirectory();
+		await testSpanningCentralDirectory(true);
 	} finally {
 		await zip.terminateWorkers();
 	}
@@ -60,6 +62,72 @@ async function testBufferedFirstEntry() {
 	if (!startsWithSignature || duplicatedSignature || results.length != 2 || results.includes(false)) {
 		throw new Error("expected the spanning signature to be written once at the start of the first disk");
 	}
+}
+
+// the "entries on this disk" fields of the end of central directory records must contain
+// the number of central directory records stored on the last disk, not the total
+async function testSpanningCentralDirectory(zip64) {
+	const ENTRY_COUNT = 6;
+	const ENTRY_LENGTH = 100;
+	const writers = [];
+	function* uint8ArrayWriterGenerator() {
+		while (true) {
+			const writer = new zip.Uint8ArrayWriter();
+			writer.maxSize = 150;
+			writers.push(writer);
+			yield writer;
+		}
+	}
+	const zipWriter = new zip.ZipWriter(uint8ArrayWriterGenerator(), { zip64 });
+	for (let indexEntry = 0; indexEntry < ENTRY_COUNT; indexEntry++) {
+		await zipWriter.add("entry" + indexEntry + ".bin", new zip.Uint8ArrayReader(new Uint8Array(ENTRY_LENGTH)), { level: 0 });
+	}
+	await zipWriter.close();
+	const disks = writers.map(writer => writer.getData());
+	const directoryRecordsPerDisk = disks.map(disk => countSignatures(disk, 0x02014b50));
+	const lastDisk = disks[disks.length - 1];
+	const lastDiskView = new DataView(lastDisk.buffer, lastDisk.byteOffset, lastDisk.byteLength);
+	const endOfDirectoryOffset = findLastSignature(lastDisk, lastDiskView, 0x06054b50);
+	let entriesLastDisk = lastDiskView.getUint16(endOfDirectoryOffset + 8, true);
+	let entriesTotal = lastDiskView.getUint16(endOfDirectoryOffset + 10, true);
+	if (zip64) {
+		if (entriesLastDisk != 0xffff || entriesTotal != 0xffff) {
+			throw new Error("expected zip64 sentinel entry counts in the end of central directory record");
+		}
+		const zip64EndOfDirectoryOffset = findLastSignature(lastDisk, lastDiskView, 0x06064b50);
+		entriesLastDisk = Number(lastDiskView.getBigUint64(zip64EndOfDirectoryOffset + 24, true));
+		entriesTotal = Number(lastDiskView.getBigUint64(zip64EndOfDirectoryOffset + 32, true));
+	}
+	const zipReader = new zip.ZipReader(new zip.SplitDataReader(disks.map(disk => new zip.Uint8ArrayReader(disk))));
+	const entries = await zipReader.getEntries();
+	const results = await Promise.all(entries.map(async entry => (await entry.getData(new zip.Uint8ArrayWriter())).length == ENTRY_LENGTH));
+	await zipReader.close();
+	if (directoryRecordsPerDisk.filter(recordCount => recordCount > 0).length < 2 ||
+		entriesTotal != ENTRY_COUNT ||
+		entriesLastDisk != directoryRecordsPerDisk[directoryRecordsPerDisk.length - 1] ||
+		entries.length != ENTRY_COUNT || results.includes(false)) {
+		throw new Error("expected the entry count of the last disk in the end of central directory record");
+	}
+}
+
+function countSignatures(data, signature) {
+	const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+	let result = 0;
+	for (let offset = 0; offset + 4 <= data.length; offset++) {
+		if (view.getUint32(offset, true) == signature) {
+			result++;
+		}
+	}
+	return result;
+}
+
+function findLastSignature(data, view, signature) {
+	for (let offset = data.length - 4; offset >= 0; offset--) {
+		if (view.getUint32(offset, true) == signature) {
+			return offset;
+		}
+	}
+	throw new Error("signature not found");
 }
 
 async function readEntries(writers) {
