@@ -1,4 +1,4 @@
-/* global URL, navigator */
+/* global URL, navigator, TextEncoder */
 
 import * as zip from "../zip-lib.js";
 
@@ -14,7 +14,7 @@ async function test() {
 	try {
 		let releaseGate;
 		const gate = new Promise(resolve => releaseGate = resolve);
-		const stallingReader = new zip.TextReader("slow content");
+		const stallingReader = new zip.Uint8ArrayReader(new TextEncoder().encode("slow content"));
 		const readUint8Array = stallingReader.readUint8Array.bind(stallingReader);
 		stallingReader.readUint8Array = async (...args) => {
 			await gate;
