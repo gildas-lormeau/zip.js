@@ -189,7 +189,7 @@ const config = [
 	umdBundleEntry({ input: "lib/zip-native.js", name: "zip-native", mangle: false }),
 	umdBundleEntry({ input: "lib/zip-legacy.js", name: "zip-legacy", mangle: false }),
 	umdBundleEntry({ input: "lib/zip-core.js", name: "zip-core", mangle: true }),
-	umdBundleEntry({ input: "lib/core/zip-fs.js", name: "zip-fs-core", mangle: true }),
+	umdBundleEntry({ input: "lib/zip-fs-core.js", name: "zip-fs-core", mangle: true }),
 	umdBundleEntry({ input: "lib/zip-fs-wasm.js", name: "zip-fs", mangle: true, moduleFile: "index" }),
 	umdBundleEntry({ input: "lib/zip-fs-native.js", name: "zip-fs-native", mangle: false, moduleFile: "index-native" }),
 	externalBundleEntry({ input: "lib/zip-fs-external.js", name: "zip-fs-external" }),

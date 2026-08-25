@@ -6,6 +6,7 @@
 
 	const { Array, Object, String, Number, BigInt, Math, Date, Map, Set, Response, URL, Error, Uint8Array, Uint16Array, Uint32Array, DataView, Blob, Promise, TextEncoder, TextDecoder, document, crypto, btoa, TransformStream, ReadableStream, WritableStream, CompressionStream, DecompressionStream, navigator, Worker, Symbol, setTimeout, clearTimeout, structuredClone } = typeof globalThis !== 'undefined' ? globalThis : this || self;
 
+	var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
@@ -285,6 +286,7 @@
 	const DEFAULT_CHUNK_SIZE$1 = 64 * 1024;
 	const MINIMUM_CHUNK_SIZE = 64;
 	const MINIMUM_PROPERTY_VALUE = 1;
+	const ERR_INVALID_MAX_WORKERS = "Invalid maxWorkers (must be an integer greater than 0)";
 	let maxWorkers = 2;
 	try {
 		if (typeof navigator != UNDEFINED_TYPE && navigator.hardwareConcurrency) {
@@ -308,6 +310,39 @@
 		DecompressionStream: typeof DecompressionStream != UNDEFINED_TYPE && DecompressionStream
 	};
 
+	const PROPERTY_NAME_MAX_WORKERS = "maxWorkers";
+
+	const STRING_PROPERTY_NAMES = [
+		"baseURI",
+		"wasmURI",
+		"workerURI"
+	];
+	const BOOLEAN_PROPERTY_NAMES = [
+		"useCompressionStream",
+		"useWebWorkers",
+		"transferStreams"
+	];
+	const NUMBER_PROPERTY_NAMES = [
+		"chunkSize",
+		PROPERTY_NAME_MAX_WORKERS,
+		"terminateWorkerTimeout",
+		"workerStarvationTimeout",
+		"workerStartupTimeout"
+	];
+	const FUNCTION_PROPERTY_NAMES = [
+		"createWorker",
+		"CompressionStream",
+		"DecompressionStream",
+		"CompressionStreamFallback",
+		"DecompressionStreamFallback"
+	];
+	const CONFIGURABLE_PROPERTY_NAMES = [
+		...STRING_PROPERTY_NAMES,
+		...BOOLEAN_PROPERTY_NAMES,
+		...NUMBER_PROPERTY_NAMES,
+		...FUNCTION_PROPERTY_NAMES
+	];
+
 	const config = { ...DEFAULT_CONFIGURATION };
 
 	function getConfiguration() {
@@ -321,6 +356,62 @@
 	function normalizeChunkSize(chunkSize) {
 		chunkSize = toNumber(chunkSize);
 		return Number.isInteger(chunkSize) && chunkSize >= MINIMUM_PROPERTY_VALUE ? Math.max(chunkSize, MINIMUM_CHUNK_SIZE) : DEFAULT_CHUNK_SIZE$1;
+	}
+
+	function configure(configuration) {
+		Object.assign(config, checkConfiguration(normalizeConfiguration(configuration)));
+	}
+
+	function checkConfiguration(configuration) {
+		const checkedConfiguration = {};
+		for (const propertyName of CONFIGURABLE_PROPERTY_NAMES) {
+			const propertyValue = configuration[propertyName];
+			if (propertyValue !== UNDEFINED_VALUE) {
+				checkedConfiguration[propertyName] = checkPropertyValue(propertyName, propertyValue);
+			}
+		}
+		return checkedConfiguration;
+	}
+
+	function checkPropertyValue(propertyName, propertyValue) {
+		if (NUMBER_PROPERTY_NAMES.includes(propertyName)) {
+			propertyValue = toNumber(propertyValue);
+			if (propertyName == PROPERTY_NAME_MAX_WORKERS && (!Number.isInteger(propertyValue) || propertyValue < MINIMUM_PROPERTY_VALUE)) {
+				throw new Error(ERR_INVALID_MAX_WORKERS);
+			}
+		} else if (FUNCTION_PROPERTY_NAMES.includes(propertyName)) {
+			checkFunctionOption(propertyValue);
+		}
+		return propertyValue;
+	}
+
+	function normalizeConfiguration(configuration) {
+		configuration = configuration || {};
+		const { CompressionStreamZlib, DecompressionStreamZlib } = configuration;
+		if (CompressionStreamZlib === UNDEFINED_VALUE && DecompressionStreamZlib === UNDEFINED_VALUE) {
+			return configuration;
+		}
+		const normalizedConfiguration = Object.assign({}, configuration);
+		if (normalizedConfiguration.CompressionStreamFallback === UNDEFINED_VALUE) {
+			normalizedConfiguration.CompressionStreamFallback = CompressionStreamZlib;
+		}
+		if (normalizedConfiguration.DecompressionStreamFallback === UNDEFINED_VALUE) {
+			normalizedConfiguration.DecompressionStreamFallback = DecompressionStreamZlib;
+		}
+		return normalizedConfiguration;
+	}
+
+	function setDefaultConfiguration(configuration) {
+		const checkedConfiguration = checkConfiguration(normalizeConfiguration(configuration));
+		Object.assign(DEFAULT_CONFIGURATION, checkedConfiguration);
+		Object.assign(config, checkedConfiguration);
+	}
+
+	function resetConfiguration() {
+		for (const propertyName of CONFIGURABLE_PROPERTY_NAMES) {
+			delete config[propertyName];
+		}
+		Object.assign(config, DEFAULT_CONFIGURATION);
 	}
 
 	/*
@@ -365,1225 +456,6 @@
 
 	function getDataView(array) {
 		return new DataView(array.buffer, array.byteOffset, array.byteLength);
-	}
-
-	/*
-	 Copyright (c) 2026 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright
-	 notice, this list of conditions and the following disclaimer in
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	function toCompatibleReadable(readable) {
-		if (readable instanceof ReadableStream) {
-			return readable;
-		}
-		const reader = readable.getReader();
-		return new ReadableStream({
-			async pull(controller) {
-				const { value, done } = await reader.read();
-				if (done) {
-					controller.close();
-				} else {
-					controller.enqueue(value);
-				}
-			},
-			cancel(reason) {
-				return reader.cancel(reason);
-			}
-		});
-	}
-
-	function streamToBlob(readable, contentType) {
-		readable = toCompatibleReadable(readable);
-		const blobOptions = contentType ? { type: contentType } : {};
-		if (responseSupportsGlobalReadable()) {
-			return new Response(readable).blob().then(blob => contentType ? new Blob([blob], blobOptions) : blob);
-		}
-		const chunks = [];
-		return readable
-			.pipeTo(new WritableStream({
-				write(chunk) {
-					chunks.push(chunk);
-				}
-			}))
-			.then(() => new Blob(chunks, blobOptions));
-	}
-
-	function responseSupportsGlobalReadable() {
-		return typeof Blob.prototype.stream != FUNCTION_TYPE || new Blob([]).stream() instanceof ReadableStream;
-	}
-
-	function toCompatibleWritable(writable) {
-		if (writable instanceof WritableStream) {
-			return writable;
-		}
-		const writer = writable.getWriter();
-		return new WritableStream({
-			write(chunk) {
-				return writer.write(chunk);
-			},
-			close() {
-				return writer.close();
-			},
-			abort(reason) {
-				return writer.abort(reason);
-			}
-		});
-	}
-
-	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-	/* global TextDecoder */
-
-	const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
-	const VALID_CP437 = CP437.length == 256;
-
-	function decodeCP437(stringValue) {
-		if (VALID_CP437) {
-			let result = "";
-			for (let indexCharacter = 0; indexCharacter < stringValue.length; indexCharacter++) {
-				result += CP437[stringValue[indexCharacter]];
-			}
-			return result;
-		} else {
-			return new TextDecoder().decode(stringValue);
-		}
-	}
-
-	/*
-	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	function decodeText(value, encoding) {
-		return decode(value, encoding, true);
-	}
-
-	function decodeTextRemovingBOM(value, encoding) {
-		return decode(value, encoding, false);
-	}
-
-	function decode(value, encoding, ignoreBOM) {
-		if (encoding && encoding.trim().toLowerCase() == "cp437") {
-			return decodeCP437(value);
-		} else {
-			return new TextDecoder(encoding, { ignoreBOM }).decode(value);
-		}
-	}
-
-	/*
-	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright 
-	 notice, this list of conditions and the following disclaimer in 
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-
-	const ERR_HTTP_STATUS = "HTTP error ";
-	const ERR_HTTP_RANGE = "HTTP Range not supported";
-	const ERR_HTTP_RESOURCE_CHANGED = "HTTP resource changed";
-	const ERR_ITERATOR_COMPLETED_TOO_SOON = "Writer iterator completed too soon";
-	const ERR_WRITER_NOT_INITIALIZED = "Writer not initialized";
-
-	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
-	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
-	const HTTP_HEADER_CONTENT_ENCODING = "Content-Encoding";
-	const HTTP_HEADER_CONTENT_RANGE = "Content-Range";
-	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
-	const HTTP_HEADER_RANGE = "Range";
-	const HTTP_HEADER_ETAG = "Etag";
-	const HTTP_HEADER_LAST_MODIFIED = "Last-Modified";
-	const HTTP_METHOD_HEAD = "HEAD";
-	const HTTP_METHOD_GET = "GET";
-	const HTTP_RANGE_UNIT = "bytes";
-	const DEFAULT_BUFFER_SIZE = 256 * 1024;
-	const DEFAULT_MAXIMUM_RANGE_SIZE = 16 * 1024 * 1024;
-
-	const PROPERTY_NAME_WRITABLE = "writable";
-	const DISK_BOUNDARY = Symbol();
-
-	class Stream {
-
-		constructor() {
-			this.size = 0;
-		}
-
-		init() {
-			this.initialized = true;
-		}
-	}
-
-	class Reader extends Stream {
-
-		get readable() {
-			return this.createReadable();
-		}
-
-		createReadable({ offset = 0, size, chunkSize = getChunkSize(getConfiguration()) } = {}) {
-			const reader = this;
-			let chunkOffset = 0;
-			chunkSize = normalizeChunkSize(chunkSize);
-			return new ReadableStream({
-				async pull(controller) {
-					const dataSize = size === UNDEFINED_VALUE ? chunkSize : Math.min(chunkSize, size - chunkOffset);
-					const data = await readUint8Array(reader, offset + chunkOffset, dataSize);
-					if (data.length) {
-						controller.enqueue(data);
-					}
-					if ((chunkOffset + chunkSize >= size) || (!data.length && dataSize)) {
-						controller.close();
-					} else {
-						chunkOffset += chunkSize;
-					}
-				}
-			});
-		}
-	}
-
-	class Writer extends Stream {
-
-		constructor() {
-			super();
-			const writer = this;
-			const writable = new WritableStream({
-				write(chunk) {
-					if (!writer.initialized) {
-						throw new Error(ERR_WRITER_NOT_INITIALIZED);
-					}
-					return writer.writeUint8Array(toExactUint8Array(chunk));
-				}
-			});
-			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
-				get() {
-					return writable;
-				}
-			});
-		}
-
-		writeUint8Array() {
-			// abstract
-		}
-	}
-
-	class Data64URIReader extends Reader {
-
-		constructor(dataURI) {
-			super();
-			let dataEnd = dataURI.length;
-			while (dataURI.charAt(dataEnd - 1) == "=") {
-				dataEnd--;
-			}
-			const dataStart = dataURI.indexOf(",") + 1;
-			Object.assign(this, {
-				dataURI,
-				dataStart,
-				size: Math.floor((dataEnd - dataStart) * 0.75)
-			});
-		}
-
-		readUint8Array(offset, length) {
-			const {
-				dataStart,
-				dataURI
-			} = this;
-			const dataArray = new Uint8Array(length);
-			const start = Math.floor(offset / 3) * 4;
-			const bytes = atob(dataURI.substring(start + dataStart, Math.ceil((offset + length) / 3) * 4 + dataStart));
-			const delta = offset - Math.floor(start / 4) * 3;
-			let effectiveLength = 0;
-			for (let indexByte = delta; indexByte < delta + length && indexByte < bytes.length; indexByte++) {
-				dataArray[indexByte - delta] = bytes.charCodeAt(indexByte);
-				effectiveLength++;
-			}
-			if (effectiveLength < dataArray.length) {
-				return dataArray.subarray(0, effectiveLength);
-			} else {
-				return dataArray;
-			}
-		}
-	}
-
-	class Data64URIWriter extends Writer {
-
-		constructor(contentType) {
-			super();
-			Object.assign(this, {
-				contentType,
-				data: "data:" + (contentType || "") + ";base64,",
-				pendingCharacters: ""
-			});
-		}
-
-		writeUint8Array(array) {
-			const writer = this;
-			let indexArray;
-			let dataString = writer.pendingCharacters;
-			const delta = writer.pendingCharacters.length;
-			writer.pendingCharacters = "";
-			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
-				dataString += String.fromCharCode(array[indexArray]);
-			}
-			for (; indexArray < array.length; indexArray++) {
-				writer.pendingCharacters += String.fromCharCode(array[indexArray]);
-			}
-			if (dataString.length > 2) {
-				writer.data += btoa(dataString);
-			} else {
-				writer.pendingCharacters = dataString + writer.pendingCharacters;
-			}
-		}
-
-		getData() {
-			return this.data + btoa(this.pendingCharacters);
-		}
-	}
-
-	let blobSliceReliable;
-	let blobSliceProbe;
-
-	function probeBlobSliceReliability() {
-		blobSliceProbe = (async () => {
-			try {
-				const slicedBlob = new Blob([new Uint8Array(3)]).slice(1, 2);
-				const streamReader = slicedBlob.stream().getReader();
-				let streamedLength = 0;
-				let result = await streamReader.read();
-				while (!result.done) {
-					streamedLength += result.value.length;
-					result = await streamReader.read();
-				}
-				blobSliceReliable = streamedLength == 1;
-			} catch {
-				blobSliceReliable = false;
-			}
-		})();
-	}
-
-	class BlobReader extends Reader {
-
-		constructor(blob) {
-			super();
-			Object.assign(this, {
-				sourceBlob: blob,
-				size: blob.size
-			});
-			if (!blobSliceProbe) {
-				probeBlobSliceReliability();
-			}
-		}
-
-		createReadable(options) {
-			const reader = this;
-			const { sourceBlob, size } = reader;
-			const { offset = 0, size: readSize = size - offset } = options || {};
-			if (!offset && readSize >= size) {
-				return toCompatibleReadable(sourceBlob.stream());
-			}
-			if (blobSliceReliable) {
-				return toCompatibleReadable(sourceBlob.slice(offset, offset + readSize).stream());
-			}
-			return super.createReadable(options);
-		}
-
-		async readUint8Array(offset, length) {
-			const reader = this;
-			const offsetEnd = offset + length;
-			const readsWholeBlob = !offset && offsetEnd >= reader.size;
-			const blob = readsWholeBlob ? reader.sourceBlob : reader.sourceBlob.slice(offset, offsetEnd);
-			let arrayBuffer = await blob.arrayBuffer();
-			const sliceIgnoredByBuggyImplementation = arrayBuffer.byteLength > length;
-			if (sliceIgnoredByBuggyImplementation) {
-				arrayBuffer = arrayBuffer.slice(offset, offsetEnd);
-			}
-			return new Uint8Array(arrayBuffer);
-		}
-	}
-
-	class BlobWriter extends Stream {
-
-		constructor(contentType) {
-			super();
-			const writer = this;
-			const transformStream = new TransformStream();
-			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
-				get() {
-					return transformStream.writable;
-				}
-			});
-			writer.contentType = contentType;
-			writer.blobPromise = streamToBlob(transformStream.readable, contentType);
-			writer.blobPromise.catch(() => { });
-		}
-
-		getData() {
-			return this.blobPromise;
-		}
-	}
-
-	class TextReader extends BlobReader {
-
-		constructor(text) {
-			super(new Blob([text], { type: CONTENT_TYPE_TEXT_PLAIN }));
-		}
-	}
-
-	function getTextSize(text) {
-		let size = 0;
-		for (let indexCharacter = 0; indexCharacter < text.length; indexCharacter++) {
-			const characterCode = text.charCodeAt(indexCharacter);
-			if (characterCode < 0x80) {
-				size += 1;
-			} else if (characterCode < 0x800) {
-				size += 2;
-			} else if (characterCode < 0xd800 || characterCode >= 0xe000) {
-				size += 3;
-			} else if (characterCode < 0xdc00 && (text.charCodeAt(indexCharacter + 1) & 0xfc00) == 0xdc00) {
-				size += 4;
-				indexCharacter++;
-			} else {
-				size += 3;
-			}
-		}
-		return size;
-	}
-
-	class TextWriter extends BlobWriter {
-
-		constructor(encoding) {
-			super();
-			Object.assign(this, {
-				encoding,
-				utf8: !encoding || encoding.toLowerCase() == "utf-8"
-			});
-		}
-
-		async getData() {
-			const {
-				encoding,
-				utf8
-			} = this;
-			const blob = await super.getData();
-			if (blob.text && utf8) {
-				return blob.text();
-			} else {
-				return decodeTextRemovingBOM(new Uint8Array(await blob.arrayBuffer()), encoding);
-			}
-		}
-	}
-
-	class FetchReader extends Reader {
-
-		constructor(url, options) {
-			super();
-			createHttpReader(this, url, options);
-		}
-
-		async init() {
-			await initHttpReader(this, sendFetchRequest, getFetchRequestData);
-			super.init();
-		}
-
-		createReadable(options) {
-			const reader = this;
-			const { useRangeHeader, forceRangeRequests, size } = reader;
-			if ((useRangeHeader || forceRangeRequests) && size !== UNDEFINED_VALUE) {
-				const { offset = 0, size: readSize = size - offset } = options || {};
-				if (readSize > 0 && offset < size) {
-					return createRangeReadable(reader, offset, Math.min(readSize, size - offset));
-				}
-			}
-			return super.createReadable(options);
-		}
-
-		readUint8Array(index, length) {
-			return readUint8ArrayHttpReader(this, index, length, sendFetchRequest, getFetchRequestData);
-		}
-	}
-
-	class XHRReader extends Reader {
-
-		constructor(url, options) {
-			super();
-			createHttpReader(this, url, options);
-		}
-
-		async init() {
-			await initHttpReader(this, sendXMLHttpRequest, getXMLHttpRequestData);
-			super.init();
-		}
-
-		readUint8Array(index, length) {
-			return readUint8ArrayHttpReader(this, index, length, sendXMLHttpRequest, getXMLHttpRequestData);
-		}
-	}
-
-	function createHttpReader(httpReader, url, options) {
-		const {
-			preventHeadRequest,
-			useRangeHeader,
-			forceRangeRequests,
-			combineSizeEocd,
-			checkResourceChanges = true,
-			maximumRangeSize = DEFAULT_MAXIMUM_RANGE_SIZE,
-			fetch
-		} = options;
-		options = Object.assign({}, options);
-		delete options.preventHeadRequest;
-		delete options.useRangeHeader;
-		delete options.forceRangeRequests;
-		delete options.combineSizeEocd;
-		delete options.checkResourceChanges;
-		delete options.maximumRangeSize;
-		delete options.useXHR;
-		delete options.fetch;
-		Object.assign(httpReader, {
-			url,
-			options,
-			preventHeadRequest,
-			useRangeHeader,
-			forceRangeRequests,
-			combineSizeEocd,
-			checkResourceChanges,
-			maximumRangeSize,
-			fetch
-		});
-	}
-
-	async function initHttpReader(httpReader, sendRequest, getRequestData) {
-		const {
-			url,
-			preventHeadRequest,
-			useRangeHeader,
-			forceRangeRequests,
-			combineSizeEocd
-		} = httpReader;
-		if (isHttpFamily(url) && (useRangeHeader || forceRangeRequests) && (typeof preventHeadRequest == UNDEFINED_TYPE || preventHeadRequest)) {
-			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -END_OF_CENTRAL_DIR_LENGTH : undefined));
-			const acceptRanges = response.headers.get(HTTP_HEADER_ACCEPT_RANGES);
-			if (!forceRangeRequests && (!acceptRanges || acceptRanges.toLowerCase() != HTTP_RANGE_UNIT)) {
-				throw new Error(ERR_HTTP_RANGE);
-			} else {
-				if (combineSizeEocd) {
-					const eocdCache = new Uint8Array(await response.arrayBuffer());
-					if (response.status == 206 && eocdCache.length == END_OF_CENTRAL_DIR_LENGTH) {
-						httpReader.eocdCache = eocdCache;
-					}
-				}
-				setResourceValidators(httpReader, response);
-				const contentSize = getContentRangeSize(response);
-				if (contentSize === UNDEFINED_VALUE) {
-					await getContentLength(httpReader, sendRequest, getRequestData);
-				} else {
-					httpReader.size = contentSize;
-				}
-			}
-		} else {
-			await getContentLength(httpReader, sendRequest, getRequestData);
-		}
-	}
-
-	async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, getRequestData) {
-		const {
-			useRangeHeader,
-			forceRangeRequests,
-			eocdCache,
-			size,
-			options
-		} = httpReader;
-		if (useRangeHeader || forceRangeRequests) {
-			if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
-				return eocdCache;
-			}
-			if (index >= size || length === 0) {
-				return EMPTY_UINT8_ARRAY;
-			} else {
-				if (index + length > size) {
-					length = size - index;
-				}
-				const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
-				if (response.status != 206) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-				const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
-				if (contentRangeHeader) {
-					const rangeStart = Number(contentRangeHeader.trim().split(/[\s-]+/)[1]);
-					if (!Number.isNaN(rangeStart) && rangeStart != index) {
-						throw new Error(ERR_HTTP_RANGE);
-					}
-				}
-				checkResourceValidators(httpReader, response);
-				setResourceValidators(httpReader, response);
-				const data = new Uint8Array(await response.arrayBuffer());
-				if (data.length != length) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-				return data;
-			}
-		} else {
-			const { data } = httpReader;
-			if (!data) {
-				await getRequestData(httpReader, options);
-			}
-			return httpReader.data.subarray(index, index + length);
-		}
-	}
-
-	function createRangeReadable(httpReader, offset, size) {
-		let bodyReader;
-		let windowOffset = offset;
-		let windowRemainingLength = 0;
-		let remainingLength = size;
-		return new ReadableStream({
-			start() {
-				return openWindow();
-			},
-			async pull(controller) {
-				if (!bodyReader) {
-					await openWindow();
-				}
-				const { value, done } = await bodyReader.read();
-				if (done) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-				const chunk = value.length > windowRemainingLength ? value.subarray(0, windowRemainingLength) : value;
-				windowRemainingLength -= chunk.length;
-				remainingLength -= chunk.length;
-				if (chunk.length) {
-					controller.enqueue(chunk);
-				}
-				if (!windowRemainingLength) {
-					await closeWindow();
-					if (!remainingLength) {
-						controller.close();
-					}
-				}
-			},
-			cancel(reason) {
-				return bodyReader && bodyReader.cancel(reason);
-			}
-		});
-
-		async function openWindow() {
-			const windowLength = Math.min(httpReader.maximumRangeSize, remainingLength);
-			const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, windowOffset, windowLength));
-			if (response.status != 206) {
-				throw new Error(ERR_HTTP_RANGE);
-			}
-			const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
-			if (contentRangeHeader) {
-				const rangeStart = Number(contentRangeHeader.trim().split(/[\s-]+/)[1]);
-				if (!Number.isNaN(rangeStart) && rangeStart != windowOffset) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
-			}
-			checkResourceValidators(httpReader, response);
-			setResourceValidators(httpReader, response);
-			windowOffset += windowLength;
-			windowRemainingLength = windowLength;
-			bodyReader = response.body.getReader();
-		}
-
-		async function closeWindow() {
-			const currentBodyReader = bodyReader;
-			bodyReader = UNDEFINED_VALUE;
-			await currentBodyReader.cancel();
-		}
-	}
-
-	function getContentRangeSize(response) {
-		const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
-		if (contentRangeHeader) {
-			const headerValue = contentRangeHeader.trim().split(/\s*\/\s*/)[1];
-			if (headerValue && headerValue != "*") {
-				const contentSize = Number(headerValue);
-				if (!Number.isNaN(contentSize)) {
-					return contentSize;
-				}
-			}
-		}
-	}
-
-	function getResourceValidators({ headers }) {
-		return {
-			etag: headers.get(HTTP_HEADER_ETAG) || UNDEFINED_VALUE,
-			lastModified: headers.get(HTTP_HEADER_LAST_MODIFIED) || UNDEFINED_VALUE
-		};
-	}
-
-	function setResourceValidators(httpReader, response) {
-		const { checkResourceChanges, resourceValidators } = httpReader;
-		if (checkResourceChanges && !resourceValidators && response.status == 206) {
-			httpReader.resourceValidators = getResourceValidators(response);
-		}
-	}
-
-	function checkResourceValidators(httpReader, response) {
-		const { checkResourceChanges, resourceValidators, size } = httpReader;
-		if (checkResourceChanges) {
-			const contentRangeSize = getContentRangeSize(response);
-			if (contentRangeSize !== UNDEFINED_VALUE && size !== UNDEFINED_VALUE && contentRangeSize != size) {
-				throw new Error(ERR_HTTP_RESOURCE_CHANGED);
-			}
-			if (resourceValidators) {
-				const validators = getResourceValidators(response);
-				const changed = Object.entries(resourceValidators).some(([name, value]) =>
-					value !== UNDEFINED_VALUE && validators[name] !== UNDEFINED_VALUE && value != validators[name]);
-				if (changed) {
-					throw new Error(ERR_HTTP_RESOURCE_CHANGED);
-				}
-			}
-		}
-	}
-
-	function getRangeHeaders(httpReader, index = 0, length = 1) {
-		return Object.assign({}, getHeaders(httpReader), { [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + (index < 0 ? index : index + "-" + (index + length - 1)) });
-	}
-
-	function getHeaders({ options }) {
-		const { headers } = options;
-		if (headers) {
-			if (Symbol.iterator in headers) {
-				return Object.fromEntries(headers);
-			} else {
-				return headers;
-			}
-		}
-	}
-
-	async function getFetchRequestData(httpReader) {
-		await getRequestData(httpReader, sendFetchRequest);
-	}
-
-	async function getXMLHttpRequestData(httpReader) {
-		await getRequestData(httpReader, sendXMLHttpRequest);
-	}
-
-	async function getRequestData(httpReader, sendRequest) {
-		const response = await sendRequest(HTTP_METHOD_GET, httpReader, getHeaders(httpReader));
-		httpReader.data = new Uint8Array(await response.arrayBuffer());
-		httpReader.size = httpReader.data.length;
-	}
-
-	async function getContentLength(httpReader, sendRequest, getRequestData) {
-		if (httpReader.preventHeadRequest) {
-			await getRequestData(httpReader, httpReader.options);
-		} else {
-			const response = await sendRequest(HTTP_METHOD_HEAD, httpReader, getHeaders(httpReader));
-			const contentLength = response.headers.get(HTTP_HEADER_CONTENT_LENGTH);
-			if (contentLength && !response.headers.get(HTTP_HEADER_CONTENT_ENCODING)) {
-				httpReader.size = Number(contentLength);
-			} else {
-				await getRequestData(httpReader, httpReader.options);
-			}
-		}
-	}
-
-	async function sendFetchRequest(method, { fetch: fetchFunction = fetch, options, url }, headers) {
-		const response = await fetchFunction(url, Object.assign({}, options, { method, headers }));
-		if (response.status < 400) {
-			return response;
-		} else {
-			throw response.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
-		}
-	}
-
-	function sendXMLHttpRequest(method, { url }, headers) {
-		return new Promise((resolve, reject) => {
-			const request = new XMLHttpRequest();
-			request.addEventListener("load", () => {
-				if (request.status < 400) {
-					const headers = [];
-					request.getAllResponseHeaders().trim().split(/[\r\n]+/).forEach(header => {
-						const splitHeader = header.trim().split(/\s*:\s*/);
-						splitHeader[0] = splitHeader[0].trim().replace(/^[a-z]|-[a-z]/g, value => value.toUpperCase());
-						headers.push(splitHeader);
-					});
-					resolve({
-						status: request.status,
-						arrayBuffer: () => request.response,
-						headers: new Map(headers)
-					});
-				} else {
-					reject(request.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (request.statusText || request.status)));
-				}
-			}, false);
-			request.addEventListener("error", event => reject(event.detail ? event.detail.error : new Error("Network error")), false);
-			request.open(method, url);
-			if (headers) {
-				for (const entry of Object.entries(headers)) {
-					request.setRequestHeader(entry[0], entry[1]);
-				}
-			}
-			request.responseType = "arraybuffer";
-			request.send();
-		});
-	}
-
-	class HttpReader extends Reader {
-
-		constructor(url, options = {}) {
-			super();
-			Object.assign(this, {
-				url,
-				reader: options.useXHR && !options.fetch ? new XHRReader(url, options) : new FetchReader(url, options)
-			});
-		}
-
-		set size(value) {
-			// ignored
-		}
-
-		get size() {
-			return this.reader.size;
-		}
-
-		async init() {
-			await this.reader.init();
-			super.init();
-		}
-
-		createReadable(options) {
-			return this.reader.createReadable(options);
-		}
-
-		readUint8Array(index, length) {
-			return this.reader.readUint8Array(index, length);
-		}
-	}
-
-
-	class Uint8ArrayReader extends Reader {
-
-		constructor(array) {
-			super();
-			array = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
-			Object.assign(this, {
-				array,
-				size: array.length
-			});
-		}
-
-		readUint8Array(index, length) {
-			return this.array.slice(index, index + length);
-		}
-	}
-
-	class Uint8ArrayWriter extends Writer {
-
-		constructor(defaultBufferSize) {
-			super();
-			this.defaultBufferSize = defaultBufferSize || DEFAULT_BUFFER_SIZE;
-		}
-
-		init(initSize = 0) {
-			Object.assign(this, {
-				offset: 0,
-				array: new Uint8Array(initSize > 0 ? initSize : this.defaultBufferSize)
-			});
-			super.init();
-		}
-
-		writeUint8Array(array) {
-			const writer = this;
-			const requiredLength = writer.offset + array.length;
-			if (requiredLength > writer.array.length) {
-				let newLength = writer.array.length ? writer.array.length * 2 : writer.defaultBufferSize;
-				while (newLength < requiredLength) {
-					newLength *= 2;
-				}
-				const previousArray = writer.array;
-				writer.array = new Uint8Array(newLength);
-				writer.array.set(previousArray);
-			}
-			writer.array.set(array, writer.offset);
-			writer.offset += array.length;
-		}
-
-		getData() {
-			if (this.offset === this.array.length) {
-				return this.array;
-			} else {
-				return this.array.slice(0, this.offset);
-			}
-		}
-	}
-
-	class SplitDataReader extends Reader {
-
-		constructor(readers) {
-			super();
-			this.readers = readers;
-		}
-
-		async init() {
-			const reader = this;
-			reader.lastDiskNumber = 0;
-			const readers = reader.readers = await Promise.all(reader.readers.map(initDiskReader));
-			reader.diskOffsets = readers.map(diskReader => {
-				const diskOffset = reader.size;
-				reader.size += diskReader.size;
-				return diskOffset;
-			});
-			super.init();
-		}
-
-		getDiskOffset(diskNumber) {
-			const { diskOffsets, size } = this;
-			const diskOffset = diskOffsets[diskNumber];
-			return diskOffset === UNDEFINED_VALUE ? size : diskOffset;
-		}
-
-		async readUint8Array(offset, length) {
-			const reader = this;
-			const { readers } = this;
-			let result;
-			let currentDiskNumber = 0;
-			let currentReaderOffset = offset;
-			while (readers[currentDiskNumber] && currentReaderOffset >= readers[currentDiskNumber].size) {
-				currentReaderOffset -= readers[currentDiskNumber].size;
-				currentDiskNumber++;
-			}
-			const currentReader = readers[currentDiskNumber];
-			if (currentReader) {
-				const currentReaderSize = currentReader.size;
-				if (currentReaderOffset + length <= currentReaderSize) {
-					result = await readUint8Array(currentReader, currentReaderOffset, length);
-				} else {
-					const chunkLength = currentReaderSize - currentReaderOffset;
-					const firstPart = await readUint8Array(currentReader, currentReaderOffset, chunkLength);
-					const secondPart = await reader.readUint8Array(offset + chunkLength, length - chunkLength);
-					result = concat(firstPart, secondPart);
-				}
-			} else {
-				result = EMPTY_UINT8_ARRAY;
-			}
-			reader.lastDiskNumber = Math.max(currentDiskNumber, reader.lastDiskNumber);
-			return result;
-		}
-	}
-
-	class SplitDataWriter extends Stream {
-
-		constructor(writerGenerator, maxSize = 4294967295) {
-			super();
-			const writer = this;
-			Object.assign(writer, {
-				diskNumber: 0,
-				diskOffset: 0,
-				size: 0,
-				maxSize,
-				availableSize: maxSize
-			});
-			let diskSourceWriter, diskWritable, diskWriter;
-			const writable = new WritableStream({
-				async write(chunk) {
-					if (chunk === DISK_BOUNDARY) {
-						if (diskWriter) {
-							await endDisk();
-						}
-						return;
-					}
-					const { availableSize } = writer;
-					if (!diskWriter) {
-						const { value, done } = await writerGenerator.next();
-						if (done && !value) {
-							throw new Error(ERR_ITERATOR_COMPLETED_TOO_SOON);
-						} else {
-							diskSourceWriter = value;
-							diskSourceWriter.size = 0;
-							if (diskSourceWriter.maxSize) {
-								writer.maxSize = diskSourceWriter.maxSize;
-							}
-							writer.availableSize = writer.maxSize;
-							await initStream(diskSourceWriter);
-							diskWritable = value.writable;
-							diskWriter = diskWritable.getWriter();
-						}
-						await this.write(chunk);
-					} else if (chunk.length >= availableSize) {
-						await writeChunk(chunk.subarray(0, availableSize));
-						await endDisk();
-						if (chunk.length > availableSize) {
-							await this.write(chunk.subarray(availableSize));
-						}
-					} else {
-						await writeChunk(chunk);
-					}
-				},
-				async close() {
-					if (diskWriter) {
-						await diskWriter.ready;
-						await closeDiskWriter();
-					}
-				},
-				async abort(reason) {
-					if (diskWriter) {
-						await diskWriter.abort(reason);
-					}
-				}
-			});
-			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
-				get() {
-					return writable;
-				}
-			});
-
-			async function writeChunk(chunk) {
-				const chunkLength = chunk.length;
-				if (chunkLength) {
-					await diskWriter.ready;
-					await diskWriter.write(chunk);
-					diskSourceWriter.size += chunkLength;
-					writer.availableSize -= chunkLength;
-				}
-			}
-
-			async function endDisk() {
-				await closeDiskWriter();
-				writer.diskOffset += diskSourceWriter.size;
-				writer.diskNumber++;
-				diskWriter = null;
-				writer.availableSize = writer.maxSize;
-			}
-
-			async function closeDiskWriter() {
-				await diskWriter.close();
-			}
-		}
-
-		async closeDisk() {
-			const streamWriter = this.writable.getWriter();
-			try {
-				await streamWriter.ready;
-				await streamWriter.write(DISK_BOUNDARY);
-			} finally {
-				streamWriter.releaseLock();
-			}
-		}
-	}
-
-	class GenericReader {
-
-		constructor(reader) {
-			if (Array.isArray(reader)) {
-				reader = new SplitDataReader(reader);
-			}
-			if (reader instanceof ReadableStream || typeof reader.getReader == FUNCTION_TYPE) {
-				reader = {
-					readable: toCompatibleReadable(reader)
-				};
-			}
-			return reader;
-		}
-	}
-
-	class GenericWriter {
-
-		constructor(writer) {
-			if (writer.writable === UNDEFINED_VALUE && typeof writer.next == FUNCTION_TYPE) {
-				writer = new SplitDataWriter(writer);
-			}
-			if (writer instanceof WritableStream || typeof writer.getWriter == FUNCTION_TYPE) {
-				writer = {
-					writable: toCompatibleWritable(writer)
-				};
-			}
-			if (writer.size === UNDEFINED_VALUE) {
-				writer.size = 0;
-			}
-			return writer;
-		}
-	}
-
-	function ownsWritable(writer) {
-		return Boolean(writer && writer.getData);
-	}
-
-	function isHttpFamily(url) {
-		const { baseURI } = getConfiguration();
-		const { protocol } = new URL(url, baseURI);
-		return protocol == "http:" || protocol == "https:";
-	}
-
-	async function initStream(stream, initSize) {
-		if (stream.init && !stream.initialized) {
-			await stream.init(initSize);
-		} else {
-			return Promise.resolve();
-		}
-	}
-
-	async function initDiskReader(diskReader) {
-		diskReader = new GenericReader(diskReader);
-		await initStream(diskReader);
-		if (diskReader.size === UNDEFINED_VALUE || !diskReader.readUint8Array) {
-			diskReader = new BlobReader(await streamToBlob(diskReader.readable));
-			await initStream(diskReader);
-		}
-		return diskReader;
-	}
-
-	function readUint8Array(reader, offset, size) {
-		return reader.readUint8Array(offset, size);
-	}
-
-	function createReadable(reader, options) {
-		if (reader.createReadable) {
-			return reader.createReadable(options);
-		} else if (reader.readUint8Array) {
-			return Reader.prototype.createReadable.call(reader, options);
-		} else {
-			return reader.readable;
-		}
-	}
-
-	/*
-	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
-
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
-
-	 1. Redistributions of source code must retain the above copyright notice,
-	 this list of conditions and the following disclaimer.
-
-	 2. Redistributions in binary form must reproduce the above copyright
-	 notice, this list of conditions and the following disclaimer in
-	 the documentation and/or other materials provided with the distribution.
-
-	 3. The names of the authors may not be used to endorse or promote products
-	 derived from this software without specific prior written permission.
-
-	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
-	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
-	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	 */
-
-	const ERR_INVALID_CODEC_MODULE = "Invalid codec module";
-
-	const registeredCodecs = new Map();
-	const codecStreams = new Map();
-
-	function getRegisteredCodec(compressionMethod) {
-		return registeredCodecs.get(compressionMethod);
-	}
-
-	function getCodecStreams(format) {
-		return codecStreams.get(format);
-	}
-
-	function setCodecStreams(format, streams) {
-		const { CompressionStream, DecompressionStream } = streams;
-		if (typeof CompressionStream != FUNCTION_TYPE && typeof DecompressionStream != FUNCTION_TYPE) {
-			throw new Error(ERR_INVALID_CODEC_MODULE);
-		}
-		codecStreams.set(format, { CompressionStream, DecompressionStream });
-	}
-
-	async function ensureCodecStreams(format, codecURI) {
-		if (!codecStreams.has(format) && codecURI) {
-			setCodecStreams(format, await import(/* webpackIgnore: true */ /* @vite-ignore */ codecURI));
-		}
 	}
 
 	/*
@@ -3046,6 +1918,193 @@
 	}
 
 	/*
+	 Copyright (c) 2026 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	function toCompatibleReadable(readable) {
+		if (readable instanceof ReadableStream) {
+			return readable;
+		}
+		const reader = readable.getReader();
+		return new ReadableStream({
+			async pull(controller) {
+				const { value, done } = await reader.read();
+				if (done) {
+					controller.close();
+				} else {
+					controller.enqueue(value);
+				}
+			},
+			cancel(reason) {
+				return reader.cancel(reason);
+			}
+		});
+	}
+
+	function streamToBlob(readable, contentType) {
+		readable = toCompatibleReadable(readable);
+		const blobOptions = contentType ? { type: contentType } : {};
+		if (responseSupportsGlobalReadable()) {
+			return new Response(readable).blob().then(blob => contentType ? new Blob([blob], blobOptions) : blob);
+		}
+		const chunks = [];
+		return readable
+			.pipeTo(new WritableStream({
+				write(chunk) {
+					chunks.push(chunk);
+				}
+			}))
+			.then(() => new Blob(chunks, blobOptions));
+	}
+
+	function responseSupportsGlobalReadable() {
+		return typeof Blob.prototype.stream != FUNCTION_TYPE || new Blob([]).stream() instanceof ReadableStream;
+	}
+
+	function toCompatibleWritable(writable) {
+		if (writable instanceof WritableStream) {
+			return writable;
+		}
+		const writer = writable.getWriter();
+		return new WritableStream({
+			write(chunk) {
+				return writer.write(chunk);
+			},
+			close() {
+				return writer.close();
+			},
+			abort(reason) {
+				return writer.abort(reason);
+			}
+		});
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const ERR_INVALID_CODEC_DEFINITION = "Invalid codec definition";
+	const ERR_RESERVED_COMPRESSION_METHOD = "Reserved compression method";
+	const ERR_INVALID_CODEC_MODULE = "Invalid codec module";
+
+	const RESERVED_COMPRESSION_METHODS = [
+		COMPRESSION_METHOD_STORE,
+		COMPRESSION_METHOD_DEFLATE,
+		COMPRESSION_METHOD_DEFLATE_64,
+		COMPRESSION_METHOD_AES
+	];
+
+	const registeredCodecs = new Map();
+	const codecStreams = new Map();
+
+	function registerCodec(codec = {}) {
+		const { compressionMethod, format, codecURI, CompressionStream, DecompressionStream, versionNeeded } = codec;
+		if (!Number.isInteger(compressionMethod) || compressionMethod < 0 || compressionMethod > MAX_16_BITS ||
+			typeof format != STRING_TYPE || !format.length) {
+			throw new Error(ERR_INVALID_CODEC_DEFINITION);
+		}
+		if (RESERVED_COMPRESSION_METHODS.includes(compressionMethod)) {
+			throw new Error(ERR_RESERVED_COMPRESSION_METHOD);
+		}
+		const hasStreams = typeof CompressionStream == FUNCTION_TYPE || typeof DecompressionStream == FUNCTION_TYPE;
+		if (!hasStreams && (typeof codecURI != STRING_TYPE || !codecURI.length)) {
+			throw new Error(ERR_INVALID_CODEC_DEFINITION);
+		}
+		registeredCodecs.set(compressionMethod, { compressionMethod, format, codecURI, versionNeeded });
+		if (hasStreams) {
+			setCodecStreams(format, { CompressionStream, DecompressionStream });
+		}
+	}
+
+	function unregisterCodec(compressionMethod) {
+		const codec = registeredCodecs.get(compressionMethod);
+		if (codec) {
+			registeredCodecs.delete(compressionMethod);
+			let formatUsed;
+			registeredCodecs.forEach(otherCodec => formatUsed = formatUsed || otherCodec.format == codec.format);
+			if (!formatUsed) {
+				codecStreams.delete(codec.format);
+			}
+		}
+	}
+
+	function getRegisteredCodec(compressionMethod) {
+		return registeredCodecs.get(compressionMethod);
+	}
+
+	function getRegisteredCodecs() {
+		return Array.from(registeredCodecs.values(), codec => Object.assign({}, codec, codecStreams.get(codec.format)));
+	}
+
+	function getCodecStreams(format) {
+		return codecStreams.get(format);
+	}
+
+	function setCodecStreams(format, streams) {
+		const { CompressionStream, DecompressionStream } = streams;
+		if (typeof CompressionStream != FUNCTION_TYPE && typeof DecompressionStream != FUNCTION_TYPE) {
+			throw new Error(ERR_INVALID_CODEC_MODULE);
+		}
+		codecStreams.set(format, { CompressionStream, DecompressionStream });
+	}
+
+	async function ensureCodecStreams(format, codecURI) {
+		if (!codecStreams.has(format) && codecURI) {
+			setCodecStreams(format, await import(/* webpackIgnore: true */ /* @vite-ignore */ codecURI));
+		}
+	}
+
+	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
@@ -3470,6 +2529,12 @@
 
 
 	const DEFAULT_CHUNK_SIZE = 64 * 1024;
+	const MESSAGE_EVENT_TYPE = "message";
+	const MESSAGE_START = "start";
+	const MESSAGE_PULL = "pull";
+	const MESSAGE_DATA = "data";
+	const MESSAGE_ACK_DATA = "ack";
+	const MESSAGE_CLOSE = "close";
 	const CODEC_DEFLATE = "deflate";
 	const CODEC_INFLATE = "inflate";
 
@@ -3613,7 +2678,13 @@
 
 
 	const ERR_WORKER_STARTUP_TIMEOUT = "Worker startup timeout";
+
+	let webWorkerSupported, createWorkerFailed, webWorkerBackend;
 	let initModule = () => { };
+
+	function setWebWorkerBackend(backend) {
+		webWorkerBackend = backend;
+	}
 
 	async function supportsDeflate(config) {
 		const { CompressionStream: NativeStream, CompressionStreamFallback: FallbackStream } = config;
@@ -3634,10 +2705,26 @@
 		return false;
 	}
 
+	function resetWebWorkerSupport() {
+		webWorkerSupported = UNDEFINED_VALUE;
+		createWorkerFailed = false;
+	}
+
+	function disableWebWorker(workerData) {
+		if (workerData.createWorker) {
+			createWorkerFailed = true;
+		} else {
+			webWorkerSupported = false;
+		}
+	}
+
 	class CodecWorker {
 
 		constructor(workerData, { readable, writable }, { options, config, streamOptions, useWebWorkers, transferStreams, workerURI, createWorker }, onTaskFinished) {
 			const { signal } = streamOptions;
+			if (createWorkerFailed) {
+				createWorker = UNDEFINED_VALUE;
+			}
 			Object.assign(workerData, {
 				busy: true,
 				generation: (workerData.generation || 0) + 1,
@@ -3679,7 +2766,11 @@
 					}
 				}
 			});
-			return (createWorkerInterface)(workerData, config);
+			if (webWorkerSupported === UNDEFINED_VALUE) {
+				// deno-lint-ignore valid-typeof
+				webWorkerSupported = typeof Worker != UNDEFINED_TYPE;
+			}
+			return (useWebWorkers && webWorkerBackend && ((webWorkerSupported && workerURI) || createWorker) ? webWorkerBackend : createWorkerInterface)(workerData, config);
 		}
 	}
 
@@ -3768,6 +2859,430 @@
 			throw error;
 		} finally {
 			onTaskFinished();
+		}
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const MODULE_WORKER_OPTIONS = { type: "module" };
+	const ERROR_EVENT_TYPE = "error";
+	const MESSAGE_ERROR_EVENT_TYPE = "messageerror";
+
+	let webWorkerSource, webWorkerURI, webWorkerOptions;
+	let transferStreamsSupported = true;
+	try {
+		transferStreamsSupported = typeof structuredClone == FUNCTION_TYPE && structuredClone(new DOMException("", "AbortError")).code !== UNDEFINED_VALUE;
+	} catch {
+		// ignored
+	}
+
+	setWebWorkerBackend(createWebWorkerInterface);
+
+	function createWebWorkerInterface(workerData, config) {
+		const { baseURI, chunkSize, workerStartupTimeout } = config;
+		let { wasmURI } = config;
+
+		if (!workerData.interface) {
+			// deno-lint-ignore valid-typeof
+			if (typeof wasmURI == FUNCTION_TYPE) {
+				wasmURI = wasmURI();
+			}
+			let worker;
+			try {
+				worker = getWebWorker(workerData.workerURI, baseURI, workerData);
+			} catch {
+				disableWebWorker(workerData);
+				return createWorkerInterface(workerData, config);
+			}
+			Object.assign(workerData, {
+				worker,
+				workerAlive: false,
+				terminated: false,
+				startupError: null,
+				interface: {
+					run: async () => {
+						try {
+							return await runWebWorker(workerData, { chunkSize, wasmURI, baseURI, workerStartupTimeout });
+						} catch (error) {
+							if (error && error.workerStartupFailed) {
+								disableWebWorker(workerData);
+								releaseWorkerStreams(workerData);
+								return runWorker$1(workerData, config);
+							}
+							if (error && error.codecImportFailed) {
+								if (workerData.reader) {
+									releaseWorkerStreams(workerData);
+									return runWorker$1(workerData, config);
+								}
+								workerData.onTaskFinished();
+							}
+							throw error;
+						}
+					}
+				}
+			});
+		}
+		return workerData.interface;
+	}
+
+	async function runWebWorker(workerData, config) {
+		if (!workerData.worker) {
+			const { startupError } = workerData;
+			workerData.startupError = null;
+			const error = startupError || new Error(ERR_WORKER_STARTUP_TIMEOUT);
+			error.workerStartupFailed = true;
+			throw error;
+		}
+		let resolveResult, rejectResult;
+		const result = new Promise((resolve, reject) => {
+			resolveResult = resolve;
+			rejectResult = reject;
+		});
+		Object.assign(workerData, {
+			reader: null,
+			writer: null,
+			resolveResult,
+			rejectResult,
+			result
+		});
+		const { readable, options } = workerData;
+		const { writable, closed, abortPipe } = watchClosedStream(workerData.writable);
+		let streamsTransferred;
+		try {
+			streamsTransferred = sendMessage({
+				type: MESSAGE_START,
+				options,
+				config,
+				readable,
+				writable
+			}, workerData);
+		} catch (error) {
+			abortPipe();
+			try {
+				await closed;
+			} catch {
+				// ignored
+			}
+			workerData.onTaskFinished();
+			throw error;
+		}
+		if (!streamsTransferred) {
+			Object.assign(workerData, {
+				reader: readable.getReader(),
+				writer: writable.getWriter()
+			});
+		}
+		const { workerStartupTimeout } = config;
+		if (!workerData.workerAlive && Number.isFinite(workerStartupTimeout) && workerStartupTimeout >= 0) {
+			workerData.startupTimeout = setTimeout(() => onStartupTimeout(workerData), workerStartupTimeout);
+		}
+		try {
+			const resultValue = await result;
+			await closeWritable();
+			await closed;
+			return resultValue;
+		} catch (error) {
+			await closeWritable();
+			abortPipe();
+			try {
+				await closed;
+			} catch {
+				// ignored
+			}
+			throw error;
+		}
+
+		async function closeWritable() {
+			if (!streamsTransferred && !writable.locked) {
+				try {
+					await writable.getWriter().close();
+				} catch {
+					// ignored
+				}
+			}
+		}
+	}
+
+	function watchClosedStream(writableSource) {
+		const abortController = new AbortController();
+		const { writable, readable } = new TransformStream();
+		const closed = readable.pipeTo(writableSource, { preventClose: true, preventAbort: true, signal: abortController.signal });
+		closed.catch(() => { });
+		return { writable, closed, abortPipe: () => abortController.abort() };
+	}
+
+	function releaseWorkerStreams(workerData) {
+		const { reader } = workerData;
+		if (reader) {
+			reader.releaseLock();
+		}
+		workerData.reader = null;
+		workerData.writer = null;
+	}
+
+	function terminateWorker$1(workerData) {
+		const { worker } = workerData;
+		if (worker) {
+			try {
+				worker.terminate();
+			} catch {
+				// ignored
+			}
+		}
+		workerData.interface = null;
+	}
+
+	function getWebWorker(url, baseURI, workerData, isModuleType, useBlobURI = true) {
+		const { createWorker } = workerData;
+		let worker, resolvedURI, resolvedOptions;
+		if (createWorker) {
+			worker = createWorker();
+		} else if (webWorkerURI === UNDEFINED_VALUE || webWorkerSource !== url) {
+			// deno-lint-ignore valid-typeof
+			const isFunctionURI = typeof url == FUNCTION_TYPE;
+			if (isFunctionURI) {
+				resolvedURI = url(useBlobURI);
+			} else {
+				resolvedURI = url;
+			}
+			const isDataURI = resolvedURI.startsWith("data:");
+			const isBlobURI = resolvedURI.startsWith("blob:");
+			if (isDataURI || isBlobURI) {
+				if (isModuleType === UNDEFINED_VALUE) {
+					isModuleType = false;
+				}
+				if (isModuleType) {
+					resolvedOptions = MODULE_WORKER_OPTIONS;
+				}
+				try {
+					worker = new Worker(resolvedURI, resolvedOptions);
+				} catch (error) {
+					if (isBlobURI) {
+						try {
+							URL.revokeObjectURL(resolvedURI);
+						} catch {
+							// ignored
+						}
+					}
+					if (isFunctionURI && isBlobURI) {
+						return getWebWorker(url, baseURI, workerData, isModuleType, false);
+					} else if (!isModuleType) {
+						return getWebWorker(url, baseURI, workerData, true, false);
+					} else {
+						throw error;
+					}
+				}
+			} else {
+				if (isModuleType === UNDEFINED_VALUE) {
+					isModuleType = true;
+				}
+				if (isModuleType) {
+					resolvedOptions = MODULE_WORKER_OPTIONS;
+				}
+				try {
+					resolvedURI = new URL(resolvedURI, baseURI);
+				} catch {
+					// ignored
+				}
+				try {
+					worker = new Worker(resolvedURI, resolvedOptions);
+				} catch (error) {
+					if (isModuleType) {
+						return getWebWorker(url, baseURI, workerData, false, useBlobURI);
+					} else {
+						throw error;
+					}
+				}
+			}
+			webWorkerSource = url;
+			webWorkerURI = resolvedURI;
+			webWorkerOptions = resolvedOptions;
+		} else {
+			worker = new Worker(webWorkerURI, webWorkerOptions);
+		}
+		worker.addEventListener(MESSAGE_EVENT_TYPE, event => {
+			workerData.workerAlive = true;
+			clearStartupTimeout(workerData);
+			onMessage(event, workerData);
+		});
+		worker.addEventListener(ERROR_EVENT_TYPE, event => onWorkerError(event, workerData));
+		worker.addEventListener(MESSAGE_ERROR_EVENT_TYPE, event => onWorkerError(event, workerData));
+		return worker;
+	}
+
+	function onStartupTimeout(workerData) {
+		workerData.startupTimeout = null;
+		if (workerData.workerAlive) {
+			return;
+		}
+		const { rejectResult, writer } = workerData;
+		terminateWorker$1(workerData);
+		workerData.worker = null;
+		if (rejectResult) {
+			const error = new Error(ERR_WORKER_STARTUP_TIMEOUT);
+			error.workerStartupFailed = true;
+			rejectResult(error);
+			if (writer) {
+				writer.releaseLock();
+			}
+		}
+	}
+
+	function clearStartupTimeout(workerData) {
+		const { startupTimeout } = workerData;
+		if (startupTimeout) {
+			clearTimeout(startupTimeout);
+			workerData.startupTimeout = null;
+		}
+	}
+
+	function onWorkerError(event, workerData) {
+		if (event.preventDefault) {
+			event.preventDefault();
+		}
+		clearStartupTimeout(workerData);
+		const { workerAlive, rejectResult, writer, onTaskFinished } = workerData;
+		terminateWorker$1(workerData);
+		if (!workerAlive) {
+			workerData.worker = null;
+		}
+		let error = event.error || new Error(event.message || ERROR_EVENT_TYPE);
+		if (!workerAlive) {
+			error = Object.assign(new Error(error.message || ERROR_EVENT_TYPE), { workerStartupFailed: true });
+			workerData.startupError = error;
+		}
+		if (rejectResult) {
+			rejectResult(error);
+			if (writer) {
+				writer.releaseLock();
+			}
+			if (workerAlive) {
+				onTaskFinished();
+			}
+		}
+	}
+
+	function sendMessage(message, { worker, writer, transferStreams, workerAlive }) {
+		try {
+			const { value, readable, writable } = message;
+			const transferables = [];
+			if (value) {
+				message.value = toExactUint8Array(value);
+				transferables.push(message.value.buffer);
+			}
+			if (transferStreams && transferStreamsSupported && workerAlive) {
+				if (readable) {
+					transferables.push(readable);
+				}
+				if (writable) {
+					transferables.push(writable);
+				}
+			} else {
+				message.readable = message.writable = null;
+			}
+			if (transferables.length) {
+				try {
+					worker.postMessage(message, transferables);
+					return true;
+				} catch {
+					transferStreamsSupported = false;
+					message.readable = message.writable = null;
+					worker.postMessage(message);
+				}
+			} else {
+				worker.postMessage(message);
+			}
+		} catch (error) {
+			if (writer) {
+				writer.releaseLock();
+			}
+			throw error;
+		}
+	}
+
+	async function onMessage({ data }, workerData) {
+		const { type, value, messageId, result, error } = data;
+		const { reader, writer, resolveResult, rejectResult, onTaskFinished, generation } = workerData;
+		const stale = () => workerData.generation != generation;
+		try {
+			if (error) {
+				const { message, stack, code, name, outputSize, cause, codecImportFailed } = error;
+				const responseError = new Error(message);
+				Object.assign(responseError, { stack, code, name, outputSize });
+				if (cause) {
+					responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
+				}
+				if (codecImportFailed) {
+					responseError.codecImportFailed = true;
+				}
+				close(responseError);
+			} else {
+				if (type == MESSAGE_PULL) {
+					const { value, done } = await reader.read();
+					if (!stale()) {
+						sendMessage({ type: MESSAGE_DATA, value, done, messageId }, workerData);
+					}
+				}
+				if (type == MESSAGE_DATA) {
+					await writer.ready;
+					await writer.write(new Uint8Array(value));
+					if (!stale()) {
+						sendMessage({ type: MESSAGE_ACK_DATA, messageId }, workerData);
+					}
+				}
+				if (type == MESSAGE_CLOSE) {
+					close(null, result);
+				}
+			}
+		} catch (error) {
+			if (!stale()) {
+				terminateWorker$1(workerData);
+				close(error);
+			}
+		}
+
+		function close(error, result) {
+			if (stale()) {
+				return;
+			}
+			if (error) {
+				rejectResult(error);
+			} else {
+				resolveResult(result);
+			}
+			if (writer) {
+				writer.releaseLock();
+			}
+			if (!(error && error.codecImportFailed)) {
+				onTaskFinished();
+			}
 		}
 	}
 
@@ -3921,6 +3436,1098 @@
 		if (terminateTimeout) {
 			clearTimeout(terminateTimeout);
 			workerData.terminateTimeout = null;
+		}
+	}
+
+	async function terminateWorkers() {
+		await Promise.allSettled(pool.map(workerData => {
+			clearTerminateTimeout(workerData);
+			return workerData.terminate();
+		}));
+		resetWebWorkerSupport();
+	}
+
+	/*
+	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	/* global TextDecoder */
+
+	const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
+	const VALID_CP437 = CP437.length == 256;
+
+	function decodeCP437(stringValue) {
+		if (VALID_CP437) {
+			let result = "";
+			for (let indexCharacter = 0; indexCharacter < stringValue.length; indexCharacter++) {
+				result += CP437[stringValue[indexCharacter]];
+			}
+			return result;
+		} else {
+			return new TextDecoder().decode(stringValue);
+		}
+	}
+
+	/*
+	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	function decodeText(value, encoding) {
+		return decode(value, encoding, true);
+	}
+
+	function decodeTextRemovingBOM(value, encoding) {
+		return decode(value, encoding, false);
+	}
+
+	function decode(value, encoding, ignoreBOM) {
+		if (encoding && encoding.trim().toLowerCase() == "cp437") {
+			return decodeCP437(value);
+		} else {
+			return new TextDecoder(encoding, { ignoreBOM }).decode(value);
+		}
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const ERR_HTTP_STATUS = "HTTP error ";
+	const ERR_HTTP_RANGE = "HTTP Range not supported";
+	const ERR_HTTP_RESOURCE_CHANGED = "HTTP resource changed";
+	const ERR_ITERATOR_COMPLETED_TOO_SOON = "Writer iterator completed too soon";
+	const ERR_WRITER_NOT_INITIALIZED = "Writer not initialized";
+
+	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
+	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
+	const HTTP_HEADER_CONTENT_ENCODING = "Content-Encoding";
+	const HTTP_HEADER_CONTENT_RANGE = "Content-Range";
+	const HTTP_HEADER_ACCEPT_RANGES = "Accept-Ranges";
+	const HTTP_HEADER_RANGE = "Range";
+	const HTTP_HEADER_ETAG = "Etag";
+	const HTTP_HEADER_LAST_MODIFIED = "Last-Modified";
+	const HTTP_METHOD_HEAD = "HEAD";
+	const HTTP_METHOD_GET = "GET";
+	const HTTP_RANGE_UNIT = "bytes";
+	const DEFAULT_BUFFER_SIZE = 256 * 1024;
+	const DEFAULT_MAXIMUM_RANGE_SIZE = 16 * 1024 * 1024;
+
+	const PROPERTY_NAME_WRITABLE = "writable";
+	const DISK_BOUNDARY = Symbol();
+
+	class Stream {
+
+		constructor() {
+			this.size = 0;
+		}
+
+		init() {
+			this.initialized = true;
+		}
+	}
+
+	class Reader extends Stream {
+
+		get readable() {
+			return this.createReadable();
+		}
+
+		createReadable({ offset = 0, size, chunkSize = getChunkSize(getConfiguration()) } = {}) {
+			const reader = this;
+			let chunkOffset = 0;
+			chunkSize = normalizeChunkSize(chunkSize);
+			return new ReadableStream({
+				async pull(controller) {
+					const dataSize = size === UNDEFINED_VALUE ? chunkSize : Math.min(chunkSize, size - chunkOffset);
+					const data = await readUint8Array(reader, offset + chunkOffset, dataSize);
+					if (data.length) {
+						controller.enqueue(data);
+					}
+					if ((chunkOffset + chunkSize >= size) || (!data.length && dataSize)) {
+						controller.close();
+					} else {
+						chunkOffset += chunkSize;
+					}
+				}
+			});
+		}
+	}
+
+	class Writer extends Stream {
+
+		constructor() {
+			super();
+			const writer = this;
+			const writable = new WritableStream({
+				write(chunk) {
+					if (!writer.initialized) {
+						throw new Error(ERR_WRITER_NOT_INITIALIZED);
+					}
+					return writer.writeUint8Array(toExactUint8Array(chunk));
+				}
+			});
+			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
+				get() {
+					return writable;
+				}
+			});
+		}
+
+		writeUint8Array() {
+			// abstract
+		}
+	}
+
+	class Data64URIReader extends Reader {
+
+		constructor(dataURI) {
+			super();
+			let dataEnd = dataURI.length;
+			while (dataURI.charAt(dataEnd - 1) == "=") {
+				dataEnd--;
+			}
+			const dataStart = dataURI.indexOf(",") + 1;
+			Object.assign(this, {
+				dataURI,
+				dataStart,
+				size: Math.floor((dataEnd - dataStart) * 0.75)
+			});
+		}
+
+		readUint8Array(offset, length) {
+			const {
+				dataStart,
+				dataURI
+			} = this;
+			const dataArray = new Uint8Array(length);
+			const start = Math.floor(offset / 3) * 4;
+			const bytes = atob(dataURI.substring(start + dataStart, Math.ceil((offset + length) / 3) * 4 + dataStart));
+			const delta = offset - Math.floor(start / 4) * 3;
+			let effectiveLength = 0;
+			for (let indexByte = delta; indexByte < delta + length && indexByte < bytes.length; indexByte++) {
+				dataArray[indexByte - delta] = bytes.charCodeAt(indexByte);
+				effectiveLength++;
+			}
+			if (effectiveLength < dataArray.length) {
+				return dataArray.subarray(0, effectiveLength);
+			} else {
+				return dataArray;
+			}
+		}
+	}
+
+	class Data64URIWriter extends Writer {
+
+		constructor(contentType) {
+			super();
+			Object.assign(this, {
+				contentType,
+				data: "data:" + (contentType || "") + ";base64,",
+				pendingCharacters: ""
+			});
+		}
+
+		writeUint8Array(array) {
+			const writer = this;
+			let indexArray;
+			let dataString = writer.pendingCharacters;
+			const delta = writer.pendingCharacters.length;
+			writer.pendingCharacters = "";
+			for (indexArray = 0; indexArray < (Math.floor((delta + array.length) / 3) * 3) - delta; indexArray++) {
+				dataString += String.fromCharCode(array[indexArray]);
+			}
+			for (; indexArray < array.length; indexArray++) {
+				writer.pendingCharacters += String.fromCharCode(array[indexArray]);
+			}
+			if (dataString.length > 2) {
+				writer.data += btoa(dataString);
+			} else {
+				writer.pendingCharacters = dataString + writer.pendingCharacters;
+			}
+		}
+
+		getData() {
+			return this.data + btoa(this.pendingCharacters);
+		}
+	}
+
+	let blobSliceReliable;
+	let blobSliceProbe;
+
+	function probeBlobSliceReliability() {
+		blobSliceProbe = (async () => {
+			try {
+				const slicedBlob = new Blob([new Uint8Array(3)]).slice(1, 2);
+				const streamReader = slicedBlob.stream().getReader();
+				let streamedLength = 0;
+				let result = await streamReader.read();
+				while (!result.done) {
+					streamedLength += result.value.length;
+					result = await streamReader.read();
+				}
+				blobSliceReliable = streamedLength == 1;
+			} catch {
+				blobSliceReliable = false;
+			}
+		})();
+	}
+
+	class BlobReader extends Reader {
+
+		constructor(blob) {
+			super();
+			Object.assign(this, {
+				sourceBlob: blob,
+				size: blob.size
+			});
+			if (!blobSliceProbe) {
+				probeBlobSliceReliability();
+			}
+		}
+
+		createReadable(options) {
+			const reader = this;
+			const { sourceBlob, size } = reader;
+			const { offset = 0, size: readSize = size - offset } = options || {};
+			if (!offset && readSize >= size) {
+				return toCompatibleReadable(sourceBlob.stream());
+			}
+			if (blobSliceReliable) {
+				return toCompatibleReadable(sourceBlob.slice(offset, offset + readSize).stream());
+			}
+			return super.createReadable(options);
+		}
+
+		async readUint8Array(offset, length) {
+			const reader = this;
+			const offsetEnd = offset + length;
+			const readsWholeBlob = !offset && offsetEnd >= reader.size;
+			const blob = readsWholeBlob ? reader.sourceBlob : reader.sourceBlob.slice(offset, offsetEnd);
+			let arrayBuffer = await blob.arrayBuffer();
+			const sliceIgnoredByBuggyImplementation = arrayBuffer.byteLength > length;
+			if (sliceIgnoredByBuggyImplementation) {
+				arrayBuffer = arrayBuffer.slice(offset, offsetEnd);
+			}
+			return new Uint8Array(arrayBuffer);
+		}
+	}
+
+	class BlobWriter extends Stream {
+
+		constructor(contentType) {
+			super();
+			const writer = this;
+			const transformStream = new TransformStream();
+			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
+				get() {
+					return transformStream.writable;
+				}
+			});
+			writer.contentType = contentType;
+			writer.blobPromise = streamToBlob(transformStream.readable, contentType);
+			writer.blobPromise.catch(() => { });
+		}
+
+		getData() {
+			return this.blobPromise;
+		}
+	}
+
+	class TextReader extends BlobReader {
+
+		constructor(text) {
+			super(new Blob([text], { type: CONTENT_TYPE_TEXT_PLAIN }));
+		}
+	}
+
+	function getTextSize(text) {
+		let size = 0;
+		for (let indexCharacter = 0; indexCharacter < text.length; indexCharacter++) {
+			const characterCode = text.charCodeAt(indexCharacter);
+			if (characterCode < 0x80) {
+				size += 1;
+			} else if (characterCode < 0x800) {
+				size += 2;
+			} else if (characterCode < 0xd800 || characterCode >= 0xe000) {
+				size += 3;
+			} else if (characterCode < 0xdc00 && (text.charCodeAt(indexCharacter + 1) & 0xfc00) == 0xdc00) {
+				size += 4;
+				indexCharacter++;
+			} else {
+				size += 3;
+			}
+		}
+		return size;
+	}
+
+	class TextWriter extends BlobWriter {
+
+		constructor(encoding) {
+			super();
+			Object.assign(this, {
+				encoding,
+				utf8: !encoding || encoding.toLowerCase() == "utf-8"
+			});
+		}
+
+		async getData() {
+			const {
+				encoding,
+				utf8
+			} = this;
+			const blob = await super.getData();
+			if (blob.text && utf8) {
+				return blob.text();
+			} else {
+				return decodeTextRemovingBOM(new Uint8Array(await blob.arrayBuffer()), encoding);
+			}
+		}
+	}
+
+	class FetchReader extends Reader {
+
+		constructor(url, options) {
+			super();
+			createHttpReader(this, url, options);
+		}
+
+		async init() {
+			await initHttpReader(this, sendFetchRequest, getFetchRequestData);
+			super.init();
+		}
+
+		createReadable(options) {
+			const reader = this;
+			const { useRangeHeader, forceRangeRequests, size } = reader;
+			if ((useRangeHeader || forceRangeRequests) && size !== UNDEFINED_VALUE) {
+				const { offset = 0, size: readSize = size - offset } = options || {};
+				if (readSize > 0 && offset < size) {
+					return createRangeReadable(reader, offset, Math.min(readSize, size - offset));
+				}
+			}
+			return super.createReadable(options);
+		}
+
+		readUint8Array(index, length) {
+			return readUint8ArrayHttpReader(this, index, length, sendFetchRequest, getFetchRequestData);
+		}
+	}
+
+	class XHRReader extends Reader {
+
+		constructor(url, options) {
+			super();
+			createHttpReader(this, url, options);
+		}
+
+		async init() {
+			await initHttpReader(this, sendXMLHttpRequest, getXMLHttpRequestData);
+			super.init();
+		}
+
+		readUint8Array(index, length) {
+			return readUint8ArrayHttpReader(this, index, length, sendXMLHttpRequest, getXMLHttpRequestData);
+		}
+	}
+
+	function createHttpReader(httpReader, url, options) {
+		const {
+			preventHeadRequest,
+			useRangeHeader,
+			forceRangeRequests,
+			combineSizeEocd,
+			checkResourceChanges = true,
+			maximumRangeSize = DEFAULT_MAXIMUM_RANGE_SIZE,
+			fetch
+		} = options;
+		options = Object.assign({}, options);
+		delete options.preventHeadRequest;
+		delete options.useRangeHeader;
+		delete options.forceRangeRequests;
+		delete options.combineSizeEocd;
+		delete options.checkResourceChanges;
+		delete options.maximumRangeSize;
+		delete options.useXHR;
+		delete options.fetch;
+		Object.assign(httpReader, {
+			url,
+			options,
+			preventHeadRequest,
+			useRangeHeader,
+			forceRangeRequests,
+			combineSizeEocd,
+			checkResourceChanges,
+			maximumRangeSize,
+			fetch
+		});
+	}
+
+	async function initHttpReader(httpReader, sendRequest, getRequestData) {
+		const {
+			url,
+			preventHeadRequest,
+			useRangeHeader,
+			forceRangeRequests,
+			combineSizeEocd
+		} = httpReader;
+		if (isHttpFamily(url) && (useRangeHeader || forceRangeRequests) && (typeof preventHeadRequest == UNDEFINED_TYPE || preventHeadRequest)) {
+			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -END_OF_CENTRAL_DIR_LENGTH : undefined));
+			const acceptRanges = response.headers.get(HTTP_HEADER_ACCEPT_RANGES);
+			if (!forceRangeRequests && (!acceptRanges || acceptRanges.toLowerCase() != HTTP_RANGE_UNIT)) {
+				throw new Error(ERR_HTTP_RANGE);
+			} else {
+				if (combineSizeEocd) {
+					const eocdCache = new Uint8Array(await response.arrayBuffer());
+					if (response.status == 206 && eocdCache.length == END_OF_CENTRAL_DIR_LENGTH) {
+						httpReader.eocdCache = eocdCache;
+					}
+				}
+				setResourceValidators(httpReader, response);
+				const contentSize = getContentRangeSize(response);
+				if (contentSize === UNDEFINED_VALUE) {
+					await getContentLength(httpReader, sendRequest, getRequestData);
+				} else {
+					httpReader.size = contentSize;
+				}
+			}
+		} else {
+			await getContentLength(httpReader, sendRequest, getRequestData);
+		}
+	}
+
+	async function readUint8ArrayHttpReader(httpReader, index, length, sendRequest, getRequestData) {
+		const {
+			useRangeHeader,
+			forceRangeRequests,
+			eocdCache,
+			size,
+			options
+		} = httpReader;
+		if (useRangeHeader || forceRangeRequests) {
+			if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
+				return eocdCache;
+			}
+			if (index >= size || length === 0) {
+				return EMPTY_UINT8_ARRAY;
+			} else {
+				if (index + length > size) {
+					length = size - index;
+				}
+				const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
+				if (response.status != 206) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+				const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
+				if (contentRangeHeader) {
+					const rangeStart = Number(contentRangeHeader.trim().split(/[\s-]+/)[1]);
+					if (!Number.isNaN(rangeStart) && rangeStart != index) {
+						throw new Error(ERR_HTTP_RANGE);
+					}
+				}
+				checkResourceValidators(httpReader, response);
+				setResourceValidators(httpReader, response);
+				const data = new Uint8Array(await response.arrayBuffer());
+				if (data.length != length) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+				return data;
+			}
+		} else {
+			const { data } = httpReader;
+			if (!data) {
+				await getRequestData(httpReader, options);
+			}
+			return httpReader.data.subarray(index, index + length);
+		}
+	}
+
+	function createRangeReadable(httpReader, offset, size) {
+		let bodyReader;
+		let windowOffset = offset;
+		let windowRemainingLength = 0;
+		let remainingLength = size;
+		return new ReadableStream({
+			start() {
+				return openWindow();
+			},
+			async pull(controller) {
+				if (!bodyReader) {
+					await openWindow();
+				}
+				const { value, done } = await bodyReader.read();
+				if (done) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+				const chunk = value.length > windowRemainingLength ? value.subarray(0, windowRemainingLength) : value;
+				windowRemainingLength -= chunk.length;
+				remainingLength -= chunk.length;
+				if (chunk.length) {
+					controller.enqueue(chunk);
+				}
+				if (!windowRemainingLength) {
+					await closeWindow();
+					if (!remainingLength) {
+						controller.close();
+					}
+				}
+			},
+			cancel(reason) {
+				return bodyReader && bodyReader.cancel(reason);
+			}
+		});
+
+		async function openWindow() {
+			const windowLength = Math.min(httpReader.maximumRangeSize, remainingLength);
+			const response = await sendFetchRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, windowOffset, windowLength));
+			if (response.status != 206) {
+				throw new Error(ERR_HTTP_RANGE);
+			}
+			const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
+			if (contentRangeHeader) {
+				const rangeStart = Number(contentRangeHeader.trim().split(/[\s-]+/)[1]);
+				if (!Number.isNaN(rangeStart) && rangeStart != windowOffset) {
+					throw new Error(ERR_HTTP_RANGE);
+				}
+			}
+			checkResourceValidators(httpReader, response);
+			setResourceValidators(httpReader, response);
+			windowOffset += windowLength;
+			windowRemainingLength = windowLength;
+			bodyReader = response.body.getReader();
+		}
+
+		async function closeWindow() {
+			const currentBodyReader = bodyReader;
+			bodyReader = UNDEFINED_VALUE;
+			await currentBodyReader.cancel();
+		}
+	}
+
+	function getContentRangeSize(response) {
+		const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
+		if (contentRangeHeader) {
+			const headerValue = contentRangeHeader.trim().split(/\s*\/\s*/)[1];
+			if (headerValue && headerValue != "*") {
+				const contentSize = Number(headerValue);
+				if (!Number.isNaN(contentSize)) {
+					return contentSize;
+				}
+			}
+		}
+	}
+
+	function getResourceValidators({ headers }) {
+		return {
+			etag: headers.get(HTTP_HEADER_ETAG) || UNDEFINED_VALUE,
+			lastModified: headers.get(HTTP_HEADER_LAST_MODIFIED) || UNDEFINED_VALUE
+		};
+	}
+
+	function setResourceValidators(httpReader, response) {
+		const { checkResourceChanges, resourceValidators } = httpReader;
+		if (checkResourceChanges && !resourceValidators && response.status == 206) {
+			httpReader.resourceValidators = getResourceValidators(response);
+		}
+	}
+
+	function checkResourceValidators(httpReader, response) {
+		const { checkResourceChanges, resourceValidators, size } = httpReader;
+		if (checkResourceChanges) {
+			const contentRangeSize = getContentRangeSize(response);
+			if (contentRangeSize !== UNDEFINED_VALUE && size !== UNDEFINED_VALUE && contentRangeSize != size) {
+				throw new Error(ERR_HTTP_RESOURCE_CHANGED);
+			}
+			if (resourceValidators) {
+				const validators = getResourceValidators(response);
+				const changed = Object.entries(resourceValidators).some(([name, value]) =>
+					value !== UNDEFINED_VALUE && validators[name] !== UNDEFINED_VALUE && value != validators[name]);
+				if (changed) {
+					throw new Error(ERR_HTTP_RESOURCE_CHANGED);
+				}
+			}
+		}
+	}
+
+	function getRangeHeaders(httpReader, index = 0, length = 1) {
+		return Object.assign({}, getHeaders(httpReader), { [HTTP_HEADER_RANGE]: HTTP_RANGE_UNIT + "=" + (index < 0 ? index : index + "-" + (index + length - 1)) });
+	}
+
+	function getHeaders({ options }) {
+		const { headers } = options;
+		if (headers) {
+			if (Symbol.iterator in headers) {
+				return Object.fromEntries(headers);
+			} else {
+				return headers;
+			}
+		}
+	}
+
+	async function getFetchRequestData(httpReader) {
+		await getRequestData(httpReader, sendFetchRequest);
+	}
+
+	async function getXMLHttpRequestData(httpReader) {
+		await getRequestData(httpReader, sendXMLHttpRequest);
+	}
+
+	async function getRequestData(httpReader, sendRequest) {
+		const response = await sendRequest(HTTP_METHOD_GET, httpReader, getHeaders(httpReader));
+		httpReader.data = new Uint8Array(await response.arrayBuffer());
+		httpReader.size = httpReader.data.length;
+	}
+
+	async function getContentLength(httpReader, sendRequest, getRequestData) {
+		if (httpReader.preventHeadRequest) {
+			await getRequestData(httpReader, httpReader.options);
+		} else {
+			const response = await sendRequest(HTTP_METHOD_HEAD, httpReader, getHeaders(httpReader));
+			const contentLength = response.headers.get(HTTP_HEADER_CONTENT_LENGTH);
+			if (contentLength && !response.headers.get(HTTP_HEADER_CONTENT_ENCODING)) {
+				httpReader.size = Number(contentLength);
+			} else {
+				await getRequestData(httpReader, httpReader.options);
+			}
+		}
+	}
+
+	async function sendFetchRequest(method, { fetch: fetchFunction = fetch, options, url }, headers) {
+		const response = await fetchFunction(url, Object.assign({}, options, { method, headers }));
+		if (response.status < 400) {
+			return response;
+		} else {
+			throw response.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
+		}
+	}
+
+	function sendXMLHttpRequest(method, { url }, headers) {
+		return new Promise((resolve, reject) => {
+			const request = new XMLHttpRequest();
+			request.addEventListener("load", () => {
+				if (request.status < 400) {
+					const headers = [];
+					request.getAllResponseHeaders().trim().split(/[\r\n]+/).forEach(header => {
+						const splitHeader = header.trim().split(/\s*:\s*/);
+						splitHeader[0] = splitHeader[0].trim().replace(/^[a-z]|-[a-z]/g, value => value.toUpperCase());
+						headers.push(splitHeader);
+					});
+					resolve({
+						status: request.status,
+						arrayBuffer: () => request.response,
+						headers: new Map(headers)
+					});
+				} else {
+					reject(request.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (request.statusText || request.status)));
+				}
+			}, false);
+			request.addEventListener("error", event => reject(event.detail ? event.detail.error : new Error("Network error")), false);
+			request.open(method, url);
+			if (headers) {
+				for (const entry of Object.entries(headers)) {
+					request.setRequestHeader(entry[0], entry[1]);
+				}
+			}
+			request.responseType = "arraybuffer";
+			request.send();
+		});
+	}
+
+	class HttpReader extends Reader {
+
+		constructor(url, options = {}) {
+			super();
+			Object.assign(this, {
+				url,
+				reader: options.useXHR && !options.fetch ? new XHRReader(url, options) : new FetchReader(url, options)
+			});
+		}
+
+		set size(value) {
+			// ignored
+		}
+
+		get size() {
+			return this.reader.size;
+		}
+
+		async init() {
+			await this.reader.init();
+			super.init();
+		}
+
+		createReadable(options) {
+			return this.reader.createReadable(options);
+		}
+
+		readUint8Array(index, length) {
+			return this.reader.readUint8Array(index, length);
+		}
+	}
+
+	class HttpRangeReader extends HttpReader {
+
+		constructor(url, options = {}) {
+			super(url, Object.assign({}, options, { useRangeHeader: true }));
+		}
+	}
+
+
+	class Uint8ArrayReader extends Reader {
+
+		constructor(array) {
+			super();
+			array = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+			Object.assign(this, {
+				array,
+				size: array.length
+			});
+		}
+
+		readUint8Array(index, length) {
+			return this.array.slice(index, index + length);
+		}
+	}
+
+	class Uint8ArrayWriter extends Writer {
+
+		constructor(defaultBufferSize) {
+			super();
+			this.defaultBufferSize = defaultBufferSize || DEFAULT_BUFFER_SIZE;
+		}
+
+		init(initSize = 0) {
+			Object.assign(this, {
+				offset: 0,
+				array: new Uint8Array(initSize > 0 ? initSize : this.defaultBufferSize)
+			});
+			super.init();
+		}
+
+		writeUint8Array(array) {
+			const writer = this;
+			const requiredLength = writer.offset + array.length;
+			if (requiredLength > writer.array.length) {
+				let newLength = writer.array.length ? writer.array.length * 2 : writer.defaultBufferSize;
+				while (newLength < requiredLength) {
+					newLength *= 2;
+				}
+				const previousArray = writer.array;
+				writer.array = new Uint8Array(newLength);
+				writer.array.set(previousArray);
+			}
+			writer.array.set(array, writer.offset);
+			writer.offset += array.length;
+		}
+
+		getData() {
+			if (this.offset === this.array.length) {
+				return this.array;
+			} else {
+				return this.array.slice(0, this.offset);
+			}
+		}
+	}
+
+	class SplitDataReader extends Reader {
+
+		constructor(readers) {
+			super();
+			this.readers = readers;
+		}
+
+		async init() {
+			const reader = this;
+			reader.lastDiskNumber = 0;
+			const readers = reader.readers = await Promise.all(reader.readers.map(initDiskReader));
+			reader.diskOffsets = readers.map(diskReader => {
+				const diskOffset = reader.size;
+				reader.size += diskReader.size;
+				return diskOffset;
+			});
+			super.init();
+		}
+
+		getDiskOffset(diskNumber) {
+			const { diskOffsets, size } = this;
+			const diskOffset = diskOffsets[diskNumber];
+			return diskOffset === UNDEFINED_VALUE ? size : diskOffset;
+		}
+
+		async readUint8Array(offset, length) {
+			const reader = this;
+			const { readers } = this;
+			let result;
+			let currentDiskNumber = 0;
+			let currentReaderOffset = offset;
+			while (readers[currentDiskNumber] && currentReaderOffset >= readers[currentDiskNumber].size) {
+				currentReaderOffset -= readers[currentDiskNumber].size;
+				currentDiskNumber++;
+			}
+			const currentReader = readers[currentDiskNumber];
+			if (currentReader) {
+				const currentReaderSize = currentReader.size;
+				if (currentReaderOffset + length <= currentReaderSize) {
+					result = await readUint8Array(currentReader, currentReaderOffset, length);
+				} else {
+					const chunkLength = currentReaderSize - currentReaderOffset;
+					const firstPart = await readUint8Array(currentReader, currentReaderOffset, chunkLength);
+					const secondPart = await reader.readUint8Array(offset + chunkLength, length - chunkLength);
+					result = concat(firstPart, secondPart);
+				}
+			} else {
+				result = EMPTY_UINT8_ARRAY;
+			}
+			reader.lastDiskNumber = Math.max(currentDiskNumber, reader.lastDiskNumber);
+			return result;
+		}
+	}
+
+	class SplitDataWriter extends Stream {
+
+		constructor(writerGenerator, maxSize = 4294967295) {
+			super();
+			const writer = this;
+			Object.assign(writer, {
+				diskNumber: 0,
+				diskOffset: 0,
+				size: 0,
+				maxSize,
+				availableSize: maxSize
+			});
+			let diskSourceWriter, diskWritable, diskWriter;
+			const writable = new WritableStream({
+				async write(chunk) {
+					if (chunk === DISK_BOUNDARY) {
+						if (diskWriter) {
+							await endDisk();
+						}
+						return;
+					}
+					const { availableSize } = writer;
+					if (!diskWriter) {
+						const { value, done } = await writerGenerator.next();
+						if (done && !value) {
+							throw new Error(ERR_ITERATOR_COMPLETED_TOO_SOON);
+						} else {
+							diskSourceWriter = value;
+							diskSourceWriter.size = 0;
+							if (diskSourceWriter.maxSize) {
+								writer.maxSize = diskSourceWriter.maxSize;
+							}
+							writer.availableSize = writer.maxSize;
+							await initStream(diskSourceWriter);
+							diskWritable = value.writable;
+							diskWriter = diskWritable.getWriter();
+						}
+						await this.write(chunk);
+					} else if (chunk.length >= availableSize) {
+						await writeChunk(chunk.subarray(0, availableSize));
+						await endDisk();
+						if (chunk.length > availableSize) {
+							await this.write(chunk.subarray(availableSize));
+						}
+					} else {
+						await writeChunk(chunk);
+					}
+				},
+				async close() {
+					if (diskWriter) {
+						await diskWriter.ready;
+						await closeDiskWriter();
+					}
+				},
+				async abort(reason) {
+					if (diskWriter) {
+						await diskWriter.abort(reason);
+					}
+				}
+			});
+			Object.defineProperty(writer, PROPERTY_NAME_WRITABLE, {
+				get() {
+					return writable;
+				}
+			});
+
+			async function writeChunk(chunk) {
+				const chunkLength = chunk.length;
+				if (chunkLength) {
+					await diskWriter.ready;
+					await diskWriter.write(chunk);
+					diskSourceWriter.size += chunkLength;
+					writer.availableSize -= chunkLength;
+				}
+			}
+
+			async function endDisk() {
+				await closeDiskWriter();
+				writer.diskOffset += diskSourceWriter.size;
+				writer.diskNumber++;
+				diskWriter = null;
+				writer.availableSize = writer.maxSize;
+			}
+
+			async function closeDiskWriter() {
+				await diskWriter.close();
+			}
+		}
+
+		async closeDisk() {
+			const streamWriter = this.writable.getWriter();
+			try {
+				await streamWriter.ready;
+				await streamWriter.write(DISK_BOUNDARY);
+			} finally {
+				streamWriter.releaseLock();
+			}
+		}
+	}
+
+	class GenericReader {
+
+		constructor(reader) {
+			if (Array.isArray(reader)) {
+				reader = new SplitDataReader(reader);
+			}
+			if (reader instanceof ReadableStream || typeof reader.getReader == FUNCTION_TYPE) {
+				reader = {
+					readable: toCompatibleReadable(reader)
+				};
+			}
+			return reader;
+		}
+	}
+
+	class GenericWriter {
+
+		constructor(writer) {
+			if (writer.writable === UNDEFINED_VALUE && typeof writer.next == FUNCTION_TYPE) {
+				writer = new SplitDataWriter(writer);
+			}
+			if (writer instanceof WritableStream || typeof writer.getWriter == FUNCTION_TYPE) {
+				writer = {
+					writable: toCompatibleWritable(writer)
+				};
+			}
+			if (writer.size === UNDEFINED_VALUE) {
+				writer.size = 0;
+			}
+			return writer;
+		}
+	}
+
+	function ownsWritable(writer) {
+		return Boolean(writer && writer.getData);
+	}
+
+	function isHttpFamily(url) {
+		const { baseURI } = getConfiguration();
+		const { protocol } = new URL(url, baseURI);
+		return protocol == "http:" || protocol == "https:";
+	}
+
+	async function initStream(stream, initSize) {
+		if (stream.init && !stream.initialized) {
+			await stream.init(initSize);
+		} else {
+			return Promise.resolve();
+		}
+	}
+
+	async function initDiskReader(diskReader) {
+		diskReader = new GenericReader(diskReader);
+		await initStream(diskReader);
+		if (diskReader.size === UNDEFINED_VALUE || !diskReader.readUint8Array) {
+			diskReader = new BlobReader(await streamToBlob(diskReader.readable));
+			await initStream(diskReader);
+		}
+		return diskReader;
+	}
+
+	function readUint8Array(reader, offset, size) {
+		return reader.readUint8Array(offset, size);
+	}
+
+	function createReadable(reader, options) {
+		if (reader.createReadable) {
+			return reader.createReadable(options);
+		} else if (reader.readUint8Array) {
+			return Reader.prototype.createReadable.call(reader, options);
+		} else {
+			return reader.readable;
 		}
 	}
 
@@ -5921,6 +6528,70 @@
 		}
 	}
 
+	class ZipWriterStream {
+
+		constructor(options = {}) {
+			const { readable, writable } = new TransformStream();
+			this.readable = readable;
+			this.zipWriter = new ZipWriter(writable, options);
+			this.pendingAddFileCalls = new Set();
+		}
+
+		transform(path) {
+			const zipWriter = this.zipWriter;
+			let streamController;
+			const { readable, writable } = new TransformStream({
+				start(controller) {
+					streamController = controller;
+				},
+				flush: () => void closeArchive()
+			});
+			watchAddFileCall(this, this.zipWriter.add(path, readable), error => streamController.error(error));
+			return { readable: this.readable, writable };
+
+			async function closeArchive() {
+				try {
+					await zipWriter.close();
+				} catch (error) {
+					await abortWritable(zipWriter, error);
+				}
+			}
+		}
+
+		writable(path) {
+			let streamController;
+			const { readable, writable } = new TransformStream({
+				start(controller) {
+					streamController = controller;
+				}
+			});
+			watchAddFileCall(this, this.zipWriter.add(path, readable), error => streamController.error(error));
+			return writable;
+		}
+
+		async close(comment = UNDEFINED_VALUE, options = {}) {
+			const { zipWriter } = this;
+			const results = await Promise.allSettled(Array.from(this.pendingAddFileCalls));
+			const entryErrors = results.filter(result => result.status == "rejected").map(result => result.reason);
+			if (entryErrors.length) {
+				const [error] = entryErrors;
+				try {
+					error.entryErrors = entryErrors;
+				} catch {
+					// ignored
+				}
+				await abortWritable(zipWriter, error);
+				throw error;
+			}
+			try {
+				return await zipWriter.close(comment, options);
+			} catch (error) {
+				await abortWritable(zipWriter, error);
+				throw error;
+			}
+		}
+	}
+
 	class WatchedPromise extends Promise {
 
 		then(onFulfilled, onRejected) {
@@ -5975,6 +6646,25 @@
 				workers--;
 			}
 		}
+	}
+
+	async function abortWritable(zipWriter, error) {
+		try {
+			await zipWriter.writer.writable.abort(error);
+		} catch {
+			// ignored
+		}
+	}
+
+	function watchAddFileCall(zipWriterStream, promiseAddFile, onerror) {
+		zipWriterStream.pendingAddFileCalls.add(promiseAddFile);
+		promiseAddFile.catch(error => {
+			try {
+				onerror(error);
+			} catch {
+				// ignored
+			}
+		});
 	}
 
 	async function addFile(zipWriter, name, reader, options) {
@@ -7813,6 +8503,591 @@
 	 */
 
 
+	function getMimeType() {
+		return "application/octet-stream";
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	function getSupportedCompressionMethods() {
+		const { CompressionStream, DecompressionStream, CompressionStreamFallback, DecompressionStreamFallback } = getConfiguration();
+		const supportedMethods = [{
+			compressionMethod: COMPRESSION_METHOD_STORE,
+			compression: true,
+			decompression: true,
+			registered: false
+		}, {
+			compressionMethod: COMPRESSION_METHOD_DEFLATE,
+			compression: formatSupported(CompressionStreamFallback, FORMAT_DEFLATE_RAW) ||
+				formatSupported(CompressionStream, FORMAT_DEFLATE_RAW) || formatSupported(CompressionStream, FORMAT_GZIP),
+			decompression: formatSupported(DecompressionStreamFallback, FORMAT_DEFLATE_RAW) ||
+				formatSupported(DecompressionStream, FORMAT_DEFLATE_RAW) || formatSupported(DecompressionStream, FORMAT_GZIP),
+			registered: false
+		}, {
+			compressionMethod: COMPRESSION_METHOD_DEFLATE_64,
+			compression: false,
+			decompression: formatSupported(DecompressionStreamFallback, FORMAT_DEFLATE64_RAW) ||
+				formatSupported(DecompressionStream, FORMAT_DEFLATE64_RAW),
+			registered: false
+		}];
+		for (const codec of getRegisteredCodecs()) {
+			const codecStreams = getCodecStreams(codec.format);
+			supportedMethods.push({
+				compressionMethod: codec.compressionMethod,
+				// deno-lint-ignore valid-typeof
+				compression: codecStreams ? typeof codecStreams.CompressionStream == FUNCTION_TYPE : UNDEFINED_VALUE,
+				// deno-lint-ignore valid-typeof
+				decompression: codecStreams ? typeof codecStreams.DecompressionStream == FUNCTION_TYPE : UNDEFINED_VALUE,
+				registered: true
+			});
+		}
+		return supportedMethods;
+	}
+
+	function formatSupported(StreamClass, format) {
+		if (!StreamClass) {
+			return false;
+		}
+		const { supportedFormats } = StreamClass;
+		if (supportedFormats) {
+			return supportedFormats.includes(format);
+		}
+		return supportsFormat(StreamClass, format);
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+	const VERSION = "2.8.59";
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const DEFAULT_THRESHOLD$2 = 1024 * 1024;
+	const DEFAULT_DIRECTORY_NAME$1 = ".zip.js-temp";
+
+	function createOPFSTempStream(options = {}) {
+		const {
+			thresholdBytes = DEFAULT_THRESHOLD$2,
+			directoryName = DEFAULT_DIRECTORY_NAME$1,
+			getDirectory = () => navigator.storage.getDirectory()
+		} = options;
+		let directoryHandlePromise;
+		function getTempDirectory() {
+			if (!directoryHandlePromise) {
+				directoryHandlePromise = Promise.resolve(getDirectory())
+					.then(root => root.getDirectoryHandle(directoryName, { create: true }));
+			}
+			return directoryHandlePromise;
+		}
+		return function () {
+			const memoryChunks = [];
+			let bufferedSize = 0;
+			let spilled = false;
+			let fileName, fileHandle, fileWriter, fileReader;
+
+			async function spillToFile() {
+				const directoryHandle = await getTempDirectory();
+				fileName = getRandomFileName$1();
+				fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
+				fileWriter = (await fileHandle.createWritable()).getWriter();
+				spilled = true;
+				for (const chunk of memoryChunks) {
+					await fileWriter.write(chunk);
+				}
+				memoryChunks.length = 0;
+			}
+
+			const writable = new WritableStream({
+				async write(chunk) {
+					if (spilled) {
+						await fileWriter.write(chunk);
+					} else {
+						memoryChunks.push(chunk);
+						bufferedSize += chunk.length;
+						if (bufferedSize > thresholdBytes) {
+							await spillToFile();
+						}
+					}
+				},
+				async close() {
+					if (fileWriter) {
+						await fileWriter.close();
+						fileWriter = null;
+					}
+				}
+			});
+
+			let memoryIndex = 0;
+			const readable = new ReadableStream({
+				async pull(controller) {
+					if (spilled) {
+						if (!fileReader) {
+							const file = await fileHandle.getFile();
+							fileReader = file.stream().getReader();
+						}
+						const { value, done } = await fileReader.read();
+						if (done) {
+							controller.close();
+						} else {
+							controller.enqueue(value);
+						}
+					} else if (memoryIndex < memoryChunks.length) {
+						controller.enqueue(memoryChunks[memoryIndex++]);
+					} else {
+						controller.close();
+					}
+				},
+				async cancel(reason) {
+					if (fileReader) {
+						await fileReader.cancel(reason);
+					}
+				}
+			}, { highWaterMark: 0 });
+			async function dispose() {
+				if (fileWriter) {
+					try {
+						await fileWriter.close();
+					} catch {
+						// ignored
+					}
+					fileWriter = null;
+				}
+				if (fileName) {
+					try {
+						const directoryHandle = await getTempDirectory();
+						await directoryHandle.removeEntry(fileName);
+					} catch {
+						// ignored
+					}
+					fileHandle = fileName = null;
+				}
+				memoryChunks.length = 0;
+			}
+
+			return { writable, readable, dispose };
+		};
+	}
+
+	function getRandomFileName$1() {
+		if (crypto.randomUUID) {
+			return crypto.randomUUID();
+		}
+		return Array.from(crypto.getRandomValues(new Uint8Array(16)), byteValue => byteValue.toString(16).padStart(2, "0")).join("");
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const DEFAULT_THRESHOLD$1 = 1024 * 1024;
+
+	function createBlobTempStream(options = {}) {
+		const {
+			thresholdBytes = DEFAULT_THRESHOLD$1
+		} = options;
+		return function () {
+			const memoryChunks = [];
+			let bufferedSize = 0;
+			let spilled = false;
+			let blobWriter, blobPromise, blobReader;
+
+			async function spillToBlob() {
+				const transformStream = new TransformStream();
+				blobPromise = streamToBlob(transformStream.readable);
+				blobWriter = transformStream.writable.getWriter();
+				spilled = true;
+				for (const chunk of memoryChunks) {
+					await blobWriter.write(chunk);
+				}
+				memoryChunks.length = 0;
+			}
+
+			const writable = new WritableStream({
+				async write(chunk) {
+					if (spilled) {
+						await blobWriter.write(chunk);
+					} else {
+						memoryChunks.push(chunk);
+						bufferedSize += chunk.length;
+						if (bufferedSize > thresholdBytes) {
+							await spillToBlob();
+						}
+					}
+				},
+				async close() {
+					if (blobWriter) {
+						await blobWriter.close();
+						blobWriter = null;
+					}
+				}
+			});
+
+			let memoryIndex = 0;
+			const readable = new ReadableStream({
+				async pull(controller) {
+					if (spilled) {
+						if (!blobReader) {
+							const blob = await blobPromise;
+							blobReader = blob.stream().getReader();
+						}
+						const { value, done } = await blobReader.read();
+						if (done) {
+							controller.close();
+						} else {
+							controller.enqueue(value);
+						}
+					} else if (memoryIndex < memoryChunks.length) {
+						controller.enqueue(memoryChunks[memoryIndex++]);
+					} else {
+						controller.close();
+					}
+				},
+				async cancel(reason) {
+					if (blobReader) {
+						await blobReader.cancel(reason);
+					}
+				}
+			}, { highWaterMark: 0 });
+			async function dispose() {
+				if (blobWriter) {
+					try {
+						await blobWriter.abort();
+					} catch {
+						// ignored
+					}
+					blobWriter = null;
+				}
+				if (blobPromise) {
+					blobPromise.catch(() => {
+						// ignored
+					});
+					blobPromise = null;
+				}
+				memoryChunks.length = 0;
+			}
+
+			return { writable, readable, dispose };
+		};
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	const DEFAULT_THRESHOLD = 1024 * 1024;
+	const DEFAULT_DIRECTORY_NAME = ".zip.js-temp";
+	const READ_CHUNK_SIZE = 512 * 1024;
+	const ERR_UNSUPPORTED_CONTEXT = "createSyncAccessHandle is only available in dedicated workers";
+
+	function createSyncAccessHandleTempStream(options = {}) {
+		const {
+			thresholdBytes = DEFAULT_THRESHOLD,
+			directoryName = DEFAULT_DIRECTORY_NAME,
+			getDirectory
+		} = options;
+		if (!getDirectory &&
+			(typeof FileSystemFileHandle == "undefined" || !FileSystemFileHandle.prototype.createSyncAccessHandle)) {
+			throw new Error(ERR_UNSUPPORTED_CONTEXT);
+		}
+		const getRootDirectory = getDirectory || (() => navigator.storage.getDirectory());
+		let directoryHandlePromise;
+		function getTempDirectory() {
+			if (!directoryHandlePromise) {
+				directoryHandlePromise = Promise.resolve(getRootDirectory())
+					.then(root => root.getDirectoryHandle(directoryName, { create: true }));
+			}
+			return directoryHandlePromise;
+		}
+		return function () {
+			const memoryChunks = [];
+			let bufferedSize = 0;
+			let spilled = false;
+			let fileName, accessHandle;
+			let writeOffset = 0;
+			let readOffset = 0;
+
+			async function spillToFile() {
+				const directoryHandle = await getTempDirectory();
+				fileName = getRandomFileName();
+				const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
+				accessHandle = await fileHandle.createSyncAccessHandle();
+				spilled = true;
+				for (const chunk of memoryChunks) {
+					accessHandle.write(chunk, { at: writeOffset });
+					writeOffset += chunk.length;
+				}
+				memoryChunks.length = 0;
+			}
+
+			const writable = new WritableStream({
+				async write(chunk) {
+					if (spilled) {
+						accessHandle.write(chunk, { at: writeOffset });
+						writeOffset += chunk.length;
+					} else {
+						memoryChunks.push(chunk);
+						bufferedSize += chunk.length;
+						if (bufferedSize > thresholdBytes) {
+							await spillToFile();
+						}
+					}
+				},
+				close() {
+					if (accessHandle) {
+						accessHandle.flush();
+					}
+				}
+			});
+
+			let memoryIndex = 0;
+			const readable = new ReadableStream({
+				pull(controller) {
+					if (spilled) {
+						const remaining = writeOffset - readOffset;
+						if (remaining <= 0) {
+							controller.close();
+							return;
+						}
+						const buffer = new Uint8Array(Math.min(READ_CHUNK_SIZE, remaining));
+						const read = accessHandle.read(buffer, { at: readOffset });
+						if (read) {
+							readOffset += read;
+							controller.enqueue(buffer.subarray(0, read));
+						} else {
+							controller.close();
+						}
+					} else if (memoryIndex < memoryChunks.length) {
+						controller.enqueue(memoryChunks[memoryIndex++]);
+					} else {
+						controller.close();
+					}
+				}
+			}, { highWaterMark: 0 });
+			async function dispose() {
+				if (accessHandle) {
+					try {
+						accessHandle.close();
+					} catch {
+						// ignored
+					}
+					accessHandle = null;
+				}
+				if (fileName) {
+					try {
+						const directoryHandle = await getTempDirectory();
+						await directoryHandle.removeEntry(fileName);
+					} catch {
+						// ignored
+					}
+					fileName = null;
+				}
+				memoryChunks.length = 0;
+			}
+
+			return { writable, readable, dispose };
+		};
+	}
+
+	function getRandomFileName() {
+		if (crypto.randomUUID) {
+			return crypto.randomUUID();
+		}
+		return Array.from(crypto.getRandomValues(new Uint8Array(16)), byteValue => byteValue.toString(16).padStart(2, "0")).join("");
+	}
+
+	/*
+	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	try {
+		setDefaultConfiguration({ baseURI: (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('zip-fs-core.js', document.baseURI).href)) });
+	} catch {
+		// ignored
+	}
+
+	/*
+	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright 
+	 notice, this list of conditions and the following disclaimer in 
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
 	const ERR_ENTRY_EXISTS = "Entry filename already exists";
 	const ERR_READABLE_CONSUMED = "Readable stream already consumed";
 	const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
@@ -9101,16 +10376,130 @@
 		}
 	}
 
+	exports.BlobReader = BlobReader;
+	exports.BlobWriter = BlobWriter;
+	exports.Data64URIReader = Data64URIReader;
+	exports.Data64URIWriter = Data64URIWriter;
 	exports.ERR_ABORTED = ERR_ABORTED;
+	exports.ERR_AMBIGUOUS_ARCHIVE = ERR_AMBIGUOUS_ARCHIVE;
+	exports.ERR_BAD_FORMAT = ERR_BAD_FORMAT;
+	exports.ERR_CENTRAL_DIRECTORY_NOT_FOUND = ERR_CENTRAL_DIRECTORY_NOT_FOUND;
+	exports.ERR_DUPLICATED_NAME = ERR_DUPLICATED_NAME;
+	exports.ERR_ENCRYPTED = ERR_ENCRYPTED;
+	exports.ERR_ENCRYPTED_CENTRAL_DIRECTORY = ERR_ENCRYPTED_CENTRAL_DIRECTORY;
+	exports.ERR_ENTRY_DATA_OUT_OF_BOUNDS = ERR_ENTRY_DATA_OUT_OF_BOUNDS;
 	exports.ERR_ENTRY_EXISTS = ERR_ENTRY_EXISTS;
+	exports.ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND;
+	exports.ERR_EOCDR_NOT_FOUND = ERR_EOCDR_NOT_FOUND;
+	exports.ERR_EXTRAFIELD_ZIP64_NOT_FOUND = ERR_EXTRAFIELD_ZIP64_NOT_FOUND;
+	exports.ERR_HTTP_RANGE = ERR_HTTP_RANGE;
+	exports.ERR_HTTP_RESOURCE_CHANGED = ERR_HTTP_RESOURCE_CHANGED;
+	exports.ERR_INVALID_AUTHENTICATION_CODE = ERR_INVALID_AUTHENTICATION_CODE;
+	exports.ERR_INVALID_CODEC_DEFINITION = ERR_INVALID_CODEC_DEFINITION;
+	exports.ERR_INVALID_CODEC_MODULE = ERR_INVALID_CODEC_MODULE;
+	exports.ERR_INVALID_COMMENT = ERR_INVALID_COMMENT;
+	exports.ERR_INVALID_COMMENT_TYPE = ERR_INVALID_COMMENT_TYPE;
+	exports.ERR_INVALID_COMPRESSED_DATA = ERR_INVALID_COMPRESSED_DATA;
+	exports.ERR_INVALID_CRC32 = ERR_INVALID_CRC32;
+	exports.ERR_INVALID_DATE = ERR_INVALID_DATE;
+	exports.ERR_INVALID_ENCRYPTION_STRENGTH = ERR_INVALID_ENCRYPTION_STRENGTH;
+	exports.ERR_INVALID_ENTRY_COMMENT = ERR_INVALID_ENTRY_COMMENT;
+	exports.ERR_INVALID_ENTRY_COMMENT_TYPE = ERR_INVALID_ENTRY_COMMENT_TYPE;
+	exports.ERR_INVALID_ENTRY_NAME = ERR_INVALID_ENTRY_NAME;
+	exports.ERR_INVALID_EXTRAFIELD = ERR_INVALID_EXTRAFIELD;
+	exports.ERR_INVALID_EXTRAFIELD_DATA = ERR_INVALID_EXTRAFIELD_DATA;
+	exports.ERR_INVALID_EXTRAFIELD_DATA_TYPE = ERR_INVALID_EXTRAFIELD_DATA_TYPE;
+	exports.ERR_INVALID_EXTRAFIELD_TYPE = ERR_INVALID_EXTRAFIELD_TYPE;
+	exports.ERR_INVALID_FILENAME_VALIDATION = ERR_INVALID_FILENAME_VALIDATION;
+	exports.ERR_INVALID_FUNCTION_OPTION = ERR_INVALID_FUNCTION_OPTION;
+	exports.ERR_INVALID_GID = ERR_INVALID_GID;
+	exports.ERR_INVALID_LEVEL = ERR_INVALID_LEVEL;
+	exports.ERR_INVALID_MAX_APPENDED_DATA_SIZE = ERR_INVALID_MAX_APPENDED_DATA_SIZE;
+	exports.ERR_INVALID_MAX_WORKERS = ERR_INVALID_MAX_WORKERS;
+	exports.ERR_INVALID_MSDOS_ATTRIBUTES = ERR_INVALID_MSDOS_ATTRIBUTES;
+	exports.ERR_INVALID_MSDOS_DATA = ERR_INVALID_MSDOS_DATA;
+	exports.ERR_INVALID_PASSWORD = ERR_INVALID_PASSWORD;
+	exports.ERR_INVALID_PASSWORD_TYPE = ERR_INVALID_PASSWORD_TYPE;
 	exports.ERR_INVALID_PASS_THROUGH = ERR_INVALID_PASS_THROUGH;
 	exports.ERR_INVALID_READER_OPTIONS = ERR_INVALID_READER_OPTIONS;
+	exports.ERR_INVALID_SIGNAL = ERR_INVALID_SIGNAL;
+	exports.ERR_INVALID_SIGNATURE = ERR_INVALID_SIGNATURE;
+	exports.ERR_INVALID_SIGNATURE_DATA = ERR_INVALID_SIGNATURE_DATA;
+	exports.ERR_INVALID_STRICTNESS = ERR_INVALID_STRICTNESS;
+	exports.ERR_INVALID_UID = ERR_INVALID_UID;
+	exports.ERR_INVALID_UNCOMPRESSED_SIZE = ERR_INVALID_UNCOMPRESSED_SIZE;
+	exports.ERR_INVALID_UNIX_EXTRA_FIELD_TYPE = ERR_INVALID_UNIX_EXTRA_FIELD_TYPE;
+	exports.ERR_INVALID_UNIX_ID_SIZE = ERR_INVALID_UNIX_ID_SIZE;
+	exports.ERR_INVALID_UNIX_MODE = ERR_INVALID_UNIX_MODE;
+	exports.ERR_INVALID_VERSION = ERR_INVALID_VERSION;
+	exports.ERR_ITERATOR_COMPLETED_TOO_SOON = ERR_ITERATOR_COMPLETED_TOO_SOON;
+	exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
+	exports.ERR_OVERLAPPING_ENTRY = ERR_OVERLAPPING_ENTRY;
 	exports.ERR_READABLE_CONSUMED = ERR_READABLE_CONSUMED;
+	exports.ERR_RESERVED_COMPRESSION_METHOD = ERR_RESERVED_COMPRESSION_METHOD;
+	exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
+	exports.ERR_UNDEFINED_COMPRESSION_METHOD = ERR_UNDEFINED_COMPRESSION_METHOD;
+	exports.ERR_UNDEFINED_READER = ERR_UNDEFINED_READER;
+	exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
+	exports.ERR_UNDETERMINED_SIZE = ERR_UNDETERMINED_SIZE;
+	exports.ERR_UNSAFE_FILENAME = ERR_UNSAFE_FILENAME;
+	exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION$1;
+	exports.ERR_UNSUPPORTED_CONTEXT = ERR_UNSUPPORTED_CONTEXT;
+	exports.ERR_UNSUPPORTED_CRYPTO_API = ERR_UNSUPPORTED_CRYPTO_API;
+	exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
+	exports.ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH;
+	exports.ERR_UNSUPPORTED_ENCRYPTION_USDZ = ERR_UNSUPPORTED_ENCRYPTION_USDZ;
+	exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
+	exports.ERR_UNSUPPORTED_UINT64 = ERR_UNSUPPORTED_UINT64;
+	exports.ERR_WORKER_STARTUP_TIMEOUT = ERR_WORKER_STARTUP_TIMEOUT;
+	exports.ERR_WRITER_NOT_INITIALIZED = ERR_WRITER_NOT_INITIALIZED;
 	exports.ERR_ZIP_CRYPTO_LAST_MOD_DATE = ERR_ZIP_CRYPTO_LAST_MOD_DATE;
+	exports.ERR_ZIP_NOT_EMPTY = ERR_ZIP_NOT_EMPTY;
+	exports.HttpRangeReader = HttpRangeReader;
+	exports.HttpReader = HttpReader;
+	exports.Reader = Reader;
+	exports.SplitDataReader = SplitDataReader;
+	exports.SplitDataWriter = SplitDataWriter;
+	exports.TextReader = TextReader;
+	exports.TextWriter = TextWriter;
+	exports.Uint8ArrayReader = Uint8ArrayReader;
+	exports.Uint8ArrayWriter = Uint8ArrayWriter;
+	exports.VERSION = VERSION;
+	exports.WARNING_APPENDED_DATA = WARNING_APPENDED_DATA;
+	exports.WARNING_COMPRESSED_PATCHED_DATA = WARNING_COMPRESSED_PATCHED_DATA;
+	exports.WARNING_DUPLICATE_FILENAME = WARNING_DUPLICATE_FILENAME;
+	exports.WARNING_MALFORMED_EXTRA_FIELD = WARNING_MALFORMED_EXTRA_FIELD;
+	exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG = WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG;
+	exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD = WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD;
+	exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES = WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES;
+	exports.WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY = WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY;
+	exports.WARNING_PREPENDED_DATA = WARNING_PREPENDED_DATA;
+	exports.WARNING_TRAILING_CENTRAL_DIRECTORY_DATA = WARNING_TRAILING_CENTRAL_DIRECTORY_DATA;
+	exports.WARNING_UNKNOWN_VERSION = WARNING_UNKNOWN_VERSION;
+	exports.WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA = WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA;
+	exports.WARNING_UNSORTED_CENTRAL_DIRECTORY = WARNING_UNSORTED_CENTRAL_DIRECTORY;
+	exports.WARNING_WRAPPED_ENTRIES_COUNT = WARNING_WRAPPED_ENTRIES_COUNT;
+	exports.Writer = Writer;
 	exports.ZipDirectoryEntry = ZipDirectoryEntry;
 	exports.ZipEntry = ZipEntry;
 	exports.ZipFS = ZipFS;
 	exports.ZipFileEntry = ZipFileEntry;
+	exports.ZipReader = ZipReader;
+	exports.ZipReaderStream = ZipReaderStream;
+	exports.ZipWriter = ZipWriter;
+	exports.ZipWriterStream = ZipWriterStream;
+	exports.configure = configure;
+	exports.createBlobTempStream = createBlobTempStream;
+	exports.createOPFSTempStream = createOPFSTempStream;
+	exports.createSyncAccessHandleTempStream = createSyncAccessHandleTempStream;
 	exports.fs = fs;
+	exports.getMimeType = getMimeType;
+	exports.getRegisteredCodecs = getRegisteredCodecs;
+	exports.getSupportedCompressionMethods = getSupportedCompressionMethods;
+	exports.isZipFile = isZipFile;
+	exports.registerCodec = registerCodec;
+	exports.resetConfiguration = resetConfiguration;
+	exports.terminateWorkers = terminateWorkers;
+	exports.unregisterCodec = unregisterCodec;
 
 }));
