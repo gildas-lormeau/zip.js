@@ -7,9 +7,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+# superseded runs are only cancelled on pull request branches: on master every run may be the one the
+# publish gate polls, and cancelling it fails the release of the commit it was testing
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   lint:
