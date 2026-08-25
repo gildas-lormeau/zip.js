@@ -72,6 +72,7 @@ export default ([
 	{ title: "Common JS", script: "./test-common-js.cjs", env: ["node", "deno", "bun"] },
 	{ title: "Core", script: "./test-core.js", features: ["compressionStream"] },
 	{ title: "Version constant", script: "./test-version.js" },
+	{ title: "Supported compression methods", script: "./test-supported-compression-methods.js" },
 	{ title: "Crypto", script: "./test-crypto.js", sanitizeResources: false },
 	{ title: "Crypto (raw password)", script: "./test-crypto-raw-password.js" },
 	{ title: "Crypto check password only", script: "./test-crypto-check-password.js", sanitizeResources: false },

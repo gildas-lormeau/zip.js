@@ -267,6 +267,48 @@ export function unregisterCodec(compressionMethod: number): void;
 export function getRegisteredCodecs(): CodecDefinition[];
 
 /**
+ * Returns the compression methods supported in the current environment and configuration: the
+ * built-in methods followed by the codecs registered with {@link registerCodec}, in registration
+ * order.
+ *
+ * @remarks
+ * The support of the built-in methods is resolved against the compression streams available when
+ * the function is called, i.e. the classes set with {@link configure} and the implementations
+ * embedded in the build. A caller can test whether an entry is readable by looking up
+ * {@link EntryMetaData#compressionMethod} in the result and checking
+ * {@link EntryMetaData#encrypted}; `FileEntry#getData` remains the authority.
+ *
+ * @returns The supported compression methods.
+ */
+export function getSupportedCompressionMethods(): SupportedCompressionMethod[];
+
+/**
+ * Represents the support of a compression method, see {@link getSupportedCompressionMethods}.
+ */
+export interface SupportedCompressionMethod {
+  /**
+   * The compression method stored in zip entry headers (e.g. `8` for Deflate).
+   */
+  compressionMethod: number;
+  /**
+   * `true` if entries can be compressed with the method. It is `undefined` when the support is
+   * unknown, i.e. for a codec registered with {@link CodecDefinition#codecURI} whose module has not
+   * been imported yet.
+   */
+  compression?: boolean;
+  /**
+   * `true` if entries can be decompressed with the method. It is `undefined` when the support is
+   * unknown, i.e. for a codec registered with {@link CodecDefinition#codecURI} whose module has not
+   * been imported yet.
+   */
+  decompression?: boolean;
+  /**
+   * `true` if the method comes from a codec registered with {@link registerCodec}.
+   */
+  registered: boolean;
+}
+
+/**
  * Represents a codec definition passed to {@link registerCodec}.
  */
 export interface CodecDefinition {

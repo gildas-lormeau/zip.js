@@ -126,6 +126,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"startupTimeout",
 	"streamHandle",
 	"streamOptions",
+	"supportedFormats",
 	"terminateTimeout",
 	"terminated",
 	"toBits",

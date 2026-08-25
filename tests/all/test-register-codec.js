@@ -96,6 +96,10 @@ function checkRegisteredCodecs() {
 	if (otherDefinition.format != FORMAT_XOR) {
 		throw new Error("registered codec definition not snapshotted");
 	}
+	const supportedMethod = findSupportedMethod();
+	if (!supportedMethod || !supportedMethod.registered || supportedMethod.compression !== true || supportedMethod.decompression !== true) {
+		throw new Error("unexpected supported method for the registered codec");
+	}
 }
 
 function checkRegisteredCodecURIStreams(expectStreams) {
@@ -104,6 +108,15 @@ function checkRegisteredCodecURIStreams(expectStreams) {
 	if (codecDefinition.format != FORMAT_XOR_URI || hasStreams != expectStreams) {
 		throw new Error("unexpected codecURI codec definition");
 	}
+	const supportedMethod = findSupportedMethod();
+	const expectedSupport = expectStreams ? true : undefined;
+	if (!supportedMethod.registered || supportedMethod.compression !== expectedSupport || supportedMethod.decompression !== expectedSupport) {
+		throw new Error("unexpected supported method for the codecURI codec");
+	}
+}
+
+function findSupportedMethod() {
+	return zip.getSupportedCompressionMethods().find(method => method.compressionMethod == COMPRESSION_METHOD_XOR);
 }
 
 async function checkCompressionOptions() {

@@ -4,7 +4,7 @@
 // accepted; without it they had an implicit zero-argument constructor and every custom codec class
 // was rejected, including the one documented on initWorker.
 // Compile with: npm run test-types
-import { configure, registerCodec, getRegisteredCodecs, VERSION } from "../../index.js";
+import { configure, registerCodec, getRegisteredCodecs, getSupportedCompressionMethods, VERSION } from "../../index.js";
 // initWorker is exported from the "./worker" entry point, not from index.js, so it is imported the way
 // a user would import it; every entry point maps to the same index.d.ts, which is why the wrong import
 // used to type-check
@@ -59,6 +59,10 @@ configure({ CompressionStreamFallback: DeflateCompressionStream, DecompressionSt
 // the registry snapshot exposes the codec definitions, and the version is a string
 const registeredFormats: string[] = getRegisteredCodecs().map(codec => codec.format);
 const version: string = VERSION;
-void [registeredFormats, version];
+// the support of a method is a boolean or undefined when unknown
+const decompressibleMethods: number[] = getSupportedCompressionMethods()
+	.filter(method => method.decompression === true)
+	.map(method => method.compressionMethod);
+void [registeredFormats, version, decompressibleMethods];
 
 export { ZstdCompressionStream, ZstdDecompressionStream, DeflateCompressionStream, DeflateDecompressionStream };

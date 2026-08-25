@@ -2164,9 +2164,9 @@ const ERR_INVALID_UNCOMPRESSED_SIZE = "Invalid uncompressed size";
 const ERR_INVALID_COMPRESSED_DATA = "Invalid compressed data";
 const ERR_INVALID_CRC32 = ERR_INVALID_SIGNATURE;
 const ERR_UNSUPPORTED_COMPRESSION$2 = "Compression method not supported";
-const FORMAT_DEFLATE_RAW = "deflate-raw";
-const FORMAT_DEFLATE64_RAW = "deflate64-raw";
-const FORMAT_GZIP = "gzip";
+const FORMAT_DEFLATE_RAW$1 = "deflate-raw";
+const FORMAT_DEFLATE64_RAW$1 = "deflate64-raw";
+const FORMAT_GZIP$1 = "gzip";
 const GZIP_HEADER_LENGTH = 10;
 const GZIP_TRAILER_LENGTH = 8;
 const GZIP_HEADER_BYTES = [0x1f, 0x8b, 0x08];
@@ -2192,7 +2192,7 @@ class DeflateStream extends TransformStream {
 				readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.CompressionStream, format, { level, chunkSize, compressionMethod, uncompressedSize: inputSize }));
 			} else if (useGzipCrc32) {
 				gzipCrc32Stream = new GzipToRawDeflateStream();
-				readable = pipeThroughBackpressured(readable, new CompressionStream(FORMAT_GZIP));
+				readable = pipeThroughBackpressured(readable, new CompressionStream(FORMAT_GZIP$1));
 				readable = pipeThrough(readable, gzipCrc32Stream);
 			} else {
 				try {
@@ -2200,7 +2200,7 @@ class DeflateStream extends TransformStream {
 				} catch (error) {
 					let gzipStream;
 					try {
-						gzipStream = new CompressionStream(FORMAT_GZIP);
+						gzipStream = new CompressionStream(FORMAT_GZIP$1);
 					} catch {
 						throw error;
 					}
@@ -2364,7 +2364,7 @@ class InflateStream extends TransformStream {
 					}
 					let gzipStream;
 					try {
-						gzipStream = new DecompressionStream(FORMAT_GZIP);
+						gzipStream = new DecompressionStream(FORMAT_GZIP$1);
 					} catch {
 						throw error;
 					}
@@ -2413,11 +2413,11 @@ function supportsFormat(StreamClass, format) {
 }
 
 function supportsDeflateRaw(StreamClass) {
-	return supportsFormat(StreamClass, FORMAT_DEFLATE_RAW);
+	return supportsFormat(StreamClass, FORMAT_DEFLATE_RAW$1);
 }
 
 function supportsGzip(StreamClass) {
-	return supportsFormat(StreamClass, FORMAT_GZIP);
+	return supportsFormat(StreamClass, FORMAT_GZIP$1);
 }
 
 function setReadable(stream, readable, flush) {
@@ -2440,7 +2440,7 @@ function pipeThroughCompressionStream(readable, useCompressionStream, options, C
 	const Stream = useCompressionStream && CompressionStreamNative ?
 		CompressionStreamNative :
 		CompressionStreamFallback || CompressionStreamNative;
-	const format = options.deflate64 ? FORMAT_DEFLATE64_RAW : FORMAT_DEFLATE_RAW;
+	const format = options.deflate64 ? FORMAT_DEFLATE64_RAW$1 : FORMAT_DEFLATE_RAW$1;
 	let codecStream;
 	try {
 		codecStream = new Stream(format, options);
@@ -8566,6 +8566,81 @@ function getMimeType$1() {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+function getSupportedCompressionMethods() {
+	const { CompressionStream, DecompressionStream, CompressionStreamFallback, DecompressionStreamFallback } = getConfiguration();
+	const supportedMethods = [{
+		compressionMethod: COMPRESSION_METHOD_STORE,
+		compression: true,
+		decompression: true,
+		registered: false
+	}, {
+		compressionMethod: COMPRESSION_METHOD_DEFLATE,
+		compression: formatSupported(CompressionStreamFallback, FORMAT_DEFLATE_RAW$1) ||
+			formatSupported(CompressionStream, FORMAT_DEFLATE_RAW$1) || formatSupported(CompressionStream, FORMAT_GZIP$1),
+		decompression: formatSupported(DecompressionStreamFallback, FORMAT_DEFLATE_RAW$1) ||
+			formatSupported(DecompressionStream, FORMAT_DEFLATE_RAW$1) || formatSupported(DecompressionStream, FORMAT_GZIP$1),
+		registered: false
+	}, {
+		compressionMethod: COMPRESSION_METHOD_DEFLATE_64,
+		compression: false,
+		decompression: formatSupported(DecompressionStreamFallback, FORMAT_DEFLATE64_RAW$1) ||
+			formatSupported(DecompressionStream, FORMAT_DEFLATE64_RAW$1),
+		registered: false
+	}];
+	for (const codec of getRegisteredCodecs()) {
+		const codecStreams = getCodecStreams(codec.format);
+		supportedMethods.push({
+			compressionMethod: codec.compressionMethod,
+			// deno-lint-ignore valid-typeof
+			compression: codecStreams ? typeof codecStreams.CompressionStream == FUNCTION_TYPE : UNDEFINED_VALUE,
+			// deno-lint-ignore valid-typeof
+			decompression: codecStreams ? typeof codecStreams.DecompressionStream == FUNCTION_TYPE : UNDEFINED_VALUE,
+			registered: true
+		});
+	}
+	return supportedMethods;
+}
+
+function formatSupported(StreamClass, format) {
+	if (!StreamClass) {
+		return false;
+	}
+	const { supportedFormats } = StreamClass;
+	if (supportedFormats) {
+		return supportedFormats.includes(format);
+	}
+	return supportsFormat(StreamClass, format);
+}
+
+/*
+ Copyright (c) 2025 Gildas Lormeau. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
+
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
+ the documentation and/or other materials provided with the distribution.
+
+ 3. The names of the authors may not be used to endorse or promote products
+ derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+ INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 const VERSION = "2.8.59";
 
 /*
@@ -9045,6 +9120,11 @@ try {
 
 /* global TransformStream */
 
+const FORMAT_DEFLATE = "deflate";
+const FORMAT_DEFLATE_RAW = "deflate-raw";
+const FORMAT_DEFLATE64_RAW = "deflate64-raw";
+const FORMAT_GZIP = "gzip";
+
 let wasm, malloc, free, memory, initError;
 
 function setWasmExports(wasmAPI) {
@@ -9090,15 +9170,15 @@ function _make(isCompress, type, options = {}) {
 					this._last_consumed = wasm.deflate_last_consumed;
 					this._end = wasm.deflate_end;
 					this.streamHandle = wasm.deflate_new();
-					if (type === "gzip") {
+					if (type === FORMAT_GZIP) {
 						result = wasm.deflate_init_gzip(this.streamHandle, level);
-					} else if (type === "deflate-raw") {
+					} else if (type === FORMAT_DEFLATE_RAW) {
 						result = wasm.deflate_init_raw(this.streamHandle, level);
 					} else {
 						result = wasm.deflate_init(this.streamHandle, level);
 					}
 				} else {
-					if (type === "deflate64-raw") {
+					if (type === FORMAT_DEFLATE64_RAW) {
 						this._process = wasm.inflate9_process;
 						this._last_consumed = wasm.inflate9_last_consumed;
 						this._end = wasm.inflate9_end;
@@ -9109,9 +9189,9 @@ function _make(isCompress, type, options = {}) {
 						this._last_consumed = wasm.inflate_last_consumed;
 						this._end = wasm.inflate_end;
 						this.streamHandle = wasm.inflate_new();
-						if (type === "deflate-raw") {
+						if (type === FORMAT_DEFLATE_RAW) {
 							result = wasm.inflate_init_raw(this.streamHandle);
-						} else if (type === "gzip") {
+						} else if (type === FORMAT_GZIP) {
 							result = wasm.inflate_init_gzip(this.streamHandle);
 						} else {
 							result = wasm.inflate_init(this.streamHandle);
@@ -9232,12 +9312,12 @@ function _make(isCompress, type, options = {}) {
 }
 
 class CompressionStreamZlib {
-	constructor(type = "deflate", options) {
+	constructor(type = FORMAT_DEFLATE, options) {
 		return _make(true, type, options);
 	}
 }
 class DecompressionStreamZlib {
-	constructor(type = "deflate", options) {
+	constructor(type = FORMAT_DEFLATE, options) {
 		return _make(false, type, options);
 	}
 }
@@ -9246,6 +9326,11 @@ class DecompressionStreamZlib {
 // module fails to load, rather than discarding a self-contained codec supplied through config.
 CompressionStreamZlib.requiresModule = true;
 DecompressionStreamZlib.requiresModule = true;
+// Constructing these classes before the module is loaded throws, so capability probes cannot rely
+// on trying the constructor; the formats are declared instead, next to the branches implementing
+// them in _make().
+CompressionStreamZlib.supportedFormats = [FORMAT_DEFLATE, FORMAT_DEFLATE_RAW, FORMAT_GZIP];
+DecompressionStreamZlib.supportedFormats = [FORMAT_DEFLATE, FORMAT_DEFLATE_RAW, FORMAT_GZIP, FORMAT_DEFLATE64_RAW];
 
 /*
  Copyright (c) 2025 Gildas Lormeau. All rights reserved.
@@ -10771,4 +10856,4 @@ function decodeMimeTypes(data) {
 	return mimeTypes;
 }
 
-export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_ENTRY_EXISTS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH, ERR_INVALID_READER_OPTIONS, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_READABLE_CONSUMED, ERR_RESERVED_COMPRESSION_METHOD, ERR_SPLIT_ZIP_FILE, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION$1 as ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_ZIP_CRYPTO_LAST_MOD_DATE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, VERSION, WARNING_APPENDED_DATA, WARNING_COMPRESSED_PATCHED_DATA, WARNING_DUPLICATE_FILENAME, WARNING_MALFORMED_EXTRA_FIELD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY, WARNING_PREPENDED_DATA, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA, WARNING_UNKNOWN_VERSION, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA, WARNING_UNSORTED_CENTRAL_DIRECTORY, WARNING_WRAPPED_ENTRIES_COUNT, Writer, ZipDirectoryEntry, ZipEntry, ZipFS, ZipFileEntry, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, fs, getMimeType, getRegisteredCodecs, isZipFile, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };
+export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_ENTRY_EXISTS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH, ERR_INVALID_READER_OPTIONS, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_READABLE_CONSUMED, ERR_RESERVED_COMPRESSION_METHOD, ERR_SPLIT_ZIP_FILE, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION$1 as ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_ZIP_CRYPTO_LAST_MOD_DATE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, VERSION, WARNING_APPENDED_DATA, WARNING_COMPRESSED_PATCHED_DATA, WARNING_DUPLICATE_FILENAME, WARNING_MALFORMED_EXTRA_FIELD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY, WARNING_PREPENDED_DATA, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA, WARNING_UNKNOWN_VERSION, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA, WARNING_UNSORTED_CENTRAL_DIRECTORY, WARNING_WRAPPED_ENTRIES_COUNT, Writer, ZipDirectoryEntry, ZipEntry, ZipFS, ZipFileEntry, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, fs, getMimeType, getRegisteredCodecs, getSupportedCompressionMethods, isZipFile, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };
