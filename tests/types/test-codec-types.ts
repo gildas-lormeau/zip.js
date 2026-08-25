@@ -16,9 +16,9 @@ configure({ CompressionStream, DecompressionStream, baseURI: "https://example.co
 
 // a codec class reads the options through the declared interfaces
 class ZstdCompressionStream extends TransformStream {
-	constructor(format: string, { level, chunkSize, compressionMethod }: CompressionStreamOptions = {}) {
+	constructor(format: string, { level, chunkSize, compressionMethod, uncompressedSize }: CompressionStreamOptions = {}) {
 		super();
-		void [format, level, chunkSize, compressionMethod];
+		void [format, level, chunkSize, compressionMethod, uncompressedSize];
 	}
 }
 

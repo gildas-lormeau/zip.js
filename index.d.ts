@@ -310,6 +310,13 @@ export interface CompressionStreamOptions {
    * It is only set for the codecs registered with {@link registerCodec}.
    */
   compressionMethod?: number;
+  /**
+   * The uncompressed size of the entry, undefined when the size is unknown.
+   * It allows codecs such as Zstandard to include the content size in the compressed frame.
+   *
+   * It is only set for the codecs registered with {@link registerCodec}.
+   */
+  uncompressedSize?: number;
 }
 
 /**

@@ -13,8 +13,10 @@ const LOREM_PREFIX = "Lorem ipsum";
 
 const TEXT_CONTENT = "The quick brown fox jumps over the lazy dog. ".repeat(40);
 const COMPRESSION_METHOD_XOR = 93;
+const COMPRESSION_METHOD_ECHO = 94;
 const COMPRESSION_METHOD_XOR_HIGH = 0x1234;
 const FORMAT_XOR = "xor-test";
+const FORMAT_ECHO = "echo-test";
 const FORMAT_XOR_URI = "xor-test-uri";
 const VERSION_NEEDED_XOR = 63;
 const XOR_MASK = 0x55;
@@ -58,6 +60,8 @@ async function test() {
 			versionNeeded: VERSION_NEEDED_XOR
 		});
 		checkInvalidDefinitions();
+		await checkCompressionOptions();
+		await checkWorkerCompressionOptions();
 		const bytes = await checkRoundTrip();
 		await checkEncryptedRoundTrip();
 		await checkEncryptedHighMethodRoundTrip();
@@ -75,6 +79,68 @@ async function test() {
 	} finally {
 		zip.unregisterCodec(COMPRESSION_METHOD_XOR);
 		await zip.terminateWorkers();
+	}
+}
+
+async function checkCompressionOptions() {
+	const constructorArgs = [];
+	class EchoCompressionStream extends TransformStream {
+		constructor(format, options) {
+			super({
+				transform(chunk, controller) {
+					controller.enqueue(chunk);
+				}
+			});
+			constructorArgs.push({ format, options });
+		}
+	}
+	try {
+		zip.registerCodec({ compressionMethod: COMPRESSION_METHOD_ECHO, format: FORMAT_ECHO, CompressionStream: EchoCompressionStream });
+		const writer = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await writer.add("entry.txt", new zip.TextReader(TEXT_CONTENT), { compressionMethod: COMPRESSION_METHOD_ECHO });
+		await writer.close();
+		checkCompressionArgs(constructorArgs[0]);
+	} finally {
+		zip.unregisterCodec(COMPRESSION_METHOD_ECHO);
+	}
+}
+
+function checkCompressionArgs({ format, options }) {
+	if (format != FORMAT_ECHO) {
+		throw new Error("unexpected codec format " + format);
+	}
+	if (options.compressionMethod != COMPRESSION_METHOD_ECHO) {
+		throw new Error("unexpected codec compressionMethod " + options.compressionMethod);
+	}
+	if (options.uncompressedSize != TEXT_CONTENT.length) {
+		throw new Error("unexpected codec uncompressedSize " + options.uncompressedSize);
+	}
+	if (typeof options.chunkSize != "number") {
+		throw new Error("missing codec chunkSize");
+	}
+}
+
+async function checkWorkerCompressionOptions() {
+	const moduleCode = `class AssertOptionsStream extends TransformStream {
+	constructor(format, options) {
+		super({ transform(chunk, controller) { controller.enqueue(chunk); } });
+		if (format != "${FORMAT_ECHO}" || options.compressionMethod != ${COMPRESSION_METHOD_ECHO} || options.uncompressedSize != ${TEXT_CONTENT.length}) {
+			throw new Error("compression codec options not transmitted to worker");
+		}
+	}
+}
+export { AssertOptionsStream as CompressionStream };`;
+	try {
+		zip.registerCodec({
+			compressionMethod: COMPRESSION_METHOD_ECHO,
+			format: FORMAT_ECHO,
+			codecURI: "data:text/javascript;base64," + btoa(moduleCode)
+		});
+		const writer = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await writer.add("entry.txt", new zip.TextReader(TEXT_CONTENT), { compressionMethod: COMPRESSION_METHOD_ECHO });
+		await writer.close();
+	} finally {
+		zip.unregisterCodec(COMPRESSION_METHOD_ECHO);
 	}
 }
 
