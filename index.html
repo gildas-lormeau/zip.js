@@ -354,6 +354,27 @@ configure({
 			compression <code>level</code> values and, via the <code>"deflate64-raw"</code> format, of Deflate64
 			decompression.
 		</p>
+		<h2 id="build">Build</h2>
+		<p>
+			The <a href="builder/index.html">online builder</a> generates a customized standalone build of zip.js
+			directly in the browser, from the latest version published on npm. You can restrict the API to reading
+			or writing zip files, include the web workers, choose the embedded compression implementation
+			(WebAssembly, JavaScript, or none to rely on the Compression Streams API only), include the filesystem
+			API, and download the result as a minified UMD or ES module file.
+		</p>
+		<p>You can also build the library from the source code:</p>
+		<pre>$ git clone https://github.com/gildas-lormeau/zip.js.git
+$ cd zip.js
+$ npm ci
+$ npm run build</pre>
+		<p>
+			The bundles are generated in the
+			<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/dist" target="repository">/dist</a></code>
+			directory. <code>npm test</code> runs the test suite with Node.js, Deno and Bun, and
+			<code>npm run test-browsers</code> runs it in Chrome, Firefox and Safari. See the
+			<code><a href="https://github.com/gildas-lormeau/zip.js/tree/master/tests" target="repository">/tests</a></code>
+			directory for more details.
+		</p>
 		<div class="footer">
 			Get the source code on GitHub : <a href="https://github.com/gildas-lormeau/zip.js">gildas-lormeau/zip.js</a>
 			- contact: gildas.lormeau &lt;at&gt; gmail.com
