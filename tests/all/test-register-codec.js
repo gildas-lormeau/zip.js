@@ -59,6 +59,7 @@ async function test() {
 			DecompressionStream: XorStream,
 			versionNeeded: VERSION_NEEDED_XOR
 		});
+		checkRegisteredCodecs();
 		checkInvalidDefinitions();
 		await checkCompressionOptions();
 		await checkWorkerCompressionOptions();
@@ -73,12 +74,35 @@ async function test() {
 			codecURI: "data:text/javascript;base64," + btoa(XOR_MODULE_CODE),
 			versionNeeded: VERSION_NEEDED_XOR
 		});
+		checkRegisteredCodecURIStreams(false);
 		await checkRoundTrip();
+		checkRegisteredCodecURIStreams(true);
 		await checkDecompressionOptions();
 		await checkWorkerDecompressionOptions();
 	} finally {
 		zip.unregisterCodec(COMPRESSION_METHOD_XOR);
 		await zip.terminateWorkers();
+	}
+}
+
+function checkRegisteredCodecs() {
+	const codecDefinition = zip.getRegisteredCodecs().find(codec => codec.compressionMethod == COMPRESSION_METHOD_XOR);
+	if (!codecDefinition || codecDefinition.format != FORMAT_XOR || codecDefinition.versionNeeded != VERSION_NEEDED_XOR ||
+		codecDefinition.CompressionStream != XorStream || codecDefinition.DecompressionStream != XorStream) {
+		throw new Error("unexpected registered codec definition");
+	}
+	codecDefinition.format = FORMAT_ECHO;
+	const otherDefinition = zip.getRegisteredCodecs().find(codec => codec.compressionMethod == COMPRESSION_METHOD_XOR);
+	if (otherDefinition.format != FORMAT_XOR) {
+		throw new Error("registered codec definition not snapshotted");
+	}
+}
+
+function checkRegisteredCodecURIStreams(expectStreams) {
+	const codecDefinition = zip.getRegisteredCodecs().find(codec => codec.compressionMethod == COMPRESSION_METHOD_XOR);
+	const hasStreams = typeof codecDefinition.CompressionStream == "function" && typeof codecDefinition.DecompressionStream == "function";
+	if (codecDefinition.format != FORMAT_XOR_URI || hasStreams != expectStreams) {
+		throw new Error("unexpected codecURI codec definition");
 	}
 }
 

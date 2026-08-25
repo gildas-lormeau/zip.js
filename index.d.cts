@@ -217,6 +217,12 @@ declare class DecompressionStreamLike extends TransformStreamLike {
 }
 
 /**
+ * The version of zip.js (e.g. `"2.8.59"`), i.e. the `version` declared in the `package.json` file
+ * of the library.
+ */
+export const VERSION: string;
+
+/**
  * Configures zip.js
  *
  * @param configuration The configuration.
@@ -246,6 +252,19 @@ export function registerCodec(codec: CodecDefinition): void;
  * @param compressionMethod The compression method of the codec.
  */
 export function unregisterCodec(compressionMethod: number): void;
+
+/**
+ * Returns the definitions of the codecs registered with {@link registerCodec}, in registration
+ * order. The returned objects are snapshots: modifying them does not alter the registered codecs.
+ *
+ * @remarks
+ * The `CompressionStream` and `DecompressionStream` classes of a codec registered with
+ * {@link CodecDefinition#codecURI} only appear once the module has been imported, i.e. after the
+ * first entry using the codec has been read or written.
+ *
+ * @returns The codec definitions.
+ */
+export function getRegisteredCodecs(): CodecDefinition[];
 
 /**
  * Represents a codec definition passed to {@link registerCodec}.

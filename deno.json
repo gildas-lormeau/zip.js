@@ -52,7 +52,7 @@
 		"mangled-property-names.js",
 		"mime-types.json",
 		"generate-mime-type-data.js",
-		"sync-deno-version.js",
+		"sync-versions.js",
 		"tsconfig.json",
 		".vscode",
 		".eslintrc.json",

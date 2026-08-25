@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: '24'
 
-      # the version is declared by hand in three files, and nothing kept them in agreement: v2.8.53 was
+      # the version is declared by hand in four files, and nothing kept them in agreement: v2.8.53 was
       # tagged with package.json and deno.json at 2.8.53 while package-lock.json still read 2.8.52. it
       # runs before the install because it only reads the files
       - name: Verify the declared versions agree
@@ -38,6 +38,11 @@ jobs:
               exit 1
             fi
           done
+          other=$(sed -n 's/^const VERSION = "\(.*\)";$/\1/p' lib/core/version.js)
+          if [ "$other" != "$version" ]; then
+            echo "::error::lib/core/version.js declares $other, package.json declares $version"
+            exit 1
+          fi
 
       # npm ci instead of npm install: both freshness checks below regenerate committed files, so the
       # build must run against the locked dependency versions, otherwise a caret-range resolution alone
