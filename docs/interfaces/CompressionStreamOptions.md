@@ -36,3 +36,14 @@ It is only set for the codecs registered with [registerCodec](../functions/regis
 > `optional` **level?**: `number`
 
 The compression level, see [ZipWriterConstructorOptions#level](ZipWriterConstructorOptions.md#level).
+
+***
+
+### uncompressedSize?
+
+> `optional` **uncompressedSize?**: `number`
+
+The uncompressed size of the entry, undefined when the size is unknown.
+It allows codecs such as Zstandard to include the content size in the compressed frame.
+
+It is only set for the codecs registered with [registerCodec](../functions/registerCodec.md).

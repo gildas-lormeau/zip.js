@@ -2172,7 +2172,7 @@ class DeflateStream extends TransformStream {
 
 	constructor(options, { chunkSize, CompressionStreamFallback, CompressionStream }) {
 		super({});
-		const { compressed, encrypted, useCompressionStream, zipCrypto, computeCrc32, level, deflate64, format, compressionMethod } = options;
+		const { compressed, encrypted, useCompressionStream, zipCrypto, computeCrc32, level, deflate64, format, compressionMethod, inputSize } = options;
 		const stream = this;
 		let crc32Stream, encryptionStream, gzipCrc32Stream;
 		let readable = super.readable;
@@ -2185,7 +2185,7 @@ class DeflateStream extends TransformStream {
 		}
 		if (compressed) {
 			if (codecStreams) {
-				readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.CompressionStream, format, { level, chunkSize, compressionMethod }));
+				readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.CompressionStream, format, { level, chunkSize, compressionMethod, uncompressedSize: inputSize }));
 			} else if (useGzipCrc32) {
 				gzipCrc32Stream = new GzipToRawDeflateStream();
 				readable = pipeThroughBackpressured(readable, new CompressionStream(FORMAT_GZIP));
@@ -7354,6 +7354,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 		const workerOptions = {
 			options: {
 				codecType: CODEC_DEFLATE,
+				inputSize: size,
 				level,
 				rawPassword,
 				password,
