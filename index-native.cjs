@@ -6670,6 +6670,13 @@ async function addFile(zipWriter, name, reader, options) {
 	const { comment } = metadataInfo;
 	const extraField = options[PROPERTY_NAME_EXTRA_FIELD];
 	zipWriter.fileEntries.set(name, UNDEFINED_VALUE);
+	const previousFileEntry = zipWriter.lastFileEntry;
+	const pendingFileEntry = {};
+	let releaseLockFileEntry;
+	if (metadataInfo.resolvedOptions.keepOrder) {
+		pendingFileEntry.lockFileEntry = new Promise(resolve => releaseLockFileEntry = resolve);
+	}
+	zipWriter.lastFileEntry = pendingFileEntry;
 	let fileEntry;
 	try {
 		const { resolvedOptions } = metadataInfo;
@@ -6691,10 +6698,21 @@ async function addFile(zipWriter, name, reader, options) {
 		const headerInfo = getHeaderInfo(options);
 		const dataDescriptorInfo = getDataDescriptorInfo(options);
 		const metadataSize = getLength(headerInfo.localHeaderArray, dataDescriptorInfo.dataDescriptorArray);
-		fileEntry = await getFileEntry(zipWriter, name, reader, { headerInfo, dataDescriptorInfo, metadataSize }, options);
+		fileEntry = await getFileEntry(zipWriter, name, reader, {
+			headerInfo,
+			dataDescriptorInfo,
+			metadataSize,
+			fileEntry: pendingFileEntry,
+			previousFileEntry,
+			releaseLockFileEntry
+		}, options);
 	} catch (error) {
 		zipWriter.fileEntries.delete(name);
 		throw error;
+	} finally {
+		if (releaseLockFileEntry) {
+			releaseLockFileEntry(previousFileEntry && previousFileEntry.lockFileEntry);
+		}
 	}
 	Object.assign(fileEntry, {
 		name,
@@ -7158,27 +7176,23 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		signal
 	} = options;
 	const {
-		headerInfo
+		headerInfo,
+		fileEntry: pendingFileEntry,
+		previousFileEntry,
+		releaseLockFileEntry
 	} = entryInfo;
 	const usdz = zipWriter.options[OPTION_USDZ];
-	const previousFileEntry = zipWriter.lastFileEntry;
-	let fileEntry = {};
+	let fileEntry = pendingFileEntry;
 	let bufferedWrite;
 	let releaseLockWriter;
-	let releaseLockCurrentFileEntry;
 	let writingBufferedEntryData;
 	let writingEntryData;
 	let writerSizeBeforeEntry;
 	let flushedBufferedSize = 0;
 	let fileWriter;
+	const lockPreviousFileEntry = keepOrder && previousFileEntry ? previousFileEntry.lockFileEntry : UNDEFINED_VALUE;
 	fileEntries.set(name, fileEntry);
-	zipWriter.lastFileEntry = fileEntry;
 	try {
-		let lockPreviousFileEntry;
-		if (keepOrder) {
-			lockPreviousFileEntry = previousFileEntry && previousFileEntry.lockFileEntry;
-			requestLockCurrentFileEntry();
-		}
 		if (options.bufferedWrite || !keepOrder || zipWriter.writerLocked || zipWriter.bufferedWrites || (!dataDescriptor && !emptyEntry)) {
 			bufferedWrite = true;
 			zipWriter.bufferedWrites++;
@@ -7191,6 +7205,7 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 			await initStream(writer);
 		} else {
 			fileWriter = writer;
+			await lockPreviousFileEntry;
 			await requestLockWriter();
 		}
 		await initStream(fileWriter);
@@ -7203,7 +7218,6 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		}
 		const { localHeaderArray } = headerInfo;
 		if (!bufferedWrite) {
-			await lockPreviousFileEntry;
 			await skipDiskIfNeeded();
 		}
 		const diskNumberStart = getDiskNumber(writer);
@@ -7268,8 +7282,8 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 		if (bufferedWrite) {
 			zipWriter.bufferedWrites--;
 		}
-		if (releaseLockCurrentFileEntry) {
-			releaseLockCurrentFileEntry();
+		if (releaseLockFileEntry) {
+			releaseLockFileEntry(lockPreviousFileEntry);
 		}
 		if (releaseLockWriter) {
 			releaseLockWriter();
@@ -7281,10 +7295,6 @@ async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
 				// ignored
 			}
 		}
-	}
-
-	function requestLockCurrentFileEntry() {
-		fileEntry.lockFileEntry = new Promise(resolve => releaseLockCurrentFileEntry = resolve);
 	}
 
 	async function requestLockWriter() {

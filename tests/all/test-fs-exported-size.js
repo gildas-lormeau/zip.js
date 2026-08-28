@@ -107,6 +107,14 @@ async function testUsdz() {
 		directory.addDirectory("img").addUint8Array("logo.bin", BINARY_CONTENT);
 		root.addUint8Array("root.bin", new Uint8Array(7).fill(66));
 	}, { level: 0, usdz: true, bufferedWrite: false });
+	// directories have no reader to initialize, so they used to win the lock chain and be written
+	// before the files added before them, moving the usdz alignment padding
+	await assertExportedSize(root => {
+		root.addUint8Array("a.bin", new Uint8Array(37).fill(66));
+		root.addDirectory("d1");
+		root.addUint8Array("b.bin", new Uint8Array(7).fill(66));
+		root.addDirectory("d2");
+	}, { level: 0, usdz: true });
 }
 
 async function testEncrypted() {

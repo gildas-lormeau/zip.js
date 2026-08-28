@@ -1,4 +1,4 @@
-/* global setTimeout */
+/* global setTimeout, TextDecoder */
 
 import * as zip from "../zip-lib.js";
 
@@ -31,6 +31,7 @@ async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	try {
 		await testConcurrentOrder();
+		await testPhysicalOrder();
 		await testFailureDoesNotReorderOrPollute();
 	} finally {
 		await zip.terminateWorkers();
@@ -48,6 +49,40 @@ async function testConcurrentOrder() {
 			throw new Error("slowIndex " + slowIndex + " -> " + filenames + " | " + contents);
 		}
 	}
+}
+
+// keepOrder also promises the physical order: the local file headers must follow the add() call
+// order, whatever the readers do and whichever entries are stored instead of deflated
+async function testPhysicalOrder() {
+	for (const stored of [false, true]) {
+		for (let slowIndex = 0; slowIndex < 4; slowIndex++) {
+			const blob = await writeZip(zipWriter => [0, 1, 2, 3].map(index => zipWriter.add(index + ".txt",
+				index == slowIndex ? new SlowReader(String(index), 40) : new zip.TextReader(String(index)),
+				stored && index % 2 ? { level: 0 } : {})));
+			const names = localHeaderNames(new Uint8Array(await blob.arrayBuffer()));
+			if (names != "0.txt,1.txt,2.txt,3.txt") {
+				throw new Error("stored " + stored + " slowIndex " + slowIndex + " -> " + names);
+			}
+			const zipReader = new zip.ZipReader(new zip.BlobReader(blob));
+			await zipReader.getEntries();
+			const { warnings } = zipReader;
+			await zipReader.close();
+			if (warnings.length) {
+				throw new Error(warnings.map(warning => warning.reason).join(","));
+			}
+		}
+	}
+}
+
+function localHeaderNames(data) {
+	const names = [];
+	for (let offset = 0; offset + 30 < data.length; offset++) {
+		if (data[offset] == 0x50 && data[offset + 1] == 0x4b && data[offset + 2] == 0x03 && data[offset + 3] == 0x04) {
+			const filenameLength = data[offset + 26] | (data[offset + 27] << 8);
+			names.push(new TextDecoder().decode(data.subarray(offset + 30, offset + 30 + filenameLength)));
+		}
+	}
+	return names.join(",");
 }
 
 // a failed entry must not hang the batch, must not appear in the central directory, and
@@ -69,6 +104,10 @@ async function testFailureDoesNotReorderOrPollute() {
 	const { filenames, contents } = await readZip(blob);
 	if (filenames != "first.txt,last.txt" || contents != "first,last") {
 		throw new Error(filenames + " | " + contents);
+	}
+	const names = localHeaderNames(new Uint8Array(await blob.arrayBuffer()));
+	if (names != "first.txt,last.txt") {
+		throw new Error(names);
 	}
 }
 
