@@ -117,6 +117,9 @@ async function testUsdz() {
 		root.addUint8Array("b.bin", new Uint8Array(7).fill(66));
 		root.addDirectory("d2");
 	}, { level: 0, usdz: true });
+	// the alignment padding of a lone entry is determined, there is no other order to write it in
+	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, usdz: true, keepOrder: false });
+	await assertExportedSize(() => { }, { level: 0, usdz: true, keepOrder: false });
 }
 
 async function testEncrypted() {
@@ -185,7 +188,10 @@ async function testUndeterminedSize() {
 		root.addDirectory("docs").addText("readme.txt", TEXT_CONTENT);
 		root.addText("root.txt", TEXT_CONTENT);
 	}, { level: 0, usdz: true });
-	await assertUndeterminedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, usdz: true, keepOrder: false });
+	await assertUndeterminedSize(root => {
+		root.addText("text.txt", TEXT_CONTENT, { keepOrder: false });
+		root.addText("other.txt", TEXT_CONTENT, { keepOrder: false });
+	}, { level: 0, usdz: true });
 	await assertUndeterminedSize(root => {
 		root.addText("text.txt", TEXT_CONTENT, { keepOrder: false });
 		root.addText("other.txt", TEXT_CONTENT);

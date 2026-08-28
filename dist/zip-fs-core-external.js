@@ -7135,7 +7135,6 @@ async function getEntriesSize(writerOptions, entries, writeOrderGuaranteed, comm
 	}
 	const usdz = writerOptions[OPTION_USDZ];
 	const files = new Map();
-	let layoutDependsOnWriteOrder = Boolean(usdz);
 	const initialOffset = writerOptions[OPTION_OFFSET] === UNDEFINED_VALUE ? 0 : writerOptions[OPTION_OFFSET];
 	let offset = initialOffset;
 	let minimumEntrySize = INFINITY_VALUE;
@@ -7181,9 +7180,7 @@ async function getEntriesSize(writerOptions, entries, writeOrderGuaranteed, comm
 		minimumEntrySize = Math.min(minimumEntrySize, entrySize);
 		offset += entrySize;
 	}
-	if (files.size > 1 && offset - minimumEntrySize >= MAX_32_BITS) {
-		layoutDependsOnWriteOrder = true;
-	}
+	const layoutDependsOnWriteOrder = files.size > 1 && (usdz || offset - minimumEntrySize >= MAX_32_BITS);
 	if (layoutDependsOnWriteOrder && !writeOrderGuaranteed) {
 		throw new Error(ERR_UNDETERMINED_SIZE);
 	}
