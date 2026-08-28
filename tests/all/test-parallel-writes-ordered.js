@@ -19,9 +19,11 @@ async function test() {
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
 	const entries = await zipReader.getEntries();
 	await zip.terminateWorkers();
-	if (JSON.stringify(ENTRIES_DATA.map(entry => entry.name)) !=
-		JSON.stringify(entries.sort((entry1, entry2) => entry1.offset - entry2.offset).map(entry => entry.filename))) {
-		throw new Error();
+	const expectedNames = JSON.stringify(ENTRIES_DATA.map(entryData => entryData.name));
+	const centralDirectoryNames = JSON.stringify(entries.map(entry => entry.filename));
+	const physicalNames = JSON.stringify(entries.slice().sort((entry1, entry2) => entry1.offset - entry2.offset).map(entry => entry.filename));
+	if (centralDirectoryNames != expectedNames || physicalNames != expectedNames) {
+		throw new Error(centralDirectoryNames + " | " + physicalNames);
 	}
 }
 

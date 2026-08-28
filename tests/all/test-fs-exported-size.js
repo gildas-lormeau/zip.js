@@ -75,6 +75,8 @@ async function testEntryOptions() {
 	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, bufferedWrite: false });
 	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, offset: 1024 });
 	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, offset: 4 * 1024 * 1024 * 1024 });
+	// a single entry has no other order to be written in, past 4GB or not
+	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, offset: 4 * 1024 * 1024 * 1024, keepOrder: false });
 	await assertExportedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, globalComment: new TextEncoder().encode("a global comment") });
 }
 

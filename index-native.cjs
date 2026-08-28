@@ -7146,7 +7146,7 @@ async function getEntriesSize(writerOptions, entries, writeOrderGuaranteed, comm
 		minimumEntrySize = Math.min(minimumEntrySize, entrySize);
 		offset += entrySize;
 	}
-	if (files.size && offset - minimumEntrySize >= MAX_32_BITS) {
+	if (files.size > 1 && offset - minimumEntrySize >= MAX_32_BITS) {
 		layoutDependsOnWriteOrder = true;
 	}
 	if (layoutDependsOnWriteOrder && !writeOrderGuaranteed) {
