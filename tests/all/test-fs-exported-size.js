@@ -184,6 +184,10 @@ async function testUndeterminedSize() {
 		root.addText("root.txt", TEXT_CONTENT);
 	}, { level: 0, usdz: true });
 	await assertUndeterminedSize(root => root.addText("text.txt", TEXT_CONTENT), { level: 0, usdz: true, keepOrder: false });
+	await assertUndeterminedSize(root => {
+		root.addText("text.txt", TEXT_CONTENT, { keepOrder: false });
+		root.addText("other.txt", TEXT_CONTENT);
+	}, { level: 0, usdz: true });
 	await testOrderDependentZip64Offsets();
 }
 
