@@ -1467,8 +1467,10 @@ export class ZipReader<Type> {
    * {@link WARNING_UNKNOWN_VERSION} (the low byte of the "version needed to extract" field exceeds the highest
    * known zip specification version; the high byte is ignored because some writers store a host identifier in it),
    * {@link WARNING_COMPRESSED_PATCHED_DATA} (bit 5 of the general purpose bit flag),
-   * {@link WARNING_MALFORMED_EXTRA_FIELD}, {@link WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA} and
-   * {@link WARNING_WRAPPED_ENTRIES_COUNT}. The other reasons are the checks that
+   * {@link WARNING_MALFORMED_EXTRA_FIELD}, {@link WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA},
+   * {@link WARNING_WRAPPED_ENTRIES_COUNT} and {@link WARNING_PREPENDED_CENTRAL_DIRECTORY} (the prepended data
+   * holds a central directory of its own, i.e. another archive precedes this one and other readers may report
+   * its entries instead). The other reasons are the checks that
    * `strictness: "strict"` rejects with {@link ERR_AMBIGUOUS_ARCHIVE}: when the effective strictness tolerates
    * one of them and the evidence is already in hand, the same reason string is deposited as a warning instead —
    * {@link WARNING_APPENDED_DATA}, {@link WARNING_PREPENDED_DATA}, {@link WARNING_TRAILING_CENTRAL_DIRECTORY_DATA},
@@ -4842,6 +4844,19 @@ export const WARNING_APPENDED_DATA: string;
  * {@link ERR_AMBIGUOUS_ARCHIVE} under `strictness: "strict"`
  */
 export const WARNING_PREPENDED_DATA: string;
+/**
+ * Warning reason: the data prepended before the zip file holds a central directory of its own, i.e. the zip file
+ * is preceded by another archive rather than by an arbitrary prefix such as a self-extracting stub
+ * (see {@link ZipReader#warnings})
+ *
+ * @remarks
+ * Readers disagree on such files: zip.js reads the last archive, as Info-ZIP `unzip` and Python's `zipfile` do,
+ * whereas 7-Zip reads the first one and reports the rest as data after the end of the archive. The archive is
+ * therefore ambiguous, and the entries reported here may not be the entries another tool reports. It is always
+ * accompanied by {@link WARNING_PREPENDED_DATA}, which alone does not distinguish this case from a benign prefix.
+ * Use `strictness: "strict"` to reject these archives instead, at the cost of also rejecting benign prefixes.
+ */
+export const WARNING_PREPENDED_CENTRAL_DIRECTORY: string;
 /**
  * Warning reason: data lies between the end of the central directory records and the end of central directory
  * record, either inside the declared central directory length or beyond it (see {@link ZipReader#warnings});

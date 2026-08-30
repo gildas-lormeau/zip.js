@@ -4743,6 +4743,7 @@ const WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA = "unknown zip64 extensible data";
 const WARNING_WRAPPED_ENTRIES_COUNT = "wrapped entries count";
 const WARNING_APPENDED_DATA = "appended data";
 const WARNING_PREPENDED_DATA = "prepended data";
+const WARNING_PREPENDED_CENTRAL_DIRECTORY = "prepended central directory";
 const WARNING_TRAILING_CENTRAL_DIRECTORY_DATA = "trailing central directory data";
 const WARNING_DUPLICATE_FILENAME = "duplicate filename";
 const WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY = "mismatched zip64 end of central directory record";
@@ -4836,6 +4837,7 @@ class ZipReader {
 		let diskNumber = getUint16$1(endOfDirectoryView, 6);
 		let filesLength = getUint16$1(endOfDirectoryView, 10);
 		let prependedDataLength = 0;
+		let prependedCentralDirectory;
 		let startOffset;
 		let zip64EndOfDirectory;
 		let zip64EndOfDirectoryVersion2;
@@ -4939,6 +4941,7 @@ class ZipReader {
 					directoryDataOffset = expectedDirectoryDataOffset;
 					if (directoryDataOffset > originalDirectoryDataOffset) {
 						prependedDataLength += directoryDataOffset - originalDirectoryDataOffset;
+						prependedCentralDirectory = storedPointsAtDirectory;
 					}
 					directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
 					directoryView = getDataView(directoryArray);
@@ -5165,6 +5168,9 @@ class ZipReader {
 		}
 		if (prependedDataLength || (filesLength && startOffset > SPLIT_ZIP_FILE_SIGNATURE_LENGTH)) {
 			addWarning(warnings, WARNING_PREPENDED_DATA);
+		}
+		if (prependedCentralDirectory) {
+			addWarning(warnings, WARNING_PREPENDED_CENTRAL_DIRECTORY);
 		}
 		if (extractPrependedData) {
 			zipReader.prependedData = startOffset > splitZipSignatureLength ?
@@ -6226,6 +6232,7 @@ var zipReader = /*#__PURE__*/Object.freeze({
 	WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD: WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD,
 	WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES: WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES,
 	WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY: WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY,
+	WARNING_PREPENDED_CENTRAL_DIRECTORY: WARNING_PREPENDED_CENTRAL_DIRECTORY,
 	WARNING_PREPENDED_DATA: WARNING_PREPENDED_DATA,
 	WARNING_TRAILING_CENTRAL_DIRECTORY_DATA: WARNING_TRAILING_CENTRAL_DIRECTORY_DATA,
 	WARNING_UNKNOWN_VERSION: WARNING_UNKNOWN_VERSION,
@@ -10989,6 +10996,7 @@ exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG = WARNING_MISMATCHED_LOCAL
 exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD = WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD;
 exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES = WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES;
 exports.WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY = WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY;
+exports.WARNING_PREPENDED_CENTRAL_DIRECTORY = WARNING_PREPENDED_CENTRAL_DIRECTORY;
 exports.WARNING_PREPENDED_DATA = WARNING_PREPENDED_DATA;
 exports.WARNING_TRAILING_CENTRAL_DIRECTORY_DATA = WARNING_TRAILING_CENTRAL_DIRECTORY_DATA;
 exports.WARNING_UNKNOWN_VERSION = WARNING_UNKNOWN_VERSION;

@@ -166,8 +166,10 @@ Two kinds of reasons are deposited. Observations are always non-fatal: [WARNING\
 [WARNING\_UNKNOWN\_VERSION](../variables/WARNING_UNKNOWN_VERSION.md) (the low byte of the "version needed to extract" field exceeds the highest
 known zip specification version; the high byte is ignored because some writers store a host identifier in it),
 [WARNING\_COMPRESSED\_PATCHED\_DATA](../variables/WARNING_COMPRESSED_PATCHED_DATA.md) (bit 5 of the general purpose bit flag),
-[WARNING\_MALFORMED\_EXTRA\_FIELD](../variables/WARNING_MALFORMED_EXTRA_FIELD.md), [WARNING\_UNKNOWN\_ZIP64\_EXTENSIBLE\_DATA](../variables/WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA.md) and
-[WARNING\_WRAPPED\_ENTRIES\_COUNT](../variables/WARNING_WRAPPED_ENTRIES_COUNT.md). The other reasons are the checks that
+[WARNING\_MALFORMED\_EXTRA\_FIELD](../variables/WARNING_MALFORMED_EXTRA_FIELD.md), [WARNING\_UNKNOWN\_ZIP64\_EXTENSIBLE\_DATA](../variables/WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA.md),
+[WARNING\_WRAPPED\_ENTRIES\_COUNT](../variables/WARNING_WRAPPED_ENTRIES_COUNT.md) and [WARNING\_PREPENDED\_CENTRAL\_DIRECTORY](../variables/WARNING_PREPENDED_CENTRAL_DIRECTORY.md) (the prepended data
+holds a central directory of its own, i.e. another archive precedes this one and other readers may report
+its entries instead). The other reasons are the checks that
 `strictness: "strict"` rejects with [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md): when the effective strictness tolerates
 one of them and the evidence is already in hand, the same reason string is deposited as a warning instead —
 [WARNING\_APPENDED\_DATA](../variables/WARNING_APPENDED_DATA.md), [WARNING\_PREPENDED\_DATA](../variables/WARNING_PREPENDED_DATA.md), [WARNING\_TRAILING\_CENTRAL\_DIRECTORY\_DATA](../variables/WARNING_TRAILING_CENTRAL_DIRECTORY_DATA.md),

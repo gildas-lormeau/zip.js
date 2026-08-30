@@ -16,6 +16,7 @@ async function test() {
 		await checkCleanArchive();
 		await checkAppendedData();
 		await checkPrependedData();
+		await checkPrependedCentralDirectory();
 		await checkUnknownVersion();
 		await checkCompressedPatchedData();
 		await checkUnsortedCentralDirectory();
@@ -52,6 +53,23 @@ async function checkPrependedData() {
 	assertWarning(reader.warnings, zip.WARNING_PREPENDED_DATA);
 	assert(entries.length == 2, "the entries must stay readable behind prepended data");
 	await assertStrictRejection(data, zip.WARNING_PREPENDED_DATA);
+}
+
+// two archives with the same layout concatenated: the stored central directory offset of the last
+// one lands exactly on the central directory of the first, so both offsets dereference and readers
+// disagree on which archive the file holds (7-Zip reports the first, Info-ZIP and zip.js the last)
+async function checkPrependedCentralDirectory() {
+	const archive = await buildArchive();
+	const data = concat(archive, await buildArchive());
+	const { reader, entries } = await readEntries(data);
+	assertWarning(reader.warnings, zip.WARNING_PREPENDED_CENTRAL_DIRECTORY);
+	assertWarning(reader.warnings, zip.WARNING_PREPENDED_DATA);
+	assert(entries.length == 2, "the entries of the last archive must be reported");
+	await assertStrictRejection(data, zip.WARNING_PREPENDED_DATA);
+	const { reader: benignReader } = await readEntries(concat(new Uint8Array(archive.length), archive));
+	assertWarning(benignReader.warnings, zip.WARNING_PREPENDED_DATA);
+	assert(!benignReader.warnings.some(warning => warning.reason == zip.WARNING_PREPENDED_CENTRAL_DIRECTORY),
+		"a prefix holding no central directory must not deposit the warning");
 }
 
 async function checkUnknownVersion() {
