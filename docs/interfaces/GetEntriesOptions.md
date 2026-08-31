@@ -46,6 +46,9 @@ false
 
 The encoding of the comment of the entry.
 
+The option is ignored when the general purpose bit 11 is set in the header of the entry, see
+[GetEntriesOptions#filenameEncoding](#filenameencoding).
+
 ***
 
 ### filenameEncoding?
@@ -53,6 +56,10 @@ The encoding of the comment of the entry.
 > `optional` **filenameEncoding?**: `string`
 
 The encoding of the filename of the entry.
+
+The option is ignored when the general purpose bit 11 is set in the header of the entry: such a
+filename is always decoded as UTF-8. It is only read when the bit is not set, and the filename is
+then decoded as IBM Code Page 437 when the option is not set either.
 
 ***
 

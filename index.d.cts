@@ -1594,10 +1594,17 @@ export interface ZipReaderGetEntriesOptions
 export interface GetEntriesOptions {
   /**
    * The encoding of the filename of the entry.
+   *
+   * The option is ignored when the general purpose bit 11 is set in the header of the entry: such a
+   * filename is always decoded as UTF-8. It is only read when the bit is not set, and the filename is
+   * then decoded as IBM Code Page 437 when the option is not set either.
    */
   filenameEncoding?: string;
   /**
    * The encoding of the comment of the entry.
+   *
+   * The option is ignored when the general purpose bit 11 is set in the header of the entry, see
+   * {@link GetEntriesOptions#filenameEncoding}.
    */
   commentEncoding?: string;
   /**
@@ -3244,6 +3251,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * Note that this option only sets the flag, it does not ensure that the file names are in the correct
    * encoding: when it is set to `false`, the names are still encoded in UTF-8 unless the
    * {@link ZipWriterConstructorOptions#encodeText} option is also set to encode them in the intended code page.
+   * Setting it to `false` alone therefore produces an archive whose file names are mislabeled, holding UTF-8
+   * bytes announced as Code Page 437: the names holding characters outside of ASCII are decoded incorrectly
+   * by the readers honoring the flag, including {@link ZipReader} unless
+   * {@link GetEntriesOptions#filenameEncoding} is set to `"utf-8"`.
    *
    * @defaultValue true
    */
@@ -3457,6 +3468,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   compressionMethod?: number;
   /**
    * The function called for encoding the filename and the comment of the entry.
+   *
+   * zip.js encodes them in UTF-8 when the option is not set, so it must be set to write them in another
+   * code page, together with {@link ZipWriterConstructorOptions#useUnicodeFileNames} set to `false` to
+   * announce them as Code Page 437 instead of UTF-8.
    *
    * @param text The text to encode.
    * @param type The type of the encoded text, `"filename"` or `"comment"`.

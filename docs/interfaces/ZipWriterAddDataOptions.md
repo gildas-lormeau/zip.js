@@ -883,6 +883,10 @@ Language Encoding (EFS)), `false` to mark the names as compliant with the origin
 Note that this option only sets the flag, it does not ensure that the file names are in the correct
 encoding: when it is set to `false`, the names are still encoded in UTF-8 unless the
 [ZipWriterConstructorOptions#encodeText](ZipWriterConstructorOptions.md#encodetext) option is also set to encode them in the intended code page.
+Setting it to `false` alone therefore produces an archive whose file names are mislabeled, holding UTF-8
+bytes announced as Code Page 437: the names holding characters outside of ASCII are decoded incorrectly
+by the readers honoring the flag, including [ZipReader](../classes/ZipReader.md) unless
+[GetEntriesOptions#filenameEncoding](GetEntriesOptions.md#filenameencoding) is set to `"utf-8"`.
 
 #### Default Value
 
@@ -1005,6 +1009,10 @@ false
 > `optional` **encodeText**(`text`, `type`): `Uint8Array`\<`ArrayBufferLike`\> \| `undefined`
 
 The function called for encoding the filename and the comment of the entry.
+
+zip.js encodes them in UTF-8 when the option is not set, so it must be set to write them in another
+code page, together with [ZipWriterConstructorOptions#useUnicodeFileNames](ZipWriterConstructorOptions.md#useunicodefilenames) set to `false` to
+announce them as Code Page 437 instead of UTF-8.
 
 #### Parameters
 
