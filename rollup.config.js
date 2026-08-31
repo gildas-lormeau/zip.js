@@ -70,7 +70,8 @@ const bundledTerserOptions = {
 		}
 	},
 	format: {
-		comments: /webpackIgnore|@vite-ignore/
+		comments: /webpackIgnore|@vite-ignore/,
+		ascii_only: true
 	}
 };
 
@@ -84,6 +85,9 @@ const inlineTerserOptions = {
 		properties: {
 			reserved: reservedPropertyNames
 		}
+	},
+	format: {
+		ascii_only: true
 	}
 };
 
@@ -174,6 +178,33 @@ function workerBundleEntry({ input, name, mangle }) {
 	};
 }
 
+const outputFiles = new Set();
+
+function collectOutputFiles() {
+	return {
+		name: "collect-output-files",
+		writeBundle({ file }) {
+			outputFiles.add(file);
+		}
+	};
+}
+
+function checkAsciiOnlyOutput() {
+	return {
+		name: "check-ascii-only-output",
+		closeBundle() {
+			const nonAsciiFiles = [...outputFiles].filter(file =>
+				[...fs.readFileSync(path.resolve(__dirname, file), "utf8")].some(character => character.codePointAt(0) > 0x7f));
+			if (nonAsciiFiles.length) {
+				throw new Error("non-ASCII characters in the build output: " + nonAsciiFiles.join(" ") +
+					"\n  every non-ASCII character must be written with an escape sequence, in the source and in the" +
+					" comments, so that the library still decodes CP437 file names when it is parsed as something" +
+					" else than UTF-8, e.g. inlined in a page declaring another charset");
+			}
+		}
+	};
+}
+
 const config = [
 	inlineWorkerEntry({ input: "lib/core/web-worker-inline-template.js", file: "lib/core/web-worker-inline-wasm.js", deflate: false, mangle: true }),
 	inlineWorkerEntry({ input: "lib/core/web-worker-inline-template-native.js", file: "lib/core/web-worker-inline-native.js", deflate: true, mangle: false }),
@@ -199,9 +230,12 @@ const config = [
 	workerBundleEntry({ input: "lib/core/web-worker-native.js", name: "zip-web-worker-native", mangle: false })
 ];
 
+config.forEach(entry => entry.plugins = [...(entry.plugins || []), collectOutputFiles()]);
+
+const lastEntry = config[config.length - 1];
+lastEntry.plugins = [...lastEntry.plugins, checkAsciiOnlyOutput()];
 if (!DEV) {
-	const lastEntry = config[config.length - 1];
-	lastEntry.plugins = [...(lastEntry.plugins || []), checkMangledPropertyNames()];
+	lastEntry.plugins = [...lastEntry.plugins, checkMangledPropertyNames()];
 }
 
 export default config;
