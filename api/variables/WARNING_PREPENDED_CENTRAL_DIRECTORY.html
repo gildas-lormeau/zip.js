@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>ERR_INVALID_SIGNATURE | @zip.js/zip.js</title><meta name="description" content="Documentation for @zip.js/zip.js"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>WARNING_PREPENDED_CENTRAL_DIRECTORY | @zip.js/zip.js</title><meta name="description" content="Documentation for @zip.js/zip.js"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container"><a href="../index.html" class="title">@zip.js/zip.js</a>
 <div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
@@ -8,17 +8,23 @@
 <div class="col-content">
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
-<li><a href="" aria-current="page">ERR_INVALID_SIGNATURE</a></li></ul>
-<h1 class="deprecated">Variable ERR_INVALID_SIGNATURE<code class="tsd-tag">Const</code></h1></div>
-<div class="tsd-signature"><span class="tsd-kind-variable">ERR_INVALID_SIGNATURE</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-<div class="tsd-comment tsd-typography"><p>Invalid signature error</p>
+<li><a href="" aria-current="page">WARNING_PREPENDED_CENTRAL_DIRECTORY</a></li></ul>
+<h1>Variable WARNING_PREPENDED_CENTRAL_DIRECTORY<code class="tsd-tag">Const</code></h1></div>
+<div class="tsd-signature"><span class="tsd-kind-variable">WARNING_PREPENDED_CENTRAL_DIRECTORY</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+<div class="tsd-comment tsd-typography"><p>Warning reason: the data prepended before the zip file holds a central directory of its own, i.e. the zip file
+is preceded by another archive rather than by an arbitrary prefix such as a self-extracting stub
+(see <a href="../classes/ZipReader.html#warnings" class="tsd-kind-property">ZipReader#warnings</a>)</p>
 </div>
 <div class="tsd-comment tsd-typography">
-<div class="tsd-tag-deprecated">
-<h4 class="tsd-anchor-link" id="deprecated">Deprecated<a href="#deprecated" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Use <a href="ERR_INVALID_CRC32.html" class="tsd-kind-variable">ERR_INVALID_CRC32</a> or <a href="ERR_INVALID_AUTHENTICATION_CODE.html" class="tsd-kind-variable">ERR_INVALID_AUTHENTICATION_CODE</a> instead.</p>
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Readers disagree on such files: zip.js reads the last archive, as Info-ZIP <code>unzip</code> and Python's <code>zipfile</code> do,
+whereas 7-Zip reads the first one and reports the rest as data after the end of the archive. The archive is
+therefore ambiguous, and the entries reported here may not be the entries another tool reports. It is always
+accompanied by <a href="WARNING_PREPENDED_DATA.html" class="tsd-kind-variable">WARNING_PREPENDED_DATA</a>, which alone does not distinguish this case from a benign prefix.
+Use <code>strictness: &quot;strict&quot;</code> to reject these archives instead, at the cost of also rejecting benign prefixes.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L4491">index.d.ts:4491</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L4859">index.d.ts:4859</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
