@@ -187,10 +187,6 @@
 		</ul>
 
 		<h2>Installation</h2>
-		<p><strong>Warning:</strong> Make sure that the code is parsed in UTF-8, e.g. served with the HTTP header
-			"<code>Content-Type: application/javascript; charset=utf-8</code>", otherwise filenames might be corrupted
-			when reading zip files.
-		</p>
 		<p>You can get the code via:</p>
 		<ul>
 			<li><a href="https://jsr.io/@zip-js/zip-js">JSR</a> by importing zip.js as an ECMAScript module:
@@ -224,9 +220,7 @@
 
 			</li>
 			<li>or as a regular script:
-				<pre><code class="prettyprint">&lt;meta charset=&quot;utf-8&quot;&gt; &lt;!-- make sure the script is parsed in UTF-8 --&gt;
-...
-&lt;script type=&quot;text/javascript&quot; src=&quot;/library_path/zip.min.js&quot;&gt;&lt;/script&gt;
+				<pre><code class="prettyprint">&lt;script type=&quot;text/javascript&quot; src=&quot;/library_path/zip.min.js&quot;&gt;&lt;/script&gt;
 &lt;script&gt;
   // the zip API is in the `zip` global variable
   // ...
