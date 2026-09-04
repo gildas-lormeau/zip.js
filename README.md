@@ -113,6 +113,8 @@ const nestedText = await importedZipFs.find("folder/hello.txt").getText();
 console.log(helloWorldText, nestedText);
 ```
 
+Run the code on JSFiddle: https://jsfiddle.net/gcnret0x/
+
 ## Hello world with Streams
 
 ```js
