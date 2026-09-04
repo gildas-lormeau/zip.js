@@ -218,7 +218,12 @@ The internal file attribute.
 
 `true` to keep the order of the entry physically in the zip file.
 
-When set to `true`, the use of web workers will be improved.
+#### Remarks
+
+The entries are then written one after another, so concurrent calls to [ZipWriter#add](../classes/ZipWriter.md#add) compress one
+entry at a time and use a single web worker. Set [ZipWriterConstructorOptions#bufferedWrite](#bufferedwrite) to `true`
+to compress them concurrently while still keeping the order, at the cost of buffering each entry until the
+previous ones are written.
 
 #### Default Value
 
