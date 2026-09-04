@@ -12,7 +12,16 @@
 <h1>Class ZipDirectoryEntry</h1></div>
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>Represents a directory entry in the zip (Filesystem API).</p>
-</div></section>
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The <code>name</code> passed to an <code>{@link ZipDirectoryEntry}#add*()</code> method is split into path
+components, exactly like the filename of an imported entry, so <code>addText(&quot;a/b.txt&quot;, text)</code> adds
+<code>&quot;b.txt&quot;</code> to the <code>&quot;a&quot;</code> directory and creates that directory when it does not exist. Empty
+components and <code>&quot;.&quot;</code> components are ignored. The directories created that way are navigable like
+any other entry but are not written when the tree is exported, so the zip file holds the same
+entries whichever way the path was built.</p>
+</div></div></section>
 <section class="tsd-panel tsd-hierarchy" data-refl="1227">
 <h4>Hierarchy (<a href="../hierarchy.html#ZipDirectoryEntry">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
@@ -20,7 +29,7 @@
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">ZipDirectoryEntry</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3748">index.d.ts:3748</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3788">index.d.ts:3788</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -98,7 +107,7 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#children">children</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3553">index.d.ts:3553</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3571">index.d.ts:3571</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="data"><code class="tsd-tag">Optional</code><span>data</span><a href="#data" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">data</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/EntryMetaData.html" class="tsd-signature-type tsd-kind-interface">EntryMetaData</a></div>
@@ -106,14 +115,14 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#data">data</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3533">index.d.ts:3533</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3548">index.d.ts:3548</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="directory"><span>directory</span><a href="#directory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">directory</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">true</span></div>
 <div class="tsd-comment tsd-typography"><p><code>true</code> for  <a href="#" class="tsd-kind-class">ZipDirectoryEntry</a> instances.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3752">index.d.ts:3752</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3792">index.d.ts:3792</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="id"><span>id</span><a href="#id" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
@@ -121,7 +130,7 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#id">id</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3537">index.d.ts:3537</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3552">index.d.ts:3552</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="name"><span>name</span><a href="#name" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
@@ -129,7 +138,7 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#name">name</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3529">index.d.ts:3529</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3544">index.d.ts:3544</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="options"><code class="tsd-tag">Optional</code> <code class="tsd-tag">Readonly</code><span>options</span><a href="#options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipWriterAddDataOptions.html" class="tsd-signature-type tsd-kind-interface">ZipWriterAddDataOptions</a></div>
@@ -137,13 +146,13 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>These are the options passed when the entry was added to the filesystem, updated by
+<h4 class="tsd-anchor-link" id="remarks-1">Remarks<a href="#remarks-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>These are the options passed when the entry was added to the filesystem, updated by
 <a href="ZipEntry.html#setoptions" class="tsd-kind-method">ZipEntry#setOptions</a>. An entry imported from a zip file has none until
 <a href="ZipEntry.html#setoptions" class="tsd-kind-method">ZipEntry#setOptions</a> is called.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#options">options</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3562">index.d.ts:3562</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3580">index.d.ts:3580</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="parent"><code class="tsd-tag">Optional</code><span>parent</span><a href="#parent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">parent</span><span class="tsd-signature-symbol">?:</span> <a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a></div>
@@ -151,7 +160,7 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#parent">parent</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3541">index.d.ts:3541</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3556">index.d.ts:3556</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="uncompressedsize"><span>uncompressed<wbr/>Size</span><a href="#uncompressedsize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">uncompressedSize</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
@@ -159,13 +168,15 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-1">Remarks<a href="#remarks-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>It is the size of the raw compressed content when the entry has been imported with the
+<h4 class="tsd-anchor-link" id="remarks-2">Remarks<a href="#remarks-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>It is the size of the raw compressed content when the entry has been imported with the
 <code>passThrough</code> option set to <code>true</code>, since the entry holds the compressed data in that case. The
 uncompressed size of the original entry remains available in <a href="ZipEntry.html#data" class="tsd-kind-property">ZipEntry#data</a>.</p>
+<p>It is updated by the <code>{@link ZipFileEntry}#replace*()</code> methods, and it is <code>0</code> for an entry holding
+a <code>ReadableStream</code> instance, whose size is only known once the entry has been read.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#uncompressedsize">uncompressedSize</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3549">index.d.ts:3549</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3567">index.d.ts:3567</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -192,7 +203,7 @@ uncompressed size of the original entry remains available in <a href="ZipEntry.h
 <h4 class="tsd-returns-title">Returns <a href="ZipFileEntry.html" class="tsd-signature-type tsd-kind-class">ZipFileEntry</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Blob</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">Blob</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A <a href="ZipFileEntry.html" class="tsd-kind-class">ZipFileEntry</a> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3809">index.d.ts:3809</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3849">index.d.ts:3849</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="adddata64uri"><span>add<wbr/>Data64<wbr/>URI</span><a href="#adddata64uri" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -216,7 +227,7 @@ uncompressed size of the original entry remains available in <a href="ZipEntry.h
 <h4 class="tsd-returns-title">Returns <a href="ZipFileEntry.html" class="tsd-signature-type tsd-kind-class">ZipFileEntry</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A <a href="ZipFileEntry.html" class="tsd-kind-class">ZipFileEntry</a> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3822">index.d.ts:3822</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3862">index.d.ts:3862</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="adddirectory"><span>add<wbr/>Directory</span><a href="#adddirectory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -237,7 +248,7 @@ uncompressed size of the original entry remains available in <a href="ZipEntry.h
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ZipDirectoryEntry</a></h4><p>A <a href="#" class="tsd-kind-class">ZipDirectoryEntry</a> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3784">index.d.ts:3784</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3824">index.d.ts:3824</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addfile"><span>add<wbr/>File</span><a href="#addfile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -258,7 +269,7 @@ uncompressed size of the original entry remains available in <a href="ZipEntry.h
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving to a <a href="ZipFileEntry.html" class="tsd-kind-class">ZipFileEntry</a> or a <a href="#" class="tsd-kind-class">ZipDirectoryEntry</a> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3873">index.d.ts:3873</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3913">index.d.ts:3913</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addfilesystementry"><span>add<wbr/>File<wbr/>System<wbr/>Entry</span><a href="#addfilesystementry" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -282,7 +293,7 @@ files, which is otherwise taken from each <code>FileSystemEntry</code> instance.
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving to an array of <a href="ZipFileEntry.html" class="tsd-kind-class">ZipFileEntry</a> or a <a href="#" class="tsd-kind-class">ZipDirectoryEntry</a> instances.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3885">index.d.ts:3885</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3925">index.d.ts:3925</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addfilesystemhandle"><span>add<wbr/>File<wbr/>System<wbr/>Handle</span><a href="#addfilesystemhandle" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -309,7 +320,7 @@ files, which is otherwise taken from each <code>FileSystemHandle</code> instance
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving to an array of <a href="ZipFileEntry.html" class="tsd-kind-class">ZipFileEntry</a> or a <a href="#" class="tsd-kind-class">ZipDirectoryEntry</a> instances.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3904">index.d.ts:3904</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3944">index.d.ts:3944</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addhttpcontent"><span>add<wbr/>Http<wbr/>Content</span><a href="#addhttpcontent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -333,7 +344,7 @@ files, which is otherwise taken from each <code>FileSystemHandle</code> instance
 <h4 class="tsd-returns-title">Returns <a href="ZipFileEntry.html" class="tsd-signature-type tsd-kind-class">ZipFileEntry</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A <a href="ZipFileEntry.html" class="tsd-kind-class">ZipFileEntry</a> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3848">index.d.ts:3848</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3888">index.d.ts:3888</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addreadable"><span>add<wbr/>Readable</span><a href="#addreadable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -357,7 +368,7 @@ files, which is otherwise taken from each <code>FileSystemHandle</code> instance
 <h4 class="tsd-returns-title">Returns <a href="ZipFileEntry.html" class="tsd-signature-type tsd-kind-class">ZipFileEntry</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A <a href="ZipFileEntry.html" class="tsd-kind-class">ZipFileEntry</a> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3861">index.d.ts:3861</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3901">index.d.ts:3901</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addtext"><span>add<wbr/>Text</span><a href="#addtext" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -381,7 +392,7 @@ files, which is otherwise taken from each <code>FileSystemHandle</code> instance
 <h4 class="tsd-returns-title">Returns <a href="ZipFileEntry.html" class="tsd-signature-type tsd-kind-class">ZipFileEntry</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A <a href="ZipFileEntry.html" class="tsd-kind-class">ZipFileEntry</a> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3796">index.d.ts:3796</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3836">index.d.ts:3836</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="adduint8array"><span>add<wbr/>Uint8<wbr/>Array</span><a href="#adduint8array" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -405,7 +416,7 @@ files, which is otherwise taken from each <code>FileSystemHandle</code> instance
 <h4 class="tsd-returns-title">Returns <a href="ZipFileEntry.html" class="tsd-signature-type tsd-kind-class">ZipFileEntry</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A <a href="ZipFileEntry.html" class="tsd-kind-class">ZipFileEntry</a> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3835">index.d.ts:3835</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3875">index.d.ts:3875</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="checkpassword"><span>check<wbr/>Password</span><a href="#checkpassword" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -422,7 +433,7 @@ files, which is otherwise taken from each <code>FileSystemHandle</code> instance
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#checkpassword">checkPassword</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3590">index.d.ts:3590</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3608">index.d.ts:3608</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="clone"><span>clone</span><a href="#clone" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -440,7 +451,7 @@ files, which is otherwise taken from each <code>FileSystemHandle</code> instance
 <h4 class="tsd-returns-title">Returns <a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a></h4><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#clone">clone</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3568">index.d.ts:3568</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3586">index.d.ts:3586</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="exportblob"><span>export<wbr/>Blob</span><a href="#exportblob" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -458,7 +469,7 @@ files, which is otherwise taken from each <code>FileSystemHandle</code> instance
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Blob</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving to the <code>Blob</code> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L4019">index.d.ts:4019</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L4059">index.d.ts:4059</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="exportdata64uri"><span>export<wbr/>Data64<wbr/>URI</span><a href="#exportdata64uri" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -476,7 +487,7 @@ files, which is otherwise taken from each <code>FileSystemHandle</code> instance
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving to the Data URI <code>string</code> encoded in Base64.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L4026">index.d.ts:4026</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L4066">index.d.ts:4066</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="exportfilesystemhandle"><span>export<wbr/>File<wbr/>System<wbr/>Handle</span><a href="#exportfilesystemhandle" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -515,12 +526,12 @@ files are overwritten.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-2">Remarks<a href="#remarks-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>An entry flagged as a symbolic link by <a href="../interfaces/EntryMetaData.html#symlink" class="tsd-kind-property">EntryMetaData#symlink</a> is written
+<h4 class="tsd-anchor-link" id="remarks-3">Remarks<a href="#remarks-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>An entry flagged as a symbolic link by <a href="../interfaces/EntryMetaData.html#symlink" class="tsd-kind-property">EntryMetaData#symlink</a> is written
 as a regular file whose content is the path of the link target, because the File System Access API cannot
 create symbolic links.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L4076">index.d.ts:4076</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L4116">index.d.ts:4116</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="exportuint8array"><span>export<wbr/>Uint8<wbr/>Array</span><a href="#exportuint8array" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -538,7 +549,7 @@ create symbolic links.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving to the <code>Uint8Array</code> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L4033">index.d.ts:4033</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L4073">index.d.ts:4073</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="exportwritable"><span>export<wbr/>Writable</span><a href="#exportwritable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -559,7 +570,7 @@ create symbolic links.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">WritableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving to the <code>Uint8Array</code> instance.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L4043">index.d.ts:4043</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L4083">index.d.ts:4083</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="exportzip"><span>export<wbr/>Zip</span><a href="#exportzip" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -580,7 +591,7 @@ create symbolic links.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></h4><p>A promise resolving to the data.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L4087">index.d.ts:4087</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L4127">index.d.ts:4127</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getchildbyname"><span>get<wbr/>Child<wbr/>By<wbr/>Name</span><a href="#getchildbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -598,7 +609,7 @@ create symbolic links.</p>
 <h4 class="tsd-returns-title">Returns <a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></h4><p>A <a href="ZipFileEntry.html" class="tsd-kind-class">ZipFileEntry</a> or a <a href="#" class="tsd-kind-class">ZipDirectoryEntry</a> instance (use the <a href="ZipFileEntry.html#directory" class="tsd-kind-property">ZipFileEntry#directory</a> and <a href="#directory" class="tsd-kind-property">ZipDirectoryEntry#directory</a> properties to differentiate entries).</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3759">index.d.ts:3759</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3799">index.d.ts:3799</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getchildren"><span>get<wbr/>Children</span><a href="#getchildren" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -617,7 +628,7 @@ create symbolic links.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-3">Remarks<a href="#remarks-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The returned array is a snapshot taken when the method is called: entries added or removed
+<h4 class="tsd-anchor-link" id="remarks-4">Remarks<a href="#remarks-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The returned array is a snapshot taken when the method is called: entries added or removed
 afterwards are not reflected, and an entry removed while the array is being iterated is still present
 but detached from the filesystem.</p>
 <p>With <code>recursive</code>, the descendants are ordered level by level, i.e. the children of a directory come
@@ -626,7 +637,7 @@ Node.js. This is also the order in which <code>{@link ZipDirectoryEntry}#export*
 <p>Unlike <a href="ZipFS.html#entries" class="tsd-kind-property">ZipFS#entries</a>, the directory itself is not included and removed entries leave no empty slot.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3776">index.d.ts:3776</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3816">index.d.ts:3816</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getexportedsize"><span>get<wbr/>Exported<wbr/>Size</span><a href="#getexportedsize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -651,7 +662,7 @@ otherwise. Encryption does not prevent it, the overhead of ZipCrypto and AES bei
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-4">Remarks<a href="#remarks-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Entries added with <a href="#addreadable" class="tsd-kind-method">ZipDirectoryEntry#addReadable</a> never have a known size, and
+<h4 class="tsd-anchor-link" id="remarks-5">Remarks<a href="#remarks-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Entries added with <a href="#addreadable" class="tsd-kind-method">ZipDirectoryEntry#addReadable</a> never have a known size, and
 entries added with <a href="#addhttpcontent" class="tsd-kind-method">ZipDirectoryEntry#addHttpContent</a> only get one once their content has
 been read. The returned size assumes a single output file, it does not apply to split zip files.</p>
 <p><a href="../variables/ERR_UNDETERMINED_SIZE.html" class="tsd-kind-variable">ERR_UNDETERMINED_SIZE</a> is also thrown when the size depends on the order in which the
@@ -659,14 +670,16 @@ entries are physically written, which the buffered write path only determines at
 This happens when <code>usdz</code> is set, since the alignment padding depends on the offset of each
 entry, and when the archive exceeds 4GB, since the offsets recorded in the central directory
 are then extended to 64 bits. Passing <code>bufferedWrite: false</code> makes both determinable again,
-as does exporting a directory whose children are all files. It is thrown as well when
+as does exporting a directory whose children are all files. A name holding <code>&quot;/&quot;</code> creates the
+directories it names, so <code>addText(&quot;a/b.txt&quot;, text)</code> builds a tree whose children are not all
+files, even though the directories created that way are not written. It is thrown as well when
 <code>signCentralDirectory</code> is set, the length of the signature being unknown until it is computed.</p>
 </div>
 <div class="tsd-tag-throws">
 <h4 class="tsd-anchor-link" id="throws">Throws<a href="#throws" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p><a href="../variables/ERR_UNDETERMINED_SIZE.html" class="tsd-kind-variable">ERR_UNDETERMINED_SIZE</a> if the size cannot be determined.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L4122">index.d.ts:4122</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L4164">index.d.ts:4164</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getfullname"><span>get<wbr/>Fullname</span><a href="#getfullname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -678,7 +691,7 @@ as does exporting a directory whose children are all files. It is thrown as well
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#getfullname">getFullname</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3572">index.d.ts:3572</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3590">index.d.ts:3590</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getrelativename"><span>get<wbr/>Relative<wbr/>Name</span><a href="#getrelativename" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -694,12 +707,12 @@ as does exporting a directory whose children are all files. It is thrown as well
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#getrelativename">getRelativeName</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3576">index.d.ts:3576</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3594">index.d.ts:3594</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="importblob"><span>import<wbr/>Blob</span><a href="#importblob" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="importblob-1"><span class="tsd-kind-call-signature">importBlob</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">blob</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Blob</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><a href="#importblob-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="importblob-1"><span class="tsd-kind-call-signature">importBlob</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">blob</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Blob</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipDirectoryEntryImportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><a href="#importblob-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Extracts a zip file provided as a <code>Blob</code> instance into the entry</p>
 </div>
@@ -709,32 +722,7 @@ as does exporting a directory whose children are all files. It is thrown as well
 <li><span><span class="tsd-kind-parameter">blob</span>: <span class="tsd-signature-type">Blob</span></span>
 <div class="tsd-comment tsd-typography"><p>The <code>Blob</code> instance.</p>
 </div></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a></span>
-<div class="tsd-comment tsd-typography"><p>The options.</p>
-</div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h4>
-<div class="tsd-comment tsd-typography">
-<div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-5">Remarks<a href="#remarks-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Use <a href="#importzip" class="tsd-kind-method">ZipDirectoryEntry#importZip</a> with a <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> instance to read the data of the
-zip file itself, e.g. its <a href="ZipReader.html#prependeddata" class="tsd-kind-property">ZipReader#prependedData</a> or its <a href="ZipReader.html#comment" class="tsd-kind-property">ZipReader#comment</a> property.</p>
-</div></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3917">index.d.ts:3917</a></li></ul></aside></div></li></ul></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="importdata64uri"><span>import<wbr/>Data64<wbr/>URI</span><a href="#importdata64uri" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
-<li class="">
-<div class="tsd-signature tsd-anchor-link" id="importdata64uri-1"><span class="tsd-kind-call-signature">importData64URI</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">dataURI</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><a href="#importdata64uri-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Extracts a zip file provided as a Data URI <code>string</code> encoded in Base64 into the entry</p>
-</div>
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">dataURI</span>: <span class="tsd-signature-type">string</span></span>
-<div class="tsd-comment tsd-typography"><p>The Data URI <code>string</code> encoded in Base64.</p>
-</div></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a></span>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ZipDirectoryEntryImportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportOptions</a></span>
 <div class="tsd-comment tsd-typography"><p>The options.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -744,7 +732,32 @@ zip file itself, e.g. its <a href="ZipReader.html#prependeddata" class="tsd-kind
 zip file itself, e.g. its <a href="ZipReader.html#prependeddata" class="tsd-kind-property">ZipReader#prependedData</a> or its <a href="ZipReader.html#comment" class="tsd-kind-property">ZipReader#comment</a> property.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3930">index.d.ts:3930</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3957">index.d.ts:3957</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="importdata64uri"><span>import<wbr/>Data64<wbr/>URI</span><a href="#importdata64uri" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="importdata64uri-1"><span class="tsd-kind-call-signature">importData64URI</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">dataURI</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipDirectoryEntryImportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><a href="#importdata64uri-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Extracts a zip file provided as a Data URI <code>string</code> encoded in Base64 into the entry</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">dataURI</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The Data URI <code>string</code> encoded in Base64.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ZipDirectoryEntryImportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportOptions</a></span>
+<div class="tsd-comment tsd-typography"><p>The options.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks-7">Remarks<a href="#remarks-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Use <a href="#importzip" class="tsd-kind-method">ZipDirectoryEntry#importZip</a> with a <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> instance to read the data of the
+zip file itself, e.g. its <a href="ZipReader.html#prependeddata" class="tsd-kind-property">ZipReader#prependedData</a> or its <a href="ZipReader.html#comment" class="tsd-kind-property">ZipReader#comment</a> property.</p>
+</div></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3970">index.d.ts:3970</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="importhttpcontent"><span>import<wbr/>Http<wbr/>Content</span><a href="#importhttpcontent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -765,16 +778,16 @@ zip file itself, e.g. its <a href="ZipReader.html#prependeddata" class="tsd-kind
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-7">Remarks<a href="#remarks-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Use <a href="#importzip" class="tsd-kind-method">ZipDirectoryEntry#importZip</a> with a <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> instance to read the data of the
+<h4 class="tsd-anchor-link" id="remarks-8">Remarks<a href="#remarks-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Use <a href="#importzip" class="tsd-kind-method">ZipDirectoryEntry#importZip</a> with a <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> instance to read the data of the
 zip file itself, e.g. its <a href="ZipReader.html#prependeddata" class="tsd-kind-property">ZipReader#prependedData</a> or its <a href="ZipReader.html#comment" class="tsd-kind-property">ZipReader#comment</a> property.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3956">index.d.ts:3956</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3996">index.d.ts:3996</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="importreadable"><span>import<wbr/>Readable</span><a href="#importreadable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="importreadable-1"><span class="tsd-kind-call-signature">importReadable</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">readable</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><a href="#importreadable-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="importreadable-1"><span class="tsd-kind-call-signature">importReadable</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">readable</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipDirectoryEntryImportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><a href="#importreadable-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Extracts a zip file provided via a <code>ReadableStream</code> instance into the entry</p>
 </div>
@@ -784,25 +797,25 @@ zip file itself, e.g. its <a href="ZipReader.html#prependeddata" class="tsd-kind
 <li><span><span class="tsd-kind-parameter">readable</span>: <span class="tsd-signature-type">ReadableStream</span></span>
 <div class="tsd-comment tsd-typography"><p>The <code>ReadableStream</code> instance.</p>
 </div></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a></span>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ZipDirectoryEntryImportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportOptions</a></span>
 <div class="tsd-comment tsd-typography"><p>The options.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-8">Remarks<a href="#remarks-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Use <a href="#importzip" class="tsd-kind-method">ZipDirectoryEntry#importZip</a> with a <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> instance to read the data of the
+<h4 class="tsd-anchor-link" id="remarks-9">Remarks<a href="#remarks-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Use <a href="#importzip" class="tsd-kind-method">ZipDirectoryEntry#importZip</a> with a <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> instance to read the data of the
 zip file itself, e.g. its <a href="ZipReader.html#prependeddata" class="tsd-kind-property">ZipReader#prependedData</a> or its <a href="ZipReader.html#comment" class="tsd-kind-property">ZipReader#comment</a> property.</p>
 <p>The stream is buffered entirely in memory, because reading a zip file requires random access. To import
 a large file without buffering it, use <a href="#importzip" class="tsd-kind-method">ZipDirectoryEntry#importZip</a> with a seekable input, see
 the <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> constructor remarks and the <a href="Reader.html" class="tsd-kind-class">Reader</a> examples.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3973">index.d.ts:3973</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L4013">index.d.ts:4013</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="importuint8array"><span>import<wbr/>Uint8<wbr/>Array</span><a href="#importuint8array" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="importuint8array-1"><span class="tsd-kind-call-signature">importUint8Array</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">array</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><a href="#importuint8array-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="importuint8array-1"><span class="tsd-kind-call-signature">importUint8Array</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">array</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipDirectoryEntryImportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><a href="#importuint8array-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Extracts a zip file provided as a <code>Uint8Array</code> instance into the entry</p>
 </div>
@@ -812,22 +825,22 @@ the <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> constructor re
 <li><span><span class="tsd-kind-parameter">array</span>: <span class="tsd-signature-type">Uint8Array</span></span>
 <div class="tsd-comment tsd-typography"><p>The <code>Uint8Array</code> instance.</p>
 </div></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a></span>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ZipDirectoryEntryImportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportOptions</a></span>
 <div class="tsd-comment tsd-typography"><p>The options.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-9">Remarks<a href="#remarks-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Use <a href="#importzip" class="tsd-kind-method">ZipDirectoryEntry#importZip</a> with a <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> instance to read the data of the
+<h4 class="tsd-anchor-link" id="remarks-10">Remarks<a href="#remarks-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Use <a href="#importzip" class="tsd-kind-method">ZipDirectoryEntry#importZip</a> with a <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> instance to read the data of the
 zip file itself, e.g. its <a href="ZipReader.html#prependeddata" class="tsd-kind-property">ZipReader#prependedData</a> or its <a href="ZipReader.html#comment" class="tsd-kind-property">ZipReader#comment</a> property.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3943">index.d.ts:3943</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3983">index.d.ts:3983</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="importzip"><span>import<wbr/>Zip</span><a href="#importzip" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="importzip-1"><span class="tsd-kind-call-signature">importZip</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">reader</span><span class="tsd-signature-symbol">:</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="ZipReader.html" class="tsd-signature-type tsd-kind-class">ZipReader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><a href="#importzip-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="importzip-1"><span class="tsd-kind-call-signature">importZip</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">reader</span><span class="tsd-signature-symbol">:</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><span class="tsd-signature-symbol">[]</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="ZipReader.html" class="tsd-signature-type tsd-kind-class">ZipReader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ZipDirectoryEntryImportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><a href="#importzip-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Extracts a zip file provided via a custom <a href="Reader.html" class="tsd-kind-class">Reader</a> instance or a <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> instance into
 the entry</p>
@@ -838,13 +851,13 @@ the entry</p>
 <li><span><span class="tsd-kind-parameter">reader</span>: <br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ReadableStream</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><br/>    <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="Reader.html" class="tsd-signature-type tsd-kind-class">Reader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="../interfaces/ReadableReader.html" class="tsd-signature-type tsd-kind-interface">ReadableReader</a><span class="tsd-signature-symbol">[]</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="ZipReader.html" class="tsd-signature-type tsd-kind-class">ZipReader</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></span>
 <div class="tsd-comment tsd-typography"><p>The <a href="Reader.html" class="tsd-kind-class">Reader</a> instance or the <a href="ZipReader.html" class="tsd-kind-class">ZipReader</a> instance.</p>
 </div></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a></span>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ZipDirectoryEntryImportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportOptions</a></span>
 <div class="tsd-comment tsd-typography"><p>The options.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a href="ZipEntry.html" class="tsd-signature-type tsd-kind-class">ZipEntry</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-10">Remarks<a href="#remarks-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The filename of each entry is split into path components to build the tree of entries. Empty
+<h4 class="tsd-anchor-link" id="remarks-11">Remarks<a href="#remarks-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The filename of each entry is split into path components to build the tree of entries. Empty
 components and <code>&quot;.&quot;</code> components are ignored, so <code>&quot;a//b.txt&quot;</code>, <code>&quot;./a/b.txt&quot;</code> and <code>&quot;a/./b.txt&quot;</code> all produce
 the same <code>&quot;a/b.txt&quot;</code> entry. Filenames are normalized and validated beforehand, see
 <a href="../interfaces/GetEntriesOptions.html#normalizefilename" class="tsd-kind-method">GetEntriesOptions#normalizeFilename</a> and <a href="../interfaces/GetEntriesOptions.html#filenamevalidation" class="tsd-kind-property">GetEntriesOptions#filenameValidation</a>.</p>
@@ -860,7 +873,7 @@ have read its entries yet when it is created over a <code>ReadableStream</code> 
 its remarks and the <a href="Reader.html" class="tsd-kind-class">Reader</a> examples for reading large seekable resources with random access.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L4002">index.d.ts:4002</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L4042">index.d.ts:4042</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="isdescendantof"><span>is<wbr/>Descendant<wbr/>Of</span><a href="#isdescendantof" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -878,7 +891,7 @@ its remarks and the <a href="Reader.html" class="tsd-kind-class">Reader</a> exam
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#isdescendantof">isDescendantOf</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3582">index.d.ts:3582</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3600">index.d.ts:3600</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="ispasswordprotected"><span>is<wbr/>Password<wbr/>Protected</span><a href="#ispasswordprotected" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -890,7 +903,7 @@ its remarks and the <a href="Reader.html" class="tsd-kind-class">Reader</a> exam
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#ispasswordprotected">isPasswordProtected</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3586">index.d.ts:3586</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3604">index.d.ts:3604</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="rename"><span>rename</span><a href="#rename" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -905,10 +918,18 @@ its remarks and the <a href="Reader.html" class="tsd-kind-class">Reader</a> exam
 <li><span><span class="tsd-kind-parameter">name</span>: <span class="tsd-signature-type">string</span></span>
 <div class="tsd-comment tsd-typography"><p>The new name of the entry.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks-12">Remarks<a href="#remarks-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A name holding <code>&quot;/&quot;</code> is split into path components, like the name passed to a
+<code>{@link ZipDirectoryEntry}#add*()</code> method, so it moves the entry into the directories it names,
+creating them when they do not exist. Renaming an entry to the name it already has does nothing.
+Renaming it onto an existing sibling throws an <a href="../variables/ERR_ENTRY_EXISTS.html" class="tsd-kind-variable">ERR_ENTRY_EXISTS</a> error, and renaming it
+into itself or into one of its descendants throws.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#rename">rename</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3599">index.d.ts:3599</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3623">index.d.ts:3623</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setoptions"><span>set<wbr/>Options</span><a href="#setoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -926,7 +947,7 @@ its remarks and the <a href="Reader.html" class="tsd-kind-class">Reader</a> exam
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-11">Remarks<a href="#remarks-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The options are merged into <a href="ZipEntry.html#options" class="tsd-kind-property">ZipEntry#options</a>, and an option set to <code>undefined</code> is removed
+<h4 class="tsd-anchor-link" id="remarks-13">Remarks<a href="#remarks-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The options are merged into <a href="ZipEntry.html#options" class="tsd-kind-property">ZipEntry#options</a>, and an option set to <code>undefined</code> is removed
 from it instead of being stored. They take precedence over the options passed to
 <code>{@link ZipDirectoryEntry}#export*()</code> and over the metadata of the entry they were imported from,
 exactly like the options passed when adding an entry to the filesystem.</p>
@@ -938,7 +959,7 @@ are ignored as well. Invalid option values are reported when the zip file is exp
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="ZipEntry.html">ZipEntry</a>.<a href="ZipEntry.html#setoptions">setOptions</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/0663cb7a4f3a48e0cf2fd70b4f503073e2fa4a8f/index.d.ts#L3617">index.d.ts:3617</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/f22bb1b76c652d69e8d56dc585df1ce9a42f7016/index.d.ts#L3641">index.d.ts:3641</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
