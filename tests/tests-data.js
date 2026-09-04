@@ -95,6 +95,7 @@ export default ([
 	{ title: "Data URI (small chunks)", script: "./test-data-uri-chunks.js" },
 	{ title: "Deflate64", script: "./test-deflate64.js" },
 	{ title: "Deflate64 (length code 285)", script: "./test-deflate64-length-code-285.js" },
+	{ title: "JS codec window wrap", script: "./test-js-codec-window-wrap.js" },
 	{ title: "Detect directory executable", script: "./test-detect-directory-exec.js" },
 	{ title: "Directory", script: "./test-directory.js" },
 	{ title: "Directory entry with data", script: "./test-directory-data.js" },
