@@ -223,22 +223,6 @@ true
 
 ***
 
-### ~~externalFileAttribute?~~
-
-> `optional` **externalFileAttribute?**: `number`
-
-The external file attribute.
-
-#### Deprecated
-
-Use [ZipWriterConstructorOptions#externalFileAttributes](ZipWriterConstructorOptions.md#externalfileattributes) instead.
-
-#### Inherited from
-
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`externalFileAttribute`](ZipWriterConstructorOptions.md#externalfileattribute)
-
-***
-
 ### externalFileAttributes?
 
 > `optional` **externalFileAttributes?**: `number`
@@ -278,22 +262,6 @@ The global comment of the zip file, see [ZipWriter#close](../classes/ZipWriter.m
 
 The [ZipWriterAddDataOptions#comment](ZipWriterAddDataOptions.md#comment) option is the comment of an entry: setting it here
 comments every entry of the exported zip file instead of the zip file itself.
-
-***
-
-### ~~internalFileAttribute?~~
-
-> `optional` **internalFileAttribute?**: `number`
-
-The internal file attribute.
-
-#### Deprecated
-
-Use [ZipWriterConstructorOptions#internalFileAttributes](ZipWriterConstructorOptions.md#internalfileattributes) instead.
-
-#### Inherited from
-
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`internalFileAttribute`](ZipWriterConstructorOptions.md#internalfileattribute)
 
 ***
 

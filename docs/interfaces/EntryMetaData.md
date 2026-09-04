@@ -99,18 +99,6 @@ are not meaningful, Unix systems store them as `0o777`.
 
 ***
 
-### ~~externalFileAttribute~~
-
-> **externalFileAttribute**: `number`
-
-The external file attribute (raw).
-
-#### Deprecated
-
-Use [EntryMetaData#externalFileAttributes](#externalfileattributes) instead.
-
-***
-
 ### externalFileAttributes
 
 > **externalFileAttributes**: `number`
@@ -262,18 +250,6 @@ The length of the filename in bytes.
 Unix group id when available.
 
 See [EntryMetaData#uid](#uid) for the fields storing the ids in the local file header only.
-
-***
-
-### ~~internalFileAttribute~~
-
-> **internalFileAttribute**: `number`
-
-The internal file attribute (raw).
-
-#### Deprecated
-
-Use [EntryMetaData#internalFileAttributes](#internalfileattributes) instead.
 
 ***
 

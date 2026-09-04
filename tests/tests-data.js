@@ -216,7 +216,7 @@ export default ([
 	{ title: "Worker loading error", script: "./test-worker-error.js", sanitizeResources: false },
 	{ title: "Worker message properties", script: "./test-worker-message-properties.js", env: ["deno", "bun", "browser"] },
 	{ title: "Props", script: "./test-props.js" },
-	{ title: "Deprecated attribute names", script: "./test-deprecated-attributes.js" },
+	{ title: "File attributes options", script: "./test-file-attributes-options.js" },
 	{ title: "Deprecated checkSignature option", script: "./test-deprecated-check-signature.js" },
 	{ title: "Symlink entries", script: "./test-symlink.js" },
 	{ title: "Unix file type", script: "./test-unix-file-type.js" },

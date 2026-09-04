@@ -153,18 +153,6 @@ true
 
 ***
 
-### ~~externalFileAttribute?~~
-
-> `optional` **externalFileAttribute?**: `number`
-
-The external file attribute.
-
-#### Deprecated
-
-Use [ZipWriterConstructorOptions#externalFileAttributes](#externalfileattributes) instead.
-
-***
-
 ### externalFileAttributes?
 
 > `optional` **externalFileAttributes?**: `number`
@@ -183,18 +171,6 @@ attribute for folder entries, Unix default permissions when `msDosCompatible` is
 > `optional` **gid?**: `number`
 
 The Unix group id to write in the Unix extra field or as part of the external attributes.
-
-***
-
-### ~~internalFileAttribute?~~
-
-> `optional` **internalFileAttribute?**: `number`
-
-The internal file attribute.
-
-#### Deprecated
-
-Use [ZipWriterConstructorOptions#internalFileAttributes](#internalfileattributes) instead.
 
 ***
 

@@ -146,22 +146,6 @@ are not meaningful, Unix systems store them as `0o777`.
 
 ***
 
-### ~~externalFileAttribute~~
-
-> **externalFileAttribute**: `number`
-
-The external file attribute (raw).
-
-#### Deprecated
-
-Use [EntryMetaData#externalFileAttributes](EntryMetaData.md#externalfileattributes) instead.
-
-#### Inherited from
-
-[`EntryMetaData`](EntryMetaData.md).[`externalFileAttribute`](EntryMetaData.md#externalfileattribute)
-
-***
-
 ### externalFileAttributes
 
 > **externalFileAttributes**: `number`
@@ -385,22 +369,6 @@ See [EntryMetaData#uid](EntryMetaData.md#uid) for the fields storing the ids in 
 #### Inherited from
 
 [`EntryMetaData`](EntryMetaData.md).[`gid`](EntryMetaData.md#gid)
-
-***
-
-### ~~internalFileAttribute~~
-
-> **internalFileAttribute**: `number`
-
-The internal file attribute (raw).
-
-#### Deprecated
-
-Use [EntryMetaData#internalFileAttributes](EntryMetaData.md#internalfileattributes) instead.
-
-#### Inherited from
-
-[`EntryMetaData`](EntryMetaData.md).[`internalFileAttribute`](EntryMetaData.md#internalfileattribute)
 
 ***
 

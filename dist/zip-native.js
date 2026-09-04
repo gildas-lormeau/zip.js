@@ -4550,8 +4550,6 @@
 	const PROPERTY_NAME_RAW_CREATION_DATE = "rawCreationDate";
 	const PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES = "internalFileAttributes";
 	const PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES = "externalFileAttributes";
-	const PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES = "internalFileAttribute";
-	const PROPERTY_NAME_DEPRECATED_EXTERNAL_FILE_ATTRIBUTES = "externalFileAttribute";
 	const PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW = "msdosAttributesRaw";
 	const PROPERTY_NAME_MSDOS_ATTRIBUTES = "msdosAttributes";
 	const PROPERTY_NAME_MS_DOS_COMPATIBLE = "msDosCompatible";
@@ -4610,8 +4608,6 @@
 		PROPERTY_NAME_DISK_NUMBER_START,
 		PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES,
 		PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES,
-		PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES,
-		PROPERTY_NAME_DEPRECATED_EXTERNAL_FILE_ATTRIBUTES,
 		PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW,
 		PROPERTY_NAME_MSDOS_ATTRIBUTES,
 		PROPERTY_NAME_MS_DOS_COMPATIBLE,
@@ -5079,8 +5075,6 @@
 					sticky,
 					symlink,
 					unixExternalUpper,
-					internalFileAttribute: fileEntry.internalFileAttributes,
-					externalFileAttribute: fileEntry.externalFileAttributes,
 					executable,
 					directory: modeIsDir || upperIsDir || (msDosCompatible && msdosAttributes.directory) || fileEntry.filename.endsWith(DIRECTORY_SIGNATURE),
 					zipCrypto: fileEntry.encrypted && !fileEntry.extraFieldAES
@@ -6700,9 +6694,7 @@
 		Object.assign(fileEntry, {
 			name,
 			comment,
-			extraField,
-			[PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES]: fileEntry.internalFileAttributes,
-			[PROPERTY_NAME_DEPRECATED_EXTERNAL_FILE_ATTRIBUTES]: fileEntry.externalFileAttributes
+			extraField
 		});
 		return new Entry(fileEntry);
 	}
@@ -6749,7 +6741,7 @@
 		if (versionMadeBy > MAX_16_BITS) {
 			throw new Error(ERR_INVALID_VERSION);
 		}
-		let externalFileAttributes = getAliasedOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_DEPRECATED_EXTERNAL_FILE_ATTRIBUTES);
+		let externalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_EXTERNAL_FILE_ATTRIBUTES);
 		const externalFileAttributesProvided = externalFileAttributes !== UNDEFINED_VALUE;
 		if (!externalFileAttributesProvided) {
 			externalFileAttributes = 0;
@@ -6859,7 +6851,7 @@
 		const rawLastModDate = getOptionValue(zipWriter, options, PROPERTY_NAME_RAW_LAST_MODIFICATION_DATE);
 		const lastAccessDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
 		const creationDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
-		const internalFileAttributes = getAliasedOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, PROPERTY_NAME_DEPRECATED_INTERNAL_FILE_ATTRIBUTES, 0);
+		const internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, 0);
 		const passThrough = getOptionValue(zipWriter, options, OPTION_PASS_THROUGH);
 		const password = getOptionValue(zipWriter, options, OPTION_PASSWORD);
 		const rawPassword = getOptionValue(zipWriter, options, OPTION_RAW_PASSWORD);
@@ -8251,16 +8243,6 @@
 
 	function getFunctionOptionValue(zipWriter, options, name) {
 		return checkFunctionOption(getOptionValue(zipWriter, options, name));
-	}
-
-	function getAliasedOptionValue(zipWriter, options, name, deprecatedName, defaultValue) {
-		const value = getAliasedValue(options, name, deprecatedName);
-		const result = value === UNDEFINED_VALUE ? getAliasedValue(zipWriter.options, name, deprecatedName) : value;
-		return result === UNDEFINED_VALUE ? defaultValue : result;
-	}
-
-	function getAliasedValue(options, name, deprecatedName) {
-		return options[name] === UNDEFINED_VALUE ? options[deprecatedName] : options[name];
 	}
 
 	function getNumberOptionValue(zipWriter, options, name, defaultValue) {

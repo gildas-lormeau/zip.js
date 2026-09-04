@@ -248,22 +248,6 @@ true
 
 ***
 
-### ~~externalFileAttribute?~~
-
-> `optional` **externalFileAttribute?**: `number`
-
-The external file attribute.
-
-#### Deprecated
-
-Use [ZipWriterConstructorOptions#externalFileAttributes](ZipWriterConstructorOptions.md#externalfileattributes) instead.
-
-#### Inherited from
-
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`externalFileAttribute`](ZipWriterConstructorOptions.md#externalfileattribute)
-
-***
-
 ### externalFileAttributes?
 
 > `optional` **externalFileAttributes?**: `number`
@@ -298,22 +282,6 @@ The Unix group id to write in the Unix extra field or as part of the external at
 #### Inherited from
 
 [`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`gid`](ZipWriterConstructorOptions.md#gid)
-
-***
-
-### ~~internalFileAttribute?~~
-
-> `optional` **internalFileAttribute?**: `number`
-
-The internal file attribute.
-
-#### Deprecated
-
-Use [ZipWriterConstructorOptions#internalFileAttributes](ZipWriterConstructorOptions.md#internalfileattributes) instead.
-
-#### Inherited from
-
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`internalFileAttribute`](ZipWriterConstructorOptions.md#internalfileattribute)
 
 ***
 
