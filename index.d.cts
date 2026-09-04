@@ -4538,27 +4538,13 @@ export const ERR_INVALID_CODEC_MODULE: string;
 /**
  * Invalid CRC-32 checksum error, thrown when the {@link ZipReaderOptions#checkCrc32} option is set and the CRC-32
  * checksum of an entry does not match the value stored in the zip file.
- *
- * @remarks
- * This constant and {@link ERR_INVALID_AUTHENTICATION_CODE} share the same value as {@link ERR_INVALID_SIGNATURE}
- * for backward compatibility. They will become distinct strings in the next minor version.
  */
 export const ERR_INVALID_CRC32: string;
 /**
  * Invalid authentication code error, thrown when the authentication code of an entry encrypted with AES does not
  * match the encrypted data, e.g. when the data was tampered or corrupted after the encryption.
- *
- * @remarks
- * This constant and {@link ERR_INVALID_CRC32} share the same value as {@link ERR_INVALID_SIGNATURE} for backward
- * compatibility. They will become distinct strings in the next minor version.
  */
 export const ERR_INVALID_AUTHENTICATION_CODE: string;
-/**
- * Invalid signature error
- *
- * @deprecated Use {@link ERR_INVALID_CRC32} or {@link ERR_INVALID_AUTHENTICATION_CODE} instead.
- */
-export const ERR_INVALID_SIGNATURE: string;
 /**
  * Invalid uncompressed size error
  */

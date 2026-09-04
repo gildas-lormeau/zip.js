@@ -19,7 +19,7 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	if (zip.ERR_INVALID_CRC32 != zip.ERR_INVALID_SIGNATURE || zip.ERR_INVALID_AUTHENTICATION_CODE != zip.ERR_INVALID_SIGNATURE) {
+	if (zip.ERR_INVALID_CRC32 == zip.ERR_INVALID_AUTHENTICATION_CODE || zip.ERR_INVALID_SIGNATURE !== undefined) {
 		throw new Error();
 	}
 	try {

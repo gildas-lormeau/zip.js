@@ -10,8 +10,3 @@
 
 Invalid authentication code error, thrown when the authentication code of an entry encrypted with AES does not
 match the encrypted data, e.g. when the data was tampered or corrupted after the encryption.
-
-## Remarks
-
-This constant and [ERR\_INVALID\_CRC32](ERR_INVALID_CRC32.md) share the same value as [ERR\_INVALID\_SIGNATURE](ERR_INVALID_SIGNATURE.md) for backward
-compatibility. They will become distinct strings in the next minor version.
