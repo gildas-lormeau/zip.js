@@ -75,6 +75,44 @@ console.log(helloWorldText);
 
 Run the code on JSFiddle: https://jsfiddle.net/tm9fhvab/
 
+## Hello world with the filesystem API
+
+The filesystem API stores the entries in a tree instead of a flat list. It needs
+a single import, it infers the Reader and the Writer from the type of the data,
+and it reaches an entry from its name instead of searching it in an array.
+
+```js
+import { ZipFS } from "@zip.js/zip.js";
+// "jsr:@zip-js/zip-js" for Deno
+
+// ----
+// Write the zip file
+// ----
+
+// Creates a ZipFS object and adds two entries to it. The name of an entry is a
+// path, so the "folder" directory is created by the second call.
+const zipFs = new ZipFS();
+zipFs.addText("hello.txt", "Hello world!");
+zipFs.addText("folder/hello.txt", "Hello world from a directory!");
+
+// Retrieves the Blob object containing the zip content.
+const zipFileBlob = await zipFs.exportBlob();
+
+// ----
+// Read the zip file
+// ----
+
+// Imports the zip content into a new ZipFS object, then retrieves the content
+// of the entries from their full name.
+const importedZipFs = new ZipFS();
+await importedZipFs.importBlob(zipFileBlob);
+const helloWorldText = await importedZipFs.find("hello.txt").getText();
+const nestedText = await importedZipFs.find("folder/hello.txt").getText();
+
+// Displays "Hello world!" and "Hello world from a directory!".
+console.log(helloWorldText, nestedText);
+```
+
 ## Hello world with Streams
 
 ```js
