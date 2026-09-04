@@ -14,6 +14,8 @@ async function test() {
 		await testStoredEntries();
 		await testTextContentSize();
 		await testNestedTree();
+		await testSlashedNames();
+		await testReplacedContent();
 		await testEntryOptions();
 		await testExtraFields();
 		await testEncrypted();
@@ -59,6 +61,37 @@ async function testNestedTree() {
 		directory.addDirectory("img").addUint8Array("logo.png", BINARY_CONTENT);
 		root.addUint8Array("root.bin", BINARY_CONTENT);
 	}, { level: 0 });
+}
+
+// a name holding "/" builds the same tree as addDirectory(), except that the directories it creates
+// are implicit and are not written, so the prediction must count them the same way the export does
+async function testSlashedNames() {
+	await assertExportedSize(root => {
+		root.addText("docs/readme.txt", TEXT_CONTENT);
+		root.addUint8Array("docs/img/logo.png", BINARY_CONTENT);
+		root.addText("a/b/c/deep.txt", TEXT_CONTENT);
+		root.addUint8Array("root.bin", BINARY_CONTENT);
+	}, { level: 0 });
+	await assertExportedSize(root => {
+		root.addDirectory("docs/img");
+		root.addUint8Array("docs/img/logo.png", BINARY_CONTENT);
+	}, { level: 0 });
+}
+
+// the size of an entry follows its content, including when the content replaces bytes imported as-is
+async function testReplacedContent() {
+	const source = new zip.ZipFS();
+	source.root.addText("compressed.txt", TEXT_CONTENT.repeat(50));
+	const deflated = await source.exportBlob({ level: 9 });
+	const zipFs = new zip.ZipFS();
+	await zipFs.importBlob(deflated, { passThrough: true });
+	zipFs.find("compressed.txt").replaceText(TEXT_CONTENT);
+	const options = { level: 0 };
+	const predictedSize = await zipFs.getExportedSize(options);
+	const blob = await zipFs.exportBlob(options);
+	if (blob.size != predictedSize) {
+		throw new Error();
+	}
 }
 
 async function testEntryOptions() {

@@ -41,6 +41,12 @@ async function testDuplicateNames() {
 		if (unrelatedText != UNRELATED_CONTENT) {
 			throw new Error(`${duplicates} must keep the entries that do not collide`);
 		}
+		// a resolved collision leaves one entry per name, so the exported size stays predictable
+		const predictedSize = await fs.getExportedSize({ level: 0 });
+		const exportedSize = (await fs.exportUint8Array({ level: 0 })).length;
+		if (predictedSize != exportedSize) {
+			throw new Error(`${duplicates}: getExportedSize() returned ${predictedSize}, the export is ${exportedSize} bytes`);
+		}
 	}
 }
 
