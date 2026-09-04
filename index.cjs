@@ -2032,6 +2032,7 @@ function toCompatibleWritable(writable) {
 const ERR_INVALID_CODEC_DEFINITION = "Invalid codec definition";
 const ERR_RESERVED_COMPRESSION_METHOD = "Reserved compression method";
 const ERR_INVALID_CODEC_MODULE = "Invalid codec module";
+const ERR_UNSUPPORTED_COMPRESSION$1 = "Compression method not supported";
 
 const RESERVED_COMPRESSION_METHODS = [
 	COMPRESSION_METHOD_STORE,
@@ -2132,7 +2133,7 @@ async function ensureCodecStreams(format, codecURI) {
 const ERR_INVALID_UNCOMPRESSED_SIZE = "Invalid uncompressed size";
 const ERR_INVALID_COMPRESSED_DATA = "Invalid compressed data";
 const ERR_INVALID_CRC32 = ERR_INVALID_SIGNATURE;
-const ERR_UNSUPPORTED_COMPRESSION$2 = "Compression method not supported";
+const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 const FORMAT_DEFLATE_RAW$1 = "deflate-raw";
 const FORMAT_DEFLATE64_RAW$1 = "deflate64-raw";
 const FORMAT_GZIP$1 = "gzip";
@@ -2400,7 +2401,7 @@ function setReadable(stream, readable, flush) {
 
 function createCodecStream(CodecStreamClass, format, options) {
 	if (!CodecStreamClass) {
-		throw new Error(ERR_UNSUPPORTED_COMPRESSION$2);
+		throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 	}
 	return new CodecStreamClass(format, options);
 }
@@ -4717,7 +4718,6 @@ const ERR_LOCAL_FILE_HEADER_NOT_FOUND = "Local file header not found";
 const ERR_EXTRAFIELD_ZIP64_NOT_FOUND = "Zip64 extra field not found";
 const ERR_ENCRYPTED = "File contains encrypted entry";
 const ERR_UNSUPPORTED_ENCRYPTION = "Encryption method not supported";
-const ERR_UNSUPPORTED_COMPRESSION$1 = "Compression method not supported";
 const ERR_SPLIT_ZIP_FILE = "Split zip file";
 const ERR_OVERLAPPING_ENTRY = "Overlapping entry found";
 const ERR_ENTRY_DATA_OUT_OF_BOUNDS = "Entry data out of bounds";
@@ -6281,7 +6281,6 @@ const ERR_INVALID_EXTRAFIELD = "Invalid extra field (must be a Map)";
 const ERR_INVALID_EXTRAFIELD_TYPE = "Invalid extra field type (must be integer 0..65535)";
 const ERR_INVALID_EXTRAFIELD_DATA_TYPE = "Invalid extra field data (must be a Uint8Array)";
 const ERR_INVALID_EXTRAFIELD_DATA = "Extra field data exceeds 64KB";
-const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 const MIN_UNIX_TIME = -2147483648;
 const MAX_UNIX_TIME = 2147483647;
 const MIN_NTFS_TIME = BigInt(0);
@@ -6901,7 +6900,7 @@ function resolveMetadata(zipWriter, name, options) {
 	const registeredCodec = passThrough || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
 	if (!passThrough && compressionMethod !== UNDEFINED_VALUE &&
 		compressionMethod !== COMPRESSION_METHOD_STORE && compressionMethod !== COMPRESSION_METHOD_DEFLATE && !registeredCodec) {
-		throw new Error(ERR_UNSUPPORTED_COMPRESSION);
+		throw new Error(ERR_UNSUPPORTED_COMPRESSION$1);
 	}
 	let level = getNumberOptionValue(zipWriter, options, OPTION_LEVEL);
 	checkIntegerOption(level, MAX_LEVEL, ERR_INVALID_LEVEL);
