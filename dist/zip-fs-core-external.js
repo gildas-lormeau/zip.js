@@ -9512,7 +9512,14 @@ configureExternalAssets();
 
 
 const ERR_ENTRY_EXISTS = "Entry filename already exists";
+const ERR_DUPLICATE_IMPORTED_ENTRY = "Duplicate entry filename in the imported zip file";
+const ERR_INVALID_DUPLICATES = "Invalid duplicates option (must be \"throw\", \"keep-first\" or \"keep-last\")";
+const ERR_ANCESTOR_ENTRY = "Entry is a ancestor of target entry";
 const ERR_READABLE_CONSUMED = "Readable stream already consumed";
+const DUPLICATES_THROW = "throw";
+const DUPLICATES_KEEP_FIRST = "keep-first";
+const DUPLICATES_KEEP_LAST = "keep-last";
+const DUPLICATES_VALUES = new Set([DUPLICATES_THROW, DUPLICATES_KEEP_FIRST, DUPLICATES_KEEP_LAST]);
 const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
 const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
 const ERR_ZIP_CRYPTO_LAST_MOD_DATE = "The last modification date of an entry encrypted with ZipCrypto cannot be changed when passThrough is set";
@@ -9589,12 +9596,26 @@ class ZipEntry {
 	}
 
 	rename(name) {
-		const parent = this.parent;
-		if (parent && parent.getChildByName(name)) {
-			throw new Error(ERR_ENTRY_EXISTS);
-		} else {
-			this.name = name;
+		const zipEntry = this;
+		let parent = zipEntry.parent;
+		if (parent) {
+			const path = splitPath(name);
+			if (path) {
+				name = path.pop();
+				parent = getPathParent(parent, path, zipEntry);
+			}
+			const existingChild = parent.getChildByName(name);
+			if (existingChild && existingChild != zipEntry) {
+				throw new Error(ERR_ENTRY_EXISTS);
+			}
+			if (parent != zipEntry.parent) {
+				detach(zipEntry);
+				zipEntry.parent = parent;
+				parent.children.push(zipEntry);
+				registerEntries(zipEntry.fs, zipEntry);
+			}
 		}
+		zipEntry.name = name;
 	}
 
 	setOptions(options) {
@@ -9895,6 +9916,7 @@ class ZipDirectoryEntry extends ZipEntry {
 			await initStream(reader);
 			zipReader = new ZipReader(reader, options);
 		}
+		const duplicates = checkDuplicatesOption(options.duplicates);
 		const importedEntries = [];
 		const entries = await zipReader.getEntries(options);
 		for (const entry of entries) {
@@ -9902,19 +9924,42 @@ class ZipDirectoryEntry extends ZipEntry {
 			try {
 				const path = entry.filename.split("/").filter(pathPart => pathPart != "" && pathPart != ".");
 				const name = path.pop();
-				path.forEach(pathPart => {
+				let skippedEntry = false;
+				for (const pathPart of path) {
 					const previousParent = parent;
 					parent = parent.getChildByName(pathPart);
 					if (parent) {
 						if (!parent.directory) {
-							throw new Error(ERR_ENTRY_EXISTS);
+							if (duplicates == DUPLICATES_KEEP_FIRST) {
+								skippedEntry = true;
+								break;
+							} else if (duplicates == DUPLICATES_KEEP_LAST) {
+								this.fs.remove(parent);
+								parent = new ZipDirectoryEntry(this.fs, pathPart, { data: null }, previousParent);
+								importedEntries.push(parent);
+							} else {
+								throw new Error(ERR_DUPLICATE_IMPORTED_ENTRY);
+							}
 						}
 					} else {
 						parent = new ZipDirectoryEntry(this.fs, pathPart, { data: null }, previousParent);
 						importedEntries.push(parent);
 					}
-				});
+				}
+				if (skippedEntry) {
+					continue;
+				}
 				if (!entry.directory) {
+					const existingChild = parent.getChildByName(name);
+					if (existingChild) {
+						if (duplicates == DUPLICATES_KEEP_FIRST) {
+							continue;
+						} else if (duplicates == DUPLICATES_KEEP_LAST) {
+							this.fs.remove(existingChild);
+						} else {
+							throw new Error(ERR_DUPLICATE_IMPORTED_ENTRY);
+						}
+					}
 					importedEntries.push(addChild(parent, name, {
 						data: entry,
 						Reader: getZipBlobReader(Object.assign({}, options)),
@@ -9925,11 +9970,17 @@ class ZipDirectoryEntry extends ZipEntry {
 					let directoryEntry = parent;
 					if (name) {
 						directoryEntry = parent.getChildByName(name);
-						if (directoryEntry) {
-							if (!directoryEntry.directory) {
-								throw new Error(ERR_ENTRY_EXISTS);
+						if (directoryEntry && !directoryEntry.directory) {
+							if (duplicates == DUPLICATES_KEEP_FIRST) {
+								continue;
+							} else if (duplicates == DUPLICATES_KEEP_LAST) {
+								this.fs.remove(directoryEntry);
+								directoryEntry = UNDEFINED_VALUE;
+							} else {
+								throw new Error(ERR_DUPLICATE_IMPORTED_ENTRY);
 							}
-						} else {
+						}
+						if (!directoryEntry) {
 							directoryEntry = new ZipDirectoryEntry(this.fs, name, { data: null }, parent);
 							importedEntries.push(directoryEntry);
 						}
@@ -9939,6 +9990,7 @@ class ZipDirectoryEntry extends ZipEntry {
 					}
 				}
 			} catch (error) {
+				importedEntries.reverse().forEach(importedEntry => this.fs.remove(importedEntry));
 				try {
 					error.cause = {
 						entry
@@ -10057,7 +10109,7 @@ class ZipFS {
 						}
 					}
 				} else {
-					throw new Error("Entry is a ancestor of target entry");
+					throw new Error(ERR_ANCESTOR_ENTRY);
 				}
 			} else {
 				throw new Error("Target entry is not a directory");
@@ -10069,7 +10121,7 @@ class ZipFS {
 		const path = fullname.split("/");
 		let node = this.root;
 		for (let index = 0; node && index < path.length; index++) {
-			node = node.getChildByName(path[index]);
+			node = node.directory ? node.getChildByName(path[index]) : UNDEFINED_VALUE;
 		}
 		if (!node) {
 			node = this.entries.find(entry => entry && (entry == this.root || entry.isDescendantOf(this.root)) &&
@@ -10131,33 +10183,27 @@ class ZipFS {
 	}
 
 	importBlob(blob, options) {
-		resetFS(this);
-		return this.root.importBlob(blob, options);
+		return resetAndImport(this, root => root.importBlob(blob, options));
 	}
 
 	importData64URI(dataURI, options) {
-		resetFS(this);
-		return this.root.importData64URI(dataURI, options);
+		return resetAndImport(this, root => root.importData64URI(dataURI, options));
 	}
 
 	importUint8Array(array, options) {
-		resetFS(this);
-		return this.root.importUint8Array(array, options);
+		return resetAndImport(this, root => root.importUint8Array(array, options));
 	}
 
 	importHttpContent(url, options) {
-		resetFS(this);
-		return this.root.importHttpContent(url, options);
+		return resetAndImport(this, root => root.importHttpContent(url, options));
 	}
 
 	importReadable(readable, options) {
-		resetFS(this);
-		return this.root.importReadable(readable, options);
+		return resetAndImport(this, root => root.importReadable(readable, options));
 	}
 
 	importZip(reader, options) {
-		resetFS(this);
-		return this.root.importZip(reader, options);
+		return resetAndImport(this, root => root.importZip(reader, options));
 	}
 
 	exportBlob(options) {
@@ -10766,6 +10812,15 @@ function resetFS(fs) {
 	fs.root = new ZipDirectoryEntry(fs);
 }
 
+function resetAndImport(fs, importFunction) {
+	const { entries, entryIdCounter, root } = fs;
+	resetFS(fs);
+	return importFunction(fs.root).catch(error => {
+		Object.assign(fs, { entries, entryIdCounter, root });
+		throw error;
+	});
+}
+
 function collectChildren(directory, recursive) {
 	const children = [];
 	const pendingDirectories = [directory];
@@ -10794,10 +10849,52 @@ function registerEntries(fs, entry) {
 
 function addChild(parent, name, params, directory) {
 	if (parent.directory) {
+		const path = splitPath(name);
+		if (path) {
+			name = path.pop();
+			parent = getPathParent(parent, path);
+		}
 		return directory ? new ZipDirectoryEntry(parent.fs, name, params, parent) : new ZipFileEntry(parent.fs, name, params, parent);
 	} else {
 		throw new Error("Parent entry is not a directory");
 	}
 }
 
-export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_ENTRY_EXISTS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH, ERR_INVALID_READER_OPTIONS, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_READABLE_CONSUMED, ERR_RESERVED_COMPRESSION_METHOD, ERR_SPLIT_ZIP_FILE, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION$1 as ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_ZIP_CRYPTO_LAST_MOD_DATE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, VERSION, WARNING_APPENDED_DATA, WARNING_COMPRESSED_PATCHED_DATA, WARNING_DUPLICATE_FILENAME, WARNING_MALFORMED_EXTRA_FIELD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY, WARNING_PREPENDED_CENTRAL_DIRECTORY, WARNING_PREPENDED_DATA, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA, WARNING_UNKNOWN_VERSION, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA, WARNING_UNSORTED_CENTRAL_DIRECTORY, WARNING_WRAPPED_ENTRIES_COUNT, Writer, ZipDirectoryEntry, ZipEntry, ZipFS, ZipFileEntry, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, fs, getMimeType, getRegisteredCodecs, getSupportedCompressionMethods, isZipFile, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };
+function checkDuplicatesOption(duplicates) {
+	if (duplicates === UNDEFINED_VALUE) {
+		return DUPLICATES_THROW;
+	} else if (DUPLICATES_VALUES.has(duplicates)) {
+		return duplicates;
+	} else {
+		throw new Error(ERR_INVALID_DUPLICATES);
+	}
+}
+
+function splitPath(name) {
+	if (name.includes("/")) {
+		const path = name.split("/").filter(pathPart => pathPart != "" && pathPart != ".");
+		if (path.length) {
+			return path;
+		}
+	}
+}
+
+function getPathParent(parent, path, movedEntry) {
+	path.forEach(pathPart => {
+		const previousParent = parent;
+		parent = parent.getChildByName(pathPart);
+		if (parent) {
+			if (!parent.directory) {
+				throw new Error(ERR_ENTRY_EXISTS);
+			}
+			if (movedEntry && (parent == movedEntry || parent.isDescendantOf(movedEntry))) {
+				throw new Error(ERR_ANCESTOR_ENTRY);
+			}
+		} else {
+			parent = new ZipDirectoryEntry(previousParent.fs, pathPart, { data: null }, previousParent);
+		}
+	});
+	return parent;
+}
+
+export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_DUPLICATE_IMPORTED_ENTRY, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_ENTRY_EXISTS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_DUPLICATES, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH, ERR_INVALID_READER_OPTIONS, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_READABLE_CONSUMED, ERR_RESERVED_COMPRESSION_METHOD, ERR_SPLIT_ZIP_FILE, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION$1 as ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_ZIP_CRYPTO_LAST_MOD_DATE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, VERSION, WARNING_APPENDED_DATA, WARNING_COMPRESSED_PATCHED_DATA, WARNING_DUPLICATE_FILENAME, WARNING_MALFORMED_EXTRA_FIELD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY, WARNING_PREPENDED_CENTRAL_DIRECTORY, WARNING_PREPENDED_DATA, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA, WARNING_UNKNOWN_VERSION, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA, WARNING_UNSORTED_CENTRAL_DIRECTORY, WARNING_WRAPPED_ENTRIES_COUNT, Writer, ZipDirectoryEntry, ZipEntry, ZipFS, ZipFileEntry, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, fs, getMimeType, getRegisteredCodecs, getSupportedCompressionMethods, isZipFile, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };

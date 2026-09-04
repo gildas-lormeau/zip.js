@@ -2,15 +2,19 @@
 
 ***
 
-[@zip.js/zip.js](../globals.md) / ZipDirectoryEntryImportHttpOptions
+[@zip.js/zip.js](../globals.md) / ZipDirectoryEntryImportOptions
 
-# Interface: ZipDirectoryEntryImportHttpOptions
+# Interface: ZipDirectoryEntryImportOptions
 
-Represents the options passed to [ZipDirectoryEntry#importHttpContent](../classes/ZipDirectoryEntry.md#importhttpcontent).
+Represents the options passed to `{@link ZipDirectoryEntry}#import*()`.
 
 ## Extends
 
-- [`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`HttpOptions`](HttpOptions.md)
+- [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md)
+
+## Extended by
+
+- [`ZipDirectoryEntryImportHttpOptions`](ZipDirectoryEntryImportHttpOptions.md)
 
 ## Properties
 
@@ -39,7 +43,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkAmbiguity`](ZipDirectoryEntryImportOptions.md#checkambiguity)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkAmbiguity`](ZipReaderConstructorOptions.md#checkambiguity)
 
 ***
 
@@ -58,7 +62,7 @@ true
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkAuthenticationCode`](ZipDirectoryEntryImportOptions.md#checkauthenticationcode)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkAuthenticationCode`](ZipReaderConstructorOptions.md#checkauthenticationcode)
 
 ***
 
@@ -78,7 +82,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkCrc32`](ZipDirectoryEntryImportOptions.md#checkcrc32)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkCrc32`](ZipReaderConstructorOptions.md#checkcrc32)
 
 ***
 
@@ -104,7 +108,7 @@ it is `"tolerant"`.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkLocalDirectory`](ZipDirectoryEntryImportOptions.md#checklocaldirectory)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkLocalDirectory`](ZipReaderConstructorOptions.md#checklocaldirectory)
 
 ***
 
@@ -124,7 +128,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkOverlappingEntry`](ZipDirectoryEntryImportOptions.md#checkoverlappingentry)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkOverlappingEntry`](ZipReaderConstructorOptions.md#checkoverlappingentry)
 
 ***
 
@@ -145,7 +149,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkOverlappingEntryOnly`](ZipDirectoryEntryImportOptions.md#checkoverlappingentryonly)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkOverlappingEntryOnly`](ZipReaderConstructorOptions.md#checkoverlappingentryonly)
 
 ***
 
@@ -163,28 +167,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkPasswordOnly`](ZipDirectoryEntryImportOptions.md#checkpasswordonly)
-
-***
-
-### checkResourceChanges?
-
-> `optional` **checkResourceChanges?**: `boolean`
-
-`true` to throw an [ERR\_HTTP\_RESOURCE\_CHANGED](../variables/ERR_HTTP_RESOURCE_CHANGED.md) error when the `ETag`, `Last-Modified` or total size headers
-returned by a range request differ from the ones returned by the first range request, i.e. when the resource has
-been modified while being read. Headers missing from the responses are ignored, note that `Access-Control-Expose-Headers`
-must include them when the resource is fetched cross-origin.
-
-#### Default Value
-
-```ts
-true
-```
-
-#### Inherited from
-
-[`HttpOptions`](HttpOptions.md).[`checkResourceChanges`](HttpOptions.md#checkresourcechanges)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkPasswordOnly`](ZipReaderConstructorOptions.md#checkpasswordonly)
 
 ***
 
@@ -206,25 +189,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkSignature`](ZipDirectoryEntryImportOptions.md#checksignature)
-
-***
-
-### combineSizeEocd?
-
-> `optional` **combineSizeEocd?**: `boolean`
-
-`true` to use `Range: bytes=-22` on the first request and cache the EOCD, make sure beforehand that the server supports a suffix range request.
-
-#### Default Value
-
-```ts
-false
-```
-
-#### Inherited from
-
-[`HttpOptions`](HttpOptions.md).[`combineSizeEocd`](HttpOptions.md#combinesizeeocd)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkSignature`](ZipReaderConstructorOptions.md#checksignature)
 
 ***
 
@@ -239,7 +204,7 @@ The option is ignored when the general purpose bit 11 is set in the header of th
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`commentEncoding`](ZipDirectoryEntryImportOptions.md#commentencoding)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`commentEncoding`](ZipReaderConstructorOptions.md#commentencoding)
 
 ***
 
@@ -271,10 +236,6 @@ are imported in both cases.
 "throw"
 ```
 
-#### Inherited from
-
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`duplicates`](ZipDirectoryEntryImportOptions.md#duplicates)
-
 ***
 
 ### extractAppendedData?
@@ -291,7 +252,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`extractAppendedData`](ZipDirectoryEntryImportOptions.md#extractappendeddata)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`extractAppendedData`](ZipReaderConstructorOptions.md#extractappendeddata)
 
 ***
 
@@ -309,7 +270,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`extractPrependedData`](ZipDirectoryEntryImportOptions.md#extractprependeddata)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`extractPrependedData`](ZipReaderConstructorOptions.md#extractprependeddata)
 
 ***
 
@@ -325,7 +286,7 @@ then decoded as IBM Code Page 437 when the option is not set either.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`filenameEncoding`](ZipDirectoryEntryImportOptions.md#filenameencoding)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`filenameEncoding`](ZipReaderConstructorOptions.md#filenameencoding)
 
 ***
 
@@ -356,37 +317,7 @@ The value of [GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strict
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`filenameValidation`](ZipDirectoryEntryImportOptions.md#filenamevalidation)
-
-***
-
-### forceRangeRequests?
-
-> `optional` **forceRangeRequests?**: `boolean`
-
-`true` to always use `Range` headers when fetching data.
-
-#### Default Value
-
-```ts
-false
-```
-
-#### Inherited from
-
-[`HttpOptions`](HttpOptions.md).[`forceRangeRequests`](HttpOptions.md#forcerangerequests)
-
-***
-
-### headers?
-
-> `optional` **headers?**: `Iterable`\<\[`string`, `string`\], `any`, `any`\> \| `Map`\<`string`, `string`\>
-
-The HTTP headers.
-
-#### Inherited from
-
-[`HttpOptions`](HttpOptions.md).[`headers`](HttpOptions.md#headers)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`filenameValidation`](ZipReaderConstructorOptions.md#filenamevalidation)
 
 ***
 
@@ -406,36 +337,7 @@ record is searched for, so a value smaller than the amount of data actually appe
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`maxAppendedDataSize`](ZipDirectoryEntryImportOptions.md#maxappendeddatasize)
-
-***
-
-### maximumRangeSize?
-
-> `optional` **maximumRangeSize?**: `number`
-
-The maximum size in bytes of the range requests sent to read the data of an entry. The data is
-read with as many range requests as necessary, each response body being streamed, so that the
-size of a request never depends on the size of the entry.
-
-#### Remarks
-
-Because response bodies are streamed with backpressure, this value does not bound how much data
-is buffered in memory; it bounds the byte span, and therefore the lifetime, of each individual
-range request. Smaller windows keep each request short-lived, which avoids the idle or duration
-timeouts enforced by servers, CDNs and proxies when a slow consumer holds a connection open, and
-avoids relying on the server honoring very large ranges. Set it to `Infinity` to disable windowing
-and read each entry with a single range request covering its whole remaining length.
-
-#### Default Value
-
-```ts
-16777216
-```
-
-#### Inherited from
-
-[`HttpOptions`](HttpOptions.md).[`maximumRangeSize`](HttpOptions.md#maximumrangesize)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`maxAppendedDataSize`](ZipReaderConstructorOptions.md#maxappendeddatasize)
 
 ***
 
@@ -447,7 +349,7 @@ and read each entry with a single range request covering its whole remaining len
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`passThrough`](ZipDirectoryEntryImportOptions.md#passthrough)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`passThrough`](ZipReaderConstructorOptions.md#passthrough)
 
 ***
 
@@ -459,7 +361,7 @@ The password used to decrypt the content of the entry.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`password`](ZipDirectoryEntryImportOptions.md#password)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`password`](ZipReaderConstructorOptions.md#password)
 
 ***
 
@@ -483,28 +385,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`preventClose`](ZipDirectoryEntryImportOptions.md#preventclose)
-
-***
-
-### preventHeadRequest?
-
-> `optional` **preventHeadRequest?**: `boolean`
-
-`true` to prevent using `HEAD` HTTP request in order the get the size of the content.
-`false` to explicitly use `HEAD`, this is useful in case of CORS where `Access-Control-Expose-Headers: Content-Range` is not returned by the server.
-
-Leaving it unset is not the same as setting it to `false` when [HttpOptions#useRangeHeader](HttpOptions.md#userangeheader) or
-[HttpOptions#forceRangeRequests](HttpOptions.md#forcerangerequests) is set: the size is then read from a ranged `GET` request instead, and
-only an explicit `false` restores the `HEAD` request.
-
-#### Default Value
-
-false, and `true` when [HttpOptions#useRangeHeader](HttpOptions.md#userangeheader) or [HttpOptions#forceRangeRequests](HttpOptions.md#forcerangerequests) is set
-
-#### Inherited from
-
-[`HttpOptions`](HttpOptions.md).[`preventHeadRequest`](HttpOptions.md#preventheadrequest)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`preventClose`](ZipReaderConstructorOptions.md#preventclose)
 
 ***
 
@@ -516,7 +397,7 @@ The password used to encrypt the content of the entry (raw).
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`rawPassword`](ZipDirectoryEntryImportOptions.md#rawpassword)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`rawPassword`](ZipReaderConstructorOptions.md#rawpassword)
 
 ***
 
@@ -528,7 +409,7 @@ The `AbortSignal` instance used to cancel the decompression.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`signal`](ZipDirectoryEntryImportOptions.md#signal)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`signal`](ZipReaderConstructorOptions.md#signal)
 
 ***
 
@@ -558,7 +439,7 @@ whole comparison explicitly.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`strictness`](ZipDirectoryEntryImportOptions.md#strictness)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`strictness`](ZipReaderConstructorOptions.md#strictness)
 
 ***
 
@@ -576,7 +457,7 @@ true
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`transferStreams`](ZipDirectoryEntryImportOptions.md#transferstreams)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`transferStreams`](ZipReaderConstructorOptions.md#transferstreams)
 
 ***
 
@@ -596,25 +477,7 @@ true
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`useCompressionStream`](ZipDirectoryEntryImportOptions.md#usecompressionstream)
-
-***
-
-### useRangeHeader?
-
-> `optional` **useRangeHeader?**: `boolean`
-
-`true` to use `Range` headers when fetching data from servers returning `Accept-Ranges` headers.
-
-#### Default Value
-
-```ts
-false
-```
-
-#### Inherited from
-
-[`HttpOptions`](HttpOptions.md).[`useRangeHeader`](HttpOptions.md#userangeheader)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`useCompressionStream`](ZipReaderConstructorOptions.md#usecompressionstream)
 
 ***
 
@@ -632,25 +495,7 @@ true
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`useWebWorkers`](ZipDirectoryEntryImportOptions.md#usewebworkers)
-
-***
-
-### useXHR?
-
-> `optional` **useXHR?**: `boolean`
-
-`true` to rely `XMLHttpRequest` instead of `fetch` to fetch data.
-
-#### Default Value
-
-```ts
-false
-```
-
-#### Inherited from
-
-[`HttpOptions`](HttpOptions.md).[`useXHR`](HttpOptions.md#usexhr)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`useWebWorkers`](ZipReaderConstructorOptions.md#usewebworkers)
 
 ## Methods
 
@@ -688,7 +533,7 @@ The decoded text value or `undefined` if the raw text value should be decoded by
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`decodeText`](ZipDirectoryEntryImportOptions.md#decodetext)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`decodeText`](ZipReaderConstructorOptions.md#decodetext)
 
 ***
 
@@ -725,39 +570,7 @@ The decrypted and decompressed central directory records.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`decryptCentralDirectory`](ZipDirectoryEntryImportOptions.md#decryptcentraldirectory)
-
-***
-
-### fetch()?
-
-> `optional` **fetch**(`input`, `init?`): `Promise`\<`Response`\>
-
-The function used to fetch the data. It takes precedence over [HttpRangeOptions#useXHR](HttpRangeOptions.md#usexhr)
-when set. The returned object must expose the `status`, `statusText` and `headers` properties,
-and the `arrayBuffer()` method of the `Response` class.
-
-#### Parameters
-
-##### input
-
-`string`
-
-##### init?
-
-`RequestInit`
-
-#### Returns
-
-`Promise`\<`Response`\>
-
-#### Default Value
-
-`fetch`
-
-#### Inherited from
-
-[`HttpOptions`](HttpOptions.md).[`fetch`](HttpOptions.md#fetch)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`decryptCentralDirectory`](ZipReaderConstructorOptions.md#decryptcentraldirectory)
 
 ***
 
@@ -791,4 +604,4 @@ The normalized filename or `undefined` to keep the decoded filename.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`normalizeFilename`](ZipDirectoryEntryImportOptions.md#normalizefilename)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`normalizeFilename`](ZipReaderConstructorOptions.md#normalizefilename)

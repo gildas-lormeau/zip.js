@@ -215,6 +215,14 @@ The new name of the entry.
 
 `void`
 
+#### Remarks
+
+A name holding `"/"` is split into path components, like the name passed to a
+`{@link ZipDirectoryEntry}#add*()` method, so it moves the entry into the directories it names,
+creating them when they do not exist. Renaming an entry to the name it already has does nothing.
+Renaming it onto an existing sibling throws an [ERR\_ENTRY\_EXISTS](../variables/ERR_ENTRY_EXISTS.md) error, and renaming it
+into itself or into one of its descendants throws.
+
 ***
 
 ### setOptions()

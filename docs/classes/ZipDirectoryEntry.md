@@ -8,6 +8,15 @@
 
 Represents a directory entry in the zip (Filesystem API).
 
+## Remarks
+
+The `name` passed to an `{@link ZipDirectoryEntry}#add*()` method is split into path
+components, exactly like the filename of an imported entry, so `addText("a/b.txt", text)` adds
+`"b.txt"` to the `"a"` directory and creates that directory when it does not exist. Empty
+components and `"."` components are ignored. The directories created that way are navigable like
+any other entry but are not written when the tree is exported, so the zip file holds the same
+entries whichever way the path was built.
+
 ## Extends
 
 - [`ZipEntry`](ZipEntry.md)
@@ -842,7 +851,7 @@ The `Blob` instance.
 
 ##### options?
 
-[`ZipReaderConstructorOptions`](../interfaces/ZipReaderConstructorOptions.md)
+[`ZipDirectoryEntryImportOptions`](../interfaces/ZipDirectoryEntryImportOptions.md)
 
 The options.
 
@@ -873,7 +882,7 @@ The Data URI `string` encoded in Base64.
 
 ##### options?
 
-[`ZipReaderConstructorOptions`](../interfaces/ZipReaderConstructorOptions.md)
+[`ZipDirectoryEntryImportOptions`](../interfaces/ZipDirectoryEntryImportOptions.md)
 
 The options.
 
@@ -935,7 +944,7 @@ The `ReadableStream` instance.
 
 ##### options?
 
-[`ZipReaderConstructorOptions`](../interfaces/ZipReaderConstructorOptions.md)
+[`ZipDirectoryEntryImportOptions`](../interfaces/ZipDirectoryEntryImportOptions.md)
 
 The options.
 
@@ -970,7 +979,7 @@ The `Uint8Array` instance.
 
 ##### options?
 
-[`ZipReaderConstructorOptions`](../interfaces/ZipReaderConstructorOptions.md)
+[`ZipDirectoryEntryImportOptions`](../interfaces/ZipDirectoryEntryImportOptions.md)
 
 The options.
 
@@ -1002,7 +1011,7 @@ The [Reader](Reader.md) instance or the [ZipReader](ZipReader.md) instance.
 
 ##### options?
 
-[`ZipReaderConstructorOptions`](../interfaces/ZipReaderConstructorOptions.md)
+[`ZipDirectoryEntryImportOptions`](../interfaces/ZipDirectoryEntryImportOptions.md)
 
 The options.
 
@@ -1089,6 +1098,14 @@ The new name of the entry.
 #### Returns
 
 `void`
+
+#### Remarks
+
+A name holding `"/"` is split into path components, like the name passed to a
+`{@link ZipDirectoryEntry}#add*()` method, so it moves the entry into the directories it names,
+creating them when they do not exist. Renaming an entry to the name it already has does nothing.
+Renaming it onto an existing sibling throws an [ERR\_ENTRY\_EXISTS](../variables/ERR_ENTRY_EXISTS.md) error, and renaming it
+into itself or into one of its descendants throws.
 
 #### Inherited from
 

@@ -818,7 +818,7 @@ The `Blob` instance.
 
 ##### options?
 
-[`ZipReaderConstructorOptions`](../interfaces/ZipReaderConstructorOptions.md)
+[`ZipDirectoryEntryImportOptions`](../interfaces/ZipDirectoryEntryImportOptions.md)
 
 The options.
 
@@ -853,7 +853,7 @@ The Data URI `string` encoded in Base64.
 
 ##### options?
 
-[`ZipReaderConstructorOptions`](../interfaces/ZipReaderConstructorOptions.md)
+[`ZipDirectoryEntryImportOptions`](../interfaces/ZipDirectoryEntryImportOptions.md)
 
 The options.
 
@@ -923,7 +923,7 @@ The `ReadableStream` instance.
 
 ##### options?
 
-[`ZipReaderConstructorOptions`](../interfaces/ZipReaderConstructorOptions.md)
+[`ZipDirectoryEntryImportOptions`](../interfaces/ZipDirectoryEntryImportOptions.md)
 
 The options.
 
@@ -962,7 +962,7 @@ The `Uint8Array` instance.
 
 ##### options?
 
-[`ZipReaderConstructorOptions`](../interfaces/ZipReaderConstructorOptions.md)
+[`ZipDirectoryEntryImportOptions`](../interfaces/ZipDirectoryEntryImportOptions.md)
 
 The options.
 
@@ -998,7 +998,7 @@ The [Reader](Reader.md) instance or the [ZipReader](ZipReader.md) instance.
 
 ##### options?
 
-[`ZipReaderConstructorOptions`](../interfaces/ZipReaderConstructorOptions.md)
+[`ZipDirectoryEntryImportOptions`](../interfaces/ZipDirectoryEntryImportOptions.md)
 
 The options.
 

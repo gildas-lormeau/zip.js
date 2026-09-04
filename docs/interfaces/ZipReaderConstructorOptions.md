@@ -14,7 +14,7 @@ Represents the options passed to the constructor of [ZipReader](../classes/ZipRe
 
 ## Extended by
 
-- [`ZipDirectoryEntryImportHttpOptions`](ZipDirectoryEntryImportHttpOptions.md)
+- [`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md)
 
 ## Properties
 

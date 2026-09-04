@@ -3609,6 +3609,12 @@ export class ZipEntry {
   /**
    * Set the name of the entry
    *
+   * @remarks A name holding `"/"` is split into path components, like the name passed to a
+   * `{@link ZipDirectoryEntry}#add*()` method, so it moves the entry into the directories it names,
+   * creating them when they do not exist. Renaming an entry to the name it already has does nothing.
+   * Renaming it onto an existing sibling throws an {@link ERR_ENTRY_EXISTS} error, and renaming it
+   * into itself or into one of its descendants throws.
+   *
    * @param name The new name of the entry.
    */
   rename(name: string): void;
@@ -3759,6 +3765,13 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
 
 /**
  * Represents a directory entry in the zip (Filesystem API).
+ *
+ * @remarks The `name` passed to an `{@link ZipDirectoryEntry}#add*()` method is split into path
+ * components, exactly like the filename of an imported entry, so `addText("a/b.txt", text)` adds
+ * `"b.txt"` to the `"a"` directory and creates that directory when it does not exist. Empty
+ * components and `"."` components are ignored. The directories created that way are navigable like
+ * any other entry but are not written when the tree is exported, so the zip file holds the same
+ * entries whichever way the path was built.
  */
 export class ZipDirectoryEntry extends ZipEntry {
   /**
@@ -3931,7 +3944,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   importBlob(
     blob: Blob,
-    options?: ZipReaderConstructorOptions
+    options?: ZipDirectoryEntryImportOptions
   ): Promise<[ZipEntry]>;
   /**
    * Extracts a zip file provided as a Data URI `string` encoded in Base64 into the entry
@@ -3944,7 +3957,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   importData64URI(
     dataURI: string,
-    options?: ZipReaderConstructorOptions
+    options?: ZipDirectoryEntryImportOptions
   ): Promise<[ZipEntry]>;
   /**
    * Extracts a zip file provided as a `Uint8Array` instance into the entry
@@ -3957,7 +3970,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   importUint8Array(
     array: Uint8Array,
-    options?: ZipReaderConstructorOptions
+    options?: ZipDirectoryEntryImportOptions
   ): Promise<[ZipEntry]>;
   /**
    * Extracts a zip file fetched from a URL into the entry
@@ -3987,7 +4000,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   importReadable(
     readable: ReadableStream,
-    options?: ZipReaderConstructorOptions
+    options?: ZipDirectoryEntryImportOptions
   ): Promise<[ZipEntry]>;
   /**
    * Extracts a zip file provided via a custom {@link Reader} instance or a {@link ZipReader} instance into
@@ -4023,7 +4036,7 @@ export class ZipDirectoryEntry extends ZipEntry {
       | ReadableReader[]
       | ReadableStream[]
       | ZipReader<unknown>,
-    options?: ZipReaderConstructorOptions
+    options?: ZipDirectoryEntryImportOptions
   ): Promise<[ZipEntry]>;
   /**
    * Returns a `Blob` instance containing a zip file of the entry and its descendants
@@ -4138,10 +4151,38 @@ export class ZipDirectoryEntry extends ZipEntry {
 }
 
 /**
+ * Represents the options passed to `{@link ZipDirectoryEntry}#import*()`.
+ */
+export interface ZipDirectoryEntryImportOptions
+  extends ZipReaderConstructorOptions {
+  /**
+   * The policy applied when two entries of the imported zip file claim the same node of the tree
+   *
+   * @remarks
+   * The tree indexes the entries by path, whereas a zip file stores a flat list of filenames, so two
+   * entries can claim one node: they can hold the same filename, hold filenames differing only by the
+   * path components ignored when building the tree (e.g. `"a/b.txt"` and `"./a/b.txt"`), or one can be
+   * a file and the other a directory holding it (e.g. `"a"` and `"a/b.txt"`).
+   *
+   * `"throw"` refuses the zip file with an {@link ERR_DUPLICATE_IMPORTED_ENTRY} error, whose `cause`
+   * property holds the {@link EntryMetaData} instance of the entry that could not be imported. The
+   * filesystem is left unchanged, i.e. the entries imported before the error are removed and the
+   * content held before the import is restored.
+   *
+   * `"keep-first"` ignores the entry claiming a node already taken, and `"keep-last"` replaces the
+   * entry holding the node, which is the behavior of most zip tools. The entries that do not collide
+   * are imported in both cases.
+   *
+   * @defaultValue "throw"
+   */
+  duplicates?: "throw" | "keep-first" | "keep-last";
+}
+
+/**
  * Represents the options passed to {@link ZipDirectoryEntry#importHttpContent}.
  */
 export interface ZipDirectoryEntryImportHttpOptions
-  extends ZipReaderConstructorOptions,
+  extends ZipDirectoryEntryImportOptions,
     HttpOptions {}
 
 /**
@@ -4794,6 +4835,16 @@ export const ERR_ZIP_CRYPTO_LAST_MOD_DATE: string;
  * Entry already exists error (thrown by the filesystem API when adding an entry whose filename already exists)
  */
 export const ERR_ENTRY_EXISTS: string;
+/**
+ * Duplicate imported entry error (thrown by `{@link ZipDirectoryEntry}#import*()` when two entries of the
+ * zip file claim the same node of the tree and the {@link ZipDirectoryEntryImportOptions#duplicates} option
+ * is set to `"throw"`)
+ */
+export const ERR_DUPLICATE_IMPORTED_ENTRY: string;
+/**
+ * Invalid duplicates option error
+ */
+export const ERR_INVALID_DUPLICATES: string;
 /**
  * Readable stream already consumed error (thrown by the filesystem API when a readable stream is read more than once)
  */

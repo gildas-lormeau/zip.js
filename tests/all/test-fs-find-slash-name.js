@@ -4,27 +4,29 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."
 
 export { test };
 
-// find(fullname) must locate an entry from its full filename (as returned by getFullname()), even
-// when the entry was added with a name that contains "/" verbatim (add* methods do not split the
-// name into path segments, so such a name is stored on a single entry).
+// find(fullname) must locate an entry from its full filename (as returned by getFullname()), whether
+// the path was built with addDirectory() or spelled with "/" in the name passed to an add* method.
 async function test() {
 	zip.configure({ useWebWorkers: false });
 	const fs = new zip.ZipFS();
 
-	// entry added with a literal "/" in its name, directly under the root
+	// a name holding "/" is split into path segments, like the names of an imported zip file
 	const flat = fs.addText("dir/file.txt", TEXT_CONTENT);
+	if (flat.name != "file.txt" || flat.parent.name != "dir" || !flat.parent.directory) {
+		throw new Error("a slashed name must be split into path segments");
+	}
 	if (flat.getFullname() != "dir/file.txt") {
-		throw new Error("unexpected full name for verbatim slashed entry");
+		throw new Error("unexpected full name for slashed entry");
 	}
 	if (fs.find("dir/file.txt") != flat) {
-		throw new Error("entry with a verbatim '/' in its name could not be found");
+		throw new Error("entry added with a '/' in its name could not be found");
 	}
 
-	// verbatim slashed name nested under a real directory: find must still resolve the full name
+	// slashed name nested under a real directory: find must still resolve the full name
 	const sub = fs.addDirectory("sub");
 	const nested = sub.addText("a/b.txt", TEXT_CONTENT);
 	if (nested.getFullname() != "sub/a/b.txt" || fs.find("sub/a/b.txt") != nested) {
-		throw new Error("nested entry with a verbatim '/' in its name could not be found");
+		throw new Error("nested entry with a '/' in its name could not be found");
 	}
 
 	// the regular path-segment lookup must keep working

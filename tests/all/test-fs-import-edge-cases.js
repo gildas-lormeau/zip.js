@@ -3,7 +3,7 @@
 import * as zip from "../zip-lib.js";
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.";
-const ERR_ENTRY_EXISTS = "Entry filename already exists";
+const ERR_DUPLICATE_IMPORTED_ENTRY = "Duplicate entry filename in the imported zip file";
 
 export { test };
 
@@ -84,7 +84,7 @@ async function testFileUsedAsDirectory() {
 		await fs.importBlob(blob);
 		throw new Error();
 	} catch (error) {
-		if (error.message != ERR_ENTRY_EXISTS || !error.cause || error.cause.entry.filename != "collision/file.txt") {
+		if (error.message != ERR_DUPLICATE_IMPORTED_ENTRY || !error.cause || error.cause.entry.filename != "collision/file.txt") {
 			throw error;
 		}
 	}
