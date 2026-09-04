@@ -789,7 +789,9 @@ entries are physically written, which the buffered write path only determines at
 This happens when `usdz` is set, since the alignment padding depends on the offset of each
 entry, and when the archive exceeds 4GB, since the offsets recorded in the central directory
 are then extended to 64 bits. Passing `bufferedWrite: false` makes both determinable again,
-as does exporting a directory whose children are all files. It is thrown as well when
+as does exporting a directory whose children are all files. A name holding `"/"` creates the
+directories it names, so `addText("a/b.txt", text)` builds a tree whose children are not all
+files, even though the directories created that way are not written. It is thrown as well when
 `signCentralDirectory` is set, the length of the signature being unknown until it is computed.
 
 #### Throws
