@@ -8,6 +8,13 @@
 
 Represents a file entry in the zip (Filesystem API).
 
+## Remarks
+
+A `{@link ZipFileEntry}#replace*()` method describes the entry with the content it is
+given: it updates [ZipEntry#uncompressedSize](ZipEntry.md#uncompressedsize) and clears the pass-through state of an entry
+imported with the [ZipReaderOptions#passThrough](../interfaces/ZipReaderOptions.md#passthrough) option, since the bytes copied verbatim are
+gone. Replacing the content of an entry therefore keeps [ZipFS#getExportedSize](ZipFS.md#getexportedsize) exact.
+
 ## Extends
 
 - [`ZipEntry`](ZipEntry.md)
@@ -143,6 +150,9 @@ The uncompressed size of the content.
 It is the size of the raw compressed content when the entry has been imported with the
 `passThrough` option set to `true`, since the entry holds the compressed data in that case. The
 uncompressed size of the original entry remains available in [ZipEntry#data](ZipEntry.md#data).
+
+It is updated by the `{@link ZipFileEntry}#replace*()` methods, and it is `0` for an entry holding
+a `ReadableStream` instance, whose size is only known once the entry has been read.
 
 #### Inherited from
 
@@ -565,6 +575,12 @@ The `ReadableStream` instance.
 #### Returns
 
 `void`
+
+#### Remarks
+
+The size of a `ReadableStream` instance is unknown, so the entry reports an undetermined
+size, like an entry added with [ZipDirectoryEntry#addReadable](ZipDirectoryEntry.md#addreadable). [ZipFS#getExportedSize](ZipFS.md#getexportedsize)
+then throws an [ERR\_UNDETERMINED\_SIZE](../variables/ERR_UNDETERMINED_SIZE.md) error instead of returning a size it cannot predict.
 
 ***
 

@@ -3560,6 +3560,9 @@ export class ZipEntry {
    * @remarks It is the size of the raw compressed content when the entry has been imported with the
    * `passThrough` option set to `true`, since the entry holds the compressed data in that case. The
    * uncompressed size of the original entry remains available in {@link ZipEntry#data}.
+   *
+   * It is updated by the `{@link ZipFileEntry}#replace*()` methods, and it is `0` for an entry holding
+   * a `ReadableStream` instance, whose size is only known once the entry has been read.
    */
   uncompressedSize: number;
   /**
@@ -3640,6 +3643,11 @@ export class ZipEntry {
 
 /**
  * Represents a file entry in the zip (Filesystem API).
+ *
+ * @remarks A `{@link ZipFileEntry}#replace*()` method describes the entry with the content it is
+ * given: it updates {@link ZipEntry#uncompressedSize} and clears the pass-through state of an entry
+ * imported with the {@link ZipReaderOptions#passThrough} option, since the bytes copied verbatim are
+ * gone. Replacing the content of an entry therefore keeps {@link ZipFS#getExportedSize} exact.
  */
 export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
   /**
@@ -3757,6 +3765,10 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
   replaceUint8Array(array: Uint8Array): void;
   /**
    * Replaces the content of the entry with a `ReadableStream` instance
+   *
+   * @remarks The size of a `ReadableStream` instance is unknown, so the entry reports an undetermined
+   * size, like an entry added with {@link ZipDirectoryEntry#addReadable}. {@link ZipFS#getExportedSize}
+   * then throws an {@link ERR_UNDETERMINED_SIZE} error instead of returning a size it cannot predict.
    *
    * @param readable The `ReadableStream` instance.
    */

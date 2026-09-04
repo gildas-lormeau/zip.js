@@ -135,6 +135,9 @@ It is the size of the raw compressed content when the entry has been imported wi
 `passThrough` option set to `true`, since the entry holds the compressed data in that case. The
 uncompressed size of the original entry remains available in [ZipEntry#data](ZipEntry.md#data).
 
+It is updated by the `{@link ZipFileEntry}#replace*()` methods, and it is `0` for an entry holding
+a `ReadableStream` instance, whose size is only known once the entry has been read.
+
 #### Inherited from
 
 [`ZipEntry`](ZipEntry.md).[`uncompressedSize`](ZipEntry.md#uncompressedsize)
