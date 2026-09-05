@@ -67,6 +67,12 @@ function listTree(dir) {
 	return readdirSync(dir).map((name) => ({ name, path: join(dir, name) }));
 }
 
+function inputSize(input) {
+	return input.kind === "tree"
+		? listTree(input.path).reduce((total, { path }) => total + statSync(path).size, 0)
+		: statSync(input.path).size;
+}
+
 async function zipjsCompress(input, outPath, useWebWorkers) {
 	configureZipjs(useWebWorkers);
 	const zipWriter = new zip.ZipWriter(Writable.toWeb(createWriteStream(outPath)), { level: LEVEL });
@@ -122,6 +128,13 @@ const CONTENDERS = [
 	{ id: "7z-fast", label: "7-Zip (fast -mx=1)", ops: ["compress"], compress: (i, o) => sevenZipCompress(i, o, "on", 1) }
 ];
 
+// No 7-Zip preset runs zlib's algorithm, so no single -mx anchor can be fair and a level-matched
+// table would read a ratio difference as a speed difference. The ladder measures the whole curve on
+// one workload, which is what lets a reader place zip.js on it by output size rather than by preset
+// number. Compress only: deflate decoding does not depend on the level it was written at.
+const LADDER_WORKLOAD = "text-20mb";
+const LADDER_LEVELS = [1, 3, 5, 6, 7, 9];
+
 // runs: 1 for the 256 MB combo — a 33 s 7-Zip sample makes run-to-run noise proportionally tiny,
 // and 3 runs would triple the wall time of the whole benchmark for nothing.
 const PLAN = [
@@ -156,6 +169,7 @@ async function main() {
 		// -mmt cannot parallelize a single deflate stream, so on single-file workloads the two
 		// 7-Zip variants measure the same thing; keep only the multithreaded one there.
 		const contenders = CONTENDERS.filter((contender) => contender.id !== "7z-1t" || input.kind === "tree");
+		const bytesIn = inputSize(input);
 
 		for (const op of ops) {
 			for (const contender of contenders.filter((c) => !c.ops || c.ops.includes(op))) {
@@ -180,18 +194,66 @@ async function main() {
 					times.push(performance.now() - t0);
 				}
 				const ms = median(times);
-				console.log(`${op.padEnd(11)} ${w.label.padEnd(34)} ${contender.label.padEnd(25)} ${ms.toFixed(0).padStart(7)} ms${outputSize ? `   out ${(outputSize / 1e6).toFixed(1)} MB` : ""}`);
-				results.rows.push({ op, workload, contender: contender.id, label: contender.label, medianMs: ms, outputSize });
+				// the size is printed next to every time on purpose: 7-Zip's presets compress by a
+				// different amount than zlib does, so a time alone says nothing
+				const sizeInfo = outputSize ? `   out ${(outputSize / 1e6).toFixed(1)} MB   ratio ${(bytesIn / outputSize).toFixed(3)}` : "";
+				console.log(`${op.padEnd(11)} ${w.label.padEnd(34)} ${contender.label.padEnd(25)} ${ms.toFixed(0).padStart(7)} ms${sizeInfo}`);
+				results.rows.push({ op, workload, contender: contender.id, label: contender.label, medianMs: ms, outputSize, inputBytes: bytesIn });
 			}
 			console.log("");
 		}
 	}
+
+	await runLadder(workDir, results);
 
 	await zip.terminateWorkers();
 	rmSync(workDir, { recursive: true, force: true });
 	const outPath = join(HERE, "results", `7z-${RUNTIME_ID}${BACKEND === "wasm" ? "-wasm" : ""}-results.json`);
 	writeFileSync(outPath, JSON.stringify(results, null, 2));
 	console.log("wrote " + outPath);
+}
+
+async function runLadder(workDir, results) {
+	const workload = WORKLOADS[LADDER_WORKLOAD];
+	const input = { kind: "file", path: ensureDiskFile(LADDER_WORKLOAD) };
+	const bytesIn = inputSize(input);
+	console.log(`# 7-Zip -mx ladder — ${workload.label} — placed against zip.js by output size\n`);
+	const points = [];
+	for (const level of LADDER_LEVELS) {
+		const zipPath = join(workDir, `ladder-7z-${level}.zip`);
+		const times = [];
+		let outputSize = 0;
+		for (let run = 0; run < RUNS; run++) {
+			rmSync(zipPath, { force: true });
+			const start = performance.now();
+			outputSize = sevenZipCompress(input, zipPath, "on", level);
+			times.push(performance.now() - start);
+		}
+		points.push({ label: `7-Zip -mx=${level}`, contender: `7z-mx${level}`, medianMs: median(times), outputSize });
+	}
+	for (const useWebWorkers of [false, true]) {
+		const zipPath = join(workDir, `ladder-zipjs-${useWebWorkers ? "workers" : "1t"}.zip`);
+		const times = [];
+		let outputSize = 0;
+		for (let run = 0; run < RUNS; run++) {
+			rmSync(zipPath, { force: true });
+			const start = performance.now();
+			outputSize = await zipjsCompress(input, zipPath, useWebWorkers);
+			times.push(performance.now() - start);
+		}
+		points.push({
+			label: `${ZIPJS_LABEL} (${useWebWorkers ? "workers" : "1 thread"})`,
+			contender: `zipjs-${useWebWorkers ? "workers" : "1t"}`,
+			medianMs: median(times),
+			outputSize
+		});
+	}
+	points.sort((pointLeft, pointRight) => pointLeft.outputSize - pointRight.outputSize);
+	for (const point of points) {
+		console.log(`ladder      ${workload.label.padEnd(34)} ${point.label.padEnd(25)} ${point.medianMs.toFixed(0).padStart(7)} ms   out ${(point.outputSize / 1e6).toFixed(1)} MB   ratio ${(bytesIn / point.outputSize).toFixed(3)}`);
+		results.rows.push({ op: "ladder", workload: LADDER_WORKLOAD, ...point, inputBytes: bytesIn });
+	}
+	console.log("");
 }
 
 main().catch((error) => {

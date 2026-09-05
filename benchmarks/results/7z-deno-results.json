@@ -1,7 +1,8 @@
 {
   "generatedBy": "bench-7z.js",
-  "runtime": "deno 2.9.3",
+  "runtime": "deno 2.9.6",
   "sevenZip": "7zz",
+  "backend": "cs",
   "runs": 3,
   "rows": [
     {
@@ -9,192 +10,288 @@
       "workload": "text-20mb",
       "contender": "zipjs-1t",
       "label": "zip.js (1 thread)",
-      "medianMs": 420.801208,
-      "outputSize": 6209546
+      "medianMs": 463.3549169999999,
+      "outputSize": 6209474,
+      "inputBytes": 20971520
     },
     {
       "op": "compress",
       "workload": "text-20mb",
       "contender": "zipjs-workers",
       "label": "zip.js (workers)",
-      "medianMs": 426.39162499999975,
-      "outputSize": 6209546
+      "medianMs": 434.6012089999999,
+      "outputSize": 6209474,
+      "inputBytes": 20971520
     },
     {
       "op": "compress",
       "workload": "text-20mb",
       "contender": "7z-mt",
       "label": "7-Zip (multithread)",
-      "medianMs": 2606.4589159999996,
-      "outputSize": 5752577
+      "medianMs": 2524.882791,
+      "outputSize": 5752577,
+      "inputBytes": 20971520
     },
     {
       "op": "compress",
       "workload": "text-20mb",
       "contender": "7z-fast",
       "label": "7-Zip (fast -mx=1)",
-      "medianMs": 470.2735840000005,
-      "outputSize": 6773416
+      "medianMs": 455.0450830000009,
+      "outputSize": 6773416,
+      "inputBytes": 20971520
     },
     {
       "op": "decompress",
       "workload": "text-20mb",
       "contender": "zipjs-1t",
       "label": "zip.js (1 thread)",
-      "medianMs": 75.92950000000019,
-      "outputSize": null
+      "medianMs": 78.17308299999968,
+      "outputSize": null,
+      "inputBytes": 20971520
     },
     {
       "op": "decompress",
       "workload": "text-20mb",
       "contender": "zipjs-workers",
       "label": "zip.js (workers)",
-      "medianMs": 68.77087500000016,
-      "outputSize": null
+      "medianMs": 68.05504099999962,
+      "outputSize": null,
+      "inputBytes": 20971520
     },
     {
       "op": "decompress",
       "workload": "text-20mb",
       "contender": "7z-mt",
       "label": "7-Zip (multithread)",
-      "medianMs": 88.35383300000103,
-      "outputSize": null
+      "medianMs": 82.53545800000029,
+      "outputSize": null,
+      "inputBytes": 20971520
     },
     {
       "op": "compress",
       "workload": "random-20mb",
       "contender": "zipjs-1t",
       "label": "zip.js (1 thread)",
-      "medianMs": 338.3117910000001,
-      "outputSize": 20978207
+      "medianMs": 323.0247909999998,
+      "outputSize": 20978135,
+      "inputBytes": 20971520
     },
     {
       "op": "compress",
       "workload": "random-20mb",
       "contender": "zipjs-workers",
       "label": "zip.js (workers)",
-      "medianMs": 342.029708,
-      "outputSize": 20978207
+      "medianMs": 335.31312499999876,
+      "outputSize": 20978135,
+      "inputBytes": 20971520
     },
     {
       "op": "compress",
       "workload": "random-20mb",
       "contender": "7z-mt",
       "label": "7-Zip (multithread)",
-      "medianMs": 409.97429100000045,
-      "outputSize": 20971684
+      "medianMs": 417.2669999999998,
+      "outputSize": 20971684,
+      "inputBytes": 20971520
     },
     {
       "op": "compress",
       "workload": "random-20mb",
       "contender": "7z-fast",
       "label": "7-Zip (fast -mx=1)",
-      "medianMs": 372.36708400000134,
-      "outputSize": 20971684
+      "medianMs": 366.3910829999986,
+      "outputSize": 20971684,
+      "inputBytes": 20971520
     },
     {
       "op": "compress",
       "workload": "many-files",
       "contender": "zipjs-1t",
       "label": "zip.js (1 thread)",
-      "medianMs": 1182.8415410000016,
-      "outputSize": 5514172
+      "medianMs": 1255.0465000000004,
+      "outputSize": 5154172,
+      "inputBytes": 10240000
     },
     {
       "op": "compress",
       "workload": "many-files",
       "contender": "zipjs-workers",
       "label": "zip.js (workers)",
-      "medianMs": 779.9210420000018,
-      "outputSize": 5514172
+      "medianMs": 839.0011669999985,
+      "outputSize": 5154172,
+      "inputBytes": 10240000
     },
     {
       "op": "compress",
       "workload": "many-files",
       "contender": "7z-1t",
       "label": "7-Zip (1 thread)",
-      "medianMs": 560.960708999999,
-      "outputSize": 4866639
+      "medianMs": 577.7017080000005,
+      "outputSize": 4866639,
+      "inputBytes": 10240000
     },
     {
       "op": "compress",
       "workload": "many-files",
       "contender": "7z-mt",
       "label": "7-Zip (multithread)",
-      "medianMs": 198.87349999999788,
-      "outputSize": 4866639
+      "medianMs": 185.65437499999825,
+      "outputSize": 4866639,
+      "inputBytes": 10240000
     },
     {
       "op": "compress",
       "workload": "many-files",
       "contender": "7z-fast",
       "label": "7-Zip (fast -mx=1)",
-      "medianMs": 168.47879199999807,
-      "outputSize": 4998934
+      "medianMs": 171.6272080000017,
+      "outputSize": 4998934,
+      "inputBytes": 10240000
     },
     {
       "op": "decompress",
       "workload": "many-files",
       "contender": "zipjs-1t",
       "label": "zip.js (1 thread)",
-      "medianMs": 968.5588749999988,
-      "outputSize": null
+      "medianMs": 1043.7539170000018,
+      "outputSize": null,
+      "inputBytes": 10240000
     },
     {
       "op": "decompress",
       "workload": "many-files",
       "contender": "zipjs-workers",
       "label": "zip.js (workers)",
-      "medianMs": 976.4071250000015,
-      "outputSize": null
+      "medianMs": 978.9160420000007,
+      "outputSize": null,
+      "inputBytes": 10240000
     },
     {
       "op": "decompress",
       "workload": "many-files",
       "contender": "7z-1t",
       "label": "7-Zip (1 thread)",
-      "medianMs": 492.7282919999998,
-      "outputSize": null
+      "medianMs": 469.5807499999937,
+      "outputSize": null,
+      "inputBytes": 10240000
     },
     {
       "op": "decompress",
       "workload": "many-files",
       "contender": "7z-mt",
       "label": "7-Zip (multithread)",
-      "medianMs": 470.68529200000194,
-      "outputSize": null
+      "medianMs": 499.2461659999972,
+      "outputSize": null,
+      "inputBytes": 10240000
     },
     {
       "op": "compress",
       "workload": "huge-256mb",
       "contender": "zipjs-1t",
       "label": "zip.js (1 thread)",
-      "medianMs": 5508.889000000003,
-      "outputSize": 79465300
+      "medianMs": 5283.244083000005,
+      "outputSize": 79465228,
+      "inputBytes": 268435456
     },
     {
       "op": "compress",
       "workload": "huge-256mb",
       "contender": "zipjs-workers",
       "label": "zip.js (workers)",
-      "medianMs": 5581.398084,
-      "outputSize": 79465300
+      "medianMs": 5358.548875,
+      "outputSize": 79465228,
+      "inputBytes": 268435456
     },
     {
       "op": "compress",
       "workload": "huge-256mb",
       "contender": "7z-mt",
       "label": "7-Zip (multithread)",
-      "medianMs": 33393.378666,
-      "outputSize": 73600682
+      "medianMs": 33270.097958,
+      "outputSize": 73600682,
+      "inputBytes": 268435456
     },
     {
       "op": "compress",
       "workload": "huge-256mb",
       "contender": "7z-fast",
       "label": "7-Zip (fast -mx=1)",
-      "medianMs": 5863.633084000001,
-      "outputSize": 86671683
+      "medianMs": 5804.585957999996,
+      "outputSize": 86671683,
+      "inputBytes": 268435456
+    },
+    {
+      "op": "ladder",
+      "workload": "text-20mb",
+      "label": "7-Zip -mx=9",
+      "contender": "7z-mx9",
+      "medianMs": 14919.19533300001,
+      "outputSize": 5722641,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "ladder",
+      "workload": "text-20mb",
+      "label": "7-Zip -mx=7",
+      "contender": "7z-mx7",
+      "medianMs": 6595.777916999999,
+      "outputSize": 5722700,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "ladder",
+      "workload": "text-20mb",
+      "label": "7-Zip -mx=5",
+      "contender": "7z-mx5",
+      "medianMs": 2607.366584000003,
+      "outputSize": 5752577,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "ladder",
+      "workload": "text-20mb",
+      "label": "7-Zip -mx=6",
+      "contender": "7z-mx6",
+      "medianMs": 2597.275667000009,
+      "outputSize": 5752577,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "ladder",
+      "workload": "text-20mb",
+      "label": "zip.js (1 thread)",
+      "contender": "zipjs-1t",
+      "medianMs": 421.80799999999,
+      "outputSize": 6209474,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "ladder",
+      "workload": "text-20mb",
+      "label": "zip.js (workers)",
+      "contender": "zipjs-workers",
+      "medianMs": 423.2648330000229,
+      "outputSize": 6209474,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "ladder",
+      "workload": "text-20mb",
+      "label": "7-Zip -mx=1",
+      "contender": "7z-mx1",
+      "medianMs": 457.8321670000005,
+      "outputSize": 6773416,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "ladder",
+      "workload": "text-20mb",
+      "label": "7-Zip -mx=3",
+      "contender": "7z-mx3",
+      "medianMs": 453.22741599999426,
+      "outputSize": 6773416,
+      "inputBytes": 20971520
     }
   ]
 }
