@@ -1,4 +1,4 @@
-/* global setTimeout, TextDecoder */
+/* global setTimeout, clearTimeout, TextDecoder */
 
 import * as zip from "../zip-lib.js";
 
@@ -32,9 +32,66 @@ async function test() {
 	try {
 		await testConcurrentOrder();
 		await testPhysicalOrder();
+		await testConcurrentCompression();
 		await testFailureDoesNotReorderOrPollute();
 	} finally {
 		await zip.terminateWorkers();
+	}
+}
+
+// keeping the order must not cost the concurrency: one entry is written directly into the writer
+// and the others are buffered, so every reader of a batch is read before any entry completes.
+// When they all take the direct path instead, each one waits for the previous entry to be written
+// and the batch is compressed one entry at a time; the barrier below never opens then.
+async function testConcurrentCompression() {
+	const COUNT = 4;
+	const ENTRY_SIZE = 4096;
+	let started = 0;
+	let openBarrier;
+	const barrier = new Promise(resolve => openBarrier = resolve);
+	let timer;
+	const giveUp = new Promise(resolve => timer = setTimeout(resolve, 5000));
+	// zip.Reader and not zip.TextReader: a BlobReader exposes a readable stream built from the blob,
+	// so it never calls readUint8Array and the barrier below would never be reached
+	class BarrierReader extends zip.Reader {
+		constructor(byte) {
+			super();
+			this.byte = byte;
+			this.size = ENTRY_SIZE;
+		}
+		async readUint8Array(index, length) {
+			if (!this.counted) {
+				this.counted = true;
+				started++;
+				if (started == COUNT) {
+					openBarrier();
+				}
+			}
+			await Promise.race([barrier, giveUp]);
+			if (started < COUNT) {
+				throw new Error("compressed " + started + " of " + COUNT + " entries concurrently");
+			}
+			return new Uint8Array(Math.max(0, Math.min(length, ENTRY_SIZE - index))).fill(this.byte);
+		}
+	}
+	try {
+		const blob = await writeZip(zipWriter => Array.from({ length: COUNT },
+			(value, index) => zipWriter.add(index + ".txt", new BarrierReader(65 + index))));
+		const zipReader = new zip.ZipReader(new zip.BlobReader(blob), { checkCrc32: true });
+		const entries = await zipReader.getEntries();
+		const data = await Promise.all(entries.map(entry => entry.getData(new zip.Uint8ArrayWriter())));
+		await zipReader.close();
+		const filenames = entries.map(entry => entry.filename).join(",");
+		if (filenames != "0.txt,1.txt,2.txt,3.txt") {
+			throw new Error(filenames);
+		}
+		data.forEach((content, index) => {
+			if (content.length != ENTRY_SIZE || !content.every(value => value == 65 + index)) {
+				throw new Error("entry " + index + " holds " + content.length + " bytes");
+			}
+		});
+	} finally {
+		clearTimeout(timer);
 	}
 }
 

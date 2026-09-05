@@ -3610,11 +3610,10 @@
 					const data = await readUint8Array(reader, offset + chunkOffset, dataSize);
 					if (data.length) {
 						controller.enqueue(data);
+						chunkOffset += data.length;
 					}
-					if ((chunkOffset + chunkSize >= size) || (!data.length && dataSize)) {
+					if ((size !== UNDEFINED_VALUE && chunkOffset >= size) || (!data.length && dataSize)) {
 						controller.close();
-					} else {
-						chunkOffset += chunkSize;
 					}
 				}
 			});
@@ -6305,6 +6304,7 @@
 				pendingAddFileCalls: new Set(),
 				pendingErrors: [],
 				bufferedWrites: 0,
+				directWrites: 0,
 				lastFileEntry: UNDEFINED_VALUE
 			});
 		}
@@ -7080,6 +7080,7 @@
 		const usdz = zipWriter.options[OPTION_USDZ];
 		let fileEntry = pendingFileEntry;
 		let bufferedWrite;
+		let directWrite;
 		let releaseLockWriter;
 		let writingBufferedEntryData;
 		let writingEntryData;
@@ -7089,7 +7090,7 @@
 		const lockPreviousFileEntry = keepOrder && previousFileEntry ? previousFileEntry.lockFileEntry : UNDEFINED_VALUE;
 		fileEntries.set(name, fileEntry);
 		try {
-			if (options.bufferedWrite || !keepOrder || zipWriter.writerLocked || zipWriter.bufferedWrites || (!dataDescriptor && !emptyEntry)) {
+			if (options.bufferedWrite || !keepOrder || zipWriter.writerLocked || zipWriter.bufferedWrites || zipWriter.directWrites || (!dataDescriptor && !emptyEntry)) {
 				bufferedWrite = true;
 				zipWriter.bufferedWrites++;
 				if (options.createTempStream) {
@@ -7100,6 +7101,8 @@
 				fileWriter.size = 0;
 				await initStream(writer);
 			} else {
+				directWrite = true;
+				zipWriter.directWrites++;
 				fileWriter = writer;
 				await lockPreviousFileEntry;
 				await requestLockWriter();
@@ -7177,6 +7180,9 @@
 		} finally {
 			if (bufferedWrite) {
 				zipWriter.bufferedWrites--;
+			}
+			if (directWrite) {
+				zipWriter.directWrites--;
 			}
 			if (releaseLockFileEntry) {
 				releaseLockFileEntry(lockPreviousFileEntry);
@@ -7322,8 +7328,8 @@
 		}
 		const { writable } = writer;
 		if (reader) {
-			const readable = toCompatibleReadable(createReadable(reader));
 			const size = reader.size;
+			const readable = toCompatibleReadable(createReadable(reader, { size }));
 			const workerOptions = {
 				options: {
 					codecType: CODEC_DEFLATE,
