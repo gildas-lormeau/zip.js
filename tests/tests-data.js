@@ -59,6 +59,7 @@ export default ([
 	{ title: "Web worker startup fallback", script: "./test-worker-startup-fallback.js", sanitizeResources: false },
 	{ title: "Web worker error before start", script: "./test-worker-error-before-start.js", sanitizeResources: false },
 	{ title: "Codec import fallback", script: "./test-codec-import-fallback.js", sanitizeResources: false },
+	{ title: "Codec error encoding", script: "./test-codec-error-encoding.js" },
 	{ title: "CP437 table", script: "./test-cp437-table.js" },
 	{ title: "Web worker polyfill", script: "./test-node-worker-polyfill.js", env: ["node"] },
 	{ title: "External assets entry", script: "./test-external-assets.js", features: ["workerStreams"],
