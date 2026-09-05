@@ -2031,7 +2031,7 @@ function toCompatibleWritable(writable) {
 const ERR_INVALID_CODEC_DEFINITION = "Invalid codec definition";
 const ERR_RESERVED_COMPRESSION_METHOD = "Reserved compression method";
 const ERR_INVALID_CODEC_MODULE = "Invalid codec module";
-const ERR_UNSUPPORTED_COMPRESSION$1 = "Compression method not supported";
+const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 
 const RESERVED_COMPRESSION_METHODS = [
 	COMPRESSION_METHOD_STORE,
@@ -2132,7 +2132,6 @@ async function ensureCodecStreams(format, codecURI) {
 const ERR_INVALID_UNCOMPRESSED_SIZE = "Invalid uncompressed size";
 const ERR_INVALID_COMPRESSED_DATA = "Invalid compressed data";
 const ERR_INVALID_CRC32 = "Invalid CRC32";
-const ERR_UNSUPPORTED_COMPRESSION = "Compression method not supported";
 const FORMAT_DEFLATE_RAW$1 = "deflate-raw";
 const FORMAT_DEFLATE64_RAW$1 = "deflate64-raw";
 const FORMAT_GZIP$1 = "gzip";
@@ -5291,7 +5290,7 @@ let ZipEntry$1 = class ZipEntry {
 		rawPassword = rawPassword && rawPassword.length && rawPassword;
 		if (extraFieldAES) {
 			if (extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
-				throw new Error(ERR_UNSUPPORTED_COMPRESSION$1);
+				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 			}
 		}
 		if (dataArray.length < HEADER_SIZE || getUint32$1(dataView, 0) != LOCAL_FILE_HEADER_SIGNATURE) {
@@ -5347,7 +5346,7 @@ let ZipEntry$1 = class ZipEntry {
 		}
 		const registeredCodec = passThrough ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
 		if (compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE && compressionMethod != COMPRESSION_METHOD_DEFLATE_64 && !registeredCodec && !passThrough) {
-			throw new Error(ERR_UNSUPPORTED_COMPRESSION$1);
+			throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 		}
 		if (encrypted) {
 			if (!zipCrypto && (extraFieldAES.strength < 1 || extraFieldAES.strength > 3)) {
@@ -6205,7 +6204,7 @@ var zipReader = /*#__PURE__*/Object.freeze({
 	ERR_OVERLAPPING_ENTRY: ERR_OVERLAPPING_ENTRY,
 	ERR_SPLIT_ZIP_FILE: ERR_SPLIT_ZIP_FILE,
 	ERR_UNSAFE_FILENAME: ERR_UNSAFE_FILENAME,
-	ERR_UNSUPPORTED_COMPRESSION: ERR_UNSUPPORTED_COMPRESSION$1,
+	ERR_UNSUPPORTED_COMPRESSION: ERR_UNSUPPORTED_COMPRESSION,
 	ERR_UNSUPPORTED_ENCRYPTION: ERR_UNSUPPORTED_ENCRYPTION,
 	ERR_UNSUPPORTED_UINT64: ERR_UNSUPPORTED_UINT64,
 	ERR_WORKER_STARTUP_TIMEOUT: ERR_WORKER_STARTUP_TIMEOUT,
@@ -6890,7 +6889,7 @@ function resolveMetadata(zipWriter, name, options) {
 	const registeredCodec = passThrough || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
 	if (!passThrough && compressionMethod !== UNDEFINED_VALUE &&
 		compressionMethod !== COMPRESSION_METHOD_STORE && compressionMethod !== COMPRESSION_METHOD_DEFLATE && !registeredCodec) {
-		throw new Error(ERR_UNSUPPORTED_COMPRESSION$1);
+		throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 	}
 	let level = getNumberOptionValue(zipWriter, options, OPTION_LEVEL);
 	checkIntegerOption(level, MAX_LEVEL, ERR_INVALID_LEVEL);
@@ -11050,7 +11049,7 @@ exports.ERR_UNDEFINED_READER = ERR_UNDEFINED_READER;
 exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
 exports.ERR_UNDETERMINED_SIZE = ERR_UNDETERMINED_SIZE;
 exports.ERR_UNSAFE_FILENAME = ERR_UNSAFE_FILENAME;
-exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION$1;
+exports.ERR_UNSUPPORTED_COMPRESSION = ERR_UNSUPPORTED_COMPRESSION;
 exports.ERR_UNSUPPORTED_CONTEXT = ERR_UNSUPPORTED_CONTEXT;
 exports.ERR_UNSUPPORTED_CRYPTO_API = ERR_UNSUPPORTED_CRYPTO_API;
 exports.ERR_UNSUPPORTED_ENCRYPTION = ERR_UNSUPPORTED_ENCRYPTION;
