@@ -25,8 +25,8 @@ async function test() {
 		zip.configure({
 			workerURI: nativeWorkerURI,
 			wasmURI: null,
-			CompressionStreamZlib,
-			DecompressionStreamZlib
+			CompressionStreamFallback: CompressionStreamZlib,
+			DecompressionStreamFallback: DecompressionStreamZlib
 		});
 		await testEntry(zipData);
 	} finally {
