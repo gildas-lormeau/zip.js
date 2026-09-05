@@ -30,9 +30,13 @@ async function test() {
 		}
 	];
 	for (const testCase of PRECEDENCE_CASES) {
-		const entry = await readEntry(testCase.writerOptions, Object.assign({ compressionMethod: 0 }, testCase.options));
+		const options = Object.assign({ compressionMethod: 0, internalFileAttributes: INTERNAL_FILE_ATTRIBUTES }, testCase.options);
+		const entry = await readEntry(testCase.writerOptions, options);
 		if ((entry.externalFileAttributes >>> 0) !== EXTERNAL_FILE_ATTRIBUTES) {
 			throw new Error(`${testCase.name}: externalFileAttributes mismatch (got ${(entry.externalFileAttributes >>> 0).toString(16)})`);
+		}
+		if (entry.internalFileAttributes !== INTERNAL_FILE_ATTRIBUTES) {
+			throw new Error(`${testCase.name}: internalFileAttributes mismatch (got ${entry.internalFileAttributes})`);
 		}
 	}
 	await zip.terminateWorkers();
