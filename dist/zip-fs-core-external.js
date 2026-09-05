@@ -9215,17 +9215,16 @@ function _make(isCompress, type, options = {}) {
 					}
 					heap.set(buffer.subarray(offset, offset + toRead), this.in);
 					const result = process(this.streamHandle, this.in, toRead, out, outBufferSize, 0);
+					// checked before the byte count is used, so a status code can never be read as one
+					const code = (result >> 24) & 0xff;
+					const signedCode = (code & 0x80) ? code - 256 : code;
+					if (signedCode < 0) {
+						throw new Error("process error:" + signedCode);
+					}
 					const prod = result & 0x00ffffff;
 					if (prod) {
 						scratch.set(heap.subarray(out, out + prod), 0);
 						controller.enqueue(scratch.slice(0, prod));
-					}
-					if (!isCompress) {
-						const code = (result >> 24) & 0xff;
-						const signedCode = (code & 0x80) ? code - 256 : code;
-						if (signedCode < 0) {
-							throw new Error("process error:" + signedCode);
-						}
 					}
 					const consumed = last_consumed(this.streamHandle);
 					if (consumed === 0 && prod === 0) {
@@ -9246,14 +9245,12 @@ function _make(isCompress, type, options = {}) {
 				const scratch = this._scratch;
 				while (true) {
 					const result = process(this.streamHandle, 0, 0, out, outBufferSize, 4);
-					const produced = result & 0x00ffffff;
 					const code = (result >> 24) & 0xff;
-					if (!isCompress) {
-						const signedCode = (code & 0x80) ? code - 256 : code;
-						if (signedCode < 0) {
-							throw new Error("process error:" + signedCode);
-						}
+					const signedCode = (code & 0x80) ? code - 256 : code;
+					if (signedCode < 0) {
+						throw new Error("process error:" + signedCode);
 					}
+					const produced = result & 0x00ffffff;
 					if (produced) {
 						scratch.set(heap.subarray(out, out + produced), 0);
 						controller.enqueue(scratch.slice(0, produced));
