@@ -53,7 +53,7 @@ export default [
 		}
 	},
 	{
-		files: ["benchmarks/**/*.js", "benchmarks/**/*.mjs", "tests/browser-runner.js", "tests/fidelity/**/*.js", "tests/api-symmetry/**/*.js"],
+		files: ["benchmarks/**/*.js", "benchmarks/**/*.mjs", "tests/browser-runner.js", "tests/registration.js", "tests/fidelity/**/*.js", "tests/api-symmetry/**/*.js"],
 		languageOptions: {
 			ecmaVersion: "latest",
 			globals: {

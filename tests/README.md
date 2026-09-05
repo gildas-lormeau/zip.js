@@ -33,6 +33,7 @@ Optional fields in `tests/tests-data.js`:
 
 ## Other folders
 
+- `tests/registration.js`: checks that every test registered in `tests-data.js` matches a file in `tests/all` exactly, run with `npm run test-registration`. It also runs in the linting job, because the browser jobs run on macOS and Windows only, whose filesystems are case-insensitive.
 - `tests/api-symmetry`: read surface against write surface audit, see [tests/api-symmetry/README.md](api-symmetry/README.md).
 - `tests/fidelity`: read, rewrite and byte-compare harness, see [tests/fidelity/README.md](fidelity/README.md).
 - `tests/types`: TypeScript definitions test, run with `npm run test-types`.

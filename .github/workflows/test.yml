@@ -55,6 +55,12 @@ jobs:
       - name: Verify no code issue
         run: npx eslint .
 
+      # the browser jobs are the only ones running the suite, and they run on macOS and Windows, whose
+      # filesystems are case-insensitive: a test registered under a name differing only by its case
+      # resolved there and threw ERR_MODULE_NOT_FOUND on Linux. this compares the names as strings
+      - name: Verify the tests are registered
+        run: npm run test-registration
+
       - name: Verify markdown doc is up to date
         run: |
           npm run build-doc-markdown
