@@ -5,7 +5,7 @@ import { CompressionStreamZlib, DecompressionStreamZlib } from "../../lib/core/s
 
 // the first match fills the 64KB output buffer of the codec exactly, so the maximal match that follows
 // starts with no room left: the codec fills a whole buffer without consuming any input, which used to
-// abort the entry with a Z_BUF_ERROR because no consumed input was read as no progress
+// be read as the end of the data and dropped the rest of the entry
 const TEXT_CONTENT = "A".repeat(1 + 65535 + 65538) + "B".repeat(1000);
 const url = new URL("./../data/boundary-match-deflate64.zip", import.meta.url).href;
 // absolute so that the worker is found when the suite runs against the built files, where relative
