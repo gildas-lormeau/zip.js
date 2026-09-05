@@ -22,7 +22,7 @@ export default ([
 	{ title: "Unawaited entry errors", script: "./test-unawaited-errors.js" },
 	{ title: "Empty entry data descriptor", script: "./test-empty-entry-data-descriptor.js" },
 	{ title: "Uint8Array", script: "./test-array.js" },
-	{ title: "Arraybuffer", script: "./test-arrayBuffer.js" },
+	{ title: "Arraybuffer", script: "./test-arraybuffer.js" },
 	{ title: "Filesystem getArrayBuffer", script: "./test-fs-array-buffer.js" },
 	{ title: "Base 64", script: "./test-base64.js" },
 	{ title: "Foreign streams", script: "./test-foreign-streams.js" },
