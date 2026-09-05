@@ -3112,10 +3112,9 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * `true` to keep the order of the entry physically in the zip file.
    *
    * @remarks
-   * The entries are then written one after another, so concurrent calls to {@link ZipWriter#add} compress one
-   * entry at a time and use a single web worker. Set {@link ZipWriterConstructorOptions#bufferedWrite} to `true`
-   * to compress them concurrently while still keeping the order, at the cost of buffering each entry until the
-   * previous ones are written.
+   * The entries are then written one after another, but concurrent calls to {@link ZipWriter#add} still compress
+   * concurrently: one entry is written directly into the zip file while the others are buffered until it is their
+   * turn, i.e. {@link ZipWriterConstructorOptions#bufferedWrite} is set automatically for them.
    *
    * @defaultValue true
    */

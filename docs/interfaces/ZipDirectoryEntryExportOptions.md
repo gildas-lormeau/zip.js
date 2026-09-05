@@ -291,10 +291,9 @@ The internal file attribute.
 
 #### Remarks
 
-The entries are then written one after another, so concurrent calls to [ZipWriter#add](../classes/ZipWriter.md#add) compress one
-entry at a time and use a single web worker. Set [ZipWriterConstructorOptions#bufferedWrite](ZipWriterConstructorOptions.md#bufferedwrite) to `true`
-to compress them concurrently while still keeping the order, at the cost of buffering each entry until the
-previous ones are written.
+The entries are then written one after another, but concurrent calls to [ZipWriter#add](../classes/ZipWriter.md#add) still compress
+concurrently: one entry is written directly into the zip file while the others are buffered until it is their
+turn, i.e. [ZipWriterConstructorOptions#bufferedWrite](ZipWriterConstructorOptions.md#bufferedwrite) is set automatically for them.
 
 #### Default Value
 
