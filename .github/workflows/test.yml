@@ -75,12 +75,17 @@ jobs:
           npm run build
           git diff --exit-code
 
-  # the browser jobs below are the only other ones running the suite, and they run browsers: the node,
-  # deno and bun runners, the dist variants, the TypeScript definitions and the api-symmetry audits
-  # were enforced by nothing but whoever remembered to run `npm test` before pushing. this job is also
-  # the only one on a case-sensitive filesystem, which is where a mismatched filename actually fails
+  # the browser jobs below are the only other ones running the suite, and they run browsers: the node
+  # and deno runners, the dist variants, the TypeScript definitions and the api-symmetry audits were
+  # enforced by nothing but whoever remembered to run `npm test` before pushing. this job is also the
+  # only one on a case-sensitive filesystem, which is where a mismatched filename actually fails
+  #
+  # it runs `test-ci`, i.e. everything but the two bun runners, which `npm test` still runs locally:
+  # the "Zip64 (auto)" test builds a 4GB blob to cross the zip64 boundary, and bun holds it in memory
+  # where deno passes the same test in 683ms. it takes the runner down with it, reported as a cancelled
+  # job rather than as a failure
   runtimes:
-    name: 'Test node, deno and bun'
+    name: 'Test node and deno'
     runs-on: ubuntu-latest
 
     steps:
@@ -97,16 +102,11 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
       - name: Install dependencies
         run: npm ci
 
       - name: Run tests
-        run: npm test
+        run: npm run test-ci
 
   test:
     name: Test ${{ matrix.browser }} ${{ matrix.version }}${{ format(matrix.build && ' ({0})' || '', matrix.build) }} on ${{ matrix.os }}
