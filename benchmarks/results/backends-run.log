@@ -1,14 +1,14 @@
-# Backend & parallelism — 8 files x 8 MB (parallel-friendly) — Node v24.12.0, 3 runs, baseline 42 MB
+# Backend & parallelism — 8 files x 8 MB (parallel-friendly) — Node v26.7.0, 3 runs, baseline 50 MB
 
-zip.js — CompressionStream, sequential        2453 ms   peak  473 MB   out 19.6 MB
-zip.js — CompressionStream, parallel           657 ms   peak  518 MB   out 19.6 MB
-zip.js — WASM, sequential                     4176 ms   peak  485 MB   out 19.7 MB
-zip.js — WASM, parallel                       4175 ms   peak  505 MB   out 19.7 MB
-zip.js — pure-JS, sequential                  4709 ms   peak  484 MB   out 19.7 MB
-zip.js — pure-JS, parallel                    4704 ms   peak  507 MB   out 19.7 MB
-jszip (pako)                                  5758 ms   peak  457 MB   out 19.7 MB
-fflate — zipSync                              3103 ms   peak  447 MB   out 20.0 MB
-fflate — async (worker pool)                   729 ms   peak  622 MB   out 20.0 MB
-archiver (Node zlib)                          2266 ms   peak  433 MB   out 19.6 MB
+zip.js — CompressionStream, sequential        2214 ms   peak  406 MB   out 19.6 MB   ratio 3.425
+zip.js — CompressionStream, parallel           607 ms   peak  436 MB   out 19.6 MB   ratio 3.425
+zip.js — WASM, sequential                     3358 ms   peak  417 MB   out 19.7 MB   ratio 3.401
+zip.js — WASM, parallel                       3374 ms   peak  443 MB   out 19.7 MB   ratio 3.401
+zip.js — pure-JS, sequential                  3840 ms   peak  421 MB   out 19.7 MB   ratio 3.401
+zip.js — pure-JS, parallel                    3842 ms   peak  437 MB   out 19.7 MB   ratio 3.401
+jszip (pako)                                  5671 ms   peak  382 MB   out 19.7 MB   ratio 3.401
+fflate — zipSync                              3118 ms   peak  369 MB   out 20.0 MB   ratio 3.350
+fflate — async (worker pool)                   733 ms   peak  543 MB   out 20.0 MB   ratio 3.350
+archiver (Node zlib)                          2278 ms   peak  359 MB   out 19.6 MB   ratio 3.426
 
 wrote /Users/gildas/Desktop/Dev/project-zip-js/zip-js/benchmarks/results/backends-results.json

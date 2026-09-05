@@ -71,7 +71,8 @@ function runConfig(lib, extra) {
 
 function main() {
 	const baseline = measureBaseline();
-	const results = { runtime: process.version, runs: RUNS, workload: WORKLOADS[WORKLOAD].label, baselineRssBytes: baseline, rows: [] };
+	const inputBytes = WORKLOADS[WORKLOAD].count * WORKLOADS[WORKLOAD].each;
+	const results = { runtime: process.version, runs: RUNS, workload: WORKLOADS[WORKLOAD].label, inputBytes, baselineRssBytes: baseline, rows: [] };
 	console.log(`# Backend & parallelism — ${WORKLOADS[WORKLOAD].label} — Node ${process.version}, ${RUNS} runs, baseline ${(baseline / 1e6).toFixed(0)} MB\n`);
 
 	// Reference time = zip.js CompressionStream sequential, computed after the run.
@@ -82,8 +83,11 @@ function main() {
 			console.log("— err: " + r.failed.replace(/^ERROR:\s*/, "").slice(0, 50));
 			results.rows.push({ label, lib, unsupported: true, note: r.failed });
 		} else {
-			console.log(`${r.medianMs.toFixed(0).padStart(7)} ms   peak ${(r.peakRssBytes / 1e6).toFixed(0).padStart(4)} MB   out ${(r.outputSize / 1e6).toFixed(1)} MB`);
-			results.rows.push({ label, lib, medianMs: r.medianMs, peakRssBytes: r.peakRssBytes, outputSize: r.outputSize });
+			// the output size is printed next to every time on purpose: the libraries do not agree on
+			// what "level 6" means, so a time is only comparable alongside the size it achieved
+			const ratio = inputBytes / r.outputSize;
+			console.log(`${r.medianMs.toFixed(0).padStart(7)} ms   peak ${(r.peakRssBytes / 1e6).toFixed(0).padStart(4)} MB   out ${(r.outputSize / 1e6).toFixed(1)} MB   ratio ${ratio.toFixed(3)}`);
+			results.rows.push({ label, lib, medianMs: r.medianMs, peakRssBytes: r.peakRssBytes, outputSize: r.outputSize, ratio });
 		}
 	}
 

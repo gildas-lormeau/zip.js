@@ -1,88 +1,99 @@
 {
-  "runtime": "v24.12.0",
+  "runtime": "v26.7.0",
   "runs": 3,
   "workload": "8 files x 8 MB (parallel-friendly)",
-  "baselineRssBytes": 42008576,
+  "inputBytes": 67108864,
+  "baselineRssBytes": 49741824,
   "rows": [
     {
       "label": "zip.js — CompressionStream, sequential",
       "lib": "zipjs",
-      "medianMs": 2453.0914169999996,
-      "peakRssBytes": 473202688,
-      "outputSize": 19591565,
+      "medianMs": 2214.486667,
+      "peakRssBytes": 406208512,
+      "outputSize": 19590989,
+      "ratio": 3.425496487186022,
       "speedupVsCsSeq": 1
     },
     {
       "label": "zip.js — CompressionStream, parallel",
       "lib": "zipjs",
-      "medianMs": 657.010083,
-      "peakRssBytes": 518045696,
-      "outputSize": 19591565,
-      "speedupVsCsSeq": 3.7337195888970847
+      "medianMs": 607.4920830000001,
+      "peakRssBytes": 436256768,
+      "outputSize": 19590989,
+      "ratio": 3.425496487186022,
+      "speedupVsCsSeq": 3.645293048205864
     },
     {
       "label": "zip.js — WASM, sequential",
       "lib": "zipjs",
-      "medianMs": 4176.1879579999995,
-      "peakRssBytes": 485490688,
-      "outputSize": 19735400,
-      "speedupVsCsSeq": 0.5873996672733091
+      "medianMs": 3358.303875,
+      "peakRssBytes": 417480704,
+      "outputSize": 19734824,
+      "ratio": 3.4005301491414364,
+      "speedupVsCsSeq": 0.6594062804992595
     },
     {
       "label": "zip.js — WASM, parallel",
       "lib": "zipjs",
-      "medianMs": 4174.711583,
-      "peakRssBytes": 504725504,
-      "outputSize": 19735400,
-      "speedupVsCsSeq": 0.5876073995121783
+      "medianMs": 3373.6045839999997,
+      "peakRssBytes": 442908672,
+      "outputSize": 19734824,
+      "ratio": 3.4005301491414364,
+      "speedupVsCsSeq": 0.6564155969856841
     },
     {
       "label": "zip.js — pure-JS, sequential",
       "lib": "zipjs",
-      "medianMs": 4709.401708,
-      "peakRssBytes": 483590144,
-      "outputSize": 19732769,
-      "speedupVsCsSeq": 0.5208923700080332
+      "medianMs": 3839.650958,
+      "peakRssBytes": 420806656,
+      "outputSize": 19734824,
+      "ratio": 3.4005301491414364,
+      "speedupVsCsSeq": 0.5767416599120987
     },
     {
       "label": "zip.js — pure-JS, parallel",
       "lib": "zipjs",
-      "medianMs": 4703.532292,
-      "peakRssBytes": 506757120,
-      "outputSize": 19732769,
-      "speedupVsCsSeq": 0.5215423780915331
+      "medianMs": 3842.2386659999997,
+      "peakRssBytes": 437256192,
+      "outputSize": 19734824,
+      "ratio": 3.4005301491414364,
+      "speedupVsCsSeq": 0.5763532303695785
     },
     {
       "label": "jszip (pako)",
       "lib": "jszip",
-      "medianMs": 5758.481333000001,
-      "peakRssBytes": 456638464,
+      "medianMs": 5671.405708,
+      "peakRssBytes": 382025728,
       "outputSize": 19734552,
-      "speedupVsCsSeq": 0.42599624365231914
+      "ratio": 3.400577018419268,
+      "speedupVsCsSeq": 0.39046521815152074
     },
     {
       "label": "fflate — zipSync",
       "lib": "fflate",
-      "medianMs": 3103.112583,
-      "peakRssBytes": 446529536,
+      "medianMs": 3117.814042,
+      "peakRssBytes": 369016832,
       "outputSize": 20031041,
-      "speedupVsCsSeq": 0.7905260770875484
+      "ratio": 3.3502434546462165,
+      "speedupVsCsSeq": 0.7102690016687019
     },
     {
       "label": "fflate — async (worker pool)",
       "lib": "fflate",
-      "medianMs": 728.978125,
-      "peakRssBytes": 622379008,
+      "medianMs": 733.199708,
+      "peakRssBytes": 542769152,
       "outputSize": 20031041,
-      "speedupVsCsSeq": 3.3651097788428146
+      "ratio": 3.3502434546462165,
+      "speedupVsCsSeq": 3.0203048948841102
     },
     {
       "label": "archiver (Node zlib)",
       "lib": "archiver",
-      "medianMs": 2266.316875,
-      "peakRssBytes": 432865280,
+      "medianMs": 2278.4887919999996,
+      "peakRssBytes": 358793216,
       "outputSize": 19590845,
-      "speedupVsCsSeq": 1.082413251236105
+      "ratio": 3.4255216658597423,
+      "speedupVsCsSeq": 0.9719102743780363
     }
   ]
 }
