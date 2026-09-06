@@ -1,0 +1,402 @@
+{
+  "generatedBy": "bench-7z.js",
+  "runtime": "node v26.7.0",
+  "sevenZip": "7zz",
+  "backend": "cs",
+  "runs": 3,
+  "rows": [
+    {
+      "op": "compress",
+      "workload": "text-20mb",
+      "contender": "zipjs-1t",
+      "label": "zip.js (1 thread)",
+      "medianMs": 697.4750409999999,
+      "outputSize": 6120709,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "compress",
+      "workload": "text-20mb",
+      "contender": "zipjs-workers",
+      "label": "zip.js (workers)",
+      "medianMs": 689.1374579999997,
+      "outputSize": 6120709,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "compress",
+      "workload": "text-20mb",
+      "contender": "7z-mt",
+      "label": "7-Zip (multithread)",
+      "medianMs": 2533.5382499999996,
+      "outputSize": 5752577,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "compress",
+      "workload": "text-20mb",
+      "contender": "7z-fast",
+      "label": "7-Zip (fast -mx=1)",
+      "medianMs": 443.4506250000013,
+      "outputSize": 6773416,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "decompress",
+      "workload": "text-20mb",
+      "contender": "zipjs-1t",
+      "label": "zip.js (1 thread)",
+      "medianMs": 65.96529200000077,
+      "outputSize": null,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "decompress",
+      "workload": "text-20mb",
+      "contender": "zipjs-workers",
+      "label": "zip.js (workers)",
+      "medianMs": 63.638833000000886,
+      "outputSize": null,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "decompress",
+      "workload": "text-20mb",
+      "contender": "7z-mt",
+      "label": "7-Zip (multithread)",
+      "medianMs": 83.3002090000009,
+      "outputSize": null,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "7-Zip -mx=9",
+      "contender": "7z-mx9",
+      "medianMs": 14904.052792000002,
+      "outputSize": 5722641,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "7-Zip -mx=7",
+      "contender": "7z-mx7",
+      "medianMs": 6547.609875000002,
+      "outputSize": 5722700,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "7-Zip -mx=5",
+      "contender": "7z-mx5",
+      "medianMs": 2534.588917000001,
+      "outputSize": 5752577,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "7-Zip -mx=6",
+      "contender": "7z-mx6",
+      "medianMs": 2552.7244590000046,
+      "outputSize": 5752577,
+      "frontier": false,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "zip.js level 8",
+      "contender": "zipjs-l8",
+      "medianMs": 1473.8984580000033,
+      "outputSize": 6116186,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "zip.js level 9",
+      "contender": "zipjs-l9",
+      "medianMs": 1476.0513329999994,
+      "outputSize": 6116186,
+      "frontier": false,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "zip.js level 6",
+      "contender": "zipjs-l6",
+      "medianMs": 695.7461669999975,
+      "outputSize": 6120709,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "zip.js level 7",
+      "contender": "zipjs-l7",
+      "medianMs": 1237.8059999999969,
+      "outputSize": 6130154,
+      "frontier": false,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "zip.js level 5",
+      "contender": "zipjs-l5",
+      "medianMs": 513.8947919999991,
+      "outputSize": 6562388,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "7-Zip -mx=1",
+      "contender": "7z-mx1",
+      "medianMs": 446.72454200000357,
+      "outputSize": 6773416,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "7-Zip -mx=3",
+      "contender": "7z-mx3",
+      "medianMs": 444.53916699999536,
+      "outputSize": 6773416,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "zip.js level 4",
+      "contender": "zipjs-l4",
+      "medianMs": 304.49183300000004,
+      "outputSize": 6908193,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "zip.js level 3",
+      "contender": "zipjs-l3",
+      "medianMs": 374.680792000001,
+      "outputSize": 7049039,
+      "frontier": false,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "zip.js level 2",
+      "contender": "zipjs-l2",
+      "medianMs": 221.43591600000036,
+      "outputSize": 7359593,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "text-20mb",
+      "budget": "one thread, one deflate stream on both sides",
+      "label": "zip.js level 1",
+      "contender": "zipjs-l1",
+      "medianMs": 200.06266700000015,
+      "outputSize": 7531248,
+      "frontier": true,
+      "inputBytes": 20971520
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "7-Zip -mx=9",
+      "contender": "7z-mx9",
+      "medianMs": 8819.234083999996,
+      "outputSize": 18334327,
+      "frontier": true,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "7-Zip -mx=7",
+      "contender": "7z-mx7",
+      "medianMs": 3789.612833000021,
+      "outputSize": 18334667,
+      "frontier": true,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "7-Zip -mx=5",
+      "contender": "7z-mx5",
+      "medianMs": 1513.677166999987,
+      "outputSize": 18413612,
+      "frontier": true,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "7-Zip -mx=6",
+      "contender": "7z-mx6",
+      "medianMs": 1552.2117090000247,
+      "outputSize": 18413612,
+      "frontier": false,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "zip.js level 8",
+      "contender": "zipjs-l8",
+      "medianMs": 4822.233165999991,
+      "outputSize": 19577947,
+      "frontier": false,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "zip.js level 9",
+      "contender": "zipjs-l9",
+      "medianMs": 4815.281667000003,
+      "outputSize": 19577947,
+      "frontier": false,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "zip.js level 6",
+      "contender": "zipjs-l6",
+      "medianMs": 617.4299580000225,
+      "outputSize": 19591373,
+      "frontier": true,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "zip.js level 7",
+      "contender": "zipjs-l7",
+      "medianMs": 4090.0743340000045,
+      "outputSize": 19622758,
+      "frontier": false,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "zip.js level 5",
+      "contender": "zipjs-l5",
+      "medianMs": 1703.8083749999932,
+      "outputSize": 20998841,
+      "frontier": false,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "7-Zip -mx=1",
+      "contender": "7z-mx1",
+      "medianMs": 323.8630420000118,
+      "outputSize": 21675098,
+      "frontier": true,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "7-Zip -mx=3",
+      "contender": "7z-mx3",
+      "medianMs": 306.62516699999105,
+      "outputSize": 21675098,
+      "frontier": true,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "zip.js level 4",
+      "contender": "zipjs-l4",
+      "medianMs": 997.471000000005,
+      "outputSize": 22100523,
+      "frontier": false,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "zip.js level 3",
+      "contender": "zipjs-l3",
+      "medianMs": 1244.2202499999985,
+      "outputSize": 22555169,
+      "frontier": false,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "zip.js level 2",
+      "contender": "zipjs-l2",
+      "medianMs": 736.559500000003,
+      "outputSize": 23551652,
+      "frontier": false,
+      "inputBytes": 67108864
+    },
+    {
+      "op": "frontier",
+      "workload": "parallel-8x8mb",
+      "budget": "every core, both sides",
+      "label": "zip.js level 1",
+      "contender": "zipjs-l1",
+      "medianMs": 665.8194999999978,
+      "outputSize": 24103090,
+      "frontier": false,
+      "inputBytes": 67108864
+    }
+  ]
+}

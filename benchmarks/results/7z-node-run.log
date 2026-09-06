@@ -1,0 +1,48 @@
+# node v26.7.0 vs 7zz — 3 runs/combo, median — level 6 — zip.js backend: cs
+
+compress    Compressible text (20 MB)          zip.js (1 thread)             697 ms   out 6.1 MB   ratio 3.426
+compress    Compressible text (20 MB)          zip.js (workers)              689 ms   out 6.1 MB   ratio 3.426
+compress    Compressible text (20 MB)          7-Zip (multithread)          2534 ms   out 5.8 MB   ratio 3.646
+compress    Compressible text (20 MB)          7-Zip (fast -mx=1)            443 ms   out 6.8 MB   ratio 3.096
+
+decompress  Compressible text (20 MB)          zip.js (1 thread)              66 ms
+decompress  Compressible text (20 MB)          zip.js (workers)               64 ms
+decompress  Compressible text (20 MB)          7-Zip (multithread)            83 ms
+
+# Frontier — Compressible text (20 MB) — one thread, one deflate stream on both sides
+
+frontier    Compressible text (20 MB)          7-Zip -mx=9                 14904 ms   out 5.7 MB   ratio 3.665   frontier
+frontier    Compressible text (20 MB)          7-Zip -mx=7                  6548 ms   out 5.7 MB   ratio 3.665   frontier
+frontier    Compressible text (20 MB)          7-Zip -mx=5                  2535 ms   out 5.8 MB   ratio 3.646   frontier
+frontier    Compressible text (20 MB)          7-Zip -mx=6                  2553 ms   out 5.8 MB   ratio 3.646   
+frontier    Compressible text (20 MB)          zip.js level 8               1474 ms   out 6.1 MB   ratio 3.429   frontier
+frontier    Compressible text (20 MB)          zip.js level 9               1476 ms   out 6.1 MB   ratio 3.429   
+frontier    Compressible text (20 MB)          zip.js level 6                696 ms   out 6.1 MB   ratio 3.426   frontier
+frontier    Compressible text (20 MB)          zip.js level 7               1238 ms   out 6.1 MB   ratio 3.421   
+frontier    Compressible text (20 MB)          zip.js level 5                514 ms   out 6.6 MB   ratio 3.196   frontier
+frontier    Compressible text (20 MB)          7-Zip -mx=1                   447 ms   out 6.8 MB   ratio 3.096   frontier
+frontier    Compressible text (20 MB)          7-Zip -mx=3                   445 ms   out 6.8 MB   ratio 3.096   frontier
+frontier    Compressible text (20 MB)          zip.js level 4                304 ms   out 6.9 MB   ratio 3.036   frontier
+frontier    Compressible text (20 MB)          zip.js level 3                375 ms   out 7.0 MB   ratio 2.975   
+frontier    Compressible text (20 MB)          zip.js level 2                221 ms   out 7.4 MB   ratio 2.850   frontier
+frontier    Compressible text (20 MB)          zip.js level 1                200 ms   out 7.5 MB   ratio 2.785   frontier
+
+# Frontier — 8 files x 8 MB (parallel-friendly) — every core, both sides
+
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=9                  8819 ms   out 18.3 MB   ratio 3.660   frontier
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=7                  3790 ms   out 18.3 MB   ratio 3.660   frontier
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=5                  1514 ms   out 18.4 MB   ratio 3.645   frontier
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=6                  1552 ms   out 18.4 MB   ratio 3.645   
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 8               4822 ms   out 19.6 MB   ratio 3.428   
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 9               4815 ms   out 19.6 MB   ratio 3.428   
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 6                617 ms   out 19.6 MB   ratio 3.425   frontier
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 7               4090 ms   out 19.6 MB   ratio 3.420   
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 5               1704 ms   out 21.0 MB   ratio 3.196   
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=1                   324 ms   out 21.7 MB   ratio 3.096   frontier
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=3                   307 ms   out 21.7 MB   ratio 3.096   frontier
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 4                997 ms   out 22.1 MB   ratio 3.037   
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 3               1244 ms   out 22.6 MB   ratio 2.975   
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 2                737 ms   out 23.6 MB   ratio 2.849   
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 1                666 ms   out 24.1 MB   ratio 2.784   
+
+wrote /Users/gildas/Desktop/Dev/project-zip-js/zip-js/benchmarks/results/7z-node-results.json

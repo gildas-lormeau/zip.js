@@ -128,9 +128,9 @@ the table, does not parallelize via concurrent `add()`. Keep the default level t
 the native-backend parallelism, or pair a custom level with Web Workers (below).
 
 That fallback costs more than a backend switch, and the
-[frontier](#the-frontier--one-axis-both-sides) measures how much: **levels 3 and 5 are
-strictly worse than the default**, producing a larger archive in more time. Of the levels
-below 6, only 1, 2 and 4 actually trade size for speed.
+[frontier](#the-frontier--one-axis-both-sides) measures how much: how much speed a lower
+level actually buys depends on how fast the host's own zlib is, and on Deno it buys
+nothing at all — `level: 5` there is slower *and* larger than the default.
 
 ### Parallelism is runtime-dependent
 
@@ -299,7 +299,34 @@ size. A tool is faster than another only where it is faster **at the same size**
 | zip.js level 2 | 7.4 MB | 2.850 | 266 ms | frontier |
 | zip.js level 1 | 7.5 MB | 2.785 | 239 ms | frontier |
 
-**Every core, both sides** — 8 files × 8 MB:
+**The same 20 MB, one thread, but on Node** — because the zip.js side of that table is not
+one codec. Level 6 is the host's `CompressionStream`, so it changes with the runtime; every
+other level is the bundled WASM codec, which does not (its output is byte-identical on both
+and its times agree within 5 %):
+
+| Encoder | Output | Ratio | Time | |
+|---|--:|--:|--:|---|
+| 7-Zip `-mx=9` | 5.7 MB | 3.665 | 14904 ms | frontier |
+| 7-Zip `-mx=7` | 5.7 MB | 3.665 | 6548 ms | frontier |
+| 7-Zip `-mx=5` | 5.8 MB | 3.646 | 2535 ms | frontier |
+| 7-Zip `-mx=6` | 5.8 MB | 3.646 | 2553 ms | |
+| zip.js level 8 | 6.1 MB | 3.429 | 1474 ms | frontier |
+| zip.js level 9 | 6.1 MB | 3.429 | 1476 ms | |
+| **zip.js level 6 (default)** | 6.1 MB | 3.426 | **696 ms** | frontier |
+| zip.js level 7 | 6.1 MB | 3.421 | 1238 ms | |
+| zip.js level 5 | 6.6 MB | 3.196 | 514 ms | frontier |
+| 7-Zip `-mx=1` | 6.8 MB | 3.096 | 447 ms | frontier |
+| 7-Zip `-mx=3` | 6.8 MB | 3.096 | 445 ms | frontier |
+| zip.js level 4 | 6.9 MB | 3.036 | 304 ms | frontier |
+| zip.js level 3 | 7.0 MB | 2.975 | 375 ms | |
+| zip.js level 2 | 7.4 MB | 2.850 | 221 ms | frontier |
+| zip.js level 1 | 7.5 MB | 2.785 | 200 ms | frontier |
+
+**Every core, both sides** — 8 files × 8 MB, on Deno. It has to be Deno: Node exposes no
+global `Worker`, so `useWebWorkers` cannot spawn one there and only the default level —
+which rides the platform threadpool instead — parallelizes at all. Measured on Node the
+same table reads 617 ms at level 6 against 4090 ms at level 7, i.e. the WASM levels run
+serially, which would make it a comparison of 7-Zip on 8 cores against zip.js on 1.
 
 | Encoder | Output | Ratio | Time | |
 |---|--:|--:|--:|---|
@@ -321,13 +348,19 @@ size. A tool is faster than another only where it is faster **at the same size**
 
 What the two curves say:
 
-- **zip.js's default is a spike on its own curve, and levels 3 and 5 are strictly worse
-  than it.** Level 5 produces a *larger* archive than level 6 in *more* time (590 ms /
-  6.6 MB against 418 ms / 6.2 MB), and level 3 is slower than the default too while giving
-  up 13 % of the ratio. That is not a codec quirk, it is the fallback rule: the platform's
-  `CompressionStream` exposes no level control, so **level 6 runs the native codec and every
-  other level drops onto the bundled WASM one**. If you were reaching for a level to go
-  faster, only 1, 2 and 4 actually do; 3 and 5 cost you on both axes.
+- **zip.js's default is a spike on its own curve, because it is a different codec.** The
+  platform's `CompressionStream` exposes no level control, so **level 6 runs the host's
+  native zlib and every other level drops onto the bundled WASM one**. How big the spike is
+  therefore depends on whose zlib the host ships: 418 ms at ratio 3.377 on Deno's zlib-ng,
+  696 ms at 3.426 on Node's Chromium zlib — ~1.7× faster and ~1.4 % looser.
+- **So whether a lower level buys anything is runtime-dependent, and on Deno it does not.**
+  On Node, `level: 5` costs 514 ms against the default's 696 ms: the ordinary trade, 26 %
+  faster for 7 % more bytes. On Deno the default is already 418 ms, so the same `level: 5`
+  takes 590 ms and produces a *larger* archive — **slower and bigger, strictly worse**. If
+  you reach for a lower level to go faster, measure it on your runtime first.
+- **One level is a bad deal everywhere: `level: 3` loses to `level: 4`** on both time and
+  size (375 ms / 7.0 MB against 304 ms / 6.9 MB on Node; 420 ms against 358 ms on Deno).
+  Both are the same WASM codec, so this one is zlib's own curve, not a fallback artifact.
 - **7-Zip's nine presets are three encoders.** `-mx=1` and `-mx=3` are identical, so are
   `-mx=5`/`-mx=6` and `-mx=7`/`-mx=9` — **`-mx=9` costs 2.3× the time of `-mx=7` for
   byte-identical output**. The 5.7× jump from `-mx=3` to `-mx=5` is greedy matching giving
