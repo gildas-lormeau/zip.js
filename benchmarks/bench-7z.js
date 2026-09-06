@@ -10,6 +10,7 @@
 // deployment model, mirroring how 7-Zip's mmap/threads are its own.
 //
 // Env: RUNS (default 3), SEVENZIP (binary override), SKIP_HUGE=1 to skip the 256 MB combo,
+// ONLY=<workload[,workload]> to run a subset of the plan,
 // ZIPJS_BACKEND=wasm to run zip.js on the bundled WebAssembly zlib instead of CompressionStream.
 
 import { spawnSync } from "node:child_process";
@@ -73,9 +74,9 @@ function inputSize(input) {
 		: statSync(input.path).size;
 }
 
-async function zipjsCompress(input, outPath, useWebWorkers) {
+async function zipjsCompress(input, outPath, useWebWorkers, level = LEVEL) {
 	configureZipjs(useWebWorkers);
-	const zipWriter = new zip.ZipWriter(Writable.toWeb(createWriteStream(outPath)), { level: LEVEL });
+	const zipWriter = new zip.ZipWriter(Writable.toWeb(createWriteStream(outPath)), { level });
 	const entries = input.kind === "tree" ? listTree(input.path) : [{ name: basename(input.path), path: input.path }];
 	// Workers mode issues all add() calls at once so independent entries compress in parallel
 	// across the pool (like the Node adapter's concurrency: "parallel"); single mode stays sequential.
@@ -93,9 +94,16 @@ async function zipjsCompress(input, outPath, useWebWorkers) {
 async function zipjsDecompress(zipPath, outDir, useWebWorkers) {
 	configureZipjs(useWebWorkers);
 	const reader = new zip.ZipReader(new zip.Uint8ArrayReader(readFileSync(zipPath)));
-	for (const entry of await reader.getEntries()) {
-		if (!entry.directory) {
-			await entry.getData(Writable.toWeb(createWriteStream(join(outDir, basename(entry.filename)))));
+	const entries = (await reader.getEntries()).filter((entry) => !entry.directory);
+	// mirrors the compress path: workers mode extracts entries concurrently so the pool is actually
+	// used, sequential mode does one at a time. Awaiting each entry in both modes would report the
+	// worker pool as worthless while 7-Zip extracts on every core.
+	const extract = (entry) => entry.getData(Writable.toWeb(createWriteStream(join(outDir, basename(entry.filename)))));
+	if (useWebWorkers) {
+		await Promise.all(entries.map(extract));
+	} else {
+		for (const entry of entries) {
+			await extract(entry);
 		}
 	}
 	await reader.close();
@@ -128,21 +136,37 @@ const CONTENDERS = [
 	{ id: "7z-fast", label: "7-Zip (fast -mx=1)", ops: ["compress"], compress: (i, o) => sevenZipCompress(i, o, "on", 1) }
 ];
 
-// No 7-Zip preset runs zlib's algorithm, so no single -mx anchor can be fair and a level-matched
-// table would read a ratio difference as a speed difference. The ladder measures the whole curve on
-// one workload, which is what lets a reader place zip.js on it by output size rather than by preset
-// number. Compress only: deflate decoding does not depend on the level it was written at.
-const LADDER_WORKLOAD = "text-20mb";
-const LADDER_LEVELS = [1, 3, 5, 6, 7, 9];
+// The frontier pass. The head-to-head table above holds the level fixed and varies the threading,
+// which answers "how do the defaults compare" and nothing else: a cell there mixes a threading
+// difference with a compression-ratio difference, because -mx=N is not zlib's level N.
+//
+// This pass varies ONE axis, the level, on BOTH sides at once, with the core budget held fixed
+// within each table. Sorted by output size it answers the question worth asking — for the
+// compression you want, which tool reaches it soonest — instead of pairing preset numbers that
+// happen to share a digit. Compress only: deflate decoding does not depend on the level.
+//
+// The two budgets are not a variation of the same table. A single file is one deflate stream on
+// both sides, so no core count changes it; a tree of large entries is where both sides scale.
+const FRONTIER_LEVELS_ZIPJS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const FRONTIER_LEVELS_SEVENZIP = [1, 3, 5, 6, 7, 9];
+const FRONTIER_PLAN = [
+	{ workload: "text-20mb", useWebWorkers: false, threads: 1, budget: "one thread, one deflate stream on both sides" },
+	{ workload: "parallel-8x8mb", useWebWorkers: true, threads: "on", budget: "every core, both sides" }
+];
 
 // runs: 1 for the 256 MB combo — a 33 s 7-Zip sample makes run-to-run noise proportionally tiny,
 // and 3 runs would triple the wall time of the whole benchmark for nothing.
+// parallel-8x8mb is the only workload here where BOTH sides can use several cores on real codec
+// work: a single file is one deflate stream on both sides whatever -mmt or the worker pool say, and
+// the 5,000-file tree is dominated by per-entry cost rather than by compression. Without it the
+// comparison would only ever show zip.js single-core.
 const PLAN = [
 	{ workload: "text-20mb", ops: ["compress", "decompress"] },
 	{ workload: "random-20mb", ops: ["compress"] },
+	{ workload: "parallel-8x8mb", ops: ["compress", "decompress"] },
 	{ workload: "many-files", ops: ["compress", "decompress"] },
 	...(process.env.SKIP_HUGE ? [] : [{ workload: "huge-256mb", ops: ["compress"], runs: 1 }])
-];
+].filter(({ workload }) => !process.env.ONLY || process.env.ONLY.split(",").includes(workload));
 
 function median(times) {
 	const sorted = [...times].sort((a, b) => a - b);
@@ -204,7 +228,7 @@ async function main() {
 		}
 	}
 
-	await runLadder(workDir, results);
+	await runFrontier(workDir, results);
 
 	await zip.terminateWorkers();
 	rmSync(workDir, { recursive: true, force: true });
@@ -213,47 +237,55 @@ async function main() {
 	console.log("wrote " + outPath);
 }
 
-async function runLadder(workDir, results) {
-	const workload = WORKLOADS[LADDER_WORKLOAD];
-	const input = { kind: "file", path: ensureDiskFile(LADDER_WORKLOAD) };
-	const bytesIn = inputSize(input);
-	console.log(`# 7-Zip -mx ladder — ${workload.label} — placed against zip.js by output size\n`);
-	const points = [];
-	for (const level of LADDER_LEVELS) {
-		const zipPath = join(workDir, `ladder-7z-${level}.zip`);
-		const times = [];
-		let outputSize = 0;
-		for (let run = 0; run < RUNS; run++) {
-			rmSync(zipPath, { force: true });
-			const start = performance.now();
-			outputSize = sevenZipCompress(input, zipPath, "on", level);
-			times.push(performance.now() - start);
+async function timed(runs, run) {
+	const times = [];
+	let outputSize = 0;
+	for (let index = 0; index < runs; index++) {
+		const start = performance.now();
+		outputSize = await run();
+		times.push(performance.now() - start);
+	}
+	return { medianMs: median(times), outputSize };
+}
+
+async function runFrontier(workDir, results) {
+	for (const { workload: workloadName, useWebWorkers, threads, budget } of FRONTIER_PLAN) {
+		const workload = WORKLOADS[workloadName];
+		const input = workload.kind === "multi"
+			? { kind: "tree", path: ensureTree(workloadName) }
+			: { kind: "file", path: ensureDiskFile(workloadName) };
+		const bytesIn = inputSize(input);
+		const runs = workloadName === "huge-256mb" ? 1 : RUNS;
+		console.log(`# Frontier — ${workload.label} — ${budget}\n`);
+		const points = [];
+		for (const level of FRONTIER_LEVELS_ZIPJS) {
+			const zipPath = join(workDir, `frontier-${workloadName}-zipjs-${level}.zip`);
+			const { medianMs, outputSize } = await timed(runs, () => {
+				rmSync(zipPath, { force: true });
+				return zipjsCompress(input, zipPath, useWebWorkers, level);
+			});
+			points.push({ label: `${ZIPJS_LABEL} level ${level}`, contender: `zipjs-l${level}`, medianMs, outputSize });
 		}
-		points.push({ label: `7-Zip -mx=${level}`, contender: `7z-mx${level}`, medianMs: median(times), outputSize });
-	}
-	for (const useWebWorkers of [false, true]) {
-		const zipPath = join(workDir, `ladder-zipjs-${useWebWorkers ? "workers" : "1t"}.zip`);
-		const times = [];
-		let outputSize = 0;
-		for (let run = 0; run < RUNS; run++) {
-			rmSync(zipPath, { force: true });
-			const start = performance.now();
-			outputSize = await zipjsCompress(input, zipPath, useWebWorkers);
-			times.push(performance.now() - start);
+		for (const level of FRONTIER_LEVELS_SEVENZIP) {
+			const zipPath = join(workDir, `frontier-${workloadName}-7z-${level}.zip`);
+			const { medianMs, outputSize } = await timed(runs, () => {
+				rmSync(zipPath, { force: true });
+				return sevenZipCompress(input, zipPath, threads, level);
+			});
+			points.push({ label: `7-Zip -mx=${level}`, contender: `7z-mx${level}`, medianMs, outputSize });
 		}
-		points.push({
-			label: `${ZIPJS_LABEL} (${useWebWorkers ? "workers" : "1 thread"})`,
-			contender: `zipjs-${useWebWorkers ? "workers" : "1t"}`,
-			medianMs: median(times),
-			outputSize
-		});
+		points.sort((pointLeft, pointRight) => pointLeft.outputSize - pointRight.outputSize);
+		let bestMs = Infinity;
+		for (const point of points) {
+			point.frontier = point.medianMs < bestMs;
+			if (point.frontier) {
+				bestMs = point.medianMs;
+			}
+			console.log(`frontier    ${workload.label.padEnd(34)} ${point.label.padEnd(25)} ${point.medianMs.toFixed(0).padStart(7)} ms   out ${(point.outputSize / 1e6).toFixed(1)} MB   ratio ${(bytesIn / point.outputSize).toFixed(3)}   ${point.frontier ? "frontier" : ""}`);
+			results.rows.push({ op: "frontier", workload: workloadName, budget, ...point, inputBytes: bytesIn });
+		}
+		console.log("");
 	}
-	points.sort((pointLeft, pointRight) => pointLeft.outputSize - pointRight.outputSize);
-	for (const point of points) {
-		console.log(`ladder      ${workload.label.padEnd(34)} ${point.label.padEnd(25)} ${point.medianMs.toFixed(0).padStart(7)} ms   out ${(point.outputSize / 1e6).toFixed(1)} MB   ratio ${(bytesIn / point.outputSize).toFixed(3)}`);
-		results.rows.push({ op: "ladder", workload: LADDER_WORKLOAD, ...point, inputBytes: bytesIn });
-	}
-	console.log("");
 }
 
 main().catch((error) => {

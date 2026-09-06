@@ -1,44 +1,80 @@
 # deno 2.9.6 vs 7zz — 3 runs/combo, median — level 6 — zip.js backend: cs
 
-compress    Compressible text (20 MB)          zip.js (1 thread)             463 ms   out 6.2 MB   ratio 3.377
-compress    Compressible text (20 MB)          zip.js (workers)              435 ms   out 6.2 MB   ratio 3.377
-compress    Compressible text (20 MB)          7-Zip (multithread)          2525 ms   out 5.8 MB   ratio 3.646
-compress    Compressible text (20 MB)          7-Zip (fast -mx=1)            455 ms   out 6.8 MB   ratio 3.096
+compress    Compressible text (20 MB)          zip.js (1 thread)             418 ms   out 6.2 MB   ratio 3.377
+compress    Compressible text (20 MB)          zip.js (workers)              428 ms   out 6.2 MB   ratio 3.377
+compress    Compressible text (20 MB)          7-Zip (multithread)          2540 ms   out 5.8 MB   ratio 3.646
+compress    Compressible text (20 MB)          7-Zip (fast -mx=1)            444 ms   out 6.8 MB   ratio 3.096
 
-decompress  Compressible text (20 MB)          zip.js (1 thread)              78 ms
-decompress  Compressible text (20 MB)          zip.js (workers)               68 ms
-decompress  Compressible text (20 MB)          7-Zip (multithread)            83 ms
+decompress  Compressible text (20 MB)          zip.js (1 thread)              83 ms
+decompress  Compressible text (20 MB)          zip.js (workers)               61 ms
+decompress  Compressible text (20 MB)          7-Zip (multithread)            81 ms
 
-compress    Incompressible data (20 MB)        zip.js (1 thread)             323 ms   out 21.0 MB   ratio 1.000
-compress    Incompressible data (20 MB)        zip.js (workers)              335 ms   out 21.0 MB   ratio 1.000
-compress    Incompressible data (20 MB)        7-Zip (multithread)           417 ms   out 21.0 MB   ratio 1.000
-compress    Incompressible data (20 MB)        7-Zip (fast -mx=1)            366 ms   out 21.0 MB   ratio 1.000
+compress    Incompressible data (20 MB)        zip.js (1 thread)             321 ms   out 21.0 MB   ratio 1.000
+compress    Incompressible data (20 MB)        zip.js (workers)              333 ms   out 21.0 MB   ratio 1.000
+compress    Incompressible data (20 MB)        7-Zip (multithread)           418 ms   out 21.0 MB   ratio 1.000
+compress    Incompressible data (20 MB)        7-Zip (fast -mx=1)            353 ms   out 21.0 MB   ratio 1.000
 
-compress    5,000 small files (~2 KB each)     zip.js (1 thread)            1255 ms   out 5.2 MB   ratio 1.987
-compress    5,000 small files (~2 KB each)     zip.js (workers)              839 ms   out 5.2 MB   ratio 1.987
-compress    5,000 small files (~2 KB each)     7-Zip (1 thread)              578 ms   out 4.9 MB   ratio 2.104
-compress    5,000 small files (~2 KB each)     7-Zip (multithread)           186 ms   out 4.9 MB   ratio 2.104
-compress    5,000 small files (~2 KB each)     7-Zip (fast -mx=1)            172 ms   out 5.0 MB   ratio 2.048
+compress    8 files x 8 MB (parallel-friendly) zip.js (1 thread)            1308 ms   out 19.9 MB   ratio 3.376
+compress    8 files x 8 MB (parallel-friendly) zip.js (workers)              308 ms   out 19.9 MB   ratio 3.376
+compress    8 files x 8 MB (parallel-friendly) 7-Zip (1 thread)             8102 ms   out 18.4 MB   ratio 3.645
+compress    8 files x 8 MB (parallel-friendly) 7-Zip (multithread)          1510 ms   out 18.4 MB   ratio 3.645
+compress    8 files x 8 MB (parallel-friendly) 7-Zip (fast -mx=1)            294 ms   out 21.7 MB   ratio 3.096
 
-decompress  5,000 small files (~2 KB each)     zip.js (1 thread)            1044 ms
-decompress  5,000 small files (~2 KB each)     zip.js (workers)              979 ms
-decompress  5,000 small files (~2 KB each)     7-Zip (1 thread)              470 ms
-decompress  5,000 small files (~2 KB each)     7-Zip (multithread)           499 ms
+decompress  8 files x 8 MB (parallel-friendly) zip.js (1 thread)             181 ms
+decompress  8 files x 8 MB (parallel-friendly) zip.js (workers)               83 ms
+decompress  8 files x 8 MB (parallel-friendly) 7-Zip (1 thread)              241 ms
+decompress  8 files x 8 MB (parallel-friendly) 7-Zip (multithread)           247 ms
 
-compress    Large file, disk-to-disk (256 MB)  zip.js (1 thread)            5283 ms   out 79.5 MB   ratio 3.378
-compress    Large file, disk-to-disk (256 MB)  zip.js (workers)             5359 ms   out 79.5 MB   ratio 3.378
-compress    Large file, disk-to-disk (256 MB)  7-Zip (multithread)         33270 ms   out 73.6 MB   ratio 3.647
-compress    Large file, disk-to-disk (256 MB)  7-Zip (fast -mx=1)           5805 ms   out 86.7 MB   ratio 3.097
+compress    5,000 small files (~2 KB each)     zip.js (1 thread)            1245 ms   out 5.2 MB   ratio 1.987
+compress    5,000 small files (~2 KB each)     zip.js (workers)              825 ms   out 5.2 MB   ratio 1.987
+compress    5,000 small files (~2 KB each)     7-Zip (1 thread)              580 ms   out 4.9 MB   ratio 2.104
+compress    5,000 small files (~2 KB each)     7-Zip (multithread)           193 ms   out 4.9 MB   ratio 2.104
+compress    5,000 small files (~2 KB each)     7-Zip (fast -mx=1)            173 ms   out 5.0 MB   ratio 2.048
 
-# 7-Zip -mx ladder — Compressible text (20 MB) — placed against zip.js by output size
+decompress  5,000 small files (~2 KB each)     zip.js (1 thread)             989 ms
+decompress  5,000 small files (~2 KB each)     zip.js (workers)              906 ms
+decompress  5,000 small files (~2 KB each)     7-Zip (1 thread)              491 ms
+decompress  5,000 small files (~2 KB each)     7-Zip (multithread)           462 ms
 
-ladder      Compressible text (20 MB)          7-Zip -mx=9                 14919 ms   out 5.7 MB   ratio 3.665
-ladder      Compressible text (20 MB)          7-Zip -mx=7                  6596 ms   out 5.7 MB   ratio 3.665
-ladder      Compressible text (20 MB)          7-Zip -mx=5                  2607 ms   out 5.8 MB   ratio 3.646
-ladder      Compressible text (20 MB)          7-Zip -mx=6                  2597 ms   out 5.8 MB   ratio 3.646
-ladder      Compressible text (20 MB)          zip.js (1 thread)             422 ms   out 6.2 MB   ratio 3.377
-ladder      Compressible text (20 MB)          zip.js (workers)              423 ms   out 6.2 MB   ratio 3.377
-ladder      Compressible text (20 MB)          7-Zip -mx=1                   458 ms   out 6.8 MB   ratio 3.096
-ladder      Compressible text (20 MB)          7-Zip -mx=3                   453 ms   out 6.8 MB   ratio 3.096
+compress    Large file, disk-to-disk (256 MB)  zip.js (1 thread)            5382 ms   out 79.5 MB   ratio 3.378
+compress    Large file, disk-to-disk (256 MB)  zip.js (workers)             5450 ms   out 79.5 MB   ratio 3.378
+compress    Large file, disk-to-disk (256 MB)  7-Zip (multithread)         33416 ms   out 73.6 MB   ratio 3.647
+compress    Large file, disk-to-disk (256 MB)  7-Zip (fast -mx=1)           5817 ms   out 86.7 MB   ratio 3.097
+
+# Frontier — Compressible text (20 MB) — one thread, one deflate stream on both sides
+
+frontier    Compressible text (20 MB)          7-Zip -mx=9                 14889 ms   out 5.7 MB   ratio 3.665   frontier
+frontier    Compressible text (20 MB)          7-Zip -mx=7                  6643 ms   out 5.7 MB   ratio 3.665   frontier
+frontier    Compressible text (20 MB)          7-Zip -mx=5                  2597 ms   out 5.8 MB   ratio 3.646   frontier
+frontier    Compressible text (20 MB)          7-Zip -mx=6                  2605 ms   out 5.8 MB   ratio 3.646   
+frontier    Compressible text (20 MB)          zip.js level 8               1537 ms   out 6.1 MB   ratio 3.429   frontier
+frontier    Compressible text (20 MB)          zip.js level 9               1544 ms   out 6.1 MB   ratio 3.429   
+frontier    Compressible text (20 MB)          zip.js level 7               1305 ms   out 6.1 MB   ratio 3.421   frontier
+frontier    Compressible text (20 MB)          zip.js level 6                418 ms   out 6.2 MB   ratio 3.377   frontier
+frontier    Compressible text (20 MB)          zip.js level 5                590 ms   out 6.6 MB   ratio 3.196   
+frontier    Compressible text (20 MB)          7-Zip -mx=1                   458 ms   out 6.8 MB   ratio 3.096   
+frontier    Compressible text (20 MB)          7-Zip -mx=3                   453 ms   out 6.8 MB   ratio 3.096   
+frontier    Compressible text (20 MB)          zip.js level 4                358 ms   out 6.9 MB   ratio 3.036   frontier
+frontier    Compressible text (20 MB)          zip.js level 3                420 ms   out 7.0 MB   ratio 2.975   
+frontier    Compressible text (20 MB)          zip.js level 2                266 ms   out 7.4 MB   ratio 2.850   frontier
+frontier    Compressible text (20 MB)          zip.js level 1                239 ms   out 7.5 MB   ratio 2.785   frontier
+
+# Frontier — 8 files x 8 MB (parallel-friendly) — every core, both sides
+
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=9                  8625 ms   out 18.3 MB   ratio 3.660   frontier
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=7                  3796 ms   out 18.3 MB   ratio 3.660   frontier
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=5                  1510 ms   out 18.4 MB   ratio 3.645   frontier
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=6                  1540 ms   out 18.4 MB   ratio 3.645   
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 8                991 ms   out 19.6 MB   ratio 3.428   frontier
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 9                971 ms   out 19.6 MB   ratio 3.428   frontier
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 7                852 ms   out 19.6 MB   ratio 3.420   frontier
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 6                317 ms   out 19.9 MB   ratio 3.376   frontier
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 5                405 ms   out 21.0 MB   ratio 3.196   
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=1                   313 ms   out 21.7 MB   ratio 3.096   frontier
+frontier    8 files x 8 MB (parallel-friendly) 7-Zip -mx=3                   309 ms   out 21.7 MB   ratio 3.096   frontier
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 4                287 ms   out 22.1 MB   ratio 3.037   frontier
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 3                316 ms   out 22.6 MB   ratio 2.975   
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 2                239 ms   out 23.6 MB   ratio 2.849   frontier
+frontier    8 files x 8 MB (parallel-friendly) zip.js level 1                218 ms   out 24.1 MB   ratio 2.784   frontier
 
 wrote /Users/gildas/Desktop/Dev/project-zip-js/zip-js/benchmarks/results/7z-deno-results.json

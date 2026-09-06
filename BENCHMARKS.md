@@ -127,6 +127,11 @@ level (e.g. `{ level: 5 }`) makes zip.js fall back to the WASM zlib codec — wh
 the table, does not parallelize via concurrent `add()`. Keep the default level to keep
 the native-backend parallelism, or pair a custom level with Web Workers (below).
 
+That fallback costs more than a backend switch, and the
+[frontier](#the-frontier--one-axis-both-sides) measures how much: **levels 3 and 5 are
+strictly worse than the default**, producing a larger archive in more time. Of the levels
+below 6, only 1, 2 and 4 actually trade size for speed.
+
 ### Parallelism is runtime-dependent
 
 The table above is measured on **Node**, and its "no Web Workers needed" result does
@@ -239,57 +244,109 @@ How far is zip.js from a native archiver? [`benchmarks/bench-7z.js`](benchmarks/
 compares it against the `7zz` CLI (7-Zip 25.01), disk-to-disk on both sides, under Deno
 2.9.6. 7-Zip timings include process spawn (~ms).
 
-One comparison is impossible to make perfectly fair: **no 7-Zip preset runs zlib's
-algorithm.** `-mx=5+` is a near-optimal parser (much slower, smaller output) and
-`-mx=1..4` a greedy one (faster, larger output) — they bracket zlib level 6. So the
-table carries two anchors: `-mx=6` as the *ratio* anchor and `-mx=1` as the *speed*
-anchor, and the ladder below measures the whole curve so you can place zip.js on it by
-output size rather than by preset number.
+**No 7-Zip preset runs zlib's algorithm**, so `-mx=6` and level 6 are not the same request
+and a table pairing them by digit is measuring two things at once. This section therefore
+has two parts: the defaults against each other, and then a frontier that varies *one* axis,
+the compression level, on **both** sides at a fixed core budget.
 
-| Workload (compress) | zip.js (workers) | 7-Zip `-mx=6` (mt) | 7-Zip `-mx=1` (mt) |
-|---|--:|--:|--:|
-| Compressible text (20 MB) | **435 ms** / 6.2 MB | 2525 ms / 5.8 MB | 455 ms / 6.8 MB |
-| Incompressible data (20 MB) | **335 ms** | 417 ms | 366 ms |
-| 5,000 files × ~2 KB | 839 ms / 5.2 MB | 186 ms / 4.9 MB | **172 ms** / 5.0 MB |
-| Large file, disk-to-disk (256 MB) | **5.4 s** / 79.5 MB | 33.3 s / 73.6 MB | 5.8 s / 86.7 MB |
+### Defaults against defaults
 
-| Workload (decompress) | zip.js (workers) | 7-Zip (mt) |
-|---|--:|--:|
-| Compressible text (20 MB) | **68 ms** | 83 ms |
-| 5,000 files × ~2 KB | 979 ms | **499 ms** |
+Level 6 and `-mx=6`, i.e. what each tool does when you do not tune it. Every contender the
+harness measures is listed; time / output size.
 
-### The `-mx` ladder, sorted by output size
+| Workload (compress) | zip.js (1 thread) | zip.js (workers) | 7-Zip (1 thread) | 7-Zip `-mx=6` (mt) | 7-Zip `-mx=1` (mt) |
+|---|--:|--:|--:|--:|--:|
+| Compressible text (20 MB) | **418 ms** / 6.2 MB | 428 ms / 6.2 MB | — | 2540 ms / 5.8 MB | 444 ms / 6.8 MB |
+| Incompressible data (20 MB) | **321 ms** / 21.0 MB | 333 ms / 21.0 MB | — | 418 ms / 21.0 MB | 353 ms / 21.0 MB |
+| 8 files × 8 MB | 1308 ms / 19.9 MB | 308 ms / 19.9 MB | 8102 ms / 18.4 MB | 1510 ms / 18.4 MB | **294 ms** / 21.7 MB |
+| 5,000 files × ~2 KB | 1245 ms / 5.2 MB | 825 ms / 5.2 MB | 580 ms / 4.9 MB | 193 ms / 4.9 MB | **173 ms** / 5.0 MB |
+| Large file, disk-to-disk (256 MB) | **5.4 s** / 79.5 MB | 5.5 s / 79.5 MB | — | 33.4 s / 73.6 MB | 5.8 s / 86.7 MB |
 
-Same 20 MB file, every 7-Zip preset against both zip.js modes. This is the table that
-says where zip.js actually sits, rather than which preset number it was matched against.
+| Workload (decompress) | zip.js (1 thread) | zip.js (workers) | 7-Zip (1 thread) | 7-Zip (mt) |
+|---|--:|--:|--:|--:|
+| Compressible text (20 MB) | 83 ms | **61 ms** | — | 81 ms |
+| 8 files × 8 MB | 181 ms | **83 ms** | 241 ms | 247 ms |
+| 5,000 files × ~2 KB | 989 ms | 906 ms | 491 ms | **462 ms** |
 
-| Encoder | Output | Ratio | Time |
-|---|--:|--:|--:|
-| 7-Zip `-mx=9` | 5,723 KB | 3.665 | 14919 ms |
-| 7-Zip `-mx=7` | 5,723 KB | 3.665 | 6596 ms |
-| 7-Zip `-mx=6` | 5,753 KB | 3.646 | 2597 ms |
-| 7-Zip `-mx=5` | 5,753 KB | 3.646 | 2607 ms |
-| **zip.js (1 thread)** | 6,211 KB | 3.377 | **422 ms** |
-| **zip.js (workers)** | 6,211 KB | 3.377 | **423 ms** |
-| 7-Zip `-mx=1` | 6,774 KB | 3.096 | 458 ms |
-| 7-Zip `-mx=3` | 6,774 KB | 3.096 | 453 ms |
+`7-Zip (1 thread)` is only listed where it means something: a single file is one deflate
+stream, so `-mmt` changes nothing there and the two 7-Zip columns would measure the same
+run. That is also why zip.js's worker pool does nothing on the single-file rows — the
+parallelism both tools have is *between* entries, never inside one.
 
-The ladder has three distinct rungs, not nine: `-mx=1` and `-mx=3` are the same encoder,
-so are `-mx=5` and `-mx=6`, and so are `-mx=7` and `-mx=9` — **`-mx=9` costs 2.3× the time
-of `-mx=7` for byte-identical output**, which is worth knowing before anyone reaches for
-the maximum. The 5.7× jump from `-mx=3` to `-mx=5` is the switch from greedy matching to
-optimal parsing, and threads cannot hide it (one file = one deflate stream = one core).
+### The frontier — one axis, both sides
 
-- **zip.js strictly dominates 7-Zip's whole greedy tier**: 422 ms and 6,211 KB against
-  453–458 ms and 6,774 KB, i.e. faster *and* 8 % smaller than both `-mx=1` and `-mx=3`,
-  because zlib-6's lazy matching is simply a better point on the curve than 7-Zip's fast
-  presets. Above that tier zip.js has nothing to offer: the next rung up is 6.2× the time
-  for 7 % more compression, a trade it cannot make — and one most workloads do not want.
-- **7-Zip legitimately dominates many small files** (~4× on compress, ~2× on
-  decompress): its per-entry cost is near zero, while zip.js pays per-entry
-  orchestration (worker round trips, header writes, one output stream per extracted
-  file). Same lesson as the fflate rows above — tiny-entry workloads are zip.js's cost
-  center, and the codec backend is irrelevant there.
+Levels 1–9 on the zip.js side against `-mx=1,3,5,6,7,9` on the 7-Zip side, sorted by output
+size. A tool is faster than another only where it is faster **at the same size**, and
+`frontier` marks a row that nothing smaller beats on time.
+
+**One thread, one deflate stream on both sides** — 20 MB of text:
+
+| Encoder | Output | Ratio | Time | |
+|---|--:|--:|--:|---|
+| 7-Zip `-mx=9` | 5.7 MB | 3.665 | 14889 ms | frontier |
+| 7-Zip `-mx=7` | 5.7 MB | 3.665 | 6643 ms | frontier |
+| 7-Zip `-mx=5` | 5.8 MB | 3.646 | 2597 ms | frontier |
+| 7-Zip `-mx=6` | 5.8 MB | 3.646 | 2605 ms | |
+| zip.js level 8 | 6.1 MB | 3.429 | 1537 ms | frontier |
+| zip.js level 9 | 6.1 MB | 3.429 | 1544 ms | |
+| zip.js level 7 | 6.1 MB | 3.421 | 1305 ms | frontier |
+| **zip.js level 6 (default)** | 6.2 MB | 3.377 | **418 ms** | frontier |
+| zip.js level 5 | 6.6 MB | 3.196 | 590 ms | |
+| 7-Zip `-mx=1` | 6.8 MB | 3.096 | 458 ms | |
+| 7-Zip `-mx=3` | 6.8 MB | 3.096 | 453 ms | |
+| zip.js level 4 | 6.9 MB | 3.036 | 358 ms | frontier |
+| zip.js level 3 | 7.0 MB | 2.975 | 420 ms | |
+| zip.js level 2 | 7.4 MB | 2.850 | 266 ms | frontier |
+| zip.js level 1 | 7.5 MB | 2.785 | 239 ms | frontier |
+
+**Every core, both sides** — 8 files × 8 MB:
+
+| Encoder | Output | Ratio | Time | |
+|---|--:|--:|--:|---|
+| 7-Zip `-mx=9` | 18.3 MB | 3.660 | 8625 ms | frontier |
+| 7-Zip `-mx=7` | 18.3 MB | 3.660 | 3796 ms | frontier |
+| 7-Zip `-mx=5` | 18.4 MB | 3.645 | 1510 ms | frontier |
+| 7-Zip `-mx=6` | 18.4 MB | 3.645 | 1540 ms | |
+| zip.js level 9 | 19.6 MB | 3.428 | 971 ms | frontier |
+| zip.js level 8 | 19.6 MB | 3.428 | 991 ms | |
+| zip.js level 7 | 19.6 MB | 3.420 | 852 ms | frontier |
+| **zip.js level 6 (default)** | 19.9 MB | 3.376 | **317 ms** | frontier |
+| zip.js level 5 | 21.0 MB | 3.196 | 405 ms | |
+| 7-Zip `-mx=3` | 21.7 MB | 3.096 | 309 ms | frontier |
+| 7-Zip `-mx=1` | 21.7 MB | 3.096 | 313 ms | |
+| zip.js level 4 | 22.1 MB | 3.037 | 287 ms | frontier |
+| zip.js level 3 | 22.6 MB | 2.975 | 316 ms | |
+| zip.js level 2 | 23.6 MB | 2.849 | 239 ms | frontier |
+| zip.js level 1 | 24.1 MB | 2.784 | 218 ms | frontier |
+
+What the two curves say:
+
+- **zip.js's default is a spike on its own curve, and levels 3 and 5 are strictly worse
+  than it.** Level 5 produces a *larger* archive than level 6 in *more* time (590 ms /
+  6.6 MB against 418 ms / 6.2 MB), and level 3 is slower than the default too while giving
+  up 13 % of the ratio. That is not a codec quirk, it is the fallback rule: the platform's
+  `CompressionStream` exposes no level control, so **level 6 runs the native codec and every
+  other level drops onto the bundled WASM one**. If you were reaching for a level to go
+  faster, only 1, 2 and 4 actually do; 3 and 5 cost you on both axes.
+- **7-Zip's nine presets are three encoders.** `-mx=1` and `-mx=3` are identical, so are
+  `-mx=5`/`-mx=6` and `-mx=7`/`-mx=9` — **`-mx=9` costs 2.3× the time of `-mx=7` for
+  byte-identical output**. The 5.7× jump from `-mx=3` to `-mx=5` is greedy matching giving
+  way to optimal parsing, and threads cannot hide it.
+- **Against the greedy tier zip.js wins outright.** Single-threaded it is 418 ms / 6.2 MB
+  against 453–458 ms / 6.8 MB: faster *and* 9 % smaller than both `-mx=1` and `-mx=3`. On
+  all cores it ties them on time (317 ms against 309 ms) and is still 8 % smaller.
+- **Against the optimal-parsing tier it has nothing**, at any level. 7-Zip's cheapest route
+  to 3.6 costs 1510 ms where zip.js's best is 971 ms at 3.43; buying that last 6 % of ratio
+  costs 4.8× the default's time. That is a real limit of DEFLATE-as-zlib-writes-it, not a
+  tuning gap.
+- **Threading buys the two sides different amounts**: 4.2× for zip.js on 8 × 8 MB
+  (1308 → 308 ms) against 5.4× for 7-Zip (8102 → 1510 ms). zip.js closes most of that gap
+  because it starts from a much faster single-threaded number.
+- **7-Zip legitimately dominates many small files** (~4× on compress, ~2× on decompress):
+  its per-entry cost is near zero, while zip.js pays per-entry orchestration. Same lesson
+  as the fflate rows above — tiny-entry workloads are zip.js's cost center, and the codec
+  is irrelevant there. Note the reverse on 8 × 8 MB decompression, where entries are large
+  enough for the pool to pay off: 83 ms against 247 ms, zip.js ~3× faster.
 
 ## The runtime's zlib decides zip.js throughput
 
