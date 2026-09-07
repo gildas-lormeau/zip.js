@@ -74,11 +74,13 @@ The compression method (e.g. 8 for DEFLATE, 0 for STORE).
 
 > `optional` **crc32?**: `number`
 
-The CRC-32 checksum of the content. This option is ignored if the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option is not set to `true`.
+The CRC-32 checksum of the content. This option is ignored if the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option is unset
+or `false`, and it is the caller's to supply otherwise, since the checksum cannot be computed from data which is not decompressed.
 
 When the entry is AES-encrypted (see [ZipWriterConstructorOptions#encrypted](ZipWriterConstructorOptions.md#encrypted)), setting this option marks the entry as AE-1
 and stores the checksum in the entry headers, e.g. when copying an AE-1 entry read with the
-[ZipReaderOptions#passThrough](ZipReaderOptions.md#passthrough) option. Otherwise, the entry is marked as AE-2 and the checksum fields are set to 0.
+[ZipReaderOptions#passThrough](ZipReaderOptions.md#passthrough) option, or when encrypting an entry read with that option set to `"compressed"`. Otherwise,
+the entry is marked as AE-2 and the checksum fields are set to 0.
 
 ***
 
@@ -186,6 +188,11 @@ false
 > `optional` **encrypted?**: `boolean`
 
 `true` to write encrypted data when `passThrough` is set to `true`.
+
+#### Remarks
+
+It declares that the data is already encrypted, so it does not apply when `passThrough` is set to
+`"compressed"`, which encrypts the data itself.
 
 #### Inherited from
 
@@ -545,9 +552,10 @@ The option is only read when the [ZipWriter](../classes/ZipWriter.md) is created
 
 ### passThrough?
 
-> `optional` **passThrough?**: `boolean`
+> `optional` **passThrough?**: `boolean` \| `"compressed"`
 
-`true` to write the data as-is without compressing it and without crypting it.
+`true` to write the data as-is without compressing it and without crypting it, `"compressed"` to encrypt it
+without compressing it.
 
 #### Remarks
 
@@ -561,6 +569,23 @@ directories, ignore this option entirely. Setting the [ZipWriterConstructorOptio
 [ZipWriterConstructorOptions#encrypted](ZipWriterConstructorOptions.md#encrypted) option is set to `true` to declare that the data is already
 encrypted. In that case the password encrypts the other entries only, and the data written as-is keeps the
 password it was encrypted with, which is not verified.
+
+The codecs run in a fixed order, the data is compressed and then encrypted, so this option selects how many
+of these two stages are skipped rather than which one. `"compressed"` declares that the data is already
+compressed but not yet encrypted, so the compression stage is skipped and the encryption stage runs: it
+encrypts an entry without recompressing it, which is what the `true` value cannot express and why it rejects
+a password. The [ZipWriterAddDataOptions#uncompressedSize](#uncompressedsize) and
+[ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) options are still the caller's to declare, since neither
+can be derived from data which is not decompressed.
+
+The CRC32 of the entry cannot be computed either, so the [ZipWriterAddDataOptions#crc32](#crc32) option is
+written as-is when it is set, and the entry is marked AE-1 rather than AE-2 as it is with the `true` value.
+When it is not set, the entry is marked AE-2 and the checksum fields are set to 0, which is what an entry
+read from an AE-2 source archive ends up with, since such an archive stores no CRC32 of the content.
+
+A value which is neither a boolean, `"compressed"` nor unset throws an [ERR\_INVALID\_PASS\_THROUGH\_VALUE](../variables/ERR_INVALID_PASS_THROUGH_VALUE.md)
+error. The filesystem API copies entries verbatim and only accepts a boolean, see
+[ERR\_UNSUPPORTED\_PASS\_THROUGH\_VALUE](../variables/ERR_UNSUPPORTED_PASS_THROUGH_VALUE.md).
 
 When the data was encrypted with ZipCrypto, the verification byte stored in the encrypted data depends on
 the last modification date of the source entry if the data descriptor is used. The
@@ -689,7 +714,8 @@ reason of the `AbortError`, or with `signal.reason` when it is set, without rely
 
 > `optional` **signature?**: `number`
 
-The signature (CRC32 checksum) of the content. This option is ignored if the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option is not set to `true`.
+The signature (CRC32 checksum) of the content. This option is ignored if the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option
+is unset or `false`.
 
 #### Deprecated
 
@@ -761,7 +787,9 @@ The Unix owner id to write in the Unix extra field or as part of the external at
 
 > `optional` **uncompressedSize?**: `number`
 
-The uncompressed size of the entry. This option is ignored if the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option is not set to `true`.
+The uncompressed size of the entry. This option is ignored if the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option is unset
+or `false`. It is required when it is set to `true` or to `"compressed"`, since the size cannot be derived from data which is not
+decompressed.
 
 ***
 

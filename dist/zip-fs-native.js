@@ -214,10 +214,12 @@
 	const STRICTNESS_STRICT = "strict";
 	const STRICTNESS_BALANCED = "balanced";
 	const STRICTNESS_TOLERANT = "tolerant";
+	const PASS_THROUGH_COMPRESSED = "compressed";
 
 	const ERR_INVALID_FUNCTION_OPTION = "Invalid option (must be a function)";
 	const ERR_INVALID_SIGNAL = "Invalid signal (must be an AbortSignal instance)";
 	const ERR_INVALID_PASSWORD_TYPE = "Invalid password (password must be a string, rawPassword must be a Uint8Array)";
+	const ERR_INVALID_PASS_THROUGH_VALUE = "Invalid passThrough option (must be a boolean or 'compressed')";
 	const ERR_ABORTED = "The operation was aborted";
 	const ABORT_ERROR_NAME = "AbortError";
 
@@ -245,6 +247,13 @@
 		if ((password && typeof password != STRING_TYPE) || (rawPassword && !(rawPassword instanceof Uint8Array))) {
 			throw new Error(ERR_INVALID_PASSWORD_TYPE);
 		}
+	}
+
+	function checkPassThroughOption(passThrough) {
+		if (passThrough !== UNDEFINED_VALUE && typeof passThrough != BOOLEAN_TYPE && passThrough !== PASS_THROUGH_COMPRESSED) {
+			throw new Error(ERR_INVALID_PASS_THROUGH_VALUE);
+		}
+		return passThrough;
 	}
 
 	function checkInteger(value, maxValue, errorMessage) {
@@ -4748,6 +4757,10 @@
 
 	}
 
+	function getEncryptionOverhead(encrypted, zipCrypto, encryptionStrength) {
+		return encrypted ? (zipCrypto ? 12 : 16 + encryptionStrength * 4) : 0;
+	}
+
 	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
@@ -5412,7 +5425,9 @@
 			const dataView = getDataView(dataArray);
 			let password = getOptionValue$1(zipEntry, options, OPTION_PASSWORD);
 			let rawPassword = getOptionValue$1(zipEntry, options, OPTION_RAW_PASSWORD);
-			const passThrough = getOptionValue$1(zipEntry, options, OPTION_PASS_THROUGH);
+			const passThrough = checkPassThroughOption(getOptionValue$1(zipEntry, options, OPTION_PASS_THROUGH));
+			const passThroughCompression = Boolean(passThrough);
+			const passThroughEncryption = passThrough === true;
 			checkPasswordOption(password, rawPassword);
 			password = password && password.length && password;
 			rawPassword = rawPassword && rawPassword.length && rawPassword;
@@ -5464,16 +5479,16 @@
 			if (gid !== UNDEFINED_VALUE && fileEntry.gid === UNDEFINED_VALUE) {
 				fileEntry.gid = gid;
 			}
-			const encrypted = zipEntry.encrypted && localDirectory.encrypted && !passThrough;
+			const encrypted = zipEntry.encrypted && localDirectory.encrypted && !passThroughEncryption;
 			const zipCrypto = encrypted && !extraFieldAES;
-			if (!passThrough) {
+			if (!passThroughEncryption) {
 				fileEntry.zipCrypto = zipCrypto;
 			}
 			if (encrypted && (localDirectory.rawBitFlag & BITFLAG_STRONG_ENCRYPTION) == BITFLAG_STRONG_ENCRYPTION) {
 				throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
 			}
-			const registeredCodec = passThrough ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
-			if (compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE && compressionMethod != COMPRESSION_METHOD_DEFLATE_64 && !registeredCodec && !passThrough) {
+			const registeredCodec = passThroughCompression ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
+			if (compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE && compressionMethod != COMPRESSION_METHOD_DEFLATE_64 && !registeredCodec && !passThroughCompression) {
 				throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 			}
 			if (encrypted) {
@@ -5497,8 +5512,10 @@
 				checkOverlappingEntry = true;
 			}
 			const { onstart, onprogress, onend } = options;
-			const compressed = compressionMethod != COMPRESSION_METHOD_STORE && !passThrough;
-			const outputSize = passThrough ? compressedSize : uncompressedSize;
+			const compressed = compressionMethod != COMPRESSION_METHOD_STORE && !passThroughCompression;
+			const outputSize = passThroughCompression ?
+				compressedSize - getEncryptionOverhead(encrypted, zipCrypto, extraFieldAES && extraFieldAES.strength) :
+				uncompressedSize;
 			const deflate64 = compressionMethod == COMPRESSION_METHOD_DEFLATE_64;
 			let useCompressionStream = getOptionValue$1(zipEntry, options, OPTION_USE_COMPRESSION_STREAM);
 			if (deflate64) {
@@ -5507,7 +5524,7 @@
 			const checkCrc32Option = getOptionValue$1(zipEntry, options, OPTION_CHECK_CRC32);
 			const checkCrc32 = (checkCrc32Option === UNDEFINED_VALUE ?
 				getOptionValue$1(zipEntry, options, OPTION_CHECK_SIGNATURE) :
-				checkCrc32Option) && !passThrough &&
+				checkCrc32Option) && !passThroughCompression &&
 				(!encrypted || zipCrypto || (extraFieldAES && extraFieldAES.vendorVersion == VENDOR_VERSION_AE_1$1));
 			const workerOptions = {
 				options: {
@@ -6389,7 +6406,7 @@
 	const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
 	const ERR_UNSUPPORTED_ENCRYPTION_USDZ = "Encryption is not supported in USDZ files";
 	const ERR_UNSUPPORTED_SPLIT_USDZ = "Split zip files are not supported in USDZ files";
-	const ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = "Encryption is not supported when the 'passThrough' option is set";
+	const ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = "Encryption is not supported when the 'passThrough' option is set to true (use 'compressed' instead)";
 	const ERR_INVALID_EXTRAFIELD = "Invalid extra field (must be a Map)";
 	const ERR_INVALID_EXTRAFIELD_TYPE = "Invalid extra field type (must be integer 0..65535)";
 	const ERR_INVALID_EXTRAFIELD_DATA_TYPE = "Invalid extra field data (must be a Uint8Array)";
@@ -6820,7 +6837,7 @@
 		try {
 			const { resolvedOptions } = metadataInfo;
 			if (resolvedOptions.level != 0 && resolvedOptions.compressionMethod === UNDEFINED_VALUE &&
-				!resolvedOptions.passThrough && !(await supportsDeflate(getConfiguration()))) {
+				!resolvedOptions.passThroughCompression && !(await supportsDeflate(getConfiguration()))) {
 				resolvedOptions.level = 0;
 				addWarning(zipWriter.warnings, WARNING_COMPRESSION_UNAVAILABLE, name);
 			}
@@ -7018,7 +7035,9 @@
 		const lastAccessDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
 		const creationDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
 		const internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, 0);
-		const passThrough = getOptionValue(zipWriter, options, OPTION_PASS_THROUGH);
+		const passThrough = checkPassThroughOption(getOptionValue(zipWriter, options, OPTION_PASS_THROUGH));
+		const passThroughCompression = Boolean(passThrough);
+		const passThroughEncryption = passThrough === true;
 		const password = getOptionValue(zipWriter, options, OPTION_PASSWORD);
 		const rawPassword = getOptionValue(zipWriter, options, OPTION_RAW_PASSWORD);
 		checkPasswordOption(password, rawPassword);
@@ -7037,8 +7056,8 @@
 		const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES,
 			!isASCIIText(rawFilename) || !isASCIIText(rawComment));
 		const compressionMethod = getOptionValue(zipWriter, options, PROPERTY_NAME_COMPRESSION_METHOD);
-		const registeredCodec = passThrough || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
-		if (!passThrough && compressionMethod !== UNDEFINED_VALUE &&
+		const registeredCodec = passThroughCompression || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
+		if (!passThroughCompression && compressionMethod !== UNDEFINED_VALUE &&
 			compressionMethod !== COMPRESSION_METHOD_STORE && compressionMethod !== COMPRESSION_METHOD_DEFLATE && !registeredCodec) {
 			throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 		}
@@ -7052,7 +7071,7 @@
 				level = 0;
 			}
 		}
-		if (passThrough) {
+		if (passThroughCompression) {
 			level = UNDEFINED_VALUE;
 		}
 		let useCompressionStream = getOptionValue(zipWriter, options, OPTION_USE_COMPRESSION_STREAM);
@@ -7060,7 +7079,7 @@
 		if (bufferedWrite && dataDescriptor === UNDEFINED_VALUE) {
 			dataDescriptor = false;
 		}
-		if (dataDescriptor === UNDEFINED_VALUE || (zipCrypto && !passThrough)) {
+		if (dataDescriptor === UNDEFINED_VALUE || (zipCrypto && !passThroughEncryption)) {
 			dataDescriptor = true;
 		}
 		if (level !== UNDEFINED_VALUE && level != 6) {
@@ -7084,7 +7103,8 @@
 				lastAccessDate,
 				creationDate,
 				internalFileAttributes,
-				passThrough,
+				passThroughCompression,
+				passThroughEncryption,
 				password,
 				rawPassword,
 				encryptionStrength,
@@ -7145,7 +7165,7 @@
 	}
 
 	async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, options) {
-		if (metadata.passThrough && !reader && !getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY)) {
+		if (metadata.passThroughCompression && !reader && !getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY)) {
 			throw new Error(ERR_UNDEFINED_READER);
 		}
 		let contentSize;
@@ -7161,12 +7181,12 @@
 	}
 
 	function resolveEntrySizes(zipWriter, hasContent, contentSize, metadata, options) {
-		const { passThrough, zipCrypto, password, rawPassword, encryptionStrength } = metadata;
+		const { passThroughCompression, passThroughEncryption, zipCrypto, password, rawPassword, encryptionStrength } = metadata;
 		let { dataDescriptor, zip64, level, compressionMethod } = metadata;
 		let maximumCompressedSize = 0;
 		let uncompressedSize = 0;
 		let unknownSize = false;
-		if (passThrough && hasContent) {
+		if (passThroughCompression && hasContent) {
 			uncompressedSize = options[PROPERTY_NAME_UNCOMPRESSED_SIZE];
 			if (uncompressedSize === UNDEFINED_VALUE) {
 				throw new Error(ERR_UNDEFINED_UNCOMPRESSED_SIZE);
@@ -7177,17 +7197,17 @@
 		}
 		const zip64Enabled = zip64 === true;
 		const encrypted = getOptionValue(zipWriter, options, PROPERTY_NAME_ENCRYPTED);
-		if (hasContent && passThrough && !encrypted && getLength(password, rawPassword)) {
+		if (hasContent && passThroughEncryption && !encrypted && getLength(password, rawPassword)) {
 			throw new Error(ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH);
 		}
-		const encryptedEntry = hasContent && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted));
+		const encryptedEntry = hasContent && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThroughEncryption && encrypted));
 		if (!hasContent) {
 			level = 0;
 			compressionMethod = COMPRESSION_METHOD_STORE;
 		}
-		const encryptionOverhead = encryptedEntry ? (zipCrypto ? 12 : 16 + encryptionStrength * 4) : 0;
+		const encryptionOverhead = getEncryptionOverhead(encryptedEntry, zipCrypto, encryptionStrength);
 		if (hasContent) {
-			if (!passThrough) {
+			if (!passThroughCompression) {
 				if (contentSize === UNDEFINED_VALUE) {
 					dataDescriptor = true;
 					if (zip64 || zip64 === UNDEFINED_VALUE) {
@@ -7200,10 +7220,12 @@
 				}
 			} else {
 				options.uncompressedSize = uncompressedSize;
-				maximumCompressedSize = contentSize === UNDEFINED_VALUE ? getMaximumCompressedSize(uncompressedSize) + encryptionOverhead : contentSize;
+				maximumCompressedSize = contentSize === UNDEFINED_VALUE ?
+					getMaximumCompressedSize(uncompressedSize) + encryptionOverhead :
+					contentSize + (passThroughEncryption ? 0 : encryptionOverhead);
 			}
 		}
-		const emptyEntry = !encryptedEntry && (!hasContent || (contentSize === 0 && !passThrough)) && !isCompressed(compressionMethod, level);
+		const emptyEntry = !encryptedEntry && (!hasContent || (contentSize === 0 && !passThroughCompression)) && !isCompressed(compressionMethod, level);
 		if (emptyEntry && !zipCrypto && getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR) === UNDEFINED_VALUE) {
 			dataDescriptor = false;
 		}
@@ -7265,7 +7287,7 @@
 			({ name } = attributesInfo);
 			const { resolvedOptions: metadata } = resolveMetadata(zipWriter, name, options);
 			if (metadata.level != 0 && metadata.compressionMethod === UNDEFINED_VALUE &&
-				!metadata.passThrough && !(await supportsDeflate(getConfiguration()))) {
+				!metadata.passThroughCompression && !(await supportsDeflate(getConfiguration()))) {
 				metadata.level = 0;
 			}
 			const hasContent = !getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY);
@@ -7273,7 +7295,7 @@
 				throw new Error(ERR_UNDETERMINED_SIZE);
 			}
 			const { maximumCompressedSize, resolvedOptions: sizes } = resolveEntrySizes(zipWriter, hasContent, size, metadata, options);
-			if (hasContent && !metadata.passThrough && isCompressed(sizes.compressionMethod, sizes.level)) {
+			if (hasContent && !metadata.passThroughCompression && isCompressed(sizes.compressionMethod, sizes.level)) {
 				throw new Error(ERR_UNDETERMINED_SIZE);
 			}
 			const entryOptions = Object.assign({}, options, attributesInfo.resolvedOptions, metadata, sizes, { [OPTION_USDZ]: usdz });
@@ -7554,7 +7576,8 @@
 			msdosAttributesRaw,
 			msdosAttributes,
 			useCompressionStream,
-			passThrough,
+			passThroughCompression,
+			passThroughEncryption,
 			format,
 			codecURI
 		} = options;
@@ -7598,7 +7621,7 @@
 			uncompressedSize
 		} = options;
 		let compressedSize = 0;
-		if (!passThrough) {
+		if (!passThroughCompression) {
 			uncompressedSize = 0;
 		}
 		const { writable } = writer;
@@ -7615,9 +7638,9 @@
 					encryptionStrength,
 					zipCrypto: encrypted && zipCrypto,
 					passwordVerification: encrypted && zipCrypto && (rawLastModDate >> 8) & MAX_8_BITS,
-					computeCrc32: !passThrough,
-					compressed: compressed && !passThrough,
-					encrypted: encrypted && !passThrough,
+					computeCrc32: !passThroughCompression,
+					compressed: compressed && !passThroughCompression,
+					encrypted: encrypted && !passThroughEncryption,
 					useWebWorkers,
 					useCompressionStream,
 					transferStreams,
@@ -7632,7 +7655,7 @@
 				const result = await runWorker({ readable, writable }, workerOptions);
 				compressedSize = result.outputSize;
 				writer.size += compressedSize;
-				if (!passThrough) {
+				if (!passThroughCompression) {
 					uncompressedSize = result.inputSize;
 					if (!encrypted || zipCrypto) {
 						crc32 = result.crc32;
@@ -7675,7 +7698,7 @@
 			headerArray,
 			headerView,
 			signature: crc32,
-			crc32: encrypted && !zipCrypto && !passThrough ? UNDEFINED_VALUE : crc32,
+			crc32: encrypted && !zipCrypto && !passThroughCompression ? UNDEFINED_VALUE : crc32,
 			extraFieldExtendedTimestampFlag,
 			zip64UncompressedSize,
 			zip64CompressedSize
@@ -7701,7 +7724,7 @@
 			encryptionStrength,
 			extendedTimestamp,
 			ntfsTimestamp,
-			passThrough,
+			passThroughCompression,
 			encrypted,
 			zip64UncompressedSize,
 			zip64CompressedSize,
@@ -7712,7 +7735,7 @@
 		let { version, compressionMethod } = options;
 		const compressed = !directory && isCompressed(compressionMethod, level);
 		let rawLocalExtraFieldZip64;
-		const uncompressedFile = passThrough || !compressed;
+		const uncompressedFile = passThroughCompression || !compressed;
 		const zip64ExtraFieldComplete = zip64 && (options.bufferedWrite || !dataDescriptor || ((!zip64UncompressedSize && !zip64CompressedSize) || (uncompressedFile && !unknownSize)));
 		const writeLocalExtraFieldZip64 = zip64ExtraFieldComplete || (zip64 && dataDescriptor && (zip64UncompressedSize || zip64CompressedSize));
 		if (zip64 && (zip64UncompressedSize || zip64CompressedSize)) {
@@ -7724,8 +7747,8 @@
 			if (zip64ExtraFieldComplete) {
 				extraFieldZip64.writeUint64(uncompressedSize);
 				if (uncompressedFile) {
-					const encryptionOverhead = encrypted ? (zipCrypto ? 12 : 16 + encryptionStrength * 4) : 0;
-					extraFieldZip64.writeUint64(passThrough ? 0 : uncompressedSize + encryptionOverhead);
+					const encryptionOverhead = getEncryptionOverhead(encrypted, zipCrypto, encryptionStrength);
+					extraFieldZip64.writeUint64(passThroughCompression ? 0 : uncompressedSize + encryptionOverhead);
 				}
 			}
 		} else {
@@ -7834,7 +7857,7 @@
 		}
 		if (encrypted && !zipCrypto) {
 			version = version > VERSION_AES ? version : VERSION_AES;
-			if (passThrough && crc32 !== UNDEFINED_VALUE) {
+			if (passThroughCompression && crc32 !== UNDEFINED_VALUE) {
 				rawExtraFieldAES[EXTRAFIELD_OFFSET_AES_VENDOR_VERSION] = VENDOR_VERSION_AE_1;
 			}
 			setUint16(getDataView(rawExtraFieldAES), EXTRAFIELD_OFFSET_AES_COMPRESSION_METHOD, compressionMethod);
@@ -8005,7 +8028,7 @@
 	}, {
 		zip64,
 		zipCrypto,
-		passThrough,
+		passThroughCompression,
 		dataDescriptor
 	}) {
 		const {
@@ -8016,7 +8039,7 @@
 			dataDescriptorView,
 			dataDescriptorOffset
 		} = dataDescriptorInfo;
-		if ((!encrypted || zipCrypto || passThrough) && crc32 !== UNDEFINED_VALUE) {
+		if ((!encrypted || zipCrypto || passThroughCompression) && crc32 !== UNDEFINED_VALUE) {
 			setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
 			if (dataDescriptor) {
 				setUint32(dataDescriptorView, dataDescriptorOffset, crc32);
@@ -8047,9 +8070,9 @@
 		uncompressedSize,
 		zip64UncompressedSize,
 		zip64CompressedSize
-	}, localHeaderView, { dataDescriptor, passThrough }) {
+	}, localHeaderView, { dataDescriptor, passThroughCompression }) {
 		if (!dataDescriptor) {
-			if (!encrypted || (passThrough && crc32 !== UNDEFINED_VALUE)) {
+			if (!encrypted || (passThroughCompression && crc32 !== UNDEFINED_VALUE)) {
 				setUint32(localHeaderView, HEADER_OFFSET_SIGNATURE + LOCAL_HEADER_COMMON_OFFSET, crc32);
 			}
 			if (!zip64CompressedSize) {
@@ -9335,6 +9358,7 @@
 	const DUPLICATES_VALUES = new Set([DUPLICATES_THROW, DUPLICATES_KEEP_FIRST, DUPLICATES_KEEP_LAST]);
 	const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
 	const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
+	const ERR_UNSUPPORTED_PASS_THROUGH_VALUE = "The 'compressed' passThrough option is only supported by ZipReader#getData() and ZipWriter#add()";
 	const ERR_ZIP_CRYPTO_LAST_MOD_DATE = "The last modification date of an entry encrypted with ZipCrypto cannot be changed when passThrough is set";
 	const ERR_ABORT_EXPORT = "zipjs-abort-export";
 	const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
@@ -9722,6 +9746,7 @@
 				await initStream(reader);
 				zipReader = new ZipReader(reader, options);
 			}
+			checkPassThroughValue(options.passThrough);
 			const duplicates = checkDuplicatesOption(options.duplicates);
 			const importedEntries = [];
 			const entries = await zipReader.getEntries(options);
@@ -10328,7 +10353,16 @@
 		if (readerOptions && (typeof readerOptions != OBJECT_TYPE || Array.isArray(readerOptions))) {
 			throw new Error(ERR_INVALID_READER_OPTIONS);
 		}
+		if (readerOptions) {
+			checkPassThroughValue(readerOptions.passThrough);
+		}
 		return readerOptions;
+	}
+
+	function checkPassThroughValue(passThrough) {
+		if (checkPassThroughOption(passThrough) === PASS_THROUGH_COMPRESSED) {
+			throw new Error(ERR_UNSUPPORTED_PASS_THROUGH_VALUE);
+		}
 	}
 
 	function replaceContent(zipEntry, params) {
@@ -10869,6 +10903,7 @@
 	exports.ERR_INVALID_PASSWORD = ERR_INVALID_PASSWORD;
 	exports.ERR_INVALID_PASSWORD_TYPE = ERR_INVALID_PASSWORD_TYPE;
 	exports.ERR_INVALID_PASS_THROUGH = ERR_INVALID_PASS_THROUGH;
+	exports.ERR_INVALID_PASS_THROUGH_VALUE = ERR_INVALID_PASS_THROUGH_VALUE;
 	exports.ERR_INVALID_READER = ERR_INVALID_READER;
 	exports.ERR_INVALID_READER_OPTIONS = ERR_INVALID_READER_OPTIONS;
 	exports.ERR_INVALID_SIGNAL = ERR_INVALID_SIGNAL;
@@ -10902,6 +10937,7 @@
 	exports.ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH;
 	exports.ERR_UNSUPPORTED_ENCRYPTION_USDZ = ERR_UNSUPPORTED_ENCRYPTION_USDZ;
 	exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
+	exports.ERR_UNSUPPORTED_PASS_THROUGH_VALUE = ERR_UNSUPPORTED_PASS_THROUGH_VALUE;
 	exports.ERR_UNSUPPORTED_SPLIT_USDZ = ERR_UNSUPPORTED_SPLIT_USDZ;
 	exports.ERR_UNSUPPORTED_UINT64 = ERR_UNSUPPORTED_UINT64;
 	exports.ERR_WORKER_STARTUP_TIMEOUT = ERR_WORKER_STARTUP_TIMEOUT;

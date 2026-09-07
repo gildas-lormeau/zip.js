@@ -205,10 +205,12 @@ const TEXT_TYPE_COMMENT = "comment";
 const STRICTNESS_STRICT = "strict";
 const STRICTNESS_BALANCED = "balanced";
 const STRICTNESS_TOLERANT = "tolerant";
+const PASS_THROUGH_COMPRESSED = "compressed";
 
 const ERR_INVALID_FUNCTION_OPTION = "Invalid option (must be a function)";
 const ERR_INVALID_SIGNAL = "Invalid signal (must be an AbortSignal instance)";
 const ERR_INVALID_PASSWORD_TYPE = "Invalid password (password must be a string, rawPassword must be a Uint8Array)";
+const ERR_INVALID_PASS_THROUGH_VALUE = "Invalid passThrough option (must be a boolean or 'compressed')";
 const ERR_ABORTED = "The operation was aborted";
 const ABORT_ERROR_NAME = "AbortError";
 
@@ -236,6 +238,13 @@ function checkPasswordOption(password, rawPassword) {
 	if ((password && typeof password != STRING_TYPE) || (rawPassword && !(rawPassword instanceof Uint8Array))) {
 		throw new Error(ERR_INVALID_PASSWORD_TYPE);
 	}
+}
+
+function checkPassThroughOption(passThrough) {
+	if (passThrough !== UNDEFINED_VALUE && typeof passThrough != BOOLEAN_TYPE && passThrough !== PASS_THROUGH_COMPRESSED) {
+		throw new Error(ERR_INVALID_PASS_THROUGH_VALUE);
+	}
+	return passThrough;
 }
 
 function checkInteger(value, maxValue, errorMessage) {
@@ -4757,6 +4766,10 @@ class Entry {
 
 }
 
+function getEncryptionOverhead(encrypted, zipCrypto, encryptionStrength) {
+	return encrypted ? (zipCrypto ? 12 : 16 + encryptionStrength * 4) : 0;
+}
+
 /*
  Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
@@ -5421,7 +5434,9 @@ class ZipEntry {
 		const dataView = getDataView(dataArray);
 		let password = getOptionValue$1(zipEntry, options, OPTION_PASSWORD);
 		let rawPassword = getOptionValue$1(zipEntry, options, OPTION_RAW_PASSWORD);
-		const passThrough = getOptionValue$1(zipEntry, options, OPTION_PASS_THROUGH);
+		const passThrough = checkPassThroughOption(getOptionValue$1(zipEntry, options, OPTION_PASS_THROUGH));
+		const passThroughCompression = Boolean(passThrough);
+		const passThroughEncryption = passThrough === true;
 		checkPasswordOption(password, rawPassword);
 		password = password && password.length && password;
 		rawPassword = rawPassword && rawPassword.length && rawPassword;
@@ -5473,16 +5488,16 @@ class ZipEntry {
 		if (gid !== UNDEFINED_VALUE && fileEntry.gid === UNDEFINED_VALUE) {
 			fileEntry.gid = gid;
 		}
-		const encrypted = zipEntry.encrypted && localDirectory.encrypted && !passThrough;
+		const encrypted = zipEntry.encrypted && localDirectory.encrypted && !passThroughEncryption;
 		const zipCrypto = encrypted && !extraFieldAES;
-		if (!passThrough) {
+		if (!passThroughEncryption) {
 			fileEntry.zipCrypto = zipCrypto;
 		}
 		if (encrypted && (localDirectory.rawBitFlag & BITFLAG_STRONG_ENCRYPTION) == BITFLAG_STRONG_ENCRYPTION) {
 			throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
 		}
-		const registeredCodec = passThrough ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
-		if (compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE && compressionMethod != COMPRESSION_METHOD_DEFLATE_64 && !registeredCodec && !passThrough) {
+		const registeredCodec = passThroughCompression ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
+		if (compressionMethod != COMPRESSION_METHOD_STORE && compressionMethod != COMPRESSION_METHOD_DEFLATE && compressionMethod != COMPRESSION_METHOD_DEFLATE_64 && !registeredCodec && !passThroughCompression) {
 			throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 		}
 		if (encrypted) {
@@ -5506,8 +5521,10 @@ class ZipEntry {
 			checkOverlappingEntry = true;
 		}
 		const { onstart, onprogress, onend } = options;
-		const compressed = compressionMethod != COMPRESSION_METHOD_STORE && !passThrough;
-		const outputSize = passThrough ? compressedSize : uncompressedSize;
+		const compressed = compressionMethod != COMPRESSION_METHOD_STORE && !passThroughCompression;
+		const outputSize = passThroughCompression ?
+			compressedSize - getEncryptionOverhead(encrypted, zipCrypto, extraFieldAES && extraFieldAES.strength) :
+			uncompressedSize;
 		const deflate64 = compressionMethod == COMPRESSION_METHOD_DEFLATE_64;
 		let useCompressionStream = getOptionValue$1(zipEntry, options, OPTION_USE_COMPRESSION_STREAM);
 		if (deflate64) {
@@ -5516,7 +5533,7 @@ class ZipEntry {
 		const checkCrc32Option = getOptionValue$1(zipEntry, options, OPTION_CHECK_CRC32);
 		const checkCrc32 = (checkCrc32Option === UNDEFINED_VALUE ?
 			getOptionValue$1(zipEntry, options, OPTION_CHECK_SIGNATURE) :
-			checkCrc32Option) && !passThrough &&
+			checkCrc32Option) && !passThroughCompression &&
 			(!encrypted || zipCrypto || (extraFieldAES && extraFieldAES.vendorVersion == VENDOR_VERSION_AE_1$1));
 		const workerOptions = {
 			options: {
@@ -6398,7 +6415,7 @@ const ERR_INVALID_VERSION = "Version exceeds 65535";
 const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
 const ERR_UNSUPPORTED_ENCRYPTION_USDZ = "Encryption is not supported in USDZ files";
 const ERR_UNSUPPORTED_SPLIT_USDZ = "Split zip files are not supported in USDZ files";
-const ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = "Encryption is not supported when the 'passThrough' option is set";
+const ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = "Encryption is not supported when the 'passThrough' option is set to true (use 'compressed' instead)";
 const ERR_INVALID_EXTRAFIELD = "Invalid extra field (must be a Map)";
 const ERR_INVALID_EXTRAFIELD_TYPE = "Invalid extra field type (must be integer 0..65535)";
 const ERR_INVALID_EXTRAFIELD_DATA_TYPE = "Invalid extra field data (must be a Uint8Array)";
@@ -6829,7 +6846,7 @@ async function addFile(zipWriter, name, reader, options) {
 	try {
 		const { resolvedOptions } = metadataInfo;
 		if (resolvedOptions.level != 0 && resolvedOptions.compressionMethod === UNDEFINED_VALUE &&
-			!resolvedOptions.passThrough && !(await supportsDeflate(getConfiguration()))) {
+			!resolvedOptions.passThroughCompression && !(await supportsDeflate(getConfiguration()))) {
 			resolvedOptions.level = 0;
 			addWarning(zipWriter.warnings, WARNING_COMPRESSION_UNAVAILABLE, name);
 		}
@@ -7027,7 +7044,9 @@ function resolveMetadata(zipWriter, name, options) {
 	const lastAccessDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_LAST_ACCESS_DATE);
 	const creationDate = getDateOptionValue(zipWriter, options, PROPERTY_NAME_CREATION_DATE);
 	const internalFileAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_INTERNAL_FILE_ATTRIBUTES, 0);
-	const passThrough = getOptionValue(zipWriter, options, OPTION_PASS_THROUGH);
+	const passThrough = checkPassThroughOption(getOptionValue(zipWriter, options, OPTION_PASS_THROUGH));
+	const passThroughCompression = Boolean(passThrough);
+	const passThroughEncryption = passThrough === true;
 	const password = getOptionValue(zipWriter, options, OPTION_PASSWORD);
 	const rawPassword = getOptionValue(zipWriter, options, OPTION_RAW_PASSWORD);
 	checkPasswordOption(password, rawPassword);
@@ -7046,8 +7065,8 @@ function resolveMetadata(zipWriter, name, options) {
 	const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES,
 		!isASCIIText(rawFilename) || !isASCIIText(rawComment));
 	const compressionMethod = getOptionValue(zipWriter, options, PROPERTY_NAME_COMPRESSION_METHOD);
-	const registeredCodec = passThrough || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
-	if (!passThrough && compressionMethod !== UNDEFINED_VALUE &&
+	const registeredCodec = passThroughCompression || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
+	if (!passThroughCompression && compressionMethod !== UNDEFINED_VALUE &&
 		compressionMethod !== COMPRESSION_METHOD_STORE && compressionMethod !== COMPRESSION_METHOD_DEFLATE && !registeredCodec) {
 		throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 	}
@@ -7061,7 +7080,7 @@ function resolveMetadata(zipWriter, name, options) {
 			level = 0;
 		}
 	}
-	if (passThrough) {
+	if (passThroughCompression) {
 		level = UNDEFINED_VALUE;
 	}
 	let useCompressionStream = getOptionValue(zipWriter, options, OPTION_USE_COMPRESSION_STREAM);
@@ -7069,7 +7088,7 @@ function resolveMetadata(zipWriter, name, options) {
 	if (bufferedWrite && dataDescriptor === UNDEFINED_VALUE) {
 		dataDescriptor = false;
 	}
-	if (dataDescriptor === UNDEFINED_VALUE || (zipCrypto && !passThrough)) {
+	if (dataDescriptor === UNDEFINED_VALUE || (zipCrypto && !passThroughEncryption)) {
 		dataDescriptor = true;
 	}
 	if (level !== UNDEFINED_VALUE && level != 6) {
@@ -7093,7 +7112,8 @@ function resolveMetadata(zipWriter, name, options) {
 			lastAccessDate,
 			creationDate,
 			internalFileAttributes,
-			passThrough,
+			passThroughCompression,
+			passThroughEncryption,
 			password,
 			rawPassword,
 			encryptionStrength,
@@ -7154,7 +7174,7 @@ function serializeExtraField(extraField) {
 }
 
 async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, options) {
-	if (metadata.passThrough && !reader && !getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY)) {
+	if (metadata.passThroughCompression && !reader && !getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY)) {
 		throw new Error(ERR_UNDEFINED_READER);
 	}
 	let contentSize;
@@ -7170,12 +7190,12 @@ async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, op
 }
 
 function resolveEntrySizes(zipWriter, hasContent, contentSize, metadata, options) {
-	const { passThrough, zipCrypto, password, rawPassword, encryptionStrength } = metadata;
+	const { passThroughCompression, passThroughEncryption, zipCrypto, password, rawPassword, encryptionStrength } = metadata;
 	let { dataDescriptor, zip64, level, compressionMethod } = metadata;
 	let maximumCompressedSize = 0;
 	let uncompressedSize = 0;
 	let unknownSize = false;
-	if (passThrough && hasContent) {
+	if (passThroughCompression && hasContent) {
 		uncompressedSize = options[PROPERTY_NAME_UNCOMPRESSED_SIZE];
 		if (uncompressedSize === UNDEFINED_VALUE) {
 			throw new Error(ERR_UNDEFINED_UNCOMPRESSED_SIZE);
@@ -7186,17 +7206,17 @@ function resolveEntrySizes(zipWriter, hasContent, contentSize, metadata, options
 	}
 	const zip64Enabled = zip64 === true;
 	const encrypted = getOptionValue(zipWriter, options, PROPERTY_NAME_ENCRYPTED);
-	if (hasContent && passThrough && !encrypted && getLength(password, rawPassword)) {
+	if (hasContent && passThroughEncryption && !encrypted && getLength(password, rawPassword)) {
 		throw new Error(ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH);
 	}
-	const encryptedEntry = hasContent && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThrough && encrypted));
+	const encryptedEntry = hasContent && (Boolean((password && getLength(password)) || (rawPassword && getLength(rawPassword))) || (passThroughEncryption && encrypted));
 	if (!hasContent) {
 		level = 0;
 		compressionMethod = COMPRESSION_METHOD_STORE;
 	}
-	const encryptionOverhead = encryptedEntry ? (zipCrypto ? 12 : 16 + encryptionStrength * 4) : 0;
+	const encryptionOverhead = getEncryptionOverhead(encryptedEntry, zipCrypto, encryptionStrength);
 	if (hasContent) {
-		if (!passThrough) {
+		if (!passThroughCompression) {
 			if (contentSize === UNDEFINED_VALUE) {
 				dataDescriptor = true;
 				if (zip64 || zip64 === UNDEFINED_VALUE) {
@@ -7209,10 +7229,12 @@ function resolveEntrySizes(zipWriter, hasContent, contentSize, metadata, options
 			}
 		} else {
 			options.uncompressedSize = uncompressedSize;
-			maximumCompressedSize = contentSize === UNDEFINED_VALUE ? getMaximumCompressedSize(uncompressedSize) + encryptionOverhead : contentSize;
+			maximumCompressedSize = contentSize === UNDEFINED_VALUE ?
+				getMaximumCompressedSize(uncompressedSize) + encryptionOverhead :
+				contentSize + (passThroughEncryption ? 0 : encryptionOverhead);
 		}
 	}
-	const emptyEntry = !encryptedEntry && (!hasContent || (contentSize === 0 && !passThrough)) && !isCompressed(compressionMethod, level);
+	const emptyEntry = !encryptedEntry && (!hasContent || (contentSize === 0 && !passThroughCompression)) && !isCompressed(compressionMethod, level);
 	if (emptyEntry && !zipCrypto && getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR) === UNDEFINED_VALUE) {
 		dataDescriptor = false;
 	}
@@ -7465,7 +7487,8 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 		msdosAttributesRaw,
 		msdosAttributes,
 		useCompressionStream,
-		passThrough,
+		passThroughCompression,
+		passThroughEncryption,
 		format,
 		codecURI
 	} = options;
@@ -7509,7 +7532,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 		uncompressedSize
 	} = options;
 	let compressedSize = 0;
-	if (!passThrough) {
+	if (!passThroughCompression) {
 		uncompressedSize = 0;
 	}
 	const { writable } = writer;
@@ -7526,9 +7549,9 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 				encryptionStrength,
 				zipCrypto: encrypted && zipCrypto,
 				passwordVerification: encrypted && zipCrypto && (rawLastModDate >> 8) & MAX_8_BITS,
-				computeCrc32: !passThrough,
-				compressed: compressed && !passThrough,
-				encrypted: encrypted && !passThrough,
+				computeCrc32: !passThroughCompression,
+				compressed: compressed && !passThroughCompression,
+				encrypted: encrypted && !passThroughEncryption,
 				useWebWorkers,
 				useCompressionStream,
 				transferStreams,
@@ -7543,7 +7566,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 			const result = await runWorker({ readable, writable }, workerOptions);
 			compressedSize = result.outputSize;
 			writer.size += compressedSize;
-			if (!passThrough) {
+			if (!passThroughCompression) {
 				uncompressedSize = result.inputSize;
 				if (!encrypted || zipCrypto) {
 					crc32 = result.crc32;
@@ -7586,7 +7609,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 		headerArray,
 		headerView,
 		signature: crc32,
-		crc32: encrypted && !zipCrypto && !passThrough ? UNDEFINED_VALUE : crc32,
+		crc32: encrypted && !zipCrypto && !passThroughCompression ? UNDEFINED_VALUE : crc32,
 		extraFieldExtendedTimestampFlag,
 		zip64UncompressedSize,
 		zip64CompressedSize
@@ -7612,7 +7635,7 @@ function getHeaderInfo(options) {
 		encryptionStrength,
 		extendedTimestamp,
 		ntfsTimestamp,
-		passThrough,
+		passThroughCompression,
 		encrypted,
 		zip64UncompressedSize,
 		zip64CompressedSize,
@@ -7623,7 +7646,7 @@ function getHeaderInfo(options) {
 	let { version, compressionMethod } = options;
 	const compressed = !directory && isCompressed(compressionMethod, level);
 	let rawLocalExtraFieldZip64;
-	const uncompressedFile = passThrough || !compressed;
+	const uncompressedFile = passThroughCompression || !compressed;
 	const zip64ExtraFieldComplete = zip64 && (options.bufferedWrite || !dataDescriptor || ((!zip64UncompressedSize && !zip64CompressedSize) || (uncompressedFile && !unknownSize)));
 	const writeLocalExtraFieldZip64 = zip64ExtraFieldComplete || (zip64 && dataDescriptor && (zip64UncompressedSize || zip64CompressedSize));
 	if (zip64 && (zip64UncompressedSize || zip64CompressedSize)) {
@@ -7635,8 +7658,8 @@ function getHeaderInfo(options) {
 		if (zip64ExtraFieldComplete) {
 			extraFieldZip64.writeUint64(uncompressedSize);
 			if (uncompressedFile) {
-				const encryptionOverhead = encrypted ? (zipCrypto ? 12 : 16 + encryptionStrength * 4) : 0;
-				extraFieldZip64.writeUint64(passThrough ? 0 : uncompressedSize + encryptionOverhead);
+				const encryptionOverhead = getEncryptionOverhead(encrypted, zipCrypto, encryptionStrength);
+				extraFieldZip64.writeUint64(passThroughCompression ? 0 : uncompressedSize + encryptionOverhead);
 			}
 		}
 	} else {
@@ -7745,7 +7768,7 @@ function getHeaderInfo(options) {
 	}
 	if (encrypted && !zipCrypto) {
 		version = version > VERSION_AES ? version : VERSION_AES;
-		if (passThrough && crc32 !== UNDEFINED_VALUE) {
+		if (passThroughCompression && crc32 !== UNDEFINED_VALUE) {
 			rawExtraFieldAES[EXTRAFIELD_OFFSET_AES_VENDOR_VERSION] = VENDOR_VERSION_AE_1;
 		}
 		setUint16(getDataView(rawExtraFieldAES), EXTRAFIELD_OFFSET_AES_COMPRESSION_METHOD, compressionMethod);
@@ -7916,7 +7939,7 @@ function setEntryInfo({
 }, {
 	zip64,
 	zipCrypto,
-	passThrough,
+	passThroughCompression,
 	dataDescriptor
 }) {
 	const {
@@ -7927,7 +7950,7 @@ function setEntryInfo({
 		dataDescriptorView,
 		dataDescriptorOffset
 	} = dataDescriptorInfo;
-	if ((!encrypted || zipCrypto || passThrough) && crc32 !== UNDEFINED_VALUE) {
+	if ((!encrypted || zipCrypto || passThroughCompression) && crc32 !== UNDEFINED_VALUE) {
 		setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
 		if (dataDescriptor) {
 			setUint32(dataDescriptorView, dataDescriptorOffset, crc32);
@@ -7958,9 +7981,9 @@ function updateLocalHeader({
 	uncompressedSize,
 	zip64UncompressedSize,
 	zip64CompressedSize
-}, localHeaderView, { dataDescriptor, passThrough }) {
+}, localHeaderView, { dataDescriptor, passThroughCompression }) {
 	if (!dataDescriptor) {
-		if (!encrypted || (passThrough && crc32 !== UNDEFINED_VALUE)) {
+		if (!encrypted || (passThroughCompression && crc32 !== UNDEFINED_VALUE)) {
 			setUint32(localHeaderView, HEADER_OFFSET_SIGNATURE + LOCAL_HEADER_COMMON_OFFSET, crc32);
 		}
 		if (!zip64CompressedSize) {
@@ -9547,4 +9570,4 @@ async function terminateWorkersAndModule() {
 
 configureExternalAssets();
 
-export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_HTTP_STATUS, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_BASE_URI, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_READER, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_URI, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_RESERVED_COMPRESSION_METHOD, ERR_SPLIT_ZIP_FILE, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_SPLIT_USDZ, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_WRITER_SIZE_NOT_WRITABLE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, VERSION, WARNING_APPENDED_DATA, WARNING_CLAMPED_LAST_MODIFICATION_DATE, WARNING_COMPRESSED_PATCHED_DATA, WARNING_COMPRESSION_UNAVAILABLE, WARNING_DUPLICATE_FILENAME, WARNING_MALFORMED_EXTRA_FIELD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY, WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY, WARNING_PREPENDED_CENTRAL_DIRECTORY, WARNING_PREPENDED_DATA, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA, WARNING_UNKNOWN_VERSION, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA, WARNING_UNSORTED_CENTRAL_DIRECTORY, WARNING_WRAPPED_ENTRIES_COUNT, Writer, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, getMimeType, getRegisteredCodecs, getSupportedCompressionMethods, isZipFile, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };
+export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_HTTP_STATUS, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_BASE_URI, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH_VALUE, ERR_INVALID_READER, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_URI, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_RESERVED_COMPRESSION_METHOD, ERR_SPLIT_ZIP_FILE, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_SPLIT_USDZ, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_WRITER_SIZE_NOT_WRITABLE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, VERSION, WARNING_APPENDED_DATA, WARNING_CLAMPED_LAST_MODIFICATION_DATE, WARNING_COMPRESSED_PATCHED_DATA, WARNING_COMPRESSION_UNAVAILABLE, WARNING_DUPLICATE_FILENAME, WARNING_MALFORMED_EXTRA_FIELD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY, WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY, WARNING_PREPENDED_CENTRAL_DIRECTORY, WARNING_PREPENDED_DATA, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA, WARNING_UNKNOWN_VERSION, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA, WARNING_UNSORTED_CENTRAL_DIRECTORY, WARNING_WRAPPED_ENTRIES_COUNT, Writer, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, getMimeType, getRegisteredCodecs, getSupportedCompressionMethods, isZipFile, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };

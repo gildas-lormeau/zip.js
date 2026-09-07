@@ -100,6 +100,8 @@ const MANGLED_PROPERTY_NAMES = [
 	"onTaskFinished",
 	"out",
 	"partial",
+	"passThroughCompression",
+	"passThroughEncryption",
 	"pbkdf2",
 	"pendingAddFileCalls",
 	"pendingCharacters",

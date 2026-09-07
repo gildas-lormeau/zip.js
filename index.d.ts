@@ -1911,9 +1911,31 @@ export interface ZipReaderOptions {
    */
   password?: string;
   /**
-   * `true` to read the data as-is without decompressing it and without decrypting it.
+   * `true` to read the data as-is without decompressing it and without decrypting it, `"compressed"` to decrypt
+   * it without decompressing it.
+   *
+   * @remarks
+   * The codecs run in a fixed order, the data is decrypted and then decompressed, so this option selects how
+   * many of these two stages are skipped rather than which one. `"compressed"` therefore returns the data of the
+   * entry still compressed but no longer encrypted, and it is the only way to obtain it: the value `true` returns
+   * the stored bytes, which are still encrypted, and an unset value returns the content itself. Reading an entry
+   * which is not encrypted gives the same result with `true` and with `"compressed"`.
+   *
+   * Since the encryption is undone, `"compressed"` needs the {@link ZipReaderOptions#password} option and
+   * throws an {@link ERR_INVALID_PASSWORD} error when it is wrong, whereas `true` never looks at the password.
+   * The {@link ZipReaderOptions#checkAuthenticationCode} option applies as well. The
+   * {@link ZipReaderOptions#checkCrc32} option does not, since the CRC32 of the entry describes its
+   * content and the content is not decompressed.
+   *
+   * Two entries holding the same content encrypted with two different passwords have no bytes in common when
+   * they are read with `true`, because the salt is drawn per entry. Read with `"compressed"` they are identical,
+   * which is what makes it possible to compare the content of encrypted entries without decompressing them.
+   *
+   * A value which is neither a boolean, `"compressed"` nor unset throws an {@link ERR_INVALID_PASS_THROUGH_VALUE}
+   * error. The filesystem API copies entries verbatim and only accepts a boolean, see
+   * {@link ERR_UNSUPPORTED_PASS_THROUGH_VALUE}.
    */
-  passThrough?: boolean;
+  passThrough?: boolean | "compressed";
   /**
    * The password used to encrypt the content of the entry (raw).
    */
@@ -3092,19 +3114,24 @@ export interface ZipWriterAddDataOptions
    */
   centralExtraField?: Map<number, Uint8Array>;
   /**
-   * The uncompressed size of the entry. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
+   * The uncompressed size of the entry. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is unset
+   * or `false`. It is required when it is set to `true` or to `"compressed"`, since the size cannot be derived from data which is not
+   * decompressed.
    */
   uncompressedSize?: number;
   /**
-   * The CRC-32 checksum of the content. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
+   * The CRC-32 checksum of the content. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is unset
+   * or `false`, and it is the caller's to supply otherwise, since the checksum cannot be computed from data which is not decompressed.
    *
    * When the entry is AES-encrypted (see {@link ZipWriterConstructorOptions#encrypted}), setting this option marks the entry as AE-1
    * and stores the checksum in the entry headers, e.g. when copying an AE-1 entry read with the
-   * {@link ZipReaderOptions#passThrough} option. Otherwise, the entry is marked as AE-2 and the checksum fields are set to 0.
+   * {@link ZipReaderOptions#passThrough} option, or when encrypting an entry read with that option set to `"compressed"`. Otherwise,
+   * the entry is marked as AE-2 and the checksum fields are set to 0.
    */
   crc32?: number;
   /**
-   * The signature (CRC32 checksum) of the content. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
+   * The signature (CRC32 checksum) of the content. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option
+   * is unset or `false`.
    *
    * @deprecated Use {@link ZipWriterAddDataOptions#crc32} instead.
    */
@@ -3515,7 +3542,8 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    */
   usdz?: boolean;
   /**
-   * `true` to write the data as-is without compressing it and without crypting it.
+   * `true` to write the data as-is without compressing it and without crypting it, `"compressed"` to encrypt it
+   * without compressing it.
    *
    * @remarks
    * The data is never compressed, so the {@link ZipWriterConstructorOptions#level} option does not apply and is
@@ -3529,6 +3557,23 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * encrypted. In that case the password encrypts the other entries only, and the data written as-is keeps the
    * password it was encrypted with, which is not verified.
    *
+   * The codecs run in a fixed order, the data is compressed and then encrypted, so this option selects how many
+   * of these two stages are skipped rather than which one. `"compressed"` declares that the data is already
+   * compressed but not yet encrypted, so the compression stage is skipped and the encryption stage runs: it
+   * encrypts an entry without recompressing it, which is what the `true` value cannot express and why it rejects
+   * a password. The {@link ZipWriterAddDataOptions#uncompressedSize} and
+   * {@link ZipWriterAddDataOptions#compressionMethod} options are still the caller's to declare, since neither
+   * can be derived from data which is not decompressed.
+   *
+   * The CRC32 of the entry cannot be computed either, so the {@link ZipWriterAddDataOptions#crc32} option is
+   * written as-is when it is set, and the entry is marked AE-1 rather than AE-2 as it is with the `true` value.
+   * When it is not set, the entry is marked AE-2 and the checksum fields are set to 0, which is what an entry
+   * read from an AE-2 source archive ends up with, since such an archive stores no CRC32 of the content.
+   *
+   * A value which is neither a boolean, `"compressed"` nor unset throws an {@link ERR_INVALID_PASS_THROUGH_VALUE}
+   * error. The filesystem API copies entries verbatim and only accepts a boolean, see
+   * {@link ERR_UNSUPPORTED_PASS_THROUGH_VALUE}.
+   *
    * When the data was encrypted with ZipCrypto, the verification byte stored in the encrypted data depends on
    * the last modification date of the source entry if the data descriptor is used. The
    * {@link ZipWriterConstructorOptions#dataDescriptor} and {@link ZipWriterConstructorOptions#rawLastModDate}
@@ -3536,9 +3581,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * {@link ERR_INVALID_PASSWORD} error. The filesystem API forwards them when exporting entries and throws an
    * {@link ERR_ZIP_CRYPTO_LAST_MOD_DATE} error if the date is overridden.
    */
-  passThrough?: boolean;
+  passThrough?: boolean | "compressed";
   /**
    * `true` to write encrypted data when `passThrough` is set to `true`.
+   *
+   * @remarks It declares that the data is already encrypted, so it does not apply when `passThrough` is set to
+   * `"compressed"`, which encrypts the data itself.
    */
   encrypted?: boolean;
   /**
@@ -4874,7 +4922,7 @@ export const ERR_UNDETERMINED_SIZE: string;
  * Undefined reader error
  *
  * @remarks Thrown when adding an entry with the {@link ZipWriterConstructorOptions#passThrough} option set to `true`
- * and no Reader instance: the headers of such an entry describe its content verbatim and would declare content that
+ * or to `"compressed"` and no Reader instance: the headers of such an entry describe its content verbatim and would declare content that
  * is not there. Directory entries are exempt, they have no content to write as-is.
  */
 export const ERR_UNDEFINED_READER: string;
@@ -4959,6 +5007,28 @@ export const ERR_INVALID_PASSWORD_TYPE: string;
  * or set the {@link ZipWriterAddDataOptions#uncompressedSize} option of each entry holding compressed data.
  */
 export const ERR_INVALID_PASS_THROUGH: string;
+/**
+ * Invalid passThrough value error (thrown by {@link ZipReader#getEntries}, {@link FileEntry#getData} and
+ * {@link ZipWriter#add} when the {@link ZipReaderOptions#passThrough} or the
+ * {@link ZipWriterConstructorOptions#passThrough} option is neither a boolean, `"compressed"` nor unset)
+ *
+ * @remarks The option accepts a fixed set of values rather than any truthy one, because a misspelled string would
+ * otherwise pass both codec stages through and produce an archive holding data which is not the data the caller
+ * meant to write, with no error at any point.
+ */
+export const ERR_INVALID_PASS_THROUGH_VALUE: string;
+/**
+ * Unsupported passThrough value error (thrown by {@link ZipDirectoryEntry#importZip} and by
+ * `{@link ZipDirectoryEntry}#export*()` when the {@link ZipReaderOptions#passThrough} option is set to
+ * `"compressed"`)
+ *
+ * @remarks The filesystem API copies the entries of an imported zip file verbatim, forwarding the encryption
+ * metadata of each source entry to the Writer. Data which has been decrypted but not decompressed would be written
+ * under that metadata, i.e. an archive whose entries are marked encrypted over content which is not, so the value
+ * is refused rather than accepted and mishandled. Use {@link FileEntry#getData} and {@link ZipWriter#add} directly
+ * to decrypt an entry without decompressing it.
+ */
+export const ERR_UNSUPPORTED_PASS_THROUGH_VALUE: string;
 /**
  * Invalid readerOptions error (thrown by `{@link ZipDirectoryEntry}#export*()`,
  * {@link ZipDirectoryEntry#getExportedSize} and {@link ZipDirectoryEntry#exportFileSystemHandle} when the

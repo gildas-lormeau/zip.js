@@ -215,9 +215,32 @@ false
 
 ### passThrough?
 
-> `optional` **passThrough?**: `boolean`
+> `optional` **passThrough?**: `boolean` \| `"compressed"`
 
-`true` to read the data as-is without decompressing it and without decrypting it.
+`true` to read the data as-is without decompressing it and without decrypting it, `"compressed"` to decrypt
+it without decompressing it.
+
+#### Remarks
+
+The codecs run in a fixed order, the data is decrypted and then decompressed, so this option selects how
+many of these two stages are skipped rather than which one. `"compressed"` therefore returns the data of the
+entry still compressed but no longer encrypted, and it is the only way to obtain it: the value `true` returns
+the stored bytes, which are still encrypted, and an unset value returns the content itself. Reading an entry
+which is not encrypted gives the same result with `true` and with `"compressed"`.
+
+Since the encryption is undone, `"compressed"` needs the [ZipReaderOptions#password](ZipReaderOptions.md#password) option and
+throws an [ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error when it is wrong, whereas `true` never looks at the password.
+The [ZipReaderOptions#checkAuthenticationCode](ZipReaderOptions.md#checkauthenticationcode) option applies as well. The
+[ZipReaderOptions#checkCrc32](ZipReaderOptions.md#checkcrc32) option does not, since the CRC32 of the entry describes its
+content and the content is not decompressed.
+
+Two entries holding the same content encrypted with two different passwords have no bytes in common when
+they are read with `true`, because the salt is drawn per entry. Read with `"compressed"` they are identical,
+which is what makes it possible to compare the content of encrypted entries without decompressing them.
+
+A value which is neither a boolean, `"compressed"` nor unset throws an [ERR\_INVALID\_PASS\_THROUGH\_VALUE](../variables/ERR_INVALID_PASS_THROUGH_VALUE.md)
+error. The filesystem API copies entries verbatim and only accepts a boolean, see
+[ERR\_UNSUPPORTED\_PASS\_THROUGH\_VALUE](../variables/ERR_UNSUPPORTED_PASS_THROUGH_VALUE.md).
 
 #### Inherited from
 
