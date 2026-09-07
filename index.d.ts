@@ -3123,10 +3123,12 @@ export interface ZipWriterAddDataOptions
    * The CRC-32 checksum of the content. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is unset
    * or `false`, and it is the caller's to supply otherwise, since the checksum cannot be computed from data which is not decompressed.
    *
-   * When the entry is AES-encrypted (see {@link ZipWriterConstructorOptions#encrypted}), setting this option marks the entry as AE-1
-   * and stores the checksum in the entry headers, e.g. when copying an AE-1 entry read with the
-   * {@link ZipReaderOptions#passThrough} option, or when encrypting an entry read with that option set to `"compressed"`. Otherwise,
-   * the entry is marked as AE-2 and the checksum fields are set to 0.
+   * When the entry is AES-encrypted, this option is only stored when the encryption stage is passed through too, i.e. when
+   * {@link ZipWriterConstructorOptions#passThrough} is set to `true` and the data is copied verbatim from an archive which already
+   * published the checksum (see {@link ZipWriterConstructorOptions#encrypted}). The entry is then marked as AE-1. When the option is
+   * set to `"compressed"` the writer performs the encryption itself, so storing the checksum of the content would disclose what that
+   * encryption hides: the option is ignored, the entry is marked as AE-2 and the checksum fields are set to 0. See the remarks of
+   * {@link ZipWriterConstructorOptions#password}.
    */
   crc32?: number;
   /**
@@ -3576,9 +3578,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * can be derived from data which is not decompressed.
    *
    * The CRC32 of the entry cannot be computed either, so the {@link ZipWriterAddDataOptions#crc32} option is
-   * written as-is when it is set, and the entry is marked AE-1 rather than AE-2 as it is with the `true` value.
-   * When it is not set, the entry is marked AE-2 and the checksum fields are set to 0, which is what an entry
-   * read from an AE-2 source archive ends up with, since such an archive stores no CRC32 of the content.
+   * the caller's to declare as well. It is written as-is for an entry which is not AES-encrypted, i.e. for a
+   * plain or a ZipCrypto entry, both of which store the checksum in clear anyway. It is dropped for an
+   * AES-encrypted entry, which is marked AE-2 with the checksum fields set to 0: the encryption stage runs
+   * here, so this is a new encryption, and a stored plaintext checksum would let an attacker verify guessed
+   * content without knowing the password. Only the `true` value may mark an entry AE-1, and only because the
+   * data is then copied verbatim from an archive which already published that checksum.
    *
    * A value which is neither a boolean, `"compressed"` nor unset throws an {@link ERR_INVALID_PASS_THROUGH_VALUE}
    * error. The filesystem API copies entries verbatim and only accepts a boolean, see

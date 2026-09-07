@@ -6843,9 +6843,14 @@
 			({ reader } = sizesInfo);
 			const diskOffset = getDiskOffset(zipWriter.writer);
 			const diskNumber = getDiskNumber(zipWriter.writer);
+			let crc32 = options.crc32 === UNDEFINED_VALUE ? options[PROPERTY_NAME_SIGNATURE] : options.crc32;
+			if (resolvedOptions.passThroughCompression && !resolvedOptions.passThroughEncryption &&
+				sizesInfo.resolvedOptions.encrypted && !resolvedOptions.zipCrypto) {
+				crc32 = UNDEFINED_VALUE;
+			}
 			options = Object.assign({}, options, attributesInfo.resolvedOptions, metadataInfo.resolvedOptions, sizesInfo.resolvedOptions, {
 				signature: options[PROPERTY_NAME_SIGNATURE],
-				crc32: options.crc32 === UNDEFINED_VALUE ? options[PROPERTY_NAME_SIGNATURE] : options.crc32,
+				crc32,
 				offset: zipWriter.offset - diskOffset,
 				diskNumberStart: diskNumber,
 				[OPTION_USDZ]: zipWriter.options[OPTION_USDZ]

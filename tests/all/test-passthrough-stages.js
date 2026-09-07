@@ -29,9 +29,11 @@ async function test() {
 	}
 }
 
-// The write side: the input is already deflated, so only the encryption stage runs. The CRC cannot be
-// computed from deflated input, so the caller supplies it, and the entry is marked AE-1 rather than AE-2
-// because that CRC came from an archive which already published it.
+// The write side: the input is already deflated, so only the encryption stage runs. The caller supplies
+// the CRC, since it cannot be computed from deflated input, but the writer drops it and marks the entry
+// AE-2: the encryption stage running makes this a new encryption, and the content it protects was not
+// encrypted before, so storing its plaintext checksum would publish what the encryption is hiding. Only
+// a verbatim copy, `passThrough: true`, may declare AE-1, and only because the source archive declared it.
 async function encryptsWithoutRecompressing() {
 	const source = await readSourceEntry(await buildArchive({}));
 	const archive = await buildArchive({}, {
@@ -51,11 +53,11 @@ async function encryptsWithoutRecompressing() {
 	if (entry.compressedSize != source.compressedSize + AES_OVERHEAD[2]) {
 		throw new Error("expected " + (source.compressedSize + AES_OVERHEAD[2]) + " compressed bytes, got " + entry.compressedSize);
 	}
-	if (entry.crc32 !== source.crc32) {
-		throw new Error("expected the CRC32 to be preserved, got " + entry.crc32);
+	if (entry.crc32 !== undefined) {
+		throw new Error("expected the CRC32 to be dropped, got " + entry.crc32);
 	}
-	if (!entry.extraFieldAES || entry.extraFieldAES.vendorVersion != 1) {
-		throw new Error("expected an AE-1 entry, since the CRC32 was supplied by the caller");
+	if (!entry.extraFieldAES || entry.extraFieldAES.vendorVersion != 2) {
+		throw new Error("expected an AE-2 entry, since encrypting pass-through content is a new encryption");
 	}
 	const text = await entry.getData(new zip.TextWriter(), { password: PASSWORD, checkCrc32: true });
 	if (text != TEXT_CONTENT) {
@@ -123,8 +125,11 @@ async function rekeysAcrossEncryptionSchemes() {
 			if (text != TEXT_CONTENT) {
 				throw new Error(label + ": the content did not survive the rekey");
 			}
-			if (source.crc32 !== undefined && entry.crc32 !== source.crc32) {
-				throw new Error(label + ": expected the CRC32 to be preserved, got " + entry.crc32);
+			if (source.crc32 !== undefined) {
+				const expectedCrc32 = targetOptions.password && !targetOptions.zipCrypto ? undefined : source.crc32;
+				if (entry.crc32 !== expectedCrc32) {
+					throw new Error(label + ": expected the CRC32 " + expectedCrc32 + ", got " + entry.crc32);
+				}
 			}
 		}
 	}

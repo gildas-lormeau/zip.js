@@ -567,9 +567,12 @@ a password. The [ZipWriterAddDataOptions#uncompressedSize](ZipWriterAddDataOptio
 can be derived from data which is not decompressed.
 
 The CRC32 of the entry cannot be computed either, so the [ZipWriterAddDataOptions#crc32](ZipWriterAddDataOptions.md#crc32) option is
-written as-is when it is set, and the entry is marked AE-1 rather than AE-2 as it is with the `true` value.
-When it is not set, the entry is marked AE-2 and the checksum fields are set to 0, which is what an entry
-read from an AE-2 source archive ends up with, since such an archive stores no CRC32 of the content.
+the caller's to declare as well. It is written as-is for an entry which is not AES-encrypted, i.e. for a
+plain or a ZipCrypto entry, both of which store the checksum in clear anyway. It is dropped for an
+AES-encrypted entry, which is marked AE-2 with the checksum fields set to 0: the encryption stage runs
+here, so this is a new encryption, and a stored plaintext checksum would let an attacker verify guessed
+content without knowing the password. Only the `true` value may mark an entry AE-1, and only because the
+data is then copied verbatim from an archive which already published that checksum.
 
 A value which is neither a boolean, `"compressed"` nor unset throws an [ERR\_INVALID\_PASS\_THROUGH\_VALUE](../variables/ERR_INVALID_PASS_THROUGH_VALUE.md)
 error. The filesystem API copies entries verbatim and only accepts a boolean, see
