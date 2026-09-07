@@ -2617,6 +2617,7 @@
 		constructor(chunkSize) {
 			const pendingChunks = [];
 			let pendingLength = 0;
+			let outputSize = 0;
 			if (!Number.isFinite(chunkSize) || chunkSize < 1) {
 				chunkSize = DEFAULT_CHUNK_SIZE;
 			}
@@ -2625,14 +2626,19 @@
 					pendingChunks.push(chunk);
 					pendingLength += chunk.length;
 					while (pendingLength > chunkSize) {
+						outputSize += chunkSize;
 						controller.enqueue(shiftChunk());
 					}
 				},
 				flush(controller) {
 					if (pendingLength) {
+						outputSize += pendingLength;
 						controller.enqueue(concatChunks(pendingChunks, pendingLength));
 					}
 				}
+			});
+			Object.defineProperty(this, "outputSize", {
+				get: () => outputSize
 			});
 
 			function shiftChunk() {
@@ -2834,7 +2840,7 @@
 	}
 
 	async function runWorker$1({ options, readable, writable, onTaskFinished }, config) {
-		let codecStream;
+		let codecStream, chunkStream;
 		try {
 			if (options.compressed && !options.format) {
 				const deflate = options.codecType.startsWith(CODEC_DEFLATE);
@@ -2857,9 +2863,10 @@
 				}
 			}
 			codecStream = new CodecStream(options, config);
+			chunkStream = new ChunkStream(getChunkSize(config));
 			await readable
 				.pipeThrough(codecStream)
-				.pipeThrough(new ChunkStream(getChunkSize(config)))
+				.pipeThrough(chunkStream)
 				.pipeTo(writable, { preventClose: true, preventAbort: true });
 			const {
 				crc32,
@@ -2873,7 +2880,7 @@
 			};
 		} catch (error) {
 			if (codecStream) {
-				error.outputSize = codecStream.outputSize;
+				error.outputSize = chunkStream ? chunkStream.outputSize : 0;
 			}
 			throw error;
 		} finally {
