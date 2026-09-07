@@ -257,9 +257,9 @@ platforms.
 
 When no deflate implementation is available at all, i.e. the environment provides no usable
 `CompressionStream` and the embedded implementation cannot be loaded, the entry is stored
-instead of being compressed rather than failing. The [EntryMetaData#compressionMethod](EntryMetaData.md#compressionmethod) of
-the entry returned by [ZipWriter#add](../classes/ZipWriter.md#add) is `0` in that case, which is how the fallback is
-detected.
+instead of being compressed rather than failing. The fallback is reported twice: the
+[EntryMetaData#compressionMethod](EntryMetaData.md#compressionmethod) of the entry returned by [ZipWriter#add](../classes/ZipWriter.md#add) is `0`,
+and [WARNING\_COMPRESSION\_UNAVAILABLE](../variables/WARNING_COMPRESSION_UNAVAILABLE.md) is deposited on [ZipWriter#warnings](../classes/ZipWriter.md#warnings).
 
 #### Default Value
 

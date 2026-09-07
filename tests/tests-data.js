@@ -247,6 +247,7 @@ export default ([
 	{ title: "Text encoding ", script: "./test-text-encoding.js" },
 	{ title: "Text writer encoding", script: "./test-text-writer-encoding.js" },
 	{ title: "Unicode file names", script: "./test-use-unicode-file-names.js" },
+	{ title: "Writer warnings", script: "./test-writer-warnings.js" },
 	{ title: "Text UNIX metadata", script: "./test-unix-metadata.js" },
 	{ title: "Text UNIX extra field layout", script: "./test-unix-extra-field-layout.js" },
 	{ title: "UNIX ids in the local header", script: "./test-unix-ids-local-header.js" },

@@ -85,6 +85,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"interface",
 	"lastDiskNumber",
 	"lastFileEntry",
+	"lastModDateClamped",
 	"lengthCounts",
 	"localExtraFieldZip64Length",
 	"localHeaderArray",

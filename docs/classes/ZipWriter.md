@@ -66,6 +66,25 @@ The options.
 
 `true` if the zip contains at least one entry that has been partially written.
 
+***
+
+### warnings?
+
+> `optional` **warnings?**: [`ArchiveWarning`](../interfaces/ArchiveWarning.md)[]
+
+The non-fatal diagnostics deposited while writing the entries, accumulated over the life of the instance.
+
+#### Remarks
+
+A warning reports an adjustment the writer made silently rather than failing, so what it produced is not
+what was asked for: [WARNING\_COMPRESSION\_UNAVAILABLE](../variables/WARNING_COMPRESSION_UNAVAILABLE.md) when no deflate codec is available and the
+entries are stored instead, and [WARNING\_CLAMPED\_LAST\_MODIFICATION\_DATE](../variables/WARNING_CLAMPED_LAST_MODIFICATION_DATE.md) when a date outside the
+MS-DOS range is written and no extra field carries the original value.
+
+Each reason is deposited once, with the filename of the first entry it applied to, so an archive whose
+entries are all affected reports one warning rather than one per entry. Read it after the entries have been
+added; [ZipWriter#close](#close) deposits none of its own.
+
 ## Methods
 
 ### add()

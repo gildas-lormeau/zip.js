@@ -4536,6 +4536,45 @@
 	}
 
 	/*
+	 Copyright (c) 2026 Gildas Lormeau. All rights reserved.
+
+	 Redistribution and use in source and binary forms, with or without
+	 modification, are permitted provided that the following conditions are met:
+
+	 1. Redistributions of source code must retain the above copyright notice,
+	 this list of conditions and the following disclaimer.
+
+	 2. Redistributions in binary form must reproduce the above copyright
+	 notice, this list of conditions and the following disclaimer in
+	 the documentation and/or other materials provided with the distribution.
+
+	 3. The names of the authors may not be used to endorse or promote products
+	 derived from this software without specific prior written permission.
+
+	 THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+	 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+	 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+	 INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+	 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+	 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+	 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+	 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	 */
+
+
+	function addWarning(warnings, reason, filename) {
+		if (!warnings.some(warning => warning.reason == reason)) {
+			const warning = { reason };
+			if (filename !== UNDEFINED_VALUE) {
+				warning.filename = filename;
+			}
+			warnings.push(warning);
+		}
+	}
+
+	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without
@@ -6190,16 +6229,6 @@
 		}
 	}
 
-	function addWarning(warnings, reason, filename) {
-		if (!warnings.some(warning => warning.reason == reason)) {
-			const warning = { reason };
-			if (filename !== UNDEFINED_VALUE) {
-				warning.filename = filename;
-			}
-			warnings.push(warning);
-		}
-	}
-
 	function throwAmbiguousArchive(reason) {
 		const error = new Error(ERR_AMBIGUOUS_ARCHIVE);
 		error.reason = reason;
@@ -6359,6 +6388,8 @@
 	const ERR_INVALID_MSDOS_DATA = "Invalid msdosAttributes (must be an object with boolean flags)";
 	const ERR_INVALID_LEVEL = "Invalid level (must be integer 0..9)";
 	const ERR_INVALID_SIGNATURE_DATA = "Signature data exceeds 64KB";
+	const WARNING_COMPRESSION_UNAVAILABLE = "compression unavailable";
+	const WARNING_CLAMPED_LAST_MODIFICATION_DATE = "clamped last modification date";
 
 	const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 0x03, 0x00, 0x00]);
 	const EXTRAFIELD_OFFSET_AES_VENDOR_VERSION = 4;
@@ -6393,6 +6424,7 @@
 				initialOffset: options[OPTION_OFFSET] === UNDEFINED_VALUE ? 0 : options[OPTION_OFFSET] - (writer.size || writer.writable.size || 0),
 				pendingAddFileCalls: new Set(),
 				pendingErrors: [],
+				warnings: [],
 				bufferedWrites: 0,
 				directWrites: 0,
 				lastFileEntry: UNDEFINED_VALUE
@@ -6750,6 +6782,7 @@
 			if (resolvedOptions.level != 0 && resolvedOptions.compressionMethod === UNDEFINED_VALUE &&
 				!resolvedOptions.passThrough && !(await supportsDeflate(getConfiguration()))) {
 				resolvedOptions.level = 0;
+				addWarning(zipWriter.warnings, WARNING_COMPRESSION_UNAVAILABLE, name);
 			}
 			const sizesInfo = await resolveSizes(zipWriter, reader, metadataInfo, options);
 			({ reader } = sizesInfo);
@@ -6763,6 +6796,9 @@
 				[OPTION_USDZ]: zipWriter.options[OPTION_USDZ]
 			});
 			const headerInfo = getHeaderInfo(options);
+			if (headerInfo.lastModDateClamped) {
+				addWarning(zipWriter.warnings, WARNING_CLAMPED_LAST_MODIFICATION_DATE, name);
+			}
 			const dataDescriptorInfo = getDataDescriptorInfo(options);
 			const metadataSize = getLength(headerInfo.localHeaderArray, dataDescriptorInfo.dataDescriptorArray);
 			fileEntry = await getFileEntry(zipWriter, name, reader, {
@@ -7798,6 +7834,7 @@
 			headerArray,
 			headerView,
 			lastModDate: storedLastModDate,
+			lastModDateClamped: storedLastModDate === clampedLastModDate && dosLastModDate.getTime() != clampedLastModDate.getTime(),
 			rawLastModDate,
 			encrypted,
 			compressed,
@@ -10814,7 +10851,9 @@
 	exports.Uint8ArrayWriter = Uint8ArrayWriter;
 	exports.VERSION = VERSION;
 	exports.WARNING_APPENDED_DATA = WARNING_APPENDED_DATA;
+	exports.WARNING_CLAMPED_LAST_MODIFICATION_DATE = WARNING_CLAMPED_LAST_MODIFICATION_DATE;
 	exports.WARNING_COMPRESSED_PATCHED_DATA = WARNING_COMPRESSED_PATCHED_DATA;
+	exports.WARNING_COMPRESSION_UNAVAILABLE = WARNING_COMPRESSION_UNAVAILABLE;
 	exports.WARNING_DUPLICATE_FILENAME = WARNING_DUPLICATE_FILENAME;
 	exports.WARNING_MALFORMED_EXTRA_FIELD = WARNING_MALFORMED_EXTRA_FIELD;
 	exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG = WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG;

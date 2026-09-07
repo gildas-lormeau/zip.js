@@ -6,7 +6,8 @@
 
 # Interface: ArchiveWarning
 
-Represents a non-fatal diagnostic deposited on [ZipReader#warnings](../classes/ZipReader.md#warnings) or [EntryMetaData#warnings](EntryMetaData.md#warnings).
+Represents a non-fatal diagnostic deposited on [ZipReader#warnings](../classes/ZipReader.md#warnings), [EntryMetaData#warnings](EntryMetaData.md#warnings) or
+[ZipWriter#warnings](../classes/ZipWriter.md#warnings).
 
 ## Properties
 

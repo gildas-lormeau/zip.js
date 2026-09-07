@@ -2639,7 +2639,8 @@ export interface EntryMetaData {
 }
 
 /**
- * Represents a non-fatal diagnostic deposited on {@link ZipReader#warnings} or {@link EntryMetaData#warnings}.
+ * Represents a non-fatal diagnostic deposited on {@link ZipReader#warnings}, {@link EntryMetaData#warnings} or
+ * {@link ZipWriter#warnings}.
  */
 export interface ArchiveWarning {
   /**
@@ -2860,6 +2861,20 @@ export class ZipWriter<Type> {
    * `true` if the zip contains at least one entry that has been partially written.
    */
   readonly hasCorruptedEntries?: boolean;
+  /**
+   * The non-fatal diagnostics deposited while writing the entries, accumulated over the life of the instance.
+   *
+   * @remarks
+   * A warning reports an adjustment the writer made silently rather than failing, so what it produced is not
+   * what was asked for: {@link WARNING_COMPRESSION_UNAVAILABLE} when no deflate codec is available and the
+   * entries are stored instead, and {@link WARNING_CLAMPED_LAST_MODIFICATION_DATE} when a date outside the
+   * MS-DOS range is written and no extra field carries the original value.
+   *
+   * Each reason is deposited once, with the filename of the first entry it applied to, so an archive whose
+   * entries are all affected reports one warning rather than one per entry. Read it after the entries have been
+   * added; {@link ZipWriter#close} deposits none of its own.
+   */
+  warnings?: ArchiveWarning[];
 
   /**
    * Adds the entries of an existing zip file into the current zip. This method can be called at any
@@ -3101,9 +3116,9 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    *
    * When no deflate implementation is available at all, i.e. the environment provides no usable
    * `CompressionStream` and the embedded implementation cannot be loaded, the entry is stored
-   * instead of being compressed rather than failing. The {@link EntryMetaData#compressionMethod} of
-   * the entry returned by {@link ZipWriter#add} is `0` in that case, which is how the fallback is
-   * detected.
+   * instead of being compressed rather than failing. The fallback is reported twice: the
+   * {@link EntryMetaData#compressionMethod} of the entry returned by {@link ZipWriter#add} is `0`,
+   * and {@link WARNING_COMPRESSION_UNAVAILABLE} is deposited on {@link ZipWriter#warnings}.
    *
    * @defaultValue 6
    */
@@ -5021,3 +5036,18 @@ export const WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD: string;
  * {@link ZipReaderOptions#checkLocalDirectory} is enabled
  */
 export const WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES: string;
+/**
+ * Warning reason: no deflate codec is available, so the entry is stored instead of being compressed
+ * (see {@link ZipWriter#warnings} and {@link EntryMetaData#compressionMethod})
+ */
+export const WARNING_COMPRESSION_UNAVAILABLE: string;
+/**
+ * Warning reason: the last modification date is outside the range the MS-DOS field can hold, i.e. before 1980
+ * or after 2107, and no extra field carries the original value, so the date written is the nearest bound
+ * (see {@link ZipWriter#warnings} and {@link EntryMetaData#lastModDate})
+ *
+ * @remarks {@link ZipWriterConstructorOptions#extendedTimestamp} is enabled by default and preserves the
+ * original value, so this reason only appears when it and {@link ZipWriterConstructorOptions#ntfsTimestamp}
+ * are both disabled.
+ */
+export const WARNING_CLAMPED_LAST_MODIFICATION_DATE: string;
