@@ -7,6 +7,7 @@ const OVER_BALANCED_APPENDED_DATA_LENGTH = 70000;
 const PREPENDED_DATA_LENGTH = 64;
 const LOCAL_HEADER_CRC32_OFFSET = 14;
 const LOCAL_HEADER_FILENAME_OFFSET = 30;
+const UNDEFINED_REASON = null;
 
 const CASES = [
 	{ name: "no option", readerOptions: {}, callOptions: {}, filenameChecked: false, headerChecked: true },
@@ -43,6 +44,7 @@ async function test() {
 		await assertLocalDirectoryChecked(mismatchedCrc32Data, { checkLocalDirectory: false }, {}, false, "checkLocalDirectory false skips the whole comparison");
 		await assertLocalDirectoryChecked(mismatchedCrc32Data, { strictness: "strict" }, { checkLocalDirectory: false }, false, "checkLocalDirectory false over a strict reader");
 		await assertLocalDirectoryChecked(mismatchedCrc32Data, { checkLocalDirectory: false }, { strictness: "strict" }, false, "checkLocalDirectory false beats a strict call");
+		await assertCheckLocalFilename(mismatchedFilenameData, mismatchedCrc32Data);
 		await assertSelfExtracting(mismatchedCrc32Data, mismatchedFilenameData);
 		await assertReadCounts();
 	} finally {
@@ -105,6 +107,40 @@ async function assertLocalDirectoryChecked(data, readerOptions, callOptions, exp
 	}
 }
 
+// checkLocalFilename selects what is compared, checkLocalDirectory decides whether a difference throws or
+// warns. The two are separate options because they are separate axes: the filename costs an extra read, the
+// severity costs nothing. Their combination is the only way to obtain a mismatched filename as a warning.
+async function assertCheckLocalFilename(mismatchedFilenameData, mismatchedCrc32Data) {
+	await assertLocalDirectoryWarned(mismatchedFilenameData, { checkLocalFilename: true, checkLocalDirectory: false }, {},
+		zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME, "the filename compared while the mismatch only warns");
+	await assertLocalDirectoryWarned(mismatchedFilenameData, {}, { checkLocalFilename: true, checkLocalDirectory: false },
+		zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME, "the same pair passed to the call");
+	await assertLocalDirectoryWarned(mismatchedFilenameData, { strictness: "tolerant", checkLocalFilename: true }, {},
+		zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME, "the filename added to a tolerant reader");
+	await assertLocalDirectoryWarned(mismatchedFilenameData, { strictness: "strict", checkLocalFilename: false }, {},
+		UNDEFINED_REASON, "the filename dropped from a strict reader");
+	await assertLocalDirectoryChecked(mismatchedFilenameData, { strictness: "strict", checkLocalFilename: false }, {}, false,
+		"checkLocalFilename false drops the filename comparison at strict");
+	await assertLocalDirectoryChecked(mismatchedCrc32Data, { strictness: "strict", checkLocalFilename: false }, {}, true,
+		"checkLocalFilename false keeps every other strict comparison");
+	await assertLocalDirectoryChecked(mismatchedFilenameData, { checkLocalFilename: true }, {}, true,
+		"checkLocalFilename true throws at balanced, where checkLocalDirectory still rejects");
+	await assertLocalDirectoryChecked(mismatchedFilenameData, { checkLocalFilename: false }, { checkLocalFilename: true }, true,
+		"checkLocalFilename on the call beats the reader");
+}
+
+async function assertLocalDirectoryWarned(data, readerOptions, callOptions, expectedReason, name) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), readerOptions);
+	const [entry] = await zipReader.getEntries();
+	await entry.getData(new zip.Uint8ArrayWriter(), callOptions);
+	await zipReader.close();
+	const reasons = entry.warnings.map(({ reason }) => reason);
+	const expectedReasons = expectedReason == UNDEFINED_REASON ? [] : [expectedReason];
+	if (reasons.length != expectedReasons.length || reasons.some((reason, index) => reason != expectedReasons[index])) {
+		throw new Error(`${name}: expected ${JSON.stringify(expectedReasons)} on the entry, got ${JSON.stringify(reasons)}`);
+	}
+}
+
 async function assertSelfExtracting(mismatchedCrc32Data, mismatchedFilenameData) {
 	const readerOptions = { extractPrependedData: true };
 	await assertLocalDirectoryChecked(prependData(mismatchedCrc32Data), readerOptions, {}, true, "self-extracting archive compares the header by default");
@@ -132,20 +168,14 @@ function prependData(zipData) {
 async function assertReadCounts() {
 	const data = await createZipData({ extendedTimestamp: false });
 	const counts = {};
-	for (const strictness of ["tolerant", "balanced", "strict"]) {
-		let reads = 0;
-		const countingReader = new zip.Uint8ArrayReader(data);
-		const readUint8Array = countingReader.readUint8Array.bind(countingReader);
-		countingReader.readUint8Array = (offset, length) => {
-			reads++;
-			return readUint8Array(offset, length);
-		};
-		const zipReader = new zip.ZipReader(countingReader, { strictness });
-		const entries = await zipReader.getEntries();
-		const readsBeforeGetData = reads;
-		await entries[0].getData(new zip.Uint8ArrayWriter());
-		counts[strictness] = reads - readsBeforeGetData;
-		await zipReader.close();
+	for (const [label, readerOptions] of [
+		["tolerant", { strictness: "tolerant" }],
+		["balanced", { strictness: "balanced" }],
+		["strict", { strictness: "strict" }],
+		["strictWithoutFilename", { strictness: "strict", checkLocalFilename: false }],
+		["tolerantWithFilename", { strictness: "tolerant", checkLocalFilename: true }]
+	]) {
+		counts[label] = await countGetDataReads(data, readerOptions);
 	}
 	if (counts.balanced !== counts.tolerant) {
 		throw new Error(`the balanced local file header comparison must read nothing extra, got ${counts.balanced} reads against ${counts.tolerant}`);
@@ -153,6 +183,29 @@ async function assertReadCounts() {
 	if (counts.strict <= counts.tolerant) {
 		throw new Error(`comparing the filename must read the filename, got ${counts.strict} reads against ${counts.tolerant}`);
 	}
+	// the extra read follows the filename comparison, not the strictness, in both directions
+	if (counts.strictWithoutFilename !== counts.tolerant) {
+		throw new Error(`checkLocalFilename false must drop the filename read at strict, got ${counts.strictWithoutFilename} reads against ${counts.tolerant}`);
+	}
+	if (counts.tolerantWithFilename !== counts.strict) {
+		throw new Error(`checkLocalFilename true must add the filename read at tolerant, got ${counts.tolerantWithFilename} reads against ${counts.strict}`);
+	}
+}
+
+async function countGetDataReads(data, readerOptions) {
+	let reads = 0;
+	const countingReader = new zip.Uint8ArrayReader(data);
+	const readUint8Array = countingReader.readUint8Array.bind(countingReader);
+	countingReader.readUint8Array = (offset, length) => {
+		reads++;
+		return readUint8Array(offset, length);
+	};
+	const zipReader = new zip.ZipReader(countingReader, readerOptions);
+	const entries = await zipReader.getEntries();
+	const readsBeforeGetData = reads;
+	await entries[0].getData(new zip.Uint8ArrayWriter());
+	await zipReader.close();
+	return reads - readsBeforeGetData;
 }
 
 async function assertAccepted(data, readerOptions, callOptions, name) {

@@ -90,16 +90,18 @@ false
 
 > `optional` **checkLocalDirectory?**: `boolean`
 
-`true` to validate the local file header of the entry against its central directory record when calling
-[FileEntry#getData](FileEntry.md#getdata), `false` to skip that validation. This is the entry-level half of
+`true` to reject the entry with an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error when its local file header
+disagrees with its central directory record while calling [FileEntry#getData](FileEntry.md#getdata), `false` to deposit
+the differences on [EntryMetaData#warnings](EntryMetaData.md#warnings) instead. This is the entry-level half of
 [ZipReaderOptions#checkAmbiguity](ZipReaderOptions.md#checkambiguity), exposed on its own so it can be enabled without the archive-level
 checks and disabled without giving up the rest of [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness). It is the only way to
 validate the local file headers of a self-extracting archive, since
 [GetEntriesOptions#checkAmbiguity](ZipReaderGetEntriesOptions.md#checkambiguity) rejects prepended data outright.
 
 `true` compares the filename as well, like [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) set to `"strict"`; `false`
-compares nothing, like `"tolerant"`. An explicit value takes precedence over the strictness default at
-every level.
+compares everything except the filename, like `"tolerant"`. Set
+[ZipReaderOptions#checkLocalFilename](ZipReaderOptions.md#checklocalfilename) to control the filename comparison on its own. An explicit
+value takes precedence over the strictness default at every level.
 
 #### Default Value
 
@@ -109,6 +111,33 @@ it is `"tolerant"`.
 #### Inherited from
 
 [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkLocalDirectory`](ZipReaderConstructorOptions.md#checklocaldirectory)
+
+***
+
+### checkLocalFilename?
+
+> `optional` **checkLocalFilename?**: `boolean`
+
+`true` to compare the filename of the local file header with the one of the central directory record when
+calling [FileEntry#getData](FileEntry.md#getdata), `false` to leave the filename out of that comparison.
+
+Comparing the filename costs one extra read per entry whenever the local file header carries no extra
+field, which is why it is left out below [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) set to `"strict"`. This option
+selects what is compared without changing whether a difference throws or warns, which
+[ZipReaderOptions#checkLocalDirectory](ZipReaderOptions.md#checklocaldirectory) decides. It is therefore the only way to obtain
+[WARNING\_MISMATCHED\_LOCAL\_FILE\_HEADER\_FILENAME](../variables/WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME.md) as a warning, with
+`{ checkLocalFilename: true, checkLocalDirectory: false }`, and the only way to keep every other check of
+`"strict"` without paying the extra read, with `{ checkLocalFilename: false, strictness: "strict" }`.
+
+#### Default Value
+
+the value of [ZipReaderOptions#checkLocalDirectory](ZipReaderOptions.md#checklocaldirectory) when it is set, otherwise `true`
+when [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) is `"strict"` and `false` when it is `"balanced"` or
+`"tolerant"`.
+
+#### Inherited from
+
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`checkLocalFilename`](ZipReaderConstructorOptions.md#checklocalfilename)
 
 ***
 
@@ -445,18 +474,20 @@ reason of the `AbortError`, or with `signal.reason` when it is set, without rely
 > `optional` **strictness?**: `"balanced"` \| `"strict"` \| `"tolerant"`
 
 How tolerant the reader should be when the local file header of an entry disagrees with its central
-directory record. Any difference throws an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error.
+directory record.
 
 - `"strict"`: compare the filename, the general purpose bit flag, the compression method, the CRC-32
-checksum and the sizes.
-- `"balanced"`: compare everything except the filename.
-- `"tolerant"`: compare nothing and trust the central directory record.
+checksum and the sizes, and throw an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error on any difference.
+- `"balanced"`: compare everything except the filename, and throw on any difference.
+- `"tolerant"`: compare everything except the filename, and deposit the differences on
+[EntryMetaData#warnings](EntryMetaData.md#warnings) instead of throwing.
 
 Every field except the filename is read from the local file header anyway, to locate the entry data, so
 the comparison `"balanced"` performs reads no additional bytes. Comparing the filename reads the filename
 bytes as well, which costs one extra read per entry whenever the local file header carries no extra field
-— the common case in practice. Use [ZipReaderOptions#checkLocalDirectory](ZipReaderOptions.md#checklocaldirectory) to request or suppress the
-whole comparison explicitly.
+— the common case in practice, and the reason the filename is left out below `"strict"`. Use
+[ZipReaderOptions#checkLocalDirectory](ZipReaderOptions.md#checklocaldirectory) to request or suppress the whole comparison explicitly, and
+[ZipReaderOptions#checkLocalFilename](ZipReaderOptions.md#checklocalfilename) to include or exclude the filename on its own.
 
 #### Default Value
 

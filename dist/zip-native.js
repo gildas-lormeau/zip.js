@@ -179,6 +179,7 @@
 	const OPTION_CHECK_OVERLAPPING_ENTRY = "checkOverlappingEntry";
 	const OPTION_CHECK_AMBIGUITY = "checkAmbiguity";
 	const OPTION_CHECK_LOCAL_DIRECTORY = "checkLocalDirectory";
+	const OPTION_CHECK_LOCAL_FILENAME = "checkLocalFilename";
 	const OPTION_CHECK_SIGNATURE = "checkSignature";
 	const OPTION_CHECK_CRC32 = "checkCrc32";
 	const OPTION_CHECK_AUTHENTICATION_CODE = "checkAuthenticationCode";
@@ -5458,7 +5459,9 @@
 			const checkLocalDirectoryOption = getOptionValue$1(zipEntry, options, OPTION_CHECK_LOCAL_DIRECTORY);
 			const entryStrictness = getStrictness(options, zipEntry.options);
 			const checkLocalDirectory = getCheckLocalDirectory(checkLocalDirectoryOption, entryStrictness);
-			const checkLocalFilename = getCheckLocalFilename(checkLocalDirectoryOption, entryStrictness);
+			const checkLocalFilenameOption = getOptionValue$1(zipEntry, options, OPTION_CHECK_LOCAL_FILENAME);
+			const checkLocalFilename = getCheckLocalFilename(
+				checkLocalFilenameOption === UNDEFINED_VALUE ? checkLocalDirectoryOption : checkLocalFilenameOption, entryStrictness);
 			let rawLocalFilename = EMPTY_UINT8_ARRAY;
 			if (checkLocalFilename && (filenameLength || extraFieldLength)) {
 				const trailingDataArray = await readUint8Array(reader, localHeaderOffset + HEADER_SIZE, filenameLength + extraFieldLength);

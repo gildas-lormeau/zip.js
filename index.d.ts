@@ -1811,18 +1811,20 @@ export interface DirectoryEncryptionInfo {
 export interface ZipReaderOptions {
   /**
    * How tolerant the reader should be when the local file header of an entry disagrees with its central
-   * directory record. Any difference throws an {@link ERR_AMBIGUOUS_ARCHIVE} error.
+   * directory record.
    *
    * - `"strict"`: compare the filename, the general purpose bit flag, the compression method, the CRC-32
-   * checksum and the sizes.
-   * - `"balanced"`: compare everything except the filename.
-   * - `"tolerant"`: compare nothing and trust the central directory record.
+   * checksum and the sizes, and throw an {@link ERR_AMBIGUOUS_ARCHIVE} error on any difference.
+   * - `"balanced"`: compare everything except the filename, and throw on any difference.
+   * - `"tolerant"`: compare everything except the filename, and deposit the differences on
+   * {@link EntryMetaData#warnings} instead of throwing.
    *
    * Every field except the filename is read from the local file header anyway, to locate the entry data, so
    * the comparison `"balanced"` performs reads no additional bytes. Comparing the filename reads the filename
    * bytes as well, which costs one extra read per entry whenever the local file header carries no extra field
-   * — the common case in practice. Use {@link ZipReaderOptions#checkLocalDirectory} to request or suppress the
-   * whole comparison explicitly.
+   * — the common case in practice, and the reason the filename is left out below `"strict"`. Use
+   * {@link ZipReaderOptions#checkLocalDirectory} to request or suppress the whole comparison explicitly, and
+   * {@link ZipReaderOptions#checkLocalFilename} to include or exclude the filename on its own.
    *
    * @defaultValue "balanced"
    */
@@ -1845,21 +1847,40 @@ export interface ZipReaderOptions {
    */
   checkAmbiguity?: boolean;
   /**
-   * `true` to validate the local file header of the entry against its central directory record when calling
-   * {@link FileEntry#getData}, `false` to skip that validation. This is the entry-level half of
+   * `true` to reject the entry with an {@link ERR_AMBIGUOUS_ARCHIVE} error when its local file header
+   * disagrees with its central directory record while calling {@link FileEntry#getData}, `false` to deposit
+   * the differences on {@link EntryMetaData#warnings} instead. This is the entry-level half of
    * {@link ZipReaderOptions#checkAmbiguity}, exposed on its own so it can be enabled without the archive-level
    * checks and disabled without giving up the rest of {@link ZipReaderOptions#strictness}. It is the only way to
    * validate the local file headers of a self-extracting archive, since
    * {@link GetEntriesOptions#checkAmbiguity} rejects prepended data outright.
    *
    * `true` compares the filename as well, like {@link ZipReaderOptions#strictness} set to `"strict"`; `false`
-   * compares nothing, like `"tolerant"`. An explicit value takes precedence over the strictness default at
-   * every level.
+   * compares everything except the filename, like `"tolerant"`. Set
+   * {@link ZipReaderOptions#checkLocalFilename} to control the filename comparison on its own. An explicit
+   * value takes precedence over the strictness default at every level.
    *
    * @defaultValue `true` when {@link ZipReaderOptions#strictness} is `"strict"` or `"balanced"`, `false` when
    * it is `"tolerant"`.
    */
   checkLocalDirectory?: boolean;
+  /**
+   * `true` to compare the filename of the local file header with the one of the central directory record when
+   * calling {@link FileEntry#getData}, `false` to leave the filename out of that comparison.
+   *
+   * Comparing the filename costs one extra read per entry whenever the local file header carries no extra
+   * field, which is why it is left out below {@link ZipReaderOptions#strictness} set to `"strict"`. This option
+   * selects what is compared without changing whether a difference throws or warns, which
+   * {@link ZipReaderOptions#checkLocalDirectory} decides. It is therefore the only way to obtain
+   * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME} as a warning, with
+   * `{ checkLocalFilename: true, checkLocalDirectory: false }`, and the only way to keep every other check of
+   * `"strict"` without paying the extra read, with `{ checkLocalFilename: false, strictness: "strict" }`.
+   *
+   * @defaultValue the value of {@link ZipReaderOptions#checkLocalDirectory} when it is set, otherwise `true`
+   * when {@link ZipReaderOptions#strictness} is `"strict"` and `false` when it is `"balanced"` or
+   * `"tolerant"`.
+   */
+  checkLocalFilename?: boolean;
   /**
    * `true` to check only if the password is valid.
    *
@@ -2248,8 +2269,9 @@ export interface LocalDirectory {
    * {@link EntryMetaData#rawFilename}.
    *
    * Only defined when the local filename has been read, i.e. when the {@link ZipReaderOptions#strictness} option
-   * is set to `"strict"` or when the {@link ZipReaderOptions#checkLocalDirectory} option is set to `true`, since
-   * reading it costs one read the central directory does not need.
+   * is set to `"strict"`, or when the {@link ZipReaderOptions#checkLocalDirectory} option or the
+   * {@link ZipReaderOptions#checkLocalFilename} option is set to `true`, since reading it costs one read the
+   * central directory does not need.
    */
   rawFilename?: Uint8Array;
   /**
@@ -2694,11 +2716,13 @@ export interface EntryMetaData {
    * The reasons deposited here relate to the local file header: {@link WARNING_MALFORMED_EXTRA_FIELD} when its
    * extra field data cannot be fully parsed, and — only when {@link ZipReaderOptions#checkLocalDirectory} is
    * disabled, e.g. with `strictness: "tolerant"` — the local file header mismatches the enabled check rejects
-   * with {@link ERR_AMBIGUOUS_ARCHIVE}: {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME},
-   * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG},
+   * with {@link ERR_AMBIGUOUS_ARCHIVE}: {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG},
    * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD} and
-   * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES}. The archive-level warnings are deposited on
-   * {@link ZipReader#warnings} instead.
+   * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES}, plus
+   * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME} when
+   * {@link ZipReaderOptions#checkLocalFilename} is enabled on its own, since disabling
+   * {@link ZipReaderOptions#checkLocalDirectory} leaves the filename out of the comparison. The archive-level
+   * warnings are deposited on {@link ZipReader#warnings} instead.
    */
   warnings?: ArchiveWarning[];
 }
@@ -5272,9 +5296,10 @@ export const WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY: string;
  */
 export const WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY: string;
 /**
- * Warning reason: the filename of the local file header contradicts the central directory
- * (see {@link EntryMetaData#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} when
- * {@link ZipReaderOptions#checkLocalDirectory} is enabled
+ * Warning reason: the filename of the local file header contradicts the central directory; the reason of
+ * {@link ERR_AMBIGUOUS_ARCHIVE} when {@link ZipReaderOptions#checkLocalDirectory} is enabled, and deposited on
+ * {@link EntryMetaData#warnings} when {@link ZipReaderOptions#checkLocalFilename} is enabled while
+ * {@link ZipReaderOptions#checkLocalDirectory} is disabled
  */
 export const WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME: string;
 /**

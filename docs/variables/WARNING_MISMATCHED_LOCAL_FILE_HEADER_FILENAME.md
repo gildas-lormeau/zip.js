@@ -8,6 +8,7 @@
 
 > `const` **WARNING\_MISMATCHED\_LOCAL\_FILE\_HEADER\_FILENAME**: `string`
 
-Warning reason: the filename of the local file header contradicts the central directory
-(see [EntryMetaData#warnings](../interfaces/EntryMetaData.md#warnings)); the reason of [ERR\_AMBIGUOUS\_ARCHIVE](ERR_AMBIGUOUS_ARCHIVE.md) when
-[ZipReaderOptions#checkLocalDirectory](../interfaces/ZipReaderOptions.md#checklocaldirectory) is enabled
+Warning reason: the filename of the local file header contradicts the central directory; the reason of
+[ERR\_AMBIGUOUS\_ARCHIVE](ERR_AMBIGUOUS_ARCHIVE.md) when [ZipReaderOptions#checkLocalDirectory](../interfaces/ZipReaderOptions.md#checklocaldirectory) is enabled, and deposited on
+[EntryMetaData#warnings](../interfaces/EntryMetaData.md#warnings) when [ZipReaderOptions#checkLocalFilename](../interfaces/ZipReaderOptions.md#checklocalfilename) is enabled while
+[ZipReaderOptions#checkLocalDirectory](../interfaces/ZipReaderOptions.md#checklocaldirectory) is disabled
