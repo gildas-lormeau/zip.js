@@ -6,9 +6,9 @@ import * as zip from "../zip-lib.js";
 // AbortError with no reason instead, so the identity of the rejection can only be asserted where
 // AbortSignal exposes it.
 const SUPPORTS_REASON = "reason" in AbortSignal.prototype;
-// Not zip.ERR_ABORTED: the constant is exported by the fs entry points only, and this test also runs
-// against the builds without them.
-const ABORTED_MESSAGE = "The operation was aborted";
+// zip.ERR_ABORTED was exported by the fs entry points only until 24da4cb5, so this file held a copy of its
+// text and the copy is what a rewording would have broken.
+const ABORTED_MESSAGE = zip.ERR_ABORTED;
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet";
 const FILENAME = "lorem.txt";

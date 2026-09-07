@@ -86,7 +86,7 @@ async function rejectsAnyOtherPrefix(prefix) {
 	} catch (thrown) {
 		error = thrown;
 	}
-	if (!error || error.message != zip.ERR_AMBIGUOUS_ARCHIVE || error.reason != "prepended data") {
+	if (!error || error.message != zip.ERR_AMBIGUOUS_ARCHIVE || error.reason != zip.WARNING_PREPENDED_DATA) {
 		throw new Error("expected " + zip.ERR_AMBIGUOUS_ARCHIVE + " (prepended data) for the prefix " +
 			getHexadecimalValue(prefix) + ", got " + (error ? error.message + " (" + error.reason + ")" : "no error"));
 	}

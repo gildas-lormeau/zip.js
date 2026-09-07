@@ -21,19 +21,19 @@ async function test() {
 		const appendedArray = new Uint8Array(array.length + EXTRA_DATA_LENGTH);
 		appendedArray.set(array);
 		appendedArray.fill(0x5a, array.length);
-		await expectAmbiguous(appendedArray, "appended data");
+		await expectAmbiguous(appendedArray, zip.WARNING_APPENDED_DATA);
 		// prepended data must be rejected
 		const prependedArray = new Uint8Array(EXTRA_DATA_LENGTH + array.length);
 		prependedArray.fill(0x5a, 0, EXTRA_DATA_LENGTH);
 		prependedArray.set(array, EXTRA_DATA_LENGTH);
-		await expectAmbiguous(prependedArray, "prepended data");
+		await expectAmbiguous(prependedArray, zip.WARNING_PREPENDED_DATA);
 		// a forged entry count that hides trailing central directory records must be rejected
 		const hiddenRecordArray = array.slice();
 		const hiddenRecordView = new DataView(hiddenRecordArray.buffer);
 		const endOfDirectoryOffset = hiddenRecordArray.length - 22;
 		hiddenRecordView.setUint16(endOfDirectoryOffset + 8, CONTENTS.length - 1, true);
 		hiddenRecordView.setUint16(endOfDirectoryOffset + 10, CONTENTS.length - 1, true);
-		await expectAmbiguous(hiddenRecordArray, "trailing central directory data");
+		await expectAmbiguous(hiddenRecordArray, zip.WARNING_TRAILING_CENTRAL_DIRECTORY_DATA);
 		// an end of central directory record disagreeing with its zip64 counterpart must be rejected
 		const zip64BlobWriter = new zip.BlobWriter("application/zip");
 		const zip64ZipWriter = new zip.ZipWriter(zip64BlobWriter, { zip64: true, level: 0, dataDescriptor: false });
@@ -48,7 +48,7 @@ async function test() {
 		const mismatchedEndOfDirectoryOffset = mismatchedArray.length - 22;
 		mismatchedView.setUint16(mismatchedEndOfDirectoryOffset + 8, CONTENTS.length - 1, true);
 		mismatchedView.setUint16(mismatchedEndOfDirectoryOffset + 10, CONTENTS.length - 1, true);
-		await expectAmbiguous(mismatchedArray, "mismatched zip64 end of central directory record");
+		await expectAmbiguous(mismatchedArray, zip.WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY);
 		// two central directory records sharing a filename must be rejected
 		const duplicateArray = array.slice();
 		const duplicateView = new DataView(duplicateArray.buffer);
@@ -60,25 +60,25 @@ async function test() {
 			duplicateView.getUint16(duplicateDirectoryOffset + 30, true) + duplicateView.getUint16(duplicateDirectoryOffset + 32, true);
 		// overwrite the second record filename with the first one (both names have the same length here)
 		duplicateArray.set(firstRecordName, secondRecordOffset + 46);
-		await expectAmbiguous(duplicateArray, "duplicate filename");
+		await expectAmbiguous(duplicateArray, zip.WARNING_DUPLICATE_FILENAME);
 		// a local file header disagreeing with its central directory record must be rejected when reading the entry
 		const localFilenameArray = array.slice();
 		localFilenameArray[30] ^= 0x01;
-		await expectAmbiguousEntry(localFilenameArray, "mismatched local file header (filename)");
+		await expectAmbiguousEntry(localFilenameArray, zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME);
 		// ... while the same archive can still be read without the option (the central directory is authoritative)
 		await readEntriesUnchecked(localFilenameArray);
 		const localBitFlagArray = array.slice();
 		const localBitFlagView = new DataView(localBitFlagArray.buffer);
 		localBitFlagView.setUint16(6, localBitFlagView.getUint16(6, true) ^ 0x0800, true);
-		await expectAmbiguousEntry(localBitFlagArray, "mismatched local file header (general purpose bit flag)");
+		await expectAmbiguousEntry(localBitFlagArray, zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG);
 		const localMethodArray = array.slice();
 		new DataView(localMethodArray.buffer).setUint16(8, 8, true);
-		await expectAmbiguousEntry(localMethodArray, "mismatched local file header (compression method)");
+		await expectAmbiguousEntry(localMethodArray, zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD);
 		const localSignatureArray = array.slice();
 		for (let indexByte = 14; indexByte < 18; indexByte++) {
 			localSignatureArray[indexByte] ^= 0xff;
 		}
-		await expectAmbiguousEntry(localSignatureArray, "mismatched local file header (crc32 or sizes)");
+		await expectAmbiguousEntry(localSignatureArray, zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES);
 		// zeroed out local signature and sizes are tolerated (produced by some streaming writers)
 		const localZeroedArray = array.slice();
 		localZeroedArray.fill(0, 14, 26);

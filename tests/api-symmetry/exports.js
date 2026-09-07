@@ -77,6 +77,14 @@ const CONSTANT_NAME = /^(?:ERR|WARNING)_[A-Z0-9_]+$/;
 // name. A message forwarded from elsewhere, e.g. new Error(error.message || ERROR_EVENT_TYPE), is not a message
 // this library authors, so it is left alone
 const ERROR_MESSAGE = /new (?:Error|DOMException)\(\s*("(?:[^"\\]|\\.)*"|[A-Za-z_$][\w$]*)/g;
+// the reason of an ambiguity or of a warning, i.e. the string ZipReader#warnings deposits and
+// ERR_AMBIGUOUS_ARCHIVE carries on its reason property. It is as public as a message and travels the same way,
+// as text the caller compares, so it is read from the three helpers that produce it. "mismatched local file
+// header (filename)" sat here as a literal, between three siblings that all had a constant
+const WARNING_REASON = /(?:throwAmbiguousArchive|reportAmbiguity|addWarning)\(((?:"(?:[^"\\]|\\.)*"|[^)"])*)\)/g;
+// a written-out argument of one of those calls, read without splitting on commas: three of the reasons hold a
+// parenthesis and one of them could hold a comma too
+const ARGUMENT = /"(?:[^"\\]|\\.)*"|[A-Za-z_$][\w$]*/g;
 
 const failures = [];
 const usedDecisions = new Set();
@@ -188,7 +196,12 @@ function checkBuiltMessages() {
 				usedDecisions.add(file);
 			} else {
 				const literals = LITERAL_MESSAGES[file] || {};
-				for (const [, message] of readFileSync(ROOT + file, "utf8").matchAll(ERROR_MESSAGE)) {
+				const contents = readFileSync(ROOT + file, "utf8");
+				const messages = [...contents.matchAll(ERROR_MESSAGE)].map(([, message]) => message);
+				for (const [, args] of contents.matchAll(WARNING_REASON)) {
+					messages.push(...args.match(ARGUMENT) || []);
+				}
+				for (const message of messages) {
 					if (message.startsWith("\"")) {
 						const text = JSON.parse(message);
 						if (literals[text] === undefined) {

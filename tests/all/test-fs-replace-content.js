@@ -2,7 +2,7 @@
 
 import * as zip from "../zip-lib.js";
 
-const ERR_UNDETERMINED_SIZE = "Undetermined size";
+const { ERR_UNDETERMINED_SIZE } = zip;
 const INITIAL_CONTENT = "x";
 
 export { test };

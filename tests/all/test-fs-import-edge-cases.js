@@ -3,7 +3,7 @@
 import * as zip from "../zip-lib.js";
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.";
-const ERR_DUPLICATE_IMPORTED_ENTRY = "Duplicate entry filename in the imported zip file";
+const { ERR_DUPLICATE_IMPORTED_ENTRY } = zip;
 
 export { test };
 

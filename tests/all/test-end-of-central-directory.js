@@ -32,9 +32,9 @@ async function test() {
 		// records reach the end of the file and each dereferences to a central directory: genuinely ambiguous
 		const inner = await buildZip(["evil.sh"]);
 		const cloak = await buildZip(["safe.txt"], inner);
-		await expectAmbiguous(cloak, "multiple end of central directory records");
-		await expectAmbiguous(cloak, "multiple end of central directory records", { checkAmbiguity: true });
-		await expectAmbiguous(cloak, "multiple end of central directory records", { strictness: "strict" });
+		await expectAmbiguous(cloak, zip.WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY);
+		await expectAmbiguous(cloak, zip.WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY, { checkAmbiguity: true });
+		await expectAmbiguous(cloak, zip.WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY, { strictness: "strict" });
 		// tolerant recovers deterministically by picking the last end-anchored record (the inner archive)
 		await expectFilenames(cloak, ["evil.sh"], { strictness: "tolerant" });
 
@@ -43,9 +43,9 @@ async function test() {
 		const base = await buildZip(["a.txt"]);
 		const smallAppended = appendFiller(base, 64);
 		const largeAppended = appendFiller(base, 70000);
-		await expectAmbiguous(smallAppended, "appended data", { strictness: "strict" });
+		await expectAmbiguous(smallAppended, zip.WARNING_APPENDED_DATA, { strictness: "strict" });
 		await expectFilenames(smallAppended, ["a.txt"]);
-		await expectAmbiguous(largeAppended, "appended data");
+		await expectAmbiguous(largeAppended, zip.WARNING_APPENDED_DATA);
 		await expectFilenames(largeAppended, ["a.txt"], { strictness: "tolerant" });
 		await expectFilenames(largeAppended, ["a.txt"], { maxAppendedDataSize: 128 * 1024 });
 
@@ -54,7 +54,7 @@ async function test() {
 		// appended data, while a cap too small to reach the record surfaces the record as missing
 		const withinWindow = appendFiller(base, 2048);
 		await expectFilenames(withinWindow, ["a.txt"], { strictness: "tolerant" });
-		await expectAmbiguous(withinWindow, "appended data", { strictness: "tolerant", maxAppendedDataSize: 1024 });
+		await expectAmbiguous(withinWindow, zip.WARNING_APPENDED_DATA, { strictness: "tolerant", maxAppendedDataSize: 1024 });
 		await expectError(largeAppended, zip.ERR_EOCDR_NOT_FOUND, { strictness: "tolerant", maxAppendedDataSize: 1024 });
 
 		// appended data that embeds a stray end of central directory signature nearer the end than the real
@@ -215,7 +215,7 @@ async function expectFilenames(array, expectedFilenames, options) {
 
 async function expectAmbiguous(array, reason, options) {
 	// make sure the fixture really does contain more than one end of central directory signature
-	if (countEndOfDirectorySignatures(array) < 2 && reason == "multiple end of central directory records") {
+	if (countEndOfDirectorySignatures(array) < 2 && reason == zip.WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY) {
 		throw new Error("fixture is not multi-record");
 	}
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array), options);

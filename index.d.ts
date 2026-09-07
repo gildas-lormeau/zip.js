@@ -1483,6 +1483,8 @@ export class ZipReader<Type> {
    * one of them and the evidence is already in hand, the same reason string is deposited as a warning instead —
    * {@link WARNING_APPENDED_DATA}, {@link WARNING_PREPENDED_DATA}, {@link WARNING_TRAILING_CENTRAL_DIRECTORY_DATA},
    * {@link WARNING_DUPLICATE_FILENAME} and {@link WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY}.
+   * {@link WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY} is the one reason of that group which is never tolerated,
+   * so it is only ever the reason of an error.
    *
    * The warnings related to the local file header of an entry are deposited on
    * {@link EntryMetaData#warnings} when its data is read, not here.
@@ -2627,7 +2629,8 @@ export interface EntryMetaData {
    * The reasons deposited here relate to the local file header: {@link WARNING_MALFORMED_EXTRA_FIELD} when its
    * extra field data cannot be fully parsed, and — only when {@link ZipReaderOptions#checkLocalDirectory} is
    * disabled, e.g. with `strictness: "tolerant"` — the local file header mismatches the enabled check rejects
-   * with {@link ERR_AMBIGUOUS_ARCHIVE}: {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG},
+   * with {@link ERR_AMBIGUOUS_ARCHIVE}: {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME},
+   * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG},
    * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD} and
    * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES}. The archive-level warnings are deposited on
    * {@link ZipReader#warnings} instead.
@@ -4988,6 +4991,18 @@ export const WARNING_DUPLICATE_FILENAME: string;
  * both (see {@link ZipReader#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} under `strictness: "strict"`
  */
 export const WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY: string;
+/**
+ * Warning reason: more than one end of central directory record reaches the end of the file, so another reader
+ * may select a different one and list different entries; the reason of {@link ERR_AMBIGUOUS_ARCHIVE} when
+ * {@link ZipReaderOptions#checkAmbiguity} is enabled
+ */
+export const WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY: string;
+/**
+ * Warning reason: the filename of the local file header contradicts the central directory
+ * (see {@link EntryMetaData#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} when
+ * {@link ZipReaderOptions#checkLocalDirectory} is enabled
+ */
+export const WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME: string;
 /**
  * Warning reason: the general purpose bit flag of the local file header contradicts the central directory
  * (see {@link EntryMetaData#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} when

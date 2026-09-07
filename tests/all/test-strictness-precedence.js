@@ -114,7 +114,7 @@ async function assertSelfExtracting(mismatchedCrc32Data, mismatchedFilenameData)
 	try {
 		await zipReader.getEntries();
 	} catch (error) {
-		if (error.reason != "prepended data") {
+		if (error.reason != zip.WARNING_PREPENDED_DATA) {
 			throw error;
 		}
 		return;
