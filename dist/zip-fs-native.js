@@ -9954,13 +9954,20 @@
 
 		async exportZip(writer, options = {}) {
 			const zipEntry = this;
+			const zipWriterProvided = Boolean(writer) && typeof writer.add == FUNCTION_TYPE;
 			options = Object.assign({}, options);
-			if (options.bufferedWrite === UNDEFINED_VALUE) {
+			if (!zipWriterProvided && options.bufferedWrite === UNDEFINED_VALUE) {
 				options.bufferedWrite = true;
 			}
-			const [readers] = await Promise.all([initReaders(zipEntry, checkReaderOptions(options.readerOptions)), initStream(writer)]);
-			const zipWriter = new ZipWriter(writer, options);
+			const [readers] = await Promise.all([
+				initReaders(zipEntry, checkReaderOptions(options.readerOptions)),
+				zipWriterProvided ? UNDEFINED_VALUE : initStream(writer)
+			]);
+			const zipWriter = zipWriterProvided ? writer : new ZipWriter(writer, options);
 			await exportZip(zipWriter, zipEntry, getTotalSize([zipEntry], getUncompressedSize), options, readers);
+			if (zipWriterProvided) {
+				return zipWriter;
+			}
 			await zipWriter.close(options.globalComment);
 			return writer.getData ? writer.getData() : writer.writable;
 		}

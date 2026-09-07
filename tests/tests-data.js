@@ -134,6 +134,7 @@ export default ([
 	{ title: "Filesystem passThrough ZipCrypto", script: "./test-fs-passthrough-zipcrypto.js" },
 	{ title: "Filesystem export error", script: "./test-fs-export-error.js" },
 	{ title: "Filesystem export zip", script: "./test-fs-export-zip.js" },
+	{ title: "Filesystem export into a ZipWriter", script: "./test-fs-export-zip-writer.js" },
 	{ title: "Filesystem export progress", script: "./test-fs-export-progress.js" },
 	{ title: "Filesystem export password", script: "./test-fs-export-password.js" },
 	{ title: "Filesystem export passthrough", script: "./test-fs-export-passthrough.js" },

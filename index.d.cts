@@ -4314,16 +4314,27 @@ export class ZipDirectoryEntry extends ZipEntry {
   /**
    * Creates a zip file via a custom {@link Writer} instance containing the entry and its descendants
    *
-   * @param writer The {@link Writer} instance.
+   * @remarks A {@link ZipWriter} instance can be passed instead of a {@link Writer}, the symmetric
+   * counterpart of passing a {@link ZipReader} to {@link ZipDirectoryEntry#importZip}. The entries are
+   * added to that writer and the archive is left open, so the caller closes it with
+   * {@link ZipWriter#close} and can add entries of its own before or after, export several trees into
+   * one archive, and read {@link ZipWriter#warnings}, which is otherwise unreachable through the
+   * filesystem API. The options of that writer keep governing the entries, exactly as they do for a
+   * direct call to {@link ZipWriter#add}, and the options passed here take precedence over them. The
+   * options that only apply when the writer is created are ignored, `bufferedWrite` included: the
+   * export defaults it to `true` only for a writer it creates itself.
+   *
+   * @param writer The {@link Writer} instance, or the {@link ZipWriter} instance to add the entries to.
    * @param options  The options.
-   * @returns A promise resolving to the data.
+   * @returns A promise resolving to the data, or to the {@link ZipWriter} instance it was passed.
    */
   exportZip(
     writer:
       | Writer<unknown>
       | WritableWriter
       | WritableStream
-      | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream>,
+      | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream>
+      | ZipWriter<unknown>,
     options?: ZipDirectoryEntryExportOptions
   ): Promise<unknown>;
   /**

@@ -620,9 +620,9 @@ Creates a zip file via a custom [Writer](Writer.md) instance containing the entr
 
 ##### writer
 
-`WritableStream`\<`any`\> \| [`WritableWriter`](../interfaces/WritableWriter.md) \| [`Writer`](Writer.md)\<`unknown`\> \| `AsyncGenerator`\<`WritableStream`\<`any`\> \| [`WritableWriter`](../interfaces/WritableWriter.md) \| [`Writer`](Writer.md)\<`unknown`\>, `any`, `any`\>
+`WritableStream`\<`any`\> \| [`WritableWriter`](../interfaces/WritableWriter.md) \| [`Writer`](Writer.md)\<`unknown`\> \| [`ZipWriter`](ZipWriter.md)\<`unknown`\> \| `AsyncGenerator`\<`WritableStream`\<`any`\> \| [`WritableWriter`](../interfaces/WritableWriter.md) \| [`Writer`](Writer.md)\<`unknown`\>, `any`, `any`\>
 
-The [Writer](Writer.md) instance.
+The [Writer](Writer.md) instance, or the [ZipWriter](ZipWriter.md) instance to add the entries to.
 
 ##### options?
 
@@ -634,7 +634,19 @@ The options.
 
 `Promise`\<`unknown`\>
 
-A promise resolving to the data.
+A promise resolving to the data, or to the [ZipWriter](ZipWriter.md) instance it was passed.
+
+#### Remarks
+
+A [ZipWriter](ZipWriter.md) instance can be passed instead of a [Writer](Writer.md), the symmetric
+counterpart of passing a [ZipReader](ZipReader.md) to [ZipDirectoryEntry#importZip](ZipDirectoryEntry.md#importzip). The entries are
+added to that writer and the archive is left open, so the caller closes it with
+[ZipWriter#close](ZipWriter.md#close) and can add entries of its own before or after, export several trees into
+one archive, and read [ZipWriter#warnings](ZipWriter.md#warnings), which is otherwise unreachable through the
+filesystem API. The options of that writer keep governing the entries, exactly as they do for a
+direct call to [ZipWriter#add](ZipWriter.md#add), and the options passed here take precedence over them. The
+options that only apply when the writer is created are ignored, `bufferedWrite` included: the
+export defaults it to `true` only for a writer it creates itself.
 
 #### Inherited from
 
