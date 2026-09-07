@@ -4493,6 +4493,13 @@ export const fs: {
  */
 export const ERR_HTTP_RANGE: string;
 /**
+ * HTTP status error (thrown by {@link HttpReader} when the server answers with a status other than 2xx)
+ *
+ * @remarks This message is a prefix: the status text, or the status code when the server sends none, is
+ * appended to it, so it is matched with `String#startsWith` rather than with an equality test.
+ */
+export const ERR_HTTP_STATUS: string;
+/**
  * HTTP resource changed while being read error
  */
 export const ERR_HTTP_RESOURCE_CHANGED: string;
@@ -4871,6 +4878,25 @@ export const ERR_INVALID_DUPLICATES: string;
  * Readable stream already consumed error (thrown by the filesystem API when a readable stream is read more than once)
  */
 export const ERR_READABLE_CONSUMED: string;
+/**
+ * Ancestor entry error (thrown by {@link ZipFS#move} and {@link ZipEntry#rename} when the destination is the
+ * moved entry itself or one of its descendants, which would detach the moved subtree from the tree)
+ */
+export const ERR_ANCESTOR_ENTRY: string;
+/**
+ * Root directory move error (thrown by {@link ZipFS#move} when the entry being moved is the root of the
+ * filesystem, which has no parent to be detached from)
+ */
+export const ERR_ROOT_DIRECTORY_NOT_MOVABLE: string;
+/**
+ * Target entry not a directory error (thrown by {@link ZipFS#move} when the destination entry is a file)
+ */
+export const ERR_TARGET_NOT_DIRECTORY: string;
+/**
+ * Parent entry not a directory error (thrown by the `add*()` methods of {@link ZipDirectoryEntry} when they are
+ * called on an entry that is not a directory)
+ */
+export const ERR_PARENT_NOT_DIRECTORY: string;
 /**
  * Aborted operation error (thrown by {@link FileEntry#getData}, {@link ZipWriter#add} and
  * {@link ZipDirectoryEntry#exportFileSystemHandle} when they are aborted via {@link ZipReaderOptions#signal} or

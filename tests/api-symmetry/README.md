@@ -136,11 +136,17 @@ defined in `lib/core/options.js` and thrown by `throwIfAborted()`, which both `Z
 `ZipWriter#add` call, yet only `lib/core/zip-fs.js` re-exported it. A core-build user got an error whose
 constant the same package's types promised and the bundle did not provide.
 
-The rule is the one that case violated: **a build must export every public error constant its own code
-can throw**. Public means exported by at least one entry point, so a constant that is deliberately
-internal, e.g. the `zipjs-abort-export` sentinel `zip-fs.js` throws at itself, is not dragged into the
-public surface by being reachable. Reachability is read from the module graph rather than from a list, so
-a constant moving between modules re-decides which builds owe it with nothing to update by hand.
+The rule is the one that case violated: **every error message a build can surface to its caller is an
+exported constant of that build**. A caller identifies an error by comparing it against something the
+package provides, so a message reachable only by copying its text out of the source is not identifiable
+at all. That covers both directions of the same defect: a constant that lost its export, as `ERR_ABORTED`
+had, and a message that never had a constant, as the four `ZipFS` move and add messages did.
+
+Reachability is read from the module graph rather than from a list, so a constant moving between modules
+re-decides which builds owe it with nothing to update by hand. The codec worker scripts are scanned too,
+against the constants the library exports rather than their own, which they do not have: a message a
+worker builds reaches the caller through the worker protocol, which forwards its text, so it has to be
+identifiable exactly as if the main thread had built it.
 
 It also checks that every name a build exports is declared in `index.d.ts`, that every error constant
 declared there is exported by some entry point, and that each built file exposes exactly what its source
@@ -149,6 +155,21 @@ entry point does, which catches an export that did not survive bundling.
 `lib/zip-core-reader.js` and `lib/zip-core-writer.js` are exempt from the reachability rule. They are
 halves meant to be composed, `lib/zip-core-base.js` re-exports both, and no build ships one without the
 other. Their exports still have to be declared.
+
+### What to do when it fails
+
+Export the constant, or record why it stays internal in [exports-decisions.js](exports-decisions.js). A
+recorded reason that stops applying fails too, so the file cannot keep rows describing nothing.
+
+| Key | Meaning |
+| --- | --- |
+| `INTERNAL_MESSAGES` | a constant the library throws at itself and always catches, e.g. the `zipjs-abort-export` sentinel `exportFileSystemHandle` uses to unwind |
+| `EXEMPT_MODULES` | a module whose messages are not written here: the third-party codec, and the generated inline files both linters already skip |
+| `LITERAL_MESSAGES` | a literal a module is allowed to build, e.g. a zlib return code rendered as text, which carries a number and is not comparable against a constant anyway |
+
+The reasons are the point. `"Network error"` is the one worth reading: only the XHR path builds it,
+because `fetch()` rejects with its own `TypeError` before `io.js` sees the failure, so exporting it would
+promise an identification that only holds for `useXHR: true`.
 
 ## What the audits do not see
 
@@ -164,6 +185,7 @@ only under a configuration it does not exercise is invisible to it, exactly as i
 audit. It also says nothing about whether a declared member is one the API should have.
 
 The exports audit reads reachability from the module graph, not from the call graph, so it asks whether
-the code that defines a constant is bundled, never whether the path throwing it can be taken. It also
-says nothing about a message that has no constant at all: an error thrown with a string literal, or with
-a constant no entry point exports, is invisible to it exactly because it is not public.
+the code that builds a message is bundled, never whether the path building it can be taken. It only sees
+a message written out at the error site, as a literal or as a name, so a message assembled into a
+variable first, or forwarded from elsewhere the way the worker protocol forwards the text it receives,
+passes through it unread.

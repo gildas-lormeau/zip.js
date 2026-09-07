@@ -9211,7 +9211,10 @@ setDefaultConfiguration({
 const ERR_ENTRY_EXISTS = "Entry filename already exists";
 const ERR_DUPLICATE_IMPORTED_ENTRY = "Duplicate entry filename in the imported zip file";
 const ERR_INVALID_DUPLICATES = "Invalid duplicates option (must be \"throw\", \"keep-first\" or \"keep-last\")";
-const ERR_ANCESTOR_ENTRY = "Entry is a ancestor of target entry";
+const ERR_ANCESTOR_ENTRY = "Entry is an ancestor of target entry";
+const ERR_ROOT_DIRECTORY_NOT_MOVABLE = "Root directory cannot be moved";
+const ERR_TARGET_NOT_DIRECTORY = "Target entry is not a directory";
+const ERR_PARENT_NOT_DIRECTORY = "Parent entry is not a directory";
 const ERR_READABLE_CONSUMED = "Readable stream already consumed";
 const DUPLICATES_THROW = "throw";
 const DUPLICATES_KEEP_FIRST = "keep-first";
@@ -9783,7 +9786,7 @@ class ZipFS {
 
 	move(entry, destination) {
 		if (entry == this.root) {
-			throw new Error("Root directory cannot be moved");
+			throw new Error(ERR_ROOT_DIRECTORY_NOT_MOVABLE);
 		} else {
 			if (destination.directory) {
 				if (!destination.isDescendantOf(entry)) {
@@ -9804,7 +9807,7 @@ class ZipFS {
 					throw new Error(ERR_ANCESTOR_ENTRY);
 				}
 			} else {
-				throw new Error("Target entry is not a directory");
+				throw new Error(ERR_TARGET_NOT_DIRECTORY);
 			}
 		}
 	}
@@ -10567,7 +10570,7 @@ function addChild(parent, name, params, directory) {
 		}
 		return directory ? new ZipDirectoryEntry(parent.fs, name, params, parent) : new ZipFileEntry(parent.fs, name, params, parent);
 	} else {
-		throw new Error("Parent entry is not a directory");
+		throw new Error(ERR_PARENT_NOT_DIRECTORY);
 	}
 }
 
@@ -10709,6 +10712,7 @@ exports.Data64URIReader = Data64URIReader;
 exports.Data64URIWriter = Data64URIWriter;
 exports.ERR_ABORTED = ERR_ABORTED;
 exports.ERR_AMBIGUOUS_ARCHIVE = ERR_AMBIGUOUS_ARCHIVE;
+exports.ERR_ANCESTOR_ENTRY = ERR_ANCESTOR_ENTRY;
 exports.ERR_BAD_FORMAT = ERR_BAD_FORMAT;
 exports.ERR_CENTRAL_DIRECTORY_NOT_FOUND = ERR_CENTRAL_DIRECTORY_NOT_FOUND;
 exports.ERR_DUPLICATED_NAME = ERR_DUPLICATED_NAME;
@@ -10722,6 +10726,7 @@ exports.ERR_EOCDR_NOT_FOUND = ERR_EOCDR_NOT_FOUND;
 exports.ERR_EXTRAFIELD_ZIP64_NOT_FOUND = ERR_EXTRAFIELD_ZIP64_NOT_FOUND;
 exports.ERR_HTTP_RANGE = ERR_HTTP_RANGE;
 exports.ERR_HTTP_RESOURCE_CHANGED = ERR_HTTP_RESOURCE_CHANGED;
+exports.ERR_HTTP_STATUS = ERR_HTTP_STATUS;
 exports.ERR_INVALID_AUTHENTICATION_CODE = ERR_INVALID_AUTHENTICATION_CODE;
 exports.ERR_INVALID_CODEC_DEFINITION = ERR_INVALID_CODEC_DEFINITION;
 exports.ERR_INVALID_CODEC_MODULE = ERR_INVALID_CODEC_MODULE;
@@ -10764,9 +10769,12 @@ exports.ERR_INVALID_VERSION = ERR_INVALID_VERSION;
 exports.ERR_ITERATOR_COMPLETED_TOO_SOON = ERR_ITERATOR_COMPLETED_TOO_SOON;
 exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;
 exports.ERR_OVERLAPPING_ENTRY = ERR_OVERLAPPING_ENTRY;
+exports.ERR_PARENT_NOT_DIRECTORY = ERR_PARENT_NOT_DIRECTORY;
 exports.ERR_READABLE_CONSUMED = ERR_READABLE_CONSUMED;
 exports.ERR_RESERVED_COMPRESSION_METHOD = ERR_RESERVED_COMPRESSION_METHOD;
+exports.ERR_ROOT_DIRECTORY_NOT_MOVABLE = ERR_ROOT_DIRECTORY_NOT_MOVABLE;
 exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
+exports.ERR_TARGET_NOT_DIRECTORY = ERR_TARGET_NOT_DIRECTORY;
 exports.ERR_UNDEFINED_COMPRESSION_METHOD = ERR_UNDEFINED_COMPRESSION_METHOD;
 exports.ERR_UNDEFINED_READER = ERR_UNDEFINED_READER;
 exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;

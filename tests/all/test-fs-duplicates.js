@@ -5,10 +5,9 @@ import * as zip from "../zip-lib.js";
 const FIRST_CONTENT = "first";
 const SECOND_CONTENT = "second";
 const UNRELATED_CONTENT = "unrelated";
-const ERR_DUPLICATE_IMPORTED_ENTRY = "Duplicate entry filename in the imported zip file";
-const ERR_INVALID_DUPLICATES = "Invalid duplicates option (must be \"throw\", \"keep-first\" or \"keep-last\")";
-const ERR_ENTRY_EXISTS = "Entry filename already exists";
-const ERR_ANCESTOR_ENTRY = "Entry is a ancestor of target entry";
+// the messages are read from the library rather than copied: a copy drifts the day one of them is reworded,
+// and this file held "Entry is a ancestor of target entry" until the article was fixed
+const { ERR_DUPLICATE_IMPORTED_ENTRY, ERR_INVALID_DUPLICATES, ERR_ENTRY_EXISTS, ERR_ANCESTOR_ENTRY } = zip;
 
 export { test };
 

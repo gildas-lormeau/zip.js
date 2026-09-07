@@ -9,11 +9,15 @@
 // re-exported it. A core-build user therefore got an error whose constant the same package's types promised
 // and the bundle did not provide, with nothing failing in between.
 //
-// The rule the audit enforces is the one that case violated: a build must export every public error constant
-// its own code can throw. "Public" means exported by at least one entry point, so a constant that is
-// deliberately internal, e.g. the zipjs-abort-export sentinel zip-fs.js throws at itself, is not dragged into
-// the public surface by being reachable. Reachability is read from the module graph rather than from a list,
-// so a constant moving between modules re-decides which builds owe it with no list to update.
+// The rule the audit enforces is the one that case violated: every error message a build can surface to its
+// caller is an exported constant of that build. A caller identifies an error by comparing it against something
+// the package provides, so a message reachable only by copying its text out of the source is not identifiable
+// at all, whether it lost its export like ERR_ABORTED or never had a constant to begin with, as the four
+// messages of the ZipFS move and add paths did.
+//
+// Reachability is read from the module graph rather than from a list, so a constant moving between modules
+// re-decides which builds owe it with no list to update. The messages that are deliberately not public are in
+// exports-decisions.js with the reason for each, and a reason that stops applying fails too.
 //
 // The reader and writer fragments, i.e. lib/zip-core-reader.js and lib/zip-core-writer.js, are exempt from
 // that rule. They are halves meant to be composed, lib/zip-core-base.js re-exports both plus the io and
@@ -33,6 +37,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { EXEMPT_MODULES, INTERNAL_MESSAGES, LITERAL_MESSAGES } from "./exports-decisions.js";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -61,9 +66,20 @@ const FRAGMENTS = [
 	"lib/zip-core-writer.js",
 	"lib/zip-mime-types.js"
 ];
+// the codec worker scripts, scanned for the messages they build and never read for exports: they have none,
+// and importing one needs a worker scope
+const WORKER_ENTRY_POINTS = [
+	"lib/core/web-worker-wasm.js",
+	"lib/core/web-worker-native.js"
+];
 const CONSTANT_NAME = /^(?:ERR|WARNING)_[A-Z0-9_]+$/;
+// the first argument of an error, when it is written out rather than computed: a double-quoted literal, or a
+// name. A message forwarded from elsewhere, e.g. new Error(error.message || ERROR_EVENT_TYPE), is not a message
+// this library authors, so it is left alone
+const ERROR_MESSAGE = /new (?:Error|DOMException)\(\s*("(?:[^"\\]|\\.)*"|[A-Za-z_$][\w$]*)/g;
 
 const failures = [];
+const usedDecisions = new Set();
 const declared = collectDeclarations();
 const exportedNames = new Map();
 for (const file of [...ENTRY_POINTS.flatMap(({ source, builds }) => [source, ...builds]), ...FRAGMENTS]) {
@@ -74,8 +90,10 @@ const publicConstants = new Set([...exportedNames.values()].flatMap(names => [..
 
 checkDeclared();
 checkReachableConstants();
+checkBuiltMessages();
 checkBuildsMatchTheirSource();
 checkDeclaredConstantsAreExported();
+checkDecisionsStillApply();
 summarize();
 
 function collectDeclarations() {
@@ -100,7 +118,8 @@ async function collectExports(file) {
 
 function collectConstantDefinitions() {
 	const definitions = new Map();
-	for (const file of new Set([...ENTRY_POINTS, ...FRAGMENTS.map(source => ({ source }))].flatMap(({ source }) => [...moduleGraph(source)])) ) {
+	const sources = [...ENTRY_POINTS.map(({ source }) => source), ...FRAGMENTS, ...WORKER_ENTRY_POINTS];
+	for (const file of new Set(sources.flatMap(source => [...moduleGraph(source)]))) {
 		for (const [, name] of readFileSync(ROOT + file, "utf8").matchAll(/^const ((?:ERR|WARNING)_[A-Z0-9_]+) = /gm)) {
 			definitions.set(name, file);
 		}
@@ -152,6 +171,64 @@ function checkReachableConstants() {
 	});
 }
 
+// every message a build can surface has to be identifiable by the caller, i.e. exported by that same build.
+// A message written as a literal is never identifiable, whichever build carries it, so it fails wherever it is
+// reached unless exports-decisions.js says why it stays internal.
+//
+// The worker scripts are scanned too, against the constants the library exports rather than against their own,
+// which they do not have: a message a codec worker builds reaches the caller through the worker protocol, which
+// forwards its text, so it has to be identifiable exactly as if the main thread had built it
+function checkBuiltMessages() {
+	ENTRY_POINTS.forEach(({ source }) => checkGraph(source, exportedNames.get(source)));
+	WORKER_ENTRY_POINTS.forEach(source => checkGraph(source, publicConstants));
+
+	function checkGraph(source, exported) {
+		moduleGraph(source).forEach(file => {
+			if (EXEMPT_MODULES[file]) {
+				usedDecisions.add(file);
+			} else {
+				const literals = LITERAL_MESSAGES[file] || {};
+				for (const [, message] of readFileSync(ROOT + file, "utf8").matchAll(ERROR_MESSAGE)) {
+					if (message.startsWith("\"")) {
+						const text = JSON.parse(message);
+						if (literals[text] === undefined) {
+							failures.push(`${source} builds the message ${message} in ${file}, which no constant exports`);
+						} else {
+							usedDecisions.add(`${file} ${text}`);
+						}
+					} else if (CONSTANT_NAME.test(message) && !exported.has(message)) {
+						if (INTERNAL_MESSAGES[message] === undefined) {
+							failures.push(`${source} builds ${message}, defined in ${definitions.get(message)}, and does not export it`);
+						} else {
+							usedDecisions.add(message);
+						}
+					}
+				}
+			}
+		});
+	}
+}
+
+function checkDecisionsStillApply() {
+	Object.keys(INTERNAL_MESSAGES).forEach(name => {
+		if (publicConstants.has(name)) {
+			failures.push(`${name} is recorded as internal in exports-decisions.js and is exported`);
+		} else if (!usedDecisions.has(name)) {
+			failures.push(`${name} is recorded as internal in exports-decisions.js and no build makes it`);
+		}
+	});
+	Object.keys(EXEMPT_MODULES).forEach(file => {
+		if (!usedDecisions.has(file)) {
+			failures.push(`${file} is recorded as exempt in exports-decisions.js and no build reaches it`);
+		}
+	});
+	Object.entries(LITERAL_MESSAGES).forEach(([file, literals]) => Object.keys(literals).forEach(text => {
+		if (!usedDecisions.has(`${file} ${text}`)) {
+			failures.push(`${file} is recorded as building "${text}" in exports-decisions.js and does not`);
+		}
+	}));
+}
+
 function checkBuildsMatchTheirSource() {
 	ENTRY_POINTS.forEach(({ source, builds }) => {
 		const expected = exportedNames.get(source);
@@ -179,5 +256,5 @@ function summarize() {
 		console.log(`\n${failures.length} problem(s) in what the builds export`);
 		process.exit(1);
 	}
-	console.log(`${exportedNames.size} builds export only what index.d.ts declares, and every public error constant they can throw`);
+	console.log(`${exportedNames.size} builds export only what index.d.ts declares, and every message they build is one of those exports`);
 }
