@@ -124,6 +124,32 @@ stops applying fails too.
 The reverse failure, a member declared in `index.d.ts` and mangled anyway, cannot happen while the
 reserved list is built from the declarations, so it is asserted rather than reported.
 
+## Exports audit
+
+`npm run test-api-exports` runs [exports.js](exports.js), which answers a fourth question: whether each
+build exports what the shared `index.d.ts` promises on its behalf.
+
+One `index.d.ts` serves every entry point, since `package.json` maps the same file to all of them, so a
+declaration is a promise made by twelve export paths at once while the value behind it is exported by
+whichever module happens to re-export it. `ERR_ABORTED` is the case that motivated the audit: it is
+defined in `lib/core/options.js` and thrown by `throwIfAborted()`, which both `ZipReader#getData` and
+`ZipWriter#add` call, yet only `lib/core/zip-fs.js` re-exported it. A core-build user got an error whose
+constant the same package's types promised and the bundle did not provide.
+
+The rule is the one that case violated: **a build must export every public error constant its own code
+can throw**. Public means exported by at least one entry point, so a constant that is deliberately
+internal, e.g. the `zipjs-abort-export` sentinel `zip-fs.js` throws at itself, is not dragged into the
+public surface by being reachable. Reachability is read from the module graph rather than from a list, so
+a constant moving between modules re-decides which builds owe it with nothing to update by hand.
+
+It also checks that every name a build exports is declared in `index.d.ts`, that every error constant
+declared there is exported by some entry point, and that each built file exposes exactly what its source
+entry point does, which catches an export that did not survive bundling.
+
+`lib/zip-core-reader.js` and `lib/zip-core-writer.js` are exempt from the reachability rule. They are
+halves meant to be composed, `lib/zip-core-base.js` re-exports both, and no build ships one without the
+other. Their exports still have to be declared.
+
 ## What the audits do not see
 
 The symmetry audit walks the extra field types zip.js already declares, so it cannot report a type
@@ -136,3 +162,8 @@ so it does not see the reader and the writer disagreeing about a value they both
 The mangling audit only reaches members that exist on the objects it builds, so a member reachable
 only under a configuration it does not exercise is invisible to it, exactly as it is to the shape
 audit. It also says nothing about whether a declared member is one the API should have.
+
+The exports audit reads reachability from the module graph, not from the call graph, so it asks whether
+the code that defines a constant is bundled, never whether the path throwing it can be taken. It also
+says nothing about a message that has no constant at all: an error thrown with a string literal, or with
+a constant no entry point exports, is invisible to it exactly because it is not public.

@@ -10440,7 +10440,7 @@
 				if (exportAborted || isExportAborted(signal.reason)) {
 					return;
 				}
-				throw signal.reason === UNDEFINED_VALUE ? new DOMException(ERR_ABORTED, ABORT_ERROR_NAME) : signal.reason;
+				throwIfAborted(signal);
 			}
 			try {
 				if (child.directory) {

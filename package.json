@@ -42,7 +42,7 @@
     "release": "sh ./release.sh",
     "lint": "npx eslint . && deno lint",
     "test": "npm run test-ci && npm run test-bun && npm run test-bun-dist",
-    "test-ci": "npm run test-registration && npm run test-node && npm run test-deno && npm run test-node-dist && npm run test-deno-dist && npm run test-web-streams-polyfill && npm run test-types && npm run test-api-symmetry && npm run test-api-shape && npm run test-api-mangling",
+    "test-ci": "npm run test-registration && npm run test-node && npm run test-deno && npm run test-node-dist && npm run test-deno-dist && npm run test-web-streams-polyfill && npm run test-types && npm run test-api-symmetry && npm run test-api-shape && npm run test-api-mangling && npm run test-api-exports",
     "test-browsers": "npm run test-chrome && npm run test-firefox && npm run test-safari",
     "serve-tests": "http-server -p 8888 -c-1 .",
     "test-all": "npm run lint && npm run test && npm run test-browsers",
@@ -62,6 +62,7 @@
     "test-api-symmetry": "node ./tests/api-symmetry/audit.js",
     "test-api-shape": "node ./tests/api-symmetry/shape.js",
     "test-api-mangling": "node ./tests/api-symmetry/mangling.js",
+    "test-api-exports": "node ./tests/api-symmetry/exports.js",
     "test-firefox": "node ./tests/browser-runner.js firefox",
     "test-chrome": "node ./tests/browser-runner.js chrome",
     "test-safari": "node ./tests/browser-runner.js safari"

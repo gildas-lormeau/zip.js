@@ -4872,8 +4872,9 @@ export const ERR_INVALID_DUPLICATES: string;
  */
 export const ERR_READABLE_CONSUMED: string;
 /**
- * Aborted operation error (thrown by {@link ZipDirectoryEntry#exportFileSystemHandle} when it is aborted via
- * {@link ZipReaderOptions#signal} on platforms which do not support the `reason` argument of
+ * Aborted operation error (thrown by {@link FileEntry#getData}, {@link ZipWriter#add} and
+ * {@link ZipDirectoryEntry#exportFileSystemHandle} when they are aborted via {@link ZipReaderOptions#signal} or
+ * {@link ZipWriterAddDataOptions#signal} on platforms which do not support the `reason` argument of
  * `AbortController#abort()`)
  *
  * @remarks The reason passed by the caller is discarded by these platforms and cannot be recovered, so a
