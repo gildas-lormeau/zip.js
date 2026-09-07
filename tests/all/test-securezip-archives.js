@@ -31,7 +31,11 @@ async function test() {
 	testOK = testOK && await testSelfExtracting();
 	testOK = testOK && await testSigned();
 	testOK = testOK && await testSignedDirectory();
-	testOK = testOK && await testText("lorem-secure-traditional-full.zip", "lorem.txt", { password: PASSWORD });
+	// SecureZIP was asked to encrypt the central directory of this one and declined: `-cd` is a no-op when the
+	// entries use traditional ZipCrypto, only strong encryption gets an encrypted directory. The archive is
+	// therefore listed and read like any other, and it does NOT carry the `-full` suffix the other `-cd`
+	// fixtures carry, which throughout this corpus means the directory really is encrypted.
+	testOK = testOK && await testText("lorem-secure-traditional.zip", "lorem.txt", { password: PASSWORD });
 	testOK = testOK && await testStrongEncryption("lorem-secure.zip", 0x6610, 256, 8);
 	testOK = testOK && await testStrongEncryption("lorem-secure-aes128.zip", 0x660e, 128, 8);
 	testOK = testOK && await testStrongEncryption("lorem-secure-aes192.zip", 0x660f, 192, 8);
