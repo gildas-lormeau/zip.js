@@ -14,6 +14,13 @@ import type { CompressionStreamOptions, DecompressionStreamOptions } from "../..
 // the classes of the environment must stay assignable
 configure({ CompressionStream, DecompressionStream, baseURI: "https://example.com/" });
 
+// the URIs of the worker script and of the WebAssembly module are strings or functions returning one; the
+// function form is what the builds embedding them install, and it was undeclared until it was declared here.
+// A function taking no argument must stay assignable to the workerURI one, which receives useBlobURI
+configure({ workerURI: "./zip-web-worker.js", wasmURI: "./zip-module.wasm" });
+configure({ workerURI: (useBlobURI: boolean) => useBlobURI ? "blob:x" : "data:text/javascript;base64,", wasmURI: () => "data:application/wasm;base64," });
+configure({ workerURI: () => "./zip-web-worker.js" });
+
 // a codec class reads the options through the declared interfaces
 class ZstdCompressionStream extends TransformStream {
 	constructor(format: string, { level, chunkSize, compressionMethod, uncompressedSize }: CompressionStreamOptions = {}) {

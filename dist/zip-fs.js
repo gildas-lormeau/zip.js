@@ -296,6 +296,8 @@
 	const MINIMUM_CHUNK_SIZE = 64;
 	const MINIMUM_PROPERTY_VALUE = 1;
 	const ERR_INVALID_MAX_WORKERS = "Invalid maxWorkers (must be an integer greater than 0)";
+	const ERR_INVALID_BASE_URI = "Invalid baseURI (must be a string)";
+	const ERR_INVALID_URI = "Invalid URI (must be a string or a function returning a string)";
 	let maxWorkers = 2;
 	try {
 		if (typeof navigator != UNDEFINED_TYPE && navigator.hardwareConcurrency) {
@@ -320,9 +322,9 @@
 	};
 
 	const PROPERTY_NAME_MAX_WORKERS = "maxWorkers";
+	const PROPERTY_NAME_BASE_URI = "baseURI";
 
-	const STRING_PROPERTY_NAMES = [
-		"baseURI",
+	const URI_PROPERTY_NAMES = [
 		"wasmURI",
 		"workerURI"
 	];
@@ -346,7 +348,8 @@
 		"DecompressionStreamFallback"
 	];
 	const CONFIGURABLE_PROPERTY_NAMES = [
-		...STRING_PROPERTY_NAMES,
+		PROPERTY_NAME_BASE_URI,
+		...URI_PROPERTY_NAMES,
 		...BOOLEAN_PROPERTY_NAMES,
 		...NUMBER_PROPERTY_NAMES,
 		...FUNCTION_PROPERTY_NAMES
@@ -390,6 +393,14 @@
 			}
 		} else if (FUNCTION_PROPERTY_NAMES.includes(propertyName)) {
 			checkFunctionOption(propertyValue);
+		} else if (propertyName == PROPERTY_NAME_BASE_URI) {
+			if (propertyValue && typeof propertyValue != STRING_TYPE) {
+				throw new Error(ERR_INVALID_BASE_URI);
+			}
+		} else if (URI_PROPERTY_NAMES.includes(propertyName)) {
+			if (propertyValue && typeof propertyValue != STRING_TYPE && typeof propertyValue != FUNCTION_TYPE) {
+				throw new Error(ERR_INVALID_URI);
+			}
 		}
 		return propertyValue;
 	}
@@ -11196,6 +11207,7 @@
 	exports.ERR_HTTP_RESOURCE_CHANGED = ERR_HTTP_RESOURCE_CHANGED;
 	exports.ERR_HTTP_STATUS = ERR_HTTP_STATUS;
 	exports.ERR_INVALID_AUTHENTICATION_CODE = ERR_INVALID_AUTHENTICATION_CODE;
+	exports.ERR_INVALID_BASE_URI = ERR_INVALID_BASE_URI;
 	exports.ERR_INVALID_CODEC_DEFINITION = ERR_INVALID_CODEC_DEFINITION;
 	exports.ERR_INVALID_CODEC_MODULE = ERR_INVALID_CODEC_MODULE;
 	exports.ERR_INVALID_COMMENT = ERR_INVALID_COMMENT;
@@ -11233,6 +11245,7 @@
 	exports.ERR_INVALID_UNIX_EXTRA_FIELD_TYPE = ERR_INVALID_UNIX_EXTRA_FIELD_TYPE;
 	exports.ERR_INVALID_UNIX_ID_SIZE = ERR_INVALID_UNIX_ID_SIZE;
 	exports.ERR_INVALID_UNIX_MODE = ERR_INVALID_UNIX_MODE;
+	exports.ERR_INVALID_URI = ERR_INVALID_URI;
 	exports.ERR_INVALID_VERSION = ERR_INVALID_VERSION;
 	exports.ERR_ITERATOR_COMPLETED_TOO_SOON = ERR_ITERATOR_COMPLETED_TOO_SOON;
 	exports.ERR_LOCAL_FILE_HEADER_NOT_FOUND = ERR_LOCAL_FILE_HEADER_NOT_FOUND;

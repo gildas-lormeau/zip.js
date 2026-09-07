@@ -1,4 +1,4 @@
-/* global TextEncoder, AbortController, EventTarget, Blob */
+/* global TextEncoder, AbortController, EventTarget, Blob, URL */
 
 // Checks that options taking an enumeration of values, a bounded number, or a given shape reject anything
 // else instead of silently falling back to a default or failing much later with an error naming an internal
@@ -12,6 +12,7 @@ import * as zip from "../zip-lib.js";
 
 const CONTENT = "The quick brown fox jumps over the lazy dog.".repeat(20);
 const STREAM_PROPERTY_NAMES = ["createWorker", "CompressionStream", "DecompressionStream", "CompressionStreamFallback", "DecompressionStreamFallback"];
+const URI_PROPERTY_NAMES = ["workerURI", "wasmURI"];
 
 export { test };
 
@@ -49,6 +50,8 @@ async function test() {
 	configureKeepsAcceptingValidValues();
 	configureRejectsStreamsOfAnotherType();
 	configureKeepsAcceptingFalsyStreams();
+	configureRejectsURIsOfAnotherType();
+	configureKeepsAcceptingTheURIsZipJsInstallsItself();
 	await configureLeavesTheConfigurationUntouchedWhenItThrows();
 	configureAcceptsAnythingWithoutConfigurableProperties();
 	await createReadableNormalizesChunkSizesThatUsedToHang();
@@ -566,6 +569,38 @@ function configureRejectsStreamsOfAnotherType() {
 function configureKeepsAcceptingFalsyStreams() {
 	for (const propertyName of STREAM_PROPERTY_NAMES) {
 		for (const propertyValue of [false, null, 0, ""]) {
+			zip.configure({ [propertyName]: propertyValue });
+		}
+	}
+	zip.resetConfiguration();
+}
+
+// A URL object used to be accepted for baseURI, and it works on the main thread, because new URL(uri, baseURI)
+// stringifies its base. It then failed with a DataCloneError the first time a codec ran in a web worker, since
+// the base URL is posted to it, i.e. somewhere unrelated to the call that set it. baseURI is also the only one
+// of the three that cannot be a function: it is resolved before any URI is.
+function configureRejectsURIsOfAnotherType() {
+	for (const baseURI of [new URL("https://example.com/"), () => "https://example.com/", 42, {}, [], true]) {
+		assertConfigureThrows({ baseURI }, zip.ERR_INVALID_BASE_URI, "baseURI: " + describe(baseURI));
+	}
+	for (const propertyName of URI_PROPERTY_NAMES) {
+		for (const propertyValue of [new URL("https://example.com/"), 42, {}, [], true]) {
+			assertConfigureThrows({ [propertyName]: propertyValue }, zip.ERR_INVALID_URI,
+				propertyName + ": " + describe(propertyValue));
+		}
+	}
+}
+
+// The function form is the one zip.js installs itself: the builds embedding the worker script and the WebAssembly
+// module produce their Data URI on demand, through setDefaultConfiguration, which runs the same checks as
+// configure. Rejecting it would throw while importing the library. Falsy keeps meaning "no worker" and "no
+// WebAssembly module", which is how the entry points excluding them unset their URI.
+function configureKeepsAcceptingTheURIsZipJsInstallsItself() {
+	for (const baseURI of ["https://example.com/", "", null, undefined]) {
+		zip.configure({ baseURI });
+	}
+	for (const propertyName of URI_PROPERTY_NAMES) {
+		for (const propertyValue of ["./worker.js", () => "data:text/javascript;base64,", useBlobURI => String(useBlobURI), null, false, ""]) {
 			zip.configure({ [propertyName]: propertyValue });
 		}
 	}

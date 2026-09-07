@@ -461,6 +461,8 @@ export interface Configuration extends WorkerConfiguration {
    * The base URL against which the relative URIs are resolved, i.e. {@link Configuration#workerURI},
    * {@link Configuration#wasmURI} and {@link CodecDefinition#codecURI}.
    *
+   * It must be a string, see {@link ERR_INVALID_BASE_URI}: it is posted to the web workers, and a `URL` object cannot be cloned.
+   *
    * @defaultValue the URL of the module of zip.js
    */
   baseURI?: string;
@@ -481,9 +483,13 @@ export interface Configuration extends WorkerConfiguration {
    * The worker is created as a module worker, unless the URI is a Data URI or a Blob URI, in which case it is created as a classic
    * worker. See {@link Configuration#createWorker} for an example of classic worker script installing a polyfill of the Streams API.
    *
+   * It can also be a function returning the URI, which is how the builds embedding the worker script produce it on demand. The
+   * function is called with `useBlobURI` set to `true` first, and called again with `false` when creating the worker from the Blob
+   * URI it returned failed, e.g. when the CSP of the page blocks Blob URIs. Anything else is rejected, see {@link ERR_INVALID_URI}.
+   *
    * @defaultValue "./core/web-worker-wasm.js", or "./core/web-worker-native.js" for the builds using the native implementations
    */
-  workerURI?: string;
+  workerURI?: string | ((useBlobURI: boolean) => string);
   /**
    * The function used to create the web workers, taking precedence over `workerURI`.
    *
@@ -524,9 +530,13 @@ export interface Configuration extends WorkerConfiguration {
    * });
    * ```
    *
+   * It can also be a function returning the URI, called the first time the module is needed. That is how the builds embedding the
+   * WebAssembly module produce their Data URI, and the way to defer an expensive resolution until it is known to be useful.
+   * Anything else is rejected, see {@link ERR_INVALID_URI}.
+   *
    * @defaultValue "./core/streams/zlib-wasm/zlib-streams.wasm"
    */
-  wasmURI?: string;
+  wasmURI?: string | (() => string);
   /**
    * The size of the chunks in bytes during data compression/decompression.
    *
@@ -4700,6 +4710,25 @@ export const ERR_INVALID_SIGNAL: string;
  * {@link Configuration#useWebWorkers} set to `false` to compress and decompress data in the main thread instead.
  */
 export const ERR_INVALID_MAX_WORKERS: string;
+/**
+ * Invalid baseURI error
+ *
+ * @remarks
+ * Thrown by {@link configure} when {@link Configuration#baseURI} is neither falsy nor a string. A `URL` object used to be
+ * accepted here, because `new URL(uri, baseURI)` stringifies its base, and then failed much later with a `DataCloneError`
+ * the first time a web worker ran, since the base URL is posted to it. Unlike {@link Configuration#workerURI} and
+ * {@link Configuration#wasmURI}, it cannot be a function: it is resolved before any URI is.
+ */
+export const ERR_INVALID_BASE_URI: string;
+/**
+ * Invalid URI error
+ *
+ * @remarks
+ * Thrown by {@link configure} when {@link Configuration#workerURI} or {@link Configuration#wasmURI} is neither falsy, a string,
+ * nor a function returning a string. A falsy value keeps meaning "no worker" and "no WebAssembly module", which is how the
+ * entry points excluding them unset their URI.
+ */
+export const ERR_INVALID_URI: string;
 /**
  * Invalid version error
  */

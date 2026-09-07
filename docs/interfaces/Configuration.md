@@ -21,6 +21,8 @@ Represents the configuration passed to [configure](../functions/configure.md).
 The base URL against which the relative URIs are resolved, i.e. [Configuration#workerURI](#workeruri),
 [Configuration#wasmURI](#wasmuri) and [CodecDefinition#codecURI](CodecDefinition.md#codecuri).
 
+It must be a string, see [ERR\_INVALID\_BASE\_URI](../variables/ERR_INVALID_BASE_URI.md): it is posted to the web workers, and a `URL` object cannot be cloned.
+
 #### Default Value
 
 ```ts
@@ -240,7 +242,7 @@ true
 
 ### wasmURI?
 
-> `optional` **wasmURI?**: `string`
+> `optional` **wasmURI?**: `string` \| (() => `string`)
 
 The URI of the WebAssembly module used by default implementations to compress/decompress data. It is ignored if `useCompressionStream` is set to `true` and `CompressionStream`/`DecompressionStream` are supported by the environment.
 
@@ -252,6 +254,10 @@ configure({
   wasmURI
 });
 ```
+
+It can also be a function returning the URI, called the first time the module is needed. That is how the builds embedding the
+WebAssembly module produce their Data URI, and the way to defer an expensive resolution until it is known to be useful.
+Anything else is rejected, see [ERR\_INVALID\_URI](../variables/ERR_INVALID_URI.md).
 
 #### Default Value
 
@@ -295,7 +301,7 @@ It prevents deadlocks when entries read from a `ZipReader` are added concurrentl
 
 ### workerURI?
 
-> `optional` **workerURI?**: `string`
+> `optional` **workerURI?**: `string` \| ((`useBlobURI`) => `string`)
 
 The URI of the web worker.
 
@@ -312,6 +318,10 @@ configure({
 
 The worker is created as a module worker, unless the URI is a Data URI or a Blob URI, in which case it is created as a classic
 worker. See [Configuration#createWorker](#createworker) for an example of classic worker script installing a polyfill of the Streams API.
+
+It can also be a function returning the URI, which is how the builds embedding the worker script produce it on demand. The
+function is called with `useBlobURI` set to `true` first, and called again with `false` when creating the worker from the Blob
+URI it returned failed, e.g. when the CSP of the page blocks Blob URIs. Anything else is rejected, see [ERR\_INVALID\_URI](../variables/ERR_INVALID_URI.md).
 
 #### Default Value
 
