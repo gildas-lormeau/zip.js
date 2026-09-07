@@ -217,6 +217,8 @@
 	const ERR_INVALID_FUNCTION_OPTION = "Invalid option (must be a function)";
 	const ERR_INVALID_SIGNAL = "Invalid signal (must be an AbortSignal instance)";
 	const ERR_INVALID_PASSWORD_TYPE = "Invalid password (password must be a string, rawPassword must be a Uint8Array)";
+	const ERR_ABORTED = "The operation was aborted";
+	const ABORT_ERROR_NAME = "AbortError";
 
 	function checkFunctionOption(value) {
 		if (value && typeof value != FUNCTION_TYPE) {
@@ -230,6 +232,12 @@
 			throw new Error(ERR_INVALID_SIGNAL);
 		}
 		return signal || UNDEFINED_VALUE;
+	}
+
+	function throwIfAborted(signal) {
+		if (signal && signal.aborted) {
+			throw signal.reason === UNDEFINED_VALUE ? new DOMException(ERR_ABORTED, ABORT_ERROR_NAME) : signal.reason;
+		}
 	}
 
 	function checkPasswordOption(password, rawPassword) {
@@ -3754,11 +3762,13 @@
 			const reader = this;
 			const { sourceBlob, size } = reader;
 			const { offset = 0, size: readSize = size - offset } = options || {};
-			if (!offset && readSize >= size) {
-				return toCompatibleReadable(sourceBlob.stream());
-			}
-			if (blobSliceReliable) {
-				return toCompatibleReadable(sourceBlob.slice(offset, offset + readSize).stream());
+			if (typeof sourceBlob.stream == FUNCTION_TYPE) {
+				if (!offset && readSize >= size) {
+					return toCompatibleReadable(sourceBlob.stream());
+				}
+				if (blobSliceReliable) {
+					return toCompatibleReadable(sourceBlob.slice(offset, offset + readSize).stream());
+				}
 			}
 			return super.createReadable(options);
 		}
@@ -5174,27 +5184,28 @@
 					const { done, value } = await gen.next();
 					if (done)
 						return controller.close();
-					const chunk = {
-						...value,
-						readable: (function () {
-							const { readable, writable } = new TransformStream();
-							if (value.getData) {
-								getData();
-								return readable;
-							}
+					const entryReadable = (function () {
+						const { readable, writable } = new TransformStream();
+						if (value.getData) {
+							getData();
+							return readable;
+						}
 
-							async function getData() {
+						async function getData() {
+							try {
+								await value.getData(writable);
+							} catch (error) {
 								try {
-									await value.getData(writable);
-								} catch (error) {
-									try {
-										await writable.abort(error);
-									} catch {
-										// ignored
-									}
+									await writable.abort(error);
+								} catch {
+									// ignored
 								}
 							}
-						})()
+						}
+					})();
+					const chunk = {
+						...value,
+						readable: entryReadable
 					};
 					delete chunk.getData;
 					controller.enqueue(chunk);
@@ -5340,6 +5351,7 @@
 			const size = compressedSize;
 			const readable = toCompatibleReadable(reader.createReadable({ offset: dataOffset, size }));
 			const signal = checkSignalOption(getOptionValue$1(zipEntry, options, OPTION_SIGNAL));
+			throwIfAborted(signal);
 			const checkPasswordOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_PASSWORD_ONLY);
 			let checkOverlappingEntry = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY);
 			const checkOverlappingEntryOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY_ONLY);
@@ -6870,6 +6882,7 @@
 		const createTempStream = getFunctionOptionValue(zipWriter, options, OPTION_CREATE_TEMP_STREAM);
 		const dataDescriptorSignature = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR_SIGNATURE, true);
 		const signal = checkSignalOption(getOptionValue(zipWriter, options, OPTION_SIGNAL));
+		throwIfAborted(signal);
 		const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES, true);
 		const compressionMethod = getOptionValue(zipWriter, options, PROPERTY_NAME_COMPRESSION_METHOD);
 		const registeredCodec = passThrough || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);

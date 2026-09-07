@@ -1344,6 +1344,10 @@ export class ZipReaderStream<T> {
 
   /**
    * The readable stream.
+   *
+   * @remarks The properties deposited on an entry while its data is read, i.e.
+   * {@link EntryMetaData#warnings} and {@link EntryMetaData#localDirectory}, are shared with the
+   * chunk, so they are readable on it once its `readable` property has been consumed.
    */
   readable: ReadableStream<
     Omit<Entry, "getData"> & { readable?: ReadableStream<Uint8Array> }
@@ -1880,6 +1884,10 @@ export interface ZipReaderOptions {
   rawPassword?: Uint8Array;
   /**
    * The `AbortSignal` instance used to cancel the decompression.
+   *
+   * A signal already aborted when the operation starts rejects it with {@link ERR_ABORTED} as the
+   * reason of the `AbortError`, or with `signal.reason` when it is set, without relying on the
+   * `signal` option of `pipeTo` that the oldest supported engines ignore.
    */
   signal?: AbortSignal;
   /**
@@ -3155,6 +3163,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
   encryptionStrength?: 1 | 2 | 3;
   /**
    * The `AbortSignal` instance used to cancel the compression.
+   *
+   * A signal already aborted when the operation starts rejects it with {@link ERR_ABORTED} as the
+   * reason of the `AbortError`, or with `signal.reason` when it is set, without relying on the
+   * `signal` option of `pipeTo` that the oldest supported engines ignore.
    */
   signal?: AbortSignal;
   /**

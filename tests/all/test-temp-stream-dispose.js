@@ -15,6 +15,7 @@ export { test };
 async function test() {
 	await testDisposeOnSuccess();
 	await testDisposeOnError();
+	await testNoTempStreamWhenPreAborted();
 	await zip.terminateWorkers();
 }
 
@@ -46,6 +47,37 @@ async function testDisposeOnError() {
 		bufferedWrite: true,
 		createTempStream: () => makeDisposableTempStream(() => disposed++)
 	});
+	let rejected = false;
+	try {
+		await zipWriter.add("file.txt", new FailingReader(BLOB.size));
+	} catch {
+		rejected = true;
+	}
+	try {
+		await zipWriter.close();
+	} catch {
+		// the archive has a corrupted/aborted entry; ignored
+	}
+	if (!rejected) {
+		throw new Error("failing add() did not reject");
+	}
+	if (disposed != 1) {
+		throw new Error("dispose() not called once on error (was " + disposed + ")");
+	}
+}
+
+// A signal already aborted when add() is called rejects before the entry starts being written, so
+// no temporary stream is created and there is nothing to dispose.
+async function testNoTempStreamWhenPreAborted() {
+	let created = 0;
+	let disposed = 0;
+	const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"), {
+		bufferedWrite: true,
+		createTempStream: () => {
+			created++;
+			return makeDisposableTempStream(() => disposed++);
+		}
+	});
 	const controller = new AbortController();
 	controller.abort();
 	let rejected = false;
@@ -57,13 +89,25 @@ async function testDisposeOnError() {
 	try {
 		await zipWriter.close();
 	} catch {
-		// the archive has a corrupted/aborted entry; ignored
+		// the archive has no entry; ignored
 	}
 	if (!rejected) {
 		throw new Error("aborted add() did not reject");
 	}
-	if (disposed != 1) {
-		throw new Error("dispose() not called once on error (was " + disposed + ")");
+	if (created != 0 || disposed != 0) {
+		throw new Error("a pre-aborted add() must not create a temp stream (created " + created + ", disposed " + disposed + ")");
+	}
+}
+
+class FailingReader extends zip.Reader {
+
+	constructor(size) {
+		super();
+		this.size = size;
+	}
+
+	readUint8Array() {
+		throw new Error("read failure");
 	}
 }
 

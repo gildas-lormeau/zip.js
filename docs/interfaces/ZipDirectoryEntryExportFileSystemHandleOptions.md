@@ -295,6 +295,10 @@ A value which is neither an object nor unset throws an [ERR\_INVALID\_READER\_OP
 
 The `AbortSignal` instance used to cancel the decompression.
 
+A signal already aborted when the operation starts rejects it with [ERR\_ABORTED](../variables/ERR_ABORTED.md) as the
+reason of the `AbortError`, or with `signal.reason` when it is set, without relying on the
+`signal` option of `pipeTo` that the oldest supported engines ignore.
+
 #### Inherited from
 
 [`EntryGetDataOptions`](EntryGetDataOptions.md).[`signal`](EntryGetDataOptions.md#signal)

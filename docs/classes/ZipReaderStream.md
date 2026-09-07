@@ -67,6 +67,12 @@ The options.
 
 The readable stream.
 
+#### Remarks
+
+The properties deposited on an entry while its data is read, i.e.
+[EntryMetaData#warnings](../interfaces/EntryMetaData.md#warnings) and [EntryMetaData#localDirectory](../interfaces/EntryMetaData.md#localdirectory), are shared with the
+chunk, so they are readable on it once its `readable` property has been consumed.
+
 ***
 
 ### writable
