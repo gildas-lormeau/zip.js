@@ -1348,6 +1348,10 @@ export class ZipReaderStream<T> {
    * @remarks The properties deposited on an entry while its data is read, i.e.
    * {@link EntryMetaData#warnings} and {@link EntryMetaData#localDirectory}, are shared with the
    * chunk, so they are readable on it once its `readable` property has been consumed.
+   *
+   * An entry is decompressed on demand, when its `readable` property starts being read, so a chunk
+   * whose data is never read costs nothing and skipping entries is free. Cancelling this stream
+   * releases the entry being read, cancels the source and closes the underlying {@link ZipReader}.
    */
   readable: ReadableStream<
     Omit<Entry, "getData"> & { readable?: ReadableStream<Uint8Array> }

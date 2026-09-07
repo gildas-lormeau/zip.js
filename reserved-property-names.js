@@ -14,7 +14,9 @@ const WASM_MODULE_PATH = path.join(ROOT, "lib", "core", "streams", "zlib-wasm", 
 
 const ZLIB_STREAM_OPTION_PROPERTY_NAMES = ["inBufferSize", "outBuffer"];
 
-const AUDITED_KEEP_PROPERTY_NAMES = ["instance", "zip"];
+// "return" is the method of the async generators returned by getEntriesGenerator(), declared in
+// lib.es2018.asyncgenerator.d.ts rather than in the DOM and web worker declarations collected below.
+const AUDITED_KEEP_PROPERTY_NAMES = ["instance", "return", "zip"];
 
 export {
 	ZLIB_STREAM_OPTION_PROPERTY_NAMES,

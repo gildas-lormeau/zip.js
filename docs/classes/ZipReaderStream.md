@@ -73,6 +73,10 @@ The properties deposited on an entry while its data is read, i.e.
 [EntryMetaData#warnings](../interfaces/EntryMetaData.md#warnings) and [EntryMetaData#localDirectory](../interfaces/EntryMetaData.md#localdirectory), are shared with the
 chunk, so they are readable on it once its `readable` property has been consumed.
 
+An entry is decompressed on demand, when its `readable` property starts being read, so a chunk
+whose data is never read costs nothing and skipping entries is free. Cancelling this stream
+releases the entry being read, cancels the source and closes the underlying [ZipReader](ZipReader.md).
+
 ***
 
 ### writable

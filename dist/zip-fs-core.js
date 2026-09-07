@@ -3762,6 +3762,7 @@
 			const reader = this;
 			const { sourceBlob, size } = reader;
 			const { offset = 0, size: readSize = size - offset } = options || {};
+			// deno-lint-ignore valid-typeof
 			if (typeof sourceBlob.stream == FUNCTION_TYPE) {
 				if (!offset && readSize >= size) {
 					return toCompatibleReadable(sourceBlob.stream());
@@ -5197,41 +5198,89 @@
 	class ZipReaderStream {
 
 		constructor(options = {}) {
-			const { readable, writable } = new TransformStream();
-			const gen = new ZipReader(readable, options).getEntriesGenerator();
+			let sourceController;
+			const { readable, writable } = new TransformStream({
+				start(controller) {
+					sourceController = controller;
+				}
+			});
+			const zipReader = new ZipReader(readable, options);
+			const gen = zipReader.getEntriesGenerator();
+			const pendingEntries = new Set();
 			this.readable = new ReadableStream({
 				async pull(controller) {
 					const { done, value } = await gen.next();
 					if (done)
 						return controller.close();
-					const entryReadable = (function () {
-						const { readable, writable } = new TransformStream();
-						if (value.getData) {
-							getData();
-							return readable;
-						}
-
-						async function getData() {
-							try {
-								await value.getData(writable);
-							} catch (error) {
-								try {
-									await writable.abort(error);
-								} catch {
-									// ignored
-								}
-							}
-						}
-					})();
+					const entryStream = createEntryStream(value, pendingEntries);
 					const chunk = {
 						...value,
-						readable: entryReadable
+						readable: entryStream.readable
 					};
 					delete chunk.getData;
+					Object.defineProperties(chunk, {
+						localDirectory: {
+							get: () => value.localDirectory,
+							enumerable: true
+						},
+						warnings: {
+							get: () => value.warnings,
+							enumerable: true
+						}
+					});
 					controller.enqueue(chunk);
+				},
+				async cancel(reason) {
+					const entryStreams = Array.from(pendingEntries);
+					pendingEntries.clear();
+					sourceController.error(reason);
+					await Promise.allSettled(entryStreams.map(entryStream => entryStream.cancel(reason)));
+					await Promise.allSettled([gen.return(), zipReader.close()]);
 				}
 			});
 			this.writable = writable;
+		}
+	}
+
+	function createEntryStream(entry, pendingEntries) {
+		const { readable, writable } = new TransformStream();
+		let dataReader;
+		const entryStream = {
+			cancel: async reason => {
+				pendingEntries.delete(entryStream);
+				await (dataReader ? dataReader.cancel(reason) : readable.cancel(reason));
+			}
+		};
+		entryStream.readable = new ReadableStream({
+			async pull(controller) {
+				if (!dataReader) {
+					dataReader = readable.getReader();
+					pendingEntries.add(entryStream);
+					getData();
+				}
+				const { done, value } = await dataReader.read();
+				if (done) {
+					controller.close();
+				} else {
+					controller.enqueue(value);
+				}
+			},
+			cancel: reason => entryStream.cancel(reason)
+		}, { highWaterMark: 0 });
+		return entryStream;
+
+		async function getData() {
+			try {
+				await entry.getData(writable);
+			} catch (error) {
+				try {
+					await writable.abort(error);
+				} catch {
+					// ignored
+				}
+			} finally {
+				pendingEntries.delete(entryStream);
+			}
 		}
 	}
 
