@@ -134,6 +134,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"terminated",
 	"toBits",
 	"undeterminedSize",
+	"unknownSize",
 	"utf8",
 	"utf8String",
 	"watcher",
@@ -149,6 +150,8 @@ const MANGLED_PROPERTY_NAMES = [
 	"writerLocked",
 	"zip64CompressedSize",
 	"zip64DiskNumberStart",
+	"zip64Enabled",
+	"zip64Entries",
 	"zip64Offset",
 	"zip64UncompressedSize"
 ];

@@ -6428,6 +6428,7 @@
 					}
 					const { offset, diskNumberStart } = entryPositions.get(entry);
 					Object.assign(entry, {
+						zip64Enabled: true,
 						zip64UncompressedSize,
 						zip64CompressedSize,
 						offset,
@@ -7013,6 +7014,7 @@
 		let { dataDescriptor, zip64, level, compressionMethod } = metadata;
 		let maximumCompressedSize = 0;
 		let uncompressedSize = 0;
+		let unknownSize = false;
 		if (passThrough && hasContent) {
 			uncompressedSize = options[PROPERTY_NAME_UNCOMPRESSED_SIZE];
 			if (uncompressedSize === UNDEFINED_VALUE) {
@@ -7038,8 +7040,8 @@
 				if (contentSize === UNDEFINED_VALUE) {
 					dataDescriptor = true;
 					if (zip64 || zip64 === UNDEFINED_VALUE) {
-						zip64 = true;
-						uncompressedSize = maximumCompressedSize = MAX_32_BITS + 1;
+						zip64 = unknownSize = true;
+						maximumCompressedSize = MAX_32_BITS + 1;
 					}
 				} else {
 					options.uncompressedSize = uncompressedSize = contentSize;
@@ -7054,7 +7056,7 @@
 		if (emptyEntry && !zipCrypto && getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR) === UNDEFINED_VALUE) {
 			dataDescriptor = false;
 		}
-		const zip64UncompressedSize = zip64Enabled || uncompressedSize >= MAX_32_BITS;
+		const zip64UncompressedSize = zip64Enabled || unknownSize || uncompressedSize >= MAX_32_BITS;
 		const zip64CompressedSize = zip64Enabled || maximumCompressedSize >= MAX_32_BITS;
 		if (zip64UncompressedSize || zip64CompressedSize) {
 			if (zip64 === false) {
@@ -7070,6 +7072,8 @@
 				dataDescriptor,
 				emptyEntry,
 				zip64,
+				zip64Enabled,
+				unknownSize,
 				zip64UncompressedSize,
 				zip64CompressedSize,
 				uncompressedSize,
@@ -7143,7 +7147,7 @@
 		if (layoutDependsOnWriteOrder && !writeOrderGuaranteed) {
 			throw new Error(ERR_UNDETERMINED_SIZE);
 		}
-		const directoryDataLength = createDirectoryRecords(files);
+		const { directoryDataLength, zip64Entries } = createDirectoryRecords(files);
 		let zip64 = getOptionValue(zipWriter, writerOptions, PROPERTY_NAME_ZIP64);
 		if (offset >= MAX_32_BITS || directoryDataLength >= MAX_32_BITS || files.size >= MAX_16_BITS) {
 			if (zip64 === false) {
@@ -7151,6 +7155,8 @@
 			} else {
 				zip64 = true;
 			}
+		} else if (zip64 === UNDEFINED_VALUE && zip64Entries) {
+			zip64 = true;
 		}
 		return offset - initialOffset + directoryDataLength + commentLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH);
 	}
@@ -7343,6 +7349,7 @@
 			rawPassword,
 			level,
 			zip64,
+			zip64Enabled,
 			zip64UncompressedSize,
 			zip64CompressedSize,
 			zipCrypto,
@@ -7383,6 +7390,7 @@
 			lockFileEntry,
 			versionMadeBy,
 			zip64,
+			zip64Enabled,
 			directory: Boolean(directory),
 			executable: Boolean(executable),
 			filenameUTF8: true,
@@ -7526,13 +7534,14 @@
 			zip64UncompressedSize,
 			zip64CompressedSize,
 			uncompressedSize,
+			unknownSize,
 			crc32
 		} = options;
 		let { version, compressionMethod } = options;
 		const compressed = !directory && isCompressed(compressionMethod, level);
 		let rawLocalExtraFieldZip64;
 		const uncompressedFile = passThrough || !compressed;
-		const zip64ExtraFieldComplete = zip64 && (options.bufferedWrite || !dataDescriptor || ((!zip64UncompressedSize && !zip64CompressedSize) || uncompressedFile));
+		const zip64ExtraFieldComplete = zip64 && (options.bufferedWrite || !dataDescriptor || ((!zip64UncompressedSize && !zip64CompressedSize) || (uncompressedFile && !unknownSize)));
 		const writeLocalExtraFieldZip64 = zip64ExtraFieldComplete || (zip64 && dataDescriptor && (zip64UncompressedSize || zip64CompressedSize));
 		if (zip64 && (zip64UncompressedSize || zip64CompressedSize)) {
 			const length = 4 + 16;
@@ -7882,14 +7891,15 @@
 
 
 	async function closeFile(zipWriter, comment, options) {
-		const directoryDataLength = createDirectoryRecords(zipWriter.fileEntries);
+		const { directoryDataLength, zip64Entries } = createDirectoryRecords(zipWriter.fileEntries);
 		const { directoryStart, directoryEnd, directoryArray } = await writeDirectoryRecords(zipWriter, directoryDataLength, options);
 		const signatureLength = await writeDigitalSignatureRecord(zipWriter, directoryArray, options);
-		await writeEndOfDirectoryRecord(zipWriter, comment, options, { directoryStart, directoryEnd, directoryDataLength, signatureLength });
+		await writeEndOfDirectoryRecord(zipWriter, comment, options, { directoryStart, directoryEnd, directoryDataLength, signatureLength, zip64Entries });
 	}
 
 	function createDirectoryRecords(files) {
 		let directoryDataLength = 0;
+		let zip64Entries = false;
 		for (const [, fileEntry] of files) {
 			const {
 				rawFilename,
@@ -7902,11 +7912,20 @@
 				extendedTimestamp,
 				extraFieldExtendedTimestampFlag,
 				lastModDate,
-				zip64UncompressedSize,
-				zip64CompressedSize,
+				zip64Enabled,
 				uncompressedSize,
 				compressedSize
 			} = fileEntry;
+			let { zip64UncompressedSize, zip64CompressedSize } = fileEntry;
+			if (!zip64Enabled) {
+				if (zip64UncompressedSize && uncompressedSize < MAX_32_BITS) {
+					zip64UncompressedSize = fileEntry.zip64UncompressedSize = false;
+				}
+				if (zip64CompressedSize && compressedSize < MAX_32_BITS) {
+					zip64CompressedSize = fileEntry.zip64CompressedSize = false;
+				}
+			}
+			zip64Entries = zip64Entries || zip64UncompressedSize || zip64CompressedSize;
 			const zip64Offset = fileEntry.offset >= MAX_32_BITS;
 			const zip64DiskNumberStart = fileEntry.diskNumberStart >= MAX_16_BITS;
 			let rawExtraFieldZip64;
@@ -7960,7 +7979,7 @@
 			}
 			directoryDataLength += CENTRAL_FILE_HEADER_LENGTH + getLength(rawFilename, rawComment) + extraFieldLength;
 		}
-		return directoryDataLength;
+		return { directoryDataLength, zip64Entries };
 	}
 
 	async function writeDirectoryRecords(zipWriter, directoryDataLength, options) {
@@ -8080,7 +8099,7 @@
 
 	async function writeEndOfDirectoryRecord(zipWriter, comment, options, cdInfo) {
 		const { writer } = zipWriter;
-		const { directoryStart, directoryEnd, signatureLength } = cdInfo;
+		const { directoryStart, directoryEnd, signatureLength, zip64Entries } = cdInfo;
 		let { directoryDataLength } = cdInfo;
 		let fileEntriesLength = zipWriter.fileEntries.size;
 		let diskNumber = directoryStart.diskNumber;
@@ -8100,6 +8119,8 @@
 			} else {
 				zip64 = true;
 			}
+		} else if (zip64 === UNDEFINED_VALUE && zip64Entries) {
+			zip64 = true;
 		}
 		const endOfdirectoryRecord = createRecordWriter(zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH);
 		if (exceedsAvailableSize(writer, getLength(endOfdirectoryRecord.array) + commentLength)) {

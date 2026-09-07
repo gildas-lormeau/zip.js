@@ -34,6 +34,8 @@ false
 
 `true` to use Zip64 to write the entries directory.
 
+Zip64 is also used when the directory does not fit in the standard record, or when an entry is stored with Zip64.
+
 #### Default Value
 
 ```ts

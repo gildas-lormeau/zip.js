@@ -3027,6 +3027,8 @@ export interface ZipWriterCloseOptions extends EntryOnprogressOptions {
   /**
    * `true` to use Zip64 to write the entries directory.
    *
+   * Zip64 is also used when the directory does not fit in the standard record, or when an entry is stored with Zip64.
+   *
    * @defaultValue false
    */
   zip64?: boolean;
@@ -3059,6 +3061,8 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * `true` to use Zip64 to store the entry.
    *
    * `zip64` is automatically set to `true` when necessary (e.g. compressed data larger than 4GB or with unknown size).
+   * An entry of unknown size is stored with Zip64 in its local header, because the size of the data descriptor must be
+   * chosen before writing the data. Its central directory record drops Zip64 when the actual sizes fit in 32 bits.
    *
    * @defaultValue false
    */
