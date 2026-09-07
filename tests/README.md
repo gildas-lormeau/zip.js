@@ -2,7 +2,7 @@
 
 ## Running the tests
 
-- `npm test` runs the suite in Node.js, Deno and Bun, against the source and the built files. It also runs the web-streams-polyfill interop test, checks the TypeScript definitions and runs the API symmetry audit. `npm run test-ci` is the same thing without the two Bun runners, and is what the workflow runs: the `Zip64 (auto)` test builds a 4GB blob to cross the zip64 boundary, which Bun holds in memory until the runner dies. Run `npm test` locally to cover Bun.
+- `npm test` runs the suite in Node.js, Deno and Bun, against the source and the built files. It also runs the web-streams-polyfill interop test, the fidelity round-trip harness, checks the TypeScript definitions and runs the API symmetry audit. `npm run test-ci` is the same thing without the two Bun runners, and is what the workflow runs: the `Zip64 (auto)` test builds a 4GB blob to cross the zip64 boundary, which Bun holds in memory until the runner dies. Run `npm test` locally to cover Bun.
 - `npm run test-chrome`, `npm run test-firefox` and `npm run test-safari` run the suite in a locally installed browser with selenium. Chrome and Firefox run headless unless `--headed` is passed to `node ./tests/browser-runner.js`, which also accepts `--exe-path <path>` to test a specific browser build and `--url-search <search>` to forward URL parameters. Safari always runs headed and requires enabling `safaridriver` once with `sudo safaridriver --enable`.
 - `--build wasm|native|external|dist` selects the build under test: the runner serves `tests/zip-lib.js` re-exporting `index.js` (`wasm`, the default), `lib/zip-fs-native.js`, `lib/zip-fs-external.js` or `index.min.js` instead of the file on disk.
 - `npm run test-all` runs the linters and all the tests.
@@ -40,7 +40,7 @@ Two traps no `features` gate covers:
 
 - `tests/registration.js`: checks that every test registered in `tests-data.js` matches a file in `tests/all` exactly, run with `npm run test-registration`. It also runs in the linting job, because the browser jobs run on macOS and Windows only, whose filesystems are case-insensitive. It checks the type tests the same way, in both directions, against the `files` lists of the two configurations in `tests/types`: `tsc` compiles what the configuration names and reports nothing about a file it does not name, so an unregistered type test is never compiled at all.
 - `tests/api-symmetry`: read surface against write surface audit, see [tests/api-symmetry/README.md](api-symmetry/README.md).
-- `tests/fidelity`: read, rewrite and byte-compare harness, see [tests/fidelity/README.md](fidelity/README.md).
+- `tests/fidelity`: read, rewrite and byte-compare harness, run with `npm run test-fidelity` and part of `test-ci`, see [tests/fidelity/README.md](fidelity/README.md). Unlike `corpus-run.js`, which shells out to Info-ZIP, ditto, 7zz, jar and Python and is rightly kept manual, it needs no network and no installed tool.
 - `tests/types`: TypeScript definitions test, run with `npm run test-types`. A new file must be added to the `files` list of `tsconfig.json`, or of `tsconfig-declarations.json` for a test that needs the declarations checked rather than skipped.
 - `tests/vendor`: vendored third-party code used by the tests, ignored by the linters.
 - `tests/data`: fixtures, e.g. zip files, sample data and worker scripts.
