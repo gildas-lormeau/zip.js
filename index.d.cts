@@ -3006,7 +3006,10 @@ export class ZipWriter<Type> {
    * particular, Windows path separators ("\\") are not converted and become part of the filename,
    * which is interpreted inconsistently by zip tools, and leading or trailing whitespace is
    * preserved, which Windows filesystems cannot represent at the end of a name.
-   * @param reader The  {@link Reader} instance used to read the content of the entry.
+   * @param reader The {@link Reader} instance used to read the content of the entry. It can be
+   * omitted, or passed as `undefined` or `null`, to write an entry with no content: a directory, or
+   * an empty file. The two spellings are equivalent; `null` is the convenient one when the value
+   * comes from a conditional expression, as in a loop copying entries where directories have no data.
    * @param options The options.
    * @returns A promise resolving to an {@link EntryMetaData} instance.
    */
@@ -3018,7 +3021,8 @@ export class ZipWriter<Type> {
       | ReadableStream
       | Reader<unknown>[]
       | ReadableReader[]
-      | ReadableStream[],
+      | ReadableStream[]
+      | null,
     options?: ZipWriterAddDataOptions
   ): Promise<EntryMetaData>;
 
