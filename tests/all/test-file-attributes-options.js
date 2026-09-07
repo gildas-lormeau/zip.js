@@ -2,6 +2,9 @@ import * as zip from "../zip-lib.js";
 
 export { test };
 
+// 0o100755, not the more obvious 0o100644: the latter is what the writer stores by default for a regular
+// file when `msDosCompatible` is false, so an assertion using it passes whether the option was honoured or
+// silently ignored. Any value asserted here has to differ from that default.
 const EXTERNAL_FILE_ATTRIBUTES = (0o100755 << 16) >>> 0;
 const OTHER_EXTERNAL_FILE_ATTRIBUTES = (0o100600 << 16) >>> 0;
 const INTERNAL_FILE_ATTRIBUTES = 1;
