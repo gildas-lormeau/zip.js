@@ -83,6 +83,24 @@ export completed from one it created but never filled.
 
 ***
 
+### outputSize?
+
+> `optional` **outputSize?**: `number`
+
+The number of bytes of the entry that reached the writer before the failure, set whenever a
+compression or decompression stream fails, i.e. on a corrupt entry, an invalid CRC32, a reader
+erroring mid-entry or an aborted signal.
+
+#### Remarks
+
+It is the counterpart of [EntryError#corruptedEntry](#corruptedentry): the first says the entry is
+incomplete, this one says how much of it was written. zip.js reads it itself to keep the offsets
+of the entries written after the failed one correct, which is what makes the salvage described in
+[ZipWriter#close](../classes/ZipWriter.md#close) possible, so it counts the bytes the writer actually received rather than
+the bytes the codec produced.
+
+***
+
 ### overlappingEntry?
 
 > `optional` **overlappingEntry?**: [`Entry`](../type-aliases/Entry.md)

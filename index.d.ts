@@ -2310,6 +2310,19 @@ export interface EntryError extends Error {
    */
   corruptedEntry?: boolean;
   /**
+   * The number of bytes of the entry that reached the writer before the failure, set whenever a
+   * compression or decompression stream fails, i.e. on a corrupt entry, an invalid CRC32, a reader
+   * erroring mid-entry or an aborted signal.
+   *
+   * @remarks
+   * It is the counterpart of {@link EntryError#corruptedEntry}: the first says the entry is
+   * incomplete, this one says how much of it was written. zip.js reads it itself to keep the offsets
+   * of the entries written after the failed one correct, which is what makes the salvage described in
+   * {@link ZipWriter#close} possible, so it counts the bytes the writer actually received rather than
+   * the bytes the codec produced.
+   */
+  outputSize?: number;
+  /**
    * The entry whose data overlaps the data of the entry being read, set on the
    * {@link ERR_OVERLAPPING_ENTRY} error raised by {@link ZipReaderOptions#checkOverlappingEntry}.
    * It is the only way to identify the other entry of the pair.
