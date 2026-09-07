@@ -3084,6 +3084,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * between platforms. Set `useCompressionStream` to `false` to get deterministic output across
    * platforms.
    *
+   * When no deflate implementation is available at all, i.e. the environment provides no usable
+   * `CompressionStream` and the embedded implementation cannot be loaded, the entry is stored
+   * instead of being compressed rather than failing. The {@link EntryMetaData#compressionMethod} of
+   * the entry returned by {@link ZipWriter#add} is `0` in that case, which is how the fallback is
+   * detected.
+   *
    * @defaultValue 6
    */
   level?: number;
@@ -4738,6 +4744,15 @@ export const ERR_UNDETERMINED_SIZE: string;
  * is not there. Directory entries are exempt, they have no content to write as-is.
  */
 export const ERR_UNDEFINED_READER: string;
+/**
+ * Invalid reader error
+ *
+ * @remarks Thrown when the second argument of {@link ZipWriter#add} is neither a {@link Reader} instance, a
+ * `ReadableStream` instance, nor an object exposing a `readable` property. A `Blob`, a string or a
+ * `Uint8Array` must be wrapped in the matching Reader class, e.g. {@link BlobReader}, {@link TextReader}
+ * or {@link Uint8ArrayReader}.
+ */
+export const ERR_INVALID_READER: string;
 /**
  * Writer not initialized error
  */

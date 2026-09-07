@@ -6261,6 +6261,7 @@
 	const ERR_UNDEFINED_COMPRESSION_METHOD = "Undefined compression method";
 	const ERR_UNDETERMINED_SIZE = "Undetermined size";
 	const ERR_UNDEFINED_READER = "Undefined reader";
+	const ERR_INVALID_READER = "Invalid reader (must be a Reader instance, a ReadableStream instance, or an object with a 'readable' property)";
 	const ERR_ZIP_NOT_EMPTY = "Zip file not empty";
 	const ERR_INVALID_UID = "Invalid uid (must be integer 0..2^32-1)";
 	const ERR_INVALID_GID = "Invalid gid (must be integer 0..2^32-1)";
@@ -6986,6 +6987,9 @@
 		if (reader) {
 			reader = new GenericReader(reader);
 			await initStream(reader);
+			if (!reader.readable && !reader.readUint8Array) {
+				throw new Error(ERR_INVALID_READER);
+			}
 			({ size: contentSize } = reader);
 		}
 		return Object.assign({ reader }, resolveEntrySizes(zipWriter, Boolean(reader), contentSize, metadata, options));
@@ -7580,6 +7584,10 @@
 			throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
 		}
 		const dosLastModDate = new Date(Math.ceil(Math.floor(lastModDate.getTime() / 1000) / 2) * 2000);
+		const clampedLastModDate = dosLastModDate < MIN_DATE ? MIN_DATE : dosLastModDate > MAX_DATE ? MAX_DATE : dosLastModDate;
+		const storedLastModDate = getLength(rawExtraFieldExtendedTimestamp) ?
+			new Date(getTimeUnix(lastModDate) * 1000) :
+			getLength(rawExtraFieldNTFS) ? lastModDate : clampedLastModDate;
 		const {
 			headerArray,
 			headerView,
@@ -7589,7 +7597,7 @@
 			bitFlag: getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted, compressionMethod),
 			compressionMethod,
 			uncompressedSize,
-			lastModDate: dosLastModDate < MIN_DATE ? MIN_DATE : dosLastModDate > MAX_DATE ? MAX_DATE : dosLastModDate,
+			lastModDate: clampedLastModDate,
 			rawLastModDate: rawLastModDateOption,
 			rawFilename,
 			zip64CompressedSize,
@@ -7624,7 +7632,7 @@
 			localHeaderView,
 			headerArray,
 			headerView,
-			lastModDate,
+			lastModDate: storedLastModDate,
 			rawLastModDate,
 			encrypted,
 			compressed,
@@ -9020,6 +9028,7 @@
 	exports.ERR_INVALID_MSDOS_DATA = ERR_INVALID_MSDOS_DATA;
 	exports.ERR_INVALID_PASSWORD = ERR_INVALID_PASSWORD;
 	exports.ERR_INVALID_PASSWORD_TYPE = ERR_INVALID_PASSWORD_TYPE;
+	exports.ERR_INVALID_READER = ERR_INVALID_READER;
 	exports.ERR_INVALID_SIGNAL = ERR_INVALID_SIGNAL;
 	exports.ERR_INVALID_SIGNATURE_DATA = ERR_INVALID_SIGNATURE_DATA;
 	exports.ERR_INVALID_STRICTNESS = ERR_INVALID_STRICTNESS;

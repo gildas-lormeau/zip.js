@@ -6277,6 +6277,7 @@ const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
 const ERR_UNDEFINED_COMPRESSION_METHOD = "Undefined compression method";
 const ERR_UNDETERMINED_SIZE = "Undetermined size";
 const ERR_UNDEFINED_READER = "Undefined reader";
+const ERR_INVALID_READER = "Invalid reader (must be a Reader instance, a ReadableStream instance, or an object with a 'readable' property)";
 const ERR_ZIP_NOT_EMPTY = "Zip file not empty";
 const ERR_INVALID_UID = "Invalid uid (must be integer 0..2^32-1)";
 const ERR_INVALID_GID = "Invalid gid (must be integer 0..2^32-1)";
@@ -7002,6 +7003,9 @@ async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, op
 	if (reader) {
 		reader = new GenericReader(reader);
 		await initStream(reader);
+		if (!reader.readable && !reader.readUint8Array) {
+			throw new Error(ERR_INVALID_READER);
+		}
 		({ size: contentSize } = reader);
 	}
 	return Object.assign({ reader }, resolveEntrySizes(zipWriter, Boolean(reader), contentSize, metadata, options));
@@ -7673,6 +7677,10 @@ function getHeaderInfo(options) {
 		throw new Error(ERR_INVALID_EXTRAFIELD_DATA);
 	}
 	const dosLastModDate = new Date(Math.ceil(Math.floor(lastModDate.getTime() / 1000) / 2) * 2000);
+	const clampedLastModDate = dosLastModDate < MIN_DATE ? MIN_DATE : dosLastModDate > MAX_DATE ? MAX_DATE : dosLastModDate;
+	const storedLastModDate = getLength(rawExtraFieldExtendedTimestamp) ?
+		new Date(getTimeUnix(lastModDate) * 1000) :
+		getLength(rawExtraFieldNTFS) ? lastModDate : clampedLastModDate;
 	const {
 		headerArray,
 		headerView,
@@ -7682,7 +7690,7 @@ function getHeaderInfo(options) {
 		bitFlag: getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted, compressionMethod),
 		compressionMethod,
 		uncompressedSize,
-		lastModDate: dosLastModDate < MIN_DATE ? MIN_DATE : dosLastModDate > MAX_DATE ? MAX_DATE : dosLastModDate,
+		lastModDate: clampedLastModDate,
 		rawLastModDate: rawLastModDateOption,
 		rawFilename,
 		zip64CompressedSize,
@@ -7717,7 +7725,7 @@ function getHeaderInfo(options) {
 		localHeaderView,
 		headerArray,
 		headerView,
-		lastModDate,
+		lastModDate: storedLastModDate,
 		rawLastModDate,
 		encrypted,
 		compressed,
@@ -9646,12 +9654,14 @@ class ZipDirectoryEntry extends ZipEntry {
 		if (options.bufferedWrite === UNDEFINED_VALUE) {
 			options.bufferedWrite = true;
 		}
-		const entries = zipEntry.getChildren({ recursive: true }).filter(child => !isImplicitDirectory(child)).map(child => {
+		const children = zipEntry.getChildren({ recursive: true });
+		const entries = children.filter(child => !isImplicitDirectory(child)).map(child => {
 			const { name, entryOptions } = getChildEntryOptions(child, zipEntry, options);
 			return { name, size: child.directory ? 0 : getDeterminedSize(child, isPassThrough(child, options)), options: entryOptions };
 		});
 		const writeOrderGuaranteed = !options.bufferedWrite ||
-			(entries.every(entry => entry.options.keepOrder !== false) && zipEntry.children.every(child => !child.children.length));
+			(entries.every(entry => entry.options.keepOrder !== false) &&
+				children.every(child => isImplicitDirectory(child) || !child.children.length));
 		return getEntriesSize(options, entries, writeOrderGuaranteed, options.globalComment);
 	}
 
@@ -10680,6 +10690,7 @@ exports.ERR_INVALID_MSDOS_DATA = ERR_INVALID_MSDOS_DATA;
 exports.ERR_INVALID_PASSWORD = ERR_INVALID_PASSWORD;
 exports.ERR_INVALID_PASSWORD_TYPE = ERR_INVALID_PASSWORD_TYPE;
 exports.ERR_INVALID_PASS_THROUGH = ERR_INVALID_PASS_THROUGH;
+exports.ERR_INVALID_READER = ERR_INVALID_READER;
 exports.ERR_INVALID_READER_OPTIONS = ERR_INVALID_READER_OPTIONS;
 exports.ERR_INVALID_SIGNAL = ERR_INVALID_SIGNAL;
 exports.ERR_INVALID_SIGNATURE_DATA = ERR_INVALID_SIGNATURE_DATA;

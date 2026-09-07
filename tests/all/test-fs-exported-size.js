@@ -15,6 +15,7 @@ async function test() {
 		await testTextContentSize();
 		await testNestedTree();
 		await testSlashedNames();
+		await testImplicitDirectoryLayout();
 		await testReplacedContent();
 		await testEntryOptions();
 		await testExtraFields();
@@ -65,6 +66,22 @@ async function testNestedTree() {
 
 // a name holding "/" builds the same tree as addDirectory(), except that the directories it creates
 // are implicit and are not written, so the prediction must count them the same way the export does
+// The buffered export defers the entries of a directory behind the write of that directory, so their
+// physical order is only settled at write time. An implicit directory is never written, so it defers
+// nothing and the order stays determined: a name holding "/" must not make the size unpredictable.
+async function testImplicitDirectoryLayout() {
+	await assertExportedSize(root => {
+		root.addText("a/b.txt", TEXT_CONTENT);
+		root.addText("a/c.txt", TEXT_CONTENT);
+		root.addUint8Array("d/e.bin", BINARY_CONTENT);
+	}, { level: 0, usdz: true });
+	await assertUndeterminedSize(root => {
+		const directory = root.addDirectory("docs");
+		directory.addText("readme.txt", TEXT_CONTENT);
+		root.addUint8Array("root.bin", BINARY_CONTENT);
+	}, { level: 0, usdz: true });
+}
+
 async function testSlashedNames() {
 	await assertExportedSize(root => {
 		root.addText("docs/readme.txt", TEXT_CONTENT);

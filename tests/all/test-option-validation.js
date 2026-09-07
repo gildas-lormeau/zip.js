@@ -1,4 +1,4 @@
-/* global TextEncoder, AbortController, EventTarget */
+/* global TextEncoder, AbortController, EventTarget, Blob */
 
 // Checks that options taking an enumeration of values, a bounded number, or a given shape reject anything
 // else instead of silently falling back to a default or failing much later with an error naming an internal
@@ -33,6 +33,7 @@ async function test() {
 	await datesKeepAcceptingEmptyValues();
 	await extraFieldRejectsOtherShapes();
 	await extraFieldKeepsAcceptingValidMaps();
+	await readerRejectsOtherValues();
 	await functionOptionsRejectOtherValues();
 	await functionOptionsKeepAcceptingFalsyValues();
 	await signalRejectsOtherValues();
@@ -98,6 +99,28 @@ async function levelAcceptsItsWholeRange() {
 
 // A password of another type used to be ignored, producing a plain archive with no error at all, and a
 // rawPassword passed as a string used to produce an archive that its equivalent password cannot open.
+// A Blob, a string or a Uint8Array is a plausible mistake for the second argument of add(), which takes a
+// Reader or a ReadableStream. Each used to reach the codec untouched and fail with "Cannot read properties
+// of undefined (reading 'getReader')", naming nothing the caller wrote.
+async function readerRejectsOtherValues() {
+	for (const [description, reader] of [
+		["Blob", new Blob([CONTENT])],
+		["string", CONTENT],
+		["Uint8Array", new TextEncoder().encode(CONTENT)],
+		["plain object", { size: 4 }]
+	]) {
+		let thrownError;
+		try {
+			const zipWriter = new zip.ZipWriter(new zip.BlobWriter());
+			await zipWriter.add("entry.txt", reader);
+			await zipWriter.close();
+		} catch (error) {
+			thrownError = error;
+		}
+		assertMessage(thrownError, zip.ERR_INVALID_READER, "reader: " + description);
+	}
+}
+
 async function passwordRejectsOtherTypes() {
 	for (const password of [42, {}, true, ["p"]]) {
 		await assertThrows({ password }, zip.ERR_INVALID_PASSWORD_TYPE, "password: " + JSON.stringify(password));
