@@ -280,6 +280,40 @@ async function testOrderDependentZip64Offsets() {
 	if (!(await zipFsSmall.getExportedSize(Object.assign({ keepOrder: false }, options)) > 0)) {
 		throw new Error();
 	}
+	await testOrderIndependentZip64Offsets();
+}
+
+// the refusal above is a worst-case envelope, so it must not fire when no permutation can change the
+// archive. Entries of equal size always leave the same number of entries past 4GB, so the only thing
+// left that could differ is the cost of crossing: 8 bytes for an entry already carrying a zip64
+// central directory field, 4 more for one that has to create it
+async function testOrderIndependentZip64Offsets() {
+	const GiB = 1024 * 1024 * 1024;
+	const options = { level: 0, dataDescriptor: false, extendedTimestamp: false };
+	function build(root, entries) {
+		entries.forEach((entry, indexEntry) => {
+			const fileEntry = root.addReadable("entry" + indexEntry + ".bin", new Blob([]).stream(), entry.options);
+			fileEntry.reader = { size: entry.size };
+		});
+	}
+	async function predict(entries, writerOptions) {
+		const zipFs = new zip.ZipFS();
+		build(zipFs.root, entries);
+		return zipFs.getExportedSize(Object.assign({}, options, writerOptions));
+	}
+	const equalSizes = [{ size: 3 * GiB }, { size: 3 * GiB }, { size: 3 * GiB }];
+	const predictedSize = await predict(equalSizes, { keepOrder: false });
+	if (!(predictedSize > 8 * GiB)) {
+		throw new Error();
+	}
+	if (predictedSize != await predict(equalSizes, { bufferedWrite: false })) {
+		throw new Error();
+	}
+	await assertUndeterminedSize(root => build(root, [
+		{ size: 3 * GiB },
+		{ size: 3 * GiB },
+		{ size: 3 * GiB, options: { zip64: true } }
+	]), Object.assign({ keepOrder: false }, options));
 }
 
 async function testNoReaderCreated() {

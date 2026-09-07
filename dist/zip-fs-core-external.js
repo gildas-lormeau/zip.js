@@ -7240,6 +7240,8 @@ async function getEntriesSize(writerOptions, entries, writeOrderGuaranteed, comm
 	const initialOffset = writerOptions[OPTION_OFFSET] === UNDEFINED_VALUE ? 0 : writerOptions[OPTION_OFFSET];
 	let offset = initialOffset;
 	let minimumEntrySize = INFINITY_VALUE;
+	const entrySizes = [];
+	const entriesAlreadyZip64 = new Set();
 	for (const entry of entries) {
 		let { name } = entry;
 		const { size } = entry;
@@ -7279,10 +7281,15 @@ async function getEntriesSize(writerOptions, entries, writeOrderGuaranteed, comm
 			compressedSize
 		}));
 		const entrySize = entryInfo.metadataSize + compressedSize;
+		entrySizes.push(entrySize);
+		entriesAlreadyZip64.add(Boolean(entryOptions.zip64Enabled ||
+			entryOptions.uncompressedSize >= MAX_32_BITS || compressedSize >= MAX_32_BITS));
 		minimumEntrySize = Math.min(minimumEntrySize, entrySize);
 		offset += entrySize;
 	}
-	const layoutDependsOnWriteOrder = files.size > 1 && (usdz || offset - minimumEntrySize >= MAX_32_BITS);
+	const layoutDependsOnWriteOrder = files.size > 1 && (usdz ||
+		(offset - minimumEntrySize >= MAX_32_BITS &&
+			(entriesAlreadyZip64.size > 1 || countEntriesBefore4GB(entrySizes, initialOffset, true) != countEntriesBefore4GB(entrySizes, initialOffset, false))));
 	if (layoutDependsOnWriteOrder && !writeOrderGuaranteed) {
 		throw new Error(ERR_UNDETERMINED_SIZE);
 	}
@@ -7298,6 +7305,20 @@ async function getEntriesSize(writerOptions, entries, writeOrderGuaranteed, comm
 		zip64 = true;
 	}
 	return offset - initialOffset + directoryDataLength + commentLength + (zip64 ? ZIP64_END_OF_CENTRAL_DIR_TOTAL_LENGTH : END_OF_CENTRAL_DIR_LENGTH);
+}
+
+function countEntriesBefore4GB(entrySizes, initialOffset, largestFirst) {
+	const ordered = entrySizes.slice().sort((first, second) => largestFirst ? second - first : first - second);
+	let position = initialOffset;
+	let count = 0;
+	for (const entrySize of ordered) {
+		if (position >= MAX_32_BITS) {
+			break;
+		}
+		position += entrySize;
+		count++;
+	}
+	return count;
 }
 
 async function getFileEntry(zipWriter, name, reader, entryInfo, options) {
