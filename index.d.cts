@@ -3365,6 +3365,12 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    *
    * When set to `false`, the maximum last modification date cannot exceed December 31, 2107 and the maximum accuracy is 2 seconds, dates being truncated to the whole second and odd seconds rounded up to the next even second.
    *
+   * @remarks Some zip-based formats forbid any extra field on a specific entry, which the default value of this
+   * option would write. OpenDocument requires its `mimetype` entry to come first, to be stored without compression
+   * and to carry no extra field, so a conformant ODF package needs both this option set to `false` and
+   * {@link ZipWriterConstructorOptions#level} set to `0` on that entry. EPUB requires its `mimetype` entry to come
+   * first and to be stored without compression, but allows an extra field, so `level` set to `0` is enough there.
+   *
    * @defaultValue true
    */
   extendedTimestamp?: boolean;
