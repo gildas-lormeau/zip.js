@@ -1,4 +1,4 @@
-import { readdirSync } from "fs";
+import { readdirSync, readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
@@ -17,9 +17,21 @@ const WORKER_SCRIPTS = [
 	"test-web-worker-worker.js"
 ];
 
-const directory = join(dirname(fileURLToPath(import.meta.url)), "all");
-const files = new Set(readdirSync(directory).filter(name => /^test-.*\.[cm]?js$/.test(name)));
+// the type tests have the same failure mode and no runner to notice it: tsc compiles the files the
+// tsconfig lists and says nothing about the ones it does not, so a new test-*-types.ts that is never
+// added to the list passes forever without being compiled once. Two of them had.
+const TYPE_TEST_CONFIGS = [
+	"tsconfig.json",
+	"tsconfig-declarations.json"
+];
+
+const testsDirectory = join(dirname(fileURLToPath(import.meta.url)), "all");
+const typesDirectory = join(dirname(fileURLToPath(import.meta.url)), "types");
+const files = new Set(readdirSync(testsDirectory).filter(name => /^test-.*\.[cm]?js$/.test(name)));
 const registered = testsData.map(({ script }) => script.replace("./", ""));
+const typeFiles = new Set(readdirSync(typesDirectory).filter(name => /^test-.*\.ts$/.test(name)));
+const registeredTypeFiles = TYPE_TEST_CONFIGS.flatMap(name =>
+	JSON.parse(readFileSync(join(typesDirectory, name), "utf-8")).files.map(file => file.replace("./", "")));
 const errors = [];
 
 registered.forEach((name, index) => {
@@ -39,9 +51,21 @@ WORKER_SCRIPTS.forEach(name => {
 		errors.push(`"${name}" is declared as a worker payload but does not exist`);
 	}
 });
+registeredTypeFiles.forEach(name => {
+	if (!typeFiles.has(name)) {
+		errors.push(`"${name}" does not match a file in tests/types`);
+	}
+});
+const duplicateTypeFiles = registeredTypeFiles.filter((name, index) => registeredTypeFiles.indexOf(name) != index);
+duplicateTypeFiles.forEach(name => errors.push(`"${name}" is registered more than once in the tests/types configurations`));
+typeFiles.forEach(name => {
+	if (!registeredTypeFiles.includes(name)) {
+		errors.push(`"${name}" is not registered in any of the tests/types configurations, so it is never compiled`);
+	}
+});
 
 if (errors.length) {
 	errors.forEach(error => console.error(error));
 	process.exit(1);
 }
-console.log(`${registered.length} tests registered, all resolved`);
+console.log(`${registered.length} tests registered, ${registeredTypeFiles.length} type tests registered, all resolved`);

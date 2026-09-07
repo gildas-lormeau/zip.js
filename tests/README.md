@@ -38,9 +38,9 @@ Two traps no `features` gate covers:
 
 ## Other folders
 
-- `tests/registration.js`: checks that every test registered in `tests-data.js` matches a file in `tests/all` exactly, run with `npm run test-registration`. It also runs in the linting job, because the browser jobs run on macOS and Windows only, whose filesystems are case-insensitive.
+- `tests/registration.js`: checks that every test registered in `tests-data.js` matches a file in `tests/all` exactly, run with `npm run test-registration`. It also runs in the linting job, because the browser jobs run on macOS and Windows only, whose filesystems are case-insensitive. It checks the type tests the same way, in both directions, against the `files` lists of the two configurations in `tests/types`: `tsc` compiles what the configuration names and reports nothing about a file it does not name, so an unregistered type test is never compiled at all.
 - `tests/api-symmetry`: read surface against write surface audit, see [tests/api-symmetry/README.md](api-symmetry/README.md).
 - `tests/fidelity`: read, rewrite and byte-compare harness, see [tests/fidelity/README.md](fidelity/README.md).
-- `tests/types`: TypeScript definitions test, run with `npm run test-types`.
+- `tests/types`: TypeScript definitions test, run with `npm run test-types`. A new file must be added to the `files` list of `tsconfig.json`, or of `tsconfig-declarations.json` for a test that needs the declarations checked rather than skipped.
 - `tests/vendor`: vendored third-party code used by the tests, ignored by the linters.
 - `tests/data`: fixtures, e.g. zip files, sample data and worker scripts.
