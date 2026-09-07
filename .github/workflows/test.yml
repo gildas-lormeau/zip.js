@@ -27,6 +27,13 @@ jobs:
         with:
           node-version: '24'
 
+      # deno lint is half of the "lint" script and was never run here, so master could be, and was at
+      # v2.11.4, red on npm run lint while this job stayed green
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
       # the version is declared by hand in four files, and nothing kept them in agreement: v2.8.53 was
       # tagged with package.json and deno.json at 2.8.53 while package-lock.json still read 2.8.52. it
       # runs before the install because it only reads the files
@@ -53,7 +60,7 @@ jobs:
         run: npm ci
 
       - name: Verify no code issue
-        run: npx eslint .
+        run: npm run lint
 
       # the browser jobs are the only ones running the suite, and they run on macOS and Windows, whose
       # filesystems are case-insensitive: a test registered under a name differing only by its case
