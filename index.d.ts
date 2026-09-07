@@ -4184,6 +4184,10 @@ export class ZipDirectoryEntry extends ZipEntry {
    * files, even though the directories created that way are not written. It is thrown as well when
    * `signCentralDirectory` is set, the length of the signature being unknown until it is computed.
    *
+   * An entry asking for compression is stored instead when no deflate implementation is reachable,
+   * which is what the export writes as well. Its size is determinable then, so the same call throws
+   * on a platform carrying deflate and returns a size on one that does not.
+   *
    * @param options The options.
    * @returns A promise resolving to the size in bytes.
    * @throws {@link ERR_UNDETERMINED_SIZE} if the size cannot be determined.

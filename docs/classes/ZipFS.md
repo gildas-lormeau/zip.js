@@ -794,6 +794,10 @@ directories it names, so `addText("a/b.txt", text)` builds a tree whose children
 files, even though the directories created that way are not written. It is thrown as well when
 `signCentralDirectory` is set, the length of the signature being unknown until it is computed.
 
+An entry asking for compression is stored instead when no deflate implementation is reachable,
+which is what the export writes as well. Its size is determinable then, so the same call throws
+on a platform carrying deflate and returns a size on one that does not.
+
 #### Throws
 
 [ERR\_UNDETERMINED\_SIZE](../variables/ERR_UNDETERMINED_SIZE.md) if the size cannot be determined.
