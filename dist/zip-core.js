@@ -7050,7 +7050,7 @@
 			}
 		}
 		if (passThroughCompression) {
-			level = UNDEFINED_VALUE;
+			level = toNumber(options[OPTION_LEVEL]);
 		}
 		let useCompressionStream = getOptionValue(zipWriter, options, OPTION_USE_COMPRESSION_STREAM);
 		let dataDescriptor = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR);

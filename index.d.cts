@@ -3208,6 +3208,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * {@link EntryMetaData#compressionMethod} of the entry returned by {@link ZipWriter#add} is `0`,
    * and {@link WARNING_COMPRESSION_UNAVAILABLE} is deposited on {@link ZipWriter#warnings}.
    *
+   * When the {@link ZipWriterConstructorOptions#passThrough} option passes the compression stage through,
+   * nothing is compressed and this option declares the level bits of the general purpose bit flag instead,
+   * see the remarks of that option.
+   *
    * @defaultValue 6
    */
   level?: number;
@@ -3546,11 +3550,17 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * without compressing it.
    *
    * @remarks
-   * The data is never compressed, so the {@link ZipWriterConstructorOptions#level} option does not apply and is
-   * ignored. The {@link ZipWriterAddDataOptions#compressionMethod} option selects no codec either, it declares
-   * how the data is already compressed and is written as-is in the entry headers. It must be set, otherwise an
-   * {@link ERR_UNDEFINED_COMPRESSION_METHOD} error is thrown. The entries with no content, e.g. the
-   * directories, ignore this option entirely. Setting the {@link ZipWriterConstructorOptions#password} or the
+   * The data is never compressed, so the {@link ZipWriterConstructorOptions#level} option selects no codec, and
+   * neither does the {@link ZipWriterAddDataOptions#compressionMethod} option: both describe how the data is
+   * already compressed and are written as-is in the entry headers, the method in its own field and the level in
+   * the level bits of the general purpose bit flag. The method must be set, otherwise an
+   * {@link ERR_UNDEFINED_COMPRESSION_METHOD} error is thrown; the level is optional and leaves those bits unset.
+   *
+   * The level is read from the options of the entry only. A level set on the options of the writer applies to
+   * the entries the writer compresses itself and is not inherited here, since it would describe data the writer
+   * never produced. A stored entry carries no level bits either way, they describe a deflate stream.
+   *
+   * The entries with no content, e.g. the directories, ignore this option entirely. Setting the {@link ZipWriterConstructorOptions#password} or the
    * {@link ZipWriterConstructorOptions#rawPassword} option throws an
    * {@link ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH} error, unless the
    * {@link ZipWriterConstructorOptions#encrypted} option is set to `true` to declare that the data is already

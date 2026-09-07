@@ -395,6 +395,10 @@ instead of being compressed rather than failing. The fallback is reported twice:
 [EntryMetaData#compressionMethod](EntryMetaData.md#compressionmethod) of the entry returned by [ZipWriter#add](../classes/ZipWriter.md#add) is `0`,
 and [WARNING\_COMPRESSION\_UNAVAILABLE](../variables/WARNING_COMPRESSION_UNAVAILABLE.md) is deposited on [ZipWriter#warnings](../classes/ZipWriter.md#warnings).
 
+When the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option passes the compression stage through,
+nothing is compressed and this option declares the level bits of the general purpose bit flag instead,
+see the remarks of that option.
+
 #### Default Value
 
 ```ts
@@ -559,11 +563,17 @@ without compressing it.
 
 #### Remarks
 
-The data is never compressed, so the [ZipWriterConstructorOptions#level](ZipWriterConstructorOptions.md#level) option does not apply and is
-ignored. The [ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) option selects no codec either, it declares
-how the data is already compressed and is written as-is in the entry headers. It must be set, otherwise an
-[ERR\_UNDEFINED\_COMPRESSION\_METHOD](../variables/ERR_UNDEFINED_COMPRESSION_METHOD.md) error is thrown. The entries with no content, e.g. the
-directories, ignore this option entirely. Setting the [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) or the
+The data is never compressed, so the [ZipWriterConstructorOptions#level](ZipWriterConstructorOptions.md#level) option selects no codec, and
+neither does the [ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) option: both describe how the data is
+already compressed and are written as-is in the entry headers, the method in its own field and the level in
+the level bits of the general purpose bit flag. The method must be set, otherwise an
+[ERR\_UNDEFINED\_COMPRESSION\_METHOD](../variables/ERR_UNDEFINED_COMPRESSION_METHOD.md) error is thrown; the level is optional and leaves those bits unset.
+
+The level is read from the options of the entry only. A level set on the options of the writer applies to
+the entries the writer compresses itself and is not inherited here, since it would describe data the writer
+never produced. A stored entry carries no level bits either way, they describe a deflate stream.
+
+The entries with no content, e.g. the directories, ignore this option entirely. Setting the [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) or the
 [ZipWriterConstructorOptions#rawPassword](ZipWriterConstructorOptions.md#rawpassword) option throws an
 [ERR\_UNSUPPORTED\_ENCRYPTION\_PASS\_THROUGH](../variables/ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH.md) error, unless the
 [ZipWriterConstructorOptions#encrypted](ZipWriterConstructorOptions.md#encrypted) option is set to `true` to declare that the data is already
