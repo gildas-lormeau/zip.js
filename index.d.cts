@@ -3285,15 +3285,21 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * `true` to mark the file names as UTF-8 setting the general purpose bit 11 in the header (see Appendix D -
    * Language Encoding (EFS)), `false` to mark the names as compliant with the original IBM Code Page 437.
    *
-   * Note that this option only sets the flag, it does not ensure that the file names are in the correct
-   * encoding: when it is set to `false`, the names are still encoded in UTF-8 unless the
+   * By default the flag is derived from the content: it is set when the encoded name or the encoded comment
+   * of the entry holds a byte outside ASCII, and cleared otherwise. An ASCII name is spelled identically in
+   * UTF-8 and in Code Page 437, so the flag carries no information there, and every other writer decides it
+   * the same way. The comment is part of the test because the flag announces its encoding too, so deriving
+   * from the name alone would mislabel an ASCII name carrying a comment written in another language.
+   *
+   * Note that setting this option only sets the flag, it does not ensure that the file names are in the
+   * correct encoding: when it is set to `false`, the names are still encoded in UTF-8 unless the
    * {@link ZipWriterConstructorOptions#encodeText} option is also set to encode them in the intended code page.
    * Setting it to `false` alone therefore produces an archive whose file names are mislabeled, holding UTF-8
    * bytes announced as Code Page 437: the names holding characters outside of ASCII are decoded incorrectly
    * by the readers honoring the flag, including {@link ZipReader} unless
    * {@link GetEntriesOptions#filenameEncoding} is set to `"utf-8"`.
    *
-   * @defaultValue true
+   * @defaultValue `true` when the encoded name or comment holds a byte outside ASCII, `false` otherwise
    */
   useUnicodeFileNames?: boolean;
   /**

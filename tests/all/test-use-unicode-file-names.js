@@ -10,11 +10,22 @@ export { test };
 
 async function test() {
 	let blobWriter;
+	// the flag announces that the name and the comment are UTF-8, so it is only needed when they hold
+	// something outside ASCII, which every other writer decides the same way
 	blobWriter = await buildZip();
+	await assertLanguageEncodingFlagIs(false, blobWriter);
+
+	blobWriter = await buildZip({ useUnicodeFileNames: true });
 	await assertLanguageEncodingFlagIs(true, blobWriter);
 
 	blobWriter = await buildZip({ useUnicodeFileNames: false });
 	await assertLanguageEncodingFlagIs(false, blobWriter);
+
+	await assertDerivedFlag({ filename: FILENAME }, false);
+	await assertDerivedFlag({ filename: "café.txt" }, true);
+	// the flag covers the comment too, so an ASCII name is not enough on its own
+	await assertDerivedFlag({ filename: FILENAME, comment: "hello" }, false);
+	await assertDerivedFlag({ filename: FILENAME, comment: "café" }, true);
 }
 
 async function buildZip(options) {
@@ -25,6 +36,22 @@ async function buildZip(options) {
 	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
 	await zipWriter.close();
 	return blobWriter;
+}
+
+async function assertDerivedFlag({ filename, comment }, expectedLanguageEncodingFlag) {
+	const zipWriter = new zip.ZipWriter(new zip.BlobWriter());
+	await zipWriter.add(filename, new zip.BlobReader(BLOB), comment === undefined ? undefined : { comment });
+	const zipReader = new zip.ZipReader(new zip.BlobReader(await zipWriter.close()));
+	const [entry] = await zipReader.getEntries();
+	await zipReader.close();
+	if (entry.bitFlag.languageEncodingFlag != expectedLanguageEncodingFlag) {
+		throw new Error(`Expected language flag to be ${expectedLanguageEncodingFlag} for ${JSON.stringify(filename)}` +
+			`${comment === undefined ? "" : " with comment " + JSON.stringify(comment)}`);
+	}
+	if (entry.filename != filename || (comment !== undefined && entry.comment != comment)) {
+		throw new Error(`Expected ${JSON.stringify(filename)} to round trip, got ${JSON.stringify(entry.filename)}` +
+			`${comment === undefined ? "" : " and comment " + JSON.stringify(entry.comment)}`);
+	}
 }
 
 async function assertLanguageEncodingFlagIs(expectedLanguageEncodingFlag, blobWriter) {

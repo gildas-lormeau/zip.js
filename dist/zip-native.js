@@ -6375,6 +6375,7 @@
 	const EXTRAFIELD_OFFSET_AES_VENDOR_VERSION = 4;
 	const EXTRAFIELD_OFFSET_AES_COMPRESSION_METHOD = 9;
 	const EXTRAFIELD_USDZ_MAX_LENGTH = 67;
+	const MAX_ASCII_CHARACTER_CODE = 0x7f;
 	const VENDOR_VERSION_AE_1 = 1;
 	const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
 	const UNIX_EXTRA_FIELD_TYPE = "unix";
@@ -6974,7 +6975,8 @@
 		const dataDescriptorSignature = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR_SIGNATURE, true);
 		const signal = checkSignalOption(getOptionValue(zipWriter, options, OPTION_SIGNAL));
 		throwIfAborted(signal);
-		const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES, true);
+		const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES,
+			!isASCIIText(rawFilename) || !isASCIIText(rawComment));
 		const compressionMethod = getOptionValue(zipWriter, options, PROPERTY_NAME_COMPRESSION_METHOD);
 		const registeredCodec = passThrough || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
 		if (!passThrough && compressionMethod !== UNDEFINED_VALUE &&
@@ -8479,6 +8481,10 @@
 			headerView,
 			rawLastModDate
 		};
+	}
+
+	function isASCIIText(rawText) {
+		return rawText.every(characterCode => characterCode <= MAX_ASCII_CHARACTER_CODE);
 	}
 
 	function getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted, compressionMethod) {

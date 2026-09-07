@@ -3,7 +3,11 @@
 import * as zip from "../zip-lib.js";
 
 // deterministic archive: any change to this hash means the serialization format changed
-const EXPECTED_SHA256 = "ea74a7a739d5f907fb7e3bed631a42cb9fe7903ee2f8ac756108066b2ff728a4";
+// last moved when the language encoding flag became derived: every name here is ASCII, so bit 11 is now
+// cleared on all eight entries. Adding useUnicodeFileNames: true below reproduces the previous hash
+// ea74a7a739d5f907fb7e3bed631a42cb9fe7903ee2f8ac756108066b2ff728a4 exactly, the flag being the only
+// difference in the archive
+const EXPECTED_SHA256 = "e144e8d5cf6232fc80f10f11f8d5507346dde3ebc6650c255ef4c18f9655935f";
 const SEGMENT_SIZE = 1500;
 const LAST_MOD_DATE = new Date(2020, 0, 1, 12, 0, 0);
 
