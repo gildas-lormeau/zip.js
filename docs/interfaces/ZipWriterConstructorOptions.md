@@ -407,6 +407,8 @@ neither does the [ZipWriterAddDataOptions#compressionMethod](#compressionmethod)
 already compressed and are written as-is in the entry headers, the method in its own field and the level in
 the level bits of the general purpose bit flag. The method must be set, otherwise an
 [ERR\_UNDEFINED\_COMPRESSION\_METHOD](../variables/ERR_UNDEFINED_COMPRESSION_METHOD.md) error is thrown; the level is optional and leaves those bits unset.
+The [ZipWriterAddDataOptions#crc32](ZipWriterAddDataOptions.md#crc32) option must be set as well, otherwise an [ERR\_UNDEFINED\_CRC32](../variables/ERR_UNDEFINED_CRC32.md)
+error is thrown, unless the entry is written as AES in AE-2 format, which stores no checksum.
 
 The level is read from the options of the entry only. A level set on the options of the writer applies to
 the entries the writer compresses itself and is not inherited here, since it would describe data the writer

@@ -6428,6 +6428,7 @@
 	const ERR_UNSUPPORTED_FORMAT = "Zip64 is not supported (set the 'zip64' option to 'true')";
 	const ERR_UNDEFINED_UNCOMPRESSED_SIZE = "Undefined uncompressed size";
 	const ERR_UNDEFINED_COMPRESSION_METHOD = "Undefined compression method";
+	const ERR_UNDEFINED_CRC32 = "Undefined CRC32";
 	const ERR_UNDETERMINED_SIZE = "Undetermined size";
 	const ERR_UNDEFINED_READER = "Undefined reader";
 	const ERR_INVALID_READER = "Invalid reader (must be a Reader instance, a ReadableStream instance, or an object with a 'readable' property)";
@@ -6866,9 +6867,12 @@
 			const diskOffset = getDiskOffset(zipWriter.writer);
 			const diskNumber = getDiskNumber(zipWriter.writer);
 			let crc32 = options.crc32 === UNDEFINED_VALUE ? options[PROPERTY_NAME_SIGNATURE] : options.crc32;
-			if (resolvedOptions.passThroughCompression && !resolvedOptions.passThroughEncryption &&
-				sizesInfo.resolvedOptions.encrypted && !resolvedOptions.zipCrypto) {
+			const storesAE2 = sizesInfo.resolvedOptions.encrypted && !resolvedOptions.zipCrypto;
+			if (resolvedOptions.passThroughCompression && !resolvedOptions.passThroughEncryption && storesAE2) {
 				crc32 = UNDEFINED_VALUE;
+			}
+			if (resolvedOptions.passThroughCompression && reader && !storesAE2 && crc32 === UNDEFINED_VALUE) {
+				throw new Error(ERR_UNDEFINED_CRC32);
 			}
 			options = Object.assign({}, options, attributesInfo.resolvedOptions, metadataInfo.resolvedOptions, sizesInfo.resolvedOptions, {
 				signature: options[PROPERTY_NAME_SIGNATURE],
@@ -9420,6 +9424,7 @@
 	exports.ERR_RESERVED_COMPRESSION_METHOD = ERR_RESERVED_COMPRESSION_METHOD;
 	exports.ERR_SPLIT_ZIP_FILE = ERR_SPLIT_ZIP_FILE;
 	exports.ERR_UNDEFINED_COMPRESSION_METHOD = ERR_UNDEFINED_COMPRESSION_METHOD;
+	exports.ERR_UNDEFINED_CRC32 = ERR_UNDEFINED_CRC32;
 	exports.ERR_UNDEFINED_READER = ERR_UNDEFINED_READER;
 	exports.ERR_UNDEFINED_UNCOMPRESSED_SIZE = ERR_UNDEFINED_UNCOMPRESSED_SIZE;
 	exports.ERR_UNDETERMINED_SIZE = ERR_UNDETERMINED_SIZE;

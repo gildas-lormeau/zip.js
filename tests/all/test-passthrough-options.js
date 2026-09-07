@@ -32,25 +32,25 @@ async function test() {
 }
 
 async function compressionMethodIsRequired() {
-	const { data, uncompressedSize, compressionMethod } = await getPassThroughData();
+	const { data, uncompressedSize, compressionMethod, crc32 } = await getPassThroughData();
 	let thrownError;
 	try {
-		await buildZip({}, { passThrough: true, uncompressedSize }, data);
+		await buildZip({}, { passThrough: true, uncompressedSize }, data, crc32);
 	} catch (error) {
 		thrownError = error;
 	}
 	if (!thrownError || thrownError.message != zip.ERR_UNDEFINED_COMPRESSION_METHOD) {
 		throw new Error("expected the undefined compression method error, got " + thrownError);
 	}
-	const zipData = await buildZip({}, { passThrough: true, uncompressedSize, compressionMethod }, data);
+	const zipData = await buildZip({}, { passThrough: true, uncompressedSize, compressionMethod }, data, crc32);
 	if (getLocalCompressionMethod(zipData) != compressionMethod) {
 		throw new Error("expected the declared compression method in the local header");
 	}
 }
 
 async function compressionMethodIsTakenFromTheWriterOptions() {
-	const { data, uncompressedSize, compressionMethod } = await getPassThroughData();
-	const zipData = await buildZip({ compressionMethod }, { passThrough: true, uncompressedSize }, data);
+	const { data, uncompressedSize, compressionMethod, crc32 } = await getPassThroughData();
+	const zipData = await buildZip({ compressionMethod }, { passThrough: true, uncompressedSize }, data, crc32);
 	if (getLocalCompressionMethod(zipData) != compressionMethod) {
 		throw new Error("expected the compression method set on the writer to be used");
 	}
@@ -66,11 +66,11 @@ async function directoriesIgnorePassThrough() {
 }
 
 async function levelIsNotInheritedFromTheWriterOptions() {
-	const { data, uncompressedSize, compressionMethod } = await getPassThroughData();
+	const { data, uncompressedSize, compressionMethod, crc32 } = await getPassThroughData();
 	const entryOptions = { passThrough: true, uncompressedSize, compressionMethod };
-	const reference = await buildZip({}, entryOptions, data);
+	const reference = await buildZip({}, entryOptions, data, crc32);
 	for (const level of [0, 1, 6, 9]) {
-		const zipData = await buildZip({ level }, entryOptions, data);
+		const zipData = await buildZip({ level }, entryOptions, data, crc32);
 		if (getLocalCompressionMethod(zipData) != compressionMethod) {
 			throw new Error("level " + level + " changed the compression method written as-is");
 		}
@@ -87,11 +87,11 @@ async function levelIsNotInheritedFromTheWriterOptions() {
 // maximum, 6 to 8 nothing. Reading a source entry back gives the level the bits stand for, not the level it
 // was compressed at, so the pairs below are what a copy has to reproduce.
 async function levelDeclaresTheLevelBitsOfTheEntry() {
-	const { data, uncompressedSize, compressionMethod } = await getPassThroughData();
+	const { data, uncompressedSize, compressionMethod, crc32 } = await getPassThroughData();
 	const entryOptions = { passThrough: true, uncompressedSize, compressionMethod };
-	const reference = await buildZip({}, entryOptions, data);
+	const reference = await buildZip({}, entryOptions, data, crc32);
 	for (const [level, expectedBits] of [[0, 0b110], [3, 0b110], [4, 0b100], [5, 0b100], [8, 0], [9, 0b010]]) {
-		const zipData = await buildZip({}, Object.assign({ level }, entryOptions), data);
+		const zipData = await buildZip({}, Object.assign({ level }, entryOptions), data, crc32);
 		const bits = getLocalBitFlag(zipData) & BITFLAG_LEVEL_MASK;
 		if (getLocalCompressionMethod(zipData) != compressionMethod) {
 			throw new Error("level " + level + " changed the compression method written as-is");
@@ -118,7 +118,7 @@ async function storedEntriesNeverCarryLevelBits() {
 			level,
 			uncompressedSize: storedEntry.uncompressedSize,
 			compressionMethod: storedEntry.compressionMethod
-		}, stored);
+		}, stored, storedEntry.crc32);
 		if (getLocalBitFlag(zipData) & BITFLAG_LEVEL_MASK) {
 			throw new Error("level " + level + " set the level bits of a stored entry");
 		}
@@ -126,11 +126,11 @@ async function storedEntriesNeverCarryLevelBits() {
 }
 
 async function levelKeepsApplyingToTheOtherEntries() {
-	const { data, uncompressedSize, compressionMethod } = await getPassThroughData();
+	const { data, uncompressedSize, compressionMethod, crc32 } = await getPassThroughData();
 	const sizes = [];
 	for (const level of [1, 9]) {
 		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { level });
-		await zipWriter.add(FILENAME, new zip.Uint8ArrayReader(data), { passThrough: true, uncompressedSize, compressionMethod });
+		await zipWriter.add(FILENAME, new zip.Uint8ArrayReader(data), { passThrough: true, uncompressedSize, compressionMethod, crc32 });
 		await zipWriter.add(DEFLATED_FILENAME, new zip.TextReader(TEXT_CONTENT));
 		const entries = await readEntries(await zipWriter.close());
 		const [passThroughEntry, deflatedEntry] = entries;
@@ -149,12 +149,12 @@ async function getPassThroughData() {
 	await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT));
 	const [entry] = await readEntries(await zipWriter.close());
 	const data = await entry.getData(new zip.Uint8ArrayWriter(), { passThrough: true });
-	return { data, uncompressedSize: entry.uncompressedSize, compressionMethod: entry.compressionMethod };
+	return { data, uncompressedSize: entry.uncompressedSize, compressionMethod: entry.compressionMethod, crc32: entry.crc32 };
 }
 
-async function buildZip(writerOptions, entryOptions, data) {
+async function buildZip(writerOptions, entryOptions, data, crc32) {
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), writerOptions);
-	await zipWriter.add(FILENAME, new zip.Uint8ArrayReader(data), entryOptions);
+	await zipWriter.add(FILENAME, new zip.Uint8ArrayReader(data), Object.assign({ crc32 }, entryOptions));
 	return await zipWriter.close();
 }
 

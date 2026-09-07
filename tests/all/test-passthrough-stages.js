@@ -92,8 +92,10 @@ async function decryptsWithoutInflating() {
 }
 
 // Reading with "compressed" and writing it back with "compressed" changes the password without ever
-// inflating the content. The CRC32 survives whenever the source published one, which is every scheme but
-// AE-2, where zip.js stores no plaintext CRC32 by design.
+// inflating the content. The CRC32 survives whenever the source published one and the target still stores
+// one, which is every scheme but AE-2, where zip.js stores no plaintext CRC32 by design. An AE-2 source
+// therefore cannot be rekeyed into a scheme which does store it: nothing can supply the checksum without
+// inflating the content, so the writer refuses instead of storing a zero no reader would accept.
 async function rekeysAcrossEncryptionSchemes() {
 	const schemes = [
 		["plain", {}, undefined],
@@ -111,12 +113,18 @@ async function rekeysAcrossEncryptionSchemes() {
 		const source = await readSourceEntry(await buildArchive(writerOptions), { password });
 		for (const [targetLabel, targetOptions, readOptions] of targets) {
 			const label = sourceLabel + " -> " + targetLabel;
-			const archive = await buildArchive({}, Object.assign({
+			const entryOptions = Object.assign({
 				passThrough: "compressed",
 				compressionMethod: source.compressionMethod,
 				uncompressedSize: source.uncompressedSize,
 				crc32: source.crc32
-			}, targetOptions), source.data);
+			}, targetOptions);
+			const storesCrc32 = !targetOptions.password || Boolean(targetOptions.zipCrypto);
+			if (source.crc32 === undefined && storesCrc32) {
+				await assertThrows(entryOptions, source.data, zip.ERR_UNDEFINED_CRC32, label);
+				continue;
+			}
+			const archive = await buildArchive({}, entryOptions, source.data);
 			const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(archive));
 			const [entry] = await zipReader.getEntries();
 			const text = await entry.getData(new zip.TextWriter(),

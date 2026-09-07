@@ -3588,6 +3588,8 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * already compressed and are written as-is in the entry headers, the method in its own field and the level in
    * the level bits of the general purpose bit flag. The method must be set, otherwise an
    * {@link ERR_UNDEFINED_COMPRESSION_METHOD} error is thrown; the level is optional and leaves those bits unset.
+   * The {@link ZipWriterAddDataOptions#crc32} option must be set as well, otherwise an {@link ERR_UNDEFINED_CRC32}
+   * error is thrown, unless the entry is written as AES in AE-2 format, which stores no checksum.
    *
    * The level is read from the options of the entry only. A level set on the options of the writer applies to
    * the entries the writer compresses itself and is not inherited here, since it would describe data the writer
@@ -4963,6 +4965,17 @@ export const ERR_UNDEFINED_UNCOMPRESSED_SIZE: string;
  * Undefined compression method error
  */
 export const ERR_UNDEFINED_COMPRESSION_METHOD: string;
+/**
+ * Undefined CRC32 error (thrown by {@link ZipWriter#add} when the {@link ZipWriterConstructorOptions#passThrough}
+ * option is set and the {@link ZipWriterAddDataOptions#crc32} option is unset on an entry which stores a checksum)
+ *
+ * @remarks The checksum cannot be computed from data which is not decompressed, and every entry stores one except
+ * an AES entry in AE-2 format, so writing the data as-is without declaring it would store a zero which other tools
+ * reject. Copying an entry read with the {@link ZipReaderOptions#passThrough} option set to `"compressed"` from an
+ * AE-2 source into an entry which is not AES-encrypted is therefore refused rather than written: that source
+ * published no checksum to carry over.
+ */
+export const ERR_UNDEFINED_CRC32: string;
 export const ERR_UNDETERMINED_SIZE: string;
 /**
  * Undefined reader error

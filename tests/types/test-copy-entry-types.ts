@@ -23,7 +23,7 @@ async function copy(archive: Uint8Array, prefix: string): Promise<Uint8Array> {
 	const zipReader = new ZipReader(new Uint8ArrayReader(archive));
 	const zipWriter = new ZipWriter(new Uint8ArrayWriter());
 	for (const entry of await zipReader.getEntries()) {
-		const reader = entry.directory ? null :
+		const reader = entry.directory ? undefined :
 			new Uint8ArrayReader(await entry.getData(new Uint8ArrayWriter(), { passThrough: true }));
 		await zipWriter.add(prefix + entry.filename, reader, { passThrough: true, entry });
 	}

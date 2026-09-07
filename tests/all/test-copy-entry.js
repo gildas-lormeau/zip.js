@@ -24,6 +24,7 @@ async function test() {
 		await forwardsOnlyTheCompressionStageWhenReencrypting();
 		await keepsTheMetadataWithoutPassThrough();
 		await rejectsAZipCryptoDateChange();
+		await rejectsAnAE2SourceWhichWouldStoreNoChecksum();
 		await rejectsValuesWhichAreNotEntries();
 	} finally {
 		await zip.terminateWorkers();
@@ -173,6 +174,29 @@ async function rejectsAZipCryptoDateChange() {
 			lastModDate: new Date("2011-12-13T14:15:16Z")
 		});
 	}, zip.ERR_ZIP_CRYPTO_LAST_MOD_DATE, "changing the date of a ZipCrypto entry");
+}
+
+// An AE-2 entry stores no plaintext checksum, so decrypting it into an entry which does store one cannot
+// produce a valid checksum without inflating the content. The writer refuses rather than storing a zero.
+async function rejectsAnAE2SourceWhichWouldStoreNoChecksum() {
+	const source = await buildSourceArchive();
+	const entry = (await readEntries(source)).find(candidate => candidate.filename == "aes.txt");
+	const data = await entry.getData(new zip.Uint8ArrayWriter(), { passThrough: "compressed", password: PASSWORD });
+	await assertThrows(() => {
+		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		return zipWriter.add(entry.filename, new zip.Uint8ArrayReader(data), { passThrough: "compressed", entry });
+	}, zip.ERR_UNDEFINED_CRC32, "decrypting an AE-2 entry into an unencrypted one");
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.add(entry.filename, new zip.Uint8ArrayReader(data), {
+		passThrough: "compressed",
+		entry,
+		password: NEW_PASSWORD
+	});
+	const [copied] = await readEntries(await zipWriter.close());
+	const text = await copied.getData(new zip.TextWriter(), { password: NEW_PASSWORD });
+	if (text != TEXT_CONTENT) {
+		throw new Error("expected the same entry to rekey into AES, where no checksum is stored");
+	}
 }
 
 async function rejectsValuesWhichAreNotEntries() {
