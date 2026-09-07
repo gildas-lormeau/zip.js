@@ -49,7 +49,8 @@ function checkMangledPropertyNames() {
 						(addedNames.length ? "\n  added: " + addedNames.join(" ") : "") +
 						(removedNames.length ? "\n  removed: " + removedNames.join(" ") : "") +
 						"\n  an added name must be created and read inside the bundle only, never on an object" +
-						" coming from the host, from a user or from a worker message" +
+						" coming from the host, from a user or from a worker message, and never on an object" +
+						" handed back to the user, an error the library throws included" +
 						"\n  once audited, run UPDATE_MANGLED_PROPERTY_NAMES=1 npm run build");
 				}
 			}

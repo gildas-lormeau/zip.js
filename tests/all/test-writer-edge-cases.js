@@ -14,6 +14,8 @@ async function test() {
 		await testPaddedFilenames();
 		await testCommentTooLong();
 		await testZipWriterStreamError();
+		await testWriterSizeMustBeWritable();
+		await testWriterSizeKeepsItsStartingOffset();
 	} finally {
 		await zip.terminateWorkers();
 	}
@@ -134,5 +136,66 @@ async function testZipWriterStreamError() {
 	await drained;
 	if (!writableErrored || !closeRejected || !drainError || drainError.message != zip.ERR_DUPLICATED_NAME) {
 		throw new Error("expected the duplicate entry to error the writable, close() and the readable");
+	}
+}
+
+// zip.js writes the number of bytes written into the size property of a caller-supplied writer, so a writer
+// refusing the assignment cannot work. It used to fail with a bare engine TypeError naming no zip.js concept,
+// and only for some shapes at construction: a getter returning a number passed the "is it undefined" test and
+// died later, inside writeData, once the first entry had already reached the caller's writable.
+async function testWriterSizeMustBeWritable() {
+	const descriptors = {
+		"a getter returning a number": { get: () => 0, configurable: true },
+		"a getter returning undefined": { get: () => undefined, configurable: true },
+		"a read-only property": { value: 0, writable: false, configurable: true }
+	};
+	for (const [description, descriptor] of Object.entries(descriptors)) {
+		const writer = Object.defineProperty({ writable: new WritableStream({ write() { } }) }, "size", descriptor);
+		let thrownError;
+		try {
+			const zipWriter = new zip.ZipWriter(writer);
+			await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT));
+			await zipWriter.close();
+		} catch (error) {
+			thrownError = error;
+		}
+		if (!thrownError || thrownError.message != zip.ERR_WRITER_SIZE_NOT_WRITABLE) {
+			throw new Error("expected " + description + " to be rejected, got " + (thrownError ? thrownError.message : "no error"));
+		}
+	}
+	const frozen = Object.freeze({ writable: new WritableStream({ write() { } }) });
+	try {
+		new zip.ZipWriter(frozen);
+		throw new Error("expected a frozen writer to be rejected");
+	} catch (error) {
+		if (error.message != zip.ERR_WRITER_SIZE_NOT_WRITABLE) {
+			throw error;
+		}
+	}
+}
+
+// the guard assigns to size to find out whether it can, so it must not disturb the documented contract: a
+// value set before the first write is the starting offset, and an unset one becomes 0.
+async function testWriterSizeKeepsItsStartingOffset() {
+	const writer = { writable: new WritableStream({ write() { } }), size: 1000 };
+	const zipWriter = new zip.ZipWriter(writer);
+	await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT));
+	await zipWriter.close();
+	if (writer.size <= 1000) {
+		throw new Error("expected the starting offset to be kept, got " + writer.size);
+	}
+	const unset = { writable: new WritableStream({ write() { } }) };
+	new zip.ZipWriter(unset);
+	if (unset.size !== 0) {
+		throw new Error("expected an unset size to become 0, got " + unset.size);
+	}
+	const settable = { writable: new WritableStream({ write() { } }) };
+	let stored = 0;
+	Object.defineProperty(settable, "size", { get: () => stored, set: value => { stored = value; }, configurable: true });
+	const settableWriter = new zip.ZipWriter(settable);
+	await settableWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT));
+	await settableWriter.close();
+	if (!stored) {
+		throw new Error("expected an accessor pair to be accepted and written through, got " + stored);
 	}
 }

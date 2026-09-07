@@ -3583,6 +3583,7 @@
 	const ERR_HTTP_RESOURCE_CHANGED = "HTTP resource changed";
 	const ERR_ITERATOR_COMPLETED_TOO_SOON = "Writer iterator completed too soon";
 	const ERR_WRITER_NOT_INITIALIZED = "Writer not initialized";
+	const ERR_WRITER_SIZE_NOT_WRITABLE = "Invalid writer (size must be writable)";
 
 	const CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 	const HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
@@ -4496,8 +4497,10 @@
 					writable: toCompatibleWritable(writer)
 				};
 			}
-			if (writer.size === UNDEFINED_VALUE) {
-				writer.size = 0;
+			try {
+				writer.size = writer.size === UNDEFINED_VALUE ? 0 : writer.size;
+			} catch {
+				throw new Error(ERR_WRITER_SIZE_NOT_WRITABLE);
 			}
 			return writer;
 		}
@@ -10761,6 +10764,7 @@
 	exports.ERR_UNSUPPORTED_UINT64 = ERR_UNSUPPORTED_UINT64;
 	exports.ERR_WORKER_STARTUP_TIMEOUT = ERR_WORKER_STARTUP_TIMEOUT;
 	exports.ERR_WRITER_NOT_INITIALIZED = ERR_WRITER_NOT_INITIALIZED;
+	exports.ERR_WRITER_SIZE_NOT_WRITABLE = ERR_WRITER_SIZE_NOT_WRITABLE;
 	exports.ERR_ZIP_CRYPTO_LAST_MOD_DATE = ERR_ZIP_CRYPTO_LAST_MOD_DATE;
 	exports.ERR_ZIP_NOT_EMPTY = ERR_ZIP_NOT_EMPTY;
 	exports.HttpRangeReader = HttpRangeReader;

@@ -1105,6 +1105,9 @@ export interface WritableWriter {
    * updated as the data is written, so a writer needing the value (e.g. to compute the offset of a
    * disk) can read it. A value set before the first write is kept and used as the starting offset
    * instead of being reset to 0.
+   *
+   * It must therefore be assignable, see {@link ERR_WRITER_SIZE_NOT_WRITABLE}: a getter with no setter
+   * is rejected when the writer is passed, not once the first entry has been written.
    */
   size?: number;
   /**
@@ -4868,6 +4871,15 @@ export const ERR_INVALID_READER: string;
  * Writer not initialized error
  */
 export const ERR_WRITER_NOT_INITIALIZED: string;
+/**
+ * Invalid writer size error
+ *
+ * @remarks
+ * Thrown when {@link WritableWriter#size} cannot be assigned, e.g. when it is a getter with no setter, a read-only
+ * property or a frozen object. zip.js writes the number of bytes written into that property, so a writer refusing the
+ * assignment used to fail with a bare `TypeError` from the engine, and only once the first entry had been written.
+ */
+export const ERR_WRITER_SIZE_NOT_WRITABLE: string;
 /**
  * Zip file not empty error
  */

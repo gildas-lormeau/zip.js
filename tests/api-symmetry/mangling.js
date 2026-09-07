@@ -1,14 +1,24 @@
 // Audits the members of the public API against the two lists that decide whether minification keeps them.
 //
 // terser mangles every property name except those on the reserved list built by reserved-property-names.js,
-// whose first and largest source is index.d.ts. A member of a public class therefore has exactly two correct
-// states: declared in index.d.ts, so the minified builds keep it on purpose, or absent from index.d.ts and
-// present in mangled-property-names.js, so the minified builds rename it on purpose.
+// whose first and largest source is index.d.ts. A member of a public class therefore has three correct states:
+// declared in index.d.ts, so the minified builds keep it on purpose; absent from index.d.ts and present in
+// mangled-property-names.js, so the minified builds rename it on purpose; or listed in
+// worker-message-property-names.js, which reserves the names crossing a postMessage boundary and is audited
+// on its own. message, stack and outputSize reach a caller that way.
 //
-// A member in neither list is the failure this audit exists for: it is undeclared, so nothing in the build
+// A member in none of the three is the failure this audit exists for: it is undeclared, so nothing in the build
 // intends to keep it, yet it survives anyway because its name happens to collide with a name terser protects
 // on its own, i.e. a DOM property or a member of lib.dom/lib.webworker. It works today and disappears the day
 // terser updates that list. ZipEntry#moveTo lived in that state for five weeks before being removed.
+//
+// An error is a public object too, and the one the audit was missing: zip.js decorates the errors it throws with
+// properties naming what failed, and those names go out to the caller exactly like a member of an entry.
+// ZipReader#getData's overlappingEntry is the case this covers, undeclared and unmangled for five weeks.
+// Every recipe in collectErrors must throw, so one that stops failing shrinks the audit loudly instead of
+// quietly. Three decorations stay out of reach here and are declared today: entryId needs a Reader whose init()
+// fails, which no ZipFS method can produce without the network, and entryName and exportedEntryNames belong to
+// the File System Access API paths, which node has no handle for.
 //
 // The reverse, a member declared in index.d.ts and mangled, cannot happen while the reserved list is built
 // from the declarations, so it is asserted rather than reported: it would mean the two files disagree.
@@ -23,9 +33,11 @@
 //
 // Run with: npm run test-api-mangling
 
+import { readFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { collectDeclarationNames } from "../../reserved-property-names.js";
 import { MANGLED_PROPERTY_NAMES } from "../../mangled-property-names.js";
+import { WORKER_MESSAGE_PROPERTY_NAMES } from "../../worker-message-property-names.js";
 import { ACCEPTED_UNDECLARED } from "./mangling-decisions.js";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
@@ -35,6 +47,7 @@ const IGNORED_MEMBERS = ["constructor", "length", "name", "prototype", "caller",
 const zip = await import(pathToFileURL(ROOT + "index.js"));
 const declared = collectDeclarationNames(ROOT + "index.d.ts");
 const mangled = new Set(MANGLED_PROPERTY_NAMES);
+const workerMessageNames = new Set(WORKER_MESSAGE_PROPERTY_NAMES);
 const members = new Map();
 const exportedClasses = new Map();
 const instantiatedClasses = new Set();
@@ -134,6 +147,80 @@ async function collectInstances() {
 	await collectReaderWriterInstances(data);
 	await collectStreamInstances(data);
 	collectTempStreamInstances();
+	await collectErrors(data);
+}
+
+// every recipe here must throw, and the error it throws is walked like any other object the API hands out
+async function collectErrors(data) {
+	const recipes = {
+		"an unsafe filename": async () => {
+			const writer = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { level: 0 });
+			await writer.add("../evil.txt", new zip.TextReader("content"));
+			await readArchive(await writer.close());
+		},
+		"overlapping entries": async () => {
+			const overlapping = new Uint8Array(readFileSync(ROOT + "tests/data/lorem-overlapping-entries.zip"));
+			await readArchive(overlapping, {}, async entries => {
+				for (const entry of entries) {
+					await entry.getData(new zip.TextWriter(), { checkOverlappingEntry: true });
+				}
+			});
+		},
+		"an ambiguous archive": async () => {
+			const appended = new Uint8Array(data.length + 64);
+			appended.set(data);
+			appended.fill(0x5a, data.length);
+			await readArchive(appended, { checkAmbiguity: true });
+		},
+		"corrupt compressed data": async () => {
+			const writer = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+			await writer.add("compressed.txt", new zip.TextReader("content".repeat(40)));
+			const corrupt = await writer.close();
+			corrupt.fill(0x5a, 50, 70);
+			await readArchive(corrupt, {}, entries => entries[0].getData(new zip.TextWriter()));
+		},
+		"a filesystem export": async () => {
+			const filesystem = new zip.ZipFS();
+			filesystem.addText("good.txt", "content");
+			filesystem.addReadable("bad.txt", new ReadableStream({
+				start: controller => controller.error(new Error("the audit's simulated stream error"))
+			}));
+			await filesystem.exportUint8Array();
+		},
+		"a duplicated name through ZipWriterStream": async () => {
+			const writerStream = new zip.ZipWriterStream();
+			const drained = writerStream.readable.pipeTo(new WritableStream()).catch(() => undefined);
+			await new Blob(["content"]).stream().pipeTo(writerStream.writable("duplicated.txt"));
+			await new Blob(["content"]).stream().pipeTo(writerStream.writable("duplicated.txt")).catch(() => undefined);
+			try {
+				await writerStream.close();
+			} finally {
+				await drained;
+			}
+		}
+	};
+	for (const [label, provoke] of Object.entries(recipes)) {
+		let thrownError;
+		try {
+			await provoke();
+		} catch (error) {
+			thrownError = error;
+		}
+		if (thrownError) {
+			collectInstance(thrownError, "the error thrown by " + label);
+		} else {
+			failures.push(`the recipe for ${label} no longer throws, so the error it covered stays invisible here`);
+		}
+	}
+}
+
+async function readArchive(array, options, read = entries => entries) {
+	const reader = new zip.ZipReader(new zip.Uint8ArrayReader(array), options);
+	try {
+		await read(await reader.getEntries());
+	} finally {
+		await reader.close();
+	}
 }
 
 // the readers and the writers keep their state on the instance, so each one is reached through an
@@ -202,7 +289,7 @@ function collectTempStreamInstances() {
 }
 
 function classify() {
-	const counts = { declared: 0, mangled: 0, accepted: 0 };
+	const counts = { declared: 0, mangled: 0, reserved: 0, accepted: 0 };
 	[...members.keys()].sort().forEach(name => {
 		const origins = [...members.get(name)].sort().join(", ");
 		if (declared.has(name)) {
@@ -212,13 +299,16 @@ function classify() {
 			}
 		} else if (mangled.has(name)) {
 			counts.mangled++;
+		} else if (workerMessageNames.has(name)) {
+			counts.reserved++;
 		} else if (isAccepted(name)) {
 			counts.accepted++;
 		} else {
-			failures.push(`${name} is undeclared and unmangled, so it survives minification only by name collision (${origins})`);
+			failures.push(`${name} is in none of index.d.ts, mangled-property-names.js and worker-message-property-names.js, so it survives minification only by name collision (${origins})`);
 		}
 	});
-	console.log(`${members.size} members reached: ${counts.declared} declared, ${counts.mangled} mangled, ${counts.accepted} accepted`);
+	console.log(`${members.size} members reached: ${counts.declared} declared, ${counts.mangled} mangled, ` +
+		`${counts.reserved} reserved as worker message names, ${counts.accepted} accepted`);
 }
 
 function isAccepted(name) {
@@ -255,5 +345,5 @@ function summarize() {
 		console.log(`\n${failures.length} problem(s) in what the minified builds keep`);
 		process.exit(1);
 	}
-	console.log("every member of the public API is either declared in index.d.ts or mangled on purpose");
+	console.log("every member of the public API, errors included, is declared, mangled or reserved on purpose");
 }

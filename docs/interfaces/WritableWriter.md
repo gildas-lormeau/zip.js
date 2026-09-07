@@ -27,6 +27,9 @@ updated as the data is written, so a writer needing the value (e.g. to compute t
 disk) can read it. A value set before the first write is kept and used as the starting offset
 instead of being reset to 0.
 
+It must therefore be assignable, see [ERR\_WRITER\_SIZE\_NOT\_WRITABLE](../variables/ERR_WRITER_SIZE_NOT_WRITABLE.md): a getter with no setter
+is rejected when the writer is passed, not once the first entry has been written.
+
 ***
 
 ### writable
