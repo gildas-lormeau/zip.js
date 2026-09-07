@@ -7666,6 +7666,7 @@
 			localExtraFieldZip64Length,
 			rawExtraFieldExtendedTimestamp,
 			extraFieldExtendedTimestampFlag,
+			extraFieldExtendedTimestampTime,
 			rawExtraFieldNTFS,
 			rawExtraFieldUnix,
 			rawExtraFieldAES,
@@ -7836,6 +7837,7 @@
 			signature: crc32,
 			crc32: encrypted && !zipCrypto && !passThroughCompression ? UNDEFINED_VALUE : crc32,
 			extraFieldExtendedTimestampFlag,
+			extraFieldExtendedTimestampTime,
 			zip64UncompressedSize,
 			zip64CompressedSize
 		});
@@ -7903,6 +7905,7 @@
 		let rawExtraFieldNTFS;
 		let rawExtraFieldExtendedTimestamp;
 		let extraFieldExtendedTimestampFlag;
+		let extraFieldExtendedTimestampTime;
 		if (extendedTimestamp) {
 			const lastModTimeUnix = getTimeUnix(lastModDate);
 			const lastModTimeUnixInRange = inUnixTimeRange(lastModTimeUnix);
@@ -7910,6 +7913,7 @@
 				const extraFieldTimestampLength = 9 + (lastAccessDate ? 4 : 0) + (creationDate ? 4 : 0);
 				const extraFieldTimestamp = createRecordWriter(extraFieldTimestampLength);
 				extraFieldExtendedTimestampFlag = 0x1 + (lastAccessDate ? 0x2 : 0) + (creationDate ? 0x4 : 0);
+				extraFieldExtendedTimestampTime = lastModTimeUnix;
 				extraFieldTimestamp.writeUint16(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 				extraFieldTimestamp.writeUint16(extraFieldTimestampLength - 4);
 				extraFieldTimestamp.writeUint8(extraFieldExtendedTimestampFlag);
@@ -8062,6 +8066,7 @@
 			version,
 			compressionMethod,
 			extraFieldExtendedTimestampFlag,
+			extraFieldExtendedTimestampTime,
 			rawExtraFieldZip64: EMPTY_UINT8_ARRAY,
 			localExtraFieldZip64Length,
 			rawExtraFieldExtendedTimestamp,
@@ -8245,9 +8250,8 @@
 				rawExtraFieldUnix,
 				rawExtraField,
 				rawCentralExtraField,
-				extendedTimestamp,
 				extraFieldExtendedTimestampFlag,
-				lastModDate,
+				extraFieldExtendedTimestampTime,
 				zip64Enabled,
 				uncompressedSize,
 				compressedSize
@@ -8290,16 +8294,15 @@
 			fileEntry.zip64Offset = zip64Offset;
 			fileEntry.zip64DiskNumberStart = zip64DiskNumberStart;
 			let rawExtraFieldTimestamp;
-			const lastModTimeUnix = getTimeUnix(lastModDate);
-			if (extendedTimestamp && inUnixTimeRange(lastModTimeUnix)) {
+			if (extraFieldExtendedTimestampTime === UNDEFINED_VALUE) {
+				rawExtraFieldTimestamp = EMPTY_UINT8_ARRAY;
+			} else {
 				const extraFieldTimestamp = createRecordWriter(9);
 				extraFieldTimestamp.writeUint16(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 				extraFieldTimestamp.writeUint16(5);
 				extraFieldTimestamp.writeUint8(extraFieldExtendedTimestampFlag);
-				extraFieldTimestamp.writeUint32(lastModTimeUnix);
+				extraFieldTimestamp.writeUint32(extraFieldExtendedTimestampTime);
 				rawExtraFieldTimestamp = extraFieldTimestamp.array;
-			} else {
-				rawExtraFieldTimestamp = EMPTY_UINT8_ARRAY;
 			}
 			fileEntry.rawExtraFieldExtendedTimestamp = rawExtraFieldTimestamp;
 			const extraFieldLength = getLength(
