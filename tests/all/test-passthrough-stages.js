@@ -1,3 +1,5 @@
+/* global ReadableStream */
+
 // `passThrough` controls two codec stages, and the pipeline runs them in a fixed order: deflate then
 // encrypt on the way in, decrypt then inflate on the way out. `passThrough: "compressed"` skips the
 // inner stage only, so the caller deals in compressed but not encrypted bytes. That makes three things
@@ -13,6 +15,7 @@ const PASSWORD = "password";
 const NEW_PASSWORD = "new-password";
 const ZIP_CRYPTO_OVERHEAD = 12;
 const AES_OVERHEAD = [20, 24, 28];
+const MAX_32_BITS = 0xffffffff;
 
 export { test };
 
@@ -24,6 +27,7 @@ async function test() {
 		await comparesContentAcrossPasswords();
 		await keepsRejectingWhatItRejectedBefore();
 		await rejectsUnknownValues();
+		await reservesRoomForTheEncryptionEnvelope();
 	} finally {
 		await zip.terminateWorkers();
 	}
@@ -222,6 +226,54 @@ async function rejectsUnknownValues() {
 		}
 		assertMessage(thrownError, zip.ERR_UNSUPPORTED_PASS_THROUGH_VALUE, "the filesystem API");
 	}
+}
+
+// The room the writer reserves for an entry has to count the envelope it is about to add itself. With
+// `passThrough: "compressed"` the compression stage is skipped but the encryption stage still runs, so the
+// stored bytes are the source bytes plus the envelope, and an entry whose compressed content lands within
+// one envelope of 4GB needs zip64 for its compressed size. That boundary is the only observable consequence
+// of the correction, and it is reachable without 4GB of data: the reservation is computed from the size the
+// reader declares, before a byte is read, so a reader may declare the size and hand over a short stream.
+// The envelope is the unit, so the two schemes put the boundary in two different places.
+async function reservesRoomForTheEncryptionEnvelope() {
+	const source = await readSourceEntry(await buildArchive({}));
+	for (const { label, writerOptions, overhead } of [
+		{ label: "AES-256", writerOptions: { password: PASSWORD }, overhead: AES_OVERHEAD[2] },
+		{ label: "ZipCrypto", writerOptions: { password: PASSWORD, zipCrypto: true }, overhead: ZIP_CRYPTO_OVERHEAD }
+	]) {
+		const onBoundary = await addsZip64(MAX_32_BITS - overhead, writerOptions, source);
+		const belowBoundary = await addsZip64(MAX_32_BITS - overhead - 1, writerOptions, source);
+		if (!onBoundary) {
+			throw new Error("expected " + label + " to reserve room for its " + overhead + "-byte envelope");
+		}
+		if (belowBoundary) {
+			throw new Error("expected " + label + " to stay below zip64 one byte under its envelope");
+		}
+	}
+}
+
+async function addsZip64(declaredSize, writerOptions, source) {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), writerOptions);
+	const entry = await zipWriter.add(FILENAME, declaredSizeReader(declaredSize, source.data), {
+		passThrough: "compressed",
+		compressionMethod: source.compressionMethod,
+		uncompressedSize: source.uncompressedSize,
+		crc32: source.crc32
+	});
+	await zipWriter.close();
+	return entry.zip64;
+}
+
+function declaredSizeReader(size, data) {
+	return {
+		size,
+		readable: new ReadableStream({
+			start(controller) {
+				controller.enqueue(new Uint8Array(data));
+				controller.close();
+			}
+		})
+	};
 }
 
 async function buildArchive(writerOptions, entryOptions, data) {
