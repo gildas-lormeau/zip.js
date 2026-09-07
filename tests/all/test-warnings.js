@@ -1,6 +1,7 @@
-/* global TextEncoder, Blob, WritableStream */
+/* global TextEncoder, ReadableStream */
 
 import * as zip from "../zip-lib.js";
+import { readTextFromReadable } from "../stream-helpers.js";
 
 export { test };
 
@@ -217,20 +218,30 @@ async function checkMismatchedZip64EndOfCentralDirectory() {
 async function checkReaderStreamChunk() {
 	const data = await buildArchive();
 	getView(data).setUint16(8, 8, true);
+	const source = new ReadableStream({
+		start(controller) {
+			controller.enqueue(data);
+			controller.close();
+		}
+	});
+	const entriesStream = source.pipeThrough(new zip.ZipReaderStream({ strictness: "tolerant" }));
+	const reader = entriesStream.getReader();
 	const chunks = [];
-	await new Blob([data]).stream()
-		.pipeThrough(new zip.ZipReaderStream({ strictness: "tolerant" }))
-		.pipeTo(new WritableStream({
-			async write(chunk) {
-				await chunk.readable.pipeTo(new WritableStream());
-				chunks.push(chunk);
-			}
-		}));
+	for (; ;) {
+		const { done, value } = await reader.read();
+		if (done) {
+			break;
+		}
+		await readTextFromReadable(value.readable);
+		chunks.push(value);
+	}
 	const [chunk] = chunks;
+	assert(chunks.length == 2, "every entry of the archive must be streamed, got " + chunks.length);
 	assert(chunk.localDirectory, "a chunk must expose the local directory deposited by getData()");
 	assert(chunk.localDirectory.compressionMethod == 8, "the local directory of the chunk must hold the local header values");
 	assertWarning(chunk.warnings, zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD);
 	assert(chunk.getData === undefined, "a chunk must not expose getData()");
+	reader.releaseLock();
 }
 
 async function buildArchive(options = {}, writerOptions = {}) {
