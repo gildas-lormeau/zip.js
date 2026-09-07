@@ -11,6 +11,7 @@ async function test() {
 		await exportsIntoACallerSuppliedZipWriter();
 		await leavesTheArchiveOpenForTheCaller();
 		await reportsTheWarningsOfTheExport();
+		await reportsTheCentralDirectoryProgress();
 		await composesSeveralTreesIntoOneArchive();
 		await keepsTheBufferedWriteChoiceOfTheWriter();
 		await takesTheWriterOptionsAsDefaults();
@@ -57,6 +58,26 @@ async function reportsTheWarningsOfTheExport() {
 	assert(warnings.some(warning => warning.reason == WARNING_COMPRESSION_UNAVAILABLE),
 		"the export must report the unavailable compression, got " + JSON.stringify(warnings));
 	zip.resetConfiguration();
+}
+
+// the progress reported while the central directory is written, which ZipWriterCloseOptions#onprogress
+// carries and no export* method could reach: forwarding it through the options of the export was never the
+// answer, because those already carry the byte-level onprogress and the same function would be called with
+// two signatures. Owning the close call settles it, the caller passing the handler where it belongs
+async function reportsTheCentralDirectoryProgress() {
+	const fs = buildFileSystem();
+	const zipWriter = new zip.ZipWriter(new zip.BlobWriter());
+	await fs.exportZip(zipWriter);
+	const calls = [];
+	await zipWriter.close(undefined, {
+		onprogress: (index, total, entry) => {
+			calls.push({ index, total, filename: entry.filename });
+		}
+	});
+	assert(calls.length == 3, "the central directory of 3 entries must report 3 times, got " + calls.length);
+	assert(calls.every(call => call.total == 3), "every call must report the total, got " + JSON.stringify(calls));
+	assert(calls.map(call => call.index).join() == "1,2,3", "the calls must count up, got " + JSON.stringify(calls));
+	assertFilenames(calls.map(call => call.filename), ["lorem.txt", "folder/", "folder/ipsum.txt"]);
 }
 
 // exporting twice into the same writer is the composition the open archive buys, and the names must not
