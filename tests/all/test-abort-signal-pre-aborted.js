@@ -1,6 +1,14 @@
-/* global AbortController */
+/* global AbortController, AbortSignal */
 
 import * as zip from "../zip-lib.js";
+
+// The reason of a signal is ignored by the engines below its support floor, which report an
+// AbortError with no reason instead, so the identity of the rejection can only be asserted where
+// AbortSignal exposes it.
+const SUPPORTS_REASON = "reason" in AbortSignal.prototype;
+// Not zip.ERR_ABORTED: the constant is exported by the fs entry points only, and this test also runs
+// against the builds without them.
+const ABORTED_MESSAGE = "The operation was aborted";
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet";
 const FILENAME = "lorem.txt";
@@ -27,7 +35,7 @@ async function checkWriterRejects() {
 	controller.abort(reason);
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
 	const error = await captureError(() => zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT), { signal: controller.signal }));
-	assert(error === reason, "add() must reject with the reason of an already aborted signal");
+	assertAborted(error, reason, "add()");
 }
 
 async function checkReaderRejects() {
@@ -39,7 +47,7 @@ async function checkReaderRejects() {
 	try {
 		const [entry] = await reader.getEntries();
 		const error = await captureError(() => entry.getData(new zip.TextWriter(), { signal: controller.signal }));
-		assert(error === reason, "getData() must reject with the reason of an already aborted signal");
+		assertAborted(error, reason, "getData()");
 	} finally {
 		await reader.close();
 	}
@@ -51,7 +59,7 @@ async function checkWriterRejectsWithoutReason() {
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
 	const error = await captureError(() => zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT), { signal }));
 	assert(error.name == "AbortError", "a signal aborted without a reason must reject with an AbortError, got " + error.name);
-	assert(error.message == zip.ERR_ABORTED, "the error message must be " + JSON.stringify(zip.ERR_ABORTED) + ", got " + JSON.stringify(error.message));
+	assert(error.message == ABORTED_MESSAGE, "the error message must be " + JSON.stringify(ABORTED_MESSAGE) + ", got " + JSON.stringify(error.message));
 }
 
 async function checkUnabortedSignalStillWorks() {
@@ -82,6 +90,15 @@ async function captureError(run) {
 		return error;
 	}
 	throw new Error("the operation must not resolve");
+}
+
+function assertAborted(error, reason, label) {
+	if (SUPPORTS_REASON) {
+		assert(error === reason, label + " must reject with the reason of an already aborted signal");
+	} else {
+		assert(error.name == "AbortError" && error.message == ABORTED_MESSAGE,
+			label + " must reject with an AbortError when the signal carries no reason, got " + error.name + "/" + error.message);
+	}
 }
 
 function assert(condition, message) {
