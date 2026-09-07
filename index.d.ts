@@ -582,6 +582,13 @@ export interface Configuration extends WorkerConfiguration {
 
 /**
  * Represents configuration passed to {@link configure}, the constructor of {@link ZipReader}, {@link FileEntry#getData}, the constructor of {@link ZipWriter}, and {@link ZipWriter#add}.
+ *
+ * @remarks
+ * The three options below are read as truthy values, they are not converted. Any non-empty string is therefore
+ * `true`, `"false"` and `"0"` included. This is deliberate, so that an expression such as
+ * `useWebWorkers: supported && enabled` keeps working, but it differs from the numeric options, which do accept
+ * the string a form control, a query string or an environment variable yields. A boolean read from one of those
+ * must be converted by the caller.
  */
 export interface WorkerConfiguration {
   /**

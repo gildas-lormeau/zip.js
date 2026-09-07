@@ -8,6 +8,14 @@
 
 Represents configuration passed to [configure](../functions/configure.md), the constructor of [ZipReader](../classes/ZipReader.md), [FileEntry#getData](FileEntry.md#getdata), the constructor of [ZipWriter](../classes/ZipWriter.md), and [ZipWriter#add](../classes/ZipWriter.md#add).
 
+## Remarks
+
+The three options below are read as truthy values, they are not converted. Any non-empty string is therefore
+`true`, `"false"` and `"0"` included. This is deliberate, so that an expression such as
+`useWebWorkers: supported && enabled` keeps working, but it differs from the numeric options, which do accept
+the string a form control, a query string or an environment variable yields. A boolean read from one of those
+must be converted by the caller.
+
 ## Extended by
 
 - [`Configuration`](Configuration.md)
