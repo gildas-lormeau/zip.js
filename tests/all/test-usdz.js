@@ -45,9 +45,21 @@ async function test() {
 	} catch (error) {
 		testHugeExtraFieldRejected = error.message == zip.ERR_INVALID_EXTRAFIELD_DATA;
 	}
+	let testSplitWriterRejected = false;
+	try {
+		new zip.ZipWriter(new zip.SplitDataWriter(splitWriterGenerator(), 512), { usdz: true });
+	} catch (error) {
+		testSplitWriterRejected = error.message == zip.ERR_UNSUPPORTED_SPLIT_USDZ;
+	}
 	await zip.terminateWorkers();
-	if (!testOK || !testPasswordRejected || !testHugeExtraFieldRejected) {
+	if (!testOK || !testPasswordRejected || !testHugeExtraFieldRejected || !testSplitWriterRejected) {
 		throw new Error();
+	}
+}
+
+function* splitWriterGenerator() {
+	while (true) {
+		yield new zip.BlobWriter("model/vnd.usdz+zip");
 	}
 }
 

@@ -6246,6 +6246,7 @@
 	const ERR_INVALID_VERSION = "Version exceeds 65535";
 	const ERR_INVALID_ENCRYPTION_STRENGTH = "The strength must equal 1, 2, or 3";
 	const ERR_UNSUPPORTED_ENCRYPTION_USDZ = "Encryption is not supported in USDZ files";
+	const ERR_UNSUPPORTED_SPLIT_USDZ = "Split zip files are not supported in USDZ files";
 	const ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = "Encryption is not supported when the 'passThrough' option is set";
 	const ERR_INVALID_EXTRAFIELD = "Invalid extra field (must be a Map)";
 	const ERR_INVALID_EXTRAFIELD_TYPE = "Invalid extra field type (must be integer 0..65535)";
@@ -6291,6 +6292,9 @@
 			const addSplitZipSignature =
 				availableSize > 0 && availableSize !== INFINITY_VALUE &&
 				maxSize > 0 && maxSize !== INFINITY_VALUE;
+			if (addSplitZipSignature && options[OPTION_USDZ]) {
+				throw new Error(ERR_UNSUPPORTED_SPLIT_USDZ);
+			}
 			Object.assign(this, {
 				writer,
 				addSplitZipSignature,
@@ -9042,6 +9046,7 @@
 	exports.ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH = ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH;
 	exports.ERR_UNSUPPORTED_ENCRYPTION_USDZ = ERR_UNSUPPORTED_ENCRYPTION_USDZ;
 	exports.ERR_UNSUPPORTED_FORMAT = ERR_UNSUPPORTED_FORMAT;
+	exports.ERR_UNSUPPORTED_SPLIT_USDZ = ERR_UNSUPPORTED_SPLIT_USDZ;
 	exports.ERR_UNSUPPORTED_UINT64 = ERR_UNSUPPORTED_UINT64;
 	exports.ERR_WORKER_STARTUP_TIMEOUT = ERR_WORKER_STARTUP_TIMEOUT;
 	exports.ERR_WRITER_NOT_INITIALIZED = ERR_WRITER_NOT_INITIALIZED;

@@ -804,6 +804,8 @@ file type.
 boundaries and stored uncompressed unless the [ZipWriterConstructorOptions#level](ZipWriterConstructorOptions.md#level) or
 [ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) options are set explicitly. Setting the
 [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) option throws an [ERR\_UNSUPPORTED\_ENCRYPTION\_USDZ](../variables/ERR_UNSUPPORTED_ENCRYPTION_USDZ.md) error.
+Writing into a split zip file throws an [ERR\_UNSUPPORTED\_SPLIT\_USDZ](../variables/ERR_UNSUPPORTED_SPLIT_USDZ.md) error, since the 64-byte alignment
+of an entry is invalidated when the disk it is written into rolls over.
 
 These constraints apply to the entries written with [ZipWriter#add](../classes/ZipWriter.md#add) only. The entries copied with
 [ZipWriter#appendZip](../classes/ZipWriter.md#appendzip) keep the layout of the source zip file and are not checked, so appending a

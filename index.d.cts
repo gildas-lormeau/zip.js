@@ -3393,6 +3393,8 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * boundaries and stored uncompressed unless the {@link ZipWriterConstructorOptions#level} or
    * {@link ZipWriterAddDataOptions#compressionMethod} options are set explicitly. Setting the
    * {@link ZipWriterConstructorOptions#password} option throws an {@link ERR_UNSUPPORTED_ENCRYPTION_USDZ} error.
+   * Writing into a split zip file throws an {@link ERR_UNSUPPORTED_SPLIT_USDZ} error, since the 64-byte alignment
+   * of an entry is invalidated when the disk it is written into rolls over.
    *
    * These constraints apply to the entries written with {@link ZipWriter#add} only. The entries copied with
    * {@link ZipWriter#appendZip} keep the layout of the source zip file and are not checked, so appending a
@@ -4638,6 +4640,10 @@ export const ERR_INVALID_ENCRYPTION_STRENGTH: string;
  * Unsupported encryption in USDZ files error
  */
 export const ERR_UNSUPPORTED_ENCRYPTION_USDZ: string;
+/**
+ * Unsupported split zip file in USDZ files error
+ */
+export const ERR_UNSUPPORTED_SPLIT_USDZ: string;
 /**
  * Unsupported encryption in pass-through entries error
  */
