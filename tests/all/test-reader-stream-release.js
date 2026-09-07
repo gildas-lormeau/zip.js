@@ -50,15 +50,13 @@ async function checkSkippedEntriesReleaseTheirCodec(unreadReadables) {
 	const data = await buildArchive();
 	const lastFilename = filenameOf(ENTRIES_COUNT - 1);
 	let content;
-	await withTimeout((async () => {
-		for await (const entry of readableOf(data).pipeThrough(new zip.ZipReaderStream())) {
-			if (entry.filename == lastFilename) {
-				content = await readTextFromReadable(entry.readable);
-			} else {
-				unreadReadables.push(entry.readable);
-			}
+	await withTimeout(forEachEntry(data, async entry => {
+		if (entry.filename == lastFilename) {
+			content = await readTextFromReadable(entry.readable);
+		} else {
+			unreadReadables.push(entry.readable);
 		}
-	})(), "reading the last entry of " + ENTRIES_COUNT + " with " + MAX_WORKERS + " workers");
+	}), "reading the last entry of " + ENTRIES_COUNT + " with " + MAX_WORKERS + " workers");
 	assert(content == contentOf(ENTRIES_COUNT - 1), "the entry that is read must hold its content");
 	await withTimeout(zip.terminateWorkers(), "terminateWorkers() after skipped entries");
 }
@@ -107,11 +105,8 @@ async function checkCancelDoesNotWaitForTheSource() {
 async function checkEveryEntryStillReadsInOrder() {
 	const data = await buildArchive();
 	const contents = [];
-	await withTimeout((async () => {
-		for await (const entry of readableOf(data).pipeThrough(new zip.ZipReaderStream())) {
-			contents.push(await readTextFromReadable(entry.readable));
-		}
-	})(), "reading every entry");
+	await withTimeout(forEachEntry(data, async entry =>
+		contents.push(await readTextFromReadable(entry.readable))), "reading every entry");
 	assert(contents.length == ENTRIES_COUNT, "every entry must be streamed, got " + contents.length);
 	contents.forEach((content, index) =>
 		assert(content == contentOf(index), "entry " + index + " must hold its content"));
@@ -125,6 +120,19 @@ async function buildArchive() {
 	const data = await writer.close();
 	await zip.terminateWorkers();
 	return data;
+}
+
+// Not for await ... of: ReadableStream is only async iterable in the recent engines, and the matrix
+// covers browsers that stream fine without implementing Symbol.asyncIterator on it.
+async function forEachEntry(data, onEntry) {
+	const reader = readableOf(data).pipeThrough(new zip.ZipReaderStream()).getReader();
+	for (; ;) {
+		const { done, value } = await reader.read();
+		if (done) {
+			return;
+		}
+		await onEntry(value);
+	}
 }
 
 function readableOf(data) {
