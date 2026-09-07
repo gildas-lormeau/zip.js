@@ -161,7 +161,7 @@
 /**
  * Represents the `FileSystemEntry` class.
  *
- * @see {@link https://wicg.github.io/entries-api/#api-entry|specification}
+ * @see {@link https://wicg.github.io/entries-api/#api-entry}
  */
 // deno-lint-ignore no-empty-interface
 interface FileSystemEntryLike {}
@@ -177,7 +177,7 @@ interface FileSystemHandleLike {}
 /**
  * Represents a generic `TransformStream` class.
  *
- * @see {@link https://streams.spec.whatwg.org/#generictransformstream|specification}
+ * @see {@link https://streams.spec.whatwg.org/#generictransformstream}
  */
 declare class TransformStreamLike {
   /**

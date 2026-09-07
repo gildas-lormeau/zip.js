@@ -10,7 +10,7 @@ Represents a generic `TransformStream` class.
 
 ## See
 
-[https://streams.spec.whatwg.org/#generictransformstream\|specification](https://streams.spec.whatwg.org/#generictransformstream|specification)
+[https://streams.spec.whatwg.org/#generictransformstream](https://streams.spec.whatwg.org/#generictransformstream)
 
 ## Extended by
 

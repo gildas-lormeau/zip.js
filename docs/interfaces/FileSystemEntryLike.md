@@ -10,4 +10,4 @@ Represents the `FileSystemEntry` class.
 
 ## See
 
-[https://wicg.github.io/entries-api/#api-entry\|specification](https://wicg.github.io/entries-api/#api-entry|specification)
+[https://wicg.github.io/entries-api/#api-entry](https://wicg.github.io/entries-api/#api-entry)
