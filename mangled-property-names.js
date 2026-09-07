@@ -25,6 +25,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"abortPipe",
 	"addSplitZipSignature",
 	"appendZipEntries",
+	"archiveClosed",
 	"array",
 	"authentication",
 	"blobPromise",

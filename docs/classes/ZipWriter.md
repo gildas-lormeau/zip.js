@@ -87,6 +87,29 @@ added; [ZipWriter#close](#close) deposits none of its own.
 
 ## Methods
 
+### \[asyncDispose\]()
+
+> **\[asyncDispose\]**(): `Promise`\<`void`\>
+
+Calls [ZipWriter#close](#close), making the instance usable with `await using`
+
+#### Returns
+
+`Promise`\<`void`\>
+
+#### Remarks
+
+The zip file is therefore finalized when the block is left, including when it is left by an
+error: the entries written until then are readable, like the ones a salvaging
+[ZipWriter#close](#close) keeps. Closing the instance explicitly to collect its content stays the
+common case, and the disposal that follows does nothing.
+
+The method is only defined when the runtime provides `Symbol.asyncDispose`. Its declaration is
+ignored by TypeScript versions that do not declare the symbol either, i.e. before 5.2 or without
+the `esnext.disposable` library, so that the declarations of the library keep compiling there.
+
+***
+
 ### add()
 
 > **add**\<`ReaderType`\>(`filename`, `reader?`, `options?`): `Promise`\<[`EntryMetaData`](../interfaces/EntryMetaData.md)\>
@@ -220,6 +243,9 @@ contains all of them. Errors already caught by the caller do not resurface here,
 still be skipped by awaiting [ZipWriter#add](#add) and catching the error. Throwing the errors
 counts as reporting them: catching the error of this method and calling it again finalizes the
 zip file without the failed entries.
+
+Once the zip file has been finalized, calling this method again does nothing and returns the same
+content. Only a call that threw can be retried, which is what makes the salvage above possible.
 
 ***
 

@@ -134,6 +134,7 @@
 	const BOOLEAN_TYPE = "boolean";
 
 	const EMPTY_UINT8_ARRAY = new Uint8Array();
+	const SYMBOL_ASYNC_DISPOSE = Symbol.asyncDispose || Symbol();
 
 	/*
 	 Copyright (c) 2022 Gildas Lormeau. All rights reserved.
@@ -5214,6 +5215,10 @@
 				await reader.readable.cancel();
 			}
 		}
+
+		[SYMBOL_ASYNC_DISPOSE]() {
+			return this.close();
+		}
 	}
 
 	class ZipReaderStream {
@@ -6406,7 +6411,8 @@
 				warnings: [],
 				bufferedWrites: 0,
 				directWrites: 0,
-				lastFileEntry: UNDEFINED_VALUE
+				lastFileEntry: UNDEFINED_VALUE,
+				archiveClosed: false
 			});
 		}
 
@@ -6571,6 +6577,9 @@
 			const zipWriter = this;
 			const { pendingAddFileCalls, writer } = this;
 			const { writable } = writer;
+			if (zipWriter.archiveClosed) {
+				return getWriterData(writer);
+			}
 			if (!(comment instanceof Uint8Array)) {
 				throw new Error(ERR_INVALID_COMMENT_TYPE);
 			}
@@ -6594,11 +6603,16 @@
 				throw error;
 			}
 			await closeFile(zipWriter, comment, options);
+			zipWriter.archiveClosed = true;
 			const preventClose = !ownsWritable(writer) && getOptionValue(zipWriter, options, OPTION_PREVENT_CLOSE);
 			if (!preventClose) {
 				await writable.getWriter().close();
 			}
-			return writer.getData ? writer.getData() : writable;
+			return getWriterData(writer);
+		}
+
+		[SYMBOL_ASYNC_DISPOSE]() {
+			return this.close();
 		}
 	}
 
@@ -6675,6 +6689,10 @@
 			}
 			return super.then(onFulfilled, onRejected);
 		}
+	}
+
+	function getWriterData(writer) {
+		return writer.getData ? writer.getData() : writer.writable;
 	}
 
 	function watchPromiseError(zipWriter, promise) {

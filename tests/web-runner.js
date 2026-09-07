@@ -12,6 +12,7 @@ const LOADER_PATH = "/tests/all/loader.html#";
 const FEATURE_PROBES = {
 	compressionStream: () => typeof CompressionStream == "function",
 	structuredClone: () => typeof structuredClone == "function",
+	asyncDispose: () => typeof Symbol.asyncDispose == "symbol",
 	abortReason: () => {
 		const controller = new AbortController();
 		const reason = new Error("reason");

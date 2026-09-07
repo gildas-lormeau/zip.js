@@ -226,6 +226,7 @@ export default ([
 	{ title: "Readable Stream", script: "./test-readable-stream.js" },
 	{ title: "Readable Zip Stream", script: "./test-readable-zip-stream.js" },
 	{ title: "Reader close", script: "./test-reader-close.js" },
+	{ title: "Async dispose", script: "./test-async-dispose.js", features: ["asyncDispose"] },
 	{ title: "Reader stream release", script: "./test-reader-stream-release.js" },
 	{ title: "Remove entry", script: "./test-remove-entry.js" },
 	{ title: "Replace entry", script: "./test-replace-entry.js" },

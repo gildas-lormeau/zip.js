@@ -182,6 +182,24 @@ The warnings related to the local file header of an entry are deposited on
 
 ## Methods
 
+### \[asyncDispose\]()
+
+> **\[asyncDispose\]**(): `Promise`\<`void`\>
+
+Calls [ZipReader#close](#close), making the instance usable with `await using`
+
+#### Returns
+
+`Promise`\<`void`\>
+
+#### Remarks
+
+The method is only defined when the runtime provides `Symbol.asyncDispose`. Its declaration is
+ignored by TypeScript versions that do not declare the symbol either, i.e. before 5.2 or without
+the `esnext.disposable` library, so that the declarations of the library keep compiling there.
+
+***
+
 ### close()
 
 > **close**(): `Promise`\<`void`\>

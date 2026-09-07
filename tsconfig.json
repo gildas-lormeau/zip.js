@@ -13,6 +13,7 @@
 	"compilerOptions": {
 		"lib": [
 			"es2018",
+			"esnext.disposable",
 			"dom"
 		],
 		"forceConsistentCasingInFileNames": true,

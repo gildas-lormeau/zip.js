@@ -57,7 +57,7 @@
     "test-deno-dist": "./tests/dist-runner.sh deno",
     "test-node-dist": "./tests/dist-runner.sh node",
     "test-bun-dist": "./tests/dist-runner.sh bun",
-    "test-types": "tsc -p ./tests/types/tsconfig.json",
+    "test-types": "tsc -p ./tests/types/tsconfig.json && tsc -p ./tests/types/tsconfig-declarations.json",
     "test-registration": "node ./tests/registration.js",
     "test-api-symmetry": "node ./tests/api-symmetry/audit.js",
     "test-api-shape": "node ./tests/api-symmetry/shape.js",

@@ -1516,6 +1516,16 @@ export class ZipReader<Type> {
    * {@link ZipReader#getEntries} can therefore still be read after calling it.
    */
   close(): Promise<void>;
+  /**
+   * Calls {@link ZipReader#close}, making the instance usable with `await using`
+   *
+   * @remarks
+   * The method is only defined when the runtime provides `Symbol.asyncDispose`. Its declaration is
+   * ignored by TypeScript versions that do not declare the symbol either, i.e. before 5.2 or without
+   * the `esnext.disposable` library, so that the declarations of the library keep compiling there.
+   */
+  // @ts-ignore Symbol.asyncDispose is declared from TypeScript 5.2 with the esnext.disposable library
+  [Symbol.asyncDispose](): Promise<void>;
 }
 
 /**
@@ -2981,11 +2991,29 @@ export class ZipWriter<Type> {
    * counts as reporting them: catching the error of this method and calling it again finalizes the
    * zip file without the failed entries.
    *
+   * Once the zip file has been finalized, calling this method again does nothing and returns the same
+   * content. Only a call that threw can be retried, which is what makes the salvage above possible.
+   *
    * @param comment The global comment of the zip file.
    * @param options The options.
    * @returns The content of the zip file.
    */
   close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
+  /**
+   * Calls {@link ZipWriter#close}, making the instance usable with `await using`
+   *
+   * @remarks
+   * The zip file is therefore finalized when the block is left, including when it is left by an
+   * error: the entries written until then are readable, like the ones a salvaging
+   * {@link ZipWriter#close} keeps. Closing the instance explicitly to collect its content stays the
+   * common case, and the disposal that follows does nothing.
+   *
+   * The method is only defined when the runtime provides `Symbol.asyncDispose`. Its declaration is
+   * ignored by TypeScript versions that do not declare the symbol either, i.e. before 5.2 or without
+   * the `esnext.disposable` library, so that the declarations of the library keep compiling there.
+   */
+  // @ts-ignore Symbol.asyncDispose is declared from TypeScript 5.2 with the esnext.disposable library
+  [Symbol.asyncDispose](): Promise<void>;
 }
 
 /**
