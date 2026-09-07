@@ -31,6 +31,11 @@ Optional fields in `tests/tests-data.js`:
 - `features`: the features the test requires, among `"compressionStream"`, `"structuredClone"`, `"abortReason"`, `"pipeToSignal"`, `"opfs"`, `"httpRange"`, `"moduleWorker"`, `"workerStreams"` and `"wasmBuild"`. The test is skipped when one of them is missing. `"wasmBuild"` requires the build under test, i.e. the target of `tests/zip-lib.js`, to embed the WebAssembly module. `"pipeToSignal"` is missing in Chrome 76-79, which ignore the `signal` option of `pipeTo()`.
 - `sanitizeResources: false`: opts the test out of the Deno resource sanitizer, see the comment in `tests/tests-data.js`.
 
+Two traps no `features` gate covers:
+
+- Do not iterate a `ReadableStream` with `for await ... of`. `ReadableStream[Symbol.asyncIterator]` is missing in Chrome 76 and 87, in Firefox 102 and in Safari, which all stream fine otherwise, so it takes out four browser jobs at once. Read with `getReader()` and a `read()` loop instead. Note that the two oldest Firefox jobs pass, because below Firefox 102 the harness loads the streams polyfill, whose `ReadableStream` does implement async iteration: in this matrix a failure that spares the oldest browsers usually points at that boundary rather than at the age of the engine. Check locally by running the test after `delete ReadableStream.prototype[Symbol.asyncIterator]`.
+- Release every codec the test acquires. The runners terminate the workers after each test, and `terminateWorkers()` waits for the pooled codecs to finish, so a test leaving one running hangs the whole run instead of failing, and nothing names the test responsible. A test driving a codec leak on purpose therefore has to release it itself, e.g. by cancelling the entry readables it deliberately does not read, so that its assertion is reported.
+
 ## Other folders
 
 - `tests/registration.js`: checks that every test registered in `tests-data.js` matches a file in `tests/all` exactly, run with `npm run test-registration`. It also runs in the linting job, because the browser jobs run on macOS and Windows only, whose filesystems are case-insensitive.
