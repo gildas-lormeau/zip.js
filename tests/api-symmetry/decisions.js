@@ -102,6 +102,14 @@ const WRITER_OPTIONS = {
 	uncompressedSize: { properties: ["uncompressedSize"] },
 	crc32: { properties: ["crc32"] },
 	signature: { deprecated: "crc32" },
+	entry: {
+		properties: [
+			"externalFileAttributes", "versionMadeBy", "comment", "lastModDate", "rawLastModDate", "creationDate",
+			"lastAccessDate", "internalFileAttributes", "directory", "uid", "gid", "extraField", "uncompressedSize",
+			"crc32", "compressionMethod", "encrypted", "zipCrypto", "extraFieldAES.strength", "bitFlag.dataDescriptor"
+		],
+		note: "reads them all from a source entry as defaults; the encrypted/zipCrypto/extraFieldAES.strength half only when passThrough is true"
+	},
 	zip64: { properties: ["zip64", "extraFieldZip64"] },
 	preventClose: { machinery: "leaves the writable stream open" },
 	level: { machinery: "changes the compressed data, not the headers" },

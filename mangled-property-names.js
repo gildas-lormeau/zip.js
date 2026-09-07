@@ -102,6 +102,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"partial",
 	"passThroughCompression",
 	"passThroughEncryption",
+	"passThroughOptions",
 	"pbkdf2",
 	"pendingAddFileCalls",
 	"pendingCharacters",

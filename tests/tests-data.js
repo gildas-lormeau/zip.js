@@ -207,6 +207,7 @@ export default ([
 	{ title: "Pass through options", script: "./test-passthrough-options.js" },
 	{ title: "Pass through password", script: "./test-passthrough-password.js" },
 	{ title: "Pass through stages", script: "./test-passthrough-stages.js" },
+	{ title: "Copy entry", script: "./test-copy-entry.js" },
 	{ title: "Pass through uncompressed data", script: "./test-passthrough-uncompressed.js" },
 	{ title: "Pass through zipcrypto", script: "./test-passthrough-zipcrypto.js" },
 	{ title: "Pass through zstd", script: "./test-passthrough-zstd.js" },

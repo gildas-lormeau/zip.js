@@ -3138,6 +3138,37 @@ export interface ZipWriterAddDataOptions
    * @deprecated Use {@link ZipWriterAddDataOptions#crc32} instead.
    */
   signature?: number;
+  /**
+   * The entry the data comes from, e.g. one returned by {@link ZipReader#getEntries}, used as a source of default values for the
+   * options describing it.
+   *
+   * @remarks
+   * Copying an entry from one zip file into another needs about ten options forwarded, and forwarding a subset of them corrupts the
+   * copy silently rather than throwing: the writer cannot tell that {@link EntryMetaData#compressionMethod} describes data it is
+   * about to store verbatim. This option hands it the entry instead, and the options describing that entry are read from it.
+   *
+   * {@link EntryMetaData#externalFileAttributes}, {@link EntryMetaData#versionMadeBy}, {@link EntryMetaData#comment},
+   * {@link EntryMetaData#lastModDate}, {@link EntryMetaData#creationDate}, {@link EntryMetaData#lastAccessDate},
+   * {@link EntryMetaData#internalFileAttributes}, {@link DirectoryEntry#directory}, {@link EntryMetaData#uid},
+   * {@link EntryMetaData#gid} and the extra fields of the entry which zip.js does not interpret itself are always read from it.
+   *
+   * {@link ZipWriterAddDataOptions#uncompressedSize}, {@link ZipWriterAddDataOptions#crc32},
+   * {@link EntryMetaData#compressionMethod}, {@link ZipWriterConstructorOptions#dataDescriptor} and
+   * {@link ZipWriterConstructorOptions#rawLastModDate} are read from it as well when the
+   * {@link ZipWriterConstructorOptions#passThrough} option is set, since the data is then stored as it is read.
+   * {@link ZipWriterConstructorOptions#encrypted}, {@link ZipWriterConstructorOptions#zipCrypto} and
+   * {@link ZipWriterConstructorOptions#encryptionStrength} are only read from it when that option is set to `true`, i.e. when the
+   * encryption stage is passed through too: with `"compressed"` the writer performs the encryption itself and the scheme is the
+   * caller's to choose, so carrying the scheme of the source over would rekey an entry into the very scheme it was read from.
+   *
+   * Every value read from the entry is a default: an option written next to it wins. The filename is not one of them, it stays the
+   * first argument of {@link ZipWriter#add}, so an entry can be copied under another name.
+   *
+   * A value which is not an object throws an {@link ERR_INVALID_ENTRY} error, and changing the
+   * {@link ZipWriterConstructorOptions#lastModDate} of an entry encrypted with ZipCrypto throws an
+   * {@link ERR_ZIP_CRYPTO_LAST_MOD_DATE} error, see the remarks of the {@link ZipWriterConstructorOptions#passThrough} option.
+   */
+  entry?: Entry;
 }
 
 /**
@@ -5055,9 +5086,16 @@ export const ERR_UNSUPPORTED_PASS_THROUGH_VALUE: string;
  */
 export const ERR_INVALID_READER_OPTIONS: string;
 /**
- * Locked last modification date error (thrown by `{@link ZipDirectoryEntry}#export*()` and
- * {@link ZipDirectoryEntry#getExportedSize} when the date of an entry encrypted with ZipCrypto and exported with
- * {@link ZipReaderOptions#passThrough} set in {@link ZipDirectoryEntryExportOptions#readerOptions} is changed)
+ * Invalid entry error (thrown by {@link ZipWriter#add} when the {@link ZipWriterAddDataOptions#entry} option is
+ * neither an entry nor unset)
+ */
+export const ERR_INVALID_ENTRY: string;
+/**
+ * Locked last modification date error (thrown by {@link ZipWriter#add} when the date of an entry encrypted with
+ * ZipCrypto is changed while it is copied with the {@link ZipWriterConstructorOptions#passThrough} option set, and
+ * by `{@link ZipDirectoryEntry}#export*()` and {@link ZipDirectoryEntry#getExportedSize} when the date of such an
+ * entry exported with {@link ZipReaderOptions#passThrough} set in
+ * {@link ZipDirectoryEntryExportOptions#readerOptions} is changed)
  *
  * @remarks The ZipCrypto encryption header embeds a password verification byte derived from the time of the
  * entry: the encrypted data, copied as-is, only decrypts when the time in the rewritten headers still matches.

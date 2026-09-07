@@ -8,9 +8,11 @@
 
 > `const` **ERR\_ZIP\_CRYPTO\_LAST\_MOD\_DATE**: `string`
 
-Locked last modification date error (thrown by `{@link ZipDirectoryEntry}#export*()` and
-[ZipDirectoryEntry#getExportedSize](../classes/ZipDirectoryEntry.md#getexportedsize) when the date of an entry encrypted with ZipCrypto and exported with
-[ZipReaderOptions#passThrough](../interfaces/ZipReaderOptions.md#passthrough) set in [ZipDirectoryEntryExportOptions#readerOptions](../interfaces/ZipDirectoryEntryExportOptions.md#readeroptions) is changed)
+Locked last modification date error (thrown by [ZipWriter#add](../classes/ZipWriter.md#add) when the date of an entry encrypted with
+ZipCrypto is changed while it is copied with the [ZipWriterConstructorOptions#passThrough](../interfaces/ZipWriterConstructorOptions.md#passthrough) option set, and
+by `{@link ZipDirectoryEntry}#export*()` and [ZipDirectoryEntry#getExportedSize](../classes/ZipDirectoryEntry.md#getexportedsize) when the date of such an
+entry exported with [ZipReaderOptions#passThrough](../interfaces/ZipReaderOptions.md#passthrough) set in
+[ZipDirectoryEntryExportOptions#readerOptions](../interfaces/ZipDirectoryEntryExportOptions.md#readeroptions) is changed)
 
 ## Remarks
 

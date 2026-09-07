@@ -223,6 +223,42 @@ The encryption strength (AES):
 
 ***
 
+### entry?
+
+> `optional` **entry?**: [`Entry`](../type-aliases/Entry.md)
+
+The entry the data comes from, e.g. one returned by [ZipReader#getEntries](../classes/ZipReader.md#getentries), used as a source of default values for the
+options describing it.
+
+#### Remarks
+
+Copying an entry from one zip file into another needs about ten options forwarded, and forwarding a subset of them corrupts the
+copy silently rather than throwing: the writer cannot tell that [EntryMetaData#compressionMethod](EntryMetaData.md#compressionmethod) describes data it is
+about to store verbatim. This option hands it the entry instead, and the options describing that entry are read from it.
+
+[EntryMetaData#externalFileAttributes](EntryMetaData.md#externalfileattributes), [EntryMetaData#versionMadeBy](EntryMetaData.md#versionmadeby), [EntryMetaData#comment](EntryMetaData.md#comment),
+[EntryMetaData#lastModDate](EntryMetaData.md#lastmoddate), [EntryMetaData#creationDate](EntryMetaData.md#creationdate), [EntryMetaData#lastAccessDate](EntryMetaData.md#lastaccessdate),
+[EntryMetaData#internalFileAttributes](EntryMetaData.md#internalfileattributes), [DirectoryEntry#directory](DirectoryEntry.md#directory), [EntryMetaData#uid](EntryMetaData.md#uid),
+[EntryMetaData#gid](EntryMetaData.md#gid) and the extra fields of the entry which zip.js does not interpret itself are always read from it.
+
+[ZipWriterAddDataOptions#uncompressedSize](#uncompressedsize), [ZipWriterAddDataOptions#crc32](#crc32),
+[EntryMetaData#compressionMethod](EntryMetaData.md#compressionmethod), [ZipWriterConstructorOptions#dataDescriptor](ZipWriterConstructorOptions.md#datadescriptor) and
+[ZipWriterConstructorOptions#rawLastModDate](ZipWriterConstructorOptions.md#rawlastmoddate) are read from it as well when the
+[ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option is set, since the data is then stored as it is read.
+[ZipWriterConstructorOptions#encrypted](ZipWriterConstructorOptions.md#encrypted), [ZipWriterConstructorOptions#zipCrypto](ZipWriterConstructorOptions.md#zipcrypto) and
+[ZipWriterConstructorOptions#encryptionStrength](ZipWriterConstructorOptions.md#encryptionstrength) are only read from it when that option is set to `true`, i.e. when the
+encryption stage is passed through too: with `"compressed"` the writer performs the encryption itself and the scheme is the
+caller's to choose, so carrying the scheme of the source over would rekey an entry into the very scheme it was read from.
+
+Every value read from the entry is a default: an option written next to it wins. The filename is not one of them, it stays the
+first argument of [ZipWriter#add](../classes/ZipWriter.md#add), so an entry can be copied under another name.
+
+A value which is not an object throws an [ERR\_INVALID\_ENTRY](../variables/ERR_INVALID_ENTRY.md) error, and changing the
+[ZipWriterConstructorOptions#lastModDate](ZipWriterConstructorOptions.md#lastmoddate) of an entry encrypted with ZipCrypto throws an
+[ERR\_ZIP\_CRYPTO\_LAST\_MOD\_DATE](../variables/ERR_ZIP_CRYPTO_LAST_MOD_DATE.md) error, see the remarks of the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option.
+
+***
+
 ### executable?
 
 > `optional` **executable?**: `boolean`

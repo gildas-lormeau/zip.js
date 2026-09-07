@@ -209,6 +209,7 @@
 	const OPTION_MAX_APPENDED_DATA_SIZE = "maxAppendedDataSize";
 	const OPTION_DECRYPT_CENTRAL_DIRECTORY = "decryptCentralDirectory";
 	const OPTION_SIGN_CENTRAL_DIRECTORY = "signCentralDirectory";
+	const OPTION_ENTRY = "entry";
 	const TEXT_TYPE_FILENAME = "filename";
 	const TEXT_TYPE_COMMENT = "comment";
 	const STRICTNESS_STRICT = "strict";
@@ -4613,6 +4614,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
+
 	const PROPERTY_NAME_FILENAME = "filename";
 	const PROPERTY_NAME_RAW_FILENAME = "rawFilename";
 	const PROPERTY_NAME_COMMENT = "comment";
@@ -4735,6 +4737,34 @@
 			PROPERTY_NAMES.forEach(name => this[name] = data[name]);
 		}
 
+	}
+
+	const INTERPRETED_EXTRA_FIELD_TYPES = new Set([
+		EXTRAFIELD_TYPE_ZIP64,
+		EXTRAFIELD_TYPE_AES,
+		EXTRAFIELD_TYPE_NTFS,
+		EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP,
+		EXTRAFIELD_TYPE_UNICODE_PATH,
+		EXTRAFIELD_TYPE_UNICODE_COMMENT,
+		EXTRAFIELD_TYPE_USDZ,
+		EXTRAFIELD_TYPE_INFOZIP,
+		EXTRAFIELD_TYPE_UNIX,
+		EXTRAFIELD_TYPE_UNIX_TYPE1,
+		EXTRAFIELD_TYPE_PKWARE_UNIX
+	]);
+
+	function getUserExtraField(extraField) {
+		if (extraField) {
+			const userExtraField = new Map();
+			extraField.forEach((field, type) => {
+				if (!INTERPRETED_EXTRA_FIELD_TYPES.has(type)) {
+					userExtraField.set(type, field.data);
+				}
+			});
+			if (userExtraField.size) {
+				return userExtraField;
+			}
+		}
 	}
 
 	function getEncryptionOverhead(encrypted, zipCrypto, encryptionStrength) {
@@ -6411,6 +6441,8 @@
 	const ERR_INVALID_MSDOS_DATA = "Invalid msdosAttributes (must be an object with boolean flags)";
 	const ERR_INVALID_LEVEL = "Invalid level (must be integer 0..9)";
 	const ERR_INVALID_SIGNATURE_DATA = "Signature data exceeds 64KB";
+	const ERR_INVALID_ENTRY = "Invalid entry option (must be an entry returned by ZipReader#getEntries())";
+	const ERR_ZIP_CRYPTO_LAST_MOD_DATE = "The last modification date of an entry encrypted with ZipCrypto cannot be changed when passThrough is set";
 	const WARNING_COMPRESSION_UNAVAILABLE = "compression unavailable";
 	const WARNING_CLAMPED_LAST_MODIFICATION_DATE = "clamped last modification date";
 
@@ -6753,6 +6785,14 @@
 
 	async function addFileEntry(zipWriter, name, reader, options) {
 		options = Object.assign({}, options);
+		const entry = options[OPTION_ENTRY];
+		if (entry !== UNDEFINED_VALUE) {
+			const { entryOptions, passThroughOptions } = getSourceEntryOptions(entry,
+				checkPassThroughOption(getOptionValue(zipWriter, options, OPTION_PASS_THROUGH)),
+				getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE));
+			delete options[OPTION_ENTRY];
+			options = Object.assign(entryOptions, passThroughOptions, options);
+		}
 		if (getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY) && !name.endsWith(DIRECTORY_SIGNATURE)) {
 			name += DIRECTORY_SIGNATURE;
 		}
@@ -6865,6 +6905,89 @@
 			extraField
 		});
 		return new Entry(fileEntry);
+	}
+
+	function getSourceEntryOptions(entry, passThrough, lastModDateOverride) {
+		if (entry === null || typeof entry != OBJECT_TYPE || Array.isArray(entry)) {
+			throw new Error(ERR_INVALID_ENTRY);
+		}
+		const {
+			externalFileAttributes,
+			versionMadeBy,
+			comment,
+			lastModDate,
+			rawLastModDate,
+			creationDate,
+			lastAccessDate,
+			uncompressedSize,
+			encrypted,
+			zipCrypto,
+			crc32,
+			compressionMethod,
+			extraFieldAES,
+			internalFileAttributes,
+			extraField,
+			bitFlag,
+			directory,
+			uid,
+			gid
+		} = entry;
+		const entryOptions = {
+			externalFileAttributes,
+			versionMadeBy,
+			comment,
+			lastModDate,
+			creationDate,
+			lastAccessDate,
+			internalFileAttributes,
+			directory
+		};
+		const userExtraField = getUserExtraField(extraField);
+		if (userExtraField) {
+			entryOptions[PROPERTY_NAME_EXTRA_FIELD] = userExtraField;
+		}
+		if (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE) {
+			Object.assign(entryOptions, {
+				uid,
+				gid,
+				unixExtraFieldType: INFOZIP_EXTRA_FIELD_TYPE
+			});
+		}
+		const passThroughOptions = {};
+		if (passThrough && !directory) {
+			Object.assign(passThroughOptions, {
+				uncompressedSize,
+				crc32,
+				compressionMethod
+			});
+			if (passThrough !== PASS_THROUGH_COMPRESSED) {
+				Object.assign(passThroughOptions, {
+					encrypted,
+					zipCrypto,
+					encryptionStrength: extraFieldAES ? extraFieldAES.strength : UNDEFINED_VALUE
+				});
+			}
+			if (bitFlag) {
+				passThroughOptions.dataDescriptor = bitFlag.dataDescriptor;
+			}
+			if (lastModDateOverride === UNDEFINED_VALUE) {
+				passThroughOptions.rawLastModDate = rawLastModDate;
+			} else if (zipCrypto && (!bitFlag || bitFlag.dataDescriptor) && lastModDateOverride instanceof Date &&
+				getDosTimeHighByte(lastModDateOverride) != ((rawLastModDate >>> 8) & MAX_8_BITS)) {
+				throw new Error(ERR_ZIP_CRYPTO_LAST_MOD_DATE);
+			}
+		}
+		return { entryOptions, passThroughOptions };
+	}
+
+	function getDosTimeHighByte(lastModDate) {
+		let dosLastModDate = new Date(Math.ceil(Math.floor(lastModDate.getTime() / 1000) / 2) * 2000);
+		if (dosLastModDate < MIN_DATE) {
+			dosLastModDate = MIN_DATE;
+		} else if (dosLastModDate > MAX_DATE) {
+			dosLastModDate = MAX_DATE;
+		}
+		return ((dosLastModDate.getHours() << 3) | (dosLastModDate.getMinutes() >> 3)) & MAX_8_BITS;
 	}
 
 	function resolveAttributes(zipWriter, name, options) {
@@ -9223,6 +9346,7 @@
 	exports.ERR_INVALID_CRC32 = ERR_INVALID_CRC32;
 	exports.ERR_INVALID_DATE = ERR_INVALID_DATE;
 	exports.ERR_INVALID_ENCRYPTION_STRENGTH = ERR_INVALID_ENCRYPTION_STRENGTH;
+	exports.ERR_INVALID_ENTRY = ERR_INVALID_ENTRY;
 	exports.ERR_INVALID_ENTRY_COMMENT = ERR_INVALID_ENTRY_COMMENT;
 	exports.ERR_INVALID_ENTRY_COMMENT_TYPE = ERR_INVALID_ENTRY_COMMENT_TYPE;
 	exports.ERR_INVALID_ENTRY_NAME = ERR_INVALID_ENTRY_NAME;
@@ -9274,6 +9398,7 @@
 	exports.ERR_WORKER_STARTUP_TIMEOUT = ERR_WORKER_STARTUP_TIMEOUT;
 	exports.ERR_WRITER_NOT_INITIALIZED = ERR_WRITER_NOT_INITIALIZED;
 	exports.ERR_WRITER_SIZE_NOT_WRITABLE = ERR_WRITER_SIZE_NOT_WRITABLE;
+	exports.ERR_ZIP_CRYPTO_LAST_MOD_DATE = ERR_ZIP_CRYPTO_LAST_MOD_DATE;
 	exports.ERR_ZIP_NOT_EMPTY = ERR_ZIP_NOT_EMPTY;
 	exports.HttpRangeReader = HttpRangeReader;
 	exports.HttpReader = HttpReader;

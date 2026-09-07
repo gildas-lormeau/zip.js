@@ -200,6 +200,7 @@ const OPTION_NORMALIZE_FILENAME = "normalizeFilename";
 const OPTION_MAX_APPENDED_DATA_SIZE = "maxAppendedDataSize";
 const OPTION_DECRYPT_CENTRAL_DIRECTORY = "decryptCentralDirectory";
 const OPTION_SIGN_CENTRAL_DIRECTORY = "signCentralDirectory";
+const OPTION_ENTRY = "entry";
 const TEXT_TYPE_FILENAME = "filename";
 const TEXT_TYPE_COMMENT = "comment";
 const STRICTNESS_STRICT = "strict";
@@ -4662,6 +4663,7 @@ function addWarning(warnings, reason, filename) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 const PROPERTY_NAME_FILENAME = "filename";
 const PROPERTY_NAME_RAW_FILENAME = "rawFilename";
 const PROPERTY_NAME_COMMENT = "comment";
@@ -4784,6 +4786,34 @@ class Entry {
 		PROPERTY_NAMES.forEach(name => this[name] = data[name]);
 	}
 
+}
+
+const INTERPRETED_EXTRA_FIELD_TYPES = new Set([
+	EXTRAFIELD_TYPE_ZIP64,
+	EXTRAFIELD_TYPE_AES,
+	EXTRAFIELD_TYPE_NTFS,
+	EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP,
+	EXTRAFIELD_TYPE_UNICODE_PATH,
+	EXTRAFIELD_TYPE_UNICODE_COMMENT,
+	EXTRAFIELD_TYPE_USDZ,
+	EXTRAFIELD_TYPE_INFOZIP,
+	EXTRAFIELD_TYPE_UNIX,
+	EXTRAFIELD_TYPE_UNIX_TYPE1,
+	EXTRAFIELD_TYPE_PKWARE_UNIX
+]);
+
+function getUserExtraField(extraField) {
+	if (extraField) {
+		const userExtraField = new Map();
+		extraField.forEach((field, type) => {
+			if (!INTERPRETED_EXTRA_FIELD_TYPES.has(type)) {
+				userExtraField.set(type, field.data);
+			}
+		});
+		if (userExtraField.size) {
+			return userExtraField;
+		}
+	}
 }
 
 function getEncryptionOverhead(encrypted, zipCrypto, encryptionStrength) {
@@ -6460,6 +6490,8 @@ const ERR_INVALID_MSDOS_ATTRIBUTES = "Invalid msdosAttributesRaw (must be intege
 const ERR_INVALID_MSDOS_DATA = "Invalid msdosAttributes (must be an object with boolean flags)";
 const ERR_INVALID_LEVEL = "Invalid level (must be integer 0..9)";
 const ERR_INVALID_SIGNATURE_DATA = "Signature data exceeds 64KB";
+const ERR_INVALID_ENTRY = "Invalid entry option (must be an entry returned by ZipReader#getEntries())";
+const ERR_ZIP_CRYPTO_LAST_MOD_DATE = "The last modification date of an entry encrypted with ZipCrypto cannot be changed when passThrough is set";
 const WARNING_COMPRESSION_UNAVAILABLE = "compression unavailable";
 const WARNING_CLAMPED_LAST_MODIFICATION_DATE = "clamped last modification date";
 
@@ -6469,7 +6501,7 @@ const EXTRAFIELD_OFFSET_AES_COMPRESSION_METHOD = 9;
 const EXTRAFIELD_USDZ_MAX_LENGTH = 67;
 const MAX_ASCII_CHARACTER_CODE = 0x7f;
 const VENDOR_VERSION_AE_1 = 1;
-const INFOZIP_EXTRA_FIELD_TYPE$1 = "infozip";
+const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
 const UNIX_EXTRA_FIELD_TYPE = "unix";
 const MAX_LEVEL = 9;
 
@@ -6802,6 +6834,14 @@ async function prependZipEntries(zipWriter, reader) {
 
 async function addFileEntry(zipWriter, name, reader, options) {
 	options = Object.assign({}, options);
+	const entry = options[OPTION_ENTRY];
+	if (entry !== UNDEFINED_VALUE) {
+		const { entryOptions, passThroughOptions } = getSourceEntryOptions(entry,
+			checkPassThroughOption(getOptionValue(zipWriter, options, OPTION_PASS_THROUGH)),
+			getOptionValue(zipWriter, options, PROPERTY_NAME_LAST_MODIFICATION_DATE));
+		delete options[OPTION_ENTRY];
+		options = Object.assign(entryOptions, passThroughOptions, options);
+	}
 	if (getOptionValue(zipWriter, options, PROPERTY_NAME_DIRECTORY) && !name.endsWith(DIRECTORY_SIGNATURE)) {
 		name += DIRECTORY_SIGNATURE;
 	}
@@ -6916,6 +6956,89 @@ async function addFile(zipWriter, name, reader, options) {
 	return new Entry(fileEntry);
 }
 
+function getSourceEntryOptions(entry, passThrough, lastModDateOverride) {
+	if (entry === null || typeof entry != OBJECT_TYPE || Array.isArray(entry)) {
+		throw new Error(ERR_INVALID_ENTRY);
+	}
+	const {
+		externalFileAttributes,
+		versionMadeBy,
+		comment,
+		lastModDate,
+		rawLastModDate,
+		creationDate,
+		lastAccessDate,
+		uncompressedSize,
+		encrypted,
+		zipCrypto,
+		crc32,
+		compressionMethod,
+		extraFieldAES,
+		internalFileAttributes,
+		extraField,
+		bitFlag,
+		directory,
+		uid,
+		gid
+	} = entry;
+	const entryOptions = {
+		externalFileAttributes,
+		versionMadeBy,
+		comment,
+		lastModDate,
+		creationDate,
+		lastAccessDate,
+		internalFileAttributes,
+		directory
+	};
+	const userExtraField = getUserExtraField(extraField);
+	if (userExtraField) {
+		entryOptions[PROPERTY_NAME_EXTRA_FIELD] = userExtraField;
+	}
+	if (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE) {
+		Object.assign(entryOptions, {
+			uid,
+			gid,
+			unixExtraFieldType: INFOZIP_EXTRA_FIELD_TYPE
+		});
+	}
+	const passThroughOptions = {};
+	if (passThrough && !directory) {
+		Object.assign(passThroughOptions, {
+			uncompressedSize,
+			crc32,
+			compressionMethod
+		});
+		if (passThrough !== PASS_THROUGH_COMPRESSED) {
+			Object.assign(passThroughOptions, {
+				encrypted,
+				zipCrypto,
+				encryptionStrength: extraFieldAES ? extraFieldAES.strength : UNDEFINED_VALUE
+			});
+		}
+		if (bitFlag) {
+			passThroughOptions.dataDescriptor = bitFlag.dataDescriptor;
+		}
+		if (lastModDateOverride === UNDEFINED_VALUE) {
+			passThroughOptions.rawLastModDate = rawLastModDate;
+		} else if (zipCrypto && (!bitFlag || bitFlag.dataDescriptor) && lastModDateOverride instanceof Date &&
+			getDosTimeHighByte(lastModDateOverride) != ((rawLastModDate >>> 8) & MAX_8_BITS)) {
+			throw new Error(ERR_ZIP_CRYPTO_LAST_MOD_DATE);
+		}
+	}
+	return { entryOptions, passThroughOptions };
+}
+
+function getDosTimeHighByte(lastModDate) {
+	let dosLastModDate = new Date(Math.ceil(Math.floor(lastModDate.getTime() / 1000) / 2) * 2000);
+	if (dosLastModDate < MIN_DATE) {
+		dosLastModDate = MIN_DATE;
+	} else if (dosLastModDate > MAX_DATE) {
+		dosLastModDate = MAX_DATE;
+	}
+	return ((dosLastModDate.getHours() << 3) | (dosLastModDate.getMinutes() >> 3)) & MAX_8_BITS;
+}
+
 function resolveAttributes(zipWriter, name, options) {
 	let msDosCompatible = getOptionValue(zipWriter, options, PROPERTY_NAME_MS_DOS_COMPATIBLE);
 	let versionMadeBy = getOptionValue(zipWriter, options, PROPERTY_NAME_VERSION_MADE_BY, msDosCompatible ? VERSION_MADE_BY_MSDOS : VERSION_MADE_BY_UNIX);
@@ -6930,7 +7053,7 @@ function resolveAttributes(zipWriter, name, options) {
 	checkIntegerOption(uid, MAX_32_BITS, ERR_INVALID_UID);
 	checkIntegerOption(gid, MAX_32_BITS, ERR_INVALID_GID);
 	checkIntegerOption(unixMode, MAX_16_BITS, ERR_INVALID_UNIX_MODE);
-	if (unixExtraFieldType !== UNDEFINED_VALUE && unixExtraFieldType !== INFOZIP_EXTRA_FIELD_TYPE$1 && unixExtraFieldType !== UNIX_EXTRA_FIELD_TYPE) {
+	if (unixExtraFieldType !== UNDEFINED_VALUE && unixExtraFieldType !== INFOZIP_EXTRA_FIELD_TYPE && unixExtraFieldType !== UNIX_EXTRA_FIELD_TYPE) {
 		throw new Error(ERR_INVALID_UNIX_EXTRA_FIELD_TYPE);
 	}
 	if (unixExtraFieldType === UNIX_EXTRA_FIELD_TYPE &&
@@ -6938,7 +7061,7 @@ function resolveAttributes(zipWriter, name, options) {
 		throw new Error(ERR_INVALID_UNIX_ID_SIZE);
 	}
 	if (unixExtraFieldType === UNDEFINED_VALUE && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
-		unixExtraFieldType = INFOZIP_EXTRA_FIELD_TYPE$1;
+		unixExtraFieldType = INFOZIP_EXTRA_FIELD_TYPE;
 	}
 	let msdosAttributesRaw = getNumberOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES_RAW);
 	let msdosAttributes = getOptionValue(zipWriter, options, PROPERTY_NAME_MSDOS_ATTRIBUTES);
@@ -7850,7 +7973,7 @@ function getHeaderInfo(options) {
 	let rawExtraFieldUnix;
 	try {
 		const { uid, gid, unixExtraFieldType } = options;
-		if (unixExtraFieldType == INFOZIP_EXTRA_FIELD_TYPE$1 && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
+		if (unixExtraFieldType == INFOZIP_EXTRA_FIELD_TYPE && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
 			const uidBytes = packUnixId(uid === UNDEFINED_VALUE ? 0 : uid);
 			const gidBytes = packUnixId(gid === UNDEFINED_VALUE ? 0 : gid);
 			const payloadLength = 3 + uidBytes.length + gidBytes.length;
@@ -9737,22 +9860,7 @@ const DUPLICATES_VALUES = new Set([DUPLICATES_THROW, DUPLICATES_KEEP_FIRST, DUPL
 const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
 const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
 const ERR_UNSUPPORTED_PASS_THROUGH_VALUE = "The 'compressed' passThrough option is only supported by ZipReader#getData() and ZipWriter#add()";
-const ERR_ZIP_CRYPTO_LAST_MOD_DATE = "The last modification date of an entry encrypted with ZipCrypto cannot be changed when passThrough is set";
 const ERR_ABORT_EXPORT = "zipjs-abort-export";
-const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
-const INTERPRETED_EXTRA_FIELD_TYPES = new Set([
-	EXTRAFIELD_TYPE_ZIP64,
-	EXTRAFIELD_TYPE_AES,
-	EXTRAFIELD_TYPE_NTFS,
-	EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP,
-	EXTRAFIELD_TYPE_UNICODE_PATH,
-	EXTRAFIELD_TYPE_UNICODE_COMMENT,
-	EXTRAFIELD_TYPE_USDZ,
-	EXTRAFIELD_TYPE_INFOZIP,
-	EXTRAFIELD_TYPE_UNIX,
-	EXTRAFIELD_TYPE_UNIX_TYPE1,
-	EXTRAFIELD_TYPE_PKWARE_UNIX
-]);
 
 class ZipEntry {
 
@@ -10636,70 +10744,11 @@ function getChildEntryOptions(child, selectedEntry, options) {
 	let zipEntryMetadata = {};
 	let passThroughOptions = {};
 	if (child.data instanceof Entry) {
-		const {
-			externalFileAttributes,
-			versionMadeBy,
-			comment,
-			lastModDate,
-			rawLastModDate,
-			creationDate,
-			lastAccessDate,
-			uncompressedSize,
-			encrypted,
-			zipCrypto,
-			crc32,
-			compressionMethod,
-			extraFieldAES,
-			internalFileAttributes,
-			extraField,
-			bitFlag,
-			uid,
-			gid
-		} = child.data;
-		zipEntryMetadata = {
-			externalFileAttributes,
-			versionMadeBy,
-			comment,
-			lastModDate,
-			creationDate,
-			lastAccessDate,
-			internalFileAttributes
-		};
-		const userExtraField = getUserExtraField(extraField);
-		if (userExtraField) {
-			zipEntryMetadata.extraField = userExtraField;
-		}
-		if (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE) {
-			Object.assign(zipEntryMetadata, {
-				uid,
-				gid,
-				unixExtraFieldType: INFOZIP_EXTRA_FIELD_TYPE
-			});
-		}
-		if (isPassThrough(child, options)) {
-			let encryptionStrength;
-			if (extraFieldAES) {
-				encryptionStrength = extraFieldAES.strength;
-			}
-			passThroughOptions = {
-				passThrough: true,
-				encrypted,
-				zipCrypto,
-				crc32,
-				uncompressedSize,
-				encryptionStrength,
-				compressionMethod
-			};
-			if (bitFlag) {
-				passThroughOptions.dataDescriptor = bitFlag.dataDescriptor;
-			}
-			const lastModDateOverride = childOptions.lastModDate === UNDEFINED_VALUE ? options.lastModDate : childOptions.lastModDate;
-			if (lastModDateOverride === UNDEFINED_VALUE) {
-				passThroughOptions.rawLastModDate = rawLastModDate;
-			} else if (zipCrypto && (!bitFlag || bitFlag.dataDescriptor) && lastModDateOverride instanceof Date &&
-				getDosTimeHighByte(lastModDateOverride) != ((rawLastModDate >>> 8) & MAX_8_BITS)) {
-				throw new Error(ERR_ZIP_CRYPTO_LAST_MOD_DATE);
-			}
+		const passThrough = isPassThrough(child, options);
+		const lastModDateOverride = childOptions.lastModDate === UNDEFINED_VALUE ? options.lastModDate : childOptions.lastModDate;
+		({ entryOptions: zipEntryMetadata, passThroughOptions } = getSourceEntryOptions(child.data, passThrough, lastModDateOverride));
+		if (passThrough) {
+			passThroughOptions.passThrough = true;
 		}
 	}
 	const entryOptions = Object.assign({ lastModDate: child.defaultLastModDate }, zipEntryMetadata, options, childOptions, passThroughOptions, { directory: child.directory });
@@ -10707,16 +10756,6 @@ function getChildEntryOptions(child, selectedEntry, options) {
 		throw new Error(ERR_INVALID_PASS_THROUGH);
 	}
 	return { name, entryOptions };
-}
-
-function getDosTimeHighByte(lastModDate) {
-	let dosLastModDate = new Date(Math.ceil(Math.floor(lastModDate.getTime() / 1000) / 2) * 2000);
-	if (dosLastModDate < MIN_DATE) {
-		dosLastModDate = MIN_DATE;
-	} else if (dosLastModDate > MAX_DATE) {
-		dosLastModDate = MAX_DATE;
-	}
-	return ((dosLastModDate.getHours() << 3) | (dosLastModDate.getMinutes() >> 3)) & MAX_8_BITS;
 }
 
 function getDeterminedSize(child, passThrough) {
@@ -10769,20 +10808,6 @@ function isPassThrough(child, options) {
 
 function isImplicitDirectory(child) {
 	return child.directory && child.data === null;
-}
-
-function getUserExtraField(extraField) {
-	if (extraField) {
-		const userExtraField = new Map();
-		extraField.forEach((field, type) => {
-			if (!INTERPRETED_EXTRA_FIELD_TYPES.has(type)) {
-				userExtraField.set(type, field.data);
-			}
-		});
-		if (userExtraField.size) {
-			return userExtraField;
-		}
-	}
 }
 
 async function exportZip(zipWriter, entry, totalSize, options, readers) {
@@ -11200,4 +11225,4 @@ function decodeMimeTypes(data) {
 	return mimeTypes;
 }
 
-export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_ANCESTOR_ENTRY, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_DUPLICATE_IMPORTED_ENTRY, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_ENTRY_EXISTS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_HTTP_STATUS, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_BASE_URI, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_DUPLICATES, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH, ERR_INVALID_PASS_THROUGH_VALUE, ERR_INVALID_READER, ERR_INVALID_READER_OPTIONS, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_URI, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_PARENT_NOT_DIRECTORY, ERR_READABLE_CONSUMED, ERR_RESERVED_COMPRESSION_METHOD, ERR_ROOT_DIRECTORY_NOT_MOVABLE, ERR_SPLIT_ZIP_FILE, ERR_TARGET_NOT_DIRECTORY, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_PASS_THROUGH_VALUE, ERR_UNSUPPORTED_SPLIT_USDZ, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_WRITER_SIZE_NOT_WRITABLE, ERR_ZIP_CRYPTO_LAST_MOD_DATE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, VERSION, WARNING_APPENDED_DATA, WARNING_CLAMPED_LAST_MODIFICATION_DATE, WARNING_COMPRESSED_PATCHED_DATA, WARNING_COMPRESSION_UNAVAILABLE, WARNING_DUPLICATE_FILENAME, WARNING_MALFORMED_EXTRA_FIELD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY, WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY, WARNING_PREPENDED_CENTRAL_DIRECTORY, WARNING_PREPENDED_DATA, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA, WARNING_UNKNOWN_VERSION, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA, WARNING_UNSORTED_CENTRAL_DIRECTORY, WARNING_WRAPPED_ENTRIES_COUNT, Writer, ZipDirectoryEntry, ZipEntry, ZipFS, ZipFileEntry, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, fs, getMimeType, getRegisteredCodecs, getSupportedCompressionMethods, isZipFile, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };
+export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_ANCESTOR_ENTRY, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_DUPLICATE_IMPORTED_ENTRY, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_ENTRY_EXISTS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_HTTP_STATUS, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_BASE_URI, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_DUPLICATES, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH, ERR_INVALID_PASS_THROUGH_VALUE, ERR_INVALID_READER, ERR_INVALID_READER_OPTIONS, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_URI, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_PARENT_NOT_DIRECTORY, ERR_READABLE_CONSUMED, ERR_RESERVED_COMPRESSION_METHOD, ERR_ROOT_DIRECTORY_NOT_MOVABLE, ERR_SPLIT_ZIP_FILE, ERR_TARGET_NOT_DIRECTORY, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_PASS_THROUGH_VALUE, ERR_UNSUPPORTED_SPLIT_USDZ, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_WRITER_SIZE_NOT_WRITABLE, ERR_ZIP_CRYPTO_LAST_MOD_DATE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, VERSION, WARNING_APPENDED_DATA, WARNING_CLAMPED_LAST_MODIFICATION_DATE, WARNING_COMPRESSED_PATCHED_DATA, WARNING_COMPRESSION_UNAVAILABLE, WARNING_DUPLICATE_FILENAME, WARNING_MALFORMED_EXTRA_FIELD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY, WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY, WARNING_PREPENDED_CENTRAL_DIRECTORY, WARNING_PREPENDED_DATA, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA, WARNING_UNKNOWN_VERSION, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA, WARNING_UNSORTED_CENTRAL_DIRECTORY, WARNING_WRAPPED_ENTRIES_COUNT, Writer, ZipDirectoryEntry, ZipEntry, ZipFS, ZipFileEntry, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, fs, getMimeType, getRegisteredCodecs, getSupportedCompressionMethods, isZipFile, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };
