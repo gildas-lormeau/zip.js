@@ -3197,6 +3197,11 @@ export interface ZipWriterAddDataOptions
    * overriding the metadata of an imported entry. The filename is not one of these values, it stays the
    * first argument of {@link ZipWriter#add}, so an entry can be copied under another name.
    *
+   * {@link ZipWriterConstructorOptions#encrypted} is one of the values read from the entry, so copying an encrypted entry with
+   * `passThrough` set to `true` takes the branch documented on that option: the ciphertext is written as-is and keeps the
+   * password it was encrypted with, while a {@link ZipWriterConstructorOptions#password} in scope encrypts the other entries
+   * only. Re-keying an entry is what `passThrough` set to `"compressed"` is for, since the encryption stage runs there.
+   *
    * A value which is not an object throws an {@link ERR_INVALID_ENTRY} error, and changing the
    * {@link ZipWriterConstructorOptions#lastModDate} of an entry encrypted with ZipCrypto throws an
    * {@link ERR_ZIP_CRYPTO_LAST_MOD_DATE} error when the encryption stage is passed through as well, i.e. when

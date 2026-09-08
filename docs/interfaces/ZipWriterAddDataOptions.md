@@ -257,6 +257,11 @@ copied entry. Note that [ZipDirectoryEntry#exportZip](../classes/ZipDirectoryEnt
 overriding the metadata of an imported entry. The filename is not one of these values, it stays the
 first argument of [ZipWriter#add](../classes/ZipWriter.md#add), so an entry can be copied under another name.
 
+[ZipWriterConstructorOptions#encrypted](ZipWriterConstructorOptions.md#encrypted) is one of the values read from the entry, so copying an encrypted entry with
+`passThrough` set to `true` takes the branch documented on that option: the ciphertext is written as-is and keeps the
+password it was encrypted with, while a [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password) in scope encrypts the other entries
+only. Re-keying an entry is what `passThrough` set to `"compressed"` is for, since the encryption stage runs there.
+
 A value which is not an object throws an [ERR\_INVALID\_ENTRY](../variables/ERR_INVALID_ENTRY.md) error, and changing the
 [ZipWriterConstructorOptions#lastModDate](ZipWriterConstructorOptions.md#lastmoddate) of an entry encrypted with ZipCrypto throws an
 [ERR\_ZIP\_CRYPTO\_LAST\_MOD\_DATE](../variables/ERR_ZIP_CRYPTO_LAST_MOD_DATE.md) error when the encryption stage is passed through as well, i.e. when
