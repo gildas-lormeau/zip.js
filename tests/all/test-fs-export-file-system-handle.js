@@ -22,7 +22,28 @@ async function test() {
 	await exportTreeIgnoringPreventClose({ preventClose: true });
 	await exportTreeIgnoringPreventClose({ readerOptions: { preventClose: true } });
 	await exportTreeIgnoringPreventClose({ preventClose: true, concurrent: true });
+	await refusesCompressedPassThrough({ passThrough: "compressed" });
+	await refusesCompressedPassThrough({ readerOptions: { passThrough: "compressed" } });
 	await zip.terminateWorkers();
+}
+
+// For this method the top level IS the reader options, so both spellings name the same option and both have
+// to refuse the one value the filesystem layer cannot honour: it writes the extracted content of each entry
+// into a file handle, and there is nothing on that side to hold bytes that are still deflated
+async function refusesCompressedPassThrough(options) {
+	const fs = new zip.ZipFS();
+	fs.addText("readme.txt", COMPRESSIBLE_CONTENT);
+	const target = createMockWriteDirectory();
+	let thrownError;
+	try {
+		await fs.exportFileSystemHandle(target.handle, options);
+	} catch (error) {
+		thrownError = error;
+	}
+	if (!thrownError || thrownError.message != zip.ERR_UNSUPPORTED_PASS_THROUGH_VALUE) {
+		throw new Error("expected " + JSON.stringify(options) + " to be refused, got " +
+			(thrownError ? thrownError.message : "no error"));
+	}
 }
 
 async function exportTree(concurrent) {

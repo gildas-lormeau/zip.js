@@ -255,7 +255,9 @@ first argument of [ZipWriter#add](../classes/ZipWriter.md#add), so an entry can 
 
 A value which is not an object throws an [ERR\_INVALID\_ENTRY](../variables/ERR_INVALID_ENTRY.md) error, and changing the
 [ZipWriterConstructorOptions#lastModDate](ZipWriterConstructorOptions.md#lastmoddate) of an entry encrypted with ZipCrypto throws an
-[ERR\_ZIP\_CRYPTO\_LAST\_MOD\_DATE](../variables/ERR_ZIP_CRYPTO_LAST_MOD_DATE.md) error, see the remarks of the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option.
+[ERR\_ZIP\_CRYPTO\_LAST\_MOD\_DATE](../variables/ERR_ZIP_CRYPTO_LAST_MOD_DATE.md) error when the encryption stage is passed through as well, i.e. when
+[ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) is `true` rather than `"compressed"`. Under `"compressed"` the
+entry is encrypted again, or not encrypted at all, so the date is free to change. See the remarks of that option.
 
 ***
 

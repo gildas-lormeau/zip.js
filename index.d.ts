@@ -3194,7 +3194,9 @@ export interface ZipWriterAddDataOptions
    *
    * A value which is not an object throws an {@link ERR_INVALID_ENTRY} error, and changing the
    * {@link ZipWriterConstructorOptions#lastModDate} of an entry encrypted with ZipCrypto throws an
-   * {@link ERR_ZIP_CRYPTO_LAST_MOD_DATE} error, see the remarks of the {@link ZipWriterConstructorOptions#passThrough} option.
+   * {@link ERR_ZIP_CRYPTO_LAST_MOD_DATE} error when the encryption stage is passed through as well, i.e. when
+   * {@link ZipWriterConstructorOptions#passThrough} is `true` rather than `"compressed"`. Under `"compressed"` the
+   * entry is encrypted again, or not encrypted at all, so the date is free to change. See the remarks of that option.
    */
   entry?: Entry;
 }

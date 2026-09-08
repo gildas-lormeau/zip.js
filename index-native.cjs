@@ -6481,6 +6481,7 @@ const MAX_PRINTABLE_ASCII_CHARACTER_CODE = 0x7e;
 const VENDOR_VERSION_AE_1 = 1;
 const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
 const UNIX_EXTRA_FIELD_TYPE = "unix";
+const LEVEL_BY_BITFLAG_LEVEL = [8, 9, 5, 3];
 const MAX_LEVEL = 9;
 
 let workers = 0;
@@ -6955,6 +6956,7 @@ function getSourceEntryOptions(entry, passThrough, lastModDateOverride) {
 		crc32,
 		compressionMethod,
 		extraFieldAES,
+		extraFieldUnix,
 		internalFileAttributes,
 		extraField,
 		bitFlag,
@@ -6972,6 +6974,9 @@ function getSourceEntryOptions(entry, passThrough, lastModDateOverride) {
 		internalFileAttributes,
 		directory
 	};
+	if (bitFlag && bitFlag.languageEncodingFlag) {
+		entryOptions[OPTION_USE_UNICODE_FILE_NAMES] = true;
+	}
 	const userExtraField = getUserExtraField(extraField);
 	if (userExtraField) {
 		entryOptions[PROPERTY_NAME_EXTRA_FIELD] = userExtraField;
@@ -6980,7 +6985,7 @@ function getSourceEntryOptions(entry, passThrough, lastModDateOverride) {
 		Object.assign(entryOptions, {
 			uid,
 			gid,
-			unixExtraFieldType: INFOZIP_EXTRA_FIELD_TYPE
+			unixExtraFieldType: extraFieldUnix ? UNIX_EXTRA_FIELD_TYPE : INFOZIP_EXTRA_FIELD_TYPE
 		});
 	}
 	const passThroughOptions = {};
@@ -6999,10 +7004,12 @@ function getSourceEntryOptions(entry, passThrough, lastModDateOverride) {
 		}
 		if (bitFlag) {
 			passThroughOptions.dataDescriptor = bitFlag.dataDescriptor;
+			passThroughOptions[OPTION_LEVEL] = LEVEL_BY_BITFLAG_LEVEL[bitFlag.level];
 		}
 		if (lastModDateOverride === UNDEFINED_VALUE) {
 			passThroughOptions.rawLastModDate = rawLastModDate;
-		} else if (zipCrypto && (!bitFlag || bitFlag.dataDescriptor) && lastModDateOverride instanceof Date &&
+		} else if (passThrough !== PASS_THROUGH_COMPRESSED && zipCrypto && (!bitFlag || bitFlag.dataDescriptor) &&
+			lastModDateOverride instanceof Date &&
 			getDosTimeHighByte(lastModDateOverride) != ((rawLastModDate >>> 8) & MAX_8_BITS)) {
 			throw new Error(ERR_ZIP_CRYPTO_LAST_MOD_DATE);
 		}
@@ -10560,6 +10567,7 @@ function addFileSystemHandle(zipEntry, handle, options) {
 
 async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 	const { onstart, onprogress, onend } = options;
+	checkPassThroughValue(options.passThrough);
 	const readerOptions = checkReaderOptions(options.readerOptions);
 	const abortController = new AbortController();
 	const { signal } = abortController;

@@ -24,6 +24,7 @@ async function test() {
 		await forwardsOnlyTheCompressionStageWhenReencrypting();
 		await keepsTheMetadataWithoutPassThrough();
 		await rejectsAZipCryptoDateChange();
+		await allowsAZipCryptoDateChangeWhenOnlyTheCompressionStagePasses();
 		await rejectsAnAE2SourceWhichWouldStoreNoChecksum();
 		await rejectsValuesWhichAreNotEntries();
 	} finally {
@@ -176,6 +177,30 @@ async function rejectsAZipCryptoDateChange() {
 	}, zip.ERR_ZIP_CRYPTO_LAST_MOD_DATE, "changing the date of a ZipCrypto entry");
 }
 
+// The refusal above exists because ZipCrypto derives its password verification byte from the date, and
+// passThrough: true keeps the ciphertext the source built from the old one. Under "compressed" the
+// encryption stage runs again, or does not run at all, so the date is free to change and refusing it would
+// block the rekey that value was added for.
+async function allowsAZipCryptoDateChangeWhenOnlyTheCompressionStagePasses() {
+	const source = await buildSourceArchive();
+	const entry = (await readEntries(source)).find(candidate => candidate.zipCrypto);
+	const data = await entry.getData(new zip.Uint8ArrayWriter(), { password: PASSWORD, passThrough: "compressed" });
+	const lastModDate = new Date("2011-12-13T14:15:16Z");
+	for (const { label, options } of [
+		{ label: "into a plain entry", options: {} },
+		{ label: "rekeyed into AES", options: { password: NEW_PASSWORD } }
+	]) {
+		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await zipWriter.add(entry.filename, new zip.Uint8ArrayReader(data),
+			Object.assign({ passThrough: "compressed", entry, lastModDate }, options));
+		const [copied] = await readEntries(await zipWriter.close());
+		if (copied.lastModDate.getTime() != lastModDate.getTime()) {
+			throw new Error("expected the new date to survive a compressed copy " + label +
+				", got " + copied.lastModDate.toISOString());
+		}
+	}
+}
+
 // An AE-2 entry stores no plaintext checksum, so decrypting it into an entry which does store one cannot
 // produce a valid checksum without inflating the content. The writer refuses rather than storing a zero.
 async function rejectsAnAE2SourceWhichWouldStoreNoChecksum() {
@@ -222,6 +247,13 @@ async function buildSourceArchive() {
 	await zipWriter.add("aes.txt", new zip.TextReader(TEXT_CONTENT), { password: PASSWORD, encryptionStrength: 3 });
 	await zipWriter.add("zipcrypto.txt", new zip.TextReader(TEXT_CONTENT), { password: PASSWORD, zipCrypto: true });
 	await zipWriter.add("stored.bin", new zip.Uint8ArrayReader(new Uint8Array(64).fill(7)), { level: 0 });
+	// entries whose headers differ from what the writer would choose by itself: the byte-identity oracle is
+	// blind to anything the fixture leaves at a default, which is how three forwarding gaps got through
+	await zipWriter.add("fast.txt", new zip.TextReader(TEXT_CONTENT), { level: 1 });
+	await zipWriter.add("max.txt", new zip.TextReader(TEXT_CONTENT), { level: 9 });
+	await zipWriter.add("flagged.txt", new zip.TextReader(TEXT_CONTENT), { useUnicodeFileNames: true });
+	await zipWriter.add("unixids.txt", new zip.TextReader(TEXT_CONTENT),
+		{ uid: 1000, gid: 100, unixExtraFieldType: "unix" });
 	await zipWriter.add("dir/", null, { directory: true, comment: "a directory" });
 	return await zipWriter.close();
 }
