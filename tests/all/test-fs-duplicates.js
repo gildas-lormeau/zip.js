@@ -17,6 +17,7 @@ async function test() {
 		await testDuplicateNames();
 		await testInvalidOption();
 		await testFileUsedAsDirectory();
+		await testDirectoryUsedAsFile();
 		await testTwoDirectoryRecords();
 		await testFailedImportKeepsPreviousContent();
 		testSlashedNamesBuildTheTree();
@@ -74,6 +75,41 @@ async function testFileUsedAsDirectory() {
 	for (const fs of [keptFirst, keptLast]) {
 		if (!fs.find("z/keep.txt")) {
 			throw new Error("the entries that do not collide must be kept");
+		}
+	}
+}
+
+// the reverse order of testFileUsedAsDirectory: the directory is populated first and the file claims the
+// node last, which is the one collision where keep-last also drops entries that did not collide, since a
+// file node cannot hold them
+async function testDirectoryUsedAsFile() {
+	const data = await writeZip(async zipWriter => {
+		await zipWriter.add("collision/", null, { directory: true });
+		await zipWriter.add("collision/deep/file.txt", new zip.TextReader(FIRST_CONTENT));
+		await zipWriter.add("./collision", new zip.TextReader(SECOND_CONTENT));
+		await zipWriter.add("z/keep.txt", new zip.TextReader(UNRELATED_CONTENT));
+	});
+	await checkThrows(() => importArray(data), ERR_DUPLICATE_IMPORTED_ENTRY, "a directory used as a file must be refused by default");
+	const keptFirst = await importArray(data, { duplicates: "keep-first" });
+	if (!keptFirst.find("collision").directory || await keptFirst.find("collision/deep/file.txt").getText() != FIRST_CONTENT) {
+		throw new Error("keep-first must keep the directory and everything below it");
+	}
+	const keptLast = await importArray(data, { duplicates: "keep-last" });
+	const replaced = keptLast.find("collision");
+	if (replaced.directory || await replaced.getText() != SECOND_CONTENT) {
+		throw new Error("keep-last must replace the directory with the file claiming the node");
+	}
+	const fullnames = keptLast.getChildren({ recursive: true }).map(entry => entry.getFullname());
+	if (fullnames.some(fullname => fullname.startsWith("collision/"))) {
+		throw new Error(`keep-last must drop the whole subtree the file node cannot hold, got ${JSON.stringify(fullnames)}`);
+	}
+	const exportedNames = await getExportedFilenames(keptLast);
+	if (JSON.stringify(exportedNames) != JSON.stringify(["collision", "z/keep.txt"])) {
+		throw new Error(`the dropped subtree must be gone from the export too, got ${JSON.stringify(exportedNames)}`);
+	}
+	for (const fs of [keptFirst, keptLast]) {
+		if (!fs.find("z/keep.txt")) {
+			throw new Error("the entries that do not collide with the node must be kept");
 		}
 	}
 }
@@ -209,6 +245,15 @@ async function writeZip(addEntries) {
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { level: 0 });
 	await addEntries(zipWriter);
 	return await zipWriter.close();
+}
+
+async function getExportedFilenames(fs) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(await fs.exportUint8Array()));
+	try {
+		return (await zipReader.getEntries()).map(({ filename }) => filename);
+	} finally {
+		await zipReader.close();
+	}
 }
 
 async function importArray(data, options) {

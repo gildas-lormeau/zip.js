@@ -4489,6 +4489,11 @@ export interface ZipDirectoryEntryImportOptions
    * directory record claiming a node created implicitly by the entries below it is not a collision, it is
    * the record that node was missing.
    *
+   * A file claiming a node already holding a directory is the one collision that also drops entries that
+   * did not collide: `"keep-last"` replaces the directory with the file, and the entries below it go with
+   * it, since a file node cannot hold them. `"keep-first"` keeps the directory and its entries and ignores
+   * the file instead, so the two policies are mirrors of each other for that shape.
+   *
    * @defaultValue "throw"
    */
   duplicates?: "throw" | "keep-first" | "keep-last";
