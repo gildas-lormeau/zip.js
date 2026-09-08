@@ -2378,6 +2378,12 @@ export interface EntryError extends Error {
    * failure reason cannot carry it, which does not affect the salvage described in
    * {@link ZipWriter#close}: zip.js tracks the size of a failed entry on its own, so the offsets of
    * the entries written afterwards stay correct whatever the reason a stream was aborted with.
+   *
+   * When a stream is aborted or cancelled, the reason the caller passed is what reaches the caller
+   * back, unchanged and with its class and its own properties intact whether or not the codec ran in
+   * a worker, and this property is set on that object. So aborting with an error of your own leaves
+   * that error carrying an `outputSize` afterwards, and aborting with a value that cannot take a new
+   * property, e.g. a frozen error or a value that is not an object, simply leaves it unannotated.
    */
   outputSize?: number;
   /**

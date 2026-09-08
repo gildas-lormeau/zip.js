@@ -1,4 +1,4 @@
-/* global WritableStream, ReadableStream, crypto, structuredClone, DOMException, setTimeout */
+/* global WritableStream, ReadableStream, crypto, DOMException, setTimeout */
 
 // A stream cancelled or aborted without a reason rejects with undefined, and a caller aborting one
 // is free to pass any value at all. zip.js annotates a codec failure with the number of bytes that
@@ -77,7 +77,7 @@ async function propagatesUnannotatableReason(data) {
 async function reportsWriterCancelWithWorkers(data) {
 	for (const reason of REASONS) {
 		const result = await cancelWriterStream(data, reason, undefined);
-		assertNotMasked(result, "cancelling the readable of a ZipWriterStream with a worker");
+		assertRejectedWith(result, reason, "cancelling the readable of a ZipWriterStream with a worker");
 	}
 }
 
@@ -88,35 +88,30 @@ async function propagatesReaderAbortReason(archive) {
 	}
 }
 
-// a reason raised on the main thread is only seen by the worker when the streams are transferred to
-// it, and it has to come back over a worker message. The worker sends the reason itself whenever it
-// can be cloned, so a value that is not an object comes back identical and a DOMException keeps its
-// class; where the engine cannot clone an error, the reason is rebuilt from its serialized fields
-// and only the absence of the masking TypeError can be checked.
+// the reason a caller aborts with reaches them back unchanged whether or not the codec ran in a
+// worker: the same object, keeping its class and whatever the caller attached to it. The failure is
+// raised on this thread, so the reason is taken from the pipe that observed it rather than from the
+// worker message, which could only carry a structured clone: that used to degrade an error subclass
+// to a plain Error and drop its own properties.
 async function reportsReaderAbortWithWorkers(archive) {
 	const label = "aborting the writable of getData() with a worker";
 	for (const reason of REASONS) {
 		const result = await abortReaderTarget(archive, reason, undefined);
-		if (errorValuesCrossTheWorker()) {
-			assertRejectedWith(result, reason, label);
-		} else {
-			assertNotMasked(result, label);
-		}
+		assertRejectedWith(result, reason, label);
 	}
-	if (errorValuesCrossTheWorker()) {
-		const reason = new DOMException("aborted by the test", "AbortError");
-		const { value } = await abortReaderTarget(archive, reason, undefined);
-		if (!(value instanceof DOMException) || value.name != "AbortError" || value.message != reason.message) {
-			throw new Error("expected a DOMException when " + label + ", got " + describe(value));
-		}
+	const domException = new DOMException("aborted by the test", "AbortError");
+	const { value } = await abortReaderTarget(archive, domException, undefined);
+	if (value !== domException || !(value instanceof DOMException) || value.name != "AbortError") {
+		throw new Error("expected the DOMException back when " + label + ", got " + describe(value));
 	}
-}
-
-function errorValuesCrossTheWorker() {
-	try {
-		return typeof structuredClone == "function" && structuredClone(new Error()) instanceof Error;
-	} catch {
-		return false;
+	for (const useWebWorkers of [false, undefined]) {
+		const reason = Object.assign(new Error("cancelled by the caller"), { name: "CancelError", detail: 42 });
+		const aborted = await abortReaderTarget(archive, reason, useWebWorkers);
+		if (aborted.value !== reason || aborted.value.name != "CancelError" || aborted.value.detail != 42) {
+			throw new Error("expected the reason of the caller back untouched when " + label +
+				" (useWebWorkers=" + useWebWorkers + "), got " + describe(aborted.value) +
+				" detail=" + (aborted.value && aborted.value.detail));
+		}
 	}
 }
 

@@ -49,6 +49,8 @@ const MANGLED_PROPERTY_NAMES = [
 	"decryptedDirectory",
 	"defaultBufferSize",
 	"defaultLastModDate",
+	"destinationError",
+	"destinationFailed",
 	"directWrites",
 	"directoryArray",
 	"directoryDataLength",

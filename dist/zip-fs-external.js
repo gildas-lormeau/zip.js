@@ -3092,6 +3092,8 @@ async function runWebWorker(workerData, config) {
 		reader: null,
 		writer: null,
 		outputSize: 0,
+		destinationFailed: false,
+		destinationError: null,
 		resolveResult,
 		rejectResult,
 		result
@@ -3140,16 +3142,18 @@ async function runWebWorker(workerData, config) {
 		} catch {
 			// ignored
 		}
-		const { outputSize, workerOptions } = workerData;
+		const { outputSize, workerOptions, destinationFailed, destinationError } = workerData;
 		workerOptions.outputSize = outputSize;
-		if (isErrorObject(error)) {
+		const workerFailed = isErrorObject(error) && (error.codecImportFailed || error.workerStartupFailed);
+		const reportedError = destinationFailed && !workerFailed ? destinationError : error;
+		if (isErrorObject(reportedError)) {
 			try {
-				error.outputSize = outputSize;
+				reportedError.outputSize = outputSize;
 			} catch {
 				// ignored
 			}
 		}
-		throw error;
+		throw reportedError;
 	}
 
 	async function closeWritable() {
@@ -3165,6 +3169,7 @@ async function runWebWorker(workerData, config) {
 
 function watchClosedStream(writableSource, workerData) {
 	const abortController = new AbortController();
+	let aborting;
 	const { writable, readable } = new TransformStream({
 		transform(chunk, controller) {
 			workerData.outputSize += chunk.length;
@@ -3172,8 +3177,17 @@ function watchClosedStream(writableSource, workerData) {
 		}
 	});
 	const closed = readable.pipeTo(writableSource, { preventClose: true, preventAbort: true, signal: abortController.signal });
-	closed.catch(() => { });
-	return { writable, closed, abortPipe: () => abortController.abort() };
+	closed.catch(error => {
+		if (!aborting) {
+			Object.assign(workerData, { destinationFailed: true, destinationError: error });
+		}
+	});
+	return {
+		writable, closed, abortPipe: () => {
+			aborting = true;
+			abortController.abort();
+		}
+	};
 }
 
 function releaseWorkerStreams(workerData) {
