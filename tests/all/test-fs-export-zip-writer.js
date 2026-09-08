@@ -15,9 +15,30 @@ async function test() {
 		await composesSeveralTreesIntoOneArchive();
 		await keepsTheBufferedWriteChoiceOfTheWriter();
 		await takesTheWriterOptionsAsDefaults();
+		await predictsTheSizeOfASuppliedWriterExport();
 	} finally {
 		zip.resetConfiguration();
 		await zip.terminateWorkers();
+	}
+}
+
+// getExportedSize computes the archive the export would build for a writer it creates itself, where
+// bufferedWrite defaults to true. A supplied writer defaults it to false, which adds a data descriptor per
+// entry, so the two only agree once the same value is passed to both. The stated use of the prediction is a
+// Content-Length, where being short truncates the response, so the difference is worth pinning.
+async function predictsTheSizeOfASuppliedWriterExport() {
+	for (const bufferedWrite of [false, true]) {
+		const options = { level: 0, bufferedWrite };
+		const predicted = await buildFileSystem().getExportedSize(options);
+		const blobWriter = new zip.BlobWriter();
+		const zipWriter = new zip.ZipWriter(blobWriter);
+		await buildFileSystem().exportZip(zipWriter, options);
+		await zipWriter.close();
+		const written = (await blobWriter.getData()).size;
+		if (predicted != written) {
+			throw new Error("expected the prediction to match the export with bufferedWrite " + bufferedWrite +
+				", predicted " + predicted + " and wrote " + written);
+		}
 	}
 }
 

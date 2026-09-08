@@ -703,8 +703,10 @@ added to that writer and the archive is left open, so the caller closes it with
 one archive, and read [ZipWriter#warnings](ZipWriter.md#warnings), which is otherwise unreachable through the
 filesystem API. The options of that writer keep governing the entries, exactly as they do for a
 direct call to [ZipWriter#add](ZipWriter.md#add), and the options passed here take precedence over them. The
-options that only apply when the writer is created are ignored, `bufferedWrite` included: the
-export defaults it to `true` only for a writer it creates itself.
+options that only apply when the writer is created are ignored. `bufferedWrite` is not one of
+them, it is honored here as it is on [ZipWriter#add](ZipWriter.md#add); what differs is its default, which
+the export sets to `true` only for a writer it creates itself. A supplied writer therefore
+buffers only when the option is passed here or to its own constructor.
 
 ***
 
@@ -772,7 +774,10 @@ Computes the exact size in bytes of the zip file that `export*()` would produce 
 and its descendants, without reading or compressing any data.
 
 Pass the same options object that will be passed to the export method, otherwise the result
-will not match. The size is only determinable when every descendant is stored (i.e. `level` is
+will not match. The computation assumes the export creates the writer, where `bufferedWrite`
+defaults to `true`; a [ZipWriter](ZipWriter.md) passed to [ZipDirectoryEntry#exportZip](#exportzip) defaults
+it to `false` instead, which adds a data descriptor to every entry, so pass the value that
+writer uses here too. The size is only determinable when every descendant is stored (i.e. `level` is
 set to 0) or passed through, and has a known size; [ERR\_UNDETERMINED\_SIZE](../variables/ERR_UNDETERMINED_SIZE.md) is thrown
 otherwise. Encryption does not prevent it, the overhead of ZipCrypto and AES being fixed.
 

@@ -5213,7 +5213,8 @@
 					const writer = new TransformStream();
 					const arrayBufferPromise = streamToBlob(writer.readable).then(blob => blob.arrayBuffer());
 					arrayBufferPromise.catch(() => { });
-					await fileEntry.getData(writer, entry, zipReader.readRanges, options);
+					await fileEntry.getData(writer, entry, zipReader.readRanges,
+						Object.assign({}, options, { preventClose: false }));
 					return arrayBufferPromise;
 				};
 				offset = endOffset;
@@ -5376,7 +5377,7 @@
 
 		async function getData() {
 			try {
-				await entry.getData(writable);
+				await entry.getData(writable, { preventClose: false });
 			} catch (error) {
 				try {
 					await writable.abort(error);
@@ -5504,7 +5505,8 @@
 			if (gid !== UNDEFINED_VALUE && fileEntry.gid === UNDEFINED_VALUE) {
 				fileEntry.gid = gid;
 			}
-			const encrypted = zipEntry.encrypted && localDirectory.encrypted && !passThroughEncryption;
+			const checkPasswordOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_PASSWORD_ONLY);
+			const encrypted = zipEntry.encrypted && localDirectory.encrypted && (!passThroughEncryption || checkPasswordOnly);
 			const zipCrypto = encrypted && !extraFieldAES;
 			if (!passThroughEncryption) {
 				fileEntry.zipCrypto = zipCrypto;
@@ -5530,7 +5532,6 @@
 			const readable = toCompatibleReadable(reader.createReadable({ offset: dataOffset, size }));
 			const signal = checkSignalOption(getOptionValue$1(zipEntry, options, OPTION_SIGNAL));
 			throwIfAborted(signal);
-			const checkPasswordOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_PASSWORD_ONLY);
 			let checkOverlappingEntry = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY);
 			const checkOverlappingEntryOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY_ONLY);
 			if (checkOverlappingEntryOnly) {

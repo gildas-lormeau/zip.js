@@ -39,6 +39,38 @@ async function testReaderPreventClose() {
 
 	const readerOptionsEntry = await getFirstEntry(PREVENT_CLOSE_OPTIONS);
 	assertText(await withTimeout(readerOptionsEntry.getData(new zip.TextWriter()), "ZipReader option"), "ZipReader option");
+
+	// arrayBuffer and the entry streams of ZipReaderStream build their writable internally, exactly like the
+	// Writer instances above, so the option has to be forced off for them too. They are not Writer instances
+	// though, and the ownership test reads the getData property, which neither of them carries
+	await assertArrayBufferIgnoresPreventClose(await getFirstEntry(), PREVENT_CLOSE_OPTIONS, "arrayBuffer call option");
+	await assertArrayBufferIgnoresPreventClose(await getFirstEntry(PREVENT_CLOSE_OPTIONS), undefined, "arrayBuffer reader option");
+	await assertReaderStreamIgnoresPreventClose();
+}
+
+async function assertArrayBufferIgnoresPreventClose(entry, options, label) {
+	const buffer = await withTimeout(entry.arrayBuffer(options), label);
+	assertSize(buffer.byteLength, label);
+}
+
+async function assertReaderStreamIgnoresPreventClose() {
+	const blob = await createExportedFS().exportBlob();
+	const entriesReadable = blob.stream().pipeThrough(new zip.ZipReaderStream(PREVENT_CLOSE_OPTIONS));
+	const reader = entriesReadable.getReader();
+	const { value: entry } = await withTimeout(reader.read(), "ZipReaderStream entry");
+	const text = await withTimeout(readText(entry.readable), "ZipReaderStream entry readable");
+	assertText(text, "ZipReaderStream entry readable");
+	await reader.cancel();
+}
+
+async function readText(readable) {
+	const entryReader = readable.getReader();
+	const decoder = new TextDecoder();
+	let text = "";
+	for (let result = await entryReader.read(); !result.done; result = await entryReader.read()) {
+		text += decoder.decode(result.value, { stream: true });
+	}
+	return text + decoder.decode();
 }
 
 async function testWriterPreventClose() {

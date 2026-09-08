@@ -34,8 +34,45 @@ async function test() {
 		}
 	}
 	await zipReader.close();
+	await checksThePasswordUnderPassThrough();
 	await zip.terminateWorkers();
 	if (undefinedData !== undefined || data !== TEXT_CONTENT) {
 		throw new Error();
+	}
+}
+
+// Verifying a password needs the decryption stream, since the sentinel meaning "the password is correct" is
+// raised by that stream. passThrough normally skips the encryption stage, which used to leave nothing able to
+// raise it: every password, wrong ones included, was reported as valid and the whole entry was streamed.
+async function checksThePasswordUnderPassThrough() {
+	for (const writerOptions of [{}, { zipCrypto: true }]) {
+		const blobWriter = new zip.BlobWriter("application/zip");
+		const zipWriter = new zip.ZipWriter(blobWriter, Object.assign({ password: "password" }, writerOptions));
+		await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT));
+		await zipWriter.close();
+		const data = await blobWriter.getData();
+		const label = writerOptions.zipCrypto ? "ZipCrypto" : "AES";
+		for (const passThrough of [true, "compressed"]) {
+			await assertPasswordChecked(data, { passThrough, password: "notagoodpassword" },
+				zip.ERR_INVALID_PASSWORD, label + " with passThrough " + passThrough);
+			await assertPasswordChecked(data, { passThrough, password: "password" },
+				undefined, label + " with passThrough " + passThrough);
+		}
+	}
+}
+
+async function assertPasswordChecked(data, options, expectedMessage, label) {
+	const zipReader = new zip.ZipReader(new zip.BlobReader(data), { checkPasswordOnly: true });
+	const [entry] = await zipReader.getEntries();
+	let thrownMessage;
+	try {
+		await entry.getData(null, options);
+	} catch (error) {
+		thrownMessage = error.message;
+	}
+	await zipReader.close();
+	if (thrownMessage != expectedMessage) {
+		throw new Error("expected " + label + " and the password " + JSON.stringify(options.password) +
+			" to give " + expectedMessage + ", got " + thrownMessage);
 	}
 }
