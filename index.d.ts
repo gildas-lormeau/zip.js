@@ -1114,10 +1114,14 @@ export interface WritableWriter {
    */
   writable: WritableStream;
   /**
-   * The number of bytes written into the instance. It is set to 0 before the first write and
-   * updated as the data is written, so a writer needing the value (e.g. to compute the offset of a
-   * disk) can read it. A value set before the first write is kept and used as the starting offset
-   * instead of being reset to 0.
+   * The number of bytes written into the instance. It is set to 0 before the first write, and a value
+   * set beforehand is kept and used as the starting offset instead of being reset to 0.
+   *
+   * The bytes of a section are added once that section is written, so the value is settled between
+   * entries rather than after every chunk: an instance reading it from its own `write()` method sees
+   * the total of the sections already finished. The exception is an instance yielded by a generator of
+   * split disks, which is updated on each chunk written to it, so it can compute the offset of the disk
+   * it is filling.
    *
    * It must therefore be assignable, see {@link ERR_WRITER_SIZE_NOT_WRITABLE}: a getter with no setter
    * is rejected when the writer is passed, not once the first entry has been written.

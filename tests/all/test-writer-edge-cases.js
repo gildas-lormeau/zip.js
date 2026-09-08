@@ -16,6 +16,7 @@ async function test() {
 		await testZipWriterStreamError();
 		await testWriterSizeMustBeWritable();
 		await testWriterSizeKeepsItsStartingOffset();
+		await testWriterSizeIsSettledBetweenEntries();
 	} finally {
 		await zip.terminateWorkers();
 	}
@@ -198,4 +199,81 @@ async function testWriterSizeKeepsItsStartingOffset() {
 	if (!stored) {
 		throw new Error("expected an accessor pair to be accepted and written through, got " + stored);
 	}
+}
+
+// the bytes of a section are added once that section is written, so a writer reading its own size from
+// write() sees it hold still across the chunks of an entry. Only the writers yielded by a generator of
+// split disks advance on every chunk, which is what computing the offset of a disk needs.
+async function testWriterSizeIsSettledBetweenEntries() {
+	const content = TEXT_CONTENT.repeat(32);
+	const writeObservations = [];
+	const target = observingWriter(writeObservations);
+	const zipWriter = new zip.ZipWriter(target);
+	await zipWriter.add(FILENAME, new zip.TextReader(content), { level: 0 });
+	await zipWriter.close();
+	if (!writeObservations.some((size, index) => index && size == writeObservations[index - 1])) {
+		throw new Error("expected the size to hold still across the chunks of an entry, got " + writeObservations);
+	}
+	const data = target.getData();
+	if (target.size != data.length) {
+		throw new Error("expected the final size to be the archive length " + data.length + ", got " + target.size);
+	}
+	const readObservations = [];
+	const readTarget = observingWriter(readObservations);
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+	try {
+		const [entry] = await zipReader.getEntries();
+		await entry.getData(readTarget);
+	} finally {
+		await zipReader.close();
+	}
+	if (readObservations.some(size => size !== 0)) {
+		throw new Error("expected the size to stay 0 until the entry is read, got " + readObservations);
+	}
+	if (readTarget.size != content.length) {
+		throw new Error("expected the size to be the entry length " + content.length + ", got " + readTarget.size);
+	}
+	const disks = [];
+	function* diskGenerator() {
+		while (true) {
+			const observations = [];
+			const disk = observingWriter(observations);
+			disk.maxSize = 1024;
+			disks.push(observations);
+			yield disk;
+		}
+	}
+	const splitWriter = new zip.ZipWriter(diskGenerator());
+	await splitWriter.add(FILENAME, new zip.TextReader(content), { level: 0 });
+	await splitWriter.close();
+	const filledDisks = disks.filter(observations => observations.length > 1);
+	if (filledDisks.length < 2) {
+		throw new Error("expected the archive to be split over several disks, got " + disks.length);
+	}
+	for (const observations of filledDisks) {
+		if (observations.some((size, index) => index && size <= observations[index - 1])) {
+			throw new Error("expected a disk writer to see its size advance on every chunk, got " + observations);
+		}
+	}
+}
+
+function observingWriter(observations) {
+	const chunks = [];
+	const writer = {
+		writable: new WritableStream({
+			write(chunk) {
+				observations.push(writer.size);
+				chunks.push(chunk);
+			}
+		}),
+		getData() {
+			const data = new Uint8Array(chunks.reduce((length, chunk) => length + chunk.length, 0));
+			chunks.reduce((offset, chunk) => {
+				data.set(chunk, offset);
+				return offset + chunk.length;
+			}, 0);
+			return data;
+		}
+	};
+	return writer;
 }
