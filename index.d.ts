@@ -1043,7 +1043,13 @@ export interface HttpOptions extends HttpRangeOptions {
    */
   preventHeadRequest?: boolean;
   /**
-   * `true` to use `Range: bytes=-22` on the first request and cache the EOCD, make sure beforehand that the server supports a suffix range request.
+   * `true` to read the end of the archive with the same request that gives its size, and to serve the later reads
+   * landing in that range from the response instead of requesting them again, make sure beforehand that the server
+   * supports a suffix range request.
+   *
+   * The request asks for the last 65,557 bytes, which is how far back the reader scans for the end of central directory
+   * record, so it fetches nothing the reader was not going to read anyway. An archive shorter than that is fetched
+   * whole, and reading it then costs a single request.
    *
    * @defaultValue false
    */

@@ -6,6 +6,10 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 const FILENAME = "lorem.txt";
 const SEGMENT_SIZE = 100;
 const CHUNK_SIZE = 512;
+const END_OF_CENTRAL_DIR_SEARCH_LENGTH = 22 + 0xffff;
+const HTTP_HEADER_RANGE = "Range";
+const RANGE_PREFIX = "bytes=";
+const SUFFIX_RANGE_PREFIX = RANGE_PREFIX + "-";
 
 export { test };
 
@@ -15,6 +19,7 @@ async function test() {
 	await testSplitDataWriterCloseDisk();
 	await testSplitStateNotLeakedOnWriters();
 	await testHttpReaderIgnoredRangeRequest();
+	await testHttpReaderCombinedSizeEocd();
 	await testReadableChunkBoundaries();
 	try {
 		await testReadableEntryChunks();
@@ -129,6 +134,95 @@ async function testHttpReaderIgnoredRangeRequest() {
 			if (error.message != zip.ERR_HTTP_RANGE) {
 				throw error;
 			}
+		} finally {
+			await zipReader.close();
+		}
+	} finally {
+		globalThis.fetch = originalFetch;
+	}
+}
+
+// the request that gives the size must also bring back the range the reader is
+// about to scan, so that listing the entries costs one request whether the archive
+// fits in that range or only ends in it, and a response covering another range must
+// not be served as if it were the one that was asked for
+async function testHttpReaderCombinedSizeEocd() {
+	for (const contentLength of [TEXT_CONTENT.length, END_OF_CENTRAL_DIR_SEARCH_LENGTH + CHUNK_SIZE]) {
+		const zipArray = await buildStoredArchive(contentLength);
+		const combined = await getEntriesRequests(zipArray, { combineSizeEocd: true });
+		const separate = await getEntriesRequests(zipArray, { combineSizeEocd: false });
+		if (combined.length != 1 || !combined[0].startsWith(SUFFIX_RANGE_PREFIX)) {
+			throw new Error("expected a single suffix range request for " + contentLength +
+				" bytes of content, got " + JSON.stringify(combined));
+		}
+		if (separate.length <= combined.length) {
+			throw new Error("expected more than " + combined.length + " request without the option for " +
+				contentLength + " bytes of content, got " + JSON.stringify(separate));
+		}
+		if (zipArray.length > END_OF_CENTRAL_DIR_SEARCH_LENGTH) {
+			const misreported = await getEntriesRequests(zipArray, { combineSizeEocd: true, misreportRange: true });
+			if (misreported.length <= combined.length) {
+				throw new Error("expected the misreported range not to be cached, got " + JSON.stringify(misreported));
+			}
+		}
+	}
+}
+
+async function buildStoredArchive(contentLength) {
+	const blobWriter = new zip.BlobWriter("application/zip");
+	const zipWriter = new zip.ZipWriter(blobWriter);
+	await zipWriter.add(FILENAME, new zip.TextReader(getContent(contentLength)), { level: 0 });
+	await zipWriter.close();
+	await zip.terminateWorkers();
+	return new Uint8Array(await (await blobWriter.getData()).arrayBuffer());
+}
+
+function getContent(contentLength) {
+	return TEXT_CONTENT.repeat(Math.ceil(contentLength / TEXT_CONTENT.length)).slice(0, contentLength);
+}
+
+async function getEntriesRequests(zipArray, { combineSizeEocd, misreportRange }) {
+	const requests = [];
+	const originalFetch = globalThis.fetch;
+	globalThis.fetch = async (url, { headers }) => {
+		const range = headers[HTTP_HEADER_RANGE];
+		requests.push(range);
+		let start, end;
+		if (range.startsWith(SUFFIX_RANGE_PREFIX)) {
+			const suffixLength = Math.min(Number(range.slice(SUFFIX_RANGE_PREFIX.length)), zipArray.length);
+			start = misreportRange ? 0 : zipArray.length - suffixLength;
+			end = start + suffixLength - 1;
+		} else {
+			const [rangeStart, rangeEnd] = range.slice(RANGE_PREFIX.length).split("-");
+			start = Number(rangeStart);
+			end = Math.min(Number(rangeEnd), zipArray.length - 1);
+		}
+		const data = zipArray.slice(start, end + 1);
+		return {
+			status: 206,
+			headers: new Map([
+				["Accept-Ranges", "bytes"],
+				["Content-Length", String(data.length)],
+				["Content-Range", "bytes " + start + "-" + end + "/" + zipArray.length]
+			]),
+			arrayBuffer: async () => data.slice().buffer,
+			body: new Response(data.slice()).body
+		};
+	};
+	try {
+		const zipReader = new zip.ZipReader(new zip.HttpReader("http://localhost/test.zip", {
+			useRangeHeader: true,
+			combineSizeEocd,
+			useXHR: false
+		}));
+		try {
+			const entries = await zipReader.getEntries();
+			const entriesRequests = requests.slice();
+			const text = await entries[0].getData(new zip.TextWriter(), { useWebWorkers: false });
+			if (entries.length != 1 || entries[0].filename != FILENAME || text != getContent(entries[0].uncompressedSize)) {
+				throw new Error("the archive was not read back");
+			}
+			return entriesRequests;
 		} finally {
 			await zipReader.close();
 		}

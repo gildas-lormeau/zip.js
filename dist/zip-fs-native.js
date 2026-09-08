@@ -4099,16 +4099,14 @@
 			combineSizeEocd
 		} = httpReader;
 		if (isHttpFamily(url) && (useRangeHeader || forceRangeRequests) && (typeof preventHeadRequest == UNDEFINED_TYPE || preventHeadRequest)) {
-			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -END_OF_CENTRAL_DIR_LENGTH : undefined));
+			const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, combineSizeEocd ? -65557 : undefined));
 			const acceptRanges = response.headers.get(HTTP_HEADER_ACCEPT_RANGES);
 			if (!forceRangeRequests && (!acceptRanges || acceptRanges.toLowerCase() != HTTP_RANGE_UNIT)) {
 				throw new Error(ERR_HTTP_RANGE);
 			} else {
-				if (combineSizeEocd) {
-					const eocdCache = new Uint8Array(await response.arrayBuffer());
-					if (response.status == 206 && eocdCache.length == END_OF_CENTRAL_DIR_LENGTH) {
-						httpReader.eocdCache = eocdCache;
-					}
+				let eocdCache;
+				if (combineSizeEocd && response.status == 206) {
+					eocdCache = new Uint8Array(await response.arrayBuffer());
 				}
 				setResourceValidators(httpReader, response);
 				const contentSize = getContentRangeSize(response);
@@ -4116,6 +4114,9 @@
 					await getContentLength(httpReader, sendRequest, getRequestData);
 				} else {
 					httpReader.size = contentSize;
+				}
+				if (eocdCache && eocdCache.length && getContentRangeOffset(response) === httpReader.size - eocdCache.length) {
+					httpReader.eocdCache = eocdCache;
 				}
 			}
 		} else {
@@ -4132,25 +4133,23 @@
 			options
 		} = httpReader;
 		if (useRangeHeader || forceRangeRequests) {
-			if (eocdCache && index == size - END_OF_CENTRAL_DIR_LENGTH && length == END_OF_CENTRAL_DIR_LENGTH) {
-				return eocdCache;
-			}
 			if (index >= size || length === 0) {
 				return EMPTY_UINT8_ARRAY;
 			} else {
 				if (index + length > size) {
 					length = size - index;
 				}
+				if (eocdCache && index >= size - eocdCache.length) {
+					const cacheIndex = index - (size - eocdCache.length);
+					return eocdCache.slice(cacheIndex, cacheIndex + length);
+				}
 				const response = await sendRequest(HTTP_METHOD_GET, httpReader, getRangeHeaders(httpReader, index, length));
 				if (response.status != 206) {
 					throw new Error(ERR_HTTP_RANGE);
 				}
-				const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
-				if (contentRangeHeader) {
-					const rangeStart = Number(contentRangeHeader.trim().split(/[\s-]+/)[1]);
-					if (!Number.isNaN(rangeStart) && rangeStart != index) {
-						throw new Error(ERR_HTTP_RANGE);
-					}
+				const rangeStart = getContentRangeOffset(response);
+				if (rangeStart !== UNDEFINED_VALUE && rangeStart != index) {
+					throw new Error(ERR_HTTP_RANGE);
 				}
 				checkResourceValidators(httpReader, response);
 				setResourceValidators(httpReader, response);
@@ -4210,12 +4209,9 @@
 			if (response.status != 206) {
 				throw new Error(ERR_HTTP_RANGE);
 			}
-			const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
-			if (contentRangeHeader) {
-				const rangeStart = Number(contentRangeHeader.trim().split(/[\s-]+/)[1]);
-				if (!Number.isNaN(rangeStart) && rangeStart != windowOffset) {
-					throw new Error(ERR_HTTP_RANGE);
-				}
+			const rangeStart = getContentRangeOffset(response);
+			if (rangeStart !== UNDEFINED_VALUE && rangeStart != windowOffset) {
+				throw new Error(ERR_HTTP_RANGE);
 			}
 			checkResourceValidators(httpReader, response);
 			setResourceValidators(httpReader, response);
@@ -4228,6 +4224,16 @@
 			const currentBodyReader = bodyReader;
 			bodyReader = UNDEFINED_VALUE;
 			await currentBodyReader.cancel();
+		}
+	}
+
+	function getContentRangeOffset(response) {
+		const contentRangeHeader = response.headers.get(HTTP_HEADER_CONTENT_RANGE);
+		if (contentRangeHeader) {
+			const rangeStart = Number(contentRangeHeader.trim().split(/[\s-]+/)[1]);
+			if (!Number.isNaN(rangeStart)) {
+				return rangeStart;
+			}
 		}
 	}
 
