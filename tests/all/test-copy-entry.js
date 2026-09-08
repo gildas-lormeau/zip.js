@@ -162,7 +162,9 @@ async function keepsTheMetadataWithoutPassThrough() {
 }
 
 // The ZipCrypto verification byte is derived from the date of the source entry when a data descriptor is
-// used, so changing the date makes the copy undecryptable. The writer refuses instead of writing it.
+// used, so changing the date makes the copy undecryptable. The writer refuses instead of writing it. Only
+// the high byte of the DOS time reaches that verification byte, so a date change that leaves it alone is
+// accepted, which is the branch the fixed source date above keeps this test on the right side of.
 async function rejectsAZipCryptoDateChange() {
 	const source = await buildSourceArchive();
 	const entry = (await readEntries(source)).find(candidate => candidate.zipCrypto);
@@ -175,6 +177,21 @@ async function rejectsAZipCryptoDateChange() {
 			lastModDate: new Date("2011-12-13T14:15:16Z")
 		});
 	}, zip.ERR_ZIP_CRYPTO_LAST_MOD_DATE, "changing the date of a ZipCrypto entry");
+	const sameHighByteDate = new Date(SOURCE_DATE.getTime() + 60000);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.add(entry.filename, new zip.Uint8ArrayReader(data), {
+		passThrough: true,
+		entry,
+		lastModDate: sameHighByteDate
+	});
+	const [copied] = await readEntries(await zipWriter.close());
+	if (copied.lastModDate.getTime() != sameHighByteDate.getTime()) {
+		throw new Error("expected a date change keeping the DOS time high byte to be accepted");
+	}
+	const text = await copied.getData(new zip.TextWriter(), { password: PASSWORD });
+	if (text != TEXT_CONTENT) {
+		throw new Error("expected the copy to stay decryptable after that date change");
+	}
 }
 
 // The refusal above exists because ZipCrypto derives its password verification byte from the date, and
@@ -245,7 +262,10 @@ async function buildSourceArchive() {
 		lastModDate: SOURCE_DATE
 	});
 	await zipWriter.add("aes.txt", new zip.TextReader(TEXT_CONTENT), { password: PASSWORD, encryptionStrength: 3 });
-	await zipWriter.add("zipcrypto.txt", new zip.TextReader(TEXT_CONTENT), { password: PASSWORD, zipCrypto: true });
+	// the date is pinned because rejectsAZipCryptoDateChange compares its DOS time high byte to a fixed one,
+	// and the current time matches that byte for eight minutes of every day, which turned CI red once
+	await zipWriter.add("zipcrypto.txt", new zip.TextReader(TEXT_CONTENT),
+		{ password: PASSWORD, zipCrypto: true, lastModDate: SOURCE_DATE });
 	await zipWriter.add("stored.bin", new zip.Uint8ArrayReader(new Uint8Array(64).fill(7)), { level: 0 });
 	// entries whose headers differ from what the writer would choose by itself: the byte-identity oracle is
 	// blind to anything the fixture leaves at a default, which is how three forwarding gaps got through
