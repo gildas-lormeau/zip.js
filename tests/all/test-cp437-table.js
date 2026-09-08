@@ -11,6 +11,7 @@ import { decodeCP437 } from "../../lib/core/util/decode-cp437.js";
 // IBM graphic characters instead, which is the convention of the DOS tools writing these names,
 // where libiconv keeps the control characters themselves.
 const CONTROL_RANGE = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼";
+const DELETE_CHARACTER = "⌂";
 const CHARACTERS_PAST_ASCII = "ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ";
 const BYTES_PAST_ASCII = new Uint8Array(Array.from({ length: 128 }, (_, indexByte) => 0x80 + indexByte));
 const PLACEHOLDER_FILENAME = "P".repeat(BYTES_PAST_ASCII.length);
@@ -35,6 +36,9 @@ function checkTable() {
 	for (let byteValue = 0x20; byteValue < 0x7F; byteValue++) {
 		check(decoded[byteValue], String.fromCharCode(byteValue), `the printable ASCII character ${byteValue}`);
 	}
+	// 0x7F sits between the two ranges checked above and is the last byte the table renders as a graphic
+	// character rather than as itself, which is why the writer keeps the language encoding flag for it
+	check(decoded[0x7F], DELETE_CHARACTER, "the delete character");
 	check(decoded.slice(0x80), CHARACTERS_PAST_ASCII, "the characters past ASCII");
 }
 

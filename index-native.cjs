@@ -2996,11 +2996,17 @@ async function runWebWorker(workerData, config) {
 	let resolveResult, rejectResult;
 	const result = new Promise((resolve, reject) => {
 		resolveResult = resolve;
-		rejectResult = reject;
+		rejectResult = error => {
+			if (error && error.outputSize === UNDEFINED_VALUE) {
+				error.outputSize = workerData.outputSize;
+			}
+			reject(error);
+		};
 	});
 	Object.assign(workerData, {
 		reader: null,
 		writer: null,
+		outputSize: 0,
 		resolveResult,
 		rejectResult,
 		result
@@ -3284,8 +3290,10 @@ async function onMessage({ data }, workerData) {
 				}
 			}
 			if (type == MESSAGE_DATA) {
+				const chunk = new Uint8Array(value);
 				await writer.ready;
-				await writer.write(new Uint8Array(value));
+				await writer.write(chunk);
+				workerData.outputSize += chunk.length;
 				if (!stale()) {
 					sendMessage({ type: MESSAGE_ACK_DATA, messageId }, workerData);
 				}
@@ -6468,7 +6476,8 @@ const EXTRAFIELD_DATA_AES = new Uint8Array([0x07, 0x00, 0x02, 0x00, 0x41, 0x45, 
 const EXTRAFIELD_OFFSET_AES_VENDOR_VERSION = 4;
 const EXTRAFIELD_OFFSET_AES_COMPRESSION_METHOD = 9;
 const EXTRAFIELD_USDZ_MAX_LENGTH = 67;
-const MAX_ASCII_CHARACTER_CODE = 0x7f;
+const MIN_PRINTABLE_ASCII_CHARACTER_CODE = 0x20;
+const MAX_PRINTABLE_ASCII_CHARACTER_CODE = 0x7e;
 const VENDOR_VERSION_AE_1 = 1;
 const INFOZIP_EXTRA_FIELD_TYPE = "infozip";
 const UNIX_EXTRA_FIELD_TYPE = "unix";
@@ -7183,7 +7192,7 @@ function resolveMetadata(zipWriter, name, options) {
 	const signal = checkSignalOption(getOptionValue(zipWriter, options, OPTION_SIGNAL));
 	throwIfAborted(signal);
 	const useUnicodeFileNames = getOptionValue(zipWriter, options, OPTION_USE_UNICODE_FILE_NAMES,
-		!isASCIIText(rawFilename) || !isASCIIText(rawComment));
+		!isPrintableASCIIText(rawFilename) || !isPrintableASCIIText(rawComment));
 	const compressionMethod = getOptionValue(zipWriter, options, PROPERTY_NAME_COMPRESSION_METHOD);
 	const registeredCodec = passThroughCompression || compressionMethod === UNDEFINED_VALUE ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
 	if (!passThroughCompression && compressionMethod !== UNDEFINED_VALUE &&
@@ -8795,8 +8804,9 @@ function getHeaderArrayData({
 	};
 }
 
-function isASCIIText(rawText) {
-	return rawText.every(characterCode => characterCode <= MAX_ASCII_CHARACTER_CODE);
+function isPrintableASCIIText(rawText) {
+	return rawText.every(characterCode =>
+		characterCode >= MIN_PRINTABLE_ASCII_CHARACTER_CODE && characterCode <= MAX_PRINTABLE_ASCII_CHARACTER_CODE);
 }
 
 function getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted, compressionMethod) {

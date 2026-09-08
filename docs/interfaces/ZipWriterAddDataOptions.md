@@ -954,10 +954,13 @@ true
 Language Encoding (EFS)), `false` to mark the names as compliant with the original IBM Code Page 437.
 
 By default the flag is derived from the content: it is set when the encoded name or the encoded comment
-of the entry holds a byte outside ASCII, and cleared otherwise. An ASCII name is spelled identically in
-UTF-8 and in Code Page 437, so the flag carries no information there, and every other writer decides it
-the same way. The comment is part of the test because the flag announces its encoding too, so deriving
-from the name alone would mislabel an ASCII name carrying a comment written in another language.
+of the entry holds a byte outside printable ASCII, and cleared otherwise. Printable ASCII is spelled
+identically in UTF-8 and in Code Page 437, so the flag carries no information there, and every other
+writer decides it the same way. A control character is not printable ASCII: Code Page 437 maps the bytes
+0x01 to 0x1f and the byte 0x7f to the IBM graphic characters rather than to the control characters
+themselves, so a name or a comment holding one of them keeps the flag and stays readable. The comment is
+part of the test because the flag announces its encoding too, so deriving from the name alone would
+mislabel an ASCII name carrying a comment written in another language.
 
 Note that setting this option only sets the flag, it does not ensure that the file names are in the
 correct encoding: when it is set to `false`, the names are still encoded in UTF-8 unless the

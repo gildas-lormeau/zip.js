@@ -26,6 +26,12 @@ async function test() {
 	// the flag covers the comment too, so an ASCII name is not enough on its own
 	await assertDerivedFlag({ filename: FILENAME, comment: "hello" }, false);
 	await assertDerivedFlag({ filename: FILENAME, comment: "café" }, true);
+
+	// the two encodings agree on printable ASCII only: the CP437 table decodes 0x01-0x1f and 0x7f into the
+	// IBM graphic characters, deliberately, so a name or a comment holding one of them still needs the flag
+	await assertDerivedFlag({ filename: "a\tb.txt" }, true);
+	await assertDerivedFlag({ filename: "a\x7Fb.txt" }, true);
+	await assertDerivedFlag({ filename: FILENAME, comment: "line1\nline2" }, true);
 }
 
 async function buildZip(options) {
