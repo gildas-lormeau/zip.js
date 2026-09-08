@@ -3335,21 +3335,12 @@ function sendMessage(message, { worker, writer, transferStreams, workerAlive }) 
 }
 
 async function onMessage({ data }, workerData) {
-	const { type, value, messageId, result, error } = data;
+	const { type, value, messageId, result, error, errorValue } = data;
 	const { reader, writer, resolveResult, rejectResult, onTaskFinished, generation } = workerData;
 	const stale = () => workerData.generation != generation;
 	try {
 		if (error) {
-			const { message, stack, code, name, outputSize, cause, codecImportFailed } = error;
-			const responseError = new Error(message);
-			Object.assign(responseError, { stack, code, name, outputSize });
-			if (cause) {
-				responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
-			}
-			if (codecImportFailed) {
-				responseError.codecImportFailed = true;
-			}
-			fail(responseError);
+			fail(getResponseError(error, errorValue));
 		} else {
 			if (type == MESSAGE_PULL) {
 				const { value, done } = await reader.read();
@@ -3400,6 +3391,40 @@ async function onMessage({ data }, workerData) {
 			writer.releaseLock();
 		}
 	}
+}
+
+function getResponseError(errorData, errorValue) {
+	const { message, stack, code, name, outputSize, cause, codecImportFailed } = errorData;
+	let responseError;
+	if (errorValue) {
+		responseError = errorValue.value;
+	} else {
+		responseError = Object.assign(new Error(message), { stack, code, name });
+		if (cause) {
+			responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
+		}
+	}
+	if (isErrorObject(responseError)) {
+		try {
+			if (outputSize !== UNDEFINED_VALUE) {
+				responseError.outputSize = outputSize;
+			}
+			if (codecImportFailed) {
+				responseError.codecImportFailed = true;
+			}
+			if (errorValue) {
+				if (responseError.name !== name) {
+					responseError.name = name;
+				}
+				if (responseError.code !== code) {
+					responseError.code = code;
+				}
+			}
+		} catch {
+			// ignored
+		}
+	}
+	return responseError;
 }
 
 /*

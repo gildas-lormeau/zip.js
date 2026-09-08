@@ -1,4 +1,4 @@
-/* global WritableStream, ReadableStream, crypto */
+/* global WritableStream, ReadableStream, crypto, structuredClone, DOMException */
 
 // A stream cancelled or aborted without a reason rejects with undefined, and a caller aborting one
 // is free to pass any value at all. zip.js annotates a codec failure with the number of bytes that
@@ -52,10 +52,35 @@ async function propagatesReaderAbortReason(archive) {
 	}
 }
 
+// a reason raised on the main thread is only seen by the worker when the streams are transferred to
+// it, and it has to come back over a worker message. The worker sends the reason itself whenever it
+// can be cloned, so a value that is not an object comes back identical and a DOMException keeps its
+// class; where the engine cannot clone an error, the reason is rebuilt from its serialized fields
+// and only the absence of the masking TypeError can be checked.
 async function reportsReaderAbortWithWorkers(archive) {
+	const label = "aborting the writable of getData() with a worker";
 	for (const reason of REASONS) {
 		const result = await abortReaderTarget(archive, reason, undefined);
-		assertNotMasked(result, "aborting the writable of getData() with a worker");
+		if (errorValuesCrossTheWorker()) {
+			assertRejectedWith(result, reason, label);
+		} else {
+			assertNotMasked(result, label);
+		}
+	}
+	if (errorValuesCrossTheWorker()) {
+		const reason = new DOMException("aborted by the test", "AbortError");
+		const { value } = await abortReaderTarget(archive, reason, undefined);
+		if (!(value instanceof DOMException) || value.name != "AbortError" || value.message != reason.message) {
+			throw new Error("expected a DOMException when " + label + ", got " + describe(value));
+		}
+	}
+}
+
+function errorValuesCrossTheWorker() {
+	try {
+		return typeof structuredClone == "function" && structuredClone(new Error()) instanceof Error;
+	} catch {
+		return false;
 	}
 }
 
@@ -150,8 +175,8 @@ function assertRejectedWith(result, reason, label) {
 	}
 }
 
-// a reason crossing the worker boundary is rebuilt from its serialized fields, so its identity is
-// lost there and only the absence of the masking TypeError can be checked
+// the weaker of the two assertions, for the paths where the reason is rebuilt rather than carried:
+// whatever reaches the caller, it must not be the TypeError raised while annotating the reason
 function assertNotMasked(result, label) {
 	if (!result.rejected) {
 		throw new Error("expected a rejection when " + label);
@@ -163,5 +188,10 @@ function assertNotMasked(result, label) {
 }
 
 function describe(value) {
-	return typeof value == "string" ? "\"" + value + "\"" : String(value);
+	if (typeof value == "string") {
+		return "\"" + value + "\"";
+	}
+	return value instanceof Error || value instanceof DOMException
+		? value.constructor.name + "/" + value.name + ": " + value.message
+		: String(value);
 }
