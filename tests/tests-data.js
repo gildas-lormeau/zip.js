@@ -1,9 +1,11 @@
-// Some crypto/error-path entries set `sanitizeResources: false`. On Deno, these tests take an
-// error/abort path that cancels a stream transferred to the codec worker, and Deno leaks that
-// transferred ReadableStream's underlying MessagePort on cancel (draining to completion does not
-// leak). It is a Deno resource-sanitizer bug, not a zip.js one — nothing in JS closes the port —
-// so the sanitizer is opted out only for the affected tests. See denoland/deno#36015 (repro in
-// benchmarks/deno-messageport-leak.test.mjs, still reproduced with deno 2.9.5).
+// `test-non-error-rejection.js` sets `sanitizeResources: false`. On Deno, cancelling a stream
+// transferred to the codec worker while it is still open leaves the transfer's internal MessagePort
+// open, and nothing in JS can close it. It is a Deno bug, not a zip.js one: denoland/deno#36015,
+// repro in benchmarks/deno-messageport-leak.test.mjs. It was fixed just after the 2.9.5 release,
+// verified upstream on 2.9.5+28280d5, and the repro now passes 25 runs out of 25 on deno 2.9.6.
+// The sixteen other tests opted out for it pass the sanitizer over 30 suite runs, so their opt-out
+// was removed. A rarer race survives the fix and still orphans a port in that one test, measured
+// once in 30 suite runs, which is why it keeps the opt-out.
 export default ([
 	{ title: "Abort signal (read)", script: "./test-abort-signal-read.js" },
 	{ title: "Abort signal (worker reuse)", script: "./test-worker-reuse-after-abort.js", features: ["pipeToSignal"] },
@@ -59,14 +61,13 @@ export default ([
 	{ title: "Comments", script: "./test-comments.js" },
 	{ title: "Compression method and level", script: "./test-compression-method-level.js" },
 	{ title: "Compression stream fallback", script: "./test-compression-stream-fallback.js", features: ["compressionStream"] },
-	{ title: "Web worker startup fallback", script: "./test-worker-startup-fallback.js", sanitizeResources: false },
-	{ title: "Web worker error before start", script: "./test-worker-error-before-start.js", sanitizeResources: false },
-	{ title: "Codec import fallback", script: "./test-codec-import-fallback.js", sanitizeResources: false },
+	{ title: "Web worker startup fallback", script: "./test-worker-startup-fallback.js" },
+	{ title: "Web worker error before start", script: "./test-worker-error-before-start.js" },
+	{ title: "Codec import fallback", script: "./test-codec-import-fallback.js" },
 	{ title: "Codec error encoding", script: "./test-codec-error-encoding.js", features: ["wasmBuild"] },
 	{ title: "CP437 table", script: "./test-cp437-table.js" },
 	{ title: "Web worker polyfill", script: "./test-node-worker-polyfill.js", env: ["node"] },
-	{ title: "External assets entry", script: "./test-external-assets.js", features: ["workerStreams"],
-		sanitizeResources: false },
+	{ title: "External assets entry", script: "./test-external-assets.js", features: ["workerStreams"] },
 	{ title: "External core entries", script: "./test-external-core-entries.js" },
 	{ title: "Custom codec registration", script: "./test-register-codec.js" },
 	{ title: "Custom worker factory", script: "./test-create-worker.js" },
@@ -78,9 +79,9 @@ export default ([
 	{ title: "Core", script: "./test-core.js", features: ["compressionStream"] },
 	{ title: "Version constant", script: "./test-version.js" },
 	{ title: "Supported compression methods", script: "./test-supported-compression-methods.js" },
-	{ title: "Crypto", script: "./test-crypto.js", sanitizeResources: false },
+	{ title: "Crypto", script: "./test-crypto.js" },
 	{ title: "Crypto (raw password)", script: "./test-crypto-raw-password.js" },
-	{ title: "Crypto check password only", script: "./test-crypto-check-password.js", sanitizeResources: false },
+	{ title: "Crypto check password only", script: "./test-crypto-check-password.js" },
 	{ title: "Crypto tampered data", script: "./test-crypto-tampered.js" },
 	{ title: "AES CRC-32 verification", script: "./test-aes-crc32.js" },
 	{ title: "Crypto AES streaming", script: "./test-aes-streaming.js" },
@@ -123,13 +124,13 @@ export default ([
 	{ title: "Digital signature record", script: "./test-digital-signature.js" },
 	{ title: "SecureZIP archives", script: "./test-securezip-archives.js" },
 	{ title: "PKZIP 2.04g archives", script: "./test-pkzip204-archives.js" },
-	{ title: "PKZIP 1.10 archives", script: "./test-pkzip110-archives.js", sanitizeResources: false },
+	{ title: "PKZIP 1.10 archives", script: "./test-pkzip110-archives.js" },
 	{ title: "Windows Explorer zip64 archive", script: "./test-windows-explorer-zip64.js" },
 	{ title: "Empty entry deflate", script: "./test-empty-entry-deflate.js" },
 	{ title: "Extra field", script: "./test-extra-field.js" },
 	{ title: "Last access date and creation date", script: "./test-last-access-date.js" },
 	{ title: "Filesystem base 64", script: "./test-fs-base64.js" },
-	{ title: "Filesystem check password", script: "./test-fs-check-password.js", sanitizeResources: false },
+	{ title: "Filesystem check password", script: "./test-fs-check-password.js" },
 	{ title: "Filesystem export", script: "./test-fs-export-options.js" },
 	{ title: "Filesystem entry options", script: "./test-fs-entry-options.js" },
 	{ title: "Filesystem passThrough entry options", script: "./test-fs-passthrough-entry-options.js" },
@@ -188,7 +189,7 @@ export default ([
 	{ title: "Option validation", script: "./test-option-validation.js" },
 	{ title: "Option validation (aborted signal)", script: "./test-option-validation-abort-signal.js", features: ["pipeToSignal"] },
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js" },
-	{ title: "Invalid uncompressed size", script: "./test-invalid-uncompressed-size.js", sanitizeResources: false },
+	{ title: "Invalid uncompressed size", script: "./test-invalid-uncompressed-size.js" },
 	{ title: "Entry data out of bounds", script: "./test-entry-data-out-of-bounds.js" },
 	{ title: "Unsupported 64-bit value", script: "./test-unsupported-uint64.js" },
 	{ title: "Failed read commit (real OPFS)", script: "./test-failed-read-commit-browser.js", env: ["browser"], features: ["opfs"] },
@@ -214,14 +215,14 @@ export default ([
 	{ title: "Pass through uncompressed data", script: "./test-passthrough-uncompressed.js" },
 	{ title: "Pass through zipcrypto", script: "./test-passthrough-zipcrypto.js" },
 	{ title: "Pass through zstd", script: "./test-passthrough-zstd.js" },
-	{ title: "Read zstd with registered codec", script: "./test-zstd-codec.js", sanitizeResources: false },
-	{ title: "DCL implode with registered codec", script: "./test-dcl-implode-codec.js", sanitizeResources: false, features: ["structuredClone"] },
-	{ title: "Implode with registered codec", script: "./test-implode-codec.js", sanitizeResources: false },
-	{ title: "Shrink with registered codec", script: "./test-shrink-codec.js", sanitizeResources: false },
-	{ title: "Reduce with registered codec", script: "./test-reduce-codec.js", sanitizeResources: false },
+	{ title: "Read zstd with registered codec", script: "./test-zstd-codec.js" },
+	{ title: "DCL implode with registered codec", script: "./test-dcl-implode-codec.js", features: ["structuredClone"] },
+	{ title: "Implode with registered codec", script: "./test-implode-codec.js" },
+	{ title: "Shrink with registered codec", script: "./test-shrink-codec.js" },
+	{ title: "Reduce with registered codec", script: "./test-reduce-codec.js" },
 	{ title: "Prepended data with zip64 offsets", script: "./test-prepended-data-zip64.js" },
 	{ title: "Zip64 offset boundaries", script: "./test-zip64-offset-boundary.js" },
-	{ title: "Worker loading error", script: "./test-worker-error.js", sanitizeResources: false },
+	{ title: "Worker loading error", script: "./test-worker-error.js" },
 	{ title: "Worker message properties", script: "./test-worker-message-properties.js", env: ["deno", "bun", "browser"] },
 	{ title: "Props", script: "./test-props.js" },
 	{ title: "File attributes options", script: "./test-file-attributes-options.js" },
@@ -278,5 +279,5 @@ export default ([
 	{ title: "Zip64 (streamed local extra field)", script: "./test-zip64-stream-local-field.js" },
 	{ title: "Zip64 (entry layout)", script: "./test-zip64-entry-layout.js" },
 	{ title: "Zip64", script: "./test-zip64.js" },
-	{ title: "Zipcrypto", script: "./test-zipcrypto.js", sanitizeResources: false }
+	{ title: "Zipcrypto", script: "./test-zipcrypto.js" }
 ]);
