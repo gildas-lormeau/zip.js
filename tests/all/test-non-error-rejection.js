@@ -4,12 +4,18 @@
 // is free to pass any value at all. zip.js annotates a codec failure with the number of bytes that
 // reached the writer, which only an object can carry, so every reason that cannot carry it has to
 // reach the caller unchanged rather than be replaced by the TypeError raised while annotating it.
-// The reasons below are all falsy or primitive on purpose: a falsy one used to be read as "no
-// failure" and made close() return a truncated archive with no error at all.
+// REASONS are all primitive on purpose, and the falsy ones doubly so: a falsy reason used to be
+// read as "no failure" and made close() return a truncated archive with no error at all. An object
+// is not automatically safe either, hence UNANNOTATABLE_REASONS.
 
 import * as zip from "../zip-lib.js";
 
-const REASONS = [undefined, null, "cancelled", 42];
+const REASONS = [undefined, null, "cancelled", 42, 0, ""];
+const UNANNOTATABLE_REASONS = [
+	() => Object.freeze(new Error("frozen")),
+	() => Object.seal(new Error("sealed")),
+	() => Object.defineProperty(new Error("read-only"), "outputSize", { value: 0, writable: false })
+];
 const ENTRY_NAME = "big.bin";
 const DATA_LENGTH = 1024 * 1024;
 const RANDOM_VALUES_MAX_LENGTH = 65536;
@@ -22,6 +28,7 @@ async function test() {
 		const data = createIncompressibleData();
 		const archive = await createArchive(data);
 		await propagatesWriterCancelReason(data);
+		await propagatesUnannotatableReason(data);
 		await reportsWriterCancelWithWorkers(data);
 		await reportsEntryFailureOnClose();
 		await propagatesReaderAbortReason(archive);
@@ -35,6 +42,24 @@ async function propagatesWriterCancelReason(data) {
 	for (const reason of REASONS) {
 		const result = await cancelWriterStream(data, reason, false);
 		assertRejectedWith(result, reason, "cancelling the readable of a ZipWriterStream");
+	}
+}
+
+// an object is not enough to carry the annotation either: a frozen or sealed error, or one already
+// carrying a read-only outputSize, throws on the assignment exactly like a primitive does. With a
+// worker the throw used to happen before the promise was rejected, so the entry never settled at all.
+async function propagatesUnannotatableReason(data) {
+	const label = "cancelling with a reason that cannot carry outputSize";
+	for (const makeReason of UNANNOTATABLE_REASONS) {
+		const reason = makeReason();
+		assertRejectedWith(await cancelWriterStream(data, reason, false), reason, label);
+		const workerReason = makeReason();
+		const workerResult = await cancelWriterStream(data, workerReason, undefined);
+		assertNotMasked(workerResult, label + " with a worker");
+		if (workerResult.value.message != workerReason.message) {
+			throw new Error("expected " + describe(workerReason) + " when " + label +
+				" with a worker, got " + describe(workerResult.value));
+		}
 	}
 }
 
@@ -188,10 +213,14 @@ function assertNotMasked(result, label) {
 }
 
 function describe(value) {
-	if (typeof value == "string") {
-		return "\"" + value + "\"";
+	try {
+		if (typeof value == "string") {
+			return "\"" + value + "\"";
+		}
+		return value instanceof Error || value instanceof DOMException
+			? value.constructor.name + "/" + value.name + ": " + value.message
+			: String(value);
+	} catch {
+		return "an unprintable " + typeof value;
 	}
-	return value instanceof Error || value instanceof DOMException
-		? value.constructor.name + "/" + value.name + ": " + value.message
-		: String(value);
 }

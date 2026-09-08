@@ -2924,7 +2924,11 @@
 			};
 		} catch (error) {
 			if (codecStream && isErrorObject(error)) {
-				error.outputSize = chunkStream ? chunkStream.outputSize : 0;
+				try {
+					error.outputSize = chunkStream ? chunkStream.outputSize : 0;
+				} catch {
+					// ignored
+				}
 			}
 			throw error;
 		} finally {
@@ -3035,7 +3039,11 @@
 			resolveResult = resolve;
 			rejectResult = error => {
 				if (isErrorObject(error) && error.outputSize === UNDEFINED_VALUE) {
-					error.outputSize = workerData.outputSize;
+					try {
+						error.outputSize = workerData.outputSize;
+					} catch {
+						// ignored
+					}
 				}
 				reject(error);
 			};
