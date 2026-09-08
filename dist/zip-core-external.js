@@ -517,6 +517,39 @@ function getDataView(array) {
 }
 
 /*
+ Copyright (c) 2026 Gildas Lormeau. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
+
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
+ the documentation and/or other materials provided with the distribution.
+
+ 3. The names of the authors may not be used to endorse or promote products
+ derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+ INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
+function isErrorObject(error) {
+	return Boolean(error) && typeof error == "object";
+}
+
+/*
  Copyright (c) 2022 Gildas Lormeau. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -2921,7 +2954,7 @@ async function runWorker$1({ options, readable, writable, onTaskFinished }, conf
 			outputSize
 		};
 	} catch (error) {
-		if (codecStream) {
+		if (codecStream && isErrorObject(error)) {
 			error.outputSize = chunkStream ? chunkStream.outputSize : 0;
 		}
 		throw error;
@@ -3032,7 +3065,7 @@ async function runWebWorker(workerData, config) {
 	const result = new Promise((resolve, reject) => {
 		resolveResult = resolve;
 		rejectResult = error => {
-			if (error && error.outputSize === UNDEFINED_VALUE) {
+			if (isErrorObject(error) && error.outputSize === UNDEFINED_VALUE) {
 				error.outputSize = workerData.outputSize;
 			}
 			reject(error);
@@ -3316,7 +3349,7 @@ async function onMessage({ data }, workerData) {
 			if (codecImportFailed) {
 				responseError.codecImportFailed = true;
 			}
-			close(responseError);
+			fail(responseError);
 		} else {
 			if (type == MESSAGE_PULL) {
 				const { value, done } = await reader.read();
@@ -3334,30 +3367,37 @@ async function onMessage({ data }, workerData) {
 				}
 			}
 			if (type == MESSAGE_CLOSE) {
-				close(null, result);
+				succeed(result);
 			}
 		}
 	} catch (error) {
 		if (!stale()) {
 			terminateWorker$1(workerData);
-			close(error);
+			fail(error);
 		}
 	}
 
-	function close(error, result) {
-		if (stale()) {
-			return;
-		}
-		if (error) {
+	function fail(error) {
+		if (!stale()) {
 			rejectResult(error);
-		} else {
-			resolveResult(result);
+			releaseWriter();
+			if (!(isErrorObject(error) && error.codecImportFailed)) {
+				onTaskFinished();
+			}
 		}
+	}
+
+	function succeed(result) {
+		if (!stale()) {
+			resolveResult(result);
+			releaseWriter();
+			onTaskFinished();
+		}
+	}
+
+	function releaseWriter() {
 		if (writer) {
 			writer.releaseLock();
-		}
-		if (!(error && error.codecImportFailed)) {
-			onTaskFinished();
 		}
 	}
 }
@@ -5621,7 +5661,7 @@ class ZipEntry {
 				readRanges
 			});
 		}
-		let writable, abortError;
+		let writable, abortError, aborted;
 		try {
 			if (!checkOverlappingEntryOnly) {
 				if (checkPasswordOnly) {
@@ -5637,18 +5677,19 @@ class ZipEntry {
 				writer.size += writtenSize;
 			}
 		} catch (error) {
-			if (error.outputSize !== UNDEFINED_VALUE) {
+			if (isErrorObject(error) && error.outputSize !== UNDEFINED_VALUE) {
 				writer.size += error.outputSize;
 			}
-			if (!checkPasswordOnly || error.message != ERR_ABORT_CHECK_PASSWORD) {
+			if (!checkPasswordOnly || !isErrorObject(error) || error.message != ERR_ABORT_CHECK_PASSWORD) {
 				abortError = error;
+				aborted = true;
 				throw error;
 			}
 		} finally {
 			const preventClose = !ownsWritable(writer) && getOptionValue$1(zipEntry, options, OPTION_PREVENT_CLOSE);
 			if (!preventClose && writable && !writable.locked) {
 				const writableWriter = writable.getWriter();
-				if (abortError) {
+				if (aborted) {
 					try {
 						await writableWriter.abort(abortError);
 					} catch {
@@ -6708,7 +6749,7 @@ class ZipWriter {
 			await Promise.allSettled(Array.from(pendingAddFileCalls));
 		}
 		await Promise.allSettled(zipWriter.pendingErrors.map(watcher => watcher.recorded));
-		const unobservedWatchers = zipWriter.pendingErrors.filter(watcher => watcher.error && !watcher.observed);
+		const unobservedWatchers = zipWriter.pendingErrors.filter(watcher => watcher.failed && !watcher.observed);
 		if (unobservedWatchers.length) {
 			const unobservedErrors = unobservedWatchers.map(watcher => watcher.error);
 			unobservedWatchers.forEach(watcher => watcher.observed = true);
@@ -6817,7 +6858,8 @@ function watchPromiseError(zipWriter, promise) {
 	const watchedPromise = new WatchedPromise((resolve, reject) => Promise.prototype.then.call(promise, resolve, reject));
 	const watcher = {};
 	watchedPromise.watcher = watcher;
-	watcher.recorded = Promise.prototype.then.call(watchedPromise, UNDEFINED_VALUE, error => watcher.error = error);
+	watcher.recorded = Promise.prototype.then.call(watchedPromise, UNDEFINED_VALUE,
+		error => Object.assign(watcher, { failed: true, error }));
 	zipWriter.pendingErrors.push(watcher);
 	return watchedPromise;
 }
@@ -7733,7 +7775,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 				throw new Error(ERR_UNSUPPORTED_FORMAT);
 			}
 		} catch (error) {
-			if (error.outputSize !== UNDEFINED_VALUE) {
+			if (isErrorObject(error) && error.outputSize !== UNDEFINED_VALUE) {
 				writer.size += error.outputSize;
 			}
 			throw error;

@@ -65,6 +65,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"etag",
 	"extraFieldExtendedTimestampFlag",
 	"extraFieldExtendedTimestampTime",
+	"failed",
 	"fileEntries",
 	"fileEntry",
 	"filenames",
