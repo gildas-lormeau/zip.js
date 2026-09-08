@@ -20,6 +20,12 @@ Represents an error raised while processing an archive or one of its entries, de
 
 `true` if the zip file is corrupted because the entry data could not be written entirely.
 
+#### Remarks
+
+It is set on the error, so it is absent when the failure reason cannot carry it, i.e. when a
+stream is aborted or cancelled with a value that is not an object, or with a frozen one.
+[ZipWriter#hasCorruptedEntries](../classes/ZipWriter.md#hascorruptedentries) reports the same thing on the writer and is always set.
+
 ***
 
 ### entryErrors?
@@ -87,17 +93,18 @@ export completed from one it created but never filled.
 
 > `optional` **outputSize?**: `number`
 
-The number of bytes of the entry that reached the writer before the failure, set whenever a
-compression or decompression stream fails, i.e. on a corrupt entry, an invalid CRC32, a reader
-erroring mid-entry or an aborted signal.
+The number of bytes of the entry that reached the writer before the failure, set on the errors
+raised when a compression or decompression stream fails, i.e. on a corrupt entry, an invalid
+CRC32, a reader erroring mid-entry or an aborted signal.
 
 #### Remarks
 
 It is the counterpart of [EntryError#corruptedEntry](#corruptedentry): the first says the entry is
-incomplete, this one says how much of it was written. zip.js reads it itself to keep the offsets
-of the entries written after the failed one correct, which is what makes the salvage described in
-[ZipWriter#close](../classes/ZipWriter.md#close) possible, so it counts the bytes the writer actually received rather than
-the bytes the codec produced.
+incomplete, this one says how much of it was written, counting the bytes the writer actually
+received rather than the bytes the codec produced. Like `corruptedEntry` it is absent when the
+failure reason cannot carry it, which does not affect the salvage described in
+[ZipWriter#close](../classes/ZipWriter.md#close): zip.js tracks the size of a failed entry on its own, so the offsets of
+the entries written afterwards stay correct whatever the reason a stream was aborted with.
 
 ***
 
