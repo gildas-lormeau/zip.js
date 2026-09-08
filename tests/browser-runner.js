@@ -128,7 +128,14 @@ async function runSuite({ browserName, headless, executablePath, urlSearch, port
 		} catch {
 			// ignore quit error for legacy browsers
 		}
-		await rm(profileDirectory, { recursive: true, force: true });
+		// on Windows the browser can still hold a file of the profile, typically Default\Cookies, for a
+		// moment after quit(); force only ignores a missing path, so the retries are what cover EBUSY,
+		// and a profile left in the temporary directory must not fail a run whose tests all passed
+		try {
+			await rm(profileDirectory, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 });
+		} catch (error) {
+			console.error("could not remove the browser profile " + profileDirectory + ": " + error.message);
+		}
 	}
 }
 
