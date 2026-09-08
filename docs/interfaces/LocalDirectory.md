@@ -218,10 +218,11 @@ The extra field (raw).
 The filename of the entry stored in the local file header (raw), which is allowed to differ from
 [EntryMetaData#rawFilename](EntryMetaData.md#rawfilename).
 
-Only defined when the local filename has been read, i.e. when the [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) option
-is set to `"strict"`, or when the [ZipReaderOptions#checkLocalDirectory](ZipReaderOptions.md#checklocaldirectory) option or the
-[ZipReaderOptions#checkLocalFilename](ZipReaderOptions.md#checklocalfilename) option is set to `true`, since reading it costs one read the
-central directory does not need.
+Only defined when the local filename has been read, i.e. when the [ZipReaderOptions#checkLocalFilename](ZipReaderOptions.md#checklocalfilename)
+option is set to `true`, or is unset and either the [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) option is set to
+`"strict"` or the [ZipReaderOptions#checkLocalDirectory](ZipReaderOptions.md#checklocaldirectory) option is set to `true`. Setting
+`checkLocalFilename` to `false` suppresses the read whatever the other two say, since reading it costs one
+read the central directory does not need.
 
 ***
 

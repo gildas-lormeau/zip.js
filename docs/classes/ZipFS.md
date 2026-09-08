@@ -808,10 +808,10 @@ entry, and when the archive exceeds 4GB and the order could change the result, s
 offsets recorded in the central directory are then extended to 64 bits. Entries of equal size
 put the same entries past 4GB whatever the order, so they stay determinable unless they differ
 in whether they already carry a zip64 field, which changes the cost of crossing that boundary.
-Passing `bufferedWrite: false` makes both determinable again,
-as does exporting a directory whose children are all files. A name holding `"/"` creates the
-directories it names, so `addText("a/b.txt", text)` builds a tree whose children are not all
-files, even though the directories created that way are not written. It is thrown as well when
+Passing `bufferedWrite: false` makes both determinable again, as does exporting a tree holding no
+directory that was added explicitly and has children: the directories a name holding `"/"` creates are
+exempt, so `addText("a/b.txt", text)` stays determinable, while `addDirectory("a")` followed by two
+`addText` calls on it does not. It is thrown as well when
 `signCentralDirectory` is set, the length of the signature being unknown until it is computed.
 
 An entry asking for compression is stored instead when no deflate implementation is reachable,

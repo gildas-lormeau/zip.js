@@ -673,9 +673,15 @@ The password used to encrypt the content of the entry (raw).
 
 ### readerOptions?
 
-> `optional` **readerOptions?**: [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md)
+> `optional` **readerOptions?**: `Omit`\<[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md), `"passThrough"`\> & `object`
 
 The options passed to the Reader instances.
+
+#### Type Declaration
+
+##### passThrough?
+
+> `optional` **passThrough?**: `boolean`
 
 #### Remarks
 

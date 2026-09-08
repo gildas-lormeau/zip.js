@@ -2268,10 +2268,11 @@ export interface LocalDirectory {
    * The filename of the entry stored in the local file header (raw), which is allowed to differ from
    * {@link EntryMetaData#rawFilename}.
    *
-   * Only defined when the local filename has been read, i.e. when the {@link ZipReaderOptions#strictness} option
-   * is set to `"strict"`, or when the {@link ZipReaderOptions#checkLocalDirectory} option or the
-   * {@link ZipReaderOptions#checkLocalFilename} option is set to `true`, since reading it costs one read the
-   * central directory does not need.
+   * Only defined when the local filename has been read, i.e. when the {@link ZipReaderOptions#checkLocalFilename}
+   * option is set to `true`, or is unset and either the {@link ZipReaderOptions#strictness} option is set to
+   * `"strict"` or the {@link ZipReaderOptions#checkLocalDirectory} option is set to `true`. Setting
+   * `checkLocalFilename` to `false` suppresses the read whatever the other two say, since reading it costs one
+   * read the central directory does not need.
    */
   rawFilename?: Uint8Array;
   /**
@@ -3189,7 +3190,11 @@ export interface ZipWriterAddDataOptions
    * encryption stage is passed through too: with `"compressed"` the writer performs the encryption itself and the scheme is the
    * caller's to choose, so carrying the scheme of the source over would rekey an entry into the very scheme it was read from.
    *
-   * Every value read from the entry is a default: an option written next to it wins. The filename is not one of them, it stays the
+   * Every value read from the entry is a default against the options of the same {@link ZipWriter#add} call: an option written
+   * next to it wins. Against the options the {@link ZipWriter} was constructed with the precedence is the other way round, since
+   * the values read from the entry are merged into the options of the call, so a date pinned on the writer does not normalize a
+   * copied entry. Note that {@link ZipDirectoryEntry#exportZip} resolves the same conflict the opposite way, an export option
+   * overriding the metadata of an imported entry. The filename is not one of these values, it stays the
    * first argument of {@link ZipWriter#add}, so an entry can be copied under another name.
    *
    * A value which is not an object throws an {@link ERR_INVALID_ENTRY} error, and changing the
@@ -4399,10 +4404,10 @@ export class ZipDirectoryEntry extends ZipEntry {
    * offsets recorded in the central directory are then extended to 64 bits. Entries of equal size
    * put the same entries past 4GB whatever the order, so they stay determinable unless they differ
    * in whether they already carry a zip64 field, which changes the cost of crossing that boundary.
-   * Passing `bufferedWrite: false` makes both determinable again,
-   * as does exporting a directory whose children are all files. A name holding `"/"` creates the
-   * directories it names, so `addText("a/b.txt", text)` builds a tree whose children are not all
-   * files, even though the directories created that way are not written. It is thrown as well when
+   * Passing `bufferedWrite: false` makes both determinable again, as does exporting a tree holding no
+   * directory that was added explicitly and has children: the directories a name holding `"/"` creates are
+   * exempt, so `addText("a/b.txt", text)` stays determinable, while `addDirectory("a")` followed by two
+   * `addText` calls on it does not. It is thrown as well when
    * `signCentralDirectory` is set, the length of the signature being unknown until it is computed.
    *
    * An entry asking for compression is stored instead when no deflate implementation is reachable,
@@ -4420,7 +4425,15 @@ export class ZipDirectoryEntry extends ZipEntry {
  * Represents the options passed to `{@link ZipDirectoryEntry}#import*()`.
  */
 export interface ZipDirectoryEntryImportOptions
-  extends ZipReaderConstructorOptions {
+  extends Omit<ZipReaderConstructorOptions, "passThrough"> {
+  /**
+   * `true` to import the entries of the zip file as-is, without decompressing and decrypting them
+   *
+   * @remarks Only a boolean, where {@link ZipReaderOptions#passThrough} also takes `"compressed"`: the
+   * filesystem copies each entry through a writer, which has nowhere to put content that is still
+   * compressed. `"compressed"` throws an {@link ERR_UNSUPPORTED_PASS_THROUGH_VALUE} error.
+   */
+  passThrough?: boolean;
   /**
    * The policy applied when two entries of the imported zip file claim the same node of the tree
    *
@@ -4569,7 +4582,7 @@ export interface ZipDirectoryEntryExportOptions
    *
    * A value which is neither an object nor unset throws an {@link ERR_INVALID_READER_OPTIONS} error.
    */
-  readerOptions?: ZipReaderConstructorOptions;
+  readerOptions?: Omit<ZipReaderConstructorOptions, "passThrough"> & { passThrough?: boolean };
 }
 
 /**
@@ -4602,7 +4615,7 @@ export interface ZipDirectoryEntryExportFileSystemHandleOptions
    *
    * A value which is neither an object nor unset throws an {@link ERR_INVALID_READER_OPTIONS} error.
    */
-  readerOptions?: ZipReaderConstructorOptions;
+  readerOptions?: Omit<ZipReaderConstructorOptions, "passThrough"> & { passThrough?: boolean };
 }
 
 /**
@@ -4736,7 +4749,8 @@ export const fs: {
  */
 export const ERR_HTTP_RANGE: string;
 /**
- * HTTP status error (thrown by {@link HttpReader} when the server answers with a status other than 2xx)
+ * HTTP status error (thrown by {@link HttpReader} when the server answers with a status other than 2xx, except
+ * 416, which throws {@link ERR_HTTP_RANGE} instead)
  *
  * @remarks This message is a prefix: the status text, or the status code when the server sends none, is
  * appended to it, so it is matched with `String#startsWith` rather than with an equality test.
@@ -4899,7 +4913,9 @@ export const ERR_INVALID_BASE_URI: string;
  *
  * @remarks
  * Thrown by {@link configure} when {@link Configuration#workerURI} or {@link Configuration#wasmURI} is neither falsy, a string,
- * nor a function returning a string. A falsy value keeps meaning "no worker" and "no WebAssembly module", which is how the
+ * nor a function. A function is not called at that point, so what it returns is not validated here: one returning something
+ * other than a string fails later and quietly, when loading the worker throws and the codecs fall back to the main thread.
+ * A falsy value keeps meaning "no worker" and "no WebAssembly module", which is how the
  * entry points excluding them unset their URI.
  */
 export const ERR_INVALID_URI: string;
@@ -5341,7 +5357,8 @@ export const WARNING_COMPRESSION_UNAVAILABLE: string;
  * (see {@link ZipWriter#warnings} and {@link EntryMetaData#lastModDate})
  *
  * @remarks {@link ZipWriterConstructorOptions#extendedTimestamp} is enabled by default and preserves the
- * original value, so this reason only appears when it and {@link ZipWriterConstructorOptions#ntfsTimestamp}
- * are both disabled.
+ * original value, so this reason only appears when no extra field is left to carry it: when it and
+ * {@link ZipWriterConstructorOptions#ntfsTimestamp} are both disabled, and also when the date falls outside
+ * the range an extended timestamp can hold, 1901-12-13 to 2038-01-19, and `ntfsTimestamp` alone is disabled.
  */
 export const WARNING_CLAMPED_LAST_MODIFICATION_DATE: string;

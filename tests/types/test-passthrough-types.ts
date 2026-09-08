@@ -3,7 +3,10 @@
 // from a variable typed as the option itself, so that a caller can forward the value it was given.
 // Compile with: npm run test-types
 import { ZipReader, ZipWriter, Uint8ArrayReader, Uint8ArrayWriter } from "../../index.js";
-import type { FileEntry, ZipReaderOptions, ZipWriterConstructorOptions } from "../../index.js";
+import type {
+	FileEntry, ZipReaderOptions, ZipWriterConstructorOptions,
+	ZipDirectoryEntryImportOptions, ZipDirectoryEntryExportOptions
+} from "../../index.js";
 
 const readerOptions: ZipReaderOptions[] = [
 	{ passThrough: true },
@@ -17,6 +20,21 @@ const writerOptions: ZipWriterConstructorOptions[] = [
 	{ passThrough: "compressed" },
 	{}
 ];
+
+// "nothing else" above is an assertion, so it needs a case that must NOT compile
+// @ts-expect-error the option takes the two booleans and "compressed", not any string
+const rejectedReaderOptions: ZipReaderOptions = { passThrough: "raw" };
+// @ts-expect-error same on the writer side
+const rejectedWriterOptions: ZipWriterConstructorOptions = { passThrough: "raw" };
+
+// the filesystem copies each entry through a writer, so it narrows the option back to a boolean; the
+// runtime throws ERR_UNSUPPORTED_PASS_THROUGH_VALUE for "compressed" and the types have to say so
+const fsImportOptions: ZipDirectoryEntryImportOptions[] = [{ passThrough: true }, { passThrough: false }, {}];
+const fsExportOptions: ZipDirectoryEntryExportOptions[] = [{ readerOptions: { passThrough: true } }, {}];
+// @ts-expect-error the filesystem does not accept the "compressed" value
+const rejectedImportOptions: ZipDirectoryEntryImportOptions = { passThrough: "compressed" };
+// @ts-expect-error nor does it accept it through readerOptions
+const rejectedExportOptions: ZipDirectoryEntryExportOptions = { readerOptions: { passThrough: "compressed" } };
 
 // the value forwards between the two sides without a cast, which is what a rekey does
 const stage: ZipReaderOptions["passThrough"] = "compressed";
@@ -38,6 +56,7 @@ async function rekey(archive: Uint8Array, password: string, newPassword: string)
 	return await zipWriter.close();
 }
 
-void [readerOptions, writerOptions, forwarded, rekey];
+void [readerOptions, writerOptions, forwarded, rekey, rejectedReaderOptions, rejectedWriterOptions,
+	fsImportOptions, fsExportOptions, rejectedImportOptions, rejectedExportOptions];
 
 export { rekey };

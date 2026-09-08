@@ -3611,6 +3611,8 @@
 
 
 	const ERR_HTTP_STATUS = "HTTP error ";
+	const MIN_SUCCESS_HTTP_STATUS = 200;
+	const MAX_SUCCESS_HTTP_STATUS = 299;
 	const ERR_HTTP_RANGE = "HTTP Range not supported";
 	const ERR_HTTP_RESOURCE_CHANGED = "HTTP resource changed";
 	const ERR_ITERATOR_COMPLETED_TOO_SOON = "Writer iterator completed too soon";
@@ -4214,7 +4216,7 @@
 
 	async function sendFetchRequest(method, { fetch: fetchFunction = fetch, options, url }, headers) {
 		const response = await fetchFunction(url, Object.assign({}, options, { method, headers }));
-		if (response.status < 400) {
+		if (response.status >= MIN_SUCCESS_HTTP_STATUS && response.status <= MAX_SUCCESS_HTTP_STATUS) {
 			return response;
 		} else {
 			throw response.status == 416 ? new Error(ERR_HTTP_RANGE) : new Error(ERR_HTTP_STATUS + (response.statusText || response.status));
@@ -4225,7 +4227,7 @@
 		return new Promise((resolve, reject) => {
 			const request = new XMLHttpRequest();
 			request.addEventListener("load", () => {
-				if (request.status < 400) {
+				if (request.status >= MIN_SUCCESS_HTTP_STATUS && request.status <= MAX_SUCCESS_HTTP_STATUS) {
 					const headers = [];
 					request.getAllResponseHeaders().trim().split(/[\r\n]+/).forEach(header => {
 						const splitHeader = header.trim().split(/\s*:\s*/);
@@ -5624,10 +5626,10 @@
 					await initStream(writer, getDecodableOutputSize(outputSize, compressedSize, compressed));
 					({ writable } = writer);
 					const { outputSize: writtenSize } = await runWorker({ readable, writable }, workerOptions);
-					writer.size += writtenSize;
 					if (writtenSize != outputSize) {
-						throw new Error(ERR_INVALID_UNCOMPRESSED_SIZE);
+						throw Object.assign(new Error(ERR_INVALID_UNCOMPRESSED_SIZE), { outputSize: writtenSize });
 					}
+					writer.size += writtenSize;
 				}
 			} catch (error) {
 				if (error.outputSize !== UNDEFINED_VALUE) {
@@ -9890,7 +9892,7 @@
 	const DUPLICATES_VALUES = new Set([DUPLICATES_THROW, DUPLICATES_KEEP_FIRST, DUPLICATES_KEEP_LAST]);
 	const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
 	const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
-	const ERR_UNSUPPORTED_PASS_THROUGH_VALUE = "The 'compressed' passThrough option is only supported by ZipReader#getData() and ZipWriter#add()";
+	const ERR_UNSUPPORTED_PASS_THROUGH_VALUE = "The 'compressed' passThrough option is only supported by Entry#getData() and ZipWriter#add()";
 	const ERR_ABORT_EXPORT = "zipjs-abort-export";
 
 	class ZipEntry {
@@ -10372,7 +10374,7 @@
 			return writer.getData ? writer.getData() : writer.writable;
 		}
 
-		getExportedSize(options = {}) {
+		async getExportedSize(options = {}) {
 			const zipEntry = this;
 			options = Object.assign({}, options);
 			checkReaderOptions(options.readerOptions);
@@ -10387,7 +10389,7 @@
 			const writeOrderGuaranteed = !options.bufferedWrite ||
 				(entries.every(entry => entry.options.keepOrder !== false) &&
 					children.every(child => isImplicitDirectory(child) || !child.children.length));
-			return getEntriesSize(options, entries, writeOrderGuaranteed, options.globalComment);
+			return await getEntriesSize(options, entries, writeOrderGuaranteed, options.globalComment);
 		}
 
 		getChildByName(name) {

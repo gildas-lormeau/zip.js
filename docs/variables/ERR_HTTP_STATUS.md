@@ -8,7 +8,8 @@
 
 > `const` **ERR\_HTTP\_STATUS**: `string`
 
-HTTP status error (thrown by [HttpReader](../classes/HttpReader.md) when the server answers with a status other than 2xx)
+HTTP status error (thrown by [HttpReader](../classes/HttpReader.md) when the server answers with a status other than 2xx, except
+416, which throws [ERR\_HTTP\_RANGE](ERR_HTTP_RANGE.md) instead)
 
 ## Remarks
 

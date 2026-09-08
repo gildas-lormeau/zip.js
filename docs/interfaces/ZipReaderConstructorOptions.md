@@ -12,10 +12,6 @@ Represents the options passed to the constructor of [ZipReader](../classes/ZipRe
 
 - [`ZipReaderOptions`](ZipReaderOptions.md).[`GetEntriesOptions`](GetEntriesOptions.md).[`WorkerConfiguration`](WorkerConfiguration.md)
 
-## Extended by
-
-- [`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md)
-
 ## Properties
 
 ### checkAmbiguity?

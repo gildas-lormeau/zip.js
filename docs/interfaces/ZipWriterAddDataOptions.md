@@ -250,7 +250,11 @@ about to store verbatim. This option hands it the entry instead, and the options
 encryption stage is passed through too: with `"compressed"` the writer performs the encryption itself and the scheme is the
 caller's to choose, so carrying the scheme of the source over would rekey an entry into the very scheme it was read from.
 
-Every value read from the entry is a default: an option written next to it wins. The filename is not one of them, it stays the
+Every value read from the entry is a default against the options of the same [ZipWriter#add](../classes/ZipWriter.md#add) call: an option written
+next to it wins. Against the options the [ZipWriter](../classes/ZipWriter.md) was constructed with the precedence is the other way round, since
+the values read from the entry are merged into the options of the call, so a date pinned on the writer does not normalize a
+copied entry. Note that [ZipDirectoryEntry#exportZip](../classes/ZipDirectoryEntry.md#exportzip) resolves the same conflict the opposite way, an export option
+overriding the metadata of an imported entry. The filename is not one of these values, it stays the
 first argument of [ZipWriter#add](../classes/ZipWriter.md#add), so an entry can be copied under another name.
 
 A value which is not an object throws an [ERR\_INVALID\_ENTRY](../variables/ERR_INVALID_ENTRY.md) error, and changing the

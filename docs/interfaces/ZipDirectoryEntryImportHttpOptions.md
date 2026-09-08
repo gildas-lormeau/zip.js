@@ -39,7 +39,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkAmbiguity`](ZipDirectoryEntryImportOptions.md#checkambiguity)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`checkAmbiguity`](ZipReaderOptions.md#checkambiguity)
 
 ***
 
@@ -58,7 +58,7 @@ true
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkAuthenticationCode`](ZipDirectoryEntryImportOptions.md#checkauthenticationcode)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`checkAuthenticationCode`](ZipReaderOptions.md#checkauthenticationcode)
 
 ***
 
@@ -78,7 +78,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkCrc32`](ZipDirectoryEntryImportOptions.md#checkcrc32)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`checkCrc32`](ZipReaderOptions.md#checkcrc32)
 
 ***
 
@@ -106,7 +106,7 @@ it is `"tolerant"`.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkLocalDirectory`](ZipDirectoryEntryImportOptions.md#checklocaldirectory)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`checkLocalDirectory`](ZipReaderOptions.md#checklocaldirectory)
 
 ***
 
@@ -133,7 +133,7 @@ when [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) is `"strict"`
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkLocalFilename`](ZipDirectoryEntryImportOptions.md#checklocalfilename)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`checkLocalFilename`](ZipReaderOptions.md#checklocalfilename)
 
 ***
 
@@ -153,7 +153,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkOverlappingEntry`](ZipDirectoryEntryImportOptions.md#checkoverlappingentry)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`checkOverlappingEntry`](ZipReaderOptions.md#checkoverlappingentry)
 
 ***
 
@@ -174,7 +174,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkOverlappingEntryOnly`](ZipDirectoryEntryImportOptions.md#checkoverlappingentryonly)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`checkOverlappingEntryOnly`](ZipReaderOptions.md#checkoverlappingentryonly)
 
 ***
 
@@ -192,7 +192,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkPasswordOnly`](ZipDirectoryEntryImportOptions.md#checkpasswordonly)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`checkPasswordOnly`](ZipReaderOptions.md#checkpasswordonly)
 
 ***
 
@@ -235,7 +235,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`checkSignature`](ZipDirectoryEntryImportOptions.md#checksignature)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`checkSignature`](ZipReaderOptions.md#checksignature)
 
 ***
 
@@ -268,7 +268,82 @@ The option is ignored when the general purpose bit 11 is set in the header of th
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`commentEncoding`](ZipDirectoryEntryImportOptions.md#commentencoding)
+[`GetEntriesOptions`](GetEntriesOptions.md).[`commentEncoding`](GetEntriesOptions.md#commentencoding)
+
+***
+
+### decodeText?
+
+> `optional` **decodeText?**: (`value`, `encoding`, `type`) => `string` \| `undefined`
+
+The function called for decoding the filename and the comment of the entry.
+
+#### Parameters
+
+##### value
+
+`Uint8Array`
+
+The raw text value.
+
+##### encoding
+
+`string`
+
+The encoding of the text.
+
+##### type
+
+`"filename"` \| `"comment"`
+
+The type of the decoded text, `"filename"` or `"comment"`.
+
+#### Returns
+
+`string` \| `undefined`
+
+The decoded text value or `undefined` if the raw text value should be decoded by zip.js.
+
+#### Inherited from
+
+[`GetEntriesOptions`](GetEntriesOptions.md).[`decodeText`](GetEntriesOptions.md#decodetext)
+
+***
+
+### decryptCentralDirectory?
+
+> `optional` **decryptCentralDirectory?**: (`data`, `encryptionInfo?`) => `Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+
+The function called for decrypting the central directory when it is encrypted (see the Strong Encryption
+Specification in the ZIP format specification). Without this function, reading such an archive throws an
+[ERR\_ENCRYPTED\_CENTRAL\_DIRECTORY](../variables/ERR_ENCRYPTED_CENTRAL_DIRECTORY.md) error. zip.js provides the encrypted data and the related metadata
+but does not implement the decryption itself.
+
+#### Parameters
+
+##### data
+
+`Uint8Array`
+
+The raw data stored in place of the central directory, i.e. the decryption header followed by
+the encrypted (and possibly compressed) central directory, as stored in the zip file.
+
+##### encryptionInfo?
+
+[`DirectoryEncryptionInfo`](DirectoryEncryptionInfo.md)
+
+The encryption metadata read from the Zip64 end of central directory record, or
+`undefined` if the zip file does not contain a version 2 record.
+
+#### Returns
+
+`Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+
+The decrypted and decompressed central directory records.
+
+#### Inherited from
+
+[`GetEntriesOptions`](GetEntriesOptions.md).[`decryptCentralDirectory`](GetEntriesOptions.md#decryptcentraldirectory)
 
 ***
 
@@ -302,7 +377,7 @@ are imported in both cases.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`duplicates`](ZipDirectoryEntryImportOptions.md#duplicates)
+`ZipDirectoryEntryImportHttpOptions`.[`duplicates`](#duplicates)
 
 ***
 
@@ -320,7 +395,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`extractAppendedData`](ZipDirectoryEntryImportOptions.md#extractappendeddata)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`extractAppendedData`](ZipReaderConstructorOptions.md#extractappendeddata)
 
 ***
 
@@ -338,7 +413,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`extractPrependedData`](ZipDirectoryEntryImportOptions.md#extractprependeddata)
+[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md).[`extractPrependedData`](ZipReaderConstructorOptions.md#extractprependeddata)
 
 ***
 
@@ -354,7 +429,7 @@ then decoded as IBM Code Page 437 when the option is not set either.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`filenameEncoding`](ZipDirectoryEntryImportOptions.md#filenameencoding)
+[`GetEntriesOptions`](GetEntriesOptions.md).[`filenameEncoding`](GetEntriesOptions.md#filenameencoding)
 
 ***
 
@@ -385,7 +460,7 @@ The value of [GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strict
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`filenameValidation`](ZipDirectoryEntryImportOptions.md#filenamevalidation)
+[`GetEntriesOptions`](GetEntriesOptions.md).[`filenameValidation`](GetEntriesOptions.md#filenamevalidation)
 
 ***
 
@@ -435,7 +510,7 @@ record is searched for, so a value smaller than the amount of data actually appe
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`maxAppendedDataSize`](ZipDirectoryEntryImportOptions.md#maxappendeddatasize)
+[`GetEntriesOptions`](GetEntriesOptions.md).[`maxAppendedDataSize`](GetEntriesOptions.md#maxappendeddatasize)
 
 ***
 
@@ -468,34 +543,51 @@ and read each entry with a single range request covering its whole remaining len
 
 ***
 
+### normalizeFilename?
+
+> `optional` **normalizeFilename?**: (`filename`) => `string` \| `undefined`
+
+The function called for normalizing the filename of each entry, e.g. to repair the names rejected by
+[GetEntriesOptions#filenameValidation](GetEntriesOptions.md#filenamevalidation).
+
+It is called with the decoded filename, after [GetEntriesOptions#decodeText](GetEntriesOptions.md#decodetext) and before the name is
+validated, so a name it fails to repair is still rejected. The returned name becomes the name of the entry:
+it is used to detect directory entries by their trailing `"/"`, and to detect duplicate filenames when
+[GetEntriesOptions#checkAmbiguity](ZipReaderGetEntriesOptions.md#checkambiguity) is set, so two names normalized into the same name are reported as
+an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error instead of silently shadowing each other. The raw filename remains
+available in [EntryMetaData#rawFilename](EntryMetaData.md#rawfilename).
+
+#### Parameters
+
+##### filename
+
+`string`
+
+The decoded filename.
+
+#### Returns
+
+`string` \| `undefined`
+
+The normalized filename or `undefined` to keep the decoded filename.
+
+#### Inherited from
+
+[`GetEntriesOptions`](GetEntriesOptions.md).[`normalizeFilename`](GetEntriesOptions.md#normalizefilename)
+
+***
+
 ### passThrough?
 
-> `optional` **passThrough?**: `boolean` \| `"compressed"`
+> `optional` **passThrough?**: `boolean`
 
-`true` to read the data as-is without decompressing it and without decrypting it, `"compressed"` to decrypt
-it without decompressing it.
+`true` to import the entries of the zip file as-is, without decompressing and decrypting them
 
 #### Remarks
 
-The codecs run in a fixed order, the data is decrypted and then decompressed, so this option selects how
-many of these two stages are skipped rather than which one. `"compressed"` therefore returns the data of the
-entry still compressed but no longer encrypted, and it is the only way to obtain it: the value `true` returns
-the stored bytes, which are still encrypted, and an unset value returns the content itself. Reading an entry
-which is not encrypted gives the same result with `true` and with `"compressed"`.
-
-Since the encryption is undone, `"compressed"` needs the [ZipReaderOptions#password](ZipReaderOptions.md#password) option and
-throws an [ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error when it is wrong, whereas `true` never looks at the password.
-The [ZipReaderOptions#checkAuthenticationCode](ZipReaderOptions.md#checkauthenticationcode) option applies as well. The
-[ZipReaderOptions#checkCrc32](ZipReaderOptions.md#checkcrc32) option does not, since the CRC32 of the entry describes its
-content and the content is not decompressed.
-
-Two entries holding the same content encrypted with two different passwords have no bytes in common when
-they are read with `true`, because the salt is drawn per entry. Read with `"compressed"` they are identical,
-which is what makes it possible to compare the content of encrypted entries without decompressing them.
-
-A value which is neither a boolean, `"compressed"` nor unset throws an [ERR\_INVALID\_PASS\_THROUGH\_VALUE](../variables/ERR_INVALID_PASS_THROUGH_VALUE.md)
-error. The filesystem API copies entries verbatim and only accepts a boolean, see
-[ERR\_UNSUPPORTED\_PASS\_THROUGH\_VALUE](../variables/ERR_UNSUPPORTED_PASS_THROUGH_VALUE.md).
+Only a boolean, where [ZipReaderOptions#passThrough](ZipReaderOptions.md#passthrough) also takes `"compressed"`: the
+filesystem copies each entry through a writer, which has nowhere to put content that is still
+compressed. `"compressed"` throws an [ERR\_UNSUPPORTED\_PASS\_THROUGH\_VALUE](../variables/ERR_UNSUPPORTED_PASS_THROUGH_VALUE.md) error.
 
 #### Inherited from
 
@@ -511,7 +603,7 @@ The password used to decrypt the content of the entry.
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`password`](ZipDirectoryEntryImportOptions.md#password)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`password`](ZipReaderOptions.md#password)
 
 ***
 
@@ -535,7 +627,7 @@ false
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`preventClose`](ZipDirectoryEntryImportOptions.md#preventclose)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`preventClose`](ZipReaderOptions.md#preventclose)
 
 ***
 
@@ -568,7 +660,7 @@ The password used to encrypt the content of the entry (raw).
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`rawPassword`](ZipDirectoryEntryImportOptions.md#rawpassword)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`rawPassword`](ZipReaderOptions.md#rawpassword)
 
 ***
 
@@ -584,7 +676,7 @@ reason of the `AbortError`, or with `signal.reason` when it is set, without rely
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`signal`](ZipDirectoryEntryImportOptions.md#signal)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`signal`](ZipReaderOptions.md#signal)
 
 ***
 
@@ -616,7 +708,7 @@ bytes as well, which costs one extra read per entry whenever the local file head
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`strictness`](ZipDirectoryEntryImportOptions.md#strictness)
+[`ZipReaderOptions`](ZipReaderOptions.md).[`strictness`](ZipReaderOptions.md#strictness)
 
 ***
 
@@ -634,7 +726,7 @@ true
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`transferStreams`](ZipDirectoryEntryImportOptions.md#transferstreams)
+[`WorkerConfiguration`](WorkerConfiguration.md).[`transferStreams`](WorkerConfiguration.md#transferstreams)
 
 ***
 
@@ -654,7 +746,7 @@ true
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`useCompressionStream`](ZipDirectoryEntryImportOptions.md#usecompressionstream)
+[`WorkerConfiguration`](WorkerConfiguration.md).[`useCompressionStream`](WorkerConfiguration.md#usecompressionstream)
 
 ***
 
@@ -690,7 +782,7 @@ true
 
 #### Inherited from
 
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`useWebWorkers`](ZipDirectoryEntryImportOptions.md#usewebworkers)
+[`WorkerConfiguration`](WorkerConfiguration.md).[`useWebWorkers`](WorkerConfiguration.md#usewebworkers)
 
 ***
 
@@ -711,81 +803,6 @@ false
 [`HttpOptions`](HttpOptions.md).[`useXHR`](HttpOptions.md#usexhr)
 
 ## Methods
-
-### decodeText()?
-
-> `optional` **decodeText**(`value`, `encoding`, `type`): `string` \| `undefined`
-
-The function called for decoding the filename and the comment of the entry.
-
-#### Parameters
-
-##### value
-
-`Uint8Array`
-
-The raw text value.
-
-##### encoding
-
-`string`
-
-The encoding of the text.
-
-##### type
-
-`"filename"` \| `"comment"`
-
-The type of the decoded text, `"filename"` or `"comment"`.
-
-#### Returns
-
-`string` \| `undefined`
-
-The decoded text value or `undefined` if the raw text value should be decoded by zip.js.
-
-#### Inherited from
-
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`decodeText`](ZipDirectoryEntryImportOptions.md#decodetext)
-
-***
-
-### decryptCentralDirectory()?
-
-> `optional` **decryptCentralDirectory**(`data`, `encryptionInfo?`): `Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
-
-The function called for decrypting the central directory when it is encrypted (see the Strong Encryption
-Specification in the ZIP format specification). Without this function, reading such an archive throws an
-[ERR\_ENCRYPTED\_CENTRAL\_DIRECTORY](../variables/ERR_ENCRYPTED_CENTRAL_DIRECTORY.md) error. zip.js provides the encrypted data and the related metadata
-but does not implement the decryption itself.
-
-#### Parameters
-
-##### data
-
-`Uint8Array`
-
-The raw data stored in place of the central directory, i.e. the decryption header followed by
-the encrypted (and possibly compressed) central directory, as stored in the zip file.
-
-##### encryptionInfo?
-
-[`DirectoryEncryptionInfo`](DirectoryEncryptionInfo.md)
-
-The encryption metadata read from the Zip64 end of central directory record, or
-`undefined` if the zip file does not contain a version 2 record.
-
-#### Returns
-
-`Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
-
-The decrypted and decompressed central directory records.
-
-#### Inherited from
-
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`decryptCentralDirectory`](ZipDirectoryEntryImportOptions.md#decryptcentraldirectory)
-
-***
 
 ### fetch()?
 
@@ -816,37 +833,3 @@ and the `arrayBuffer()` method of the `Response` class.
 #### Inherited from
 
 [`HttpOptions`](HttpOptions.md).[`fetch`](HttpOptions.md#fetch)
-
-***
-
-### normalizeFilename()?
-
-> `optional` **normalizeFilename**(`filename`): `string` \| `undefined`
-
-The function called for normalizing the filename of each entry, e.g. to repair the names rejected by
-[GetEntriesOptions#filenameValidation](GetEntriesOptions.md#filenamevalidation).
-
-It is called with the decoded filename, after [GetEntriesOptions#decodeText](GetEntriesOptions.md#decodetext) and before the name is
-validated, so a name it fails to repair is still rejected. The returned name becomes the name of the entry:
-it is used to detect directory entries by their trailing `"/"`, and to detect duplicate filenames when
-[GetEntriesOptions#checkAmbiguity](ZipReaderGetEntriesOptions.md#checkambiguity) is set, so two names normalized into the same name are reported as
-an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error instead of silently shadowing each other. The raw filename remains
-available in [EntryMetaData#rawFilename](EntryMetaData.md#rawfilename).
-
-#### Parameters
-
-##### filename
-
-`string`
-
-The decoded filename.
-
-#### Returns
-
-`string` \| `undefined`
-
-The normalized filename or `undefined` to keep the decoded filename.
-
-#### Inherited from
-
-[`ZipDirectoryEntryImportOptions`](ZipDirectoryEntryImportOptions.md).[`normalizeFilename`](ZipDirectoryEntryImportOptions.md#normalizefilename)
