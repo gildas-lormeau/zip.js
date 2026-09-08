@@ -708,6 +708,13 @@ them, it is honored here as it is on [ZipWriter#add](ZipWriter.md#add); what dif
 the export sets to `true` only for a writer it creates itself. A supplied writer therefore
 buffers only when the option is passed here or to its own constructor.
 
+The archive is closed by the caller, so everything that happens at close time is the caller's to pass to
+[ZipWriter#close](ZipWriter.md#close), and passing it here instead does nothing. That covers
+[ZipDirectoryEntryExportOptions#globalComment](../interfaces/ZipDirectoryEntryExportOptions.md#globalcomment), which is the first argument of that method, and
+[ZipWriterCloseOptions#signCentralDirectory](../interfaces/ZipWriterCloseOptions.md#signcentraldirectory), which is one of its options. Both describe the whole
+archive rather than the exported tree, so an archive composed of several trees carries one of each,
+written by the single [ZipWriter#close](ZipWriter.md#close) call that finalizes it.
+
 ***
 
 ### getChildByName()

@@ -1,3 +1,5 @@
+/* global TextEncoder, TextDecoder */
+
 import * as zip from "../zip-lib.js";
 
 const { WARNING_COMPRESSION_UNAVAILABLE } = zip;
@@ -16,9 +18,33 @@ async function test() {
 		await keepsTheBufferedWriteChoiceOfTheWriter();
 		await takesTheWriterOptionsAsDefaults();
 		await predictsTheSizeOfASuppliedWriterExport();
+		await leavesTheGlobalCommentToTheCallersClose();
 	} finally {
 		zip.resetConfiguration();
 		await zip.terminateWorkers();
+	}
+}
+
+// the caller owns the close call here, and the global comment is the first argument of that call, so it is
+// theirs to pass. Passing it to the export instead does nothing: the comment describes the whole archive,
+// which may hold several exported trees, and only the close finalizing it can write one.
+async function leavesTheGlobalCommentToTheCallersClose() {
+	for (const { closeComment, expected } of [
+		{ closeComment: undefined, expected: "" },
+		{ closeComment: new TextEncoder().encode("closed by hand"), expected: "closed by hand" }
+	]) {
+		const blobWriter = new zip.BlobWriter();
+		const zipWriter = new zip.ZipWriter(blobWriter);
+		await buildFileSystem().exportZip(zipWriter, { globalComment: new TextEncoder().encode("ignored here") });
+		await zipWriter.close(closeComment);
+		const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
+		await zipReader.getEntries();
+		const comment = new TextDecoder().decode(zipReader.comment);
+		await zipReader.close();
+		if (comment != expected) {
+			throw new Error("expected the archive comment to be " + JSON.stringify(expected) +
+				", got " + JSON.stringify(comment));
+		}
 	}
 }
 

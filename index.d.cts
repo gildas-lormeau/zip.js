@@ -4366,6 +4366,13 @@ export class ZipDirectoryEntry extends ZipEntry {
    * the export sets to `true` only for a writer it creates itself. A supplied writer therefore
    * buffers only when the option is passed here or to its own constructor.
    *
+   * The archive is closed by the caller, so everything that happens at close time is the caller's to pass to
+   * {@link ZipWriter#close}, and passing it here instead does nothing. That covers
+   * {@link ZipDirectoryEntryExportOptions#globalComment}, which is the first argument of that method, and
+   * {@link ZipWriterCloseOptions#signCentralDirectory}, which is one of its options. Both describe the whole
+   * archive rather than the exported tree, so an archive composed of several trees carries one of each,
+   * written by the single {@link ZipWriter#close} call that finalizes it.
+   *
    * @param writer The {@link Writer} instance, or the {@link ZipWriter} instance to add the entries to.
    * @param options  The options.
    * @returns A promise resolving to the data, or to the {@link ZipWriter} instance it was passed.
@@ -4556,11 +4563,19 @@ export interface ZipDirectoryEntryExportOptions
    * @remarks
    * The {@link ZipWriterAddDataOptions#comment} option is the comment of an entry: setting it here
    * comments every entry of the exported zip file instead of the zip file itself.
+   *
+   * Ignored by {@link ZipDirectoryEntry#exportZip} when it is given a {@link ZipWriter}, since the archive is
+   * then closed by the caller: pass it to {@link ZipWriter#close} instead.
    */
   globalComment?: Uint8Array;
   /**
    * The function called for signing the central directory, see
    * {@link ZipWriterCloseOptions#signCentralDirectory}.
+   *
+   * @remarks
+   * Ignored by {@link ZipDirectoryEntry#exportZip} when it is given a {@link ZipWriter}, since the archive is
+   * then closed by the caller: pass it to {@link ZipWriter#close} instead, which also keeps a single signature
+   * over an archive composed of several exported trees.
    *
    * @param directory The raw data of the central directory records.
    * @returns The data of the digital signature record.

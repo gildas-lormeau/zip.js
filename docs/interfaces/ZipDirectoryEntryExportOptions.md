@@ -276,6 +276,9 @@ The global comment of the zip file, see [ZipWriter#close](../classes/ZipWriter.m
 The [ZipWriterAddDataOptions#comment](ZipWriterAddDataOptions.md#comment) option is the comment of an entry: setting it here
 comments every entry of the exported zip file instead of the zip file itself.
 
+Ignored by [ZipDirectoryEntry#exportZip](../classes/ZipDirectoryEntry.md#exportzip) when it is given a [ZipWriter](../classes/ZipWriter.md), since the archive is
+then closed by the caller: pass it to [ZipWriter#close](../classes/ZipWriter.md#close) instead.
+
 ***
 
 ### internalFileAttributes?
@@ -1221,3 +1224,9 @@ The raw data of the central directory records.
 `Uint8Array`\<`ArrayBufferLike`\> \| `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
 The data of the digital signature record.
+
+#### Remarks
+
+Ignored by [ZipDirectoryEntry#exportZip](../classes/ZipDirectoryEntry.md#exportzip) when it is given a [ZipWriter](../classes/ZipWriter.md), since the archive is
+then closed by the caller: pass it to [ZipWriter#close](../classes/ZipWriter.md#close) instead, which also keeps a single signature
+over an archive composed of several exported trees.
