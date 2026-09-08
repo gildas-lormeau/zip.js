@@ -1,4 +1,4 @@
-/* global WritableStream, TextDecoder, setTimeout, clearTimeout */
+/* global WritableStream, ReadableStream, TextDecoder, setTimeout, clearTimeout */
 
 // Locks `preventClose` across the three layers: it is honored when the caller owns the writable and
 // forced off when the Writer instance owns it and returns the written data, since such a writer only
@@ -6,6 +6,7 @@
 // failure mode of the second case is a deadlock rather than an error.
 
 import * as zip from "../zip-lib.js";
+import { readTextFromReadable } from "../stream-helpers.js";
 
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.".repeat(20);
 const FILENAME = "lorem.txt";
@@ -54,23 +55,25 @@ async function assertArrayBufferIgnoresPreventClose(entry, options, label) {
 }
 
 async function assertReaderStreamIgnoresPreventClose() {
-	const blob = await createExportedFS().exportBlob();
-	const entriesReadable = blob.stream().pipeThrough(new zip.ZipReaderStream(PREVENT_CLOSE_OPTIONS));
+	// the source has to be built here rather than taken from Blob#stream(): below Firefox 102 the harness
+	// polyfills TransformStream on the page, and piping a native readable through a polyfilled transform
+	// throws, so every stream in a test has to come from the same implementation
+	const data = await createExportedFS().exportUint8Array();
+	const entriesReadable = readableOf(data).pipeThrough(new zip.ZipReaderStream(PREVENT_CLOSE_OPTIONS));
 	const reader = entriesReadable.getReader();
 	const { value: entry } = await withTimeout(reader.read(), "ZipReaderStream entry");
-	const text = await withTimeout(readText(entry.readable), "ZipReaderStream entry readable");
+	const text = await withTimeout(readTextFromReadable(entry.readable), "ZipReaderStream entry readable");
 	assertText(text, "ZipReaderStream entry readable");
 	await reader.cancel();
 }
 
-async function readText(readable) {
-	const entryReader = readable.getReader();
-	const decoder = new TextDecoder();
-	let text = "";
-	for (let result = await entryReader.read(); !result.done; result = await entryReader.read()) {
-		text += decoder.decode(result.value, { stream: true });
-	}
-	return text + decoder.decode();
+function readableOf(data) {
+	return new ReadableStream({
+		start(controller) {
+			controller.enqueue(data);
+			controller.close();
+		}
+	});
 }
 
 async function testWriterPreventClose() {
