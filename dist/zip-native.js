@@ -2813,26 +2813,27 @@
 				terminate() {
 					return new Promise(resolve => {
 						const { worker, busy } = workerData;
-						if (worker) {
-							if (busy) {
-								workerData.resolveTerminated = resolve;
-							} else {
-								worker.terminate();
-								resolve();
-							}
-							workerData.interface = null;
+						if (busy) {
+							workerData.resolveTerminated = resolve;
 						} else {
+							if (worker) {
+								worker.terminate();
+								workerData.worker = null;
+							}
 							resolve();
 						}
+						workerData.interface = null;
 					});
 				},
 				onTaskFinished() {
 					if (workerData.busy) {
-						const { resolveTerminated } = workerData;
+						const { resolveTerminated, worker } = workerData;
 						if (resolveTerminated) {
 							workerData.resolveTerminated = null;
-							workerData.terminated = true;
-							workerData.worker.terminate();
+							if (worker) {
+								workerData.terminated = true;
+								worker.terminate();
+							}
 							resolveTerminated();
 						}
 						workerData.busy = false;
