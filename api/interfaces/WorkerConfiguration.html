@@ -12,9 +12,17 @@
 <h1>Interface WorkerConfiguration</h1></div>
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>Represents configuration passed to <a href="../functions/configure.html" class="tsd-kind-function">configure</a>, the constructor of <a href="../classes/ZipReader.html" class="tsd-kind-class">ZipReader</a>, <a href="FileEntry.html#getdata" class="tsd-kind-method">FileEntry#getData</a>, the constructor of <a href="../classes/ZipWriter.html" class="tsd-kind-class">ZipWriter</a>, and <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a>.</p>
-</div></section>
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The three options below are read as truthy values, they are not converted. Any non-empty string is therefore
+<code>true</code>, <code>&quot;false&quot;</code> and <code>&quot;0&quot;</code> included. This is deliberate, so that an expression such as
+<code>useWebWorkers: supported &amp;&amp; enabled</code> keeps working, but it differs from the numeric options, which do accept
+the string a form control, a query string or an environment variable yields. A boolean read from one of those
+must be converted by the caller.</p>
+</div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">WorkerConfiguration</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#transferstreams">transferStreams</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usecompressionstream">useCompressionStream</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usewebworkers">useWebWorkers</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
-<section class="tsd-panel tsd-hierarchy" data-refl="115">
+<section class="tsd-panel tsd-hierarchy" data-refl="120">
 <h4>Hierarchy (<a href="../hierarchy.html#WorkerConfiguration">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">WorkerConfiguration</span>
@@ -25,7 +33,7 @@
 <li class="tsd-hierarchy-item"><a href="ZipWriterAddDataOptions.html" class="tsd-signature-type tsd-kind-interface">ZipWriterAddDataOptions</a></li>
 <li class="tsd-hierarchy-item"><a href="ZipWriterConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipWriterConstructorOptions</a></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L576">index.d.ts:576</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L593">index.d.ts:593</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -52,7 +60,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L596">index.d.ts:596</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L613">index.d.ts:613</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="usecompressionstream"><code class="tsd-tag">Optional</code><span>use<wbr/>Compression<wbr/>Stream</span><a href="#usecompressionstream" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">useCompressionStream</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -66,7 +74,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L590">index.d.ts:590</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L607">index.d.ts:607</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="usewebworkers"><code class="tsd-tag">Optional</code><span>use<wbr/>Web<wbr/>Workers</span><a href="#usewebworkers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">useWebWorkers</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -79,7 +87,7 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L582">index.d.ts:582</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L599">index.d.ts:599</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

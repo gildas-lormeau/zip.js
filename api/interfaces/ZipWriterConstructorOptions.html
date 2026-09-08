@@ -13,8 +13,8 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>Represents options passed to the constructor of <a href="../classes/ZipWriter.html" class="tsd-kind-class">ZipWriter</a>, <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a> and <code>{@link ZipDirectoryEntry}#export*</code>.</p>
 </div></section>
-<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">ZipWriterConstructorOptions</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#bufferedwrite">bufferedWrite</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#compressionmethod">compressionMethod</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#createtempstream">createTempStream</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="TempStream.html" class="tsd-signature-type tsd-kind-interface">TempStream</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="TempStream.html" class="tsd-signature-type tsd-kind-interface">TempStream</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#creationdate">creationDate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#datadescriptor">dataDescriptor</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#datadescriptorsignature">dataDescriptorSignature</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#encrypted">encrypted</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#encryptionstrength">encryptionStrength</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">2</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">1</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">3</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extendedtimestamp">extendedTimestamp</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#externalfileattributes">externalFileAttributes</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#gid">gid</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#internalfileattributes">internalFileAttributes</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#keeporder">keepOrder</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#lastaccessdate">lastAccessDate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#lastmoddate">lastModDate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#level">level</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#msdosattributes">msdosAttributes</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">{</span><br/>        <span class="tsd-kind-property">archive</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">directory</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">hidden</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">readOnly</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">system</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#msdosattributesraw">msdosAttributesRaw</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#msdoscompatible">msDosCompatible</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#ntfstimestamp">ntfsTimestamp</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#offset">offset</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#passthrough">passThrough</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#password">password</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#preventclose">preventClose</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rawlastmoddate">rawLastModDate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rawpassword">rawPassword</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#setgid">setgid</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#setuid">setuid</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#signal">signal</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">AbortSignal</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#sticky">sticky</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#supportzip64splitfile">supportZip64SplitFile</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#transferstreams">transferStreams</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#uid">uid</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#unixextrafieldtype">unixExtraFieldType</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;infozip&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;unix&quot;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#unixmode">unixMode</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usdz">usdz</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usecompressionstream">useCompressionStream</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#useunicodefilenames">useUnicodeFileNames</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usewebworkers">useWebWorkers</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#version">version</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#versionmadeby">versionMadeBy</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#zip64">zip64</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#zipcrypto">zipCrypto</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#encodetext-1">encodeText</a><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">text</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">type</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;filename&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;comment&quot;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
-<section class="tsd-panel tsd-hierarchy" data-refl="1029">
+<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">ZipWriterConstructorOptions</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#bufferedwrite">bufferedWrite</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#compressionmethod">compressionMethod</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#createtempstream">createTempStream</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="TempStream.html" class="tsd-signature-type tsd-kind-interface">TempStream</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="TempStream.html" class="tsd-signature-type tsd-kind-interface">TempStream</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#creationdate">creationDate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#datadescriptor">dataDescriptor</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#datadescriptorsignature">dataDescriptorSignature</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#encrypted">encrypted</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#encryptionstrength">encryptionStrength</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">2</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">1</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">3</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extendedtimestamp">extendedTimestamp</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#externalfileattributes">externalFileAttributes</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#gid">gid</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#internalfileattributes">internalFileAttributes</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#keeporder">keepOrder</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#lastaccessdate">lastAccessDate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#lastmoddate">lastModDate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#level">level</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#msdosattributes">msdosAttributes</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">{</span><br/>        <span class="tsd-kind-property">archive</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">directory</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">hidden</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">readOnly</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">system</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#msdosattributesraw">msdosAttributesRaw</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#msdoscompatible">msDosCompatible</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#ntfstimestamp">ntfsTimestamp</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#offset">offset</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#passthrough">passThrough</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;compressed&quot;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#password">password</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#preventclose">preventClose</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rawlastmoddate">rawLastModDate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rawpassword">rawPassword</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#setgid">setgid</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#setuid">setuid</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#signal">signal</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">AbortSignal</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#sticky">sticky</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#supportzip64splitfile">supportZip64SplitFile</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#transferstreams">transferStreams</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#uid">uid</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#unixextrafieldtype">unixExtraFieldType</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;infozip&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;unix&quot;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#unixmode">unixMode</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usdz">usdz</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usecompressionstream">useCompressionStream</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#useunicodefilenames">useUnicodeFileNames</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usewebworkers">useWebWorkers</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#version">version</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#versionmadeby">versionMadeBy</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#zip64">zip64</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#zipcrypto">zipCrypto</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-call-signature" href="#encodetext-1">encodeText</a><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">text</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">type</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;filename&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;comment&quot;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
+<section class="tsd-panel tsd-hierarchy" data-refl="1045">
 <h4>Hierarchy (<a href="../hierarchy.html#ZipWriterConstructorOptions">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="WorkerConfiguration.html" class="tsd-signature-type tsd-kind-interface">WorkerConfiguration</a>
@@ -24,7 +24,7 @@
 <li class="tsd-hierarchy-item"><a href="ZipWriterAddDataOptions.html" class="tsd-signature-type tsd-kind-interface">ZipWriterAddDataOptions</a></li>
 <li class="tsd-hierarchy-item"><a href="ZipDirectoryEntryExportOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryExportOptions</a></li></ul></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3067">index.d.ts:3067</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3250">index.d.ts:3250</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -96,14 +96,14 @@
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3111">index.d.ts:3111</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3298">index.d.ts:3298</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="compressionmethod"><code class="tsd-tag">Optional</code><span>compression<wbr/>Method</span><a href="#compressionmethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">compressionMethod</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The compression method (e.g. 8 for DEFLATE, 0 for STORE).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3473">index.d.ts:3473</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3709">index.d.ts:3709</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="createtempstream"><code class="tsd-tag">Optional</code><span>create<wbr/>Temp<wbr/>Stream</span><a href="#createtempstream" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">createTempStream</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="TempStream.html" class="tsd-signature-type tsd-kind-interface">TempStream</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="TempStream.html" class="tsd-signature-type tsd-kind-interface">TempStream</a><span class="tsd-signature-symbol">&gt;</span></div>
@@ -123,7 +123,7 @@ three implementations above do. A factory returning <code>new TransformStream()<
 queuing strategy holding a single chunk.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3128">index.d.ts:3128</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3315">index.d.ts:3315</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="creationdate"><code class="tsd-tag">Optional</code><span>creation<wbr/>Date</span><a href="#creationdate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">creationDate</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Date</span></div>
@@ -133,7 +133,7 @@ queuing strategy holding a single chunk.</p>
 option is set, so that the entries do not carry a meaningless creation time.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3211">index.d.ts:3211</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3398">index.d.ts:3398</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="datadescriptor"><code class="tsd-tag">Optional</code><span>data<wbr/>Descriptor</span><a href="#datadescriptor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">dataDescriptor</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -146,7 +146,7 @@ the CRC-32 directly. It will be automatically set to <code>true</code> when the
 <a href="#zipcrypto" class="tsd-kind-property">ZipWriterConstructorOptions#zipCrypto</a> option is set to <code>true</code>. Otherwise, the default value is <code>true</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3287">index.d.ts:3287</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3491">index.d.ts:3491</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="datadescriptorsignature"><code class="tsd-tag">Optional</code><span>data<wbr/>Descriptor<wbr/>Signature</span><a href="#datadescriptorsignature" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">dataDescriptorSignature</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -159,14 +159,19 @@ the CRC-32 directly. It will be automatically set to <code>true</code> when the
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3293">index.d.ts:3293</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3497">index.d.ts:3497</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="encrypted"><code class="tsd-tag">Optional</code><span>encrypted</span><a href="#encrypted" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">encrypted</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p><code>true</code> to write encrypted data when <code>passThrough</code> is set to <code>true</code>.</p>
-</div><aside class="tsd-sources">
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks-1">Remarks<a href="#remarks-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>It declares that the data is already encrypted, so it does not apply when <code>passThrough</code> is set to
+<code>&quot;compressed&quot;</code>, which encrypts the data itself.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3454">index.d.ts:3454</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3690">index.d.ts:3690</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="encryptionstrength"><code class="tsd-tag">Optional</code><span>encryption<wbr/>Strength</span><a href="#encryptionstrength" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">encryptionStrength</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">2</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">1</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">3</span></div>
@@ -184,7 +189,7 @@ the CRC-32 directly. It will be automatically set to <code>true</code> when the
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3163">index.d.ts:3163</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3350">index.d.ts:3350</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="extendedtimestamp"><code class="tsd-tag">Optional</code><span>extended<wbr/>Timestamp</span><a href="#extendedtimestamp" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">extendedTimestamp</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -192,13 +197,22 @@ the CRC-32 directly. It will be automatically set to <code>true</code> when the
 <p>When set to <code>false</code>, the maximum last modification date cannot exceed December 31, 2107 and the maximum accuracy is 2 seconds, dates being truncated to the whole second and odd seconds rounded up to the next even second.</p>
 </div>
 <div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks-2">Remarks<a href="#remarks-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Some zip-based formats forbid any extra field on a specific entry, which the default value of this
+option would write. OpenDocument requires its <code>mimetype</code> entry to come first, to be stored without compression
+and to carry no extra field, so a conformant ODF package needs both this option set to <code>false</code> and
+<a href="#level" class="tsd-kind-property">ZipWriterConstructorOptions#level</a> set to <code>0</code> on that entry. EPUB asks for the same pair: OCF states
+that the <code>mimetype</code> file must not be compressed or encrypted and that there must not be an extra field in its
+ZIP header, which is what pins the byte offset of <code>application/epub+zip</code> so a reader can sniff the format
+without parsing the archive, and epubcheck reports an extra field there as an error.</p>
+</div>
 <div class="tsd-tag-defaultValue">
 <h4 class="tsd-anchor-link" id="default-value-3">Default Value<a href="#default-value-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-5">true</span>
 </code><button type="button">Copy</button></pre>
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3219">index.d.ts:3219</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3414">index.d.ts:3414</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="externalfileattributes"><code class="tsd-tag">Optional</code><span>external<wbr/>File<wbr/>Attributes</span><a href="#externalfileattributes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">externalFileAttributes</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -209,14 +223,14 @@ are preserved. When omitted, the value is derived from the other options (e.g. t
 attribute for folder entries, Unix default permissions when <code>msDosCompatible</code> is <code>false</code>).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3318">index.d.ts:3318</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3522">index.d.ts:3522</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gid"><code class="tsd-tag">Optional</code><span>gid</span><a href="#gid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">gid</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The Unix group id to write in the Unix extra field or as part of the external attributes.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3326">index.d.ts:3326</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3530">index.d.ts:3530</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="internalfileattributes"><code class="tsd-tag">Optional</code><span>internal<wbr/>File<wbr/>Attributes</span><a href="#internalfileattributes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">internalFileAttributes</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -229,7 +243,7 @@ attribute for folder entries, Unix default permissions when <code>msDosCompatibl
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3369">index.d.ts:3369</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3573">index.d.ts:3573</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="keeporder"><code class="tsd-tag">Optional</code><span>keep<wbr/>Order</span><a href="#keeporder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">keepOrder</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -237,7 +251,7 @@ attribute for folder entries, Unix default permissions when <code>msDosCompatibl
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-1">Remarks<a href="#remarks-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The entries are then written one after another, but concurrent calls to <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a> still compress
+<h4 class="tsd-anchor-link" id="remarks-3">Remarks<a href="#remarks-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The entries are then written one after another, but concurrent calls to <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a> still compress
 concurrently: one entry is written directly into the zip file while the others are buffered until it is their
 turn, i.e. <a href="#bufferedwrite" class="tsd-kind-property">ZipWriterConstructorOptions#bufferedWrite</a> is set automatically for them.</p>
 </div>
@@ -247,7 +261,7 @@ turn, i.e. <a href="#bufferedwrite" class="tsd-kind-property">ZipWriterConstruct
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3139">index.d.ts:3139</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3326">index.d.ts:3326</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="lastaccessdate"><code class="tsd-tag">Optional</code><span>last<wbr/>Access<wbr/>Date</span><a href="#lastaccessdate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">lastAccessDate</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Date</span></div>
@@ -257,7 +271,7 @@ turn, i.e. <a href="#bufferedwrite" class="tsd-kind-property">ZipWriterConstruct
 option is set, so that the entries do not carry a meaningless access time.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3202">index.d.ts:3202</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3389">index.d.ts:3389</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="lastmoddate"><code class="tsd-tag">Optional</code><span>last<wbr/>Mod<wbr/>Date</span><a href="#lastmoddate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">lastModDate</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Date</span></div>
@@ -265,7 +279,7 @@ option is set, so that the entries do not carry a meaningless access time.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-2">Remarks<a href="#remarks-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>This option and the two below must be <code>Date</code> instances: a timestamp expressed in milliseconds, e.g.
+<h4 class="tsd-anchor-link" id="remarks-4">Remarks<a href="#remarks-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>This option and the two below must be <code>Date</code> instances: a timestamp expressed in milliseconds, e.g.
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/File/lastModified">File#lastModified</a>, and an invalid <code>Date</code> are both rejected with <a href="../variables/ERR_INVALID_DATE.html" class="tsd-kind-variable">ERR_INVALID_DATE</a>. An
 invalid <code>Date</code> used to be written as an entry carrying no timestamp at all.</p>
 </div>
@@ -275,7 +289,7 @@ invalid <code>Date</code> used to be written as an entry carrying no timestamp a
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3182">index.d.ts:3182</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3369">index.d.ts:3369</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="level"><code class="tsd-tag">Optional</code><span>level</span><a href="#level" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">level</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -288,9 +302,12 @@ between platforms. Set <code>useCompressionStream</code> to <code>false</code> t
 platforms.</p>
 <p>When no deflate implementation is available at all, i.e. the environment provides no usable
 <code>CompressionStream</code> and the embedded implementation cannot be loaded, the entry is stored
-instead of being compressed rather than failing. The <a href="EntryMetaData.html#compressionmethod" class="tsd-kind-property">EntryMetaData#compressionMethod</a> of
-the entry returned by <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a> is <code>0</code> in that case, which is how the fallback is
-detected.</p>
+instead of being compressed rather than failing. The fallback is reported twice: the
+<a href="EntryMetaData.html#compressionmethod" class="tsd-kind-property">EntryMetaData#compressionMethod</a> of the entry returned by <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a> is <code>0</code>,
+and <a href="../variables/WARNING_COMPRESSION_UNAVAILABLE.html" class="tsd-kind-variable">WARNING_COMPRESSION_UNAVAILABLE</a> is deposited on <a href="../classes/ZipWriter.html#warnings" class="tsd-kind-property">ZipWriter#warnings</a>.</p>
+<p>When the <a href="#passthrough" class="tsd-kind-property">ZipWriterConstructorOptions#passThrough</a> option passes the compression stage through,
+nothing is compressed and this option declares the level bits of the general purpose bit flag instead,
+see the remarks of that option.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-defaultValue">
@@ -299,7 +316,7 @@ detected.</p>
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3103">index.d.ts:3103</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3290">index.d.ts:3290</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="msdosattributes"><code class="tsd-tag">Optional</code><span>msdos<wbr/>Attributes</span><a href="#msdosattributes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">msdosAttributes</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-property">archive</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">directory</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">hidden</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">readOnly</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">system</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
@@ -307,11 +324,11 @@ detected.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-3">Remarks<a href="#remarks-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>See <a href="#msdosattributesraw" class="tsd-kind-property">ZipWriterConstructorOptions#msdosAttributesRaw</a> for the platform this option selects and for
+<h4 class="tsd-anchor-link" id="remarks-5">Remarks<a href="#remarks-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>See <a href="#msdosattributesraw" class="tsd-kind-property">ZipWriterConstructorOptions#msdosAttributesRaw</a> for the platform this option selects and for
 the Unix metadata it leaves out of the entry.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3396">index.d.ts:3396</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3600">index.d.ts:3600</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="msdosattributesraw"><code class="tsd-tag">Optional</code><span>msdos<wbr/>Attributes<wbr/>Raw</span><a href="#msdosattributesraw" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">msdosAttributesRaw</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -320,7 +337,7 @@ Must be an integer between 0 and 255.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-4">Remarks<a href="#remarks-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setting this option or <a href="#msdosattributes" class="tsd-kind-property">ZipWriterConstructorOptions#msdosAttributes</a> selects the MS-DOS platform for
+<h4 class="tsd-anchor-link" id="remarks-6">Remarks<a href="#remarks-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setting this option or <a href="#msdosattributes" class="tsd-kind-property">ZipWriterConstructorOptions#msdosAttributes</a> selects the MS-DOS platform for
 the entry exactly as <a href="#msdoscompatible" class="tsd-kind-property">ZipWriterConstructorOptions#msDosCompatible</a> does, and overrides that option
 when it is explicitly set to <code>false</code>. <a href="EntryMetaData.html#versionmadeby" class="tsd-kind-property">EntryMetaData#versionMadeBy</a> then loses its Unix upper byte
 and no Unix mode is written, so the <code>0o100644</code> of a file entry and the <code>0o040755</code> of a folder entry are
@@ -333,7 +350,7 @@ takes precedence and keeps the Unix attributes, with the MS-DOS attributes writt
 declares the MS-DOS platform.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3388">index.d.ts:3388</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3592">index.d.ts:3592</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="msdoscompatible"><code class="tsd-tag">Optional</code><span>ms<wbr/>Dos<wbr/>Compatible</span><a href="#msdoscompatible" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">msDosCompatible</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -354,7 +371,7 @@ prevent extracting the files stored below the folders.</p>
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3309">index.d.ts:3309</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3513">index.d.ts:3513</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="ntfstimestamp"><code class="tsd-tag">Optional</code><span>ntfs<wbr/>Timestamp</span><a href="#ntfstimestamp" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">ntfsTimestamp</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -365,7 +382,7 @@ or <a href="#creationdate" class="tsd-kind-property">ZipWriterConstructorOptions
 <p>This option is ignored if the <a href="#extendedtimestamp" class="tsd-kind-property">ZipWriterConstructorOptions#extendedTimestamp</a> option is set to <code>false</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3229">index.d.ts:3229</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3424">index.d.ts:3424</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="offset"><code class="tsd-tag">Optional</code><span>offset</span><a href="#offset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">offset</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -373,7 +390,7 @@ or <a href="#creationdate" class="tsd-kind-property">ZipWriterConstructorOptions
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-5">Remarks<a href="#remarks-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>When the option is undefined, the offset is the number of bytes already written into the
+<h4 class="tsd-anchor-link" id="remarks-7">Remarks<a href="#remarks-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>When the option is undefined, the offset is the number of bytes already written into the
 destination, read from its <code>size</code> property, see <a href="WritableWriter.html#size" class="tsd-kind-property">WritableWriter#size</a>. A <code>size</code> property
 set on a <code>WritableStream</code> instance passed directly to the <a href="../classes/ZipWriter.html" class="tsd-kind-class">ZipWriter</a> constructor is
 also read, for backward compatibility. When the option is set, the bytes between the size of
@@ -383,24 +400,48 @@ written, e.g. when writing one part of a zip file assembled by the caller.</p>
 <a href="../classes/ZipDirectoryEntry.html#exportzip" class="tsd-kind-method">ZipDirectoryEntry#exportZip</a>; a value passed to <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a> is ignored.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3469">index.d.ts:3469</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3705">index.d.ts:3705</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="passthrough"><code class="tsd-tag">Optional</code><span>pass<wbr/>Through</span><a href="#passthrough" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">passThrough</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p><code>true</code> to write the data as-is without compressing it and without crypting it.</p>
+<div class="tsd-signature"><span class="tsd-kind-property">passThrough</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;compressed&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p><code>true</code> to write the data as-is without compressing it and without crypting it, <code>&quot;compressed&quot;</code> to encrypt it
+without compressing it.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-6">Remarks<a href="#remarks-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The data is never compressed, so the <a href="#level" class="tsd-kind-property">ZipWriterConstructorOptions#level</a> option does not apply and is
-ignored. The <a href="#compressionmethod" class="tsd-kind-property">ZipWriterAddDataOptions#compressionMethod</a> option selects no codec either, it declares
-how the data is already compressed and is written as-is in the entry headers. It must be set, otherwise an
-<a href="../variables/ERR_UNDEFINED_COMPRESSION_METHOD.html" class="tsd-kind-variable">ERR_UNDEFINED_COMPRESSION_METHOD</a> error is thrown. The entries with no content, e.g. the
-directories, ignore this option entirely. Setting the <a href="#password" class="tsd-kind-property">ZipWriterConstructorOptions#password</a> or the
+<h4 class="tsd-anchor-link" id="remarks-8">Remarks<a href="#remarks-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The data is never compressed, so the <a href="#level" class="tsd-kind-property">ZipWriterConstructorOptions#level</a> option selects no codec, and
+neither does the <a href="#compressionmethod" class="tsd-kind-property">ZipWriterAddDataOptions#compressionMethod</a> option: both describe how the data is
+already compressed and are written as-is in the entry headers, the method in its own field and the level in
+the level bits of the general purpose bit flag. The method must be set, otherwise an
+<a href="../variables/ERR_UNDEFINED_COMPRESSION_METHOD.html" class="tsd-kind-variable">ERR_UNDEFINED_COMPRESSION_METHOD</a> error is thrown; the level is optional and leaves those bits unset.
+The <a href="ZipWriterAddDataOptions.html#crc32" class="tsd-kind-property">ZipWriterAddDataOptions#crc32</a> option must be set as well, otherwise an <a href="../variables/ERR_UNDEFINED_CRC32.html" class="tsd-kind-variable">ERR_UNDEFINED_CRC32</a>
+error is thrown, unless the entry is written as AES in AE-2 format, which stores no checksum.</p>
+<p>The level is read from the options of the entry only. A level set on the options of the writer applies to
+the entries the writer compresses itself and is not inherited here, since it would describe data the writer
+never produced. A stored entry carries no level bits either way, they describe a deflate stream.</p>
+<p>The entries with no content, e.g. the directories, ignore this option entirely. Setting the <a href="#password" class="tsd-kind-property">ZipWriterConstructorOptions#password</a> or the
 <a href="#rawpassword" class="tsd-kind-property">ZipWriterConstructorOptions#rawPassword</a> option throws an
 <a href="../variables/ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH.html" class="tsd-kind-variable">ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH</a> error, unless the
 <a href="#encrypted" class="tsd-kind-property">ZipWriterConstructorOptions#encrypted</a> option is set to <code>true</code> to declare that the data is already
 encrypted. In that case the password encrypts the other entries only, and the data written as-is keeps the
 password it was encrypted with, which is not verified.</p>
+<p>The codecs run in a fixed order, the data is compressed and then encrypted, so this option selects how many
+of these two stages are skipped rather than which one. <code>&quot;compressed&quot;</code> declares that the data is already
+compressed but not yet encrypted, so the compression stage is skipped and the encryption stage runs: it
+encrypts an entry without recompressing it, which is what the <code>true</code> value cannot express and why it rejects
+a password. The <a href="ZipWriterAddDataOptions.html#uncompressedsize" class="tsd-kind-property">ZipWriterAddDataOptions#uncompressedSize</a> and
+<a href="#compressionmethod" class="tsd-kind-property">ZipWriterAddDataOptions#compressionMethod</a> options are still the caller's to declare, since neither
+can be derived from data which is not decompressed.</p>
+<p>The CRC32 of the entry cannot be computed either, so the <a href="ZipWriterAddDataOptions.html#crc32" class="tsd-kind-property">ZipWriterAddDataOptions#crc32</a> option is
+the caller's to declare as well. It is written as-is for an entry which is not AES-encrypted, i.e. for a
+plain or a ZipCrypto entry, both of which store the checksum in clear anyway. It is dropped for an
+AES-encrypted entry, which is marked AE-2 with the checksum fields set to 0: the encryption stage runs
+here, so this is a new encryption, and a stored plaintext checksum would let an attacker verify guessed
+content without knowing the password. Only the <code>true</code> value may mark an entry AE-1, and only because the
+data is then copied verbatim from an archive which already published that checksum.</p>
+<p>A value which is neither a boolean, <code>&quot;compressed&quot;</code> nor unset throws an <a href="../variables/ERR_INVALID_PASS_THROUGH_VALUE.html" class="tsd-kind-variable">ERR_INVALID_PASS_THROUGH_VALUE</a>
+error. The filesystem API copies entries verbatim and only accepts a boolean, see
+<a href="../variables/ERR_UNSUPPORTED_PASS_THROUGH_VALUE.html" class="tsd-kind-variable">ERR_UNSUPPORTED_PASS_THROUGH_VALUE</a>.</p>
 <p>When the data was encrypted with ZipCrypto, the verification byte stored in the encrypted data depends on
 the last modification date of the source entry if the data descriptor is used. The
 <a href="#datadescriptor" class="tsd-kind-property">ZipWriterConstructorOptions#dataDescriptor</a> and <a href="#rawlastmoddate" class="tsd-kind-property">ZipWriterConstructorOptions#rawLastModDate</a>
@@ -409,7 +450,7 @@ values of the source entry must then be forwarded, otherwise reading the copied 
 <a href="../variables/ERR_ZIP_CRYPTO_LAST_MOD_DATE.html" class="tsd-kind-variable">ERR_ZIP_CRYPTO_LAST_MOD_DATE</a> error if the date is overridden.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3450">index.d.ts:3450</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3683">index.d.ts:3683</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="password"><code class="tsd-tag">Optional</code><span>password</span><a href="#password" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">password</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -417,14 +458,14 @@ values of the source entry must then be forwarded, otherwise reading the copied 
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-7">Remarks<a href="#remarks-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>When a password is set and the <a href="#zipcrypto" class="tsd-kind-property">ZipWriterConstructorOptions#zipCrypto</a> option is not set to <code>true</code>, the
+<h4 class="tsd-anchor-link" id="remarks-9">Remarks<a href="#remarks-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>When a password is set and the <a href="#zipcrypto" class="tsd-kind-property">ZipWriterConstructorOptions#zipCrypto</a> option is not set to <code>true</code>, the
 entry is encrypted in AES AE-2 format: the CRC-32 checksum of the content is stored as <code>0</code> so that the zip
 file reveals no information about the encrypted content. A stored checksum would allow an attacker to verify
 guessed content without knowing the password. The integrity of the data is guaranteed by the authentication
 code instead.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3150">index.d.ts:3150</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3337">index.d.ts:3337</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preventclose"><code class="tsd-tag">Optional</code><span>prevent<wbr/>Close</span><a href="#preventclose" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">preventClose</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -437,7 +478,7 @@ code instead.</p>
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3083">index.d.ts:3083</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3266">index.d.ts:3266</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="rawlastmoddate"><code class="tsd-tag">Optional</code><span>raw<wbr/>Last<wbr/>Mod<wbr/>Date</span><a href="#rawlastmoddate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">rawLastModDate</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -445,35 +486,35 @@ code instead.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-8">Remarks<a href="#remarks-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The value is written verbatim into the local and central directory headers and takes precedence over
+<h4 class="tsd-anchor-link" id="remarks-10">Remarks<a href="#remarks-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The value is written verbatim into the local and central directory headers and takes precedence over
 <a href="#lastmoddate" class="tsd-kind-property">ZipWriterConstructorOptions#lastModDate</a>, which still fills the extended timestamp and NTFS extra
 fields. The filesystem API sets it when exporting entries with <a href="ZipReaderOptions.html#passthrough" class="tsd-kind-property">ZipReaderOptions#passThrough</a> set in
 <a href="ZipDirectoryEntryExportOptions.html#readeroptions" class="tsd-kind-property">ZipDirectoryEntryExportOptions#readerOptions</a>, so that the entries copied as-is keep the exact date
 and time of the source zip file.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3193">index.d.ts:3193</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3380">index.d.ts:3380</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="rawpassword"><code class="tsd-tag">Optional</code><span>raw<wbr/>Password</span><a href="#rawpassword" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">rawPassword</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography"><p>The password used to encrypt the content of the entry (raw).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3154">index.d.ts:3154</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3341">index.d.ts:3341</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setgid"><code class="tsd-tag">Optional</code><span>setgid</span><a href="#setgid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">setgid</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p><code>true</code> to set the setgid bit when writing the Unix mode.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3348">index.d.ts:3348</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3552">index.d.ts:3552</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setuid"><code class="tsd-tag">Optional</code><span>setuid</span><a href="#setuid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">setuid</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p><code>true</code> to set the setuid bit when writing the Unix mode.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3344">index.d.ts:3344</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3548">index.d.ts:3548</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="signal"><code class="tsd-tag">Optional</code><span>signal</span><a href="#signal" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">signal</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">AbortSignal</span></div>
@@ -483,14 +524,14 @@ reason of the <code>AbortError</code>, or with <code>signal.reason</code> when i
 <code>signal</code> option of <code>pipeTo</code> that the oldest supported engines ignore.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3171">index.d.ts:3171</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3358">index.d.ts:3358</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="sticky"><code class="tsd-tag">Optional</code><span>sticky</span><a href="#sticky" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">sticky</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p><code>true</code> to set the sticky bit when writing the Unix mode.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3352">index.d.ts:3352</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3556">index.d.ts:3556</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="supportzip64splitfile"><code class="tsd-tag">Optional</code><span>support<wbr/>Zip64<wbr/>Split<wbr/>File</span><a href="#supportzip64splitfile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">supportZip64SplitFile</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -503,7 +544,7 @@ reason of the <code>AbortError</code>, or with <code>signal.reason</code> when i
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3408">index.d.ts:3408</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3612">index.d.ts:3612</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="transferstreams"><code class="tsd-tag">Optional</code><span>transfer<wbr/>Streams</span><a href="#transferstreams" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">transferStreams</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -517,14 +558,14 @@ reason of the <code>AbortError</code>, or with <code>signal.reason</code> when i
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="WorkerConfiguration.html">WorkerConfiguration</a>.<a href="WorkerConfiguration.html#transferstreams">transferStreams</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L596">index.d.ts:596</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L613">index.d.ts:613</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="uid"><code class="tsd-tag">Optional</code><span>uid</span><a href="#uid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">uid</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The Unix owner id to write in the Unix extra field or as part of the external attributes.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3322">index.d.ts:3322</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3526">index.d.ts:3526</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="unixextrafieldtype"><code class="tsd-tag">Optional</code><span>unix<wbr/>Extra<wbr/>Field<wbr/>Type</span><a href="#unixextrafieldtype" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">unixExtraFieldType</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;infozip&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;unix&quot;</span></div>
@@ -539,7 +580,7 @@ external file attributes.</li>
 of the field type found in the imported zip file, unless this option is set explicitly.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3363">index.d.ts:3363</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3567">index.d.ts:3567</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="unixmode"><code class="tsd-tag">Optional</code><span>unix<wbr/>Mode</span><a href="#unixmode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">unixMode</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -554,7 +595,7 @@ the file type it is given, and is written with <code>S_IFREG</code> (<code>0o100
 file type.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3340">index.d.ts:3340</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3544">index.d.ts:3544</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="usdz"><code class="tsd-tag">Optional</code><span>usdz</span><a href="#usdz" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">usdz</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -578,7 +619,7 @@ is not a multiple of 64 bytes, silently produces a non-compliant file.</p>
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3427">index.d.ts:3427</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3631">index.d.ts:3631</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="usecompressionstream"><code class="tsd-tag">Optional</code><span>use<wbr/>Compression<wbr/>Stream</span><a href="#usecompressionstream" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">useCompressionStream</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -593,14 +634,22 @@ is not a multiple of 64 bytes, silently produces a non-compliant file.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="WorkerConfiguration.html">WorkerConfiguration</a>.<a href="WorkerConfiguration.html#usecompressionstream">useCompressionStream</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L590">index.d.ts:590</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L607">index.d.ts:607</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="useunicodefilenames"><code class="tsd-tag">Optional</code><span>use<wbr/>Unicode<wbr/>File<wbr/>Names</span><a href="#useunicodefilenames" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">useUnicodeFileNames</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p><code>true</code> to mark the file names as UTF-8 setting the general purpose bit 11 in the header (see Appendix D -
 Language Encoding (EFS)), <code>false</code> to mark the names as compliant with the original IBM Code Page 437.</p>
-<p>Note that this option only sets the flag, it does not ensure that the file names are in the correct
-encoding: when it is set to <code>false</code>, the names are still encoded in UTF-8 unless the
+<p>By default the flag is derived from the content: it is set when the encoded name or the encoded comment
+of the entry holds a byte outside printable ASCII, and cleared otherwise. Printable ASCII is spelled
+identically in UTF-8 and in Code Page 437, so the flag carries no information there, and every other
+writer decides it the same way. A control character is not printable ASCII: Code Page 437 maps the bytes
+0x01 to 0x1f and the byte 0x7f to the IBM graphic characters rather than to the control characters
+themselves, so a name or a comment holding one of them keeps the flag and stays readable. The comment is
+part of the test because the flag announces its encoding too, so deriving from the name alone would
+mislabel an ASCII name carrying a comment written in another language.</p>
+<p>Note that setting this option only sets the flag, it does not ensure that the file names are in the
+correct encoding: when it is set to <code>false</code>, the names are still encoded in UTF-8 unless the
 <a href="#encodetext" class="tsd-kind-method">ZipWriterConstructorOptions#encodeText</a> option is also set to encode them in the intended code page.
 Setting it to <code>false</code> alone therefore produces an archive whose file names are mislabeled, holding UTF-8
 bytes announced as Code Page 437: the names holding characters outside of ASCII are decoded incorrectly
@@ -609,12 +658,10 @@ by the readers honoring the flag, including <a href="../classes/ZipReader.html" 
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-defaultValue">
-<h4 class="tsd-anchor-link" id="default-value-14">Default Value<a href="#default-value-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-5">true</span>
-</code><button type="button">Copy</button></pre>
-
+<h4 class="tsd-anchor-link" id="default-value-14">Default Value<a href="#default-value-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p><code>true</code> when the encoded name or comment holds a byte outside ASCII, <code>false</code> otherwise</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3276">index.d.ts:3276</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3480">index.d.ts:3480</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="usewebworkers"><code class="tsd-tag">Optional</code><span>use<wbr/>Web<wbr/>Workers</span><a href="#usewebworkers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">useWebWorkers</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -628,7 +675,7 @@ by the readers honoring the flag, including <a href="../classes/ZipReader.html" 
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="WorkerConfiguration.html">WorkerConfiguration</a>.<a href="WorkerConfiguration.html#usewebworkers">useWebWorkers</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L582">index.d.ts:582</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L599">index.d.ts:599</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="version"><code class="tsd-tag">Optional</code><span>version</span><a href="#version" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">version</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -641,7 +688,7 @@ by the readers honoring the flag, including <a href="../classes/ZipReader.html" 
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3246">index.d.ts:3246</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3441">index.d.ts:3441</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="versionmadeby"><code class="tsd-tag">Optional</code><span>version<wbr/>Made<wbr/>By</span><a href="#versionmadeby" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">versionMadeBy</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -660,7 +707,7 @@ both cases.</p>
 <h4 class="tsd-anchor-link" id="default-value-17">Default Value<a href="#default-value-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>768, i.e. <code>3 &lt;&lt; 8</code>, or 20 when <a href="#msdoscompatible" class="tsd-kind-property">ZipWriterConstructorOptions#msDosCompatible</a> is set to <code>true</code></p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3261">index.d.ts:3261</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3456">index.d.ts:3456</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="zip64"><code class="tsd-tag">Optional</code><span>zip64</span><a href="#zip64" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">zip64</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -676,7 +723,7 @@ chosen before writing the data. Its central directory record drops Zip64 when th
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3077">index.d.ts:3077</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3260">index.d.ts:3260</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="zipcrypto"><code class="tsd-tag">Optional</code><span>zip<wbr/>Crypto</span><a href="#zipcrypto" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">zipCrypto</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -691,7 +738,7 @@ set the <a href="#datadescriptor" class="tsd-kind-property">ZipWriterConstructor
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3238">index.d.ts:3238</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3433">index.d.ts:3433</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -718,7 +765,7 @@ announce them as Code Page 437 instead of UTF-8.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></h4><p>The encoded text or <code>undefined</code> if the text should be encoded by zip.js.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L3485">index.d.ts:3485</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L3721">index.d.ts:3721</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

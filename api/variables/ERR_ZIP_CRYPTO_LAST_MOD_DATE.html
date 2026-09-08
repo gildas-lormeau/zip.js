@@ -11,9 +11,11 @@
 <li><a href="" aria-current="page">ERR_ZIP_CRYPTO_LAST_MOD_DATE</a></li></ul>
 <h1>Variable ERR_ZIP_CRYPTO_LAST_MOD_DATE<code class="tsd-tag">Const</code></h1></div>
 <div class="tsd-signature"><span class="tsd-kind-variable">ERR_ZIP_CRYPTO_LAST_MOD_DATE</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-<div class="tsd-comment tsd-typography"><p>Locked last modification date error (thrown by <code>{@link ZipDirectoryEntry}#export*()</code> and
-<a href="../classes/ZipDirectoryEntry.html#getexportedsize" class="tsd-kind-method">ZipDirectoryEntry#getExportedSize</a> when the date of an entry encrypted with ZipCrypto and exported with
-<a href="../interfaces/ZipReaderOptions.html#passthrough" class="tsd-kind-property">ZipReaderOptions#passThrough</a> set in <a href="../interfaces/ZipDirectoryEntryExportOptions.html#readeroptions" class="tsd-kind-property">ZipDirectoryEntryExportOptions#readerOptions</a> is changed)</p>
+<div class="tsd-comment tsd-typography"><p>Locked last modification date error (thrown by <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a> when the date of an entry encrypted with
+ZipCrypto is changed while it is copied with the <a href="../interfaces/ZipWriterConstructorOptions.html#passthrough" class="tsd-kind-property">ZipWriterConstructorOptions#passThrough</a> option set, and
+by <code>{@link ZipDirectoryEntry}#export*()</code> and <a href="../classes/ZipDirectoryEntry.html#getexportedsize" class="tsd-kind-method">ZipDirectoryEntry#getExportedSize</a> when the date of such an
+entry exported with <a href="../interfaces/ZipReaderOptions.html#passthrough" class="tsd-kind-property">ZipReaderOptions#passThrough</a> set in
+<a href="../interfaces/ZipDirectoryEntryExportOptions.html#readeroptions" class="tsd-kind-property">ZipDirectoryEntryExportOptions#readerOptions</a> is changed)</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
@@ -23,7 +25,7 @@ The error is thrown when the new date would prevent the entry from being decrypt
 verification byte intact, e.g. a change of the day only, are written normally.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/e49b0d47bc8f9c9a5dc9a25311e08283d2ffb026/index.d.ts#L4851">index.d.ts:4851</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/40b91d459167ffee753254ed904245d460edcc96/index.d.ts#L5211">index.d.ts:5211</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
