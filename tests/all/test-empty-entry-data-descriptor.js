@@ -12,6 +12,7 @@ import * as zip from "../zip-lib.js";
 const DATA_DESCRIPTOR_SIGNATURE = 0x08074b50;
 const BITFLAG_DATA_DESCRIPTOR = 0x8;
 const LAST_MOD_DATE = new Date(2026, 0, 1, 12, 0, 0);
+const ZIP_CRYPTO_OPTIONS = { password: "password", zipCrypto: true };
 
 export { test };
 
@@ -29,6 +30,10 @@ async function skipsTheDataDescriptorForKnownEmptyEntries() {
 		writer.add("empty.txt", new zip.TextReader(""), { lastModDate: LAST_MOD_DATE, level: 0 }));
 	await checkDataDescriptor("entry without reader", false, writer =>
 		writer.add("empty.txt", null, { lastModDate: LAST_MOD_DATE }));
+	// zipCrypto forces a descriptor on every entry it encrypts, but a folder holds no encrypted data, so the
+	// rule above wins: it also makes a pass-through re-export of the archive byte-identical to the source
+	await checkDataDescriptor("folder in a zipCrypto archive", false, writer =>
+		writer.add("folder/", null, { lastModDate: LAST_MOD_DATE, directory: true }), ZIP_CRYPTO_OPTIONS);
 }
 
 async function keepsTheDataDescriptorElsewhere() {
@@ -40,6 +45,8 @@ async function keepsTheDataDescriptorElsewhere() {
 		writer.add("empty.txt", new zip.TextReader(""), { lastModDate: LAST_MOD_DATE, level: 0, password: "password" }));
 	await checkDataDescriptor("stored entry with content", true, writer =>
 		writer.add("entry.txt", new zip.TextReader("content"), { lastModDate: LAST_MOD_DATE, level: 0 }));
+	await checkDataDescriptor("empty entry in a zipCrypto archive", true, writer =>
+		writer.add("empty.txt", new zip.TextReader(""), { lastModDate: LAST_MOD_DATE, level: 0 }), ZIP_CRYPTO_OPTIONS);
 }
 
 async function keepsTheDirectWritePath() {
@@ -58,8 +65,8 @@ async function keepsTheDirectWritePath() {
 	}
 }
 
-async function checkDataDescriptor(description, expectedDataDescriptor, addEntry) {
-	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+async function checkDataDescriptor(description, expectedDataDescriptor, addEntry, writerOptions) {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), writerOptions);
 	await addEntry(zipWriter);
 	const data = await zipWriter.close();
 	const dataView = new DataView(data.buffer, data.byteOffset, data.byteLength);

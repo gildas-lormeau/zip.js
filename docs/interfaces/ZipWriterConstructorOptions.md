@@ -94,7 +94,9 @@ set to `true`. It will be automatically set to `false` when it is `undefined` an
 [ZipWriterConstructorOptions#bufferedWrite](#bufferedwrite) option is set to `true`, or when the entry is a folder
 or an empty entry stored without compression or encryption, since the header can then carry the sizes and
 the CRC-32 directly. It will be automatically set to `true` when the
-[ZipWriterConstructorOptions#zipCrypto](#zipcrypto) option is set to `true`. Otherwise, the default value is `true`.
+[ZipWriterConstructorOptions#zipCrypto](#zipcrypto) option is set to `true`, except for such a folder or empty
+entry, which holds no encrypted data and therefore needs no descriptor either. Otherwise, the default
+value is `true`.
 
 ***
 

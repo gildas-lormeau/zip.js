@@ -24,6 +24,10 @@ async function test() {
 	await testSameBytesAsImportPassThrough({ level: 0 });
 	await testSameBytesAsImportPassThrough({ password: PASSWORD });
 	await testSameBytesAsImportPassThrough({ password: PASSWORD, zipCrypto: true });
+	await testSameBytesAsTheSource({});
+	await testSameBytesAsTheSource({ level: 0 });
+	await testSameBytesAsTheSource({ password: PASSWORD });
+	await testSameBytesAsTheSource({ password: PASSWORD, zipCrypto: true });
 	await testExportedSize();
 	await testAddedEntriesAreCompressed();
 	await testWriterPassThroughIsRejected();
@@ -112,6 +116,18 @@ async function testSameBytesAsImportPassThrough(sourceOptions) {
 		throw new Error("the exported bytes should not depend on the pass-through spelling, with " + JSON.stringify(sourceOptions));
 	}
 	await assertContent(exportTimeBytes, sourceOptions.password);
+}
+
+// the two spellings agreeing with each other says nothing about fidelity: they drop the same bytes. The
+// oracle is the source itself, which is what caught a folder record losing its 16-byte data descriptor
+async function testSameBytesAsTheSource(sourceOptions) {
+	const source = await createSourceBlob(sourceOptions);
+	const sourceBytes = new Uint8Array(await source.arrayBuffer());
+	const exportedBytes = await exportBytes(source, {}, EXPORT_PASS_THROUGH_OPTIONS);
+	if (!bytesEqual(sourceBytes, exportedBytes)) {
+		throw new Error("a pass-through re-export must reproduce the source, with " + JSON.stringify(sourceOptions) +
+			" got " + exportedBytes.length + " bytes for a source of " + sourceBytes.length);
+	}
 }
 
 async function testExportedSize() {
