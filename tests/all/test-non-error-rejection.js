@@ -20,6 +20,14 @@ const ENTRY_NAME = "big.bin";
 const DATA_LENGTH = 1024 * 1024;
 const RANDOM_VALUES_MAX_LENGTH = 65536;
 const READ_CHUNKS_BEFORE_CANCEL = 3;
+const FAILING_CHUNK_LENGTH = 262144;
+const GOOD_ENTRY_NAME = "good.txt";
+const GOOD_CONTENT = "good content";
+const LOCAL_HEADER_SIGNATURE = [0x50, 0x4b, 0x03, 0x04];
+const END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;
+const END_OF_CENTRAL_DIRECTORY_LENGTH = 22;
+const CENTRAL_DIRECTORY_OFFSET_FIELD = 16;
+const LOCAL_HEADER_OFFSET_FIELD = 42;
 
 export { test };
 
@@ -31,6 +39,7 @@ async function test() {
 		await propagatesUnannotatableReason(data);
 		await reportsWriterCancelWithWorkers(data);
 		await reportsEntryFailureOnClose();
+		await keepsEntryOffsetsCorrectAfterFailure(data);
 		await propagatesReaderAbortReason(archive);
 		await reportsReaderAbortWithWorkers(archive);
 	} finally {
@@ -123,6 +132,77 @@ async function reportsEntryFailureOnClose() {
 				" bytes although the entry failed with " + describe(reason));
 		}
 		assertNotMasked(result, "an unawaited entry fails with " + describe(reason));
+	}
+}
+
+// after an entry fails mid-write the writer has to advance by the bytes that entry already wrote, or
+// every entry added afterwards is recorded at the wrong offset. Nothing throws when that happens: the
+// caller observed the entry failure and close() stays silent about it by design, so the only symptom
+// is an archive a strict reader rejects. The byte count reaches the writer out of band, because the
+// reason itself cannot be relied on to carry it.
+async function keepsEntryOffsetsCorrectAfterFailure(data) {
+	for (const reason of REASONS) {
+		for (const useWebWorkers of [false, undefined]) {
+			const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { bufferedWrite: false, useWebWorkers });
+			try {
+				await zipWriter.add(ENTRY_NAME, { readable: partiallyFailingReadable(data, reason) });
+			} catch {
+				// the entry is skipped on purpose, which is the salvage documented on close()
+			}
+			await zipWriter.add(GOOD_ENTRY_NAME, new zip.TextReader(GOOD_CONTENT));
+			const archive = await zipWriter.close();
+			const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(archive));
+			const [entry] = await zipReader.getEntries();
+			const content = await entry.getData(new zip.TextWriter());
+			await zipReader.close();
+			if (entry.filename != GOOD_ENTRY_NAME || content != GOOD_CONTENT) {
+				throw new Error("expected the entry added after a failure with " + describe(reason) +
+					" to survive, got " + entry.filename);
+			}
+			assertLocalHeaderAt(archive, getRecordedLocalHeaderOffset(archive), reason, useWebWorkers);
+		}
+	}
+}
+
+function partiallyFailingReadable(data, reason) {
+	let offset = 0;
+	return new ReadableStream({
+		pull(controller) {
+			if (offset < data.length) {
+				controller.enqueue(data.slice(offset, offset + FAILING_CHUNK_LENGTH));
+				offset += FAILING_CHUNK_LENGTH;
+			} else {
+				controller.error(reason);
+			}
+		}
+	});
+}
+
+// the offset has to be read out of the central directory itself: zip.js tolerates an archive whose
+// records are all shifted by the same amount, so EntryMetaData#offset comes back corrected and would
+// hide the very drift this checks
+function getRecordedLocalHeaderOffset(archive) {
+	let endOfCentralDirectoryOffset = archive.length - END_OF_CENTRAL_DIRECTORY_LENGTH;
+	while (endOfCentralDirectoryOffset >= 0 && getUint32(archive, endOfCentralDirectoryOffset) != END_OF_CENTRAL_DIRECTORY_SIGNATURE) {
+		endOfCentralDirectoryOffset--;
+	}
+	if (endOfCentralDirectoryOffset < 0) {
+		throw new Error("no end of central directory record in the archive");
+	}
+	const centralDirectoryOffset = getUint32(archive, endOfCentralDirectoryOffset + CENTRAL_DIRECTORY_OFFSET_FIELD);
+	return getUint32(archive, centralDirectoryOffset + LOCAL_HEADER_OFFSET_FIELD);
+}
+
+function getUint32(array, offset) {
+	return ((array[offset] | (array[offset + 1] << 8) | (array[offset + 2] << 16)) >>> 0) + array[offset + 3] * 0x1000000;
+}
+
+function assertLocalHeaderAt(archive, offset, reason, useWebWorkers) {
+	const found = Array.from(archive.subarray(offset, offset + LOCAL_HEADER_SIGNATURE.length));
+	if (found.length != LOCAL_HEADER_SIGNATURE.length || LOCAL_HEADER_SIGNATURE.some((byte, index) => found[index] != byte)) {
+		throw new Error("the entry added after a failure with " + describe(reason) + " (useWebWorkers=" +
+			useWebWorkers + ") is recorded at offset " + offset + " of " + archive.length + ", where the archive holds " +
+			(found.length ? found.join(",") : "nothing, the offset is past the end") + " instead of a local file header");
 	}
 }
 

@@ -2820,7 +2820,9 @@ function disableWebWorker(workerData) {
 
 class CodecWorker {
 
-	constructor(workerData, { readable, writable }, { options, config, streamOptions, useWebWorkers, transferStreams, workerURI, createWorker }, onTaskFinished) {
+	constructor(workerData, { readable, writable }, workerOptions, onTaskFinished) {
+		const { options, config, streamOptions, useWebWorkers, transferStreams, workerURI } = workerOptions;
+		let { createWorker } = workerOptions;
 		const { signal } = streamOptions;
 		if (createWorkerFailed) {
 			createWorker = UNDEFINED_VALUE;
@@ -2833,6 +2835,7 @@ class CodecWorker {
 				.pipeThrough(new ProgressWatcherStream(streamOptions), { signal }),
 			writable,
 			options: Object.assign({}, options),
+			workerOptions,
 			workerURI,
 			createWorker,
 			transferStreams,
@@ -2914,7 +2917,7 @@ function createWorkerInterface(workerData, config) {
 	};
 }
 
-async function runWorker$1({ options, readable, writable, onTaskFinished }, config) {
+async function runWorker$1({ options, readable, writable, onTaskFinished, workerOptions }, config) {
 	let codecStream, chunkStream;
 	try {
 		if (options.compressed && !options.format) {
@@ -2954,11 +2957,15 @@ async function runWorker$1({ options, readable, writable, onTaskFinished }, conf
 			outputSize
 		};
 	} catch (error) {
-		if (codecStream && isErrorObject(error)) {
-			try {
-				error.outputSize = chunkStream ? chunkStream.outputSize : 0;
-			} catch {
-				// ignored
+		if (codecStream) {
+			const outputSize = chunkStream ? chunkStream.outputSize : 0;
+			workerOptions.outputSize = outputSize;
+			if (isErrorObject(error)) {
+				try {
+					error.outputSize = outputSize;
+				} catch {
+					// ignored
+				}
 			}
 		}
 		throw error;
@@ -3069,9 +3076,11 @@ async function runWebWorker(workerData, config) {
 	const result = new Promise((resolve, reject) => {
 		resolveResult = resolve;
 		rejectResult = error => {
+			const { outputSize, workerOptions } = workerData;
+			workerOptions.outputSize = outputSize;
 			if (isErrorObject(error) && error.outputSize === UNDEFINED_VALUE) {
 				try {
-					error.outputSize = workerData.outputSize;
+					error.outputSize = outputSize;
 				} catch {
 					// ignored
 				}
@@ -3348,6 +3357,9 @@ async function onMessage({ data }, workerData) {
 	const stale = () => workerData.generation != generation;
 	try {
 		if (error) {
+			if (error.outputSize !== UNDEFINED_VALUE) {
+				workerData.outputSize = error.outputSize;
+			}
 			fail(getResponseError(error, errorValue));
 		} else {
 			if (type == MESSAGE_PULL) {
@@ -5710,7 +5722,10 @@ class ZipEntry {
 				writer.size += writtenSize;
 			}
 		} catch (error) {
-			if (isErrorObject(error) && error.outputSize !== UNDEFINED_VALUE) {
+			const { outputSize: failedOutputSize } = workerOptions;
+			if (failedOutputSize !== UNDEFINED_VALUE) {
+				writer.size += failedOutputSize;
+			} else if (isErrorObject(error) && error.outputSize !== UNDEFINED_VALUE) {
 				writer.size += error.outputSize;
 			}
 			if (!checkPasswordOnly || !isErrorObject(error) || error.message != ERR_ABORT_CHECK_PASSWORD) {
@@ -7808,7 +7823,10 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 				throw new Error(ERR_UNSUPPORTED_FORMAT);
 			}
 		} catch (error) {
-			if (isErrorObject(error) && error.outputSize !== UNDEFINED_VALUE) {
+			const { outputSize: failedOutputSize } = workerOptions;
+			if (failedOutputSize !== UNDEFINED_VALUE) {
+				writer.size += failedOutputSize;
+			} else if (isErrorObject(error) && error.outputSize !== UNDEFINED_VALUE) {
 				writer.size += error.outputSize;
 			}
 			throw error;
