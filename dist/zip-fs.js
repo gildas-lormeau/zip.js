@@ -6760,7 +6760,6 @@
 						rawExtraFieldUnix: EMPTY_UINT8_ARRAY,
 						rawExtraField,
 						rawCentralExtraField: EMPTY_UINT8_ARRAY,
-						extendedTimestamp: false,
 						headerArray,
 						headerView
 					});
@@ -10444,12 +10443,16 @@
 						let directoryEntry = parent;
 						if (name) {
 							directoryEntry = parent.getChildByName(name);
-							if (directoryEntry && !directoryEntry.directory) {
+							if (directoryEntry && (!directoryEntry.directory || directoryEntry.data)) {
 								if (duplicates == DUPLICATES_KEEP_FIRST) {
 									continue;
 								} else if (duplicates == DUPLICATES_KEEP_LAST) {
-									this.fs.remove(directoryEntry);
-									directoryEntry = UNDEFINED_VALUE;
+									if (directoryEntry.directory) {
+										directoryEntry.data = entry;
+									} else {
+										this.fs.remove(directoryEntry);
+										directoryEntry = UNDEFINED_VALUE;
+									}
 								} else {
 									throw new Error(ERR_DUPLICATE_IMPORTED_ENTRY);
 								}

@@ -17,6 +17,7 @@ async function test() {
 		await testDuplicateNames();
 		await testInvalidOption();
 		await testFileUsedAsDirectory();
+		await testTwoDirectoryRecords();
 		await testFailedImportKeepsPreviousContent();
 		testSlashedNamesBuildTheTree();
 		await testSlashedNamesRoundTrip();
@@ -74,6 +75,41 @@ async function testFileUsedAsDirectory() {
 		if (!fs.find("z/keep.txt")) {
 			throw new Error("the entries that do not collide must be kept");
 		}
+	}
+}
+
+// two directory records claiming the same node are a collision like any other, and the entries already
+// imported below the node survive it: the option replaces the record held by the node, not the node
+async function testTwoDirectoryRecords() {
+	const data = await writeZip(async zipWriter => {
+		await zipWriter.add("collision/", null, { directory: true, comment: FIRST_CONTENT });
+		await zipWriter.add("collision/file.txt", new zip.TextReader(UNRELATED_CONTENT));
+		await zipWriter.add("./collision/", null, { directory: true, comment: SECOND_CONTENT });
+		await zipWriter.add("z/keep.txt", new zip.TextReader(UNRELATED_CONTENT));
+	});
+	await checkThrows(() => importArray(data), ERR_DUPLICATE_IMPORTED_ENTRY, "two directory records must be refused by default");
+	for (const [duplicates, expectedComment] of [["keep-first", FIRST_CONTENT], ["keep-last", SECOND_CONTENT]]) {
+		const fs = await importArray(data, { duplicates });
+		const directory = fs.find("collision");
+		if (!directory || !directory.directory || directory.data.comment != expectedComment) {
+			throw new Error(`${duplicates} must keep the ${expectedComment} directory record, got ` +
+				(directory && directory.data ? directory.data.comment : "no record"));
+		}
+		if (await fs.find("collision/file.txt").getText() != UNRELATED_CONTENT) {
+			throw new Error(`${duplicates} must keep the entries held by the directory`);
+		}
+		if (!fs.find("z/keep.txt")) {
+			throw new Error("the entries that do not collide must be kept");
+		}
+	}
+	// an implicitly created directory is not a duplicate, it is the node the record was missing
+	const implicitData = await writeZip(async zipWriter => {
+		await zipWriter.add("implicit/file.txt", new zip.TextReader(UNRELATED_CONTENT));
+		await zipWriter.add("implicit/", null, { directory: true, comment: FIRST_CONTENT });
+	});
+	const fs = await importArray(implicitData);
+	if (fs.find("implicit").data.comment != FIRST_CONTENT) {
+		throw new Error("a record arriving after the entries below it must still be adopted by the node");
 	}
 }
 

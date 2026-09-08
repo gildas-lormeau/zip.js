@@ -4484,6 +4484,11 @@ export interface ZipDirectoryEntryImportOptions
    * entry holding the node, which is the behavior of most zip tools. The entries that do not collide
    * are imported in both cases.
    *
+   * When both entries are directory records, `"keep-last"` replaces the record held by the node and keeps
+   * the entries already imported below it, which belong to the node rather than to either record. A
+   * directory record claiming a node created implicitly by the entries below it is not a collision, it is
+   * the record that node was missing.
+   *
    * @defaultValue "throw"
    */
   duplicates?: "throw" | "keep-first" | "keep-last";

@@ -6734,7 +6734,6 @@
 						rawExtraFieldUnix: EMPTY_UINT8_ARRAY,
 						rawExtraField,
 						rawCentralExtraField: EMPTY_UINT8_ARRAY,
-						extendedTimestamp: false,
 						headerArray,
 						headerView
 					});
