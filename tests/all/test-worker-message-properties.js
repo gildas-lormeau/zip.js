@@ -10,6 +10,7 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, 
 const FILENAME = "lorem.txt";
 const PASSWORD = "secret";
 const MAXIMUM_RECORDED_DEPTH = 3;
+const ERROR_VALUE_PROPERTY_NAME = "errorValue";
 const COMPRESSION_METHOD_XOR = 93;
 const FORMAT_XOR = "xor-worker-message-properties";
 const XOR_MASK = 0x55;
@@ -172,10 +173,16 @@ function recordNames(names, value, depth = 0) {
 	}
 	for (const name of Object.getOwnPropertyNames(value)) {
 		names.add(name);
-		try {
-			recordNames(names, value[name], depth + 1);
-		} catch {
-			// ignored
+		// errorValue carries the rejection reason itself, which belongs to the caller: its own property
+		// names come from user code and from the engine, e.g. fileName/lineNumber/columnNumber on a
+		// Firefox error and line/column/sourceURL on a Safari one. zip.js never reads them, so they are
+		// not part of the protocol and must not be required to be declared
+		if (name != ERROR_VALUE_PROPERTY_NAME) {
+			try {
+				recordNames(names, value[name], depth + 1);
+			} catch {
+				// ignored
+			}
 		}
 	}
 }
