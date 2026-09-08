@@ -3078,7 +3078,7 @@ async function runWebWorker(workerData, config) {
 		rejectResult = error => {
 			const { outputSize, workerOptions } = workerData;
 			workerOptions.outputSize = outputSize;
-			if (isErrorObject(error) && error.outputSize === UNDEFINED_VALUE) {
+			if (isErrorObject(error)) {
 				try {
 					error.outputSize = outputSize;
 				} catch {
@@ -3097,7 +3097,7 @@ async function runWebWorker(workerData, config) {
 		result
 	});
 	const { readable, options } = workerData;
-	const { writable, closed, abortPipe } = watchClosedStream(workerData.writable);
+	const { writable, closed, abortPipe } = watchClosedStream(workerData.writable, workerData);
 	let streamsTransferred;
 	try {
 		streamsTransferred = sendMessage({
@@ -3140,6 +3140,15 @@ async function runWebWorker(workerData, config) {
 		} catch {
 			// ignored
 		}
+		const { outputSize, workerOptions } = workerData;
+		workerOptions.outputSize = outputSize;
+		if (isErrorObject(error)) {
+			try {
+				error.outputSize = outputSize;
+			} catch {
+				// ignored
+			}
+		}
 		throw error;
 	}
 
@@ -3154,9 +3163,14 @@ async function runWebWorker(workerData, config) {
 	}
 }
 
-function watchClosedStream(writableSource) {
+function watchClosedStream(writableSource, workerData) {
 	const abortController = new AbortController();
-	const { writable, readable } = new TransformStream();
+	const { writable, readable } = new TransformStream({
+		transform(chunk, controller) {
+			workerData.outputSize += chunk.length;
+			controller.enqueue(chunk);
+		}
+	});
 	const closed = readable.pipeTo(writableSource, { preventClose: true, preventAbort: true, signal: abortController.signal });
 	closed.catch(() => { });
 	return { writable, closed, abortPipe: () => abortController.abort() };
@@ -3357,9 +3371,6 @@ async function onMessage({ data }, workerData) {
 	const stale = () => workerData.generation != generation;
 	try {
 		if (error) {
-			if (error.outputSize !== UNDEFINED_VALUE) {
-				workerData.outputSize = error.outputSize;
-			}
 			fail(getResponseError(error, errorValue));
 		} else {
 			if (type == MESSAGE_PULL) {
@@ -3372,7 +3383,6 @@ async function onMessage({ data }, workerData) {
 				const chunk = new Uint8Array(value);
 				await writer.ready;
 				await writer.write(chunk);
-				workerData.outputSize += chunk.length;
 				if (!stale()) {
 					sendMessage({ type: MESSAGE_ACK_DATA, messageId }, workerData);
 				}

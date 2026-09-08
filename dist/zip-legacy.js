@@ -3049,7 +3049,7 @@
 			rejectResult = error => {
 				const { outputSize, workerOptions } = workerData;
 				workerOptions.outputSize = outputSize;
-				if (isErrorObject(error) && error.outputSize === UNDEFINED_VALUE) {
+				if (isErrorObject(error)) {
 					try {
 						error.outputSize = outputSize;
 					} catch {
@@ -3068,7 +3068,7 @@
 			result
 		});
 		const { readable, options } = workerData;
-		const { writable, closed, abortPipe } = watchClosedStream(workerData.writable);
+		const { writable, closed, abortPipe } = watchClosedStream(workerData.writable, workerData);
 		let streamsTransferred;
 		try {
 			streamsTransferred = sendMessage({
@@ -3111,6 +3111,15 @@
 			} catch {
 				// ignored
 			}
+			const { outputSize, workerOptions } = workerData;
+			workerOptions.outputSize = outputSize;
+			if (isErrorObject(error)) {
+				try {
+					error.outputSize = outputSize;
+				} catch {
+					// ignored
+				}
+			}
 			throw error;
 		}
 
@@ -3125,9 +3134,14 @@
 		}
 	}
 
-	function watchClosedStream(writableSource) {
+	function watchClosedStream(writableSource, workerData) {
 		const abortController = new AbortController();
-		const { writable, readable } = new TransformStream();
+		const { writable, readable } = new TransformStream({
+			transform(chunk, controller) {
+				workerData.outputSize += chunk.length;
+				controller.enqueue(chunk);
+			}
+		});
 		const closed = readable.pipeTo(writableSource, { preventClose: true, preventAbort: true, signal: abortController.signal });
 		closed.catch(() => { });
 		return { writable, closed, abortPipe: () => abortController.abort() };
@@ -3328,9 +3342,6 @@
 		const stale = () => workerData.generation != generation;
 		try {
 			if (error) {
-				if (error.outputSize !== UNDEFINED_VALUE) {
-					workerData.outputSize = error.outputSize;
-				}
 				fail(getResponseError(error, errorValue));
 			} else {
 				if (type == MESSAGE_PULL) {
@@ -3343,7 +3354,6 @@
 					const chunk = new Uint8Array(value);
 					await writer.ready;
 					await writer.write(chunk);
-					workerData.outputSize += chunk.length;
 					if (!stale()) {
 						sendMessage({ type: MESSAGE_ACK_DATA, messageId }, workerData);
 					}

@@ -1,4 +1,4 @@
-/* global WritableStream, ReadableStream, crypto, structuredClone, DOMException */
+/* global WritableStream, ReadableStream, crypto, structuredClone, DOMException, setTimeout */
 
 // A stream cancelled or aborted without a reason rejects with undefined, and a caller aborting one
 // is free to pass any value at all. zip.js annotates a codec failure with the number of bytes that
@@ -24,6 +24,7 @@ const FAILING_CHUNK_LENGTH = 262144;
 const GOOD_ENTRY_NAME = "good.txt";
 const GOOD_CONTENT = "good content";
 const LOCAL_HEADER_SIGNATURE = [0x50, 0x4b, 0x03, 0x04];
+const SLOW_SINK_DELAY = 12;
 const END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;
 const END_OF_CENTRAL_DIRECTORY_LENGTH = 22;
 const CENTRAL_DIRECTORY_OFFSET_FIELD = 16;
@@ -40,6 +41,7 @@ async function test() {
 		await reportsWriterCancelWithWorkers(data);
 		await reportsEntryFailureOnClose();
 		await keepsEntryOffsetsCorrectAfterFailure(data);
+		await keepsWriterAccountingExactAfterFailure(data);
 		await propagatesReaderAbortReason(archive);
 		await reportsReaderAbortWithWorkers(archive);
 	} finally {
@@ -140,13 +142,12 @@ async function reportsEntryFailureOnClose() {
 // caller observed the entry failure and close() stays silent about it by design, so the only symptom
 // is an archive a strict reader rejects. The byte count reaches the writer out of band, because the
 // reason itself cannot be relied on to carry it.
-// Only the codec running on this thread is checked. When the streams are transferred to a worker the
-// count comes from the worker, which tallies the bytes it handed to the transferred writable rather
-// than the bytes that reached the writer of the caller, and the two differ by whatever is still
-// queued when the failure lands. That is not a property this test can pin; it is filed separately.
+// The worker paths are checked too. The count is taken on this thread, where the bytes leave toward
+// the writer of the caller, rather than in the worker, which can only see the bytes it handed to the
+// stream transferred to it and would over-report whatever is still queued when the failure lands.
 async function keepsEntryOffsetsCorrectAfterFailure(data) {
 	for (const reason of REASONS) {
-		for (const useWebWorkers of [false]) {
+		for (const useWebWorkers of [false, undefined]) {
 			const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { bufferedWrite: false, useWebWorkers });
 			try {
 				await zipWriter.add(ENTRY_NAME, { readable: partiallyFailingReadable(data, reason) });
@@ -166,6 +167,41 @@ async function keepsEntryOffsetsCorrectAfterFailure(data) {
 			assertLocalHeaderAt(archive, getRecordedLocalHeaderOffset(archive), reason, useWebWorkers);
 		}
 	}
+}
+
+// the count of what a failed entry wrote has to be taken once the aborted pipe has settled, because a
+// write already in flight still reaches the destination after the failure has been reported. A sink
+// that accepts chunks slowly makes that window wide enough to be deterministic: the writer used to
+// end up one chunk short, so every entry added afterwards was recorded that far before its real
+// position. Comparing what the writer accounts for with what the destination received catches it
+// whichever way the two drift apart.
+async function keepsWriterAccountingExactAfterFailure(data) {
+	for (const reason of REASONS) {
+		for (const useWebWorkers of [false, undefined]) {
+			let received = 0;
+			const writable = new WritableStream({
+				async write(chunk) {
+					await delay(SLOW_SINK_DELAY);
+					received += chunk.length;
+				}
+			});
+			const zipWriter = new zip.ZipWriter({ writable }, { bufferedWrite: false, useWebWorkers });
+			try {
+				await zipWriter.add(ENTRY_NAME, { readable: partiallyFailingReadable(data, reason) });
+			} catch {
+				// the entry is skipped on purpose
+			}
+			if (zipWriter.offset != received) {
+				throw new Error("after a failure with " + describe(reason) + " (useWebWorkers=" + useWebWorkers +
+					") the writer accounts for " + zipWriter.offset + " bytes and the destination received " +
+					received + ", a drift of " + (zipWriter.offset - received));
+			}
+		}
+	}
+}
+
+function delay(duration) {
+	return new Promise(resolve => setTimeout(resolve, duration));
 }
 
 function partiallyFailingReadable(data, reason) {
