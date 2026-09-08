@@ -873,7 +873,7 @@ Returns the filename of the entry relative to a parent directory
 
 ### importBlob()
 
-> **importBlob**(`blob`, `options?`): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+> **importBlob**(`blob`, `options?`): `Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
 
 Extracts a zip file provided as a `Blob` instance into the entry
 
@@ -893,7 +893,11 @@ The options.
 
 #### Returns
 
-`Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+`Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
+
+A promise resolving to an array of the [ZipFileEntry](ZipFileEntry.md) and ZipDirectoryEntry
+instances created by the import, which includes the directories created for the path components of
+the filenames.
 
 #### Remarks
 
@@ -904,7 +908,7 @@ zip file itself, e.g. its [ZipReader#prependedData](ZipReader.md#prependeddata) 
 
 ### importData64URI()
 
-> **importData64URI**(`dataURI`, `options?`): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+> **importData64URI**(`dataURI`, `options?`): `Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
 
 Extracts a zip file provided as a Data URI `string` encoded in Base64 into the entry
 
@@ -924,7 +928,11 @@ The options.
 
 #### Returns
 
-`Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+`Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
+
+A promise resolving to an array of the [ZipFileEntry](ZipFileEntry.md) and ZipDirectoryEntry
+instances created by the import, which includes the directories created for the path components of
+the filenames.
 
 #### Remarks
 
@@ -935,7 +943,7 @@ zip file itself, e.g. its [ZipReader#prependedData](ZipReader.md#prependeddata) 
 
 ### importHttpContent()
 
-> **importHttpContent**(`url`, `options?`): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+> **importHttpContent**(`url`, `options?`): `Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
 
 Extracts a zip file fetched from a URL into the entry
 
@@ -955,7 +963,11 @@ The options.
 
 #### Returns
 
-`Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+`Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
+
+A promise resolving to an array of the [ZipFileEntry](ZipFileEntry.md) and ZipDirectoryEntry
+instances created by the import, which includes the directories created for the path components of
+the filenames.
 
 #### Remarks
 
@@ -966,7 +978,7 @@ zip file itself, e.g. its [ZipReader#prependedData](ZipReader.md#prependeddata) 
 
 ### importReadable()
 
-> **importReadable**(`readable`, `options?`): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+> **importReadable**(`readable`, `options?`): `Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
 
 Extracts a zip file provided via a `ReadableStream` instance into the entry
 
@@ -986,7 +998,11 @@ The options.
 
 #### Returns
 
-`Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+`Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
+
+A promise resolving to an array of the [ZipFileEntry](ZipFileEntry.md) and ZipDirectoryEntry
+instances created by the import, which includes the directories created for the path components of
+the filenames.
 
 #### Remarks
 
@@ -1001,7 +1017,7 @@ the [ZipReader](ZipReader.md) constructor remarks and the [Reader](Reader.md) ex
 
 ### importUint8Array()
 
-> **importUint8Array**(`array`, `options?`): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+> **importUint8Array**(`array`, `options?`): `Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
 
 Extracts a zip file provided as a `Uint8Array` instance into the entry
 
@@ -1021,7 +1037,11 @@ The options.
 
 #### Returns
 
-`Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+`Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
+
+A promise resolving to an array of the [ZipFileEntry](ZipFileEntry.md) and ZipDirectoryEntry
+instances created by the import, which includes the directories created for the path components of
+the filenames.
 
 #### Remarks
 
@@ -1032,7 +1052,7 @@ zip file itself, e.g. its [ZipReader#prependedData](ZipReader.md#prependeddata) 
 
 ### importZip()
 
-> **importZip**(`reader`, `options?`): `Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+> **importZip**(`reader`, `options?`): `Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
 
 Extracts a zip file provided via a custom [Reader](Reader.md) instance or a [ZipReader](ZipReader.md) instance into
 the entry
@@ -1053,7 +1073,11 @@ The options.
 
 #### Returns
 
-`Promise`\<\[[`ZipEntry`](ZipEntry.md)\]\>
+`Promise`\<[`ZipEntry`](ZipEntry.md)[]\>
+
+A promise resolving to an array of the [ZipFileEntry](ZipFileEntry.md) and ZipDirectoryEntry
+instances created by the import, which includes the directories created for the path components of
+the filenames.
 
 #### Remarks
 

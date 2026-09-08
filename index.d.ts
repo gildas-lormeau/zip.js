@@ -4209,6 +4209,9 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @param blob The `Blob` instance.
    * @param options  The options.
+   * @returns A promise resolving to an array of the {@link ZipFileEntry} and {@link ZipDirectoryEntry}
+   * instances created by the import, which includes the directories created for the path components of
+   * the filenames.
    *
    * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
    * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
@@ -4216,12 +4219,15 @@ export class ZipDirectoryEntry extends ZipEntry {
   importBlob(
     blob: Blob,
     options?: ZipDirectoryEntryImportOptions
-  ): Promise<[ZipEntry]>;
+  ): Promise<ZipEntry[]>;
   /**
    * Extracts a zip file provided as a Data URI `string` encoded in Base64 into the entry
    *
    * @param dataURI The Data URI `string` encoded in Base64.
    * @param options  The options.
+   * @returns A promise resolving to an array of the {@link ZipFileEntry} and {@link ZipDirectoryEntry}
+   * instances created by the import, which includes the directories created for the path components of
+   * the filenames.
    *
    * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
    * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
@@ -4229,12 +4235,15 @@ export class ZipDirectoryEntry extends ZipEntry {
   importData64URI(
     dataURI: string,
     options?: ZipDirectoryEntryImportOptions
-  ): Promise<[ZipEntry]>;
+  ): Promise<ZipEntry[]>;
   /**
    * Extracts a zip file provided as a `Uint8Array` instance into the entry
    *
    * @param array The `Uint8Array` instance.
    * @param options  The options.
+   * @returns A promise resolving to an array of the {@link ZipFileEntry} and {@link ZipDirectoryEntry}
+   * instances created by the import, which includes the directories created for the path components of
+   * the filenames.
    *
    * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
    * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
@@ -4242,12 +4251,15 @@ export class ZipDirectoryEntry extends ZipEntry {
   importUint8Array(
     array: Uint8Array,
     options?: ZipDirectoryEntryImportOptions
-  ): Promise<[ZipEntry]>;
+  ): Promise<ZipEntry[]>;
   /**
    * Extracts a zip file fetched from a URL into the entry
    *
    * @param url The URL.
    * @param options  The options.
+   * @returns A promise resolving to an array of the {@link ZipFileEntry} and {@link ZipDirectoryEntry}
+   * instances created by the import, which includes the directories created for the path components of
+   * the filenames.
    *
    * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
    * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
@@ -4255,12 +4267,15 @@ export class ZipDirectoryEntry extends ZipEntry {
   importHttpContent(
     url: string,
     options?: ZipDirectoryEntryImportHttpOptions
-  ): Promise<[ZipEntry]>;
+  ): Promise<ZipEntry[]>;
   /**
    * Extracts a zip file provided via a `ReadableStream` instance into the entry
    *
    * @param readable The `ReadableStream` instance.
    * @param options  The options.
+   * @returns A promise resolving to an array of the {@link ZipFileEntry} and {@link ZipDirectoryEntry}
+   * instances created by the import, which includes the directories created for the path components of
+   * the filenames.
    *
    * @remarks Use {@link ZipDirectoryEntry#importZip} with a {@link ZipReader} instance to read the data of the
    * zip file itself, e.g. its {@link ZipReader#prependedData} or its {@link ZipReader#comment} property.
@@ -4272,13 +4287,16 @@ export class ZipDirectoryEntry extends ZipEntry {
   importReadable(
     readable: ReadableStream,
     options?: ZipDirectoryEntryImportOptions
-  ): Promise<[ZipEntry]>;
+  ): Promise<ZipEntry[]>;
   /**
    * Extracts a zip file provided via a custom {@link Reader} instance or a {@link ZipReader} instance into
    * the entry
    *
    * @param reader The {@link Reader} instance or the {@link ZipReader} instance.
    * @param options  The options.
+   * @returns A promise resolving to an array of the {@link ZipFileEntry} and {@link ZipDirectoryEntry}
+   * instances created by the import, which includes the directories created for the path components of
+   * the filenames.
    *
    * @remarks The filename of each entry is split into path components to build the tree of entries. Empty
    * components and `"."` components are ignored, so `"a//b.txt"`, `"./a/b.txt"` and `"a/./b.txt"` all produce
@@ -4308,7 +4326,7 @@ export class ZipDirectoryEntry extends ZipEntry {
       | ReadableStream[]
       | ZipReader<unknown>,
     options?: ZipDirectoryEntryImportOptions
-  ): Promise<[ZipEntry]>;
+  ): Promise<ZipEntry[]>;
   /**
    * Returns a `Blob` instance containing a zip file of the entry and its descendants
    *

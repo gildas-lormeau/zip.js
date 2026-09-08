@@ -21,7 +21,7 @@ fs.remove(textEntry);
 fs.move(textEntry, root);
 const importPromise: Promise<ZipEntry[]> = fs.importBlob(new Blob());
 const exportBlobPromise: Promise<Blob> = fs.exportBlob();
-const importZipPromise: Promise<[ZipEntry]> = fs.importZip(new Blob().stream());
+const importZipPromise: Promise<ZipEntry[]> = fs.importZip(new Blob().stream());
 const exportZipPromise: Promise<unknown> = fs.exportZip(new Blob() as never);
 const protectedFlag: boolean = fs.isPasswordProtected();
 const passwordPromise: Promise<boolean> = fs.checkPassword("password");
@@ -29,7 +29,10 @@ const readerPasswordPromise: Promise<Blob> = fs.exportBlob({ readerOptions: { pa
 const exportHandlePromise: Promise<unknown> = fs.exportFileSystemHandle(new Object() as never, { readerOptions: { password: "password" } });
 const signedExportPromise: Promise<Uint8Array> = fs.exportUint8Array({ signCentralDirectory: () => new Uint8Array(8) });
 const commentedExportPromise: Promise<Uint8Array> = fs.exportUint8Array({ globalComment: new Uint8Array(4) });
-const importZipReaderPromise: Promise<[ZipEntry]> = fs.importZip(new ZipReader(new Blob().stream(), { extractPrependedData: true }));
+const importZipReaderPromise: Promise<ZipEntry[]> = fs.importZip(new ZipReader(new Blob().stream(), { extractPrependedData: true }));
+// an import returns every entry it created, so indexing past the first one must compile: a one-element
+// tuple would reject this with TS2493 while the call resolves to as many entries as the tree gained
+const secondImportedEntryPromise: Promise<ZipEntry> = fs.importUint8Array(new Uint8Array()).then(importedEntries => importedEntries[1]);
 const entryProgressExportPromise: Promise<Uint8Array> = fs.exportUint8Array({
 	onentryprogress: (progress: number, total: number, entry: EntryMetaData) => void [progress, total, entry.filename]
 });
@@ -42,7 +45,7 @@ void [root, entries, children, byName, byId, found, directory, textEntry, entryO
 	importPromise, exportBlobPromise, importZipPromise, exportZipPromise,
 	protectedFlag, passwordPromise, readerPasswordPromise, exportHandlePromise,
 	signedExportPromise, commentedExportPromise, importZipReaderPromise,
-	entryProgressExportPromise, deprecatedFS];
+	entryProgressExportPromise, deprecatedFS, secondImportedEntryPromise];
 
 // members that do NOT exist on ZipFS at runtime must NOT type-check
 // @ts-expect-error ZipFS is not a file entry
