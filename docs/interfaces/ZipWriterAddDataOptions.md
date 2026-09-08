@@ -292,8 +292,10 @@ When set to `false`, the maximum last modification date cannot exceed December 3
 Some zip-based formats forbid any extra field on a specific entry, which the default value of this
 option would write. OpenDocument requires its `mimetype` entry to come first, to be stored without compression
 and to carry no extra field, so a conformant ODF package needs both this option set to `false` and
-[ZipWriterConstructorOptions#level](ZipWriterConstructorOptions.md#level) set to `0` on that entry. EPUB requires its `mimetype` entry to come
-first and to be stored without compression, but allows an extra field, so `level` set to `0` is enough there.
+[ZipWriterConstructorOptions#level](ZipWriterConstructorOptions.md#level) set to `0` on that entry. EPUB asks for the same pair: OCF states
+that the `mimetype` file must not be compressed or encrypted and that there must not be an extra field in its
+ZIP header, which is what pins the byte offset of `application/epub+zip` so a reader can sniff the format
+without parsing the archive, and epubcheck reports an extra field there as an error.
 
 #### Default Value
 

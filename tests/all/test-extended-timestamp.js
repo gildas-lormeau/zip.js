@@ -5,6 +5,8 @@ import * as zip from "../zip-lib.js";
 const TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam; est usus legentis in iis qui facit eorum claritatem. Investigationes demonstraverunt lectores legere me lius quod ii legunt saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium lectorum. Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.";
 const FILENAME = "lorem.txt";
 const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
+const MIMETYPE_FILENAME = "mimetype";
+const MIMETYPE_CONTENT = "application/epub+zip";
 
 export { test };
 
@@ -16,6 +18,31 @@ async function test() {
 		throw new Error();
 	}
 	await headersAgreeAcrossTheDateBranches();
+	await writesNoExtraFieldAtAllWhenDisabled();
+}
+
+// ODF and EPUB both require their `mimetype` entry to carry NO extra field, which is what pins the byte
+// offset of the media type so the format can be sniffed without a zip parser. The option documented for that
+// is this one, so an entry written with it off and level 0 has to end up with an empty extra field, in the
+// local header and in the central directory alike. `level: 0` alone leaves the 9-byte 0x5455 record behind.
+async function writesNoExtraFieldAtAllWhenDisabled() {
+	for (const { options, expectedLength } of [
+		{ options: { level: 0, extendedTimestamp: false }, expectedLength: 0 },
+		{ options: { level: 0 }, expectedLength: 9 }
+	]) {
+		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await zipWriter.add(MIMETYPE_FILENAME, new zip.TextReader(MIMETYPE_CONTENT), options);
+		const data = await zipWriter.close();
+		const localExtraFieldLength = data[28] + data[29] * 0x100;
+		const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+		const [entry] = await zipReader.getEntries();
+		await zipReader.close();
+		const centralExtraFieldLength = entry.rawExtraField.length;
+		if (localExtraFieldLength != expectedLength || centralExtraFieldLength != expectedLength) {
+			throw new Error(`Expected ${JSON.stringify(options)} to write an extra field of ${expectedLength} bytes, ` +
+				`got ${localExtraFieldLength} in the local header and ${centralExtraFieldLength} in the central directory`);
+		}
+	}
 }
 
 // The local header and the central directory each carry their own 0x5455 record, built by different

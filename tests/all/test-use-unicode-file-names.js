@@ -46,10 +46,21 @@ async function buildZip(options) {
 
 async function assertDerivedFlag({ filename, comment }, expectedLanguageEncodingFlag) {
 	const zipWriter = new zip.ZipWriter(new zip.BlobWriter());
-	await zipWriter.add(filename, new zip.BlobReader(BLOB), comment === undefined ? undefined : { comment });
+	const added = await zipWriter.add(filename, new zip.BlobReader(BLOB), comment === undefined ? undefined : { comment });
 	const zipReader = new zip.ZipReader(new zip.BlobReader(await zipWriter.close()));
 	const [entry] = await zipReader.getEntries();
 	await zipReader.close();
+	// the writer used to report both as true whatever it wrote, so an ASCII name read back as false; the two
+	// sides describe the same bit and have to agree
+	if (added.filenameUTF8 != entry.filenameUTF8 || added.commentUTF8 != entry.commentUTF8) {
+		throw new Error(`Expected the writer and the reader to agree on ${JSON.stringify(filename)}, ` +
+			`the writer says ${added.filenameUTF8}/${added.commentUTF8} and the reader ` +
+			`${entry.filenameUTF8}/${entry.commentUTF8}`);
+	}
+	if (added.filenameUTF8 != expectedLanguageEncodingFlag) {
+		throw new Error(`Expected the entry returned by add() to report filenameUTF8 ${expectedLanguageEncodingFlag}` +
+			` for ${JSON.stringify(filename)}, got ${added.filenameUTF8}`);
+	}
 	if (entry.bitFlag.languageEncodingFlag != expectedLanguageEncodingFlag) {
 		throw new Error(`Expected language flag to be ${expectedLanguageEncodingFlag} for ${JSON.stringify(filename)}` +
 			`${comment === undefined ? "" : " with comment " + JSON.stringify(comment)}`);
