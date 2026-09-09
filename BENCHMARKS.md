@@ -129,7 +129,7 @@ the table, does not parallelize via concurrent `add()`. Keep the default level t
 the native-backend parallelism, or pair a custom level with Web Workers (below).
 
 That fallback costs more than a backend switch, and the
-[frontier](#the-frontier--one-axis-both-sides) measures how much: how much speed a lower
+[level tables](#level-against-level) measure how much: how much speed a lower
 level actually buys depends on how fast the host's own zlib is, and on Deno it buys
 nothing at all — `level: 5` there is slower *and* larger than the default.
 
@@ -170,25 +170,27 @@ container around them, and sorts by output size rather than by level. That matte
 zlib's level 6 and fflate's level 6 are different parameter sets: matched by level, the
 comparison silently reads a ratio difference as a speed difference.
 
-`frontier` marks a row that nothing smaller beats on time.
+A row is beaten when another row is at least as small and faster; the last column names
+the fastest one. The rows nothing beats are the real choices: the ones above them cost
+more time, the ones below more bytes.
 
-| Codec | Setting | Output | Ratio | Time | Throughput | |
+| Codec | Setting | Output | Ratio | Time | Throughput | Beaten by |
 |---|---|--:|--:|--:|--:|---|
-| WASM zlib | level 8 | 6,115,980 | 3.429 | 1466 ms | 13.6 MB/s | frontier |
-| `CompressionStream` | no level control | 6,120,503 | 3.426 | 692 ms | 28.9 MB/s | frontier |
-| WASM zlib | level 6 | 6,165,103 | 3.402 | 1023 ms | 19.5 MB/s | |
-| fflate | level 8 — its best | 6,239,025 | 3.361 | 750 ms | 26.7 MB/s | |
-| fflate | level 6 | 6,257,881 | 3.351 | 738 ms | 27.1 MB/s | |
-| WASM zlib | level 5 | 6,562,182 | 3.196 | 494 ms | 40.5 MB/s | frontier |
-| fflate | level 5 | 6,648,574 | 3.154 | 534 ms | 37.4 MB/s | |
-| WASM zlib | level 4 | 6,907,987 | 3.036 | 276 ms | 72.4 MB/s | frontier |
-| fflate | level 1 | 7,261,700 | 2.888 | 316 ms | 63.3 MB/s | |
-| WASM zlib | level 1 | 7,531,042 | 2.785 | 177 ms | 113.1 MB/s | frontier |
+| WASM zlib | level 8 | 6,115,980 | 3.429 | 1466 ms | 13.6 MB/s | |
+| `CompressionStream` | no level control | 6,120,503 | 3.426 | 692 ms | 28.9 MB/s | |
+| WASM zlib | level 6 | 6,165,103 | 3.402 | 1023 ms | 19.5 MB/s | `CompressionStream` |
+| fflate | level 8 — its best | 6,239,025 | 3.361 | 750 ms | 26.7 MB/s | `CompressionStream` |
+| fflate | level 6 | 6,257,881 | 3.351 | 738 ms | 27.1 MB/s | `CompressionStream` |
+| WASM zlib | level 5 | 6,562,182 | 3.196 | 494 ms | 40.5 MB/s | |
+| fflate | level 5 | 6,648,574 | 3.154 | 534 ms | 37.4 MB/s | WASM zlib level 5 |
+| WASM zlib | level 4 | 6,907,987 | 3.036 | 276 ms | 72.4 MB/s | |
+| fflate | level 1 | 7,261,700 | 2.888 | 316 ms | 63.3 MB/s | WASM zlib level 4 |
+| WASM zlib | level 1 | 7,531,042 | 2.785 | 177 ms | 113.1 MB/s | |
 
 The pure-JS port produces byte-identical output to the WASM codec at every level and is
 1.2–2× slower; the full 28-row table is in `benchmarks/results/codecs-results.json`.
 
-Two things to take from it. **fflate never lands on the frontier here** — at every size it
+Two things to take from it. **Every fflate row is beaten by a zip.js codec** — at every size it
 reaches, one of zip.js's codecs gets there sooner — and above ratio 3.361 it has no setting
 at all, while the WASM codec keeps going to 3.429. Second, the level numbers really are
 incomparable: fflate's level 6 falls between zlib's levels 5 and 6 on ratio, which is
@@ -295,8 +297,8 @@ compares it against the `7zz` CLI (7-Zip 25.01), disk-to-disk on both sides, und
 
 **No 7-Zip preset runs zlib's algorithm**, so `-mx=6` and level 6 are not the same request
 and a table pairing them by digit is measuring two things at once. This section therefore
-has two parts: the defaults against each other, and then a frontier that varies *one* axis,
-the compression level, on **both** sides at a fixed core budget.
+has two parts: the defaults against each other, and then level against level, varying
+*one* axis on **both** sides at a fixed core budget.
 
 ### Defaults against defaults
 
@@ -322,54 +324,55 @@ stream, so `-mmt` changes nothing there and the two 7-Zip columns would measure 
 run. That is also why zip.js's worker pool does nothing on the single-file rows — the
 parallelism both tools have is *between* entries, never inside one.
 
-### The frontier — one axis, both sides
+### Level against level
 
 Levels 1–9 on the zip.js side against `-mx=1,3,5,6,7,9` on the 7-Zip side, sorted by output
-size. A tool is faster than another only where it is faster **at the same size**, and
-`frontier` marks a row that nothing smaller beats on time.
+size. A tool is faster than another only where it is faster **at the same size**. A row is
+beaten when another row is at least as small and faster, and the last column names the
+fastest one; the rows nothing beats are the real choices.
 
 **One thread, one deflate stream on both sides** — 20 MB of text:
 
-| Encoder | Output | Ratio | Time | |
+| Encoder | Output | Ratio | Time | Beaten by |
 |---|--:|--:|--:|---|
-| 7-Zip `-mx=9` | 5.7 MB | 3.665 | 14889 ms | frontier |
-| 7-Zip `-mx=7` | 5.7 MB | 3.665 | 6643 ms | frontier |
-| 7-Zip `-mx=5` | 5.8 MB | 3.646 | 2597 ms | frontier |
-| 7-Zip `-mx=6` | 5.8 MB | 3.646 | 2605 ms | |
-| zip.js level 8 | 6.1 MB | 3.429 | 1537 ms | frontier |
-| zip.js level 9 | 6.1 MB | 3.429 | 1544 ms | |
-| zip.js level 7 | 6.1 MB | 3.421 | 1305 ms | frontier |
-| **zip.js level 6 (default)** | 6.2 MB | 3.377 | **418 ms** | frontier |
-| zip.js level 5 | 6.6 MB | 3.196 | 590 ms | |
-| 7-Zip `-mx=1` | 6.8 MB | 3.096 | 458 ms | |
-| 7-Zip `-mx=3` | 6.8 MB | 3.096 | 453 ms | |
-| zip.js level 4 | 6.9 MB | 3.036 | 358 ms | frontier |
-| zip.js level 3 | 7.0 MB | 2.975 | 420 ms | |
-| zip.js level 2 | 7.4 MB | 2.850 | 266 ms | frontier |
-| zip.js level 1 | 7.5 MB | 2.785 | 239 ms | frontier |
+| 7-Zip `-mx=9` | 5.7 MB | 3.665 | 14889 ms | 7-Zip `-mx=7` |
+| 7-Zip `-mx=7` | 5.7 MB | 3.665 | 6643 ms | |
+| 7-Zip `-mx=5` | 5.8 MB | 3.646 | 2597 ms | |
+| 7-Zip `-mx=6` | 5.8 MB | 3.646 | 2605 ms | 7-Zip `-mx=5` |
+| zip.js level 8 | 6.1 MB | 3.429 | 1537 ms | |
+| zip.js level 9 | 6.1 MB | 3.429 | 1544 ms | zip.js level 8 |
+| zip.js level 7 | 6.1 MB | 3.421 | 1305 ms | |
+| **zip.js level 6 (default)** | 6.2 MB | 3.377 | **418 ms** | |
+| zip.js level 5 | 6.6 MB | 3.196 | 590 ms | zip.js level 6 |
+| 7-Zip `-mx=1` | 6.8 MB | 3.096 | 458 ms | zip.js level 6 |
+| 7-Zip `-mx=3` | 6.8 MB | 3.096 | 453 ms | zip.js level 6 |
+| zip.js level 4 | 6.9 MB | 3.036 | 358 ms | |
+| zip.js level 3 | 7.0 MB | 2.975 | 420 ms | zip.js level 4 |
+| zip.js level 2 | 7.4 MB | 2.850 | 266 ms | |
+| zip.js level 1 | 7.5 MB | 2.785 | 239 ms | |
 
 **The same 20 MB, one thread, but on Node** — because the zip.js side of that table is not
 one codec. Level 6 is the host's `CompressionStream`, so it changes with the runtime; every
 other level is the bundled WASM codec, which does not (its output is byte-identical on both
 and its times agree within 5 %):
 
-| Encoder | Output | Ratio | Time | |
+| Encoder | Output | Ratio | Time | Beaten by |
 |---|--:|--:|--:|---|
-| 7-Zip `-mx=9` | 5.7 MB | 3.665 | 14904 ms | frontier |
-| 7-Zip `-mx=7` | 5.7 MB | 3.665 | 6548 ms | frontier |
-| 7-Zip `-mx=5` | 5.8 MB | 3.646 | 2535 ms | frontier |
-| 7-Zip `-mx=6` | 5.8 MB | 3.646 | 2553 ms | |
-| zip.js level 8 | 6.1 MB | 3.429 | 1474 ms | frontier |
-| zip.js level 9 | 6.1 MB | 3.429 | 1476 ms | |
-| **zip.js level 6 (default)** | 6.1 MB | 3.426 | **696 ms** | frontier |
-| zip.js level 7 | 6.1 MB | 3.421 | 1238 ms | |
-| zip.js level 5 | 6.6 MB | 3.196 | 514 ms | frontier |
-| 7-Zip `-mx=1` | 6.8 MB | 3.096 | 447 ms | frontier |
-| 7-Zip `-mx=3` | 6.8 MB | 3.096 | 445 ms | frontier |
-| zip.js level 4 | 6.9 MB | 3.036 | 304 ms | frontier |
-| zip.js level 3 | 7.0 MB | 2.975 | 375 ms | |
-| zip.js level 2 | 7.4 MB | 2.850 | 221 ms | frontier |
-| zip.js level 1 | 7.5 MB | 2.785 | 200 ms | frontier |
+| 7-Zip `-mx=9` | 5.7 MB | 3.665 | 14904 ms | 7-Zip `-mx=7` |
+| 7-Zip `-mx=7` | 5.7 MB | 3.665 | 6548 ms | |
+| 7-Zip `-mx=5` | 5.8 MB | 3.646 | 2535 ms | |
+| 7-Zip `-mx=6` | 5.8 MB | 3.646 | 2553 ms | 7-Zip `-mx=5` |
+| zip.js level 8 | 6.1 MB | 3.429 | 1474 ms | |
+| zip.js level 9 | 6.1 MB | 3.429 | 1476 ms | zip.js level 8 |
+| **zip.js level 6 (default)** | 6.1 MB | 3.426 | **696 ms** | |
+| zip.js level 7 | 6.1 MB | 3.421 | 1238 ms | zip.js level 6 |
+| zip.js level 5 | 6.6 MB | 3.196 | 514 ms | |
+| 7-Zip `-mx=1` | 6.8 MB | 3.096 | 447 ms | 7-Zip `-mx=3` |
+| 7-Zip `-mx=3` | 6.8 MB | 3.096 | 445 ms | |
+| zip.js level 4 | 6.9 MB | 3.036 | 304 ms | |
+| zip.js level 3 | 7.0 MB | 2.975 | 375 ms | zip.js level 4 |
+| zip.js level 2 | 7.4 MB | 2.850 | 221 ms | |
+| zip.js level 1 | 7.5 MB | 2.785 | 200 ms | |
 
 **Every core, both sides** — 8 files × 8 MB, on Deno. It has to be Deno: Node exposes no
 global `Worker`, so `useWebWorkers` cannot spawn one there and only the default level —
@@ -377,23 +380,23 @@ which rides the platform threadpool instead — parallelizes at all. Measured on
 same table reads 617 ms at level 6 against 4090 ms at level 7, i.e. the WASM levels run
 serially, which would make it a comparison of 7-Zip on 8 cores against zip.js on 1.
 
-| Encoder | Output | Ratio | Time | |
+| Encoder | Output | Ratio | Time | Beaten by |
 |---|--:|--:|--:|---|
-| 7-Zip `-mx=9` | 18.3 MB | 3.660 | 8625 ms | frontier |
-| 7-Zip `-mx=7` | 18.3 MB | 3.660 | 3796 ms | frontier |
-| 7-Zip `-mx=5` | 18.4 MB | 3.645 | 1510 ms | frontier |
-| 7-Zip `-mx=6` | 18.4 MB | 3.645 | 1540 ms | |
-| zip.js level 9 | 19.6 MB | 3.428 | 971 ms | frontier |
-| zip.js level 8 | 19.6 MB | 3.428 | 991 ms | |
-| zip.js level 7 | 19.6 MB | 3.420 | 852 ms | frontier |
-| **zip.js level 6 (default)** | 19.9 MB | 3.376 | **317 ms** | frontier |
-| zip.js level 5 | 21.0 MB | 3.196 | 405 ms | |
-| 7-Zip `-mx=3` | 21.7 MB | 3.096 | 309 ms | frontier |
-| 7-Zip `-mx=1` | 21.7 MB | 3.096 | 313 ms | |
-| zip.js level 4 | 22.1 MB | 3.037 | 287 ms | frontier |
-| zip.js level 3 | 22.6 MB | 2.975 | 316 ms | |
-| zip.js level 2 | 23.6 MB | 2.849 | 239 ms | frontier |
-| zip.js level 1 | 24.1 MB | 2.784 | 218 ms | frontier |
+| 7-Zip `-mx=9` | 18.3 MB | 3.660 | 8625 ms | 7-Zip `-mx=7` |
+| 7-Zip `-mx=7` | 18.3 MB | 3.660 | 3796 ms | |
+| 7-Zip `-mx=5` | 18.4 MB | 3.645 | 1510 ms | |
+| 7-Zip `-mx=6` | 18.4 MB | 3.645 | 1540 ms | 7-Zip `-mx=5` |
+| zip.js level 9 | 19.6 MB | 3.428 | 971 ms | |
+| zip.js level 8 | 19.6 MB | 3.428 | 991 ms | zip.js level 9 |
+| zip.js level 7 | 19.6 MB | 3.420 | 852 ms | |
+| **zip.js level 6 (default)** | 19.9 MB | 3.376 | **317 ms** | |
+| zip.js level 5 | 21.0 MB | 3.196 | 405 ms | zip.js level 6 |
+| 7-Zip `-mx=3` | 21.7 MB | 3.096 | 309 ms | |
+| 7-Zip `-mx=1` | 21.7 MB | 3.096 | 313 ms | 7-Zip `-mx=3` |
+| zip.js level 4 | 22.1 MB | 3.037 | 287 ms | |
+| zip.js level 3 | 22.6 MB | 2.975 | 316 ms | zip.js level 4 |
+| zip.js level 2 | 23.6 MB | 2.849 | 239 ms | |
+| zip.js level 1 | 24.1 MB | 2.784 | 218 ms | |
 
 What the two curves say:
 
