@@ -23,7 +23,7 @@
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="ZipDirectoryEntryImportHttpOptions.html" class="tsd-signature-type tsd-kind-interface">ZipDirectoryEntryImportHttpOptions</a></li></ul></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/66f9af8a23f6c2a43d5aa69176c5fc92aa9d61f7/index.d.ts#L1021">index.d.ts:1021</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/843cbed12c8f74a63fb247cc738ceb439de665ce/index.d.ts#L1021">index.d.ts:1021</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -63,11 +63,16 @@ must include them when the resource is fetched cross-origin.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="HttpRangeOptions.html">HttpRangeOptions</a>.<a href="HttpRangeOptions.html#checkresourcechanges">checkResourceChanges</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/66f9af8a23f6c2a43d5aa69176c5fc92aa9d61f7/index.d.ts#L1083">index.d.ts:1083</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/843cbed12c8f74a63fb247cc738ceb439de665ce/index.d.ts#L1089">index.d.ts:1089</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="combinesizeeocd"><code class="tsd-tag">Optional</code><span>combine<wbr/>Size<wbr/>Eocd</span><a href="#combinesizeeocd" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">combineSizeEocd</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p><code>true</code> to use <code>Range: bytes=-22</code> on the first request and cache the EOCD, make sure beforehand that the server supports a suffix range request.</p>
+<div class="tsd-comment tsd-typography"><p><code>true</code> to read the end of the archive with the same request that gives its size, and to serve the later reads
+landing in that range from the response instead of requesting them again, make sure beforehand that the server
+supports a suffix range request.</p>
+<p>The request asks for the last 65,557 bytes, which is how far back the reader scans for the end of central directory
+record, so it fetches nothing the reader was not going to read anyway. An archive shorter than that is fetched
+whole, and reading it then costs a single request.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-defaultValue">
@@ -76,7 +81,7 @@ must include them when the resource is fetched cross-origin.</p>
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/66f9af8a23f6c2a43d5aa69176c5fc92aa9d61f7/index.d.ts#L1050">index.d.ts:1050</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/843cbed12c8f74a63fb247cc738ceb439de665ce/index.d.ts#L1056">index.d.ts:1056</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="forcerangerequests"><code class="tsd-tag">Optional</code><span>force<wbr/>Range<wbr/>Requests</span><a href="#forcerangerequests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">forceRangeRequests</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -89,7 +94,7 @@ must include them when the resource is fetched cross-origin.</p>
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/66f9af8a23f6c2a43d5aa69176c5fc92aa9d61f7/index.d.ts#L1033">index.d.ts:1033</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/843cbed12c8f74a63fb247cc738ceb439de665ce/index.d.ts#L1033">index.d.ts:1033</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="headers"><code class="tsd-tag">Optional</code><span>headers</span><a href="#headers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">headers</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Iterable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
@@ -97,7 +102,7 @@ must include them when the resource is fetched cross-origin.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="HttpRangeOptions.html">HttpRangeOptions</a>.<a href="HttpRangeOptions.html#headers">headers</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/66f9af8a23f6c2a43d5aa69176c5fc92aa9d61f7/index.d.ts#L1074">index.d.ts:1074</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/843cbed12c8f74a63fb247cc738ceb439de665ce/index.d.ts#L1080">index.d.ts:1080</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="maximumrangesize"><code class="tsd-tag">Optional</code><span>maximum<wbr/>Range<wbr/>Size</span><a href="#maximumrangesize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">maximumRangeSize</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -121,7 +126,7 @@ and read each entry with a single range request covering its whole remaining len
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="HttpRangeOptions.html">HttpRangeOptions</a>.<a href="HttpRangeOptions.html#maximumrangesize">maximumRangeSize</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/66f9af8a23f6c2a43d5aa69176c5fc92aa9d61f7/index.d.ts#L1099">index.d.ts:1099</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/843cbed12c8f74a63fb247cc738ceb439de665ce/index.d.ts#L1105">index.d.ts:1105</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preventheadrequest"><code class="tsd-tag">Optional</code><span>prevent<wbr/>Head<wbr/>Request</span><a href="#preventheadrequest" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">preventHeadRequest</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -136,7 +141,7 @@ only an explicit <code>false</code> restores the <code>HEAD</code> request.</p>
 <h4 class="tsd-anchor-link" id="default-value-4">Default Value<a href="#default-value-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>false, and <code>true</code> when <a href="#userangeheader" class="tsd-kind-property">HttpOptions#useRangeHeader</a> or <a href="#forcerangerequests" class="tsd-kind-property">HttpOptions#forceRangeRequests</a> is set</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/66f9af8a23f6c2a43d5aa69176c5fc92aa9d61f7/index.d.ts#L1044">index.d.ts:1044</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/843cbed12c8f74a63fb247cc738ceb439de665ce/index.d.ts#L1044">index.d.ts:1044</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="userangeheader"><code class="tsd-tag">Optional</code><span>use<wbr/>Range<wbr/>Header</span><a href="#userangeheader" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">useRangeHeader</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -149,7 +154,7 @@ only an explicit <code>false</code> restores the <code>HEAD</code> request.</p>
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/66f9af8a23f6c2a43d5aa69176c5fc92aa9d61f7/index.d.ts#L1027">index.d.ts:1027</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/843cbed12c8f74a63fb247cc738ceb439de665ce/index.d.ts#L1027">index.d.ts:1027</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="usexhr"><code class="tsd-tag">Optional</code><span>use<wbr/>XHR</span><a href="#usexhr" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">useXHR</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -163,7 +168,7 @@ only an explicit <code>false</code> restores the <code>HEAD</code> request.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="HttpRangeOptions.html">HttpRangeOptions</a>.<a href="HttpRangeOptions.html#usexhr">useXHR</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/66f9af8a23f6c2a43d5aa69176c5fc92aa9d61f7/index.d.ts#L1062">index.d.ts:1062</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/843cbed12c8f74a63fb247cc738ceb439de665ce/index.d.ts#L1068">index.d.ts:1068</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -189,7 +194,7 @@ and the <code>arrayBuffer()</code> method of the <code>Response</code> class.</p
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="HttpRangeOptions.html">HttpRangeOptions</a>.<a href="HttpRangeOptions.html#fetch">fetch</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/66f9af8a23f6c2a43d5aa69176c5fc92aa9d61f7/index.d.ts#L1070">index.d.ts:1070</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/843cbed12c8f74a63fb247cc738ceb439de665ce/index.d.ts#L1076">index.d.ts:1076</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
