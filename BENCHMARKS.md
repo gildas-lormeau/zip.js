@@ -468,21 +468,6 @@ Consequences worth knowing:
   algorithm at four levels of implementation tuning. zip.js inherits whichever the
   host provides — including future upgrades, for free.
 
-## When to pick which
-
-- **Choose zip.js** for the fastest compression of large or multiple entries
-  (parallelism with no Web Workers), the fastest large-stream decompression, flat
-  low-memory streaming of huge files, and the broadest ZIP feature set in one library —
-  AES & ZipCrypto encryption, Zip64, split/multi-volume archives, and an optional Web
-  Worker pool.
-- **Choose fflate** for archives of thousands of tiny entries, and when you want the
-  smallest memory footprint and the smallest bundle. Note what it does *not* buy you: at
-  equal output size its codec is not the fastest one here (see
-  [Codecs](#codecs-compared-at-equal-output-size)), so the win is fflate's very low
-  per-entry cost, not its deflate.
-- **archiver** is a solid streaming compressor on Node but cannot read archives.
-- **jszip** is convenient but the slowest here and buffers whole files in memory.
-
 ## Reproduce
 
 The harness lives in [`benchmarks/`](benchmarks/). It has no ties to the machine above;
