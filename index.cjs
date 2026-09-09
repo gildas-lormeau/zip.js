@@ -439,7 +439,7 @@ function resetConfiguration() {
 	Object.assign(config, DEFAULT_CONFIGURATION);
 }
 
-const t$1=new Uint8Array(288);t$1.fill(8,0,144),t$1.fill(9,144,256),t$1.fill(7,256,280),t$1.fill(8,280,288),new Uint8Array(30).fill(5);const e$1="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",n$1=t=>t({workerURI:t=>{const n="text/javascript";let r='!function(t){"function"==typeof define&&define.amd?define(t):t()}(function(){"use strict";const{Array:t,Object:n,Number:e,Math:r,Error:s,Uint8Array:o,Uint16Array:c,Uint32Array:i,Int32Array:a,Map:f,DataView:u,Promise:l,TextEncoder:w,crypto:h,postMessage:p,TransformStream:d,ReadableStream:y,WritableStream:m,CompressionStream:S,DecompressionStream:g}=self,v=void 0,b="undefined",k="function",z=new o,C=[[],[],[],[],[],[],[],[]];for(let t=0;t<256;t++){let n=t;for(let t=0;t<8;t++)n=1&n?n>>>1^3988292384:n>>>1;C[0][t]=n}for(let t=0;t<256;t++)for(let n=1;n<8;n++){const e=C[n-1][t];C[n][t]=e>>>8^C[0][255&e]}const[I,A,x,M,P,B,D,F]=C;class R{constructor(t){this.o=t||-1}append(t){let n=0|this.o;const e=0|t.length;let r=0;if(e>=8&&t.buffer){const s=new u(t.buffer,t.byteOffset,e),o=e-8;for(;r<=o;r+=8){const t=n^s.getInt32(r,!0),e=s.getInt32(r+4,!0);n=F[255&t]^D[t>>>8&255]^B[t>>>16&255]^P[t>>>24&255]^M[255&e]^x[e>>>8&255]^A[e>>>16&255]^I[e>>>24&255]}}for(;r<e;r++)n=n>>>8^I[255&(n^t[r])];this.o=n}get(){return~this.o}}class U extends d{constructor(){let t;const n=new R;super({transform(t,e){n.append(t),e.enqueue(t)},flush(){const e=new o(4);new u(e.buffer).setUint32(0,n.get()),t.value=e}}),t=this}}function V(t,n){const e=new o(t.length+n.length);return e.set(t),e.set(n,t.length),e}function W(t){return new u(t.buffer,t.byteOffset,t.byteLength)}const _={concat(t,n){if(0===t.length||0===n.length)return t.concat(n);const e=t[t.length-1],r=_.l(e);return 32===r?t.concat(n):_.h(n,r,0|e,t.slice(0,t.length-1))},bitLength(t){const n=t.length;if(0===n)return 0;const e=t[n-1];return 32*(n-1)+_.l(e)},m(t,n){if(32*t.length<n)return t;const e=(t=t.slice(0,r.ceil(n/32))).length;return n&=31,e>0&&n&&(t[e-1]=_.S(n,t[e-1]&2147483648>>n-1,1)),t},S:(t,n,e)=>32===t?n:(e?0|n:n<<32-t)+1099511627776*t,l:t=>r.round(t/1099511627776)||32,h(t,n,e,r){for(void 0===r&&(r=[]);n>=32;n-=32)r.push(e),e=0;if(0===n)return r.concat(t);for(let s=0;s<t.length;s++)r.push(e|t[s]>>>n),e=t[s]<<32-n;const s=t.length?t[t.length-1]:0,o=_.l(s);return r.push(_.S(n+o&31,n+o>32?e:r.pop(),1)),r}},T={bytes:{v(t){const n=_.bitLength(t)/8,e=new o(n);let r;for(let s=0;s<n;s++)3&s||(r=t[s/4]),e[s]=r>>>24,r<<=8;return e},C(t){const n=[];let e,r=0;for(e=0;e<t.length;e++)r=r<<8|t[e],3&~e||(n.push(r),r=0);return 3&e&&n.push(_.S(8*(3&e),r)),n}}},K=class{constructor(t){const n=this;n.blockSize=512,n.I=[1732584193,4023233417,2562383102,271733878,3285377520],n.A=[1518500249,1859775393,2400959708,3395469782],t?(n.M=t.M.slice(0),n.P=t.P.slice(0),n.B=t.B):n.reset()}reset(){const t=this;return t.M=t.I.slice(0),t.P=[],t.B=0,t}update(t){const n=this;"string"==typeof t&&(t=T.D.C(t));const e=n.P=_.concat(n.P,t),r=n.B,o=n.B=r+_.bitLength(t);if(o>9007199254740991)throw new s("Cannot hash more than 2^53 - 1 bits");const c=new i(e);let a=0;for(let t=n.blockSize+r-(n.blockSize+r&n.blockSize-1);t<=o;t+=n.blockSize)n.F(c.subarray(16*a,16*(a+1))),a+=1;return e.splice(0,16*a),n}R(){const t=this;let n=t.P;const e=t.M;n=_.concat(n,[_.S(1,1)]);for(let t=n.length+2;15&t;t++)n.push(0);for(n.push(r.floor(t.B/4294967296)),n.push(0|t.B);n.length;)t.F(n.splice(0,16));return t.reset(),e}U(t,n,e,r){return t<=19?n&e|~n&r:t<=39?n^e^r:t<=59?n&e|n&r|e&r:t<=79?n^e^r:void 0}V(t,n){return n<<t|n>>>32-t}F(n){const e=this,s=e.M,o=t(80);for(let t=0;t<16;t++)o[t]=n[t];let c=s[0],i=s[1],a=s[2],f=s[3],u=s[4];for(let t=0;t<=79;t++){t>=16&&(o[t]=e.V(1,o[t-3]^o[t-8]^o[t-14]^o[t-16]));const n=e.V(5,c)+e.U(t,i,a,f)+u+o[t]+e.A[r.floor(t/20)]|0;u=f,f=a,a=e.V(30,i),i=c,c=n}s[0]=s[0]+c|0,s[1]=s[1]+i|0,s[2]=s[2]+a|0,s[3]=s[3]+f|0,s[4]=s[4]+u|0}},j={importKey:t=>new j.W(T.bytes.C(t)),_(t,n,e,r){if(e=e||1e4,r<0||e<0)throw new s("invalid params to pbkdf2");const o=1+(r>>5)<<2;let c,i,a,f,l;const w=new ArrayBuffer(o),h=new u(w);let p=0;const d=_;for(n=T.bytes.C(n),l=1;p<(o||1);l++){for(c=i=t.encrypt(d.concat(n,[l])),a=1;a<e;a++)for(i=t.encrypt(i),f=0;f<i.length;f++)c[f]^=i[f];for(a=0;p<(o||1)&&a<c.length;a++)h.setInt32(p,c[a]),p+=4}return w.slice(0,r/8)},W:class{constructor(t){const n=this,e=n.T=K,r=[[],[]];n.K=[new e,new e];const s=n.K[0].blockSize/32;t.length>s&&(t=(new e).update(t).R());for(let n=0;n<s;n++)r[0][n]=909522486^t[n],r[1][n]=1549556828^t[n];n.K[0].update(r[0]),n.K[1].update(r[1]),n.j=new e(n.K[0])}reset(){const t=this;t.j=new t.T(t.K[0]),t.L=!1}update(t){this.L=!0,this.j.update(t)}digest(){const t=this,n=t.j.R(),e=new t.T(t.K[1]).update(n).R();return t.reset(),e}encrypt(t){if(this.L)throw new s("encrypt on already updated hmac called!");return this.update(t),this.digest(t)}}},E=typeof h!=b&&typeof h.getRandomValues==k,L="Invalid password",O="zipjs-abort-check-password";function H(t){if(E)return h.getRandomValues(t);throw new s("Crypto API not supported")}const N={name:"PBKDF2"},q=n.assign({hash:{name:"HMAC"}},N),G=n.assign({iterations:1e3,hash:{name:"SHA-1"}},N),J=["deriveBits"],Q=[8,12,16],X=[16,24,32],Y=10,Z=[0,0,0,0],$=typeof h!=b,tt=$&&h.subtle,nt=$&&typeof tt!=b,et=T.bytes,rt=class{constructor(t){const n=this;n.O=[[[],[],[],[],[]],[[],[],[],[],[]]],n.O[0][0][0]||n.H();const e=n.O[0][4],r=n.O[1],o=t.length;let c,i,a,f=1;if(4!==o&&6!==o&&8!==o)throw new s("invalid aes key size");for(n.A=[i=t.slice(0),a=[]],c=o;c<4*o+28;c++){let t=i[c-1];(c%o===0||8===o&&c%o===4)&&(t=e[t>>>24]<<24^e[t>>16&255]<<16^e[t>>8&255]<<8^e[255&t],c%o===0&&(t=t<<8^t>>>24^f<<24,f=f<<1^283*(f>>7))),i[c]=i[c-o]^t}for(let t=0;c;t++,c--){const n=i[3&t?c:c-4];a[t]=c<=4||t<4?n:r[0][e[n>>>24]]^r[1][e[n>>16&255]]^r[2][e[n>>8&255]]^r[3][e[255&n]]}}encrypt(t){return this.N(t,0)}decrypt(t){return this.N(t,1)}H(){const t=this.O[0],n=this.O[1],e=t[4],r=n[4],s=[],o=[];let c,i,a,f;for(let t=0;t<256;t++)o[(s[t]=t<<1^283*(t>>7))^t]=t;for(let u=c=0;!e[u];u^=i||1,c=o[c]||1){let o=c^c<<1^c<<2^c<<3^c<<4;o=o>>8^255&o^99,e[u]=o,r[o]=u,f=s[a=s[i=s[u]]];let l=16843009*f^65537*a^257*i^16843008*u,w=257*s[o]^16843008*o;for(let e=0;e<4;e++)t[e][u]=w=w<<24^w>>>8,n[e][o]=l=l<<24^l>>>8}for(let e=0;e<5;e++)t[e]=t[e].slice(0),n[e]=n[e].slice(0)}N(t,n){if(4!==t.length)throw new s("invalid aes block size");const e=this.A[n],r=e.length/4-2,o=[0,0,0,0],c=this.O[n],i=c[0],a=c[1],f=c[2],u=c[3],l=c[4];let w,h,p,d=t[0]^e[0],y=t[n?3:1]^e[1],m=t[2]^e[2],S=t[n?1:3]^e[3],g=4;for(let t=0;t<r;t++)w=i[d>>>24]^a[y>>16&255]^f[m>>8&255]^u[255&S]^e[g],h=i[y>>>24]^a[m>>16&255]^f[S>>8&255]^u[255&d]^e[g+1],p=i[m>>>24]^a[S>>16&255]^f[d>>8&255]^u[255&y]^e[g+2],S=i[S>>>24]^a[d>>16&255]^f[y>>8&255]^u[255&m]^e[g+3],g+=4,d=w,y=h,m=p;for(let t=0;t<4;t++)o[n?3&-t:t]=l[d>>>24]<<24^l[y>>16&255]<<16^l[m>>8&255]<<8^l[255&S]^e[g++],w=d,d=y,y=m,m=S,S=w;return o}},st=class{constructor(t,n){this.G=t,this.J=n,this.X=n}reset(){this.X=this.J}update(t){return this.Y(this.G,t,this.X)}Z(t){if(255&~(t>>24))t+=1<<24;else{let n=t>>16&255,e=t>>8&255,r=255&t;255===n?(n=0,255===e?(e=0,255===r?r=0:++r):++e):++n,t=0,t+=n<<16,t+=e<<8,t+=r}return t}$(t){0===(t[0]=this.Z(t[0]))&&(t[1]=this.Z(t[1]))}Y(t,n,e){let r;if(!(r=n.length))return[];const s=_.bitLength(n);for(let s=0;s<r;s+=4){this.$(e);const r=t.encrypt(e);n[s]^=r[0],n[s+1]^=r[1],n[s+2]^=r[2],n[s+3]^=r[3]}return _.m(n,s)}},ot=j.W;let ct=$&&nt&&typeof tt.importKey==k,it=$&&nt&&typeof tt.deriveBits==k;class at extends d{constructor({password:t,rawPassword:n,encryptionStrength:e,checkPasswordOnly:r,checkAuthenticationCode:c=!0}){super({start(){ut(this,t,n,e)},async transform(t,n){const e=this,{password:c,strength:i,nt:a,ready:f}=e;c?(await async function(t,n,e,r){const o=await wt(t,n,e,pt(r,0,Q[n])),c=pt(r,Q[n]);if(o[0]!=c[0]||o[1]!=c[1])throw new s(L)}(e,i,c,pt(t,0,Q[i]+2)),t=pt(t,Q[i]+2),r?n.error(new s(O)):a()):await f;const u=new o(t.length-Y-(t.length-Y)%16);n.enqueue(lt(e,t,u,0,Y,!0))},async flush(t){const{et:n,st:e,ot:r,ready:o}=this;if(e&&n){await o;const i=pt(r,0,r.length-Y),a=pt(r,r.length-Y);let f=z;if(i.length){const t=yt(et,i);e.update(t);const r=n.update(t);f=dt(et,r)}const u=pt(dt(et,e.digest()),0,Y);let l=r.length<Y?1:0;for(let t=0;t<Y;t++)l|=u[t]^a[t];if(l&&c)throw new s("Invalid authentication code");t.enqueue(f)}}})}}class ft extends d{constructor({password:t,rawPassword:n,encryptionStrength:e}){super({start(){ut(this,t,n,e)},async transform(t,n){const e=this,{password:r,strength:s,nt:c,ready:i}=e;let a=z;r?(a=await async function(t,n,e){const r=H(new o(Q[n]));return V(r,await wt(t,n,e,r))}(e,s,r),c()):await i;const f=new o(a.length+t.length-t.length%16);f.set(a,0),n.enqueue(lt(e,t,f,a.length,0))},async flush(t){const{et:n,st:e,ot:r,ready:s}=this;if(e&&n){await s;let o=z;if(r.length){const t=n.update(yt(et,r));e.update(t),o=dt(et,t)}const c=dt(et,e.digest()).slice(0,Y);t.enqueue(V(o,c))}}})}}function ut(t,e,r,s){n.assign(t,{ready:new l(n=>t.nt=n),password:ht(e,r),strength:s-1,ot:z})}function lt(t,n,e,r,s,c){const{et:i,st:a,ot:f}=t;f.length&&(n=V(f,n));const u=n.length-s,l=u-u%16;if(e=function(t,n){if(n&&n>t.length){const e=t;(t=new o(n)).set(e,0)}return t}(e,r+l),l){const t=yt(et,pt(n,0,l));c&&a.update(t);const s=i.update(t);c||a.update(s),e.set(dt(et,s),r)}return t.ot=pt(n,l),e}async function wt(e,r,s,c){e.password=null;const i=await async function(t,n,e,r,s){if(!ct)return j.importKey(n);try{return await tt.importKey("raw",n,e,!1,s)}catch{return ct=!1,j.importKey(n)}}(0,s,q,0,J),a=await async function(t,n,e){if(!it)return j._(n,t.salt,G.iterations,e);try{return await tt.deriveBits(t,n,e)}catch{return it=!1,j._(n,t.salt,G.iterations,e)}}(n.assign({salt:c},G),i,8*(2*X[r]+2)),f=new o(a),u=yt(et,pt(f,0,X[r])),l=yt(et,pt(f,X[r],2*X[r])),w=pt(f,2*X[r]);return n.assign(e,{keys:{key:u,ct:l,passwordVerification:w},et:new st(new rt(u),t.from(Z)),st:new ot(l)}),w}function ht(t,n){return n===v?function(t){if(typeof w==b){t=unescape(encodeURIComponent(t));const n=new o(t.length);for(let e=0;e<n.length;e++)n[e]=t.charCodeAt(e);return n}return(new w).encode(t)}(t):n}function pt(t,n,e){return t.subarray(n,e)}function dt(t,n){return t.v(n)}function yt(t,n){return t.C(n)}class mt extends d{constructor({password:t,rawPassword:n,passwordVerification:e,checkPasswordOnly:r}){super({start(){gt(this,t,n,e)},transform(t,n){const e=this;if(e.password||e.rawPassword){const n=vt(e,t.subarray(0,12));if(e.password=e.rawPassword=null,0!=(n[11]^e.passwordVerification))throw new s(L);t=t.subarray(12)}r?n.error(new s(O)):n.enqueue(vt(e,t))}})}}class St extends d{constructor({password:t,rawPassword:n,passwordVerification:e}){super({start(){gt(this,t,n,e)},transform(t,n){const e=this;let r,s;if(e.password||e.rawPassword){e.password=e.rawPassword=null;const n=H(new o(12));n[11]=e.passwordVerification,r=new o(t.length+n.length),r.set(bt(e,n),0),s=12}else r=new o(t.length),s=0;r.set(bt(e,t),s),n.enqueue(r)}})}}function gt(t,e,r,s){n.assign(t,{password:e,rawPassword:r,passwordVerification:s}),function(t,e,r){const s=[305419896,591751049,878082192];if(n.assign(t,{keys:s,it:new R(s[0]),ft:new R(s[2])}),r)for(let n=0;n<r.length;n++)kt(t,r[n]);else for(let n=0;n<e.length;n++)kt(t,e.charCodeAt(n))}(t,e,r)}function vt(t,n){const e=new o(n.length);for(let r=0;r<n.length;r++)e[r]=zt(t)^n[r],kt(t,e[r]);return e}function bt(t,n){const e=new o(n.length);for(let r=0;r<n.length;r++)e[r]=zt(t)^n[r],kt(t,n[r]);return e}function kt(t,n){let[,e]=t.keys;t.it.append([n]);const s=~t.it.get();e=It(r.imul(It(e+Ct(s)),134775813)+1),t.ft.append([e>>>24]);const o=~t.ft.get();t.keys=[s,e,o]}function zt(t){const n=2|t.keys[2];return Ct(r.imul(n,1^n)>>>8)}function Ct(t){return 255&t}function It(t){return 4294967295&t}function At(t){if(t instanceof y)return t;const n=t.getReader();return new y({async pull(t){const{value:e,done:r}=await n.read();r?t.close():t.enqueue(e)},cancel:t=>n.cancel(t)})}const xt=new f;function Mt(t){return xt.get(t)}const Pt="Invalid uncompressed size",Bt="deflate-raw",Dt="gzip",Ft=[31,139,8];class Rt extends d{constructor(t,{chunkSize:n,CompressionStreamFallback:e,CompressionStream:r}){super({});const{compressed:s,encrypted:o,useCompressionStream:c,zipCrypto:i,computeCrc32:a,level:f,deflate64:l,format:w,compressionMethod:h,inputSize:p}=t,d=this;let y,m,S,g=super.readable;const v=w&&Mt(w),b=a&&s&&!l&&!v&&(!o||i)&&Boolean(c&&r);if(o&&!i||!a||b||(y=new U,g=jt(g,y)),s)if(v)g=Et(g,Tt(v.CompressionStream,w,{level:f,chunkSize:n,compressionMethod:h,uncompressedSize:p}));else if(b)S=new Ut,g=Et(g,new r(Dt)),g=jt(g,S);else try{g=Kt(g,c,{level:f,chunkSize:n},r,e)}catch(t){let n;try{n=new r(Dt)}catch{throw t}g=Et(g,n),g=jt(g,new Ut)}o&&(i?g=jt(g,new St(t)):(m=new ft(t),g=jt(g,m))),_t(d,g,()=>{o&&!i||!a||(d.crc32=b?S.crc32:new u(y.value.buffer).getUint32(0))})}}class Ut extends d{constructor(){let t,n=10,e=new o(0);super({transform(t,s){if(n){const e=r.min(n,t.length);if(n-=e,!(t=t.subarray(e)).length)return}const o=e.length+t.length;if(o<=8)return void(e=V(e,t));const c=o-8,i=r.min(c,e.length);s.enqueue(V(e.subarray(0,i),t.subarray(0,c-i))),e=V(e.subarray(i),t.subarray(c-i))},flush(){const n=W(e);t.crc32=n.getUint32(0,!0),t.uncompressedSize=n.getUint32(4,!0)}}),t=this}}class Vt extends d{constructor(t,{chunkSize:n,DecompressionStreamFallback:e,DecompressionStream:r}){super({});const{zipCrypto:c,encrypted:i,checkCrc32:a,crc32:f,compressed:w,useCompressionStream:h,deflate64:p,format:m,compressionMethod:S,rawBitFlag:g,outputSize:b}=t;let k,z,C=super.readable;if(i&&(c?C=jt(C,new mt(t)):(z=new at(t),C=jt(C,z))),w){const t=m&&Mt(m);if(t)C=Et(C,Tt(t.DecompressionStream,m,{chunkSize:n,compressionMethod:S,rawBitFlag:g,uncompressedSize:b}));else try{C=Kt(C,h,{chunkSize:n,deflate64:p},r,e)}catch(t){if(p||b===v)throw t;let n;try{n=new r(Dt)}catch{throw t}C=function(t,n,e){const r=new R;let c,i,a,f=0,u=!1;const w=new l((t,n)=>{i=t,a=n});w.catch(()=>{}),e||i();const h=new d({start(t){const n=new o(10);n.set(Ft),t.enqueue(n)},transform(t,n){n.enqueue(t)},async flush(t){u=!0,y();try{await w}finally{m()}const n=new o(8),s=W(n);s.setUint32(0,r.get(),!0),s.setUint32(4,e,!0),t.enqueue(n)},cancel(t){a(t)}}),p=new d({transform(t,n){r.append(t),f+=t.length,f>=e?i():u&&y(),n.enqueue(t)},cancel(t){a(t)}});return t=jt(t,h),jt(t=Et(t,n),p);function y(){m(),c=setTimeout(()=>a(new s(Pt)),5e3)}function m(){clearTimeout(c)}}(C,n,b)}C=function(t){const n=t.getReader();return new y({async pull(t){let e;try{e=await n.read()}catch(t){if(t&&t.message)throw t;const n=new s("Invalid compressed data");throw n.cause=t,n}const{value:r,done:o}=e;o?t.close():t.enqueue(r)},cancel:t=>n.cancel(t)})}(C)}a&&(k=new U,C=jt(C,k)),_t(this,C,()=>{if(a){const t=new u(k.value.buffer);if(f!=t.getUint32(0,!1))throw new s("Invalid CRC32")}})}}const Wt=new f;function _t(t,e,r){e=jt(e,new d({flush:r})),n.defineProperty(t,"readable",{get:()=>e})}function Tt(t,n,e){if(!t)throw new s("Compression method not supported");return new t(n,e)}function Kt(t,n,e,r,s){const o=n&&r?r:s||r,c=e.deflate64?"deflate64-raw":Bt;let i;try{i=new o(c,e)}catch(t){if(!n||!s||o==s)throw t;i=new s(c,e)}return Et(t,i)}function jt(t,n){return At(t).pipeThrough(n)}function Et(t,n){const e=n.writable.getWriter(),r=t.getReader();return async function(){try{for(;;){await e.ready;const t=await r.read();if(t.done){await e.close();break}await e.write(t.value)}}catch(t){await async function(t,n){try{await t.abort(n)}catch{}}(e,t),await async function(t,n){try{await t.cancel(n)}catch{}}(r,t)}}(),n.readable}const Lt="data",Ot="deflate";class Ht extends d{constructor(t,e){super({});const r=this,{codecType:o}=t;let c;o.startsWith(Ot)?c=Rt:o.startsWith("inflate")&&(c=Vt),r.outputSize=0;let i=0;const a=new c(t,e),f=super.readable,u=new d({transform(t,n){t&&t.length&&(i+=t.length,n.enqueue(t))},flush(){n.assign(r,{inputSize:i})}}),l=new d({transform(n,e){if(n&&n.length&&(e.enqueue(n),r.outputSize+=n.length,t.outputSize!==v&&r.outputSize>t.outputSize))throw new s(Pt)},flush(){const{crc32:t}=a;n.assign(r,{crc32:t,inputSize:i})}});n.defineProperty(r,"readable",{get:()=>f.pipeThrough(u).pipeThrough(a).pipeThrough(l)})}}class Nt extends d{constructor(t){const r=[];let s=0,c=0;function i(){const n=new o(t);let e=0;for(;e<t;){const s=r[0],o=t-e;s.length<=o?(n.set(s,e),e+=s.length,r.shift()):(n.set(s.subarray(0,o),e),r[0]=s.subarray(o),e+=o)}return s-=t,n}(!e.isFinite(t)||t<1)&&(t=65536),super({transform(n,e){for(r.push(n),s+=n.length;s>t;)c+=t,e.enqueue(i())},flush(t){s&&(c+=s,t.enqueue(function(t,n){const e=new o(n);let r=0;for(const n of t)e.set(n,r),r+=n.length;return e}(r,s)))}}),n.defineProperty(this,"outputSize",{get:()=>c})}}let qt=2;try{typeof navigator!=b&&navigator.hardwareConcurrency&&(qt=navigator.hardwareConcurrency)}catch{}function Gt(t){return Boolean(t)&&"object"==typeof t}const Jt=new f,Qt=new f,Xt=function(){try{return structuredClone(new s)instanceof s}catch{return!1}}();let Yt=0;async function Zt(t){let n,o,c;try{const{options:i,config:a}=t;if(i.format)try{await async function(t,n){!xt.has(t)&&n&&function(t,n){const{CompressionStream:e,DecompressionStream:r}=n;if(typeof e!=k&&typeof r!=k)throw new s("Invalid codec module");xt.set(t,{CompressionStream:e,DecompressionStream:r})}(t,await(import(n)))}(i.format,i.codecURI)}catch(t){if(Gt(t))try{t.codecImportFailed=!0}catch{}throw t}if(a.CompressionStream=self.CompressionStream,a.DecompressionStream=self.DecompressionStream,i.compressed&&!i.format)if(i.useCompressionStream){if(!function(t,n){if(!t)return!1;let e=Wt.get(t);e||(e=new f,Wt.set(t,e));let r=e.get(n);if(r===v){try{new t(n),r=!0}catch{r=!1}e.set(n,r)}return r}(i.codecType.startsWith(Ot)?a.CompressionStream:a.DecompressionStream,Bt))try{await self.initModule(t.config)}catch{}}else try{await self.initModule(t.config)}catch{i.useCompressionStream=!0}!a.CompressionStreamFallback&&a.CompressionStreamZlib&&(a.CompressionStreamFallback=a.CompressionStreamZlib),!a.DecompressionStreamFallback&&a.DecompressionStreamZlib&&(a.DecompressionStreamFallback=a.DecompressionStreamZlib);const u={highWaterMark:1},w=t.readable?At(t.readable):new y({async pull(t){const n=new l(t=>Jt.set(Yt,t));$t({type:"pull",messageId:Yt}),Yt=(Yt+1)%e.MAX_SAFE_INTEGER;const{value:r,done:s}=await n;t.enqueue(r),s&&t.close()}},u);c=t.writable?function(t){if(t instanceof m)return t;const n=t.getWriter();return new m({write:t=>n.write(t),close:()=>n.close(),abort:t=>n.abort(t)})}(t.writable):new m({async write(t){let n;const r=new l(t=>n=t);Qt.set(Yt,n),$t({type:Lt,value:t,messageId:Yt}),Yt=(Yt+1)%e.MAX_SAFE_INTEGER,await r}},u),n=new Ht(i,a),o=new Nt(function(t){return s="string"==typeof(n=s=t.chunkSize)&&n.trim()?e(n):n,e.isInteger(s)&&s>=1?r.max(s,64):65536;var n,s}(a)),await w.pipeThrough(n).pipeThrough(o).pipeTo(c,{preventClose:!0,preventAbort:!0}),await c.getWriter().close();const{crc32:h,inputSize:p,outputSize:d}=n;$t({type:"close",result:{crc32:h,inputSize:p,outputSize:d}})}catch(t){const n=o?o.outputSize:0;if(Gt(t))try{t.outputSize=n}catch{}if(c&&!c.locked)try{await c.getWriter().close()}catch{}tn(t,n)}}function $t(t){const{value:n}=t;if(n)if(n.length)try{t.value=(e=n,e.byteOffset||e.byteLength!=e.buffer.byteLength?new o(e):e).buffer,p(t,[t.value])}catch{p(t)}else p(t);else p(t);var e}function tn(t,n){const{message:e,stack:r,code:o,name:c,outputSize:i,cause:a,codecImportFailed:f}=function(t=new s("Unknown error")){return Gt(t)?t:new s(String(t))}(t),u={message:e,stack:r,code:o,name:c,outputSize:i===v?n:i};if(a&&(u.cause={name:a.name,message:a.message}),f&&(u.codecImportFailed=!0),Xt)try{return void p({error:u,errorValue:{value:t}})}catch{}p({error:u})}addEventListener("message",({data:t})=>{const{type:n,messageId:e,value:r,done:s}=t;try{if("start"==n&&Zt(t),n==Lt){const t=Jt.get(e);Jt.delete(e),t({value:r||new o,done:s})}if("ack"==n){const t=Qt.get(e);Qt.delete(e),t()}}catch(t){tn(t)}}),p({type:"ready"});const nn="deflate",en="deflate-raw",rn="deflate64-raw",sn="gzip";let on,cn,an,fn,un;function ln(t,n,e={}){if(!on){const t=new s("WASM module not loaded");throw t.cause=un,t}const c="number"==typeof e.level?e.level:-1,i="number"==typeof e.outBuffer?e.outBuffer:65536,a="number"==typeof e.inBufferSize?e.inBufferSize:65536;return new d({start(){try{let e;if(this.ut=cn(i),this.in=cn(a),this.inBufferSize=a,!this.ut||!this.in)throw new s("allocation failed");if(this.lt=new o(i),t?(this.wt=on.deflate_process,this.ht=on.deflate_last_consumed,this.yt=on.deflate_end,this.St=on.deflate_new(),e=n===sn?on.deflate_init_gzip(this.St,c):n===en?on.deflate_init_raw(this.St,c):on.deflate_init(this.St,c)):n===rn?(this.wt=on.inflate9_process,this.ht=on.inflate9_last_consumed,this.yt=on.inflate9_end,this.St=on.inflate9_new(),e=on.inflate9_init_raw(this.St)):(this.wt=on.inflate_process,this.ht=on.inflate_last_consumed,this.yt=on.inflate_end,this.St=on.inflate_new(),e=n===en?on.inflate_init_raw(this.St):n===sn?on.inflate_init_gzip(this.St):on.inflate_init(this.St)),0!==e)throw new s("init failed:"+e)}catch(t){throw f(this),t}},transform(t,n){try{const e=t,c=new o(fn.buffer),a=this.wt,f=this.ht,u=this.ut,l=this.lt;let w=0;for(;w<e.length;){const t=r.min(e.length-w,32768);if((!this.in||this.inBufferSize<t)&&(this.in&&an&&(an(this.in),this.in=0),this.in=cn(t),this.inBufferSize=t,!this.in))throw new s("allocation failed");c.set(e.subarray(w,w+t),this.in);const o=a(this.St,this.in,t,u,i,0),h=o>>24&255,p=128&h?h-256:h;if(p<0)throw new s("process error:"+p);const d=16777215&o;d&&(l.set(c.subarray(u,u+d),0),n.enqueue(l.slice(0,d)));const y=f(this.St);if(0===y&&0===d)break;w+=y}}catch(t){f(this),n.error(t)}},flush(t){try{const n=new o(fn.buffer),e=this.wt,r=this.ut,c=this.lt;for(;;){const o=e(this.St,0,0,r,i,4),a=o>>24&255,f=128&a?a-256:a;if(f<0)throw new s("process error:"+f);const u=16777215&o;if(u&&(c.set(n.subarray(r,r+u),0),t.enqueue(c.slice(0,u))),1===a||0===u)break}}catch(n){t.error(n)}finally{const n=f(this);0!==n&&t.error(new s("end error:"+n))}},cancel(){f(this)}});function f(t){let n=0;return t.St&&t.yt&&(n=t.yt(t.St)),t.St=0,t.in&&an&&an(t.in),t.in=0,t.ut&&an&&an(t.ut),t.ut=0,n}}class wn{constructor(t=nn,n){return ln(!0,t,n)}}class hn{constructor(t=nn,n){return ln(!1,t,n)}}wn.gt=!0,hn.gt=!0,wn.vt=[nn,en,sn],hn.vt=[nn,en,sn,rn];let pn=!1;!function(t={}){const{init:n}=t,e=t.CompressionStreamFallback||t.CompressionStreamZlib,r=t.DecompressionStreamFallback||t.DecompressionStreamZlib;self.initModule=async t=>{n&&await n(t),e&&(t.CompressionStreamFallback=e),r&&(t.DecompressionStreamFallback=r)}}({CompressionStreamFallback:wn,DecompressionStreamFallback:hn,init:t=>async function(t,{baseURI:n}){if(!pn)try{await async function(t,n){let e,r;try{try{r=new URL(t,n)}catch{}const s=await fetch(r);e=await s.arrayBuffer()}catch(n){if(!t.startsWith("data:application/wasm;base64,"))throw n;e=function(t){const n=t.split(",")[1],e=atob(n),r=e.length,s=new o(r);for(let t=0;t<r;++t)s[t]=e.charCodeAt(t);return s.buffer}(t)}!function(t){if(on=t,({malloc:cn,free:an,memory:fn}=on),"function"!=typeof cn||"function"!=typeof an||!fn)throw on=cn=an=fn=null,new s("Invalid WASM module")}((await WebAssembly.instantiate(e)).instance.exports)}(t,n),pn=!0}catch(t){throw function(t){un=t}(t),t}}(t.wasmURI,t)})});\n';if("string"==typeof r&&(r=(new TextEncoder).encode(r)),t){const t=new Blob([r],{type:n});return URL.createObjectURL(t)}return "data:"+n+";base64,"+function(t){let n="";const r=t.length;let s=0;for(;s+2<r;s+=3){const r=t[s]<<16|t[s+1]<<8|t[s+2];n+=e$1[r>>18&63]+e$1[r>>12&63]+e$1[r>>6&63]+e$1[63&r];}const o=r-s;if(1===o){const r=t[s]<<16;n+=e$1[r>>18&63]+e$1[r>>12&63]+"==";}else if(2===o){const r=t[s]<<16|t[s+1]<<8;n+=e$1[r>>18&63]+e$1[r>>12&63]+e$1[r>>6&63]+"=";}return n}(r)}});
+const t$1=new Uint8Array(288);t$1.fill(8,0,144),t$1.fill(9,144,256),t$1.fill(7,256,280),t$1.fill(8,280,288),new Uint8Array(30).fill(5);const e$1="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",n$1=t=>t({workerURI:t=>{const n="text/javascript";let s='!function(t){"function"==typeof define&&define.amd?define(t):t()}(function(){"use strict";const{Array:t,Object:n,Number:e,Math:o,Error:s,Uint8Array:r,Uint16Array:c,Uint32Array:i,Int32Array:a,Map:f,DataView:u,Promise:w,TextEncoder:l,crypto:h,postMessage:p,TransformStream:d,ReadableStream:y,WritableStream:m,CompressionStream:S,DecompressionStream:g}=self,v=void 0,b="undefined",z="function",k=new r,C=[[],[],[],[],[],[],[],[]];for(let t=0;t<256;t++){let n=t;for(let t=0;t<8;t++)n=1&n?n>>>1^3988292384:n>>>1;C[0][t]=n}for(let t=0;t<256;t++)for(let n=1;n<8;n++){const e=C[n-1][t];C[n][t]=e>>>8^C[0][255&e]}const[I,A,x,M,P,D,F,R]=C;class U{constructor(t){this.o=t||-1}append(t){let n=0|this.o;const e=0|t.length;let o=0;if(e>=8&&t.buffer){const s=new u(t.buffer,t.byteOffset,e),r=e-8;for(;o<=r;o+=8){const t=n^s.getInt32(o,!0),e=s.getInt32(o+4,!0);n=R[255&t]^F[t>>>8&255]^D[t>>>16&255]^P[t>>>24&255]^M[255&e]^x[e>>>8&255]^A[e>>>16&255]^I[e>>>24&255]}}for(;o<e;o++)n=n>>>8^I[255&(n^t[o])];this.o=n}get(){return~this.o}}class B extends d{constructor(){let t;const n=new U;super({transform(t,e){n.append(t),e.enqueue(t)},flush(){const e=new r(4);new u(e.buffer).setUint32(0,n.get()),t.value=e}}),t=this}}function T(t,n){const e=new r(t.length+n.length);return e.set(t),e.set(n,t.length),e}function V(t){return new u(t.buffer,t.byteOffset,t.byteLength)}const W=64,j=20,E=new r([128]),K=new r(1),O=new a([1732584193,4023233417,2562383102,271733878,3285377520]),H=new r(256),L=new a(256),N=new a(256),q=new a(256),G=new a(256);let J=!1;function Q(t){const n=function(){const t=new a(O),n=new a(80),e=new r(W),s=new u(e.buffer),c=new r(8);let i=0,f=0;return{update:w,digest:function(){const n=8*f,e=o.floor(n/4294967296),s=n>>>0;for(w(E,0,1);56!=i;)w(K,0,1);c[0]=e>>>24,c[1]=e>>>16,c[2]=e>>>8,c[3]=e,c[4]=s>>>24,c[5]=s>>>16,c[6]=s>>>8,c[7]=s,w(c,0,8);const a=new r(j),l=new u(a.buffer);for(let n=0;n<t.length;n++)l.setInt32(4*n,t[n]);return t.set(O),i=0,f=0,a}};function w(t,n,o){const r=n+o;if(f+=o,i){for(;n<r&&i<W;)e[i++]=t[n++];i==W&&(l(s,0),i=0)}if(n+W<=r){const e=new u(t.buffer,t.byteOffset,t.byteLength);for(;n+W<=r;n+=W)l(e,n)}for(;n<r;)e[i++]=t[n++]}function l(e,o){for(let t=0;t<16;t++)n[t]=e.getInt32(o+4*t);for(let t=16;t<80;t++){const e=n[t-3]^n[t-8]^n[t-14]^n[t-16];n[t]=e<<1|e>>>31}let s,r=t[0],c=t[1],i=t[2],a=t[3],f=t[4];for(let t=0;t<20;t++)s=(r<<5|r>>>27)+(c&i|~c&a)+f+1518500249+n[t]|0,f=a,a=i,i=c<<30|c>>>2,c=r,r=s;for(let t=20;t<40;t++)s=(r<<5|r>>>27)+(c^i^a)+f+1859775393+n[t]|0,f=a,a=i,i=c<<30|c>>>2,c=r,r=s;for(let t=40;t<60;t++)s=(r<<5|r>>>27)+(c&i|c&a|i&a)+f+2400959708+n[t]|0,f=a,a=i,i=c<<30|c>>>2,c=r,r=s;for(let t=60;t<80;t++)s=(r<<5|r>>>27)+(c^i^a)+f+3395469782+n[t]|0,f=a,a=i,i=c<<30|c>>>2,c=r,r=s;t[0]=t[0]+r|0,t[1]=t[1]+c|0,t[2]=t[2]+i|0,t[3]=t[3]+a|0,t[4]=t[4]+f|0}}(),e=new r(W),s=new r(W);t.length>W&&(n.update(t,0,t.length),t=n.digest());for(let n=0;n<W;n++){const o=n<t.length?t[n]:0;e[n]=54^o,s[n]=92^o}return n.update(e,0,W),{update(t,e,o){n.update(t,e,o)},digest(){const t=n.digest();n.update(s,0,W),n.update(t,0,j);const o=n.digest();return n.update(e,0,W),o}}}function X(t){return H[t>>>24]<<24|H[t>>>16&255]<<16|H[t>>>8&255]<<8|H[255&t]}function Y(t){return 255&(t<<1^27*(t>>7))}const Z=typeof h!=b&&typeof h.getRandomValues==z,$="Invalid password",_="zipjs-abort-check-password";function tt(t){if(Z)return h.getRandomValues(t);throw new s("Crypto API not supported")}const nt={name:"PBKDF2"},et=n.assign({hash:{name:"HMAC"}},nt),ot=n.assign({iterations:1e3,hash:{name:"SHA-1"}},nt),st=["deriveBits"],rt=[8,12,16],ct=[16,24,32],it=10,at=typeof h!=b,ft=at&&h.subtle;let ut=at&&typeof ft!=b&&typeof ft.importKey==z&&typeof ft.deriveBits==z;class wt extends d{constructor({password:t,rawPassword:n,encryptionStrength:e,checkPasswordOnly:o,checkAuthenticationCode:c=!0}){super({start(){ht(this,t,n,e)},async transform(t,n){const e=this,{password:c,strength:i,l:a,ready:f}=e;c?(await async function(t,n,e,o){const r=await dt(t,n,e,mt(o,0,rt[n])),c=mt(o,rt[n]);if(r[0]!=c[0]||r[1]!=c[1])throw new s($)}(e,i,c,mt(t,0,rt[i]+2)),t=mt(t,rt[i]+2),o?n.error(new s(_)):a()):await f;const u=new r(t.length-it-(t.length-it)%16);n.enqueue(pt(e,t,u,0,it,!0))},async flush(t){const{h:n,m:e,ready:o}=this;if(n){await o;const i=mt(e,e.length-it),a=new r(mt(e,0,e.length-it));n.process(a,!0);const f=n.digest();let u=e.length<it?1:0;for(let t=0;t<it;t++)u|=f[t]^i[t];if(u&&c)throw new s("Invalid authentication code");t.enqueue(a)}}})}}class lt extends d{constructor({password:t,rawPassword:n,encryptionStrength:e}){super({start(){ht(this,t,n,e)},async transform(t,n){const e=this,{password:o,strength:s,l:c,ready:i}=e;let a=k;o?(a=await async function(t,n,e){const o=tt(new r(rt[n]));return T(o,await dt(t,n,e,o))}(e,s,o),c()):await i;const f=new r(a.length+t.length-t.length%16);f.set(a,0),n.enqueue(pt(e,t,f,a.length,0,!1))},async flush(t){const{h:n,m:e,ready:o}=this;if(n){await o;const s=new r(e);n.process(s,!1);const c=mt(n.digest(),0,it);t.enqueue(T(s,c))}}})}}function ht(t,e,o,s){n.assign(t,{ready:new w(n=>t.l=n),password:yt(e,o),strength:s-1,m:k})}function pt(t,n,e,o,s,c){const{h:i,m:a}=t;a.length&&(n=T(a,n));const f=n.length-s,u=f-f%16;if(e=function(t,n){if(n&&n>t.length){const e=t;(t=new r(n)).set(e,0)}return t}(e,o+u),u){const t=mt(e,o,o+u);t.set(mt(n,0,u)),i.process(t,c)}return t.m=mt(n,u),e}async function dt(t,e,s,c){t.password=null;const i=ct[e],f=await async function(t,e,s){if(ut)try{const o=await ft.importKey("raw",t,et,!1,st);return new r(await ft.deriveBits(n.assign({salt:e},ot),o,8*s))}catch{ut=!1}return function(t,n,e,s){const c=Q(t),i=new r(s),a=new r(n.length+4),f=new u(a.buffer);a.set(n);for(let t=1,e=0;e<s;t++,e+=j){f.setUint32(n.length,t),c.update(a,0,a.length);let r=c.digest();const u=r.slice();for(let t=1;t<1e3;t++){c.update(r,0,j),r=c.digest();for(let t=0;t<j;t++)u[t]^=r[t]}i.set(u.subarray(0,o.min(j,s-e)),e)}return i}(t,e,0,s)}(s,c,2*i+2);return t.h=function(t,n){!function(){if(!J){let t=1,n=1;do{t=255&(t^t<<1^(128&t?27:0)),n=255&(n^n<<1),n=255&(n^n<<2),n=255&(n^n<<4),128&n&&(n^=9),H[t]=255&(n^(n<<1|n>>7)^(n<<2|n>>6)^(n<<3|n>>5)^(n<<4|n>>4)^99)}while(1!=t);H[0]=99;for(let t=0;t<256;t++){const n=H[t],e=Y(n),o=e<<24|n<<16|n<<8|e^n;L[t]=o,N[t]=o>>>8|o<<24,q[t]=o>>>16|o<<16,G[t]=o>>>24|o<<8}J=!0}}();const e=new a(60),o=function(t,n){const e=t.length>>2,o=e+6,s=4*(o+1);let r=1;for(let o=0;o<e;o++)n[o]=t[4*o]<<24|t[4*o+1]<<16|t[4*o+2]<<8|t[4*o+3];for(let t=e;t<s;t++){let o=n[t-1];t%e==0?(o=X(o<<8|o>>>24)^r<<24,r=Y(r)):e>6&&t%e==4&&(o=X(o)),n[t]=n[t-e]^o}return o}(t,e),s=new r(16),c=new a(4),i=Q(n);return{process(t,n){n&&i.update(t,0,t.length),function(t){const n=new u(t.buffer,t.byteOffset,t.byteLength),e=t.length;let o=0;for(;o+16<=e;o+=16)f(),n.setInt32(o,n.getInt32(o)^c[0]),n.setInt32(o+4,n.getInt32(o+4)^c[1]),n.setInt32(o+8,n.getInt32(o+8)^c[2]),n.setInt32(o+12,n.getInt32(o+12)^c[3]);if(o<e){f();for(let n=0;o<e;o++,n++)t[o]^=c[n>>2]>>>24-8*(3&n)}}(t),n||i.update(t,0,t.length)},digest:()=>i.digest()};function f(){for(let t=0;t<16&&(s[t]++,0===s[t]);t++);let t=(s[0]<<24|s[1]<<16|s[2]<<8|s[3])^e[0],n=(s[4]<<24|s[5]<<16|s[6]<<8|s[7])^e[1],r=(s[8]<<24|s[9]<<16|s[10]<<8|s[11])^e[2],i=(s[12]<<24|s[13]<<16|s[14]<<8|s[15])^e[3],a=4;for(let s=1;s<o;s++,a+=4){const o=L[t>>>24]^N[n>>>16&255]^q[r>>>8&255]^G[255&i]^e[a],s=L[n>>>24]^N[r>>>16&255]^q[i>>>8&255]^G[255&t]^e[a+1],c=L[r>>>24]^N[i>>>16&255]^q[t>>>8&255]^G[255&n]^e[a+2],f=L[i>>>24]^N[t>>>16&255]^q[n>>>8&255]^G[255&r]^e[a+3];t=o,n=s,r=c,i=f}c[0]=(H[t>>>24]<<24|H[n>>>16&255]<<16|H[r>>>8&255]<<8|H[255&i])^e[a],c[1]=(H[n>>>24]<<24|H[r>>>16&255]<<16|H[i>>>8&255]<<8|H[255&t])^e[a+1],c[2]=(H[r>>>24]<<24|H[i>>>16&255]<<16|H[t>>>8&255]<<8|H[255&n])^e[a+2],c[3]=(H[i>>>24]<<24|H[t>>>16&255]<<16|H[n>>>8&255]<<8|H[255&r])^e[a+3]}}(mt(f,0,i),mt(f,i,2*i)),mt(f,2*i)}function yt(t,n){return n===v?function(t){if(typeof l==b){t=unescape(encodeURIComponent(t));const n=new r(t.length);for(let e=0;e<n.length;e++)n[e]=t.charCodeAt(e);return n}return(new l).encode(t)}(t):n}function mt(t,n,e){return t.subarray(n,e)}class St extends d{constructor({password:t,rawPassword:n,passwordVerification:e,checkPasswordOnly:o}){super({start(){vt(this,t,n,e)},transform(t,n){const e=this;if(e.password||e.rawPassword){const n=bt(e,t.subarray(0,12));if(e.password=e.rawPassword=null,0!=(n[11]^e.passwordVerification))throw new s($);t=t.subarray(12)}o?n.error(new s(_)):n.enqueue(bt(e,t))}})}}class gt extends d{constructor({password:t,rawPassword:n,passwordVerification:e}){super({start(){vt(this,t,n,e)},transform(t,n){const e=this;let o,s;if(e.password||e.rawPassword){e.password=e.rawPassword=null;const n=tt(new r(12));n[11]=e.passwordVerification,o=new r(t.length+n.length),o.set(zt(e,n),0),s=12}else o=new r(t.length),s=0;o.set(zt(e,t),s),n.enqueue(o)}})}}function vt(t,e,o,s){n.assign(t,{password:e,rawPassword:o,passwordVerification:s}),function(t,e,o){const s=[305419896,591751049,878082192];if(n.assign(t,{keys:s,S:new U(s[0]),v:new U(s[2])}),o)for(let n=0;n<o.length;n++)kt(t,o[n]);else for(let n=0;n<e.length;n++)kt(t,e.charCodeAt(n))}(t,e,o)}function bt(t,n){const e=new r(n.length);for(let o=0;o<n.length;o++)e[o]=Ct(t)^n[o],kt(t,e[o]);return e}function zt(t,n){const e=new r(n.length);for(let o=0;o<n.length;o++)e[o]=Ct(t)^n[o],kt(t,n[o]);return e}function kt(t,n){let[,e]=t.keys;t.S.append([n]);const s=~t.S.get();e=At(o.imul(At(e+It(s)),134775813)+1),t.v.append([e>>>24]);const r=~t.v.get();t.keys=[s,e,r]}function Ct(t){const n=2|t.keys[2];return It(o.imul(n,1^n)>>>8)}function It(t){return 255&t}function At(t){return 4294967295&t}function xt(t){if(t instanceof y)return t;const n=t.getReader();return new y({async pull(t){const{value:e,done:o}=await n.read();o?t.close():t.enqueue(e)},cancel:t=>n.cancel(t)})}const Mt=new f;function Pt(t){return Mt.get(t)}const Dt="Invalid uncompressed size",Ft="deflate-raw",Rt="gzip",Ut=[31,139,8];class Bt extends d{constructor(t,{chunkSize:n,CompressionStreamFallback:e,CompressionStream:o}){super({});const{compressed:s,encrypted:r,useCompressionStream:c,zipCrypto:i,computeCrc32:a,level:f,deflate64:w,format:l,compressionMethod:h,inputSize:p}=t,d=this;let y,m,S,g=super.readable;const v=l&&Pt(l),b=a&&s&&!w&&!v&&(!r||i)&&Boolean(c&&o);if(r&&!i||!a||b||(y=new B,g=Ot(g,y)),s)if(v)g=Ht(g,Et(v.CompressionStream,l,{level:f,chunkSize:n,compressionMethod:h,uncompressedSize:p}));else if(b)S=new Tt,g=Ht(g,new o(Rt)),g=Ot(g,S);else try{g=Kt(g,c,{level:f,chunkSize:n},o,e)}catch(t){let n;try{n=new o(Rt)}catch{throw t}g=Ht(g,n),g=Ot(g,new Tt)}r&&(i?g=Ot(g,new gt(t)):(m=new lt(t),g=Ot(g,m))),jt(d,g,()=>{r&&!i||!a||(d.crc32=b?S.crc32:new u(y.value.buffer).getUint32(0))})}}class Tt extends d{constructor(){let t,n=10,e=new r(0);super({transform(t,s){if(n){const e=o.min(n,t.length);if(n-=e,!(t=t.subarray(e)).length)return}const r=e.length+t.length;if(r<=8)return void(e=T(e,t));const c=r-8,i=o.min(c,e.length);s.enqueue(T(e.subarray(0,i),t.subarray(0,c-i))),e=T(e.subarray(i),t.subarray(c-i))},flush(){const n=V(e);t.crc32=n.getUint32(0,!0),t.uncompressedSize=n.getUint32(4,!0)}}),t=this}}class Vt extends d{constructor(t,{chunkSize:n,DecompressionStreamFallback:e,DecompressionStream:o}){super({});const{zipCrypto:c,encrypted:i,checkCrc32:a,crc32:f,compressed:l,useCompressionStream:h,deflate64:p,format:m,compressionMethod:S,rawBitFlag:g,outputSize:b}=t;let z,k,C=super.readable;if(i&&(c?C=Ot(C,new St(t)):(k=new wt(t),C=Ot(C,k))),l){const t=m&&Pt(m);if(t)C=Ht(C,Et(t.DecompressionStream,m,{chunkSize:n,compressionMethod:S,rawBitFlag:g,uncompressedSize:b}));else try{C=Kt(C,h,{chunkSize:n,deflate64:p},o,e)}catch(t){if(p||b===v)throw t;let n;try{n=new o(Rt)}catch{throw t}C=function(t,n,e){const o=new U;let c,i,a,f=0,u=!1;const l=new w((t,n)=>{i=t,a=n});l.catch(()=>{}),e||i();const h=new d({start(t){const n=new r(10);n.set(Ut),t.enqueue(n)},transform(t,n){n.enqueue(t)},async flush(t){u=!0,y();try{await l}finally{m()}const n=new r(8),s=V(n);s.setUint32(0,o.get(),!0),s.setUint32(4,e,!0),t.enqueue(n)},cancel(t){a(t)}}),p=new d({transform(t,n){o.append(t),f+=t.length,f>=e?i():u&&y(),n.enqueue(t)},cancel(t){a(t)}});return t=Ot(t,h),Ot(t=Ht(t,n),p);function y(){m(),c=setTimeout(()=>a(new s(Dt)),5e3)}function m(){clearTimeout(c)}}(C,n,b)}C=function(t){const n=t.getReader();return new y({async pull(t){let e;try{e=await n.read()}catch(t){if(t&&t.message)throw t;const n=new s("Invalid compressed data");throw n.cause=t,n}const{value:o,done:r}=e;r?t.close():t.enqueue(o)},cancel:t=>n.cancel(t)})}(C)}a&&(z=new B,C=Ot(C,z)),jt(this,C,()=>{if(a){const t=new u(z.value.buffer);if(f!=t.getUint32(0,!1))throw new s("Invalid CRC32")}})}}const Wt=new f;function jt(t,e,o){e=Ot(e,new d({flush:o})),n.defineProperty(t,"readable",{get:()=>e})}function Et(t,n,e){if(!t)throw new s("Compression method not supported");return new t(n,e)}function Kt(t,n,e,o,s){const r=n&&o?o:s||o,c=e.deflate64?"deflate64-raw":Ft;let i;try{i=new r(c,e)}catch(t){if(!n||!s||r==s)throw t;i=new s(c,e)}return Ht(t,i)}function Ot(t,n){return xt(t).pipeThrough(n)}function Ht(t,n){const e=n.writable.getWriter(),o=t.getReader();return async function(){try{for(;;){await e.ready;const t=await o.read();if(t.done){await e.close();break}await e.write(t.value)}}catch(t){await async function(t,n){try{await t.abort(n)}catch{}}(e,t),await async function(t,n){try{await t.cancel(n)}catch{}}(o,t)}}(),n.readable}const Lt="data",Nt="deflate";class qt extends d{constructor(t,e){super({});const o=this,{codecType:r}=t;let c;r.startsWith(Nt)?c=Bt:r.startsWith("inflate")&&(c=Vt),o.outputSize=0;let i=0;const a=new c(t,e),f=super.readable,u=new d({transform(t,n){t&&t.length&&(i+=t.length,n.enqueue(t))},flush(){n.assign(o,{inputSize:i})}}),w=new d({transform(n,e){if(n&&n.length&&(e.enqueue(n),o.outputSize+=n.length,t.outputSize!==v&&o.outputSize>t.outputSize))throw new s(Dt)},flush(){const{crc32:t}=a;n.assign(o,{crc32:t,inputSize:i})}});n.defineProperty(o,"readable",{get:()=>f.pipeThrough(u).pipeThrough(a).pipeThrough(w)})}}class Gt extends d{constructor(t){const o=[];let s=0,c=0;function i(){const n=new r(t);let e=0;for(;e<t;){const s=o[0],r=t-e;s.length<=r?(n.set(s,e),e+=s.length,o.shift()):(n.set(s.subarray(0,r),e),o[0]=s.subarray(r),e+=r)}return s-=t,n}(!e.isFinite(t)||t<1)&&(t=65536),super({transform(n,e){for(o.push(n),s+=n.length;s>t;)c+=t,e.enqueue(i())},flush(t){s&&(c+=s,t.enqueue(function(t,n){const e=new r(n);let o=0;for(const n of t)e.set(n,o),o+=n.length;return e}(o,s)))}}),n.defineProperty(this,"outputSize",{get:()=>c})}}let Jt=2;try{typeof navigator!=b&&navigator.hardwareConcurrency&&(Jt=navigator.hardwareConcurrency)}catch{}function Qt(t){return Boolean(t)&&"object"==typeof t}const Xt=new f,Yt=new f,Zt=function(){try{return structuredClone(new s)instanceof s}catch{return!1}}();let $t=0;async function _t(t){let n,r,c;try{const{options:i,config:a}=t;if(i.format)try{await async function(t,n){!Mt.has(t)&&n&&function(t,n){const{CompressionStream:e,DecompressionStream:o}=n;if(typeof e!=z&&typeof o!=z)throw new s("Invalid codec module");Mt.set(t,{CompressionStream:e,DecompressionStream:o})}(t,await(import(n)))}(i.format,i.codecURI)}catch(t){if(Qt(t))try{t.codecImportFailed=!0}catch{}throw t}if(a.CompressionStream=self.CompressionStream,a.DecompressionStream=self.DecompressionStream,i.compressed&&!i.format)if(i.useCompressionStream){if(!function(t,n){if(!t)return!1;let e=Wt.get(t);e||(e=new f,Wt.set(t,e));let o=e.get(n);if(o===v){try{new t(n),o=!0}catch{o=!1}e.set(n,o)}return o}(i.codecType.startsWith(Nt)?a.CompressionStream:a.DecompressionStream,Ft))try{await self.initModule(t.config)}catch{}}else try{await self.initModule(t.config)}catch{i.useCompressionStream=!0}!a.CompressionStreamFallback&&a.CompressionStreamZlib&&(a.CompressionStreamFallback=a.CompressionStreamZlib),!a.DecompressionStreamFallback&&a.DecompressionStreamZlib&&(a.DecompressionStreamFallback=a.DecompressionStreamZlib);const u={highWaterMark:1},l=t.readable?xt(t.readable):new y({async pull(t){const n=new w(t=>Xt.set($t,t));tn({type:"pull",messageId:$t}),$t=($t+1)%e.MAX_SAFE_INTEGER;const{value:o,done:s}=await n;t.enqueue(o),s&&t.close()}},u);c=t.writable?function(t){if(t instanceof m)return t;const n=t.getWriter();return new m({write:t=>n.write(t),close:()=>n.close(),abort:t=>n.abort(t)})}(t.writable):new m({async write(t){let n;const o=new w(t=>n=t);Yt.set($t,n),tn({type:Lt,value:t,messageId:$t}),$t=($t+1)%e.MAX_SAFE_INTEGER,await o}},u),n=new qt(i,a),r=new Gt(function(t){return s="string"==typeof(n=s=t.chunkSize)&&n.trim()?e(n):n,e.isInteger(s)&&s>=1?o.max(s,64):65536;var n,s}(a)),await l.pipeThrough(n).pipeThrough(r).pipeTo(c,{preventClose:!0,preventAbort:!0}),await c.getWriter().close();const{crc32:h,inputSize:p,outputSize:d}=n;tn({type:"close",result:{crc32:h,inputSize:p,outputSize:d}})}catch(t){const n=r?r.outputSize:0;if(Qt(t))try{t.outputSize=n}catch{}if(c&&!c.locked)try{await c.getWriter().close()}catch{}nn(t,n)}}function tn(t){const{value:n}=t;if(n)if(n.length)try{t.value=(e=n,e.byteOffset||e.byteLength!=e.buffer.byteLength?new r(e):e).buffer,p(t,[t.value])}catch{p(t)}else p(t);else p(t);var e}function nn(t,n){const{message:e,stack:o,code:r,name:c,outputSize:i,cause:a,codecImportFailed:f}=function(t=new s("Unknown error")){return Qt(t)?t:new s(String(t))}(t),u={message:e,stack:o,code:r,name:c,outputSize:i===v?n:i};if(a&&(u.cause={name:a.name,message:a.message}),f&&(u.codecImportFailed=!0),Zt)try{return void p({error:u,errorValue:{value:t}})}catch{}p({error:u})}addEventListener("message",({data:t})=>{const{type:n,messageId:e,value:o,done:s}=t;try{if("start"==n&&_t(t),n==Lt){const t=Xt.get(e);Xt.delete(e),t({value:o||new r,done:s})}if("ack"==n){const t=Yt.get(e);Yt.delete(e),t()}}catch(t){nn(t)}}),p({type:"ready"});const en="deflate",on="deflate-raw",sn="deflate64-raw",rn="gzip";let cn,an,fn,un,wn;function ln(t,n,e={}){if(!cn){const t=new s("WASM module not loaded");throw t.cause=wn,t}const c="number"==typeof e.level?e.level:-1,i="number"==typeof e.outBuffer?e.outBuffer:65536,a="number"==typeof e.inBufferSize?e.inBufferSize:65536;return new d({start(){try{let e;if(this.C=an(i),this.in=an(a),this.inBufferSize=a,!this.C||!this.in)throw new s("allocation failed");if(this.I=new r(i),t?(this.A=cn.deflate_process,this.M=cn.deflate_last_consumed,this.P=cn.deflate_end,this.D=cn.deflate_new(),e=n===rn?cn.deflate_init_gzip(this.D,c):n===on?cn.deflate_init_raw(this.D,c):cn.deflate_init(this.D,c)):n===sn?(this.A=cn.inflate9_process,this.M=cn.inflate9_last_consumed,this.P=cn.inflate9_end,this.D=cn.inflate9_new(),e=cn.inflate9_init_raw(this.D)):(this.A=cn.inflate_process,this.M=cn.inflate_last_consumed,this.P=cn.inflate_end,this.D=cn.inflate_new(),e=n===on?cn.inflate_init_raw(this.D):n===rn?cn.inflate_init_gzip(this.D):cn.inflate_init(this.D)),0!==e)throw new s("init failed:"+e)}catch(t){throw f(this),t}},transform(t,n){try{const e=t,c=new r(un.buffer),a=this.A,f=this.M,u=this.C,w=this.I;let l=0;for(;l<e.length;){const t=o.min(e.length-l,32768);if((!this.in||this.inBufferSize<t)&&(this.in&&fn&&(fn(this.in),this.in=0),this.in=an(t),this.inBufferSize=t,!this.in))throw new s("allocation failed");c.set(e.subarray(l,l+t),this.in);const r=a(this.D,this.in,t,u,i,0),h=r>>24&255,p=128&h?h-256:h;if(p<0)throw new s("process error:"+p);const d=16777215&r;d&&(w.set(c.subarray(u,u+d),0),n.enqueue(w.slice(0,d)));const y=f(this.D);if(0===y&&0===d)break;l+=y}}catch(t){f(this),n.error(t)}},flush(t){try{const n=new r(un.buffer),e=this.A,o=this.C,c=this.I;for(;;){const r=e(this.D,0,0,o,i,4),a=r>>24&255,f=128&a?a-256:a;if(f<0)throw new s("process error:"+f);const u=16777215&r;if(u&&(c.set(n.subarray(o,o+u),0),t.enqueue(c.slice(0,u))),1===a||0===u)break}}catch(n){t.error(n)}finally{const n=f(this);0!==n&&t.error(new s("end error:"+n))}},cancel(){f(this)}});function f(t){let n=0;return t.D&&t.P&&(n=t.P(t.D)),t.D=0,t.in&&fn&&fn(t.in),t.in=0,t.C&&fn&&fn(t.C),t.C=0,n}}class hn{constructor(t=en,n){return ln(!0,t,n)}}class pn{constructor(t=en,n){return ln(!1,t,n)}}hn.F=!0,pn.F=!0,hn.R=[en,on,rn],pn.R=[en,on,rn,sn];let dn=!1;!function(t={}){const{init:n}=t,e=t.CompressionStreamFallback||t.CompressionStreamZlib,o=t.DecompressionStreamFallback||t.DecompressionStreamZlib;self.initModule=async t=>{n&&await n(t),e&&(t.CompressionStreamFallback=e),o&&(t.DecompressionStreamFallback=o)}}({CompressionStreamFallback:hn,DecompressionStreamFallback:pn,init:t=>async function(t,{baseURI:n}){if(!dn)try{await async function(t,n){let e,o;try{try{o=new URL(t,n)}catch{}const s=await fetch(o);e=await s.arrayBuffer()}catch(n){if(!t.startsWith("data:application/wasm;base64,"))throw n;e=function(t){const n=t.split(",")[1],e=atob(n),o=e.length,s=new r(o);for(let t=0;t<o;++t)s[t]=e.charCodeAt(t);return s.buffer}(t)}!function(t){if(cn=t,({malloc:an,free:fn,memory:un}=cn),"function"!=typeof an||"function"!=typeof fn||!un)throw cn=an=fn=un=null,new s("Invalid WASM module")}((await WebAssembly.instantiate(e)).instance.exports)}(t,n),dn=!0}catch(t){throw function(t){wn=t}(t),t}}(t.wasmURI,t)})});\n';if("string"==typeof s&&(s=(new TextEncoder).encode(s)),t){const t=new Blob([s],{type:n});return URL.createObjectURL(t)}return "data:"+n+";base64,"+function(t){let n="";const s=t.length;let o=0;for(;o+2<s;o+=3){const s=t[o]<<16|t[o+1]<<8|t[o+2];n+=e$1[s>>18&63]+e$1[s>>12&63]+e$1[s>>6&63]+e$1[63&s];}const r=s-o;if(1===r){const s=t[o]<<16;n+=e$1[s>>18&63]+e$1[s>>12&63]+"==";}else if(2===r){const s=t[o]<<16|t[o+1]<<8;n+=e$1[s>>18&63]+e$1[s>>12&63]+e$1[s>>6&63]+"=";}return n}(s)}});
 
 /*
  Copyright (c) 2026 Gildas Lormeau. All rights reserved.
@@ -569,7 +569,7 @@ for (let n = 0; n < 256; n++) {
 		T[k][n] = (previous >>> 8) ^ T[0][previous & 0xFF];
 	}
 }
-const [T0, T1, T2, T3, T4, T5, T6, T7] = T;
+const [T0$1, T1$1, T2$1, T3$1, T4, T5, T6, T7] = T;
 
 class Crc32 {
 
@@ -591,12 +591,12 @@ class Crc32 {
 				const a = crc ^ view.getInt32(offset, true);
 				const b = view.getInt32(offset + 4, true);
 				crc = T7[a & 0xFF] ^ T6[(a >>> 8) & 0xFF] ^ T5[(a >>> 16) & 0xFF] ^ T4[(a >>> 24) & 0xFF] ^
-					T3[b & 0xFF] ^ T2[(b >>> 8) & 0xFF] ^ T1[(b >>> 16) & 0xFF] ^ T0[(b >>> 24) & 0xFF];
+					T3$1[b & 0xFF] ^ T2$1[(b >>> 8) & 0xFF] ^ T1$1[(b >>> 16) & 0xFF] ^ T0$1[(b >>> 24) & 0xFF];
 			}
 		}
 		// Remaining tail (and non-typed inputs) byte-at-a-time with the base table.
 		for (; offset < length; offset++) {
-			crc = (crc >>> 8) ^ T0[(crc ^ data[offset]) & 0xFF];
+			crc = (crc >>> 8) ^ T0$1[(crc ^ data[offset]) & 0xFF];
 		}
 		this.crc = crc;
 	}
@@ -700,794 +700,349 @@ function encodeText(value) {
 	}
 }
 
-// Derived from https://github.com/xqdoo00o/jszip/blob/master/lib/sjcl.js and https://github.com/bitwiseshiftleft/sjcl
-
-// deno-lint-ignore-file no-this-alias
-
 /*
- * SJCL is open. You can use, modify and redistribute it under a BSD
- * license or under the GNU GPL, version 2.0.
+ Copyright (c) 2026 Gildas Lormeau. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
+
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
+ the documentation and/or other materials provided with the distribution.
+
+ 3. The names of the authors may not be used to endorse or promote products
+ derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+ INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** @fileOverview Javascript cryptography implementation.
- *
- * Crush to remove comments, shorten variable names and
- * generally reduce transmission size.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
+const BLOCK_LENGTH$1 = 16;
+const ROUND_KEYS_LENGTH = 60;
+const SHA1_BLOCK_LENGTH = 64;
+const SHA1_DIGEST_LENGTH = 20;
+const SHA1_SCHEDULE_LENGTH = 80;
+const SHA1_LENGTH_OFFSET = 56;
+const SHA1_PADDING = new Uint8Array([0x80]);
+const SHA1_ZERO = new Uint8Array(1);
+const SHA1_INITIAL_STATE = new Int32Array([0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0]);
+const HMAC_INNER_PADDING = 0x36;
+const HMAC_OUTER_PADDING = 0x5c;
+const S_BOX = new Uint8Array(256);
+const T0 = new Int32Array(256);
+const T1 = new Int32Array(256);
+const T2 = new Int32Array(256);
+const T3 = new Int32Array(256);
 
-/*jslint indent: 2, bitwise: false, nomen: false, plusplus: false, white: false, regexp: false */
+let tablesInitialized = false;
 
-/** @fileOverview Arrays of bits, encoded as arrays of Numbers.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-/**
- * Arrays of bits, encoded as arrays of Numbers.
- * @namespace
- * @description
- * <p>
- * These objects are the currency accepted by SJCL's crypto functions.
- * </p>
- *
- * <p>
- * Most of our crypto primitives operate on arrays of 4-byte words internally,
- * but many of them can take arguments that are not a multiple of 4 bytes.
- * This library encodes arrays of bits (whose size need not be a multiple of 8
- * bits) as arrays of 32-bit words.  The bits are packed, big-endian, into an
- * array of words, 32 bits at a time.  Since the words are double-precision
- * floating point numbers, they fit some extra data.  We use this (in a private,
- * possibly-changing manner) to encode the number of bits actually  present
- * in the last word of the array.
- * </p>
- *
- * <p>
- * Because bitwise ops clear this out-of-band data, these arrays can be passed
- * to ciphers like AES which want arrays of words.
- * </p>
- */
-const bitArray = {
-	/**
-	 * Concatenate two bit arrays.
-	 * @param {bitArray} a1 The first array.
-	 * @param {bitArray} a2 The second array.
-	 * @return {bitArray} The concatenation of a1 and a2.
-	 */
-	concat(a1, a2) {
-		if (a1.length === 0 || a2.length === 0) {
-			return a1.concat(a2);
-		}
-
-		const last = a1[a1.length - 1], shift = bitArray.getPartial(last);
-		if (shift === 32) {
-			return a1.concat(a2);
-		} else {
-			return bitArray._shiftRight(a2, shift, last | 0, a1.slice(0, a1.length - 1));
-		}
-	},
-
-	/**
-	 * Find the length of an array of bits.
-	 * @param {bitArray} a The array.
-	 * @return {Number} The length of a, in bits.
-	 */
-	bitLength(a) {
-		const l = a.length;
-		if (l === 0) {
-			return 0;
-		}
-		const x = a[l - 1];
-		return (l - 1) * 32 + bitArray.getPartial(x);
-	},
-
-	/**
-	 * Truncate an array.
-	 * @param {bitArray} a The array.
-	 * @param {Number} len The length to truncate to, in bits.
-	 * @return {bitArray} A new array, truncated to len bits.
-	 */
-	clamp(a, len) {
-		if (a.length * 32 < len) {
-			return a;
-		}
-		a = a.slice(0, Math.ceil(len / 32));
-		const l = a.length;
-		len = len & 31;
-		if (l > 0 && len) {
-			a[l - 1] = bitArray.partial(len, a[l - 1] & 0x80000000 >> (len - 1), 1);
-		}
-		return a;
-	},
-
-	/**
-	 * Make a partial word for a bit array.
-	 * @param {Number} len The number of bits in the word.
-	 * @param {Number} x The bits.
-	 * @param {Number} [_end=0] Pass 1 if x has already been shifted to the high side.
-	 * @return {Number} The partial word.
-	 */
-	partial(len, x, _end) {
-		if (len === 32) {
-			return x;
-		}
-		return (_end ? x | 0 : x << (32 - len)) + len * 0x10000000000;
-	},
-
-	/**
-	 * Get the number of bits used by a partial word.
-	 * @param {Number} x The partial word.
-	 * @return {Number} The number of bits used by the partial word.
-	 */
-	getPartial(x) {
-		return Math.round(x / 0x10000000000) || 32;
-	},
-
-	/** Shift an array right.
-	 * @param {bitArray} a The array to shift.
-	 * @param {Number} shift The number of bits to shift.
-	 * @param {Number} [carry=0] A byte to carry in
-	 * @param {bitArray} [out=[]] An array to prepend to the output.
-	 * @private
-	 */
-	_shiftRight(a, shift, carry, out) {
-		if (out === undefined) {
-			out = [];
-		}
-
-		for (; shift >= 32; shift -= 32) {
-			out.push(carry);
-			carry = 0;
-		}
-		if (shift === 0) {
-			return out.concat(a);
-		}
-
-		for (let i = 0; i < a.length; i++) {
-			out.push(carry | a[i] >>> shift);
-			carry = a[i] << (32 - shift);
-		}
-		const last2 = a.length ? a[a.length - 1] : 0;
-		const shift2 = bitArray.getPartial(last2);
-		out.push(bitArray.partial(shift + shift2 & 31, (shift + shift2 > 32) ? carry : out.pop(), 1));
-		return out;
-	}
-};
-
-/** @fileOverview Bit array codec implementations.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-/**
- * Arrays of bytes
- * @namespace
- */
-const codec = {
-	bytes: {
-		/** Convert from a bitArray to an array of bytes. */
-		fromBits(arr) {
-			const bl = bitArray.bitLength(arr);
-			const byteLength = bl / 8;
-			const out = new Uint8Array(byteLength);
-			let tmp;
-			for (let i = 0; i < byteLength; i++) {
-				if ((i & 3) === 0) {
-					tmp = arr[i / 4];
-				}
-				out[i] = tmp >>> 24;
-				tmp <<= 8;
+function createEngine(key, authenticationKey) {
+	initTables();
+	const roundKeys = new Int32Array(ROUND_KEYS_LENGTH);
+	const rounds = expandKey(key, roundKeys);
+	const counter = new Uint8Array(BLOCK_LENGTH$1);
+	const keystream = new Int32Array(BLOCK_LENGTH$1 / 4);
+	const hmac = createHmac(authenticationKey);
+	return {
+		process(data, decrypt) {
+			if (decrypt) {
+				hmac.update(data, 0, data.length);
 			}
-			return out;
+			encrypt(data);
+			if (!decrypt) {
+				hmac.update(data, 0, data.length);
+			}
 		},
-		/** Convert from an array of bytes to a bitArray. */
-		toBits(bytes) {
-			const out = [];
-			let i;
-			let tmp = 0;
-			for (i = 0; i < bytes.length; i++) {
-				tmp = tmp << 8 | bytes[i];
-				if ((i & 3) === 3) {
-					out.push(tmp);
-					tmp = 0;
-				}
-			}
-			if (i & 3) {
-				out.push(bitArray.partial(8 * (i & 3), tmp));
-			}
-			return out;
+		digest() {
+			return hmac.digest();
 		}
-	}
-};
+	};
 
-const hash = {};
-
-/**
- * Context for a SHA-1 operation in progress.
- * @constructor
- */
-hash.sha1 = class {
-	constructor(hash) {
-		const sha1 = this;
-		/**
-		 * The hash's block size, in bits.
-		 * @constant
-		 */
-		sha1.blockSize = 512;
-		/**
-		 * The SHA-1 initialization vector.
-		 * @private
-		 */
-		sha1._init = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
-		/**
-		 * The SHA-1 hash key.
-		 * @private
-		 */
-		sha1._key = [0x5A827999, 0x6ED9EBA1, 0x8F1BBCDC, 0xCA62C1D6];
-		if (hash) {
-			sha1._h = hash._h.slice(0);
-			sha1._buffer = hash._buffer.slice(0);
-			sha1._length = hash._length;
-		} else {
-			sha1.reset();
+	function encrypt(data) {
+		const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+		const length = data.length;
+		let offset = 0;
+		for (; offset + BLOCK_LENGTH$1 <= length; offset += BLOCK_LENGTH$1) {
+			nextKeystream();
+			view.setInt32(offset, view.getInt32(offset) ^ keystream[0]);
+			view.setInt32(offset + 4, view.getInt32(offset + 4) ^ keystream[1]);
+			view.setInt32(offset + 8, view.getInt32(offset + 8) ^ keystream[2]);
+			view.setInt32(offset + 12, view.getInt32(offset + 12) ^ keystream[3]);
 		}
-	}
-
-	/**
-	 * Reset the hash state.
-	 * @return this
-	 */
-	reset() {
-		const sha1 = this;
-		sha1._h = sha1._init.slice(0);
-		sha1._buffer = [];
-		sha1._length = 0;
-		return sha1;
-	}
-
-	/**
-	 * Input several words to the hash.
-	 * @param {bitArray|String} data the data to hash.
-	 * @return this
-	 */
-	update(data) {
-		const sha1 = this;
-		if (typeof data === "string") {
-			data = codec.utf8String.toBits(data);
-		}
-		const b = sha1._buffer = bitArray.concat(sha1._buffer, data);
-		const ol = sha1._length;
-		const nl = sha1._length = ol + bitArray.bitLength(data);
-		if (nl > 9007199254740991) {
-			throw new Error("Cannot hash more than 2^53 - 1 bits");
-		}
-		const c = new Uint32Array(b);
-		let j = 0;
-		for (let i = sha1.blockSize + ol - ((sha1.blockSize + ol) & (sha1.blockSize - 1)); i <= nl;
-			i += sha1.blockSize) {
-			sha1._block(c.subarray(16 * j, 16 * (j + 1)));
-			j += 1;
-		}
-		b.splice(0, 16 * j);
-		return sha1;
-	}
-
-	/**
-	 * Complete hashing and output the hash value.
-	 * @return {bitArray} The hash value, an array of 5 big-endian words. TODO
-	 */
-	finalize() {
-		const sha1 = this;
-		let b = sha1._buffer;
-		const h = sha1._h;
-
-		// Round out and push the buffer
-		b = bitArray.concat(b, [bitArray.partial(1, 1)]);
-		// Round out the buffer to a multiple of 16 words, less the 2 length words.
-		for (let i = b.length + 2; i & 15; i++) {
-			b.push(0);
-		}
-
-		// append the length
-		b.push(Math.floor(sha1._length / 0x100000000));
-		b.push(sha1._length | 0);
-
-		while (b.length) {
-			sha1._block(b.splice(0, 16));
-		}
-
-		sha1.reset();
-		return h;
-	}
-
-	/**
-	 * The SHA-1 logical functions f(0), f(1), ..., f(79).
-	 * @private
-	 */
-	_f(t, b, c, d) {
-		if (t <= 19) {
-			return (b & c) | (~b & d);
-		} else if (t <= 39) {
-			return b ^ c ^ d;
-		} else if (t <= 59) {
-			return (b & c) | (b & d) | (c & d);
-		} else if (t <= 79) {
-			return b ^ c ^ d;
-		}
-	}
-
-	/**
-	 * Circular left-shift operator.
-	 * @private
-	 */
-	_S(n, x) {
-		return (x << n) | (x >>> 32 - n);
-	}
-
-	/**
-	 * Perform one cycle of SHA-1.
-	 * @param {Uint32Array|bitArray} words one block of words.
-	 * @private
-	 */
-	_block(words) {
-		const sha1 = this;
-		const h = sha1._h;
-		// When words is passed to _block, it has 16 elements. SHA1 _block
-		// function extends words with new elements (at the end there are 80 elements). 
-		// The problem is that if we use Uint32Array instead of Array, 
-		// the length of Uint32Array cannot be changed. Thus, we replace words with a 
-		// normal Array here.
-		const w = Array(80); // do not use Uint32Array here as the instantiation is slower
-		for (let j = 0; j < 16; j++) {
-			w[j] = words[j];
-		}
-
-		let a = h[0];
-		let b = h[1];
-		let c = h[2];
-		let d = h[3];
-		let e = h[4];
-
-		for (let t = 0; t <= 79; t++) {
-			if (t >= 16) {
-				w[t] = sha1._S(1, w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16]);
-			}
-			const tmp = (sha1._S(5, a) + sha1._f(t, b, c, d) + e + w[t] +
-				sha1._key[Math.floor(t / 20)]) | 0;
-			e = d;
-			d = c;
-			c = sha1._S(30, b);
-			b = a;
-			a = tmp;
-		}
-
-		h[0] = (h[0] + a) | 0;
-		h[1] = (h[1] + b) | 0;
-		h[2] = (h[2] + c) | 0;
-		h[3] = (h[3] + d) | 0;
-		h[4] = (h[4] + e) | 0;
-	}
-};
-
-/** @fileOverview Low-level AES implementation.
- *
- * This file contains a low-level implementation of AES, optimized for
- * size and for efficiency on several browsers.  It is based on
- * OpenSSL's aes_core.c, a public-domain implementation by Vincent
- * Rijmen, Antoon Bosselaers and Paulo Barreto.
- *
- * An older version of this implementation is available in the public
- * domain, but this one is (c) Emily Stark, Mike Hamburg, Dan Boneh,
- * Stanford University 2008-2010 and BSD-licensed for liability
- * reasons.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-const cipher = {};
-
-/**
- * Schedule out an AES key for both encryption and decryption.  This
- * is a low-level class.  Use a cipher mode to do bulk encryption.
- *
- * @constructor
- * @param {Array} key The key as an array of 4, 6 or 8 words.
- */
-cipher.aes = class {
-	constructor(key) {
-		/**
-		 * The expanded S-box and inverse S-box tables.  These will be computed
-		 * on the client so that we don't have to send them down the wire.
-		 *
-		 * There are two tables, _tables[0] is for encryption and
-		 * _tables[1] is for decryption.
-		 *
-		 * The first 4 sub-tables are the expanded S-box with MixColumns.  The
-		 * last (_tables[01][4]) is the S-box itself.
-		 *
-		 * @private
-		 */
-		const aes = this;
-		aes._tables = [[[], [], [], [], []], [[], [], [], [], []]];
-
-		if (!aes._tables[0][0][0]) {
-			aes._precompute();
-		}
-
-		const sbox = aes._tables[0][4];
-		const decTable = aes._tables[1];
-		const keyLen = key.length;
-
-		let i, encKey, decKey, rcon = 1;
-
-		if (keyLen !== 4 && keyLen !== 6 && keyLen !== 8) {
-			throw new Error("invalid aes key size");
-		}
-
-		aes._key = [encKey = key.slice(0), decKey = []];
-
-		// schedule encryption keys
-		for (i = keyLen; i < 4 * keyLen + 28; i++) {
-			let tmp = encKey[i - 1];
-
-			// apply sbox
-			if (i % keyLen === 0 || (keyLen === 8 && i % keyLen === 4)) {
-				tmp = sbox[tmp >>> 24] << 24 ^ sbox[tmp >> 16 & 255] << 16 ^ sbox[tmp >> 8 & 255] << 8 ^ sbox[tmp & 255];
-
-				// shift rows and add rcon
-				if (i % keyLen === 0) {
-					tmp = tmp << 8 ^ tmp >>> 24 ^ rcon << 24;
-					rcon = rcon << 1 ^ (rcon >> 7) * 283;
-				}
-			}
-
-			encKey[i] = encKey[i - keyLen] ^ tmp;
-		}
-
-		// schedule decryption keys
-		for (let j = 0; i; j++, i--) {
-			const tmp = encKey[j & 3 ? i : i - 4];
-			if (i <= 4 || j < 4) {
-				decKey[j] = tmp;
-			} else {
-				decKey[j] = decTable[0][sbox[tmp >>> 24]] ^
-					decTable[1][sbox[tmp >> 16 & 255]] ^
-					decTable[2][sbox[tmp >> 8 & 255]] ^
-					decTable[3][sbox[tmp & 255]];
+		if (offset < length) {
+			nextKeystream();
+			for (let indexByte = 0; offset < length; offset++, indexByte++) {
+				data[offset] ^= keystream[indexByte >> 2] >>> (24 - 8 * (indexByte & 3));
 			}
 		}
 	}
-	// public
-	/* Something like this might appear here eventually
-	name: "AES",
-	blockSize: 4,
-	keySizes: [4,6,8],
-	*/
 
-	/**
-	 * Encrypt an array of 4 big-endian words.
-	 * @param {Array} data The plaintext.
-	 * @return {Array} The ciphertext.
-	 */
-	encrypt(data) {
-		return this._crypt(data, 0);
-	}
-
-	/**
-	 * Decrypt an array of 4 big-endian words.
-	 * @param {Array} data The ciphertext.
-	 * @return {Array} The plaintext.
-	 */
-	decrypt(data) {
-		return this._crypt(data, 1);
-	}
-
-	/**
-	 * Expand the S-box tables.
-	 *
-	 * @private
-	 */
-	_precompute() {
-		const encTable = this._tables[0];
-		const decTable = this._tables[1];
-		const sbox = encTable[4];
-		const sboxInv = decTable[4];
-		const d = [];
-		const th = [];
-		let xInv, x2, x4, x8;
-
-		// Compute double and third tables
-		for (let i = 0; i < 256; i++) {
-			th[(d[i] = i << 1 ^ (i >> 7) * 283) ^ i] = i;
-		}
-
-		for (let x = xInv = 0; !sbox[x]; x ^= x2 || 1, xInv = th[xInv] || 1) {
-			// Compute sbox
-			let s = xInv ^ xInv << 1 ^ xInv << 2 ^ xInv << 3 ^ xInv << 4;
-			s = s >> 8 ^ s & 255 ^ 99;
-			sbox[x] = s;
-			sboxInv[s] = x;
-
-			// Compute MixColumns
-			x8 = d[x4 = d[x2 = d[x]]];
-			let tDec = x8 * 0x1010101 ^ x4 * 0x10001 ^ x2 * 0x101 ^ x * 0x1010100;
-			let tEnc = d[s] * 0x101 ^ s * 0x1010100;
-
-			for (let i = 0; i < 4; i++) {
-				encTable[i][x] = tEnc = tEnc << 24 ^ tEnc >>> 8;
-				decTable[i][s] = tDec = tDec << 24 ^ tDec >>> 8;
+	function nextKeystream() {
+		for (let indexByte = 0; indexByte < BLOCK_LENGTH$1; indexByte++) {
+			counter[indexByte]++;
+			if (counter[indexByte] !== 0) {
+				break;
 			}
 		}
-
-		// Compactify.  Considerable speedup on Firefox.
-		for (let i = 0; i < 5; i++) {
-			encTable[i] = encTable[i].slice(0);
-			decTable[i] = decTable[i].slice(0);
+		let s0 = ((counter[0] << 24) | (counter[1] << 16) | (counter[2] << 8) | counter[3]) ^ roundKeys[0];
+		let s1 = ((counter[4] << 24) | (counter[5] << 16) | (counter[6] << 8) | counter[7]) ^ roundKeys[1];
+		let s2 = ((counter[8] << 24) | (counter[9] << 16) | (counter[10] << 8) | counter[11]) ^ roundKeys[2];
+		let s3 = ((counter[12] << 24) | (counter[13] << 16) | (counter[14] << 8) | counter[15]) ^ roundKeys[3];
+		let indexKey = 4;
+		for (let round = 1; round < rounds; round++, indexKey += 4) {
+			const t0 = T0[s0 >>> 24] ^ T1[(s1 >>> 16) & 255] ^ T2[(s2 >>> 8) & 255] ^ T3[s3 & 255] ^ roundKeys[indexKey];
+			const t1 = T0[s1 >>> 24] ^ T1[(s2 >>> 16) & 255] ^ T2[(s3 >>> 8) & 255] ^ T3[s0 & 255] ^ roundKeys[indexKey + 1];
+			const t2 = T0[s2 >>> 24] ^ T1[(s3 >>> 16) & 255] ^ T2[(s0 >>> 8) & 255] ^ T3[s1 & 255] ^ roundKeys[indexKey + 2];
+			const t3 = T0[s3 >>> 24] ^ T1[(s0 >>> 16) & 255] ^ T2[(s1 >>> 8) & 255] ^ T3[s2 & 255] ^ roundKeys[indexKey + 3];
+			s0 = t0;
+			s1 = t1;
+			s2 = t2;
+			s3 = t3;
 		}
+		keystream[0] = ((S_BOX[s0 >>> 24] << 24) | (S_BOX[(s1 >>> 16) & 255] << 16) | (S_BOX[(s2 >>> 8) & 255] << 8) | S_BOX[s3 & 255]) ^ roundKeys[indexKey];
+		keystream[1] = ((S_BOX[s1 >>> 24] << 24) | (S_BOX[(s2 >>> 16) & 255] << 16) | (S_BOX[(s3 >>> 8) & 255] << 8) | S_BOX[s0 & 255]) ^ roundKeys[indexKey + 1];
+		keystream[2] = ((S_BOX[s2 >>> 24] << 24) | (S_BOX[(s3 >>> 16) & 255] << 16) | (S_BOX[(s0 >>> 8) & 255] << 8) | S_BOX[s1 & 255]) ^ roundKeys[indexKey + 2];
+		keystream[3] = ((S_BOX[s3 >>> 24] << 24) | (S_BOX[(s0 >>> 16) & 255] << 16) | (S_BOX[(s1 >>> 8) & 255] << 8) | S_BOX[s2 & 255]) ^ roundKeys[indexKey + 3];
 	}
+}
 
-	/**
-	 * Encryption and decryption core.
-	 * @param {Array} input Four words to be encrypted or decrypted.
-	 * @param dir The direction, 0 for encrypt and 1 for decrypt.
-	 * @return {Array} The four encrypted or decrypted words.
-	 * @private
-	 */
-	_crypt(input, dir) {
-		if (input.length !== 4) {
-			throw new Error("invalid aes block size");
-		}
-
-		const key = this._key[dir];
-
-		const nInnerRounds = key.length / 4 - 2;
-		const out = [0, 0, 0, 0];
-		const table = this._tables[dir];
-
-		// load up the tables
-		const t0 = table[0];
-		const t1 = table[1];
-		const t2 = table[2];
-		const t3 = table[3];
-		const sbox = table[4];
-
-		// state variables a,b,c,d are loaded with pre-whitened data
-		let a = input[0] ^ key[0];
-		let b = input[dir ? 3 : 1] ^ key[1];
-		let c = input[2] ^ key[2];
-		let d = input[dir ? 1 : 3] ^ key[3];
-		let kIndex = 4;
-		let a2, b2, c2;
-
-		// Inner rounds.  Cribbed from OpenSSL.
-		for (let i = 0; i < nInnerRounds; i++) {
-			a2 = t0[a >>> 24] ^ t1[b >> 16 & 255] ^ t2[c >> 8 & 255] ^ t3[d & 255] ^ key[kIndex];
-			b2 = t0[b >>> 24] ^ t1[c >> 16 & 255] ^ t2[d >> 8 & 255] ^ t3[a & 255] ^ key[kIndex + 1];
-			c2 = t0[c >>> 24] ^ t1[d >> 16 & 255] ^ t2[a >> 8 & 255] ^ t3[b & 255] ^ key[kIndex + 2];
-			d = t0[d >>> 24] ^ t1[a >> 16 & 255] ^ t2[b >> 8 & 255] ^ t3[c & 255] ^ key[kIndex + 3];
-			kIndex += 4;
-			a = a2; b = b2; c = c2;
-		}
-
-		// Last round.
-		for (let i = 0; i < 4; i++) {
-			out[dir ? 3 & -i : i] =
-				sbox[a >>> 24] << 24 ^
-				sbox[b >> 16 & 255] << 16 ^
-				sbox[c >> 8 & 255] << 8 ^
-				sbox[d & 255] ^
-				key[kIndex++];
-			a2 = a; a = b; b = c; c = d; d = a2;
-		}
-
-		return out;
-	}
-};
-
-/** @fileOverview CTR mode implementation.
- *
- * Special thanks to Roy Nicholson for pointing out a bug in our
- * implementation.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-/** Brian Gladman's CTR Mode.
-* @constructor
-* @param {Object} _prf The aes instance to generate key.
-* @param {bitArray} _iv The iv for ctr mode, it must be 128 bits.
-*/
-
-const mode = {};
-
-/**
- * Brian Gladman's CTR Mode.
- * @namespace
- */
-mode.ctrGladman = class {
-	constructor(prf, iv) {
-		this._prf = prf;
-		this._initIv = iv;
-		this._iv = iv;
-	}
-
-	reset() {
-		this._iv = this._initIv;
-	}
-
-	/** Input some data to calculate.
-	 * @param {bitArray} data the data to process, it must be intergral multiple of 128 bits unless it's the last.
-	 */
-	update(data) {
-		return this.calculate(this._prf, data, this._iv);
-	}
-
-	incWord(word) {
-		if (((word >> 24) & 0xff) === 0xff) { //overflow
-			let b1 = (word >> 16) & 0xff;
-			let b2 = (word >> 8) & 0xff;
-			let b3 = word & 0xff;
-
-			if (b1 === 0xff) { // overflow b1   
-				b1 = 0;
-				if (b2 === 0xff) {
-					b2 = 0;
-					if (b3 === 0xff) {
-						b3 = 0;
-					} else {
-						++b3;
-					}
-				} else {
-					++b2;
-				}
-			} else {
-				++b1;
-			}
-
-			word = 0;
-			word += (b1 << 16);
-			word += (b2 << 8);
-			word += b3;
-		} else {
-			word += (0x01 << 24);
-		}
-		return word;
-	}
-
-	incCounter(counter) {
-		if ((counter[0] = this.incWord(counter[0])) === 0) {
-			// encr_data in fileenc.c from  Dr Brian Gladman's counts only with DWORD j < 8
-			counter[1] = this.incWord(counter[1]);
-		}
-	}
-
-	calculate(prf, data, iv) {
-		let l;
-		if (!(l = data.length)) {
-			return [];
-		}
-		const bl = bitArray.bitLength(data);
-		for (let i = 0; i < l; i += 4) {
-			this.incCounter(iv);
-			const e = prf.encrypt(iv);
-			data[i] ^= e[0];
-			data[i + 1] ^= e[1];
-			data[i + 2] ^= e[2];
-			data[i + 3] ^= e[3];
-		}
-		return bitArray.clamp(data, bl);
-	}
-};
-
-const misc = {
-	importKey(password) {
-		return new misc.hmacSha1(codec.bytes.toBits(password));
-	},
-	pbkdf2(prf, salt, count, length) {
-		count = count || 10000;
-		if (length < 0 || count < 0) {
-			throw new Error("invalid params to pbkdf2");
-		}
-		const byteLength = ((length >> 5) + 1) << 2;
-		let u, ui, i, j, k;
-		const arrayBuffer = new ArrayBuffer(byteLength);
-		const out = new DataView(arrayBuffer);
-		let outLength = 0;
-		const b = bitArray;
-		salt = codec.bytes.toBits(salt);
-		for (k = 1; outLength < (byteLength || 1); k++) {
-			u = ui = prf.encrypt(b.concat(salt, [k]));
-			for (i = 1; i < count; i++) {
-				ui = prf.encrypt(ui);
-				for (j = 0; j < ui.length; j++) {
-					u[j] ^= ui[j];
-				}
-			}
-			for (i = 0; outLength < (byteLength || 1) && i < u.length; i++) {
-				out.setInt32(outLength, u[i]);
-				outLength += 4;
+function pbkdf2(password, salt, iterations, length) {
+	const hmac = createHmac(password);
+	const result = new Uint8Array(length);
+	const block = new Uint8Array(salt.length + 4);
+	const blockView = new DataView(block.buffer);
+	block.set(salt);
+	for (let indexBlock = 1, offset = 0; offset < length; indexBlock++, offset += SHA1_DIGEST_LENGTH) {
+		blockView.setUint32(salt.length, indexBlock);
+		hmac.update(block, 0, block.length);
+		let previous = hmac.digest();
+		const output = previous.slice();
+		for (let iteration = 1; iteration < iterations; iteration++) {
+			hmac.update(previous, 0, SHA1_DIGEST_LENGTH);
+			previous = hmac.digest();
+			for (let indexByte = 0; indexByte < SHA1_DIGEST_LENGTH; indexByte++) {
+				output[indexByte] ^= previous[indexByte];
 			}
 		}
-		return arrayBuffer.slice(0, length / 8);
+		result.set(output.subarray(0, Math.min(SHA1_DIGEST_LENGTH, length - offset)), offset);
 	}
-};
+	return result;
+}
 
-/** @fileOverview HMAC implementation.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-/** HMAC with the specified hash function.
- * @constructor
- * @param {bitArray} key the key for HMAC.
- * @param {Object} [Hash=hash.sha1] The hash function to use.
- */
-misc.hmacSha1 = class {
-
-	constructor(key) {
-		const hmac = this;
-		const Hash = hmac._hash = hash.sha1;
-		const exKey = [[], []];
-		hmac._baseHash = [new Hash(), new Hash()];
-		const bs = hmac._baseHash[0].blockSize / 32;
-
-		if (key.length > bs) {
-			key = new Hash().update(key).finalize();
+function createHmac(key) {
+	const sha1 = createSha1();
+	const innerKey = new Uint8Array(SHA1_BLOCK_LENGTH);
+	const outerKey = new Uint8Array(SHA1_BLOCK_LENGTH);
+	if (key.length > SHA1_BLOCK_LENGTH) {
+		sha1.update(key, 0, key.length);
+		key = sha1.digest();
+	}
+	for (let indexByte = 0; indexByte < SHA1_BLOCK_LENGTH; indexByte++) {
+		const keyByte = indexByte < key.length ? key[indexByte] : 0;
+		innerKey[indexByte] = keyByte ^ HMAC_INNER_PADDING;
+		outerKey[indexByte] = keyByte ^ HMAC_OUTER_PADDING;
+	}
+	sha1.update(innerKey, 0, SHA1_BLOCK_LENGTH);
+	return {
+		update(data, offset, length) {
+			sha1.update(data, offset, length);
+		},
+		digest() {
+			const innerDigest = sha1.digest();
+			sha1.update(outerKey, 0, SHA1_BLOCK_LENGTH);
+			sha1.update(innerDigest, 0, SHA1_DIGEST_LENGTH);
+			const result = sha1.digest();
+			sha1.update(innerKey, 0, SHA1_BLOCK_LENGTH);
+			return result;
 		}
+	};
+}
 
-		for (let i = 0; i < bs; i++) {
-			exKey[0][i] = key[i] ^ 0x36363636;
-			exKey[1][i] = key[i] ^ 0x5C5C5C5C;
+function createSha1() {
+	const state = new Int32Array(SHA1_INITIAL_STATE);
+	const schedule = new Int32Array(SHA1_SCHEDULE_LENGTH);
+	const block = new Uint8Array(SHA1_BLOCK_LENGTH);
+	const blockView = new DataView(block.buffer);
+	const lengthBytes = new Uint8Array(8);
+	let blockLength = 0;
+	let totalLength = 0;
+	return {
+		update,
+		digest
+	};
+
+	function update(data, offset, length) {
+		const end = offset + length;
+		totalLength += length;
+		if (blockLength) {
+			while (offset < end && blockLength < SHA1_BLOCK_LENGTH) {
+				block[blockLength++] = data[offset++];
+			}
+			if (blockLength == SHA1_BLOCK_LENGTH) {
+				compress(blockView, 0);
+				blockLength = 0;
+			}
 		}
-
-		hmac._baseHash[0].update(exKey[0]);
-		hmac._baseHash[1].update(exKey[1]);
-		hmac._resultHash = new Hash(hmac._baseHash[0]);
-	}
-	reset() {
-		const hmac = this;
-		hmac._resultHash = new hmac._hash(hmac._baseHash[0]);
-		hmac._updated = false;
-	}
-
-	update(data) {
-		const hmac = this;
-		hmac._updated = true;
-		hmac._resultHash.update(data);
+		if (offset + SHA1_BLOCK_LENGTH <= end) {
+			const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+			for (; offset + SHA1_BLOCK_LENGTH <= end; offset += SHA1_BLOCK_LENGTH) {
+				compress(view, offset);
+			}
+		}
+		while (offset < end) {
+			block[blockLength++] = data[offset++];
+		}
 	}
 
-	digest() {
-		const hmac = this;
-		const w = hmac._resultHash.finalize();
-		const result = new (hmac._hash)(hmac._baseHash[1]).update(w).finalize();
-
-		hmac.reset();
-
+	function digest() {
+		const bits = totalLength * 8;
+		const high = Math.floor(bits / 0x100000000);
+		const low = bits >>> 0;
+		update(SHA1_PADDING, 0, 1);
+		while (blockLength != SHA1_LENGTH_OFFSET) {
+			update(SHA1_ZERO, 0, 1);
+		}
+		lengthBytes[0] = high >>> 24;
+		lengthBytes[1] = high >>> 16;
+		lengthBytes[2] = high >>> 8;
+		lengthBytes[3] = high;
+		lengthBytes[4] = low >>> 24;
+		lengthBytes[5] = low >>> 16;
+		lengthBytes[6] = low >>> 8;
+		lengthBytes[7] = low;
+		update(lengthBytes, 0, 8);
+		const result = new Uint8Array(SHA1_DIGEST_LENGTH);
+		const resultView = new DataView(result.buffer);
+		for (let indexWord = 0; indexWord < state.length; indexWord++) {
+			resultView.setInt32(4 * indexWord, state[indexWord]);
+		}
+		state.set(SHA1_INITIAL_STATE);
+		blockLength = 0;
+		totalLength = 0;
 		return result;
 	}
 
-	encrypt(data) {
-		if (!this._updated) {
-			this.update(data);
-			return this.digest(data);
-		} else {
-			throw new Error("encrypt on already updated hmac called!");
+	function compress(view, offset) {
+		for (let index = 0; index < 16; index++) {
+			schedule[index] = view.getInt32(offset + 4 * index);
 		}
+		for (let index = 16; index < SHA1_SCHEDULE_LENGTH; index++) {
+			const word = schedule[index - 3] ^ schedule[index - 8] ^ schedule[index - 14] ^ schedule[index - 16];
+			schedule[index] = (word << 1) | (word >>> 31);
+		}
+		let a = state[0];
+		let b = state[1];
+		let c = state[2];
+		let d = state[3];
+		let e = state[4];
+		let t;
+		for (let index = 0; index < 20; index++) {
+			t = (((a << 5) | (a >>> 27)) + ((b & c) | (~b & d)) + e + 0x5A827999 + schedule[index]) | 0;
+			e = d;
+			d = c;
+			c = (b << 30) | (b >>> 2);
+			b = a;
+			a = t;
+		}
+		for (let index = 20; index < 40; index++) {
+			t = (((a << 5) | (a >>> 27)) + (b ^ c ^ d) + e + 0x6ED9EBA1 + schedule[index]) | 0;
+			e = d;
+			d = c;
+			c = (b << 30) | (b >>> 2);
+			b = a;
+			a = t;
+		}
+		for (let index = 40; index < 60; index++) {
+			t = (((a << 5) | (a >>> 27)) + ((b & c) | (b & d) | (c & d)) + e + 0x8F1BBCDC + schedule[index]) | 0;
+			e = d;
+			d = c;
+			c = (b << 30) | (b >>> 2);
+			b = a;
+			a = t;
+		}
+		for (let index = 60; index < SHA1_SCHEDULE_LENGTH; index++) {
+			t = (((a << 5) | (a >>> 27)) + (b ^ c ^ d) + e + 0xCA62C1D6 + schedule[index]) | 0;
+			e = d;
+			d = c;
+			c = (b << 30) | (b >>> 2);
+			b = a;
+			a = t;
+		}
+		state[0] = (state[0] + a) | 0;
+		state[1] = (state[1] + b) | 0;
+		state[2] = (state[2] + c) | 0;
+		state[3] = (state[3] + d) | 0;
+		state[4] = (state[4] + e) | 0;
 	}
-};
+}
+
+function initTables() {
+	if (!tablesInitialized) {
+		let p = 1;
+		let q = 1;
+		do {
+			p = (p ^ (p << 1) ^ ((p & 0x80) ? 0x1b : 0)) & 255;
+			q = (q ^ (q << 1)) & 255;
+			q = (q ^ (q << 2)) & 255;
+			q = (q ^ (q << 4)) & 255;
+			if (q & 0x80) {
+				q ^= 0x09;
+			}
+			S_BOX[p] = (q ^ ((q << 1) | (q >> 7)) ^ ((q << 2) | (q >> 6)) ^ ((q << 3) | (q >> 5)) ^ ((q << 4) | (q >> 4)) ^ 0x63) & 255;
+		} while (p != 1);
+		S_BOX[0] = 0x63;
+		for (let index = 0; index < 256; index++) {
+			const s = S_BOX[index];
+			const s2 = multiplyByTwo(s);
+			const t = (s2 << 24) | (s << 16) | (s << 8) | (s2 ^ s);
+			T0[index] = t;
+			T1[index] = (t >>> 8) | (t << 24);
+			T2[index] = (t >>> 16) | (t << 16);
+			T3[index] = (t >>> 24) | (t << 8);
+		}
+		tablesInitialized = true;
+	}
+}
+
+function expandKey(key, roundKeys) {
+	const keyWords = key.length >> 2;
+	const rounds = keyWords + 6;
+	const total = 4 * (rounds + 1);
+	let roundConstant = 1;
+	for (let index = 0; index < keyWords; index++) {
+		roundKeys[index] = (key[4 * index] << 24) | (key[4 * index + 1] << 16) | (key[4 * index + 2] << 8) | key[4 * index + 3];
+	}
+	for (let index = keyWords; index < total; index++) {
+		let word = roundKeys[index - 1];
+		if (index % keyWords == 0) {
+			word = substituteWord((word << 8) | (word >>> 24)) ^ (roundConstant << 24);
+			roundConstant = multiplyByTwo(roundConstant);
+		} else if (keyWords > 6 && index % keyWords == 4) {
+			word = substituteWord(word);
+		}
+		roundKeys[index] = roundKeys[index - keyWords] ^ word;
+	}
+	return rounds;
+}
+
+function substituteWord(word) {
+	return (S_BOX[word >>> 24] << 24) | (S_BOX[(word >>> 16) & 255] << 16) | (S_BOX[(word >>> 8) & 255] << 8) | S_BOX[word & 255];
+}
+
+function multiplyByTwo(value) {
+	return ((value << 1) ^ ((value >> 7) * 0x1b)) & 255;
+}
 
 /*
  Copyright (c) 2022 Gildas Lormeau. All rights reserved.
@@ -1542,8 +1097,8 @@ function getRandomValues(array) {
  1. Redistributions of source code must retain the above copyright notice,
  this list of conditions and the following disclaimer.
 
- 2. Redistributions in binary form must reproduce the above copyright 
- notice, this list of conditions and the following disclaimer in 
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
  the documentation and/or other materials provided with the distribution.
 
  3. The names of the authors may not be used to endorse or promote products
@@ -1567,24 +1122,20 @@ const RAW_FORMAT = "raw";
 const PBKDF2_ALGORITHM = { name: "PBKDF2" };
 const HASH_ALGORITHM = { name: "HMAC" };
 const HASH_FUNCTION = "SHA-1";
+const PBKDF2_ITERATIONS = 1000;
 const BASE_KEY_ALGORITHM = Object.assign({ hash: HASH_ALGORITHM }, PBKDF2_ALGORITHM);
-const DERIVED_BITS_ALGORITHM = Object.assign({ iterations: 1000, hash: { name: HASH_FUNCTION } }, PBKDF2_ALGORITHM);
+const DERIVED_BITS_ALGORITHM = Object.assign({ iterations: PBKDF2_ITERATIONS, hash: { name: HASH_FUNCTION } }, PBKDF2_ALGORITHM);
 const DERIVED_BITS_USAGE = ["deriveBits"];
 const SALT_LENGTH = [8, 12, 16];
 const KEY_LENGTH = [16, 24, 32];
 const AUTHENTICATION_CODE_LENGTH = 10;
-const COUNTER_DEFAULT_VALUE = [0, 0, 0, 0];
+const PASSWORD_VERIFICATION_LENGTH = 2;
 // deno-lint-ignore valid-typeof
 const CRYPTO_API_SUPPORTED = typeof crypto != UNDEFINED_TYPE;
 const subtle = CRYPTO_API_SUPPORTED && crypto.subtle;
 const SUBTLE_API_SUPPORTED = CRYPTO_API_SUPPORTED && typeof subtle != UNDEFINED_TYPE;
-const codecBytes = codec.bytes;
-const Aes = cipher.aes;
-const CtrGladman = mode.ctrGladman;
-const HmacSha1 = misc.hmacSha1;
 
-let IMPORT_KEY_SUPPORTED = CRYPTO_API_SUPPORTED && SUBTLE_API_SUPPORTED && typeof subtle.importKey == FUNCTION_TYPE;
-let DERIVE_BITS_SUPPORTED = CRYPTO_API_SUPPORTED && SUBTLE_API_SUPPORTED && typeof subtle.deriveBits == FUNCTION_TYPE;
+let DERIVE_BITS_SUPPORTED = SUBTLE_API_SUPPORTED && typeof subtle.importKey == FUNCTION_TYPE && typeof subtle.deriveBits == FUNCTION_TYPE;
 
 class AESDecryptionStream extends TransformStream {
 
@@ -1602,8 +1153,8 @@ class AESDecryptionStream extends TransformStream {
 					ready
 				} = aesCrypto;
 				if (password) {
-					await createDecryptionKeys(aesCrypto, strength, password, subarray(chunk, 0, SALT_LENGTH[strength] + 2));
-					chunk = subarray(chunk, SALT_LENGTH[strength] + 2);
+					await createDecryptionKeys(aesCrypto, strength, password, subarray(chunk, 0, SALT_LENGTH[strength] + PASSWORD_VERIFICATION_LENGTH));
+					chunk = subarray(chunk, SALT_LENGTH[strength] + PASSWORD_VERIFICATION_LENGTH);
 					if (checkPasswordOnly) {
 						controller.error(new Error(ERR_ABORT_CHECK_PASSWORD));
 					} else {
@@ -1617,23 +1168,16 @@ class AESDecryptionStream extends TransformStream {
 			},
 			async flush(controller) {
 				const {
-					ctr,
-					hmac,
+					engine,
 					pendingInput,
 					ready
 				} = this;
-				if (hmac && ctr) {
+				if (engine) {
 					await ready;
-					const chunkToDecrypt = subarray(pendingInput, 0, pendingInput.length - AUTHENTICATION_CODE_LENGTH);
 					const originalAuthenticationCode = subarray(pendingInput, pendingInput.length - AUTHENTICATION_CODE_LENGTH);
-					let decryptedChunkArray = EMPTY_UINT8_ARRAY;
-					if (chunkToDecrypt.length) {
-						const encryptedChunk = toBits(codecBytes, chunkToDecrypt);
-						hmac.update(encryptedChunk);
-						const decryptedChunk = ctr.update(encryptedChunk);
-						decryptedChunkArray = fromBits(codecBytes, decryptedChunk);
-					}
-					const authenticationCode = subarray(fromBits(codecBytes, hmac.digest()), 0, AUTHENTICATION_CODE_LENGTH);
+					const decryptedChunkArray = new Uint8Array(subarray(pendingInput, 0, pendingInput.length - AUTHENTICATION_CODE_LENGTH));
+					engine.process(decryptedChunkArray, true);
+					const authenticationCode = engine.digest();
 					let invalidAuthenticationCode = pendingInput.length < AUTHENTICATION_CODE_LENGTH ? 1 : 0;
 					for (let indexByte = 0; indexByte < AUTHENTICATION_CODE_LENGTH; indexByte++) {
 						invalidAuthenticationCode |= authenticationCode[indexByte] ^ originalAuthenticationCode[indexByte];
@@ -1672,24 +1216,19 @@ class AESEncryptionStream extends TransformStream {
 				}
 				const output = new Uint8Array(preamble.length + chunk.length - (chunk.length % BLOCK_LENGTH));
 				output.set(preamble, 0);
-				controller.enqueue(append(aesCrypto, chunk, output, preamble.length, 0));
+				controller.enqueue(append(aesCrypto, chunk, output, preamble.length, 0, false));
 			},
 			async flush(controller) {
 				const {
-					ctr,
-					hmac,
+					engine,
 					pendingInput,
 					ready
 				} = this;
-				if (hmac && ctr) {
+				if (engine) {
 					await ready;
-					let encryptedChunkArray = EMPTY_UINT8_ARRAY;
-					if (pendingInput.length) {
-						const encryptedChunk = ctr.update(toBits(codecBytes, pendingInput));
-						hmac.update(encryptedChunk);
-						encryptedChunkArray = fromBits(codecBytes, encryptedChunk);
-					}
-					const authenticationCode = fromBits(codecBytes, hmac.digest()).slice(0, AUTHENTICATION_CODE_LENGTH);
+					const encryptedChunkArray = new Uint8Array(pendingInput);
+					engine.process(encryptedChunkArray, false);
+					const authenticationCode = subarray(engine.digest(), 0, AUTHENTICATION_CODE_LENGTH);
 					controller.enqueue(concat(encryptedChunkArray, authenticationCode));
 				}
 			}
@@ -1706,10 +1245,9 @@ function initAesCrypto(aesCrypto, password, rawPassword, encryptionStrength) {
 	});
 }
 
-function append(aesCrypto, input, output, paddingStart, paddingEnd, verifyAuthenticationCode) {
+function append(aesCrypto, input, output, paddingStart, paddingEnd, decrypt) {
 	const {
-		ctr,
-		hmac,
+		engine,
 		pendingInput
 	} = aesCrypto;
 	if (pendingInput.length) {
@@ -1719,15 +1257,9 @@ function append(aesCrypto, input, output, paddingStart, paddingEnd, verifyAuthen
 	const alignedLength = inputLength - (inputLength % BLOCK_LENGTH);
 	output = expand(output, paddingStart + alignedLength);
 	if (alignedLength) {
-		const inputChunk = toBits(codecBytes, subarray(input, 0, alignedLength));
-		if (verifyAuthenticationCode) {
-			hmac.update(inputChunk);
-		}
-		const outputChunk = ctr.update(inputChunk);
-		if (!verifyAuthenticationCode) {
-			hmac.update(outputChunk);
-		}
-		output.set(fromBits(codecBytes, outputChunk), paddingStart);
+		const chunk = subarray(output, paddingStart, paddingStart + alignedLength);
+		chunk.set(subarray(input, 0, alignedLength));
+		engine.process(chunk, decrypt);
 	}
 	aesCrypto.pendingInput = subarray(input, alignedLength);
 	return output;
@@ -1749,48 +1281,22 @@ async function createEncryptionKeys(encrypt, strength, password) {
 
 async function createKeys$1(aesCrypto, strength, password, salt) {
 	aesCrypto.password = null;
-	const baseKey = await importKey(RAW_FORMAT, password, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
-	const derivedBits = await deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), baseKey, 8 * ((KEY_LENGTH[strength] * 2) + 2));
-	const compositeKey = new Uint8Array(derivedBits);
-	const key = toBits(codecBytes, subarray(compositeKey, 0, KEY_LENGTH[strength]));
-	const authentication = toBits(codecBytes, subarray(compositeKey, KEY_LENGTH[strength], KEY_LENGTH[strength] * 2));
-	const passwordVerification = subarray(compositeKey, KEY_LENGTH[strength] * 2);
-	Object.assign(aesCrypto, {
-		keys: {
-			key,
-			authentication,
-			passwordVerification
-		},
-		ctr: new CtrGladman(new Aes(key), Array.from(COUNTER_DEFAULT_VALUE)),
-		hmac: new HmacSha1(authentication)
-	});
-	return passwordVerification;
+	const keyLength = KEY_LENGTH[strength];
+	const compositeKey = await deriveKey(password, salt, keyLength * 2 + PASSWORD_VERIFICATION_LENGTH);
+	aesCrypto.engine = createEngine(subarray(compositeKey, 0, keyLength), subarray(compositeKey, keyLength, keyLength * 2));
+	return subarray(compositeKey, keyLength * 2);
 }
 
-async function importKey(format, password, algorithm, extractable, keyUsages) {
-	if (IMPORT_KEY_SUPPORTED) {
-		try {
-			return await subtle.importKey(format, password, algorithm, extractable, keyUsages);
-		} catch {
-			IMPORT_KEY_SUPPORTED = false;
-			return misc.importKey(password);
-		}
-	} else {
-		return misc.importKey(password);
-	}
-}
-
-async function deriveBits(algorithm, baseKey, length) {
+async function deriveKey(password, salt, length) {
 	if (DERIVE_BITS_SUPPORTED) {
 		try {
-			return await subtle.deriveBits(algorithm, baseKey, length);
+			const baseKey = await subtle.importKey(RAW_FORMAT, password, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
+			return new Uint8Array(await subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), baseKey, length * 8));
 		} catch {
 			DERIVE_BITS_SUPPORTED = false;
-			return misc.pbkdf2(baseKey, algorithm.salt, DERIVED_BITS_ALGORITHM.iterations, length);
 		}
-	} else {
-		return misc.pbkdf2(baseKey, algorithm.salt, DERIVED_BITS_ALGORITHM.iterations, length);
 	}
+	return pbkdf2(password, salt, PBKDF2_ITERATIONS, length);
 }
 
 function encodePassword(password, rawPassword) {
@@ -1812,13 +1318,6 @@ function expand(inputArray, length) {
 
 function subarray(array, begin, end) {
 	return array.subarray(begin, end);
-}
-
-function fromBits(codecBytes, chunk) {
-	return codecBytes.fromBits(chunk);
-}
-function toBits(codecBytes, chunk) {
-	return codecBytes.toBits(chunk);
 }
 
 /*

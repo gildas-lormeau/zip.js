@@ -16,11 +16,9 @@ const INTERNAL_MESSAGES = {
 		"flight after the first failure, recognized by isExportAborted() and never rethrown"
 };
 
-// modules whose messages are not written here at all: the third-party codec, and the generated files the build
-// produces from the inline templates, which both linters skip for the same reason
+// modules whose messages are not written here at all: the generated files the build produces from the inline
+// templates, which both linters skip for the same reason
 const EXEMPT_MODULES = {
-	"lib/core/streams/codecs/sjcl.js": "third-party code derived from SJCL, whose error vocabulary is not " +
-		"ours to change, and whose messages report arguments zip.js validates before it gets there",
 	"lib/core/web-worker-inline-wasm.js": "build output, minified, carrying the bootstrap inflate that " +
 		"unpacks the embedded module: its messages report a corrupt payload, i.e. a broken build rather than " +
 		"anything the caller did",

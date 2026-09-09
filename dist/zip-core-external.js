@@ -600,7 +600,7 @@ for (let n = 0; n < 256; n++) {
 		T[k][n] = (previous >>> 8) ^ T[0][previous & 0xFF];
 	}
 }
-const [T0, T1, T2, T3, T4, T5, T6, T7] = T;
+const [T0$1, T1$1, T2$1, T3$1, T4, T5, T6, T7] = T;
 
 class Crc32 {
 
@@ -622,12 +622,12 @@ class Crc32 {
 				const a = crc ^ view.getInt32(offset, true);
 				const b = view.getInt32(offset + 4, true);
 				crc = T7[a & 0xFF] ^ T6[(a >>> 8) & 0xFF] ^ T5[(a >>> 16) & 0xFF] ^ T4[(a >>> 24) & 0xFF] ^
-					T3[b & 0xFF] ^ T2[(b >>> 8) & 0xFF] ^ T1[(b >>> 16) & 0xFF] ^ T0[(b >>> 24) & 0xFF];
+					T3$1[b & 0xFF] ^ T2$1[(b >>> 8) & 0xFF] ^ T1$1[(b >>> 16) & 0xFF] ^ T0$1[(b >>> 24) & 0xFF];
 			}
 		}
 		// Remaining tail (and non-typed inputs) byte-at-a-time with the base table.
 		for (; offset < length; offset++) {
-			crc = (crc >>> 8) ^ T0[(crc ^ data[offset]) & 0xFF];
+			crc = (crc >>> 8) ^ T0$1[(crc ^ data[offset]) & 0xFF];
 		}
 		this.crc = crc;
 	}
@@ -731,794 +731,349 @@ function encodeText(value) {
 	}
 }
 
-// Derived from https://github.com/xqdoo00o/jszip/blob/master/lib/sjcl.js and https://github.com/bitwiseshiftleft/sjcl
-
-// deno-lint-ignore-file no-this-alias
-
 /*
- * SJCL is open. You can use, modify and redistribute it under a BSD
- * license or under the GNU GPL, version 2.0.
+ Copyright (c) 2026 Gildas Lormeau. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
+
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
+ the documentation and/or other materials provided with the distribution.
+
+ 3. The names of the authors may not be used to endorse or promote products
+ derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+ INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** @fileOverview Javascript cryptography implementation.
- *
- * Crush to remove comments, shorten variable names and
- * generally reduce transmission size.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
+const BLOCK_LENGTH$1 = 16;
+const ROUND_KEYS_LENGTH = 60;
+const SHA1_BLOCK_LENGTH = 64;
+const SHA1_DIGEST_LENGTH = 20;
+const SHA1_SCHEDULE_LENGTH = 80;
+const SHA1_LENGTH_OFFSET = 56;
+const SHA1_PADDING = new Uint8Array([0x80]);
+const SHA1_ZERO = new Uint8Array(1);
+const SHA1_INITIAL_STATE = new Int32Array([0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0]);
+const HMAC_INNER_PADDING = 0x36;
+const HMAC_OUTER_PADDING = 0x5c;
+const S_BOX = new Uint8Array(256);
+const T0 = new Int32Array(256);
+const T1 = new Int32Array(256);
+const T2 = new Int32Array(256);
+const T3 = new Int32Array(256);
 
-/*jslint indent: 2, bitwise: false, nomen: false, plusplus: false, white: false, regexp: false */
+let tablesInitialized = false;
 
-/** @fileOverview Arrays of bits, encoded as arrays of Numbers.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-/**
- * Arrays of bits, encoded as arrays of Numbers.
- * @namespace
- * @description
- * <p>
- * These objects are the currency accepted by SJCL's crypto functions.
- * </p>
- *
- * <p>
- * Most of our crypto primitives operate on arrays of 4-byte words internally,
- * but many of them can take arguments that are not a multiple of 4 bytes.
- * This library encodes arrays of bits (whose size need not be a multiple of 8
- * bits) as arrays of 32-bit words.  The bits are packed, big-endian, into an
- * array of words, 32 bits at a time.  Since the words are double-precision
- * floating point numbers, they fit some extra data.  We use this (in a private,
- * possibly-changing manner) to encode the number of bits actually  present
- * in the last word of the array.
- * </p>
- *
- * <p>
- * Because bitwise ops clear this out-of-band data, these arrays can be passed
- * to ciphers like AES which want arrays of words.
- * </p>
- */
-const bitArray = {
-	/**
-	 * Concatenate two bit arrays.
-	 * @param {bitArray} a1 The first array.
-	 * @param {bitArray} a2 The second array.
-	 * @return {bitArray} The concatenation of a1 and a2.
-	 */
-	concat(a1, a2) {
-		if (a1.length === 0 || a2.length === 0) {
-			return a1.concat(a2);
-		}
-
-		const last = a1[a1.length - 1], shift = bitArray.getPartial(last);
-		if (shift === 32) {
-			return a1.concat(a2);
-		} else {
-			return bitArray._shiftRight(a2, shift, last | 0, a1.slice(0, a1.length - 1));
-		}
-	},
-
-	/**
-	 * Find the length of an array of bits.
-	 * @param {bitArray} a The array.
-	 * @return {Number} The length of a, in bits.
-	 */
-	bitLength(a) {
-		const l = a.length;
-		if (l === 0) {
-			return 0;
-		}
-		const x = a[l - 1];
-		return (l - 1) * 32 + bitArray.getPartial(x);
-	},
-
-	/**
-	 * Truncate an array.
-	 * @param {bitArray} a The array.
-	 * @param {Number} len The length to truncate to, in bits.
-	 * @return {bitArray} A new array, truncated to len bits.
-	 */
-	clamp(a, len) {
-		if (a.length * 32 < len) {
-			return a;
-		}
-		a = a.slice(0, Math.ceil(len / 32));
-		const l = a.length;
-		len = len & 31;
-		if (l > 0 && len) {
-			a[l - 1] = bitArray.partial(len, a[l - 1] & 0x80000000 >> (len - 1), 1);
-		}
-		return a;
-	},
-
-	/**
-	 * Make a partial word for a bit array.
-	 * @param {Number} len The number of bits in the word.
-	 * @param {Number} x The bits.
-	 * @param {Number} [_end=0] Pass 1 if x has already been shifted to the high side.
-	 * @return {Number} The partial word.
-	 */
-	partial(len, x, _end) {
-		if (len === 32) {
-			return x;
-		}
-		return (_end ? x | 0 : x << (32 - len)) + len * 0x10000000000;
-	},
-
-	/**
-	 * Get the number of bits used by a partial word.
-	 * @param {Number} x The partial word.
-	 * @return {Number} The number of bits used by the partial word.
-	 */
-	getPartial(x) {
-		return Math.round(x / 0x10000000000) || 32;
-	},
-
-	/** Shift an array right.
-	 * @param {bitArray} a The array to shift.
-	 * @param {Number} shift The number of bits to shift.
-	 * @param {Number} [carry=0] A byte to carry in
-	 * @param {bitArray} [out=[]] An array to prepend to the output.
-	 * @private
-	 */
-	_shiftRight(a, shift, carry, out) {
-		if (out === undefined) {
-			out = [];
-		}
-
-		for (; shift >= 32; shift -= 32) {
-			out.push(carry);
-			carry = 0;
-		}
-		if (shift === 0) {
-			return out.concat(a);
-		}
-
-		for (let i = 0; i < a.length; i++) {
-			out.push(carry | a[i] >>> shift);
-			carry = a[i] << (32 - shift);
-		}
-		const last2 = a.length ? a[a.length - 1] : 0;
-		const shift2 = bitArray.getPartial(last2);
-		out.push(bitArray.partial(shift + shift2 & 31, (shift + shift2 > 32) ? carry : out.pop(), 1));
-		return out;
-	}
-};
-
-/** @fileOverview Bit array codec implementations.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-/**
- * Arrays of bytes
- * @namespace
- */
-const codec = {
-	bytes: {
-		/** Convert from a bitArray to an array of bytes. */
-		fromBits(arr) {
-			const bl = bitArray.bitLength(arr);
-			const byteLength = bl / 8;
-			const out = new Uint8Array(byteLength);
-			let tmp;
-			for (let i = 0; i < byteLength; i++) {
-				if ((i & 3) === 0) {
-					tmp = arr[i / 4];
-				}
-				out[i] = tmp >>> 24;
-				tmp <<= 8;
+function createEngine(key, authenticationKey) {
+	initTables();
+	const roundKeys = new Int32Array(ROUND_KEYS_LENGTH);
+	const rounds = expandKey(key, roundKeys);
+	const counter = new Uint8Array(BLOCK_LENGTH$1);
+	const keystream = new Int32Array(BLOCK_LENGTH$1 / 4);
+	const hmac = createHmac(authenticationKey);
+	return {
+		process(data, decrypt) {
+			if (decrypt) {
+				hmac.update(data, 0, data.length);
 			}
-			return out;
+			encrypt(data);
+			if (!decrypt) {
+				hmac.update(data, 0, data.length);
+			}
 		},
-		/** Convert from an array of bytes to a bitArray. */
-		toBits(bytes) {
-			const out = [];
-			let i;
-			let tmp = 0;
-			for (i = 0; i < bytes.length; i++) {
-				tmp = tmp << 8 | bytes[i];
-				if ((i & 3) === 3) {
-					out.push(tmp);
-					tmp = 0;
-				}
-			}
-			if (i & 3) {
-				out.push(bitArray.partial(8 * (i & 3), tmp));
-			}
-			return out;
+		digest() {
+			return hmac.digest();
 		}
-	}
-};
+	};
 
-const hash = {};
-
-/**
- * Context for a SHA-1 operation in progress.
- * @constructor
- */
-hash.sha1 = class {
-	constructor(hash) {
-		const sha1 = this;
-		/**
-		 * The hash's block size, in bits.
-		 * @constant
-		 */
-		sha1.blockSize = 512;
-		/**
-		 * The SHA-1 initialization vector.
-		 * @private
-		 */
-		sha1._init = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
-		/**
-		 * The SHA-1 hash key.
-		 * @private
-		 */
-		sha1._key = [0x5A827999, 0x6ED9EBA1, 0x8F1BBCDC, 0xCA62C1D6];
-		if (hash) {
-			sha1._h = hash._h.slice(0);
-			sha1._buffer = hash._buffer.slice(0);
-			sha1._length = hash._length;
-		} else {
-			sha1.reset();
+	function encrypt(data) {
+		const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+		const length = data.length;
+		let offset = 0;
+		for (; offset + BLOCK_LENGTH$1 <= length; offset += BLOCK_LENGTH$1) {
+			nextKeystream();
+			view.setInt32(offset, view.getInt32(offset) ^ keystream[0]);
+			view.setInt32(offset + 4, view.getInt32(offset + 4) ^ keystream[1]);
+			view.setInt32(offset + 8, view.getInt32(offset + 8) ^ keystream[2]);
+			view.setInt32(offset + 12, view.getInt32(offset + 12) ^ keystream[3]);
 		}
-	}
-
-	/**
-	 * Reset the hash state.
-	 * @return this
-	 */
-	reset() {
-		const sha1 = this;
-		sha1._h = sha1._init.slice(0);
-		sha1._buffer = [];
-		sha1._length = 0;
-		return sha1;
-	}
-
-	/**
-	 * Input several words to the hash.
-	 * @param {bitArray|String} data the data to hash.
-	 * @return this
-	 */
-	update(data) {
-		const sha1 = this;
-		if (typeof data === "string") {
-			data = codec.utf8String.toBits(data);
-		}
-		const b = sha1._buffer = bitArray.concat(sha1._buffer, data);
-		const ol = sha1._length;
-		const nl = sha1._length = ol + bitArray.bitLength(data);
-		if (nl > 9007199254740991) {
-			throw new Error("Cannot hash more than 2^53 - 1 bits");
-		}
-		const c = new Uint32Array(b);
-		let j = 0;
-		for (let i = sha1.blockSize + ol - ((sha1.blockSize + ol) & (sha1.blockSize - 1)); i <= nl;
-			i += sha1.blockSize) {
-			sha1._block(c.subarray(16 * j, 16 * (j + 1)));
-			j += 1;
-		}
-		b.splice(0, 16 * j);
-		return sha1;
-	}
-
-	/**
-	 * Complete hashing and output the hash value.
-	 * @return {bitArray} The hash value, an array of 5 big-endian words. TODO
-	 */
-	finalize() {
-		const sha1 = this;
-		let b = sha1._buffer;
-		const h = sha1._h;
-
-		// Round out and push the buffer
-		b = bitArray.concat(b, [bitArray.partial(1, 1)]);
-		// Round out the buffer to a multiple of 16 words, less the 2 length words.
-		for (let i = b.length + 2; i & 15; i++) {
-			b.push(0);
-		}
-
-		// append the length
-		b.push(Math.floor(sha1._length / 0x100000000));
-		b.push(sha1._length | 0);
-
-		while (b.length) {
-			sha1._block(b.splice(0, 16));
-		}
-
-		sha1.reset();
-		return h;
-	}
-
-	/**
-	 * The SHA-1 logical functions f(0), f(1), ..., f(79).
-	 * @private
-	 */
-	_f(t, b, c, d) {
-		if (t <= 19) {
-			return (b & c) | (~b & d);
-		} else if (t <= 39) {
-			return b ^ c ^ d;
-		} else if (t <= 59) {
-			return (b & c) | (b & d) | (c & d);
-		} else if (t <= 79) {
-			return b ^ c ^ d;
-		}
-	}
-
-	/**
-	 * Circular left-shift operator.
-	 * @private
-	 */
-	_S(n, x) {
-		return (x << n) | (x >>> 32 - n);
-	}
-
-	/**
-	 * Perform one cycle of SHA-1.
-	 * @param {Uint32Array|bitArray} words one block of words.
-	 * @private
-	 */
-	_block(words) {
-		const sha1 = this;
-		const h = sha1._h;
-		// When words is passed to _block, it has 16 elements. SHA1 _block
-		// function extends words with new elements (at the end there are 80 elements). 
-		// The problem is that if we use Uint32Array instead of Array, 
-		// the length of Uint32Array cannot be changed. Thus, we replace words with a 
-		// normal Array here.
-		const w = Array(80); // do not use Uint32Array here as the instantiation is slower
-		for (let j = 0; j < 16; j++) {
-			w[j] = words[j];
-		}
-
-		let a = h[0];
-		let b = h[1];
-		let c = h[2];
-		let d = h[3];
-		let e = h[4];
-
-		for (let t = 0; t <= 79; t++) {
-			if (t >= 16) {
-				w[t] = sha1._S(1, w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16]);
-			}
-			const tmp = (sha1._S(5, a) + sha1._f(t, b, c, d) + e + w[t] +
-				sha1._key[Math.floor(t / 20)]) | 0;
-			e = d;
-			d = c;
-			c = sha1._S(30, b);
-			b = a;
-			a = tmp;
-		}
-
-		h[0] = (h[0] + a) | 0;
-		h[1] = (h[1] + b) | 0;
-		h[2] = (h[2] + c) | 0;
-		h[3] = (h[3] + d) | 0;
-		h[4] = (h[4] + e) | 0;
-	}
-};
-
-/** @fileOverview Low-level AES implementation.
- *
- * This file contains a low-level implementation of AES, optimized for
- * size and for efficiency on several browsers.  It is based on
- * OpenSSL's aes_core.c, a public-domain implementation by Vincent
- * Rijmen, Antoon Bosselaers and Paulo Barreto.
- *
- * An older version of this implementation is available in the public
- * domain, but this one is (c) Emily Stark, Mike Hamburg, Dan Boneh,
- * Stanford University 2008-2010 and BSD-licensed for liability
- * reasons.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-const cipher = {};
-
-/**
- * Schedule out an AES key for both encryption and decryption.  This
- * is a low-level class.  Use a cipher mode to do bulk encryption.
- *
- * @constructor
- * @param {Array} key The key as an array of 4, 6 or 8 words.
- */
-cipher.aes = class {
-	constructor(key) {
-		/**
-		 * The expanded S-box and inverse S-box tables.  These will be computed
-		 * on the client so that we don't have to send them down the wire.
-		 *
-		 * There are two tables, _tables[0] is for encryption and
-		 * _tables[1] is for decryption.
-		 *
-		 * The first 4 sub-tables are the expanded S-box with MixColumns.  The
-		 * last (_tables[01][4]) is the S-box itself.
-		 *
-		 * @private
-		 */
-		const aes = this;
-		aes._tables = [[[], [], [], [], []], [[], [], [], [], []]];
-
-		if (!aes._tables[0][0][0]) {
-			aes._precompute();
-		}
-
-		const sbox = aes._tables[0][4];
-		const decTable = aes._tables[1];
-		const keyLen = key.length;
-
-		let i, encKey, decKey, rcon = 1;
-
-		if (keyLen !== 4 && keyLen !== 6 && keyLen !== 8) {
-			throw new Error("invalid aes key size");
-		}
-
-		aes._key = [encKey = key.slice(0), decKey = []];
-
-		// schedule encryption keys
-		for (i = keyLen; i < 4 * keyLen + 28; i++) {
-			let tmp = encKey[i - 1];
-
-			// apply sbox
-			if (i % keyLen === 0 || (keyLen === 8 && i % keyLen === 4)) {
-				tmp = sbox[tmp >>> 24] << 24 ^ sbox[tmp >> 16 & 255] << 16 ^ sbox[tmp >> 8 & 255] << 8 ^ sbox[tmp & 255];
-
-				// shift rows and add rcon
-				if (i % keyLen === 0) {
-					tmp = tmp << 8 ^ tmp >>> 24 ^ rcon << 24;
-					rcon = rcon << 1 ^ (rcon >> 7) * 283;
-				}
-			}
-
-			encKey[i] = encKey[i - keyLen] ^ tmp;
-		}
-
-		// schedule decryption keys
-		for (let j = 0; i; j++, i--) {
-			const tmp = encKey[j & 3 ? i : i - 4];
-			if (i <= 4 || j < 4) {
-				decKey[j] = tmp;
-			} else {
-				decKey[j] = decTable[0][sbox[tmp >>> 24]] ^
-					decTable[1][sbox[tmp >> 16 & 255]] ^
-					decTable[2][sbox[tmp >> 8 & 255]] ^
-					decTable[3][sbox[tmp & 255]];
+		if (offset < length) {
+			nextKeystream();
+			for (let indexByte = 0; offset < length; offset++, indexByte++) {
+				data[offset] ^= keystream[indexByte >> 2] >>> (24 - 8 * (indexByte & 3));
 			}
 		}
 	}
-	// public
-	/* Something like this might appear here eventually
-	name: "AES",
-	blockSize: 4,
-	keySizes: [4,6,8],
-	*/
 
-	/**
-	 * Encrypt an array of 4 big-endian words.
-	 * @param {Array} data The plaintext.
-	 * @return {Array} The ciphertext.
-	 */
-	encrypt(data) {
-		return this._crypt(data, 0);
-	}
-
-	/**
-	 * Decrypt an array of 4 big-endian words.
-	 * @param {Array} data The ciphertext.
-	 * @return {Array} The plaintext.
-	 */
-	decrypt(data) {
-		return this._crypt(data, 1);
-	}
-
-	/**
-	 * Expand the S-box tables.
-	 *
-	 * @private
-	 */
-	_precompute() {
-		const encTable = this._tables[0];
-		const decTable = this._tables[1];
-		const sbox = encTable[4];
-		const sboxInv = decTable[4];
-		const d = [];
-		const th = [];
-		let xInv, x2, x4, x8;
-
-		// Compute double and third tables
-		for (let i = 0; i < 256; i++) {
-			th[(d[i] = i << 1 ^ (i >> 7) * 283) ^ i] = i;
-		}
-
-		for (let x = xInv = 0; !sbox[x]; x ^= x2 || 1, xInv = th[xInv] || 1) {
-			// Compute sbox
-			let s = xInv ^ xInv << 1 ^ xInv << 2 ^ xInv << 3 ^ xInv << 4;
-			s = s >> 8 ^ s & 255 ^ 99;
-			sbox[x] = s;
-			sboxInv[s] = x;
-
-			// Compute MixColumns
-			x8 = d[x4 = d[x2 = d[x]]];
-			let tDec = x8 * 0x1010101 ^ x4 * 0x10001 ^ x2 * 0x101 ^ x * 0x1010100;
-			let tEnc = d[s] * 0x101 ^ s * 0x1010100;
-
-			for (let i = 0; i < 4; i++) {
-				encTable[i][x] = tEnc = tEnc << 24 ^ tEnc >>> 8;
-				decTable[i][s] = tDec = tDec << 24 ^ tDec >>> 8;
+	function nextKeystream() {
+		for (let indexByte = 0; indexByte < BLOCK_LENGTH$1; indexByte++) {
+			counter[indexByte]++;
+			if (counter[indexByte] !== 0) {
+				break;
 			}
 		}
-
-		// Compactify.  Considerable speedup on Firefox.
-		for (let i = 0; i < 5; i++) {
-			encTable[i] = encTable[i].slice(0);
-			decTable[i] = decTable[i].slice(0);
+		let s0 = ((counter[0] << 24) | (counter[1] << 16) | (counter[2] << 8) | counter[3]) ^ roundKeys[0];
+		let s1 = ((counter[4] << 24) | (counter[5] << 16) | (counter[6] << 8) | counter[7]) ^ roundKeys[1];
+		let s2 = ((counter[8] << 24) | (counter[9] << 16) | (counter[10] << 8) | counter[11]) ^ roundKeys[2];
+		let s3 = ((counter[12] << 24) | (counter[13] << 16) | (counter[14] << 8) | counter[15]) ^ roundKeys[3];
+		let indexKey = 4;
+		for (let round = 1; round < rounds; round++, indexKey += 4) {
+			const t0 = T0[s0 >>> 24] ^ T1[(s1 >>> 16) & 255] ^ T2[(s2 >>> 8) & 255] ^ T3[s3 & 255] ^ roundKeys[indexKey];
+			const t1 = T0[s1 >>> 24] ^ T1[(s2 >>> 16) & 255] ^ T2[(s3 >>> 8) & 255] ^ T3[s0 & 255] ^ roundKeys[indexKey + 1];
+			const t2 = T0[s2 >>> 24] ^ T1[(s3 >>> 16) & 255] ^ T2[(s0 >>> 8) & 255] ^ T3[s1 & 255] ^ roundKeys[indexKey + 2];
+			const t3 = T0[s3 >>> 24] ^ T1[(s0 >>> 16) & 255] ^ T2[(s1 >>> 8) & 255] ^ T3[s2 & 255] ^ roundKeys[indexKey + 3];
+			s0 = t0;
+			s1 = t1;
+			s2 = t2;
+			s3 = t3;
 		}
+		keystream[0] = ((S_BOX[s0 >>> 24] << 24) | (S_BOX[(s1 >>> 16) & 255] << 16) | (S_BOX[(s2 >>> 8) & 255] << 8) | S_BOX[s3 & 255]) ^ roundKeys[indexKey];
+		keystream[1] = ((S_BOX[s1 >>> 24] << 24) | (S_BOX[(s2 >>> 16) & 255] << 16) | (S_BOX[(s3 >>> 8) & 255] << 8) | S_BOX[s0 & 255]) ^ roundKeys[indexKey + 1];
+		keystream[2] = ((S_BOX[s2 >>> 24] << 24) | (S_BOX[(s3 >>> 16) & 255] << 16) | (S_BOX[(s0 >>> 8) & 255] << 8) | S_BOX[s1 & 255]) ^ roundKeys[indexKey + 2];
+		keystream[3] = ((S_BOX[s3 >>> 24] << 24) | (S_BOX[(s0 >>> 16) & 255] << 16) | (S_BOX[(s1 >>> 8) & 255] << 8) | S_BOX[s2 & 255]) ^ roundKeys[indexKey + 3];
 	}
+}
 
-	/**
-	 * Encryption and decryption core.
-	 * @param {Array} input Four words to be encrypted or decrypted.
-	 * @param dir The direction, 0 for encrypt and 1 for decrypt.
-	 * @return {Array} The four encrypted or decrypted words.
-	 * @private
-	 */
-	_crypt(input, dir) {
-		if (input.length !== 4) {
-			throw new Error("invalid aes block size");
-		}
-
-		const key = this._key[dir];
-
-		const nInnerRounds = key.length / 4 - 2;
-		const out = [0, 0, 0, 0];
-		const table = this._tables[dir];
-
-		// load up the tables
-		const t0 = table[0];
-		const t1 = table[1];
-		const t2 = table[2];
-		const t3 = table[3];
-		const sbox = table[4];
-
-		// state variables a,b,c,d are loaded with pre-whitened data
-		let a = input[0] ^ key[0];
-		let b = input[dir ? 3 : 1] ^ key[1];
-		let c = input[2] ^ key[2];
-		let d = input[dir ? 1 : 3] ^ key[3];
-		let kIndex = 4;
-		let a2, b2, c2;
-
-		// Inner rounds.  Cribbed from OpenSSL.
-		for (let i = 0; i < nInnerRounds; i++) {
-			a2 = t0[a >>> 24] ^ t1[b >> 16 & 255] ^ t2[c >> 8 & 255] ^ t3[d & 255] ^ key[kIndex];
-			b2 = t0[b >>> 24] ^ t1[c >> 16 & 255] ^ t2[d >> 8 & 255] ^ t3[a & 255] ^ key[kIndex + 1];
-			c2 = t0[c >>> 24] ^ t1[d >> 16 & 255] ^ t2[a >> 8 & 255] ^ t3[b & 255] ^ key[kIndex + 2];
-			d = t0[d >>> 24] ^ t1[a >> 16 & 255] ^ t2[b >> 8 & 255] ^ t3[c & 255] ^ key[kIndex + 3];
-			kIndex += 4;
-			a = a2; b = b2; c = c2;
-		}
-
-		// Last round.
-		for (let i = 0; i < 4; i++) {
-			out[dir ? 3 & -i : i] =
-				sbox[a >>> 24] << 24 ^
-				sbox[b >> 16 & 255] << 16 ^
-				sbox[c >> 8 & 255] << 8 ^
-				sbox[d & 255] ^
-				key[kIndex++];
-			a2 = a; a = b; b = c; c = d; d = a2;
-		}
-
-		return out;
-	}
-};
-
-/** @fileOverview CTR mode implementation.
- *
- * Special thanks to Roy Nicholson for pointing out a bug in our
- * implementation.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-/** Brian Gladman's CTR Mode.
-* @constructor
-* @param {Object} _prf The aes instance to generate key.
-* @param {bitArray} _iv The iv for ctr mode, it must be 128 bits.
-*/
-
-const mode = {};
-
-/**
- * Brian Gladman's CTR Mode.
- * @namespace
- */
-mode.ctrGladman = class {
-	constructor(prf, iv) {
-		this._prf = prf;
-		this._initIv = iv;
-		this._iv = iv;
-	}
-
-	reset() {
-		this._iv = this._initIv;
-	}
-
-	/** Input some data to calculate.
-	 * @param {bitArray} data the data to process, it must be intergral multiple of 128 bits unless it's the last.
-	 */
-	update(data) {
-		return this.calculate(this._prf, data, this._iv);
-	}
-
-	incWord(word) {
-		if (((word >> 24) & 0xff) === 0xff) { //overflow
-			let b1 = (word >> 16) & 0xff;
-			let b2 = (word >> 8) & 0xff;
-			let b3 = word & 0xff;
-
-			if (b1 === 0xff) { // overflow b1   
-				b1 = 0;
-				if (b2 === 0xff) {
-					b2 = 0;
-					if (b3 === 0xff) {
-						b3 = 0;
-					} else {
-						++b3;
-					}
-				} else {
-					++b2;
-				}
-			} else {
-				++b1;
-			}
-
-			word = 0;
-			word += (b1 << 16);
-			word += (b2 << 8);
-			word += b3;
-		} else {
-			word += (0x01 << 24);
-		}
-		return word;
-	}
-
-	incCounter(counter) {
-		if ((counter[0] = this.incWord(counter[0])) === 0) {
-			// encr_data in fileenc.c from  Dr Brian Gladman's counts only with DWORD j < 8
-			counter[1] = this.incWord(counter[1]);
-		}
-	}
-
-	calculate(prf, data, iv) {
-		let l;
-		if (!(l = data.length)) {
-			return [];
-		}
-		const bl = bitArray.bitLength(data);
-		for (let i = 0; i < l; i += 4) {
-			this.incCounter(iv);
-			const e = prf.encrypt(iv);
-			data[i] ^= e[0];
-			data[i + 1] ^= e[1];
-			data[i + 2] ^= e[2];
-			data[i + 3] ^= e[3];
-		}
-		return bitArray.clamp(data, bl);
-	}
-};
-
-const misc = {
-	importKey(password) {
-		return new misc.hmacSha1(codec.bytes.toBits(password));
-	},
-	pbkdf2(prf, salt, count, length) {
-		count = count || 10000;
-		if (length < 0 || count < 0) {
-			throw new Error("invalid params to pbkdf2");
-		}
-		const byteLength = ((length >> 5) + 1) << 2;
-		let u, ui, i, j, k;
-		const arrayBuffer = new ArrayBuffer(byteLength);
-		const out = new DataView(arrayBuffer);
-		let outLength = 0;
-		const b = bitArray;
-		salt = codec.bytes.toBits(salt);
-		for (k = 1; outLength < (byteLength || 1); k++) {
-			u = ui = prf.encrypt(b.concat(salt, [k]));
-			for (i = 1; i < count; i++) {
-				ui = prf.encrypt(ui);
-				for (j = 0; j < ui.length; j++) {
-					u[j] ^= ui[j];
-				}
-			}
-			for (i = 0; outLength < (byteLength || 1) && i < u.length; i++) {
-				out.setInt32(outLength, u[i]);
-				outLength += 4;
+function pbkdf2(password, salt, iterations, length) {
+	const hmac = createHmac(password);
+	const result = new Uint8Array(length);
+	const block = new Uint8Array(salt.length + 4);
+	const blockView = new DataView(block.buffer);
+	block.set(salt);
+	for (let indexBlock = 1, offset = 0; offset < length; indexBlock++, offset += SHA1_DIGEST_LENGTH) {
+		blockView.setUint32(salt.length, indexBlock);
+		hmac.update(block, 0, block.length);
+		let previous = hmac.digest();
+		const output = previous.slice();
+		for (let iteration = 1; iteration < iterations; iteration++) {
+			hmac.update(previous, 0, SHA1_DIGEST_LENGTH);
+			previous = hmac.digest();
+			for (let indexByte = 0; indexByte < SHA1_DIGEST_LENGTH; indexByte++) {
+				output[indexByte] ^= previous[indexByte];
 			}
 		}
-		return arrayBuffer.slice(0, length / 8);
+		result.set(output.subarray(0, Math.min(SHA1_DIGEST_LENGTH, length - offset)), offset);
 	}
-};
+	return result;
+}
 
-/** @fileOverview HMAC implementation.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-/** HMAC with the specified hash function.
- * @constructor
- * @param {bitArray} key the key for HMAC.
- * @param {Object} [Hash=hash.sha1] The hash function to use.
- */
-misc.hmacSha1 = class {
-
-	constructor(key) {
-		const hmac = this;
-		const Hash = hmac._hash = hash.sha1;
-		const exKey = [[], []];
-		hmac._baseHash = [new Hash(), new Hash()];
-		const bs = hmac._baseHash[0].blockSize / 32;
-
-		if (key.length > bs) {
-			key = new Hash().update(key).finalize();
+function createHmac(key) {
+	const sha1 = createSha1();
+	const innerKey = new Uint8Array(SHA1_BLOCK_LENGTH);
+	const outerKey = new Uint8Array(SHA1_BLOCK_LENGTH);
+	if (key.length > SHA1_BLOCK_LENGTH) {
+		sha1.update(key, 0, key.length);
+		key = sha1.digest();
+	}
+	for (let indexByte = 0; indexByte < SHA1_BLOCK_LENGTH; indexByte++) {
+		const keyByte = indexByte < key.length ? key[indexByte] : 0;
+		innerKey[indexByte] = keyByte ^ HMAC_INNER_PADDING;
+		outerKey[indexByte] = keyByte ^ HMAC_OUTER_PADDING;
+	}
+	sha1.update(innerKey, 0, SHA1_BLOCK_LENGTH);
+	return {
+		update(data, offset, length) {
+			sha1.update(data, offset, length);
+		},
+		digest() {
+			const innerDigest = sha1.digest();
+			sha1.update(outerKey, 0, SHA1_BLOCK_LENGTH);
+			sha1.update(innerDigest, 0, SHA1_DIGEST_LENGTH);
+			const result = sha1.digest();
+			sha1.update(innerKey, 0, SHA1_BLOCK_LENGTH);
+			return result;
 		}
+	};
+}
 
-		for (let i = 0; i < bs; i++) {
-			exKey[0][i] = key[i] ^ 0x36363636;
-			exKey[1][i] = key[i] ^ 0x5C5C5C5C;
+function createSha1() {
+	const state = new Int32Array(SHA1_INITIAL_STATE);
+	const schedule = new Int32Array(SHA1_SCHEDULE_LENGTH);
+	const block = new Uint8Array(SHA1_BLOCK_LENGTH);
+	const blockView = new DataView(block.buffer);
+	const lengthBytes = new Uint8Array(8);
+	let blockLength = 0;
+	let totalLength = 0;
+	return {
+		update,
+		digest
+	};
+
+	function update(data, offset, length) {
+		const end = offset + length;
+		totalLength += length;
+		if (blockLength) {
+			while (offset < end && blockLength < SHA1_BLOCK_LENGTH) {
+				block[blockLength++] = data[offset++];
+			}
+			if (blockLength == SHA1_BLOCK_LENGTH) {
+				compress(blockView, 0);
+				blockLength = 0;
+			}
 		}
-
-		hmac._baseHash[0].update(exKey[0]);
-		hmac._baseHash[1].update(exKey[1]);
-		hmac._resultHash = new Hash(hmac._baseHash[0]);
-	}
-	reset() {
-		const hmac = this;
-		hmac._resultHash = new hmac._hash(hmac._baseHash[0]);
-		hmac._updated = false;
-	}
-
-	update(data) {
-		const hmac = this;
-		hmac._updated = true;
-		hmac._resultHash.update(data);
+		if (offset + SHA1_BLOCK_LENGTH <= end) {
+			const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+			for (; offset + SHA1_BLOCK_LENGTH <= end; offset += SHA1_BLOCK_LENGTH) {
+				compress(view, offset);
+			}
+		}
+		while (offset < end) {
+			block[blockLength++] = data[offset++];
+		}
 	}
 
-	digest() {
-		const hmac = this;
-		const w = hmac._resultHash.finalize();
-		const result = new (hmac._hash)(hmac._baseHash[1]).update(w).finalize();
-
-		hmac.reset();
-
+	function digest() {
+		const bits = totalLength * 8;
+		const high = Math.floor(bits / 0x100000000);
+		const low = bits >>> 0;
+		update(SHA1_PADDING, 0, 1);
+		while (blockLength != SHA1_LENGTH_OFFSET) {
+			update(SHA1_ZERO, 0, 1);
+		}
+		lengthBytes[0] = high >>> 24;
+		lengthBytes[1] = high >>> 16;
+		lengthBytes[2] = high >>> 8;
+		lengthBytes[3] = high;
+		lengthBytes[4] = low >>> 24;
+		lengthBytes[5] = low >>> 16;
+		lengthBytes[6] = low >>> 8;
+		lengthBytes[7] = low;
+		update(lengthBytes, 0, 8);
+		const result = new Uint8Array(SHA1_DIGEST_LENGTH);
+		const resultView = new DataView(result.buffer);
+		for (let indexWord = 0; indexWord < state.length; indexWord++) {
+			resultView.setInt32(4 * indexWord, state[indexWord]);
+		}
+		state.set(SHA1_INITIAL_STATE);
+		blockLength = 0;
+		totalLength = 0;
 		return result;
 	}
 
-	encrypt(data) {
-		if (!this._updated) {
-			this.update(data);
-			return this.digest(data);
-		} else {
-			throw new Error("encrypt on already updated hmac called!");
+	function compress(view, offset) {
+		for (let index = 0; index < 16; index++) {
+			schedule[index] = view.getInt32(offset + 4 * index);
 		}
+		for (let index = 16; index < SHA1_SCHEDULE_LENGTH; index++) {
+			const word = schedule[index - 3] ^ schedule[index - 8] ^ schedule[index - 14] ^ schedule[index - 16];
+			schedule[index] = (word << 1) | (word >>> 31);
+		}
+		let a = state[0];
+		let b = state[1];
+		let c = state[2];
+		let d = state[3];
+		let e = state[4];
+		let t;
+		for (let index = 0; index < 20; index++) {
+			t = (((a << 5) | (a >>> 27)) + ((b & c) | (~b & d)) + e + 0x5A827999 + schedule[index]) | 0;
+			e = d;
+			d = c;
+			c = (b << 30) | (b >>> 2);
+			b = a;
+			a = t;
+		}
+		for (let index = 20; index < 40; index++) {
+			t = (((a << 5) | (a >>> 27)) + (b ^ c ^ d) + e + 0x6ED9EBA1 + schedule[index]) | 0;
+			e = d;
+			d = c;
+			c = (b << 30) | (b >>> 2);
+			b = a;
+			a = t;
+		}
+		for (let index = 40; index < 60; index++) {
+			t = (((a << 5) | (a >>> 27)) + ((b & c) | (b & d) | (c & d)) + e + 0x8F1BBCDC + schedule[index]) | 0;
+			e = d;
+			d = c;
+			c = (b << 30) | (b >>> 2);
+			b = a;
+			a = t;
+		}
+		for (let index = 60; index < SHA1_SCHEDULE_LENGTH; index++) {
+			t = (((a << 5) | (a >>> 27)) + (b ^ c ^ d) + e + 0xCA62C1D6 + schedule[index]) | 0;
+			e = d;
+			d = c;
+			c = (b << 30) | (b >>> 2);
+			b = a;
+			a = t;
+		}
+		state[0] = (state[0] + a) | 0;
+		state[1] = (state[1] + b) | 0;
+		state[2] = (state[2] + c) | 0;
+		state[3] = (state[3] + d) | 0;
+		state[4] = (state[4] + e) | 0;
 	}
-};
+}
+
+function initTables() {
+	if (!tablesInitialized) {
+		let p = 1;
+		let q = 1;
+		do {
+			p = (p ^ (p << 1) ^ ((p & 0x80) ? 0x1b : 0)) & 255;
+			q = (q ^ (q << 1)) & 255;
+			q = (q ^ (q << 2)) & 255;
+			q = (q ^ (q << 4)) & 255;
+			if (q & 0x80) {
+				q ^= 0x09;
+			}
+			S_BOX[p] = (q ^ ((q << 1) | (q >> 7)) ^ ((q << 2) | (q >> 6)) ^ ((q << 3) | (q >> 5)) ^ ((q << 4) | (q >> 4)) ^ 0x63) & 255;
+		} while (p != 1);
+		S_BOX[0] = 0x63;
+		for (let index = 0; index < 256; index++) {
+			const s = S_BOX[index];
+			const s2 = multiplyByTwo(s);
+			const t = (s2 << 24) | (s << 16) | (s << 8) | (s2 ^ s);
+			T0[index] = t;
+			T1[index] = (t >>> 8) | (t << 24);
+			T2[index] = (t >>> 16) | (t << 16);
+			T3[index] = (t >>> 24) | (t << 8);
+		}
+		tablesInitialized = true;
+	}
+}
+
+function expandKey(key, roundKeys) {
+	const keyWords = key.length >> 2;
+	const rounds = keyWords + 6;
+	const total = 4 * (rounds + 1);
+	let roundConstant = 1;
+	for (let index = 0; index < keyWords; index++) {
+		roundKeys[index] = (key[4 * index] << 24) | (key[4 * index + 1] << 16) | (key[4 * index + 2] << 8) | key[4 * index + 3];
+	}
+	for (let index = keyWords; index < total; index++) {
+		let word = roundKeys[index - 1];
+		if (index % keyWords == 0) {
+			word = substituteWord((word << 8) | (word >>> 24)) ^ (roundConstant << 24);
+			roundConstant = multiplyByTwo(roundConstant);
+		} else if (keyWords > 6 && index % keyWords == 4) {
+			word = substituteWord(word);
+		}
+		roundKeys[index] = roundKeys[index - keyWords] ^ word;
+	}
+	return rounds;
+}
+
+function substituteWord(word) {
+	return (S_BOX[word >>> 24] << 24) | (S_BOX[(word >>> 16) & 255] << 16) | (S_BOX[(word >>> 8) & 255] << 8) | S_BOX[word & 255];
+}
+
+function multiplyByTwo(value) {
+	return ((value << 1) ^ ((value >> 7) * 0x1b)) & 255;
+}
 
 /*
  Copyright (c) 2022 Gildas Lormeau. All rights reserved.
@@ -1573,8 +1128,8 @@ function getRandomValues(array) {
  1. Redistributions of source code must retain the above copyright notice,
  this list of conditions and the following disclaimer.
 
- 2. Redistributions in binary form must reproduce the above copyright 
- notice, this list of conditions and the following disclaimer in 
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
  the documentation and/or other materials provided with the distribution.
 
  3. The names of the authors may not be used to endorse or promote products
@@ -1598,24 +1153,20 @@ const RAW_FORMAT = "raw";
 const PBKDF2_ALGORITHM = { name: "PBKDF2" };
 const HASH_ALGORITHM = { name: "HMAC" };
 const HASH_FUNCTION = "SHA-1";
+const PBKDF2_ITERATIONS = 1000;
 const BASE_KEY_ALGORITHM = Object.assign({ hash: HASH_ALGORITHM }, PBKDF2_ALGORITHM);
-const DERIVED_BITS_ALGORITHM = Object.assign({ iterations: 1000, hash: { name: HASH_FUNCTION } }, PBKDF2_ALGORITHM);
+const DERIVED_BITS_ALGORITHM = Object.assign({ iterations: PBKDF2_ITERATIONS, hash: { name: HASH_FUNCTION } }, PBKDF2_ALGORITHM);
 const DERIVED_BITS_USAGE = ["deriveBits"];
 const SALT_LENGTH = [8, 12, 16];
 const KEY_LENGTH = [16, 24, 32];
 const AUTHENTICATION_CODE_LENGTH = 10;
-const COUNTER_DEFAULT_VALUE = [0, 0, 0, 0];
+const PASSWORD_VERIFICATION_LENGTH = 2;
 // deno-lint-ignore valid-typeof
 const CRYPTO_API_SUPPORTED = typeof crypto != UNDEFINED_TYPE;
 const subtle = CRYPTO_API_SUPPORTED && crypto.subtle;
 const SUBTLE_API_SUPPORTED = CRYPTO_API_SUPPORTED && typeof subtle != UNDEFINED_TYPE;
-const codecBytes = codec.bytes;
-const Aes = cipher.aes;
-const CtrGladman = mode.ctrGladman;
-const HmacSha1 = misc.hmacSha1;
 
-let IMPORT_KEY_SUPPORTED = CRYPTO_API_SUPPORTED && SUBTLE_API_SUPPORTED && typeof subtle.importKey == FUNCTION_TYPE;
-let DERIVE_BITS_SUPPORTED = CRYPTO_API_SUPPORTED && SUBTLE_API_SUPPORTED && typeof subtle.deriveBits == FUNCTION_TYPE;
+let DERIVE_BITS_SUPPORTED = SUBTLE_API_SUPPORTED && typeof subtle.importKey == FUNCTION_TYPE && typeof subtle.deriveBits == FUNCTION_TYPE;
 
 class AESDecryptionStream extends TransformStream {
 
@@ -1633,8 +1184,8 @@ class AESDecryptionStream extends TransformStream {
 					ready
 				} = aesCrypto;
 				if (password) {
-					await createDecryptionKeys(aesCrypto, strength, password, subarray(chunk, 0, SALT_LENGTH[strength] + 2));
-					chunk = subarray(chunk, SALT_LENGTH[strength] + 2);
+					await createDecryptionKeys(aesCrypto, strength, password, subarray(chunk, 0, SALT_LENGTH[strength] + PASSWORD_VERIFICATION_LENGTH));
+					chunk = subarray(chunk, SALT_LENGTH[strength] + PASSWORD_VERIFICATION_LENGTH);
 					if (checkPasswordOnly) {
 						controller.error(new Error(ERR_ABORT_CHECK_PASSWORD));
 					} else {
@@ -1648,23 +1199,16 @@ class AESDecryptionStream extends TransformStream {
 			},
 			async flush(controller) {
 				const {
-					ctr,
-					hmac,
+					engine,
 					pendingInput,
 					ready
 				} = this;
-				if (hmac && ctr) {
+				if (engine) {
 					await ready;
-					const chunkToDecrypt = subarray(pendingInput, 0, pendingInput.length - AUTHENTICATION_CODE_LENGTH);
 					const originalAuthenticationCode = subarray(pendingInput, pendingInput.length - AUTHENTICATION_CODE_LENGTH);
-					let decryptedChunkArray = EMPTY_UINT8_ARRAY;
-					if (chunkToDecrypt.length) {
-						const encryptedChunk = toBits(codecBytes, chunkToDecrypt);
-						hmac.update(encryptedChunk);
-						const decryptedChunk = ctr.update(encryptedChunk);
-						decryptedChunkArray = fromBits(codecBytes, decryptedChunk);
-					}
-					const authenticationCode = subarray(fromBits(codecBytes, hmac.digest()), 0, AUTHENTICATION_CODE_LENGTH);
+					const decryptedChunkArray = new Uint8Array(subarray(pendingInput, 0, pendingInput.length - AUTHENTICATION_CODE_LENGTH));
+					engine.process(decryptedChunkArray, true);
+					const authenticationCode = engine.digest();
 					let invalidAuthenticationCode = pendingInput.length < AUTHENTICATION_CODE_LENGTH ? 1 : 0;
 					for (let indexByte = 0; indexByte < AUTHENTICATION_CODE_LENGTH; indexByte++) {
 						invalidAuthenticationCode |= authenticationCode[indexByte] ^ originalAuthenticationCode[indexByte];
@@ -1703,24 +1247,19 @@ class AESEncryptionStream extends TransformStream {
 				}
 				const output = new Uint8Array(preamble.length + chunk.length - (chunk.length % BLOCK_LENGTH));
 				output.set(preamble, 0);
-				controller.enqueue(append(aesCrypto, chunk, output, preamble.length, 0));
+				controller.enqueue(append(aesCrypto, chunk, output, preamble.length, 0, false));
 			},
 			async flush(controller) {
 				const {
-					ctr,
-					hmac,
+					engine,
 					pendingInput,
 					ready
 				} = this;
-				if (hmac && ctr) {
+				if (engine) {
 					await ready;
-					let encryptedChunkArray = EMPTY_UINT8_ARRAY;
-					if (pendingInput.length) {
-						const encryptedChunk = ctr.update(toBits(codecBytes, pendingInput));
-						hmac.update(encryptedChunk);
-						encryptedChunkArray = fromBits(codecBytes, encryptedChunk);
-					}
-					const authenticationCode = fromBits(codecBytes, hmac.digest()).slice(0, AUTHENTICATION_CODE_LENGTH);
+					const encryptedChunkArray = new Uint8Array(pendingInput);
+					engine.process(encryptedChunkArray, false);
+					const authenticationCode = subarray(engine.digest(), 0, AUTHENTICATION_CODE_LENGTH);
 					controller.enqueue(concat(encryptedChunkArray, authenticationCode));
 				}
 			}
@@ -1737,10 +1276,9 @@ function initAesCrypto(aesCrypto, password, rawPassword, encryptionStrength) {
 	});
 }
 
-function append(aesCrypto, input, output, paddingStart, paddingEnd, verifyAuthenticationCode) {
+function append(aesCrypto, input, output, paddingStart, paddingEnd, decrypt) {
 	const {
-		ctr,
-		hmac,
+		engine,
 		pendingInput
 	} = aesCrypto;
 	if (pendingInput.length) {
@@ -1750,15 +1288,9 @@ function append(aesCrypto, input, output, paddingStart, paddingEnd, verifyAuthen
 	const alignedLength = inputLength - (inputLength % BLOCK_LENGTH);
 	output = expand(output, paddingStart + alignedLength);
 	if (alignedLength) {
-		const inputChunk = toBits(codecBytes, subarray(input, 0, alignedLength));
-		if (verifyAuthenticationCode) {
-			hmac.update(inputChunk);
-		}
-		const outputChunk = ctr.update(inputChunk);
-		if (!verifyAuthenticationCode) {
-			hmac.update(outputChunk);
-		}
-		output.set(fromBits(codecBytes, outputChunk), paddingStart);
+		const chunk = subarray(output, paddingStart, paddingStart + alignedLength);
+		chunk.set(subarray(input, 0, alignedLength));
+		engine.process(chunk, decrypt);
 	}
 	aesCrypto.pendingInput = subarray(input, alignedLength);
 	return output;
@@ -1780,48 +1312,22 @@ async function createEncryptionKeys(encrypt, strength, password) {
 
 async function createKeys$1(aesCrypto, strength, password, salt) {
 	aesCrypto.password = null;
-	const baseKey = await importKey(RAW_FORMAT, password, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
-	const derivedBits = await deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), baseKey, 8 * ((KEY_LENGTH[strength] * 2) + 2));
-	const compositeKey = new Uint8Array(derivedBits);
-	const key = toBits(codecBytes, subarray(compositeKey, 0, KEY_LENGTH[strength]));
-	const authentication = toBits(codecBytes, subarray(compositeKey, KEY_LENGTH[strength], KEY_LENGTH[strength] * 2));
-	const passwordVerification = subarray(compositeKey, KEY_LENGTH[strength] * 2);
-	Object.assign(aesCrypto, {
-		keys: {
-			key,
-			authentication,
-			passwordVerification
-		},
-		ctr: new CtrGladman(new Aes(key), Array.from(COUNTER_DEFAULT_VALUE)),
-		hmac: new HmacSha1(authentication)
-	});
-	return passwordVerification;
+	const keyLength = KEY_LENGTH[strength];
+	const compositeKey = await deriveKey(password, salt, keyLength * 2 + PASSWORD_VERIFICATION_LENGTH);
+	aesCrypto.engine = createEngine(subarray(compositeKey, 0, keyLength), subarray(compositeKey, keyLength, keyLength * 2));
+	return subarray(compositeKey, keyLength * 2);
 }
 
-async function importKey(format, password, algorithm, extractable, keyUsages) {
-	if (IMPORT_KEY_SUPPORTED) {
-		try {
-			return await subtle.importKey(format, password, algorithm, extractable, keyUsages);
-		} catch {
-			IMPORT_KEY_SUPPORTED = false;
-			return misc.importKey(password);
-		}
-	} else {
-		return misc.importKey(password);
-	}
-}
-
-async function deriveBits(algorithm, baseKey, length) {
+async function deriveKey(password, salt, length) {
 	if (DERIVE_BITS_SUPPORTED) {
 		try {
-			return await subtle.deriveBits(algorithm, baseKey, length);
+			const baseKey = await subtle.importKey(RAW_FORMAT, password, BASE_KEY_ALGORITHM, false, DERIVED_BITS_USAGE);
+			return new Uint8Array(await subtle.deriveBits(Object.assign({ salt }, DERIVED_BITS_ALGORITHM), baseKey, length * 8));
 		} catch {
 			DERIVE_BITS_SUPPORTED = false;
-			return misc.pbkdf2(baseKey, algorithm.salt, DERIVED_BITS_ALGORITHM.iterations, length);
 		}
-	} else {
-		return misc.pbkdf2(baseKey, algorithm.salt, DERIVED_BITS_ALGORITHM.iterations, length);
 	}
+	return pbkdf2(password, salt, PBKDF2_ITERATIONS, length);
 }
 
 function encodePassword(password, rawPassword) {
@@ -1843,13 +1349,6 @@ function expand(inputArray, length) {
 
 function subarray(array, begin, end) {
 	return array.subarray(begin, end);
-}
-
-function fromBits(codecBytes, chunk) {
-	return codecBytes.fromBits(chunk);
-}
-function toBits(codecBytes, chunk) {
-	return codecBytes.toBits(chunk);
 }
 
 /*
