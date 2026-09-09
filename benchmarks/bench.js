@@ -23,7 +23,7 @@ const LIB_LABEL = { zipjs: "@zip.js/zip.js", jszip: "jszip", fflate: "fflate", a
 
 // The benchmark plan: which ops run on which workloads.
 const PLAN = [
-	{ op: "compress", workloads: ["text-20mb", "random-20mb", "precompressed-20mb", "many-files"] },
+	{ op: "compress", workloads: ["text-20mb", "random-20mb", "many-files"] },
 	{ op: "decompress", workloads: ["text-20mb", "many-files"] },
 	{ op: "compressDisk", workloads: ["huge-256mb"] }
 ];

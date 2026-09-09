@@ -52,12 +52,6 @@ function makeRandom(rand, bytes) {
 	return buf;
 }
 
-// Already-compressed-looking data: mostly-incompressible blocks with occasional structure,
-// approximating a folder of JPEGs/media (the STORE path in a real archive).
-function makePrecompressed(rand, bytes) {
-	return makeRandom(rand, bytes);
-}
-
 function ensureDir() {
 	if (!existsSync(CORPUS_DIR)) {
 		mkdirSync(CORPUS_DIR, { recursive: true });
@@ -70,7 +64,6 @@ const MB = 1024 * 1024;
 export const WORKLOADS = {
 	"text-20mb": { kind: "single", label: "Compressible text (20 MB)", seed: 1, bytes: 20 * MB, gen: makeText },
 	"random-20mb": { kind: "single", label: "Incompressible data (20 MB)", seed: 2, bytes: 20 * MB, gen: makeRandom },
-	"precompressed-20mb": { kind: "single", label: "Already-compressed media (20 MB)", seed: 3, bytes: 20 * MB, gen: makePrecompressed },
 	"many-files": { kind: "multi", label: "5,000 small files (~2 KB each)", seed: 4, count: 5000, each: 2048, gen: makeText },
 	"huge-256mb": { kind: "disk", label: "Large file, disk-to-disk (256 MB)", seed: 5, bytes: 256 * MB, gen: makeText },
 	// A handful of large entries: enough per-entry work that running codecs in parallel matters.

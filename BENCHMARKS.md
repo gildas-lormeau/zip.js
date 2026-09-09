@@ -67,7 +67,6 @@ Time, with the size each library produced — the two are only meaningful togeth
 |---|--:|--:|--:|--:|
 | Compressible text (20 MB) | 703 ms / 6.1 MB | 1714 ms / 6.2 MB | 908 ms / 6.3 MB | **702 ms** / 6.1 MB |
 | Incompressible data (20 MB) | 364 ms / 21.0 MB | 858 ms / 21.0 MB | **298 ms** / 21.0 MB | 357 ms / 21.0 MB |
-| Already-compressed media (20 MB) | 362 ms / 21.0 MB | 860 ms / 21.0 MB | **297 ms** / 21.0 MB | 356 ms / 21.0 MB |
 | 5,000 files × ~2 KB | 834 ms / 4.9 MB | 826 ms / 4.7 MB | **305 ms** / 4.8 MB | 431 ms / 4.8 MB |
 
 Peak memory for the same runs (Δ over baseline):
@@ -76,7 +75,6 @@ Peak memory for the same runs (Δ over baseline):
 |---|--:|--:|--:|--:|
 | Compressible text (20 MB) | 90 MB | 69 MB | **62 MB** | 72 MB |
 | Incompressible data (20 MB) | 153 MB | 92 MB | 108 MB | **81 MB** |
-| Already-compressed media (20 MB) | 154 MB | 93 MB | 108 MB | **74 MB** |
 | 5,000 files × ~2 KB | 252 MB | 267 MB | **102 MB** | 137 MB |
 
 On compressible text zip.js and archiver are tied (703 ms against 702 ms, inside the
