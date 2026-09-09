@@ -2313,7 +2313,7 @@ async function supportsDeflate(config) {
 		return true;
 	}
 	if (FallbackStream) {
-		return loadModule(config);
+		return await loadModule(config);
 	}
 	return false;
 }
