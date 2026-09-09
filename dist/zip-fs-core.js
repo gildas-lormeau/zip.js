@@ -751,7 +751,7 @@
 
 	let tablesInitialized = false;
 
-	function createEngine(key, authenticationKey) {
+	function createEngine$1(key, authenticationKey) {
 		initTables();
 		const roundKeys = new Int32Array(ROUND_KEYS_LENGTH);
 		const rounds = expandKey(key, roundKeys);
@@ -1140,6 +1140,7 @@
 	const SUBTLE_API_SUPPORTED = CRYPTO_API_SUPPORTED && typeof subtle != UNDEFINED_TYPE;
 
 	let DERIVE_BITS_SUPPORTED = SUBTLE_API_SUPPORTED && typeof subtle.importKey == FUNCTION_TYPE && typeof subtle.deriveBits == FUNCTION_TYPE;
+	let createEngine = createEngine$1;
 
 	class AESDecryptionStream extends TransformStream {
 
@@ -1160,6 +1161,7 @@
 						await createDecryptionKeys(aesCrypto, strength, password, subarray(chunk, 0, SALT_LENGTH[strength] + PASSWORD_VERIFICATION_LENGTH));
 						chunk = subarray(chunk, SALT_LENGTH[strength] + PASSWORD_VERIFICATION_LENGTH);
 						if (checkPasswordOnly) {
+							disposeEngine(aesCrypto);
 							controller.error(new Error(ERR_ABORT_CHECK_PASSWORD));
 						} else {
 							resolveReady();
@@ -1191,6 +1193,9 @@
 						}
 						controller.enqueue(decryptedChunkArray);
 					}
+				},
+				cancel() {
+					disposeEngine(this);
 				}
 			});
 		}
@@ -1235,6 +1240,9 @@
 						const authenticationCode = subarray(engine.digest(), 0, AUTHENTICATION_CODE_LENGTH);
 						controller.enqueue(concat(encryptedChunkArray, authenticationCode));
 					}
+				},
+				cancel() {
+					disposeEngine(this);
 				}
 			});
 		}
@@ -1273,7 +1281,14 @@
 		const passwordVerificationKey = await createKeys$1(decrypt, strength, password, subarray(preamble, 0, SALT_LENGTH[strength]));
 		const passwordVerification = subarray(preamble, SALT_LENGTH[strength]);
 		if (passwordVerificationKey[0] != passwordVerification[0] || passwordVerificationKey[1] != passwordVerification[1]) {
+			disposeEngine(decrypt);
 			throw new Error(ERR_INVALID_PASSWORD);
+		}
+	}
+
+	function disposeEngine({ engine }) {
+		if (engine && engine.dispose) {
+			engine.dispose();
 		}
 	}
 
@@ -2407,6 +2422,13 @@
 					} catch {
 						// ignored
 					}
+				}
+			}
+			if (options.encrypted && !options.zipCrypto) {
+				try {
+					await initModule(config);
+				} catch {
+					// ignored
 				}
 			}
 			codecStream = new CodecStream(options, config);

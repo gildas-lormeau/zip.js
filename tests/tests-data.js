@@ -86,6 +86,7 @@ export default ([
 	{ title: "AES CRC-32 verification", script: "./test-aes-crc32.js" },
 	{ title: "Crypto AES streaming", script: "./test-aes-streaming.js" },
 	{ title: "AES engine", script: "./test-aes-engine.js" },
+	{ title: "AES engine (WebAssembly)", script: "./test-aes-engine-wasm.js", features: ["wasmBuild"] },
 	{ title: "Custom IO classes", script: "./test-custom-io.js" },
 	{ title: "Custom temp stream", script: "./test-custom-temp-buffer.js" },
 	{ title: "Custom temp stream (concurrent add)", script: "./test-concurrent-add-temp-stream.js" },

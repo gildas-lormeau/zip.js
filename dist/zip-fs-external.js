@@ -778,7 +778,7 @@ const T3 = new Int32Array(256);
 
 let tablesInitialized = false;
 
-function createEngine(key, authenticationKey) {
+function createEngine$2(key, authenticationKey) {
 	initTables();
 	const roundKeys = new Int32Array(ROUND_KEYS_LENGTH);
 	const rounds = expandKey(key, roundKeys);
@@ -1167,6 +1167,7 @@ const subtle = CRYPTO_API_SUPPORTED && crypto.subtle;
 const SUBTLE_API_SUPPORTED = CRYPTO_API_SUPPORTED && typeof subtle != UNDEFINED_TYPE;
 
 let DERIVE_BITS_SUPPORTED = SUBTLE_API_SUPPORTED && typeof subtle.importKey == FUNCTION_TYPE && typeof subtle.deriveBits == FUNCTION_TYPE;
+let createEngine$1 = createEngine$2;
 
 class AESDecryptionStream extends TransformStream {
 
@@ -1187,6 +1188,7 @@ class AESDecryptionStream extends TransformStream {
 					await createDecryptionKeys(aesCrypto, strength, password, subarray(chunk, 0, SALT_LENGTH[strength] + PASSWORD_VERIFICATION_LENGTH));
 					chunk = subarray(chunk, SALT_LENGTH[strength] + PASSWORD_VERIFICATION_LENGTH);
 					if (checkPasswordOnly) {
+						disposeEngine(aesCrypto);
 						controller.error(new Error(ERR_ABORT_CHECK_PASSWORD));
 					} else {
 						resolveReady();
@@ -1218,6 +1220,9 @@ class AESDecryptionStream extends TransformStream {
 					}
 					controller.enqueue(decryptedChunkArray);
 				}
+			},
+			cancel() {
+				disposeEngine(this);
 			}
 		});
 	}
@@ -1262,9 +1267,16 @@ class AESEncryptionStream extends TransformStream {
 					const authenticationCode = subarray(engine.digest(), 0, AUTHENTICATION_CODE_LENGTH);
 					controller.enqueue(concat(encryptedChunkArray, authenticationCode));
 				}
+			},
+			cancel() {
+				disposeEngine(this);
 			}
 		});
 	}
+}
+
+function setAESEngine(createEngineFunction) {
+	createEngine$1 = createEngineFunction || createEngine$2;
 }
 
 function initAesCrypto(aesCrypto, password, rawPassword, encryptionStrength) {
@@ -1300,7 +1312,14 @@ async function createDecryptionKeys(decrypt, strength, password, preamble) {
 	const passwordVerificationKey = await createKeys$1(decrypt, strength, password, subarray(preamble, 0, SALT_LENGTH[strength]));
 	const passwordVerification = subarray(preamble, SALT_LENGTH[strength]);
 	if (passwordVerificationKey[0] != passwordVerification[0] || passwordVerificationKey[1] != passwordVerification[1]) {
+		disposeEngine(decrypt);
 		throw new Error(ERR_INVALID_PASSWORD);
+	}
+}
+
+function disposeEngine({ engine }) {
+	if (engine && engine.dispose) {
+		engine.dispose();
 	}
 }
 
@@ -1314,7 +1333,7 @@ async function createKeys$1(aesCrypto, strength, password, salt) {
 	aesCrypto.password = null;
 	const keyLength = KEY_LENGTH[strength];
 	const compositeKey = await deriveKey(password, salt, keyLength * 2 + PASSWORD_VERIFICATION_LENGTH);
-	aesCrypto.engine = createEngine(subarray(compositeKey, 0, keyLength), subarray(compositeKey, keyLength, keyLength * 2));
+	aesCrypto.engine = createEngine$1(subarray(compositeKey, 0, keyLength), subarray(compositeKey, keyLength, keyLength * 2));
 	return subarray(compositeKey, keyLength * 2);
 }
 
@@ -2438,6 +2457,13 @@ async function runWorker$1({ options, readable, writable, onTaskFinished, worker
 				} catch {
 					// ignored
 				}
+			}
+		}
+		if (options.encrypted && !options.zipCrypto) {
+			try {
+				await initModule$1(config);
+			} catch {
+				// ignored
 			}
 		}
 		codecStream = new CodecStream(options, config);
@@ -9122,13 +9148,13 @@ const FORMAT_DEFLATE_RAW = "deflate-raw";
 const FORMAT_DEFLATE64_RAW = "deflate64-raw";
 const FORMAT_GZIP = "gzip";
 
-let wasm, malloc, free, memory, initError;
+let wasm$1, malloc, free, memory, initError;
 
-function setWasmExports(wasmAPI) {
-	wasm = wasmAPI;
-	({ malloc, free, memory } = wasm);
+function setWasmExports$1(wasmAPI) {
+	wasm$1 = wasmAPI;
+	({ malloc, free, memory } = wasm$1);
 	if (typeof malloc !== "function" || typeof free !== "function" || !memory) {
-		wasm = malloc = free = memory = null;
+		wasm$1 = malloc = free = memory = null;
 		throw new Error("Invalid WASM module");
 	}
 }
@@ -9137,12 +9163,12 @@ function setInitError(error) {
 	initError = error;
 }
 
-function resetWasmExports() {
-	wasm = malloc = free = memory = initError = null;
+function resetWasmExports$1() {
+	wasm$1 = malloc = free = memory = initError = null;
 }
 
 function _make(isCompress, type, options = {}) {
-	if (!wasm) {
+	if (!wasm$1) {
 		const error = new Error("WASM module not loaded");
 		error.cause = initError;
 		throw error;
@@ -9163,35 +9189,35 @@ function _make(isCompress, type, options = {}) {
 				}
 				this._scratch = new Uint8Array(outBufferSize);
 				if (isCompress) {
-					this._process = wasm.deflate_process;
-					this._last_consumed = wasm.deflate_last_consumed;
-					this._end = wasm.deflate_end;
-					this.streamHandle = wasm.deflate_new();
+					this._process = wasm$1.deflate_process;
+					this._last_consumed = wasm$1.deflate_last_consumed;
+					this._end = wasm$1.deflate_end;
+					this.streamHandle = wasm$1.deflate_new();
 					if (type === FORMAT_GZIP) {
-						result = wasm.deflate_init_gzip(this.streamHandle, level);
+						result = wasm$1.deflate_init_gzip(this.streamHandle, level);
 					} else if (type === FORMAT_DEFLATE_RAW) {
-						result = wasm.deflate_init_raw(this.streamHandle, level);
+						result = wasm$1.deflate_init_raw(this.streamHandle, level);
 					} else {
-						result = wasm.deflate_init(this.streamHandle, level);
+						result = wasm$1.deflate_init(this.streamHandle, level);
 					}
 				} else {
 					if (type === FORMAT_DEFLATE64_RAW) {
-						this._process = wasm.inflate9_process;
-						this._last_consumed = wasm.inflate9_last_consumed;
-						this._end = wasm.inflate9_end;
-						this.streamHandle = wasm.inflate9_new();
-						result = wasm.inflate9_init_raw(this.streamHandle);
+						this._process = wasm$1.inflate9_process;
+						this._last_consumed = wasm$1.inflate9_last_consumed;
+						this._end = wasm$1.inflate9_end;
+						this.streamHandle = wasm$1.inflate9_new();
+						result = wasm$1.inflate9_init_raw(this.streamHandle);
 					} else {
-						this._process = wasm.inflate_process;
-						this._last_consumed = wasm.inflate_last_consumed;
-						this._end = wasm.inflate_end;
-						this.streamHandle = wasm.inflate_new();
+						this._process = wasm$1.inflate_process;
+						this._last_consumed = wasm$1.inflate_last_consumed;
+						this._end = wasm$1.inflate_end;
+						this.streamHandle = wasm$1.inflate_new();
 						if (type === FORMAT_DEFLATE_RAW) {
-							result = wasm.inflate_init_raw(this.streamHandle);
+							result = wasm$1.inflate_init_raw(this.streamHandle);
 						} else if (type === FORMAT_GZIP) {
-							result = wasm.inflate_init_gzip(this.streamHandle);
+							result = wasm$1.inflate_init_gzip(this.streamHandle);
 						} else {
-							result = wasm.inflate_init(this.streamHandle);
+							result = wasm$1.inflate_init(this.streamHandle);
 						}
 					}
 				}
@@ -9327,6 +9353,105 @@ CompressionStreamZlib.supportedFormats = [FORMAT_DEFLATE, FORMAT_DEFLATE_RAW, FO
 DecompressionStreamZlib.supportedFormats = [FORMAT_DEFLATE, FORMAT_DEFLATE_RAW, FORMAT_GZIP, FORMAT_DEFLATE64_RAW];
 
 /*
+ Copyright (c) 2026 Gildas Lormeau. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
+
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
+ the documentation and/or other materials provided with the distribution.
+
+ 3. The names of the authors may not be used to endorse or promote products
+ derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED ''AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+ INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
+const BUFFER_LENGTH = 64 * 1024;
+const DIGEST_LENGTH = 20;
+
+let wasm, buffer;
+
+function setWasmExports(wasmAPI) {
+	// deno-lint-ignore valid-typeof
+	if (typeof wasmAPI.aes_hmac_new == FUNCTION_TYPE) {
+		wasm = wasmAPI;
+		buffer = 0;
+	}
+}
+
+function resetWasmExports() {
+	wasm = null;
+	buffer = 0;
+}
+
+function createEngine(key, authenticationKey) {
+	const exports = wasm;
+	let context = exports ? createContext(exports, key, authenticationKey) : 0;
+	if (!context) {
+		return createEngine$2(key, authenticationKey);
+	}
+	const scratch = buffer;
+	return {
+		process(data, decrypt) {
+			for (let offset = 0; offset < data.length; offset += BUFFER_LENGTH) {
+				const chunk = data.subarray(offset, offset + BUFFER_LENGTH);
+				const heap = getHeap(exports);
+				heap.set(chunk, scratch);
+				exports.aes_hmac_process(context, scratch, chunk.length, decrypt ? 1 : 0);
+				chunk.set(heap.subarray(scratch, scratch + chunk.length));
+			}
+		},
+		digest() {
+			exports.aes_hmac_end(context, scratch);
+			context = 0;
+			return getHeap(exports).slice(scratch, scratch + DIGEST_LENGTH);
+		},
+		dispose() {
+			if (context) {
+				exports.aes_hmac_end(context, 0);
+				context = 0;
+			}
+		}
+	};
+}
+
+function createContext(exports, key, authenticationKey) {
+	if (!buffer) {
+		buffer = exports.malloc(BUFFER_LENGTH);
+	}
+	const context = buffer ? exports.aes_hmac_new() : 0;
+	if (context) {
+		const heap = getHeap(exports);
+		heap.set(key, buffer);
+		heap.set(authenticationKey, buffer + key.length);
+		if (exports.aes_hmac_init(context, buffer, key.length, buffer + key.length, authenticationKey.length)) {
+			exports.aes_hmac_end(context, 0);
+			return 0;
+		}
+	}
+	return context;
+}
+
+function getHeap(exports) {
+	return new Uint8Array(exports.memory.buffer);
+}
+
+/*
  Copyright (c) 2025 Gildas Lormeau. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -9387,11 +9512,13 @@ async function instantiateModule(wasmURI, baseURI) {
 		}
 	}
 	const wasmInstance = await WebAssembly.instantiate(arrayBuffer);
+	setWasmExports$1(wasmInstance.instance.exports);
 	setWasmExports(wasmInstance.instance.exports);
 }
 
 function resetWasmModule() {
 	initializedModule = false;
+	resetWasmExports$1();
 	resetWasmExports();
 }
 
@@ -9437,6 +9564,7 @@ function arrayBufferFromDataURI(dataURI) {
 
 let modulePromise;
 
+setAESEngine(createEngine);
 configureWorker({
 	initModule: config => {
 		if (!modulePromise) {
