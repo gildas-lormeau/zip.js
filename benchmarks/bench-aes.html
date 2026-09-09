@@ -1,0 +1,53 @@
+<!doctype html>
+<!--
+  AES-256 encryption throughput in a browser: a 32 MB stored entry written with a password and read
+  back, through the Web Worker pool, three passes. Serve the repository root over http, e.g.
+  `npx http-server -p 8080` from the repository root, then open
+  http://localhost:8080/benchmarks/bench-aes.html. Add ?engine=js to force the JavaScript engine
+  (the module is not loaded), or ?bundle=<path relative to this page> to measure another build,
+  e.g. ?bundle=zipjs-2.13.1.min.js after `git show v2.13.1:index.min.js` into this directory. Same
+  method as bench-aes.js, in the engine's real habitat.
+-->
+<title>zip.js AES benchmark</title>
+<pre id="result">running</pre>
+<script type="module">
+const parameters = new URLSearchParams(location.search);
+const bundle = parameters.get("bundle") || "../index.min.js";
+const MB = 1024 * 1024;
+const TOTAL = 32 * MB;
+const PASSWORD = "password";
+const data = new Uint8Array(TOTAL);
+for (let index = 0; index < TOTAL; index++) {
+	data[index] = (index * 31 + 7) & 0xff;
+}
+const lines = [];
+try {
+	const zip = await import(new URL(bundle, location.href).href);
+	if (parameters.get("engine") == "js") {
+		zip.configure({ wasmURI: null });
+	}
+	for (let pass = 0; pass < 3; pass++) {
+		let start = performance.now();
+		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await zipWriter.add("data.bin", new zip.Uint8ArrayReader(data), { password: PASSWORD, level: 0 });
+		const archive = await zipWriter.close();
+		const writeMs = performance.now() - start;
+		start = performance.now();
+		const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(archive), { password: PASSWORD });
+		const [entry] = await zipReader.getEntries();
+		const content = await entry.getData(new zip.Uint8ArrayWriter());
+		await zipReader.close();
+		const readMs = performance.now() - start;
+		if (content.length != TOTAL) {
+			throw new Error("the archive did not round-trip");
+		}
+		lines.push(`${bundle}${parameters.get("engine") == "js" ? " (JavaScript engine)" : ""} pass ${pass}: write ${(TOTAL / MB / (writeMs / 1000)).toFixed(0)} MB/s, read ${(TOTAL / MB / (readMs / 1000)).toFixed(0)} MB/s`);
+	}
+	await zip.terminateWorkers();
+	lines.push(navigator.userAgent);
+} catch (error) {
+	lines.push("ERROR " + (error && error.stack || error));
+}
+document.getElementById("result").textContent = lines.join("\n");
+window.benchResult = lines.join("\n");
+</script>

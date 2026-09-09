@@ -33,7 +33,7 @@ should not trust anyone's benchmark (including this one) without reproducing it.
 | jszip | 3.10.1 |
 | fflate | 0.8.3 |
 | archiver | 8.0.0 |
-| Measured | 2026-09-06 — the 7-Zip section under Deno 2.9.6, everything else on Node |
+| Measured | 2026-09-06 — the 7-Zip section under Deno 2.9.6, everything else on Node; the encryption section on 2026-09-09, also under Bun 1.4.2, Deno 2.9.6, Firefox 154 and Chrome 153 |
 
 ## Method
 
@@ -218,6 +218,50 @@ excluded.
 zip.js has the fastest large-stream decompression. On thousands of tiny entries the
 per-entry setup cost dominates and **fflate is dramatically faster and lighter** — again
 the right tool when you are unpacking many small files.
+
+## Encryption — AES-256, stored entry
+
+An AES entry pays the cipher on every byte, so this section measures the engines zip.js can run
+the WinZip cipher on (AES-CTR with the Gladman counter, HMAC-SHA1) against the sjcl code they
+replaced after 2.13.1. The entry is stored (level 0) so no codec sits in the pipeline, and the
+"before" row is the 2.13.1 bundle measured by the same script. 20 MB of incompressible data,
+in-process, single thread, median of 5; the two numbers are one archive written, then read back.
+
+| Engine | Node.js | Bun | Deno |
+|---|--:|--:|--:|
+| WebAssembly, linked into the module of the WebAssembly builds | **111 / 111 MB/s** | **115 / 115** | 99 / 100 |
+| JavaScript, the fallback of those builds and the engine of the native and core builds | 91 / 86 | 102 / 102 | **109 / 103** |
+| 2.13.1, sjcl | 26 / 25 | 29 / 29 | 19 / 19 |
+
+The same entry at 32 MB in a browser, through the Web Worker pool, median of 3 passes
+([`benchmarks/bench-aes.html`](benchmarks/bench-aes.html)):
+
+| Engine | Firefox 154 | Chrome 153 |
+|---|--:|--:|
+| WebAssembly | **87 / 89 MB/s** | **99 / 101** |
+| JavaScript | 55 / 59 | 77 / 77 |
+| 2.13.1, sjcl | 17 / 17 | 22 / 22 |
+
+What to take from it:
+
+- **The JavaScript engine alone is 3.5× sjcl on Node and 3 to 4× in browsers.** sjcl ran the
+  cipher 16 bytes at a time through a generic bit-array layer; the new engine works on typed
+  arrays and is fed whole chunks. Every build has it.
+- **The WebAssembly kernel is the same code in C, and it is flat across hosts: 100 to 115 MB/s
+  everywhere.** What varies is the JavaScript engine, within 20 % of the kernel either way on
+  Node, Bun and Deno, whose JITs run typed-array code about as fast as wasm, and 1.3 to 1.6×
+  slower in browsers (Safari 26.6, measured at the engine level only, sits with Chrome at 1.3×).
+  The WebAssembly builds use the kernel whenever their module loads and fall back to the
+  JavaScript engine when it cannot, for instance under a Content Security Policy without
+  `'wasm-unsafe-eval'`, which is why the fallback stays in the bundle.
+- **Neither is hardware AES, and nothing in a browser can be.** OpenSSL on this machine encrypts
+  AES-256-CTR at 5.8 GB/s with the ARMv8 instructions and at 245 MB/s with them disabled
+  (`OPENSSL_armcap=0`). WebAssembly has no access to them, and Web Crypto cannot run this counter
+  mode: it increments the last byte where WinZip increments the first, and it offers no ECB to
+  build the keystream from. Software AES in the 100 to 120 MB/s range is the ceiling until a
+  platform API exposes the instructions.
+- The kernel costs the default bundle 2.1 KB gzipped; the native and core builds carry only the
+  JavaScript engine and grew by 0.1 KB.
 
 ## Streaming a large file — 256 MB, disk → zip → disk
 
@@ -446,6 +490,7 @@ npm run corpus         # generate the deterministic datasets under .corpus/
 node bench.js          # the head-to-head tables (compress / decompress / disk streaming)
 node bench-backends.js # the parallelism & codec-backend matrix
 node bench-codecs.js   # the codecs alone, sorted by output size
+node bench-aes.js      # the AES engines on a stored entry (also: bun / deno run -A); bench-aes.html is the browser page
 deno run -A bench-7z.js # zip.js vs the 7zz CLI (also: bun bench-7z.js)
 ```
 

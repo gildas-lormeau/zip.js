@@ -1,0 +1,29 @@
+{
+  "runtime": "Deno 2.9.6",
+  "runs": 5,
+  "workload": "random-20mb",
+  "bytes": 20971520,
+  "rows": [
+    {
+      "engine": "wasm",
+      "label": "WebAssembly engine",
+      "writeMs": 201.40108299999997,
+      "readMs": 200.29579200000012,
+      "archiveBytes": 20971718
+    },
+    {
+      "engine": "js",
+      "label": "JavaScript engine",
+      "writeMs": 184.2627910000001,
+      "readMs": 194.33012499999995,
+      "archiveBytes": 20971718
+    },
+    {
+      "engine": "bundle",
+      "label": "/private/tmp/claude-501/-Users-gildas-Desktop-Dev-project-zip-js/3e986b7f-66f3-4d51-8c1e-3cb7cfcf9527/scratchpad/zipjs-2.13.1.min.js",
+      "writeMs": 1038.1425829999998,
+      "readMs": 1054.059416,
+      "archiveBytes": 20971718
+    }
+  ]
+}
