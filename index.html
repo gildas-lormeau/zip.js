@@ -328,9 +328,9 @@ initWorker({ CompressionStreamFallback, DecompressionStreamFallback });</code></
 			The <code>@zip.js/zip.js/lib/zip-core-custom.js</code> entry point is designed for this use case: it
 			offers the full API but embeds neither the web worker code nor any deflate implementation. Combined
 			with <code>createWorker</code>, the compression engine of your choice then ships only once, in the
-			worker script. In a test with fflate, the application bundle and the worker script weighed
-			approximately 115KB in total, 43KB gzipped, versus approximately 158KB, 72KB gzipped, for the default
-			entry point.
+			worker script. In a test with fflate on version 2.14.0, the application bundle and the worker script
+			weighed approximately 125KB in total, 46KB gzipped, versus approximately 183KB, 80KB gzipped, for the
+			default entry point.
 		</p>
 		<pre><code class="prettyprint">import { configure } from "@zip.js/zip.js/lib/zip-core-custom.js";
 
