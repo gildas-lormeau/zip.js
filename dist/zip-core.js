@@ -1720,10 +1720,10 @@
 			input = concat(pendingInput, input);
 		}
 		const inputLength = input.length - paddingEnd;
-		output = expand(output, paddingStart + (inputLength - (inputLength % BLOCK_LENGTH)));
-		let offset;
-		for (offset = 0; offset <= inputLength - BLOCK_LENGTH; offset += BLOCK_LENGTH) {
-			const inputChunk = toBits(codecBytes, subarray(input, offset, offset + BLOCK_LENGTH));
+		const alignedLength = inputLength - (inputLength % BLOCK_LENGTH);
+		output = expand(output, paddingStart + alignedLength);
+		if (alignedLength) {
+			const inputChunk = toBits(codecBytes, subarray(input, 0, alignedLength));
 			if (verifyAuthenticationCode) {
 				hmac.update(inputChunk);
 			}
@@ -1731,9 +1731,9 @@
 			if (!verifyAuthenticationCode) {
 				hmac.update(outputChunk);
 			}
-			output.set(fromBits(codecBytes, outputChunk), offset + paddingStart);
+			output.set(fromBits(codecBytes, outputChunk), paddingStart);
 		}
-		aesCrypto.pendingInput = subarray(input, offset);
+		aesCrypto.pendingInput = subarray(input, alignedLength);
 		return output;
 	}
 
