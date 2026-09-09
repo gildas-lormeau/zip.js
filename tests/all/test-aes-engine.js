@@ -63,8 +63,14 @@ async function checkAgainstWebCrypto() {
 		const key = pattern(keyLength, 3);
 		const counterBlock = new Uint8Array(16);
 		counterBlock[0] = 1;
-		const cbcKey = await subtle.importKey("raw", key, "AES-CBC", false, ["encrypt"]);
-		const expected = new Uint8Array(await subtle.encrypt({ name: "AES-CBC", iv: new Uint8Array(16) }, cbcKey, counterBlock)).subarray(0, 16);
+		let expected;
+		try {
+			const cbcKey = await subtle.importKey("raw", key, "AES-CBC", false, ["encrypt"]);
+			expected = new Uint8Array(await subtle.encrypt({ name: "AES-CBC", iv: new Uint8Array(16) }, cbcKey, counterBlock)).subarray(0, 16);
+		} catch {
+			// Chrome implements no 192-bit AES in Web Crypto; the round trips below still cover that size
+			continue;
+		}
 		const keystream = new Uint8Array(16);
 		createEngine(key, key).process(keystream, false);
 		if (!sameBytes(keystream, expected)) {
