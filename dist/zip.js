@@ -2288,11 +2288,18 @@
 			return true;
 		}
 		if (FallbackStream) {
+			return loadModule(config);
+		}
+		return false;
+	}
+
+	async function loadModule(config) {
+		if (initModule$1) {
 			try {
 				await initModule$1(config);
 				return true;
 			} catch {
-				return false;
+				// ignored
 			}
 		}
 		return false;
@@ -2412,34 +2419,22 @@
 	}
 
 	async function runWorker$1({ options, readable, writable, onTaskFinished, workerOptions }, config) {
-		let codecStream, chunkStream;
+		let codecStream, chunkStream, modulePromise;
 		try {
 			if (options.compressed && !options.format) {
 				const deflate = options.codecType.startsWith(CODEC_DEFLATE);
 				const FallbackStream = deflate ? config.CompressionStreamFallback : config.DecompressionStreamFallback;
 				const NativeStream = deflate ? config.CompressionStream : config.DecompressionStream;
 				if (!options.useCompressionStream) {
-					try {
-						await initModule$1(config);
-					} catch {
-						if (!FallbackStream || FallbackStream.requiresModule) {
-							options.useCompressionStream = true;
-						}
+					if (!await moduleLoaded() && (!FallbackStream || FallbackStream.requiresModule)) {
+						options.useCompressionStream = true;
 					}
 				} else if (FallbackStream && FallbackStream.requiresModule && !supportsDeflateRaw(NativeStream)) {
-					try {
-						await initModule$1(config);
-					} catch {
-						// ignored
-					}
+					await moduleLoaded();
 				}
 			}
 			if (options.encrypted && !options.zipCrypto) {
-				try {
-					await initModule$1(config);
-				} catch {
-					// ignored
-				}
+				await moduleLoaded();
 			}
 			codecStream = new CodecStream(options, config);
 			chunkStream = new ChunkStream(getChunkSize(config));
@@ -2472,6 +2467,13 @@
 			throw error;
 		} finally {
 			onTaskFinished();
+		}
+
+		function moduleLoaded() {
+			if (!modulePromise) {
+				modulePromise = loadModule(config);
+			}
+			return modulePromise;
 		}
 	}
 
