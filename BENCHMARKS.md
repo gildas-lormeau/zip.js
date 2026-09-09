@@ -58,8 +58,11 @@ should not trust anyone's benchmark (including this one) without reproducing it.
 
 ## Compression — single process, single thread
 
-Level-6 DEFLATE, one entry (or one batch) compressed in the main thread. This is the
-apples-to-apples comparison against the single-threaded libraries.
+Level-6 DEFLATE, one entry (or one batch) compressed in the main thread, one codec at a
+time. The codecs are not the same kind of code: zip.js and archiver run the host's zlib in
+C, through `CompressionStream` and Node's `zlib` module, while jszip (pako) and fflate
+deflate in JavaScript. The [Codecs](#codecs-compared-at-equal-output-size) table compares
+zip.js's own WASM and JavaScript codecs with fflate's.
 
 Time, with the size each library produced — the two are only meaningful together.
 
@@ -206,14 +209,18 @@ The WASM inflate is 2.7× faster than fflate's, and faster than Node's own
 ## Decompression
 
 Level-6 archives, read back and fully materialized. archiver has no unzip API, so it is
-excluded.
+excluded. The zip.js column runs the host's `DecompressionStream`, i.e. Node's zlib in C;
+jszip and fflate inflate in JavaScript. The [Codecs](#codecs-compared-at-equal-output-size)
+table above measures zip.js's own WASM and JavaScript inflaters against fflate's, without
+the container, and they come out ahead as well.
 
 | Workload | @zip.js/zip.js | jszip | fflate |
 |---|--:|--:|--:|
 | Compressible text (20 MB) | **66 ms** | 133 ms | 117 ms |
 | 5,000 files × ~2 KB | 603 ms | 445 ms | **104 ms** |
 
-zip.js has the fastest large-stream decompression. On thousands of tiny entries the
+zip.js has the fastest large-stream decompression, with the native inflate here and with
+its own in the codec table. On thousands of tiny entries the
 per-entry setup cost dominates and **fflate is dramatically faster and lighter** — again
 the right tool when you are unpacking many small files.
 
