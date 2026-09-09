@@ -1,14 +1,14 @@
 # Backend & parallelism — 8 files x 8 MB (parallel-friendly) — Node v26.7.0, 3 runs, baseline 50 MB
 
-zip.js — CompressionStream, sequential        2214 ms   peak  406 MB   out 19.6 MB   ratio 3.425
-zip.js — CompressionStream, parallel           607 ms   peak  436 MB   out 19.6 MB   ratio 3.425
-zip.js — WASM, sequential                     3358 ms   peak  417 MB   out 19.7 MB   ratio 3.401
-zip.js — WASM, parallel                       3374 ms   peak  443 MB   out 19.7 MB   ratio 3.401
-zip.js — pure-JS, sequential                  3840 ms   peak  421 MB   out 19.7 MB   ratio 3.401
-zip.js — pure-JS, parallel                    3842 ms   peak  437 MB   out 19.7 MB   ratio 3.401
-jszip (pako)                                  5671 ms   peak  382 MB   out 19.7 MB   ratio 3.401
-fflate — zipSync                              3118 ms   peak  369 MB   out 20.0 MB   ratio 3.350
-fflate — async (worker pool)                   733 ms   peak  543 MB   out 20.0 MB   ratio 3.350
-archiver (Node zlib)                          2278 ms   peak  359 MB   out 19.6 MB   ratio 3.426
+zip.js — CompressionStream, sequential        2421 ms   peak  406 MB   out 19.6 MB   ratio 3.425
+zip.js — CompressionStream, parallel           676 ms   peak  437 MB   out 19.6 MB   ratio 3.425
+zip.js — WASM, sequential                     3553 ms   peak  422 MB   out 19.7 MB   ratio 3.401
+zip.js — WASM, parallel                       3577 ms   peak  444 MB   out 19.7 MB   ratio 3.401
+zip.js — pure-JS, sequential                  4008 ms   peak  421 MB   out 19.7 MB   ratio 3.401
+zip.js — pure-JS, parallel                    3954 ms   peak  438 MB   out 19.7 MB   ratio 3.401
+jszip (pako)                                  5788 ms   peak  379 MB   out 19.7 MB   ratio 3.401
+fflate — zipSync                              3165 ms   peak  369 MB   out 20.0 MB   ratio 3.350
+fflate — async (worker pool)                   768 ms   peak  560 MB   out 20.0 MB   ratio 3.350
+archiver (Node zlib)                          2324 ms   peak  360 MB   out 19.6 MB   ratio 3.426
 
 wrote /Users/gildas/Desktop/Dev/project-zip-js/zip-js/benchmarks/results/backends-results.json

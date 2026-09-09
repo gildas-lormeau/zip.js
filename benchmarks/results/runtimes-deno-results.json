@@ -1,0 +1,76 @@
+{
+  "runtime": "Deno 2.9.6",
+  "runs": 3,
+  "rows": [
+    {
+      "part": "parallel",
+      "label": "sequential add()",
+      "inputBytes": 67108864,
+      "medianMs": 1387.9905410000001,
+      "outputBytes": 19874941
+    },
+    {
+      "part": "parallel",
+      "label": "concurrent add()",
+      "inputBytes": 67108864,
+      "medianMs": 1429.558,
+      "outputBytes": 19874941
+    },
+    {
+      "part": "parallel",
+      "label": "concurrent add(), chunkSize 256 KB",
+      "inputBytes": 67108864,
+      "medianMs": 1355.6877499999991,
+      "outputBytes": 19854683
+    },
+    {
+      "part": "parallel",
+      "label": "concurrent add(), useWebWorkers",
+      "inputBytes": 67108864,
+      "medianMs": 468.13329200000226,
+      "outputBytes": 19874941
+    },
+    {
+      "part": "single",
+      "label": "CompressionStream, 64 KB writes",
+      "inputBytes": 268435456,
+      "medianMs": 5634.965333,
+      "outputBytes": 79465020
+    },
+    {
+      "part": "single",
+      "label": "zip.js, one entry",
+      "inputBytes": 268435456,
+      "medianMs": 5497.781167000001,
+      "outputBytes": 79465168
+    },
+    {
+      "part": "single",
+      "label": "gzip -6",
+      "inputBytes": 268435456,
+      "medianMs": 12948.117415999994,
+      "outputBytes": 78902263
+    },
+    {
+      "part": "levels",
+      "label": "level 6 (CompressionStream)",
+      "inputBytes": 20971520,
+      "medianMs": 411.60987499999464,
+      "outputBytes": 6209416
+    },
+    {
+      "part": "levels",
+      "label": "level 5 (WASM zlib)",
+      "inputBytes": 20971520,
+      "medianMs": 604.0869160000002,
+      "outputBytes": 6562330
+    },
+    {
+      "part": "levels",
+      "label": "level 1 (WASM zlib)",
+      "inputBytes": 20971520,
+      "medianMs": 231.6697920000006,
+      "outputBytes": 7531190
+    }
+  ]
+}

@@ -21,6 +21,12 @@ for (let index = 0; index < TOTAL; index++) {
 	data[index] = (index * 31 + 7) & 0xff;
 }
 const lines = [];
+const writeRates = [];
+const readRates = [];
+function median(values) {
+	values.sort((a, b) => a - b);
+	return values[Math.floor(values.length / 2)];
+}
 try {
 	const zip = await import(new URL(bundle, location.href).href);
 	if (parameters.get("engine") == "js") {
@@ -41,10 +47,14 @@ try {
 		if (content.length != TOTAL) {
 			throw new Error("the archive did not round-trip");
 		}
-		lines.push(`${bundle}${parameters.get("engine") == "js" ? " (JavaScript engine)" : ""} pass ${pass}: write ${(TOTAL / MB / (writeMs / 1000)).toFixed(0)} MB/s, read ${(TOTAL / MB / (readMs / 1000)).toFixed(0)} MB/s`);
+		writeRates.push(TOTAL / MB / (writeMs / 1000));
+		readRates.push(TOTAL / MB / (readMs / 1000));
+		lines.push(`${bundle}${parameters.get("engine") == "js" ? " (JavaScript engine)" : ""} pass ${pass}: write ${writeRates[pass].toFixed(0)} MB/s, read ${readRates[pass].toFixed(0)} MB/s`);
 	}
 	await zip.terminateWorkers();
+	lines.push(`median of ${writeRates.length}: write ${median(writeRates).toFixed(0)} MB/s, read ${median(readRates).toFixed(0)} MB/s`);
 	lines.push(navigator.userAgent);
+	lines.push(JSON.stringify({ bundle, engine: parameters.get("engine") == "js" ? "js" : "wasm", bytes: TOTAL, passes: writeRates.length, writeMBps: median(writeRates), readMBps: median(readRates), userAgent: navigator.userAgent }));
 } catch (error) {
 	lines.push("ERROR " + (error && error.stack || error));
 }

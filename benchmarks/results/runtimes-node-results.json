@@ -1,0 +1,76 @@
+{
+  "runtime": "Node v26.7.0",
+  "runs": 3,
+  "rows": [
+    {
+      "part": "parallel",
+      "label": "sequential add()",
+      "inputBytes": 67108864,
+      "medianMs": 2288.4039169999996,
+      "outputBytes": 19590989
+    },
+    {
+      "part": "parallel",
+      "label": "concurrent add()",
+      "inputBytes": 67108864,
+      "medianMs": 624.8881250000013,
+      "outputBytes": 19590989
+    },
+    {
+      "part": "parallel",
+      "label": "concurrent add(), chunkSize 256 KB",
+      "inputBytes": 67108864,
+      "medianMs": 612.1932499999984,
+      "outputBytes": 19590989
+    },
+    {
+      "part": "parallel",
+      "label": "concurrent add(), useWebWorkers",
+      "inputBytes": 67108864,
+      "medianMs": 780.0389590000013,
+      "outputBytes": 19590989
+    },
+    {
+      "part": "single",
+      "label": "CompressionStream, 64 KB writes",
+      "inputBytes": 268435456,
+      "medianMs": 9450.133584,
+      "outputBytes": 78328918
+    },
+    {
+      "part": "single",
+      "label": "zip.js, one entry",
+      "inputBytes": 268435456,
+      "medianMs": 9357.961791000009,
+      "outputBytes": 78329066
+    },
+    {
+      "part": "single",
+      "label": "gzip -6",
+      "inputBytes": 268435456,
+      "medianMs": 13398.08683299998,
+      "outputBytes": 78902263
+    },
+    {
+      "part": "levels",
+      "label": "level 6 (CompressionStream)",
+      "inputBytes": 20971520,
+      "medianMs": 716.9034999999858,
+      "outputBytes": 6120651
+    },
+    {
+      "part": "levels",
+      "label": "level 5 (WASM zlib)",
+      "inputBytes": 20971520,
+      "medianMs": 549.8417499999923,
+      "outputBytes": 6562330
+    },
+    {
+      "part": "levels",
+      "label": "level 1 (WASM zlib)",
+      "inputBytes": 20971520,
+      "medianMs": 194.99654200000805,
+      "outputBytes": 7531190
+    }
+  ]
+}

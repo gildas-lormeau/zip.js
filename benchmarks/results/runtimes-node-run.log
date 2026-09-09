@@ -1,0 +1,19 @@
+# Runtimes — Node v26.7.0, 3 runs
+
+8 files x 8 MB (parallel-friendly), level 6
+  sequential add()                       2288 ms    28 MB/s   out 19.6 MB
+  concurrent add()                        625 ms   102 MB/s   out 19.6 MB
+  concurrent add(), chunkSize 256 KB      612 ms   105 MB/s   out 19.6 MB
+  concurrent add(), useWebWorkers         780 ms    82 MB/s   out 19.6 MB
+
+Large file, disk-to-disk (256 MB), one thread, in memory
+  CompressionStream, 64 KB writes        9450 ms    27 MB/s   out 78.3 MB
+  zip.js, one entry                      9358 ms    27 MB/s   out 78.3 MB
+  gzip -6                               13398 ms    19 MB/s   out 78.9 MB
+
+Compressible text (20 MB), one entry, one thread
+  level 6 (CompressionStream)             717 ms    28 MB/s   out 6.1 MB
+  level 5 (WASM zlib)                     550 ms    36 MB/s   out 6.6 MB
+  level 1 (WASM zlib)                     195 ms   103 MB/s   out 7.5 MB
+
+wrote /Users/gildas/Desktop/Dev/project-zip-js/zip-js/benchmarks/results/runtimes-node-results.json

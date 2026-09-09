@@ -6,8 +6,10 @@
   "scripts": {
     "bench": "node bench.js",
     "bench:backends": "node bench-backends.js",
+    "bench:codecs": "node bench-codecs.js",
     "bench:crc": "node bench-crc.js",
     "bench:aes": "node bench-aes.js",
+    "bench:runtimes": "node bench-runtimes.js",
     "corpus": "node lib/corpus.js"
   },
   "devDependencies": {
