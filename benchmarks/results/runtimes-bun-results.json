@@ -6,70 +6,77 @@
       "part": "parallel",
       "label": "sequential add()",
       "inputBytes": 67108864,
-      "medianMs": 1243.793166,
+      "medianMs": 1191.7094160000006,
       "outputBytes": 19851518
     },
     {
       "part": "parallel",
       "label": "concurrent add()",
       "inputBytes": 67108864,
-      "medianMs": 1226.1121249999997,
+      "medianMs": 1194.9383340000004,
       "outputBytes": 19851518
     },
     {
       "part": "parallel",
       "label": "concurrent add(), chunkSize 256 KB",
       "inputBytes": 67108864,
-      "medianMs": 255.58845800000017,
+      "medianMs": 244.242209,
       "outputBytes": 19852080
     },
     {
       "part": "parallel",
       "label": "concurrent add(), useWebWorkers",
       "inputBytes": 67108864,
-      "medianMs": 254.72608300000138,
+      "medianMs": 252.3622919999998,
       "outputBytes": 19851531
     },
     {
       "part": "single",
       "label": "CompressionStream, 64 KB writes",
       "inputBytes": 268435456,
-      "medianMs": 4785.306958000001,
+      "medianMs": 4726.271666999997,
       "outputBytes": 79367072
     },
     {
       "part": "single",
       "label": "zip.js, one entry",
       "inputBytes": 268435456,
-      "medianMs": 4885.312291000002,
+      "medianMs": 4768.058791999996,
       "outputBytes": 79367220
     },
     {
       "part": "single",
       "label": "gzip -6",
       "inputBytes": 268435456,
-      "medianMs": 13613.168584,
+      "medianMs": 12428.50091599999,
       "outputBytes": 78902263
     },
     {
       "part": "levels",
       "label": "level 6 (CompressionStream)",
       "inputBytes": 20971520,
-      "medianMs": 386.99950000000536,
+      "medianMs": 370.85275000000547,
       "outputBytes": 6201882
     },
     {
       "part": "levels",
       "label": "level 5 (WASM zlib)",
       "inputBytes": 20971520,
-      "medianMs": 481.22579099998984,
+      "medianMs": 464.4331250000105,
+      "outputBytes": 6562330
+    },
+    {
+      "part": "levels",
+      "label": "level 5 (pure-JS zlib)",
+      "inputBytes": 20971520,
+      "medianMs": 664.979124999998,
       "outputBytes": 6562330
     },
     {
       "part": "levels",
       "label": "level 1 (WASM zlib)",
       "inputBytes": 20971520,
-      "medianMs": 171.86091699999815,
+      "medianMs": 167.6464169999963,
       "outputBytes": 7531190
     }
   ]

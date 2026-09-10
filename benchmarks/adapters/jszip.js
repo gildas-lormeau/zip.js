@@ -1,10 +1,12 @@
-// Adapter for jszip. jszip buffers the entire archive in memory; there is no true streaming
-// read/write and no disk-to-disk mode, so `disk` is intentionally unsupported.
+// Adapter for jszip. In-memory compression and decompression go through generateAsync and
+// loadAsync. The disk-to-disk mode hands jszip a Node readable stream as the entry's content and
+// pipes generateNodeStream({ streamFiles: true }) to the output file, jszip's streaming path: with
+// streamFiles: false jszip buffers each compressed entry to write its sizes in the local header.
 import JSZip from "jszip";
-import { readFileSync, writeFileSync } from "node:fs";
+import { createReadStream, createWriteStream, statSync } from "node:fs";
 
 export const name = "jszip";
-export const supports = { compress: true, decompress: true, disk: false };
+export const supports = { compress: true, decompress: true, disk: true };
 
 export async function compress(files, { level = 6 } = {}) {
 	const zip = new JSZip();
@@ -33,17 +35,14 @@ export async function decompress(zipped) {
 	return { outputSize: total };
 }
 
-// jszip cannot stream a file from disk to a zip on disk: loadAsync/generateAsync require the whole
-// buffer. We still expose a disk entry so the harness can show the memory cost of that constraint.
 export async function compressDisk(inputPath, outputPath, { level = 6 } = {}) {
-	const data = readFileSync(inputPath); // whole file must be resident
 	const zip = new JSZip();
-	zip.file("data.bin", data);
-	const out = await zip.generateAsync({
-		type: "uint8array",
-		compression: "DEFLATE",
-		compressionOptions: { level }
+	zip.file("data.bin", createReadStream(inputPath));
+	await new Promise((resolve, reject) => {
+		zip.generateNodeStream({ type: "nodebuffer", streamFiles: true, compression: "DEFLATE", compressionOptions: { level } })
+			.pipe(createWriteStream(outputPath))
+			.on("finish", resolve)
+			.on("error", reject);
 	});
-	writeFileSync(outputPath, out);
-	return { outputSize: out.length };
+	return { outputSize: statSync(outputPath).size };
 }

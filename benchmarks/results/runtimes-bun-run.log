@@ -1,19 +1,20 @@
 # Runtimes — Bun 1.4.2, 3 runs
 
 8 files x 8 MB (parallel-friendly), level 6
-  sequential add()                       1244 ms    51 MB/s   out 19.9 MB
-  concurrent add()                       1226 ms    52 MB/s   out 19.9 MB
-  concurrent add(), chunkSize 256 KB      256 ms   250 MB/s   out 19.9 MB
-  concurrent add(), useWebWorkers         255 ms   251 MB/s   out 19.9 MB
+  sequential add()                       1192 ms    54 MB/s   out 19.9 MB
+  concurrent add()                       1195 ms    54 MB/s   out 19.9 MB
+  concurrent add(), chunkSize 256 KB      244 ms   262 MB/s   out 19.9 MB
+  concurrent add(), useWebWorkers         252 ms   254 MB/s   out 19.9 MB
 
 Large file, disk-to-disk (256 MB), one thread, in memory
-  CompressionStream, 64 KB writes        4785 ms    53 MB/s   out 79.4 MB
-  zip.js, one entry                      4885 ms    52 MB/s   out 79.4 MB
-  gzip -6                               13613 ms    19 MB/s   out 78.9 MB
+  CompressionStream, 64 KB writes        4726 ms    54 MB/s   out 79.4 MB
+  zip.js, one entry                      4768 ms    54 MB/s   out 79.4 MB
+  gzip -6                               12429 ms    21 MB/s   out 78.9 MB
 
 Compressible text (20 MB), one entry, one thread
-  level 6 (CompressionStream)             387 ms    52 MB/s   out 6.2 MB
-  level 5 (WASM zlib)                     481 ms    42 MB/s   out 6.6 MB
-  level 1 (WASM zlib)                     172 ms   116 MB/s   out 7.5 MB
+  level 6 (CompressionStream)             371 ms    54 MB/s   out 6.2 MB
+  level 5 (WASM zlib)                     464 ms    43 MB/s   out 6.6 MB
+  level 5 (pure-JS zlib)                  665 ms    30 MB/s   out 6.6 MB
+  level 1 (WASM zlib)                     168 ms   119 MB/s   out 7.5 MB
 
 wrote /Users/gildas/Desktop/Dev/project-zip-js/zip-js/benchmarks/results/runtimes-bun-results.json

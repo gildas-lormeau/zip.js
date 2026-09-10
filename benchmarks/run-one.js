@@ -2,11 +2,12 @@
 // single JSON line with the internal timing and output size. Peak RSS is measured by the parent via
 // /usr/bin/time -l, so this process must do nothing but the measured work.
 //
-// Usage: node run-one.js <lib> <op> <workload> [mode]
+// Usage: node run-one.js <lib> <op> <workload> [mode] [backend]
 //   lib:      zipjs | jszip | fflate | archiver
 //   op:       compress | decompress | compressDisk
 //   workload: a key from WORKLOADS (corpus.js)
 //   mode:     zip.js only: single | workers   (default single)
+//   backend:  zip.js only: cs | wasm | js     (default cs)
 
 import { performance } from "node:perf_hooks";
 import { tmpdir } from "node:os";

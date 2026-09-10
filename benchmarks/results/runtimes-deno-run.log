@@ -1,19 +1,20 @@
 # Runtimes — Deno 2.9.6, 3 runs
 
 8 files x 8 MB (parallel-friendly), level 6
-  sequential add()                       1388 ms    46 MB/s   out 19.9 MB
-  concurrent add()                       1430 ms    45 MB/s   out 19.9 MB
-  concurrent add(), chunkSize 256 KB     1356 ms    47 MB/s   out 19.9 MB
-  concurrent add(), useWebWorkers         468 ms   137 MB/s   out 19.9 MB
+  sequential add()                       1311 ms    49 MB/s   out 19.9 MB
+  concurrent add()                       1310 ms    49 MB/s   out 19.9 MB
+  concurrent add(), chunkSize 256 KB     1327 ms    48 MB/s   out 19.9 MB
+  concurrent add(), useWebWorkers         340 ms   188 MB/s   out 19.9 MB
 
 Large file, disk-to-disk (256 MB), one thread, in memory
-  CompressionStream, 64 KB writes        5635 ms    45 MB/s   out 79.5 MB
-  zip.js, one entry                      5498 ms    47 MB/s   out 79.5 MB
-  gzip -6                               12948 ms    20 MB/s   out 78.9 MB
+  CompressionStream, 64 KB writes        5127 ms    50 MB/s   out 79.5 MB
+  zip.js, one entry                      5234 ms    49 MB/s   out 79.5 MB
+  gzip -6                               12346 ms    21 MB/s   out 78.9 MB
 
 Compressible text (20 MB), one entry, one thread
-  level 6 (CompressionStream)             412 ms    49 MB/s   out 6.2 MB
-  level 5 (WASM zlib)                     604 ms    33 MB/s   out 6.6 MB
-  level 1 (WASM zlib)                     232 ms    86 MB/s   out 7.5 MB
+  level 6 (CompressionStream)             403 ms    50 MB/s   out 6.2 MB
+  level 5 (WASM zlib)                     590 ms    34 MB/s   out 6.6 MB
+  level 5 (pure-JS zlib)                  689 ms    29 MB/s   out 6.6 MB
+  level 1 (WASM zlib)                     228 ms    88 MB/s   out 7.5 MB
 
 wrote /Users/gildas/Desktop/Dev/project-zip-js/zip-js/benchmarks/results/runtimes-deno-results.json

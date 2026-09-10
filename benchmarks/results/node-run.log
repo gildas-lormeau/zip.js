@@ -1,37 +1,45 @@
 # Node v26.7.0 — 3 runs/combo — baseline RSS 50 MB
 
-compress      Compressible text (20 MB)          @zip.js/zip.js (1 thread)     775 ms   peak   141 MB (Δ91 MB)   out 6.1 MB
-compress      Compressible text (20 MB)          @zip.js/zip.js (workers)     716 ms   peak   140 MB (Δ91 MB)   out 6.1 MB
-compress      Compressible text (20 MB)          jszip                       1742 ms   peak   119 MB (Δ69 MB)   out 6.2 MB
-compress      Compressible text (20 MB)          fflate                       932 ms   peak   111 MB (Δ62 MB)   out 6.3 MB
-compress      Compressible text (20 MB)          archiver                     717 ms   peak   121 MB (Δ72 MB)   out 6.1 MB
+compress      Compressible text (20 MB)          @zip.js/zip.js — CompressionStream                 700 ms   peak   140 MB (Δ91 MB)   out 6.1 MB
+compress      Compressible text (20 MB)          @zip.js/zip.js — WASM zlib                        1057 ms   peak   169 MB (Δ119 MB)   out 6.2 MB
+compress      Compressible text (20 MB)          @zip.js/zip.js — pure-JS zlib                     1238 ms   peak   164 MB (Δ114 MB)   out 6.2 MB
+compress      Compressible text (20 MB)          jszip                                             1723 ms   peak   119 MB (Δ69 MB)   out 6.2 MB
+compress      Compressible text (20 MB)          fflate                                             909 ms   peak   111 MB (Δ62 MB)   out 6.3 MB
+compress      Compressible text (20 MB)          archiver                                           702 ms   peak   121 MB (Δ72 MB)   out 6.1 MB
 
-compress      Incompressible data (20 MB)        @zip.js/zip.js (1 thread)     374 ms   peak   203 MB (Δ154 MB)   out 21.0 MB
-compress      Incompressible data (20 MB)        @zip.js/zip.js (workers)     366 ms   peak   203 MB (Δ153 MB)   out 21.0 MB
-compress      Incompressible data (20 MB)        jszip                        874 ms   peak   142 MB (Δ93 MB)   out 21.0 MB
-compress      Incompressible data (20 MB)        fflate                       306 ms   peak   158 MB (Δ108 MB)   out 21.0 MB
-compress      Incompressible data (20 MB)        archiver                     364 ms   peak   133 MB (Δ83 MB)   out 21.0 MB
+compress      Incompressible data (20 MB)        @zip.js/zip.js — CompressionStream                 365 ms   peak   203 MB (Δ153 MB)   out 21.0 MB
+compress      Incompressible data (20 MB)        @zip.js/zip.js — WASM zlib                         475 ms   peak   220 MB (Δ170 MB)   out 21.0 MB
+compress      Incompressible data (20 MB)        @zip.js/zip.js — pure-JS zlib                      802 ms   peak   222 MB (Δ172 MB)   out 21.0 MB
+compress      Incompressible data (20 MB)        jszip                                              862 ms   peak   143 MB (Δ93 MB)   out 21.0 MB
+compress      Incompressible data (20 MB)        fflate                                             297 ms   peak   158 MB (Δ108 MB)   out 21.0 MB
+compress      Incompressible data (20 MB)        archiver                                           359 ms   peak   124 MB (Δ74 MB)   out 21.0 MB
 
-compress      5,000 small files (~2 KB each)     @zip.js/zip.js (1 thread)     891 ms   peak   301 MB (Δ251 MB)   out 4.9 MB
-compress      5,000 small files (~2 KB each)     @zip.js/zip.js (workers)     869 ms   peak   297 MB (Δ247 MB)   out 4.9 MB
-compress      5,000 small files (~2 KB each)     jszip                        859 ms   peak   316 MB (Δ266 MB)   out 4.7 MB
-compress      5,000 small files (~2 KB each)     fflate                       280 ms   peak   151 MB (Δ101 MB)   out 4.8 MB
-compress      5,000 small files (~2 KB each)     archiver                     494 ms   peak   189 MB (Δ140 MB)   out 4.8 MB
+compress      5,000 small files (~2 KB each)     @zip.js/zip.js — CompressionStream                 888 ms   peak   295 MB (Δ245 MB)   out 4.9 MB
+compress      5,000 small files (~2 KB each)     @zip.js/zip.js — WASM zlib                         679 ms   peak   300 MB (Δ250 MB)   out 4.9 MB
+compress      5,000 small files (~2 KB each)     @zip.js/zip.js — pure-JS zlib                     1125 ms   peak   325 MB (Δ276 MB)   out 4.9 MB
+compress      5,000 small files (~2 KB each)     jszip                                              843 ms   peak   319 MB (Δ269 MB)   out 4.7 MB
+compress      5,000 small files (~2 KB each)     fflate                                             281 ms   peak   152 MB (Δ102 MB)   out 4.8 MB
+compress      5,000 small files (~2 KB each)     archiver                                           424 ms   peak   187 MB (Δ137 MB)   out 4.8 MB
 
-decompress    Compressible text (20 MB)          @zip.js/zip.js (1 thread)      66 ms   peak   168 MB (Δ118 MB)   out 21.0 MB
-decompress    Compressible text (20 MB)          jszip                        137 ms   peak   146 MB (Δ97 MB)   out 21.0 MB
-decompress    Compressible text (20 MB)          fflate                       126 ms   peak   141 MB (Δ92 MB)   out 21.0 MB
-decompress    Compressible text (20 MB)          archiver                 — unsupported/err: Error: no archive builder for archiver
+decompress    Compressible text (20 MB)          @zip.js/zip.js — CompressionStream                  66 ms   peak   166 MB (Δ116 MB)   out 21.0 MB
+decompress    Compressible text (20 MB)          @zip.js/zip.js — WASM zlib                          78 ms   peak   213 MB (Δ163 MB)   out 21.0 MB
+decompress    Compressible text (20 MB)          @zip.js/zip.js — pure-JS zlib                      180 ms   peak   203 MB (Δ154 MB)   out 21.0 MB
+decompress    Compressible text (20 MB)          jszip                                              137 ms   peak   153 MB (Δ103 MB)   out 21.0 MB
+decompress    Compressible text (20 MB)          fflate                                             116 ms   peak   141 MB (Δ92 MB)   out 21.0 MB
+decompress    Compressible text (20 MB)          archiver                                       — unsupported/err: Error: no archive builder for archiver
 
-decompress    5,000 small files (~2 KB each)     @zip.js/zip.js (1 thread)     676 ms   peak   399 MB (Δ350 MB)   out 10.2 MB
-decompress    5,000 small files (~2 KB each)     jszip                        457 ms   peak   351 MB (Δ301 MB)   out 10.2 MB
-decompress    5,000 small files (~2 KB each)     fflate                       104 ms   peak   175 MB (Δ125 MB)   out 10.2 MB
-decompress    5,000 small files (~2 KB each)     archiver                 — unsupported/err: Error: no archive builder for archiver
+decompress    5,000 small files (~2 KB each)     @zip.js/zip.js — CompressionStream                 628 ms   peak   400 MB (Δ350 MB)   out 10.2 MB
+decompress    5,000 small files (~2 KB each)     @zip.js/zip.js — WASM zlib                         476 ms   peak   533 MB (Δ484 MB)   out 10.2 MB
+decompress    5,000 small files (~2 KB each)     @zip.js/zip.js — pure-JS zlib                      615 ms   peak   501 MB (Δ451 MB)   out 10.2 MB
+decompress    5,000 small files (~2 KB each)     jszip                                              444 ms   peak   356 MB (Δ306 MB)   out 10.2 MB
+decompress    5,000 small files (~2 KB each)     fflate                                             102 ms   peak   170 MB (Δ120 MB)   out 10.2 MB
+decompress    5,000 small files (~2 KB each)     archiver                                       — unsupported/err: Error: no archive builder for archiver
 
-compressDisk  Large file, disk-to-disk (256 MB)  @zip.js/zip.js (1 thread)    9229 ms   peak   111 MB (Δ62 MB)   out 78.3 MB
-compressDisk  Large file, disk-to-disk (256 MB)  @zip.js/zip.js (workers)    9925 ms   peak   111 MB (Δ61 MB)   out 78.3 MB
-compressDisk  Large file, disk-to-disk (256 MB)  jszip                      23241 ms   peak   529 MB (Δ479 MB)   out 78.9 MB
-compressDisk  Large file, disk-to-disk (256 MB)  fflate                     13123 ms   peak   101 MB (Δ51 MB)   out 80.2 MB
-compressDisk  Large file, disk-to-disk (256 MB)  archiver                    9466 ms   peak   121 MB (Δ72 MB)   out 78.3 MB
+compressDisk  Large file, disk-to-disk (256 MB)  @zip.js/zip.js — CompressionStream                9055 ms   peak   112 MB (Δ62 MB)   out 78.3 MB
+compressDisk  Large file, disk-to-disk (256 MB)  @zip.js/zip.js — WASM zlib                       13629 ms   peak   138 MB (Δ88 MB)   out 78.9 MB
+compressDisk  Large file, disk-to-disk (256 MB)  @zip.js/zip.js — pure-JS zlib                    15485 ms   peak   169 MB (Δ120 MB)   out 78.9 MB
+compressDisk  Large file, disk-to-disk (256 MB)  jszip                                            22539 ms   peak   124 MB (Δ74 MB)   out 78.9 MB
+compressDisk  Large file, disk-to-disk (256 MB)  fflate                                           12456 ms   peak    90 MB (Δ41 MB)   out 80.2 MB
+compressDisk  Large file, disk-to-disk (256 MB)  archiver                                          9115 ms   peak   121 MB (Δ71 MB)   out 78.3 MB
 
 wrote /Users/gildas/Desktop/Dev/project-zip-js/zip-js/benchmarks/results/node-results.json

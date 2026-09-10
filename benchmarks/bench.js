@@ -28,8 +28,14 @@ const PLAN = [
 	{ op: "compressDisk", workloads: ["huge-256mb"] }
 ];
 
-// zip.js runs both single-threaded (apples-to-apples) and with workers (real-world).
-const ZIPJS_MODES = ["single", "workers"];
+// zip.js runs each of its three codec backends, single-threaded like the other libraries. Node has
+// no Worker global, so useWebWorkers would run in-process here; bench-runtimes.js measures it on
+// the runtimes that have one.
+const ZIPJS_CONFIGS = [
+	{ mode: "single", backend: "cs", label: "CompressionStream" },
+	{ mode: "single", backend: "wasm", label: "WASM zlib" },
+	{ mode: "single", backend: "js", label: "pure-JS zlib" }
+];
 
 function measureBaseline() {
 	const res = runTimed(["-e", "0"]);
@@ -58,9 +64,9 @@ function runTimed(args) {
 	return { peakRssBytes, json, code: res.status, stderr };
 }
 
-function runCombo(lib, op, workload, mode) {
+function runCombo(lib, op, workload, config) {
 	const args = [RUN_ONE, lib, op, workload];
-	if (lib === "zipjs") args.push(mode);
+	if (config) args.push(config.mode, config.backend);
 	const times = [];
 	let peak = 0;
 	let outputSize = null;
@@ -89,19 +95,21 @@ function main() {
 	for (const { op, workloads } of PLAN) {
 		for (const workload of workloads) {
 			for (const lib of LIBS) {
-				const modes = lib === "zipjs" && op !== "decompress" ? ZIPJS_MODES : (lib === "zipjs" ? ["single"] : [null]);
-				for (const mode of modes) {
-					const label = LIB_LABEL[lib] + (mode === "workers" ? " (workers)" : mode === "single" && lib === "zipjs" ? " (1 thread)" : "");
-					process.stdout.write(`${op.padEnd(13)} ${WORKLOADS[workload].label.padEnd(34)} ${label.padEnd(24)} `);
-					const r = runCombo(lib, op, workload, mode);
+				const configs = lib === "zipjs" ? ZIPJS_CONFIGS : [null];
+				for (const config of configs) {
+					const mode = config ? config.mode : null;
+					const backend = config ? config.backend : null;
+					const label = LIB_LABEL[lib] + (config ? " — " + config.label : "");
+					process.stdout.write(`${op.padEnd(13)} ${WORKLOADS[workload].label.padEnd(34)} ${label.padEnd(46)} `);
+					const r = runCombo(lib, op, workload, config);
 					if (r.failed) {
 						console.log("— unsupported/err: " + r.failed.replace(/^ERROR:\s*/, "").slice(0, 60));
-						results.rows.push({ op, workload, lib, mode, label, unsupported: true, note: r.failed });
+						results.rows.push({ op, workload, lib, mode, backend, label, unsupported: true, note: r.failed });
 					} else {
 						const mb = r.peakRssBytes / 1e6;
 						const deltaMb = (r.peakRssBytes - baseline) / 1e6;
 						console.log(`${r.medianMs.toFixed(0).padStart(7)} ms   peak ${mb.toFixed(0).padStart(5)} MB (Δ${deltaMb.toFixed(0)} MB)   out ${(r.outputSize / 1e6).toFixed(1)} MB`);
-						results.rows.push({ op, workload, lib, mode, label, medianMs: r.medianMs, peakRssBytes: r.peakRssBytes, peakDeltaBytes: r.peakRssBytes - baseline, outputSize: r.outputSize });
+						results.rows.push({ op, workload, lib, mode, backend, label, medianMs: r.medianMs, peakRssBytes: r.peakRssBytes, peakDeltaBytes: r.peakRssBytes - baseline, outputSize: r.outputSize });
 					}
 				}
 			}

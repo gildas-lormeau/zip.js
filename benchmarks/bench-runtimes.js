@@ -11,6 +11,7 @@
 //   3. one 20 MB compressible entry at the default level, which is the host's CompressionStream,
 //      and at levels 5 and 1, which select the bundled WASM zlib because CompressionStream has no
 //      level control. Whether a lower level buys speed depends on how fast the host's zlib is.
+//      Level 5 also runs on the pure-JavaScript zlib port, the same code on each engine.
 //
 // In-process, warmup first, median of RUNS. Run with node, bun, or deno run -A; each writes
 // results/runtimes-<runtime>-results.json.
@@ -22,6 +23,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { loadFiles, ensureDiskFile, WORKLOADS } from "./lib/corpus.js";
 import * as zip from "../index.js";
+import { CompressionStreamZlib, DecompressionStreamZlib } from "../lib/core/streams/zlib-js/zlib-streams.min.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RUNS = Number(process.env.RUNS || 3);
@@ -89,9 +91,9 @@ async function rawCompressionStream(data, writeSize) {
 	return { outputBytes: sink.bytes };
 }
 
-async function zipSingleEntry(data, options) {
+async function zipSingleEntry(data, options, configuration = {}) {
 	zip.resetConfiguration();
-	zip.configure({ useWebWorkers: false });
+	zip.configure({ useWebWorkers: false, ...configuration });
 	const sink = countingSink();
 	const zipWriter = new zip.ZipWriter(sink.writable);
 	await zipWriter.add("data.bin", new zip.Uint8ArrayReader(data), options);
@@ -148,13 +150,15 @@ async function main() {
 
 	const text = Object.values(loadFiles(TEXT_WORKLOAD).files)[0];
 	console.log("\n" + WORKLOADS[TEXT_WORKLOAD].label + ", one entry, one thread");
+	const pureJs = { useCompressionStream: false, CompressionStreamZlib, DecompressionStreamZlib };
 	const LEVELS = [
 		["level 6 (CompressionStream)", undefined],
 		["level 5 (WASM zlib)", { level: 5 }],
+		["level 5 (pure-JS zlib)", { level: 5 }, pureJs],
 		["level 1 (WASM zlib)", { level: 1 }]
 	];
-	for (const [label, options] of LEVELS) {
-		const result = await timed(() => zipSingleEntry(text, options));
+	for (const [label, options, configuration] of LEVELS) {
+		const result = await timed(() => zipSingleEntry(text, options, configuration));
 		report(label, result, text.length);
 		results.rows.push({ part: "levels", label, inputBytes: text.length, ...result });
 	}
