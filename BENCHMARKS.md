@@ -40,17 +40,19 @@ to them; run the harness on your machine before relying on any of them.
   libraries: zlib's level 6 and fflate's level 6 are different parameter sets and produce
   different sizes, so every time is printed next to the size it achieved, and the
   [Codecs](#codecs-compared-at-equal-output-size) section compares by output size instead.
-- **Codecs.** zip.js and archiver run the host's zlib, written in C, through `CompressionStream`
-  and Node's `zlib` module; jszip (pako) and fflate deflate and inflate in JavaScript. zip.js's
-  own WebAssembly and JavaScript codecs are measured in the Codecs section.
+- **Codecs.** zip.js and archiver run the host's zlib, written in C: zip.js through the
+  `CompressionStream` and `DecompressionStream` of the runtime, archiver through Node's `zlib`
+  module. jszip (pako) and fflate deflate and inflate in JavaScript. zip.js's own WebAssembly
+  and JavaScript codecs are measured in the Codecs section.
 - **Units.** MB in the tables is 10^6 bytes. The workload sizes (20 MB, 8 MB, 256 MB) and the
   MB/s throughputs use 2^20 bytes.
 - **zip.js modes.** "1 thread" is zip.js without its Web Worker pool, "workers" is with it.
 
 ## Compression — one entry at a time, no workers
 
-Level-6 DEFLATE, one entry (or one batch) compressed by a single sequence of calls. Time, with
-the size each library produced:
+Level-6 DEFLATE, one entry (or one batch) compressed by a single sequence of calls. The zip.js
+column runs the host's `CompressionStream`, archiver Node's `zlib` module; jszip and fflate
+deflate in JavaScript. Time, with the size each library produced:
 
 | Workload | @zip.js/zip.js | jszip | fflate | archiver |
 |---|--:|--:|--:|--:|
@@ -264,7 +266,8 @@ file):
 ## Streaming a large file — 256 MB, disk → zip → disk
 
 The input is streamed from disk and the archive is streamed back to disk; neither is held in
-memory by the libraries that support streaming.
+memory by the libraries that support streaming. The zip.js rows run the host's
+`CompressionStream`, archiver Node's `zlib` module; jszip and fflate deflate in JavaScript.
 
 | Library | Median time | Peak memory (Δ) | Output |
 |---|--:|--:|--:|
