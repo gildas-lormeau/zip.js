@@ -4659,6 +4659,7 @@
 	const WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES = "mismatched local file header (crc32 or sizes)";
 	const MAX_KNOWN_VERSION = 63;
 	const DRIVE_LETTER_REGEXP = /^[a-zA-Z]:/;
+	const PARENT_DIRECTORY_REGEXP = /(^|[\\/])\.\.([\\/]|$)/;
 	const CHARSET_UTF8 = "utf-8";
 	const PROPERTY_NAME_UTF8_SUFFIX = "UTF8";
 	const CHARSET_CP437 = "cp437";
@@ -5998,10 +5999,10 @@
 		if (pathParts.length > 1 && pathParts[pathParts.length - 1] === "") {
 			pathParts.pop();
 		}
-		if (pathParts.includes("..") || filename.startsWith("/") || filename.startsWith("\\\\") || DRIVE_LETTER_REGEXP.test(filename)) {
+		if (PARENT_DIRECTORY_REGEXP.test(filename) || filename.startsWith("/") || filename.startsWith("\\") || DRIVE_LETTER_REGEXP.test(filename)) {
 			return true;
 		}
-		return filenameValidation == STRICTNESS_STRICT && (pathParts.includes(".") || pathParts.includes(""));
+		return filenameValidation == STRICTNESS_STRICT && (pathParts.includes(".") || pathParts.includes("") || filename.includes("\0"));
 	}
 
 	function getMaxAppendedDataSize(maxAppendedDataSize, strictness) {
