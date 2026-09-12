@@ -247,7 +247,7 @@
 			The <code>@zip.js/zip.js/external</code> entry point offers the full API but references the Web
 			Worker code and the WebAssembly module as external files instead of embedding them. Bundlers like
 			webpack and Vite detect these references, emit <code>zip-web-worker.js</code> and
-			<code>zip-module.wasm</code> as separate assets, and remove approximately 50KB of embedded
+			<code>zip-module.wasm</code> as separate assets, and remove approximately 57KB of embedded
 			payloads from the main bundle. The worker also runs from a real file URL. This avoids
 			<code>blob:</code> restrictions on pages and browser extensions with a strict Content Security
 			Policy. With Vite, add <code>@zip.js/zip.js</code> to <code>optimizeDeps.exclude</code> to
@@ -328,8 +328,8 @@ initWorker({ CompressionStreamFallback, DecompressionStreamFallback });</code></
 			The <code>@zip.js/zip.js/lib/zip-core-custom.js</code> entry point is designed for this use case: it
 			offers the full API but embeds neither the web worker code nor any deflate implementation. Combined
 			with <code>createWorker</code>, the compression engine of your choice then ships only once, in the
-			worker script. In a test with fflate on version 2.14.0, the application bundle and the worker script
-			weighed approximately 125KB in total, 46KB gzipped, versus approximately 183KB, 80KB gzipped, for the
+			worker script. In a test with fflate on version 2.14.1, the application bundle and the worker script
+			weighed approximately 135KB in total, 47KB gzipped, versus approximately 195KB, 84KB gzipped, for the
 			default entry point.
 		</p>
 		<pre><code class="prettyprint">import { configure } from "@zip.js/zip.js/lib/zip-core-custom.js";
