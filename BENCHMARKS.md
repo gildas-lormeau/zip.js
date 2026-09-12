@@ -29,7 +29,7 @@ The page answers four questions, each from one or two scripts of the harness:
 | jszip | 3.10.2 |
 | fflate | 0.8.3 |
 | archiver | 8.0.0 |
-| Measured | 2026-09-10; the two encryption tables on 2026-09-09, on the same zip.js version |
+| Measured | 2026-09-10; the two encryption tables on 2026-09-12, on the engines that follow 2.14.0 |
 
 ## Method
 
@@ -320,9 +320,9 @@ one archive written, then read back.
 
 | Engine | Node.js | Bun | Deno |
 |---|--:|--:|--:|
-| WebAssembly, linked into the module of the WebAssembly builds | **111 / 111 MB/s** | **115 / 115** | 99 / 100 |
-| JavaScript, the fallback of those builds and the engine of the native and core builds | 91 / 86 | 102 / 102 | **109 / 103** |
-| 2.13.1, sjcl | 26 / 25 | 29 / 29 | 19 / 19 |
+| WebAssembly, linked into the module of the WebAssembly builds | **131 / 130 MB/s** | **118 / 121** | 123 / 122 |
+| JavaScript, the fallback of those builds and the engine of the native and core builds | 114 / 114 | 112 / 111 | **142 / 129** |
+| 2.13.1, sjcl | 25 / 25 | 27 / 27 | 19 / 19 |
 
 The same measurement in a browser, through the Web Worker pool, on 32 MB of bytes generated in
 the page (the corpus is not served to the browser), median of 3 passes
@@ -331,17 +331,18 @@ file):
 
 | Engine | Firefox 154 | Chrome 153 |
 |---|--:|--:|
-| WebAssembly | **87 / 89 MB/s** | **99 / 101** |
-| JavaScript | 55 / 59 | 77 / 77 |
+| WebAssembly | **96 / 101 MB/s** | **118 / 121** |
+| JavaScript | 68 / 69 | 100 / 98 |
 | 2.13.1, sjcl | 17 / 17 | 22 / 22 |
 
-- The JavaScript engine is 3.2 to 3.5× sjcl on Node, Bun and in the two browsers, and 5.7× on
-  Deno, where sjcl was slowest. sjcl ran the cipher 16 bytes
+- The JavaScript engine is 4.0 to 4.6× sjcl on Node, Bun and in the two browsers, and 6.8 to
+  7.5× on Deno, where sjcl was slowest. sjcl ran the cipher 16 bytes
   at a time through a bit-array layer; the new engine works on typed arrays and is fed whole
-  chunks. Every build has it.
-- The WebAssembly kernel is the same C code on every host: 99 to 115 MB/s on Node, Bun and Deno,
-  87 to 101 MB/s in the two browsers. The JavaScript engine is within 23 % of it on Node, Bun and
-  Deno, ahead of it on Deno, and 1.3 to 1.6× slower in the browsers. The WebAssembly builds use
+  chunks, with the AES rounds and the SHA-1 steps written out. Every build has it.
+- The WebAssembly kernel is the same C code on every host, with the same rounds written out:
+  118 to 131 MB/s on Node, Bun and Deno, 96 to 121 MB/s in the two browsers. The JavaScript
+  engine is within 13 % of it on Node and Bun, ahead of it on Deno, and 1.2 to 1.4× slower in
+  the browsers. The WebAssembly builds use
   the kernel whenever their module loads and fall back to the JavaScript engine when it cannot,
   for instance under a Content Security Policy that does not allow WebAssembly
   (`'wasm-unsafe-eval'`).
@@ -353,7 +354,9 @@ file):
 - The bundles did not grow with the new engines. Gzipped, `dist/zip.min.js` went from 67,869
   bytes in 2.13.1 to 67,820 in 2.14.0, `dist/zip-native.min.js` from 73,798 to 72,060 and
   `dist/zip-core.min.js` from 36,405 to 35,493 (`git show <tag>:<file> | gzip -9 | wc -c`):
-  sjcl's removal outweighs the JavaScript engine and the kernel.
+  sjcl's removal outweighs the JavaScript engine and the kernel. Writing the rounds out after
+  2.14.0 gives some of it back: 71,238, 73,339 and 36,235 bytes for the three files behind the
+  encryption tables above.
 
 ## Reproduce
 
