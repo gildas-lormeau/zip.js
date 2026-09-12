@@ -137,7 +137,7 @@
 		<p>
 			zip.js validates untrusted input by default. The filenames returned by <code>getEntries()</code> are
 			checked against path traversal: names containing <code>..</code> segments between slashes or backslashes,
-			absolute paths, drive letters or UNC prefixes are rejected with an <code>ERR_UNSAFE_FILENAME</code> error.
+			absolute paths, drive letters or leading backslashes are rejected with an <code>ERR_UNSAFE_FILENAME</code> error.
 			The data of an entry cannot
 			be read outside the bounds of the zip file. Optional checks harden reading further: the
 			<code>checkOverlappingEntry</code> option detects entries sharing bytes with other entries, the
