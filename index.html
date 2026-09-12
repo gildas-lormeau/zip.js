@@ -156,6 +156,10 @@
 			<li>Filenames are validated, never rewritten. Characters that are illegal on the target filesystem, e.g.
 				reserved device names on Windows, must be handled before writing files to disk, for example with the
 				<code>normalizeFilename</code> option.</li>
+			<li>Duplicate filenames are detected by exact comparison. Two names differing only by letter case or by
+				Unicode normalization form are distinct entries, and they collide on a case-insensitive or normalizing
+				filesystem, e.g. the Windows and macOS defaults. The <code>normalizeFilename</code> option can fold them
+				since duplicates are compared on the normalized names.</li>
 			<li>Only the decoded <code>filename</code> is validated. The <code>rawFilename</code> and
 				<code>rawComment</code> properties expose the stored bytes as-is, and the global
 				<code>comment</code> of the zip file is raw bytes too.</li>
