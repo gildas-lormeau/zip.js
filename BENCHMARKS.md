@@ -130,7 +130,11 @@ fflate 116 ms, jszip 137 ms and the pure-JavaScript port 180 ms. On 5,000 small 
 reverses: fflate takes 102 ms, jszip 444 ms and the three zip.js rows 476 to 628 ms, with
 `DecompressionStream` the slowest of them, the same per-entry cost as in compression. fflate
 uses the least memory on both workloads, 34 % of the `DecompressionStream` row on the small
-files, and the WebAssembly and pure-JavaScript rows peak higher than `DecompressionStream`.
+files, and the WebAssembly and pure-JavaScript rows peak higher than `DecompressionStream`. The
+three zip.js rows allocate the same 800 MB of stream objects over the 5,000 entries, about
+160 KB per entry. The WebAssembly and pure-JavaScript codecs run on the JavaScript thread, so
+V8's incremental marking keeps more of that garbage alive between collections, and that is the
+difference between the rows.
 
 ### Streaming a 256 MB file, disk to disk
 
