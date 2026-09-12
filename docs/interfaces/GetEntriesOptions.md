@@ -78,7 +78,7 @@ path, i.e. empty names and names containing a `"."` path component or an empty o
 - `"balanced"`: reject names that would escape the directory they are extracted into, i.e. names containing
 a `".."` path component delimited by slashes or by backslashes (e.g. `"..\\file.txt"`, which a Windows host
 resolves as a parent directory), and absolute names, i.e. names starting with `"/"`, with a drive letter
-(e.g. `"C:/file.txt"`) or with two backslashes (UNC paths).
+(e.g. `"C:/file.txt"`) or with a backslash (root-relative and UNC paths on Windows).
 - `"tolerant"`: never reject a name.
 
 A backslash is otherwise not interpreted as a path separator: it is a valid filename character on UNIX

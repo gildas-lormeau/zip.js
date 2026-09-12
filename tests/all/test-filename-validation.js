@@ -9,7 +9,7 @@ import * as zip from "../zip-lib.js";
 
 const SAFE_NAMES = ["ok.txt", "a/b.txt", "dir/", "a\\b.txt", "..a\\b.txt", "a\\...\\b.txt", "\u00f2\\\u00e9.txt"];
 const ESCAPING_NAMES = ["../evil.txt", "a/../../evil.txt", "sub/..", "/abs.txt", "C:/win.txt", "\\\\srv\\share",
-	"..\\win.txt", "..\\..\\evil.txt", "a\\..\\evil.txt", "a/..\\evil.txt", "sub\\.."];
+	"\\abs.txt", "..\\win.txt", "..\\..\\evil.txt", "a\\..\\evil.txt", "a/..\\evil.txt", "sub\\.."];
 const NON_CONFORMANT_NAMES = ["a//b.txt", "./cur.txt", "a/./b.txt"];
 
 export { test };
