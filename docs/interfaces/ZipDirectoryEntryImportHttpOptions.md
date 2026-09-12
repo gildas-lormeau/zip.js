@@ -462,13 +462,14 @@ How strictly the filename of each entry should be validated. A rejected name thr
 - `"strict"`: reject the names rejected by `"balanced"`, plus the names that do not map cleanly to a file
 path, i.e. empty names and names containing a `"."` path component or an empty one (e.g. `"a//b.txt"`).
 - `"balanced"`: reject names that would escape the directory they are extracted into, i.e. names containing
-a `".."` path component, and absolute names, i.e. names starting with `"/"`, with a drive letter (e.g.
-`"C:/file.txt"`) or with two backslashes (UNC paths).
+a `".."` path component delimited by slashes or by backslashes (e.g. `"..\\file.txt"`, which a Windows host
+resolves as a parent directory), and absolute names, i.e. names starting with `"/"`, with a drive letter
+(e.g. `"C:/file.txt"`) or with two backslashes (UNC paths).
 - `"tolerant"`: never reject a name.
 
-A backslash is never interpreted as a path separator: it is a valid filename character on UNIX systems, and
-it also occurs as the trail byte of legitimate double-byte filenames (e.g. CP932) decoded with another
-charset.
+A backslash is otherwise not interpreted as a path separator: it is a valid filename character on UNIX
+systems, and it also occurs as the trail byte of legitimate double-byte filenames (e.g. CP932) decoded with
+another charset.
 
 Names are validated, never rewritten, so the filename reported for an entry always matches its central
 directory record.

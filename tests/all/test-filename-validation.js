@@ -1,14 +1,15 @@
 // Checks the filenameValidation option of the reader. Entry names are validated against the level in
 // use, never rewritten, so a name that passes is reported exactly as stored in the central directory.
-// The level defaults to the value of the strictness option. A backslash is never a path separator: it
-// is legal on UNIX file systems and it also occurs as the trail byte of double-byte filenames (CP932
-// here) decoded with another charset, so names containing one are only rejected when they also contain
-// a rejected path component.
+// The level defaults to the value of the strictness option. A backslash is never converted to a slash:
+// it is legal on UNIX file systems and it also occurs as the trail byte of double-byte filenames (CP932
+// here) decoded with another charset. A ".." component delimited by backslashes is still rejected,
+// because a Windows host resolves it as a parent directory, and no correctly decoded name contains one.
 
 import * as zip from "../zip-lib.js";
 
-const SAFE_NAMES = ["ok.txt", "a/b.txt", "dir/", "..\\win.txt", "\u00f2\\\u00e9.txt"];
-const ESCAPING_NAMES = ["../evil.txt", "a/../../evil.txt", "sub/..", "/abs.txt", "C:/win.txt", "\\\\srv\\share"];
+const SAFE_NAMES = ["ok.txt", "a/b.txt", "dir/", "a\\b.txt", "..a\\b.txt", "a\\...\\b.txt", "\u00f2\\\u00e9.txt"];
+const ESCAPING_NAMES = ["../evil.txt", "a/../../evil.txt", "sub/..", "/abs.txt", "C:/win.txt", "\\\\srv\\share",
+	"..\\win.txt", "..\\..\\evil.txt", "a\\..\\evil.txt", "a/..\\evil.txt", "sub\\.."];
 const NON_CONFORMANT_NAMES = ["a//b.txt", "./cur.txt", "a/./b.txt"];
 
 export { test };
