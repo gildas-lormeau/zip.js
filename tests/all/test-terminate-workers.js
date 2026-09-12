@@ -1,4 +1,4 @@
-/* global setTimeout */
+/* global setTimeout, clearTimeout */
 
 import * as zip from "../zip-lib.js";
 
@@ -11,6 +11,7 @@ const BLOCKING_READ = 3;
 async function test() {
 	await testResolvesOnceThePoolIsEmpty();
 	await testWaitsForACodecRunningWithoutAWorker();
+	await testResolvesEveryCallerWhileACodecRuns();
 }
 
 // terminateWorkers() is declared to return a promise resolved once the pool is empty. The entry
@@ -43,26 +44,9 @@ async function testResolvesOnceThePoolIsEmpty() {
 // failed with an internal TypeError instead of completing.
 async function testWaitsForACodecRunningWithoutAWorker() {
 	zip.configure({ useWebWorkers: false, chunkSize: 65536 });
-	let startReading, releaseReader;
-	const reading = new Promise(resolve => startReading = resolve);
-	const blocked = new Promise(resolve => releaseReader = resolve);
-	let reads = 0;
-	class BlockingReader extends zip.Reader {
-		constructor() {
-			super();
-			this.size = BLOCKED_CONTENT.length;
-		}
-		async readUint8Array(index, length) {
-			reads++;
-			if (reads == BLOCKING_READ) {
-				startReading();
-				await blocked;
-			}
-			return BLOCKED_CONTENT.slice(index, index + length);
-		}
-	}
+	const { reader, reading, releaseReader } = createBlockingReader();
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
-	const adding = zipWriter.add("blocked.bin", new BlockingReader());
+	const adding = zipWriter.add("blocked.bin", reader);
 	await reading;
 	const terminating = zip.terminateWorkers();
 	const state = await Promise.race([
@@ -83,6 +67,52 @@ async function testWaitsForACodecRunningWithoutAWorker() {
 		await zipReader.close();
 		await zip.terminateWorkers();
 	}
+}
+
+// Two callers terminating while a codec runs, e.g. a cleanup path and an unload handler, must
+// both be resolved when it ends. A single slot kept only the last caller's resolver, so the first
+// promise never settled.
+async function testResolvesEveryCallerWhileACodecRuns() {
+	zip.configure({ useWebWorkers: false, chunkSize: 65536 });
+	const { reader, reading, releaseReader } = createBlockingReader();
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	const adding = zipWriter.add("blocked.bin", reader);
+	await reading;
+	const firstTerminating = zip.terminateWorkers();
+	const secondTerminating = zip.terminateWorkers();
+	releaseReader();
+	await adding;
+	await zipWriter.close();
+	let timeout;
+	const state = await Promise.race([
+		Promise.all([firstTerminating, secondTerminating]).then(() => "resolved"),
+		new Promise(resolve => timeout = setTimeout(() => resolve("pending"), 1000))
+	]);
+	clearTimeout(timeout);
+	assert(state == "resolved", "every terminateWorkers() call made while a codec runs must be resolved when it ends");
+	await zip.terminateWorkers();
+}
+
+function createBlockingReader() {
+	let startReading, releaseReader;
+	const reading = new Promise(resolve => startReading = resolve);
+	const blocked = new Promise(resolve => releaseReader = resolve);
+	let reads = 0;
+	class BlockingReader extends zip.Reader {
+		constructor() {
+			super();
+			this.size = BLOCKED_CONTENT.length;
+		}
+		async readUint8Array(index, length) {
+			reads++;
+			if (reads == BLOCKING_READ) {
+				startReading();
+				await blocked;
+			}
+			return BLOCKED_CONTENT.slice(index, index + length);
+		}
+	}
+	return { reader: new BlockingReader(), reading, releaseReader };
 }
 
 function assert(condition, message) {

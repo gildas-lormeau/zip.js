@@ -2471,7 +2471,8 @@
 					return new Promise(resolve => {
 						const { worker, busy } = workerData;
 						if (busy) {
-							workerData.resolveTerminated = resolve;
+							workerData.terminateResolvers = workerData.terminateResolvers || [];
+							workerData.terminateResolvers.push(resolve);
 						} else {
 							if (worker) {
 								worker.terminate();
@@ -2484,14 +2485,14 @@
 				},
 				onTaskFinished() {
 					if (workerData.busy) {
-						const { resolveTerminated, worker } = workerData;
-						if (resolveTerminated) {
-							workerData.resolveTerminated = null;
+						const { terminateResolvers, worker } = workerData;
+						if (terminateResolvers) {
+							workerData.terminateResolvers = null;
 							if (worker) {
 								workerData.terminated = true;
 								worker.terminate();
 							}
-							resolveTerminated();
+							terminateResolvers.forEach(resolve => resolve());
 						}
 						workerData.busy = false;
 						onTaskFinished(workerData);
@@ -4677,7 +4678,7 @@
 			Object.assign(this, {
 				reader: new GenericReader(reader),
 				options,
-				readRanges: new Map()
+				readRanges: { indexes: new Set(), sortedRanges: [], pendingRanges: [] }
 			});
 		}
 
@@ -5322,7 +5323,6 @@
 				throw new Error(ERR_ENTRY_DATA_OUT_OF_BOUNDS);
 			}
 			const size = compressedSize;
-			const readable = toCompatibleReadable(reader.createReadable({ offset: dataOffset, size }));
 			const signal = checkSignalOption(getOptionValue$1(zipEntry, options, OPTION_SIGNAL));
 			throwIfAborted(signal);
 			let checkOverlappingEntry = getOptionValue$1(zipEntry, options, OPTION_CHECK_OVERLAPPING_ENTRY);
@@ -5396,6 +5396,7 @@
 					writer = new GenericWriter(writer);
 					await initStream(writer, getDecodableOutputSize(outputSize, compressedSize, compressed));
 					({ writable } = writer);
+					const readable = toCompatibleReadable(reader.createReadable({ offset: dataOffset, size }));
 					const { outputSize: writtenSize } = await runWorker({ readable, writable }, workerOptions);
 					if (writtenSize != outputSize) {
 						throw Object.assign(new Error(ERR_INVALID_UNCOMPRESSED_SIZE), { outputSize: writtenSize });
@@ -5831,14 +5832,61 @@
 			end: dataOffset + compressedSize + dataDescriptorLength,
 			fileEntry
 		};
-		for (const [otherIndex, otherRange] of readRanges) {
-			if (otherIndex != index && range.start < otherRange.end && otherRange.start < range.end) {
+		const { indexes, sortedRanges, pendingRanges } = readRanges;
+		if (!indexes.has(index)) {
+			const overlappingRange = findOverlappingRange(sortedRanges, range) || pendingRanges.find(otherRange => rangesOverlap(range, otherRange));
+			if (overlappingRange) {
 				const error = new Error(ERR_OVERLAPPING_ENTRY);
-				error.overlappingEntry = otherRange.fileEntry;
+				error.overlappingEntry = overlappingRange.fileEntry;
 				throw error;
 			}
+			indexes.add(index);
+			pendingRanges.push(range);
+			if (pendingRanges.length * pendingRanges.length > sortedRanges.length) {
+				pendingRanges.sort((range, otherRange) => range.start - otherRange.start);
+				readRanges.sortedRanges = mergeRanges(sortedRanges, pendingRanges);
+				pendingRanges.length = 0;
+			}
 		}
-		readRanges.set(index, range);
+	}
+
+	function findOverlappingRange(sortedRanges, range) {
+		let low = 0;
+		let high = sortedRanges.length;
+		while (low < high) {
+			const middle = (low + high) >>> 1;
+			if (sortedRanges[middle].start < range.start) {
+				low = middle + 1;
+			} else {
+				high = middle;
+			}
+		}
+		const previousRange = sortedRanges[low - 1];
+		const nextRange = sortedRanges[low];
+		if (previousRange && rangesOverlap(range, previousRange)) {
+			return previousRange;
+		}
+		if (nextRange && rangesOverlap(range, nextRange)) {
+			return nextRange;
+		}
+	}
+
+	function rangesOverlap(range, otherRange) {
+		return range.start < otherRange.end && otherRange.start < range.end;
+	}
+
+	function mergeRanges(sortedRanges, pendingRanges) {
+		const mergedRanges = [];
+		let indexSorted = 0;
+		let indexPending = 0;
+		while (indexSorted < sortedRanges.length || indexPending < pendingRanges.length) {
+			if (indexPending == pendingRanges.length || (indexSorted < sortedRanges.length && sortedRanges[indexSorted].start < pendingRanges[indexPending].start)) {
+				mergedRanges.push(sortedRanges[indexSorted++]);
+			} else {
+				mergedRanges.push(pendingRanges[indexPending++]);
+			}
+		}
+		return mergedRanges;
 	}
 
 	function readDataDescriptor(dataDescriptorView, offset, extraFieldZip64) {
