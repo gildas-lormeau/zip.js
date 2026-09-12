@@ -1673,9 +1673,11 @@ export interface GetEntriesOptions {
    * `true` to throw an {@link ERR_AMBIGUOUS_ARCHIVE} error when the archive could be parsed differently by other
    * tools. This detects data before or after the zip structure (e.g. a self-extracting archive stub or a
    * concatenated archive), central directory records not accounted for by the end of central directory record, an
-   * end of central directory record disagreeing with its zip64 counterpart, and duplicate filenames. When reading
-   * the content of an entry, it also validates the local file header against the central directory record (see
-   * {@link ZipReaderOptions#checkAmbiguity}).
+   * end of central directory record disagreeing with its zip64 counterpart, and duplicate filenames. Filenames are
+   * compared exactly, after {@link GetEntriesOptions#normalizeFilename}: two names differing only by letter case or
+   * by Unicode normalization form are distinct entries, even though they collide on a case-insensitive or
+   * normalizing filesystem. When reading the content of an entry, it also validates the local file header against
+   * the central directory record (see {@link ZipReaderOptions#checkAmbiguity}).
    *
    * This is the boolean form of {@link GetEntriesOptions#strictness}: `true` means `"strict"` and `false` means
    * any value but `"strict"`. When both options are set, the value passed to {@link ZipReader#getEntries} takes
@@ -1713,7 +1715,8 @@ export interface GetEntriesOptions {
    * {@link ERR_UNSAFE_FILENAME} error carrying the offending name in its `filename` property.
    *
    * - `"strict"`: reject the names rejected by `"balanced"`, plus the names that do not map cleanly to a file
-   * path, i.e. empty names and names containing a `"."` path component or an empty one (e.g. `"a//b.txt"`).
+   * path, i.e. empty names, names containing a `"."` path component or an empty one (e.g. `"a//b.txt"`), and
+   * names containing a NUL character.
    * - `"balanced"`: reject names that would escape the directory they are extracted into, i.e. names containing
    * a `".."` path component delimited by slashes or by backslashes (e.g. `"..\\file.txt"`, which a Windows host
    * resolves as a parent directory), and absolute names, i.e. names starting with `"/"`, with a drive letter
