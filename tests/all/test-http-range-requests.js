@@ -60,6 +60,13 @@ async function test() {
 			if (result.length != payload.length || result.some((value, index) => value != payload[index])) {
 				throw new Error("invalid data");
 			}
+			const requestCountBeforeCheck = rangeRequests.length;
+			await entries[0].getData(new zip.Uint8ArrayWriter(), { checkOverlappingEntryOnly: true });
+			const checkRequests = rangeRequests.slice(requestCountBeforeCheck);
+			const checkPayloadRequests = checkRequests.filter(([rangeStart, rangeEnd]) => rangeEnd - rangeStart + 1 >= payload.length);
+			if (checkPayloadRequests.length) {
+				throw new Error("checkOverlappingEntryOnly must not request the entry data, got " + checkPayloadRequests.length + " request(s)");
+			}
 		} finally {
 			await zipReader.close();
 		}
