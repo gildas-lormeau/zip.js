@@ -2,7 +2,6 @@ const MANGLED_PROPERTY_NAMES = [
 	"_end",
 	"_last_consumed",
 	"_process",
-	"_scratch",
 	"abortPipe",
 	"addSplitZipSignature",
 	"appendZipEntries",
