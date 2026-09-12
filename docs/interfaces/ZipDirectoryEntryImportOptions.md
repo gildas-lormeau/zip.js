@@ -228,8 +228,8 @@ false
 
 The encoding of the comment of the entry.
 
-The option is ignored when the general purpose bit 11 is set in the header of the entry, see
-[GetEntriesOptions#filenameEncoding](GetEntriesOptions.md#filenameencoding).
+The option is ignored when the general purpose bit 11 is set in the header of the entry, and valid
+UTF-8 is detected when the option is not set, see [GetEntriesOptions#filenameEncoding](GetEntriesOptions.md#filenameencoding).
 
 #### Inherited from
 
@@ -395,8 +395,11 @@ false
 The encoding of the filename of the entry.
 
 The option is ignored when the general purpose bit 11 is set in the header of the entry: such a
-filename is always decoded as UTF-8. It is only read when the bit is not set, and the filename is
-then decoded as IBM Code Page 437 when the option is not set either.
+filename is always decoded as UTF-8. It is only read when the bit is not set. When the option is not
+set either, a filename holding bytes outside ASCII is decoded as UTF-8 if they form valid UTF-8, since
+many writers store UTF-8 without setting the bit (macOS Archive Utility, `ditto`, the macOS build of
+Info-ZIP `zip`, Java 6), and as IBM Code Page 437 otherwise. Set the option to decode such filenames
+as another legacy encoding instead.
 
 #### Inherited from
 

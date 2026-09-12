@@ -3370,6 +3370,19 @@ function decodeText(value, encoding) {
 	return decode(value, encoding, true);
 }
 
+function isUTF8Text(value) {
+	if (value.some(byte => byte > 0x7f)) {
+		try {
+			new TextDecoder("utf-8", { fatal: true }).decode(value);
+			return true;
+		} catch {
+			return false;
+		}
+	} else {
+		return false;
+	}
+}
+
 function decodeTextRemovingBOM(value, encoding) {
 	return decode(value, encoding, false);
 }
@@ -4935,8 +4948,8 @@ class ZipReader {
 			const commentLength = getUint16$1(directoryView, offset + 32);
 			const endOffset = commentOffset + commentLength;
 			const rawComment = directoryArray.subarray(commentOffset, endOffset);
-			const filenameUTF8 = languageEncodingFlag;
-			const commentUTF8 = languageEncodingFlag;
+			const filenameUTF8 = languageEncodingFlag || (!filenameEncoding && isUTF8Text(rawFilename));
+			const commentUTF8 = languageEncodingFlag || (!commentEncoding && isUTF8Text(rawComment));
 			const externalFileAttributes = getUint32$1(directoryView, offset + 38);
 			const msdosAttributesRaw = externalFileAttributes & MAX_8_BITS;
 			const msdosAttributes = {
