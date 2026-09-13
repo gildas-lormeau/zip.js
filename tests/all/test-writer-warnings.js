@@ -38,22 +38,32 @@ async function testCompressionUnavailable() {
 }
 
 // the clamp only loses the date when no extra field carries it, so the warning must follow that condition rather
-// than the date being out of range: extendedTimestamp is enabled by default and preserves the original value
+// than the date being out of range: extendedTimestamp is enabled by default and preserves the original value, and
+// the NTFS field steps in by default for a date the extended timestamp cannot hold. The middle configurations,
+// one field off and the other unable to carry the date, are the ones a gate on the option alone would miss
 async function testClampedLastModificationDate() {
 	for (const lastModDate of [BEFORE_MSDOS_RANGE, AFTER_MSDOS_RANGE]) {
-		const preserved = await writeEntry({ entryOptions: { lastModDate } });
-		assert(!preserved.warnings.length,
-			"an out of range date preserved by the extended timestamp must produce no warning, got " + JSON.stringify(preserved.warnings));
-		assert(preserved.entry.lastModDate.getTime() == lastModDate.getTime(),
-			"the extended timestamp must preserve " + lastModDate.toISOString() + ", got " + preserved.entry.lastModDate.toISOString());
-		const clamped = await writeEntry({
-			writerOptions: { extendedTimestamp: false, ntfsTimestamp: false },
-			entryOptions: { lastModDate }
-		});
-		assertReason(clamped.warnings, WARNING_CLAMPED_LAST_MODIFICATION_DATE);
-		assert(clamped.entry.lastModDate.getTime() != lastModDate.getTime(),
-			"the date must be clamped when no extra field carries it, got " + clamped.entry.lastModDate.toISOString());
+		await assertPreservedDate({ entryOptions: { lastModDate } }, lastModDate);
+		await assertClampedDate({ writerOptions: { extendedTimestamp: false, ntfsTimestamp: false }, entryOptions: { lastModDate } }, lastModDate);
+		await assertClampedDate({ writerOptions: { extendedTimestamp: false }, entryOptions: { lastModDate } }, lastModDate);
 	}
+	await assertPreservedDate({ writerOptions: { ntfsTimestamp: false }, entryOptions: { lastModDate: BEFORE_MSDOS_RANGE } }, BEFORE_MSDOS_RANGE);
+	await assertClampedDate({ writerOptions: { ntfsTimestamp: false }, entryOptions: { lastModDate: AFTER_MSDOS_RANGE } }, AFTER_MSDOS_RANGE);
+}
+
+async function assertPreservedDate(options, lastModDate) {
+	const { warnings, entry } = await writeEntry(options);
+	assert(!warnings.length,
+		"an out of range date preserved by an extra field must produce no warning, got " + JSON.stringify(warnings));
+	assert(entry.lastModDate.getTime() == lastModDate.getTime(),
+		"the extra field must preserve " + lastModDate.toISOString() + ", got " + entry.lastModDate.toISOString());
+}
+
+async function assertClampedDate(options, lastModDate) {
+	const { warnings, entry } = await writeEntry(options);
+	assertReason(warnings, WARNING_CLAMPED_LAST_MODIFICATION_DATE);
+	assert(entry.lastModDate.getTime() != lastModDate.getTime(),
+		"the date must be clamped when no extra field carries it, got " + entry.lastModDate.toISOString());
 }
 
 // the reason is deposited once with the filename of the first entry it applied to, so an archive whose entries

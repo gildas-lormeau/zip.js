@@ -24,9 +24,27 @@ async function test() {
 		await testPassThrough();
 		await testUsdz();
 		await testUndeterminedSize();
+		await testStoredWhenNoDeflate();
 		await testNoReaderCreated();
 	} finally {
+		zip.resetConfiguration();
 		await zip.terminateWorkers();
+	}
+}
+
+// an entry asking for compression is stored when no deflate implementation is reachable, so its size is
+// determinable then: the same call throws on a platform carrying deflate and returns an exact size on one
+// that does not
+async function testStoredWhenNoDeflate() {
+	await assertUndeterminedSize(root => root.addText("text.txt", TEXT_CONTENT), {});
+	zip.configure({ CompressionStream: null, CompressionStreamFallback: null, useCompressionStream: false, useWebWorkers: false });
+	try {
+		await assertExportedSize(root => {
+			root.addText("text.txt", TEXT_CONTENT);
+			root.addUint8Array("binary.bin", BINARY_CONTENT);
+		}, {});
+	} finally {
+		zip.resetConfiguration();
 	}
 }
 

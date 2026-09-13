@@ -1,4 +1,4 @@
-/* global TextEncoder, AbortController, EventTarget, Blob, URL */
+/* global TextEncoder, AbortController, EventTarget, Blob, URL, CompressionStream */
 
 // Checks that options taking an enumeration of values, a bounded number, or a given shape reject anything
 // else instead of silently falling back to a default or failing much later with an error naming an internal
@@ -50,6 +50,7 @@ async function test() {
 	configureKeepsAcceptingValidValues();
 	configureRejectsStreamsOfAnotherType();
 	configureKeepsAcceptingFalsyStreams();
+	await configureReadsBooleanOptionsAsTruthy();
 	configureRejectsURIsOfAnotherType();
 	configureKeepsAcceptingTheURIsZipJsInstallsItself();
 	await configureLeavesTheConfigurationUntouchedWhenItThrows();
@@ -562,6 +563,53 @@ function configureRejectsStreamsOfAnotherType() {
 				propertyName + ": " + describe(propertyValue));
 		}
 	}
+}
+
+// the three worker options are read as truthy values and not converted, as documented: "false" and "0" mean
+// true, so useWebWorkers: "0" asks the factory for a worker and useCompressionStream: "false" keeps the fallback
+// codec out, while the real false does the opposite
+async function configureReadsBooleanOptionsAsTruthy() {
+	for (const propertyName of ["useWebWorkers", "useCompressionStream", "transferStreams"]) {
+		for (const propertyValue of ["false", "0", 0, "", false, true, "true"]) {
+			zip.configure({ [propertyName]: propertyValue });
+		}
+	}
+	for (const useWebWorkers of ["false", "0", false]) {
+		let createWorkerCalled = false;
+		zip.resetConfiguration();
+		await zip.terminateWorkers();
+		zip.configure({
+			useWebWorkers,
+			createWorker: () => {
+				createWorkerCalled = true;
+				throw new Error("no worker");
+			}
+		});
+		await buildZip();
+		await zip.terminateWorkers();
+		if (createWorkerCalled != Boolean(useWebWorkers)) {
+			throw new Error("expected useWebWorkers: " + describe(useWebWorkers) + " to be read as " + Boolean(useWebWorkers));
+		}
+	}
+	for (const useCompressionStream of ["false", "0", false]) {
+		let fallbackUsed = false;
+		zip.resetConfiguration();
+		zip.configure({
+			useWebWorkers: false,
+			useCompressionStream,
+			CompressionStreamFallback: class {
+				constructor(format, options) {
+					fallbackUsed = true;
+					return new CompressionStream(format, options);
+				}
+			}
+		});
+		await buildZip();
+		if (fallbackUsed == Boolean(useCompressionStream)) {
+			throw new Error("expected useCompressionStream: " + describe(useCompressionStream) + " to be read as " + Boolean(useCompressionStream));
+		}
+	}
+	zip.resetConfiguration();
 }
 
 // false is the documented value of CompressionStream and DecompressionStream when the environment does not
