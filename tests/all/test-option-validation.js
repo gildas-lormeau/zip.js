@@ -567,7 +567,9 @@ function configureRejectsStreamsOfAnotherType() {
 
 // the three worker options are read as truthy values and not converted, as documented: "false" and "0" mean
 // true, so useWebWorkers: "0" asks the factory for a worker and useCompressionStream: "false" keeps the fallback
-// codec out, while the real false does the opposite
+// codec out, while the real false does the opposite. The fallback spy hands its input to the native stream, so
+// the second check runs where CompressionStream takes "deflate-raw": without it the spy is the only codec, and
+// where the native stream rejects the format the library recovers on its gzip route behind the spy's back
 async function configureReadsBooleanOptionsAsTruthy() {
 	for (const propertyName of ["useWebWorkers", "useCompressionStream", "transferStreams"]) {
 		for (const propertyValue of ["false", "0", 0, "", false, true, "true"]) {
@@ -591,25 +593,35 @@ async function configureReadsBooleanOptionsAsTruthy() {
 			throw new Error("expected useWebWorkers: " + describe(useWebWorkers) + " to be read as " + Boolean(useWebWorkers));
 		}
 	}
-	for (const useCompressionStream of ["false", "0", false]) {
-		let fallbackUsed = false;
-		zip.resetConfiguration();
-		zip.configure({
-			useWebWorkers: false,
-			useCompressionStream,
-			CompressionStreamFallback: class {
-				constructor(format, options) {
-					fallbackUsed = true;
-					return new CompressionStream(format, options);
+	if (supportsNativeDeflateRaw()) {
+		for (const useCompressionStream of ["false", "0", false]) {
+			let fallbackUsed = false;
+			zip.resetConfiguration();
+			zip.configure({
+				useWebWorkers: false,
+				useCompressionStream,
+				CompressionStreamFallback: class {
+					constructor(format, options) {
+						fallbackUsed = true;
+						return new CompressionStream(format, options);
+					}
 				}
+			});
+			await buildZip();
+			if (fallbackUsed == Boolean(useCompressionStream)) {
+				throw new Error("expected useCompressionStream: " + describe(useCompressionStream) + " to be read as " + Boolean(useCompressionStream));
 			}
-		});
-		await buildZip();
-		if (fallbackUsed == Boolean(useCompressionStream)) {
-			throw new Error("expected useCompressionStream: " + describe(useCompressionStream) + " to be read as " + Boolean(useCompressionStream));
 		}
 	}
 	zip.resetConfiguration();
+}
+
+function supportsNativeDeflateRaw() {
+	try {
+		return Boolean(new CompressionStream("deflate-raw"));
+	} catch {
+		return false;
+	}
 }
 
 // false is the documented value of CompressionStream and DecompressionStream when the environment does not
