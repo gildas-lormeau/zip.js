@@ -188,6 +188,7 @@ export default ([
 	{ title: "HTTP range requests (window size)", script: "./test-http-range-window.js" },
 	{ title: "Writer exact chunks", script: "./test-writer-exact-chunks.js" },
 	{ title: "Filename validation", script: "./test-filename-validation.js" },
+	{ title: "Entry metadata buffer", script: "./test-entry-metadata-buffer.js" },
 	{ title: "Option validation", script: "./test-option-validation.js" },
 	{ title: "Option validation (aborted signal)", script: "./test-option-validation-abort-signal.js", features: ["pipeToSignal"] },
 	{ title: "Invalid CRC", script: "./test-invalid-crc.js" },

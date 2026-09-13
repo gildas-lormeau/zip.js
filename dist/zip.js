@@ -4900,10 +4900,11 @@
 				const versionMadeBy = getUint16$1(directoryView, offset + 4);
 				const msDosCompatible = versionMadeBy >> 8 == 0;
 				const unixCompatible = versionMadeBy >> 8 == 3;
-				const rawFilename = directoryArray.subarray(filenameOffset, extraFieldOffset);
 				const commentLength = getUint16$1(directoryView, offset + 32);
 				const endOffset = commentOffset + commentLength;
-				const rawComment = directoryArray.subarray(commentOffset, endOffset);
+				const rawEntryData = new Uint8Array(directoryArray.subarray(filenameOffset, endOffset));
+				const rawFilename = rawEntryData.subarray(0, fileEntry.filenameLength);
+				const rawComment = rawEntryData.subarray(fileEntry.filenameLength + fileEntry.extraFieldLength);
 				const filenameUTF8 = languageEncodingFlag || (!filenameEncoding && isUTF8Text(rawFilename));
 				const commentUTF8 = languageEncodingFlag || (!commentEncoding && isUTF8Text(rawComment));
 				const externalFileAttributes = getUint32$1(directoryView, offset + 38);
@@ -4956,7 +4957,7 @@
 					rawFilename,
 					filenameUTF8,
 					commentUTF8,
-					rawExtraField: directoryArray.subarray(extraFieldOffset, commentOffset),
+					rawExtraField: rawEntryData.subarray(fileEntry.filenameLength, fileEntry.filenameLength + fileEntry.extraFieldLength),
 					rawComment,
 					filename,
 					comment
@@ -6076,7 +6077,7 @@
 	}
 
 	function getEndOfCentralDirectoryInfo(scanArray, indexByte, offset) {
-		return { offset, buffer: scanArray.slice(indexByte, indexByte + END_OF_CENTRAL_DIR_LENGTH).buffer };
+		return { offset, buffer: new Uint8Array(scanArray.subarray(indexByte, indexByte + END_OF_CENTRAL_DIR_LENGTH)).buffer };
 	}
 
 	async function getCentralDirectoryReachability(reader, view, anchoredOffset, indexByte, offset, size, remoteProbeBudget) {
