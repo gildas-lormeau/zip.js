@@ -22,7 +22,7 @@
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">ZipReaderGetEntriesOptions</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L1637">index.d.ts:1637</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L1637">index.d.ts:1637</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -53,9 +53,11 @@
 <div class="tsd-comment tsd-typography"><p><code>true</code> to throw an <a href="../variables/ERR_AMBIGUOUS_ARCHIVE.html" class="tsd-kind-variable">ERR_AMBIGUOUS_ARCHIVE</a> error when the archive could be parsed differently by other
 tools. This detects data before or after the zip structure (e.g. a self-extracting archive stub or a
 concatenated archive), central directory records not accounted for by the end of central directory record, an
-end of central directory record disagreeing with its zip64 counterpart, and duplicate filenames. When reading
-the content of an entry, it also validates the local file header against the central directory record (see
-<a href="ZipReaderOptions.html#checkambiguity" class="tsd-kind-property">ZipReaderOptions#checkAmbiguity</a>).</p>
+end of central directory record disagreeing with its zip64 counterpart, and duplicate filenames. Filenames are
+compared exactly, after <a href="GetEntriesOptions.html#normalizefilename" class="tsd-kind-method">GetEntriesOptions#normalizeFilename</a>: two names differing only by letter case or
+by Unicode normalization form are distinct entries, even though they collide on a case-insensitive or
+normalizing filesystem. When reading the content of an entry, it also validates the local file header against
+the central directory record (see <a href="ZipReaderOptions.html#checkambiguity" class="tsd-kind-property">ZipReaderOptions#checkAmbiguity</a>).</p>
 <p>This is the boolean form of <a href="#strictness" class="tsd-kind-property">GetEntriesOptions#strictness</a>: <code>true</code> means <code>&quot;strict&quot;</code> and <code>false</code> means
 any value but <code>&quot;strict&quot;</code>. When both options are set, the value passed to <a href="../classes/ZipReader.html#getentries" class="tsd-kind-method">ZipReader#getEntries</a> takes
 precedence over the value passed to the constructor of <a href="../classes/ZipReader.html" class="tsd-kind-class">ZipReader</a>, and <code>strictness</code> takes precedence
@@ -70,28 +72,31 @@ to <code>&quot;balanced&quot;</code> and leaves an inherited <code>&quot;toleran
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GetEntriesOptions.html">GetEntriesOptions</a>.<a href="GetEntriesOptions.html#checkambiguity">checkAmbiguity</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L1685">index.d.ts:1685</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L1690">index.d.ts:1690</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="commentencoding"><code class="tsd-tag">Optional</code><span>comment<wbr/>Encoding</span><a href="#commentencoding" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">commentEncoding</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The encoding of the comment of the entry.</p>
-<p>The option is ignored when the general purpose bit 11 is set in the header of the entry, see
-<a href="GetEntriesOptions.html#filenameencoding" class="tsd-kind-property">GetEntriesOptions#filenameEncoding</a>.</p>
+<p>The option is ignored when the general purpose bit 11 is set in the header of the entry, and valid
+UTF-8 is detected when the option is not set, see <a href="GetEntriesOptions.html#filenameencoding" class="tsd-kind-property">GetEntriesOptions#filenameEncoding</a>.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="GetEntriesOptions.html">GetEntriesOptions</a>.<a href="GetEntriesOptions.html#commentencoding">commentEncoding</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L1659">index.d.ts:1659</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L1662">index.d.ts:1662</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="filenameencoding"><code class="tsd-tag">Optional</code><span>filename<wbr/>Encoding</span><a href="#filenameencoding" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">filenameEncoding</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The encoding of the filename of the entry.</p>
 <p>The option is ignored when the general purpose bit 11 is set in the header of the entry: such a
-filename is always decoded as UTF-8. It is only read when the bit is not set, and the filename is
-then decoded as IBM Code Page 437 when the option is not set either.</p>
+filename is always decoded as UTF-8. It is only read when the bit is not set. When the option is not
+set either, a filename holding bytes outside ASCII is decoded as UTF-8 if they form valid UTF-8, since
+many writers store UTF-8 without setting the bit (macOS Archive Utility, <code>ditto</code>, the macOS build of
+Info-ZIP <code>zip</code>, Java 6), and as IBM Code Page 437 otherwise. Set the option to decode such filenames
+as another legacy encoding instead.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="GetEntriesOptions.html">GetEntriesOptions</a>.<a href="GetEntriesOptions.html#filenameencoding">filenameEncoding</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L1652">index.d.ts:1652</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L1655">index.d.ts:1655</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="filenamevalidation"><code class="tsd-tag">Optional</code><span>filename<wbr/>Validation</span><a href="#filenamevalidation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">filenameValidation</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;balanced&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;strict&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;tolerant&quot;</span></div>
@@ -99,15 +104,17 @@ then decoded as IBM Code Page 437 when the option is not set either.</p>
 <a href="../variables/ERR_UNSAFE_FILENAME.html" class="tsd-kind-variable">ERR_UNSAFE_FILENAME</a> error carrying the offending name in its <code>filename</code> property.</p>
 <ul>
 <li><code>&quot;strict&quot;</code>: reject the names rejected by <code>&quot;balanced&quot;</code>, plus the names that do not map cleanly to a file
-path, i.e. empty names and names containing a <code>&quot;.&quot;</code> path component or an empty one (e.g. <code>&quot;a//b.txt&quot;</code>).</li>
+path, i.e. empty names, names containing a <code>&quot;.&quot;</code> path component or an empty one (e.g. <code>&quot;a//b.txt&quot;</code>), and
+names containing a NUL character.</li>
 <li><code>&quot;balanced&quot;</code>: reject names that would escape the directory they are extracted into, i.e. names containing
-a <code>&quot;..&quot;</code> path component, and absolute names, i.e. names starting with <code>&quot;/&quot;</code>, with a drive letter (e.g.
-<code>&quot;C:/file.txt&quot;</code>) or with two backslashes (UNC paths).</li>
+a <code>&quot;..&quot;</code> path component delimited by slashes or by backslashes (e.g. <code>&quot;..\\file.txt&quot;</code>, which a Windows host
+resolves as a parent directory), and absolute names, i.e. names starting with <code>&quot;/&quot;</code>, with a drive letter
+(e.g. <code>&quot;C:/file.txt&quot;</code>) or with a backslash (root-relative and UNC paths on Windows).</li>
 <li><code>&quot;tolerant&quot;</code>: never reject a name.</li>
 </ul>
-<p>A backslash is never interpreted as a path separator: it is a valid filename character on UNIX systems, and
-it also occurs as the trail byte of legitimate double-byte filenames (e.g. CP932) decoded with another
-charset.</p>
+<p>A backslash is otherwise not interpreted as a path separator: it is a valid filename character on UNIX
+systems, and it also occurs as the trail byte of legitimate double-byte filenames (e.g. CP932) decoded with
+another charset.</p>
 <p>Names are validated, never rewritten, so the filename reported for an entry always matches its central
 directory record.</p>
 </div>
@@ -117,7 +124,7 @@ directory record.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GetEntriesOptions.html">GetEntriesOptions</a>.<a href="GetEntriesOptions.html#filenamevalidation">filenameValidation</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L1728">index.d.ts:1728</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L1735">index.d.ts:1735</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="maxappendeddatasize"><code class="tsd-tag">Optional</code><span>max<wbr/>Appended<wbr/>Data<wbr/>Size</span><a href="#maxappendeddatasize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">maxAppendedDataSize</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -132,7 +139,7 @@ record is searched for, so a value smaller than the amount of data actually appe
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="GetEntriesOptions.html">GetEntriesOptions</a>.<a href="GetEntriesOptions.html#maxappendeddatasize">maxAppendedDataSize</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L1755">index.d.ts:1755</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L1762">index.d.ts:1762</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="strictness"><code class="tsd-tag">Optional</code><span>strictness</span><a href="#strictness" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">strictness</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;balanced&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;strict&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;tolerant&quot;</span></div>
@@ -163,7 +170,7 @@ of the file).</li>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GetEntriesOptions.html">GetEntriesOptions</a>.<a href="GetEntriesOptions.html#strictness">strictness</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L1707">index.d.ts:1707</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L1712">index.d.ts:1712</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -191,7 +198,7 @@ of the file).</li>
 <aside class="tsd-sources">
 <p>Inherited from <a href="GetEntriesOptions.html">GetEntriesOptions</a>.<a href="GetEntriesOptions.html#decodetext">decodeText</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L1668">index.d.ts:1668</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L1671">index.d.ts:1671</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="decryptcentraldirectory"><code class="tsd-tag">Optional</code><span>decrypt<wbr/>Central<wbr/>Directory</span><a href="#decryptcentraldirectory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -218,7 +225,7 @@ the encrypted (and possibly compressed) central directory, as stored in the zip 
 <aside class="tsd-sources">
 <p>Inherited from <a href="GetEntriesOptions.html">GetEntriesOptions</a>.<a href="GetEntriesOptions.html#decryptcentraldirectory">decryptCentralDirectory</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L1768">index.d.ts:1768</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L1775">index.d.ts:1775</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="normalizefilename"><code class="tsd-tag">Optional</code><span>normalize<wbr/>Filename</span><a href="#normalizefilename" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -244,7 +251,7 @@ available in <a href="EntryMetaData.html#rawfilename" class="tsd-kind-property">
 <aside class="tsd-sources">
 <p>Inherited from <a href="GetEntriesOptions.html">GetEntriesOptions</a>.<a href="GetEntriesOptions.html#normalizefilename">normalizeFilename</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L1743">index.d.ts:1743</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L1750">index.d.ts:1750</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="onprogress"><code class="tsd-tag">Optional</code><span>onprogress</span><a href="#onprogress" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -269,7 +276,7 @@ available in <a href="EntryMetaData.html#rawfilename" class="tsd-kind-property">
 <aside class="tsd-sources">
 <p>Inherited from <a href="EntryOnprogressOptions.html">EntryOnprogressOptions</a>.<a href="EntryOnprogressOptions.html#onprogress">onprogress</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/14a8e13a085f2c7b0a804d6df89069fddfa17cd0/index.d.ts#L3795">index.d.ts:3795</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/307b756c663ca8855093d4c33b32728b4a3779c8/index.d.ts#L3802">index.d.ts:3802</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
