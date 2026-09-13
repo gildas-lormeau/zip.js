@@ -71,7 +71,6 @@ const MANGLED_PROPERTY_NAMES = [
 	"lockWriter",
 	"maximumCompressedSize",
 	"metadataSize",
-	"o",
 	"observed",
 	"onTaskFinished",
 	"out",

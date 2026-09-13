@@ -111,6 +111,13 @@ function minPlugins(mangle) {
 	return [mangle ? terserMangler(bundledTerserOptions) : terser(bundledTerserOptions)];
 }
 
+function inlineFilePlugins() {
+	if (DEV) {
+		return [];
+	}
+	return [terser({ compress: bundledTerserOptions.compress, mangle: true, format: bundledTerserOptions.format })];
+}
+
 function inlineWorkerEntry({ input, file, deflate, mangle }) {
 	const options = { intro: GLOBALS_WORKER, deflate };
 	if (!DEV) {
@@ -122,7 +129,7 @@ function inlineWorkerEntry({ input, file, deflate, mangle }) {
 			file,
 			format: "es"
 		}],
-		plugins: [inlineWorker(options), ...minPlugins(true)]
+		plugins: [inlineWorker(options), ...inlineFilePlugins()]
 	};
 }
 
@@ -215,7 +222,7 @@ const config = [
 			file: "lib/core/zlib-streams-inline.js",
 			format: "es"
 		}],
-		plugins: [inlineBinary(), ...minPlugins(true)]
+		plugins: [inlineBinary(), ...inlineFilePlugins()]
 	},
 	umdBundleEntry({ input: "lib/zip-wasm.js", name: "zip", mangle: true }),
 	umdBundleEntry({ input: "lib/zip-native.js", name: "zip-native", mangle: false }),
