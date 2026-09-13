@@ -39,8 +39,11 @@ The page answers four questions, each from one or two scripts of the harness:
   about 2 KB each, and the 8 × 8 MB and 256 MB workloads are text.
 - **Isolation.** In `bench.js` and `bench-backends.js`, each (library, operation, workload)
   combination runs in its own freshly spawned Node process under macOS's `/usr/bin/time -l`, so
-  the libraries never share a heap and peak memory is per library. The codec, encryption and
-  runtime scripts run in-process, with one warmup run before the timed ones.
+  the libraries never share a heap and peak memory is per library. Every row of those two
+  scripts includes what a fresh process pays on its first operation: the JIT warm-up of each
+  library and, for the zip.js WebAssembly rows, the module instantiation, about 20 ms. The
+  codec, encryption and runtime scripts run in-process, with one warmup run before the timed
+  ones.
 - **Timing.** `performance.now()` around the measured operation. Each combination runs 3 times
   (5 in the encryption script) and the tables report the median. Differences of a few percent
   are within run-to-run noise. A bold cell is the best number among the alternatives it is
@@ -59,6 +62,9 @@ The page answers four questions, each from one or two scripts of the harness:
   where they exist; the bundled WebAssembly zlib; and the pure-JavaScript zlib port. The last two
   ship with the library, like the codecs of jszip and fflate, so those rows compare the
   libraries without the host's zlib in the picture.
+- **Checks.** No decompression row verifies the CRC-32 of the entries: zip.js and jszip leave
+  the check off by default, and fflate has none on read. Turning it on in zip.js adds one pass
+  over the output, about 15 ms per 20 MB.
 - **Units.** MB in the tables is 10^6 bytes. The workload sizes (20 MB, 8 MB, 256 MB) and the
   MB/s throughputs use 2^20 bytes.
 
@@ -126,15 +132,17 @@ Peak memory for the same runs (Δ over baseline):
 | fflate | fflate (JavaScript) | **92 MB** | **120 MB** |
 
 On the 20 MB stream `DecompressionStream` takes 66 ms and the WebAssembly inflate 78 ms, then
-fflate 116 ms, jszip 137 ms and the pure-JavaScript port 180 ms. On 5,000 small files the order
-reverses: fflate takes 102 ms, jszip 444 ms and the three zip.js rows 476 to 628 ms, with
-`DecompressionStream` the slowest of them, the same per-entry cost as in compression. fflate
-uses the least memory on both workloads, 34 % of the `DecompressionStream` row on the small
-files, and the WebAssembly and pure-JavaScript rows peak higher than `DecompressionStream`. The
-three zip.js rows allocate the same 800 MB of stream objects over the 5,000 entries, about
-160 KB per entry. The WebAssembly and pure-JavaScript codecs run on the JavaScript thread, so
-V8's incremental marking keeps more of that garbage alive between collections, and that is the
-difference between the rows.
+fflate 116 ms, jszip 137 ms and the pure-JavaScript port 180 ms. The WebAssembly row includes
+the module instantiation a fresh process pays once, about 20 ms. Warm, the two inflates are
+within 6 % of each other in the [Codecs](#codecs-at-equal-output-size) table. On 5,000 small
+files the order reverses: fflate takes 102 ms, jszip 444 ms and the three zip.js rows 476 to
+628 ms, with `DecompressionStream` the slowest of them, the same per-entry cost as in
+compression. fflate uses the least memory on both workloads, 34 % of the `DecompressionStream`
+row on the small files, and the WebAssembly and pure-JavaScript rows peak higher than
+`DecompressionStream`. The three zip.js rows allocate the same 800 MB of stream objects over the
+5,000 entries, about 160 KB per entry. The WebAssembly and pure-JavaScript codecs run on the
+JavaScript thread, so V8's incremental marking keeps more of that garbage alive between
+collections, and that is the difference between the rows.
 
 ### Streaming a 256 MB file, disk to disk
 
