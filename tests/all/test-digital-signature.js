@@ -42,6 +42,7 @@ async function test() {
 		entries[1].filename != "second.txt" ||
 		content != TEXT_CONTENT ||
 		!equalArrays(zipReader.digitalSignature, SIGNATURE_DATA) ||
+		zipReader.digitalSignature.buffer.byteLength != SIGNATURE_DATA.length ||
 		!equalArrays(signedRegion, signedDirectory) ||
 		view.getUint32(recordOffset, true) != DIGITAL_SIGNATURE_RECORD_SIGNATURE ||
 		view.getUint16(recordOffset + 4, true) != SIGNATURE_DATA.length ||

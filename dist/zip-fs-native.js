@@ -5477,7 +5477,7 @@
 			if (getUint32$1(signatureRecordView, 0) == DIGITAL_SIGNATURE_RECORD_SIGNATURE) {
 				const signatureDataLength = getUint16$1(signatureRecordView, 4);
 				if (6 + signatureDataLength <= signatureRecordArray.length) {
-					return signatureRecordArray.subarray(6, 6 + signatureDataLength);
+					return new Uint8Array(signatureRecordArray.subarray(6, 6 + signatureDataLength));
 				}
 			}
 		}
