@@ -1900,8 +1900,8 @@ class DeflateStream extends TransformStream {
 		let crc32Stream, encryptionStream, gzipCrc32Stream;
 		let readable = super.readable;
 		const codecStreams = format && getCodecStreams(format);
-		const useGzipCrc32 = computeCrc32 && compressed && !deflate64 && !codecStreams && (!encrypted || zipCrypto) &&
-			Boolean(useCompressionStream && CompressionStream);
+		const GzipCompressionStream = getGzipCompressionStream(useCompressionStream, CompressionStream, CompressionStreamFallback);
+		const useGzipCrc32 = computeCrc32 && compressed && !deflate64 && !codecStreams && (!encrypted || zipCrypto) && Boolean(GzipCompressionStream);
 		if ((!encrypted || zipCrypto) && computeCrc32 && !useGzipCrc32) {
 			crc32Stream = new Crc32Stream();
 			readable = pipeThrough(readable, crc32Stream);
@@ -1911,7 +1911,7 @@ class DeflateStream extends TransformStream {
 				readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.CompressionStream, format, { level, chunkSize, compressionMethod, uncompressedSize: inputSize }));
 			} else if (useGzipCrc32) {
 				gzipCrc32Stream = new GzipToRawDeflateStream();
-				readable = pipeThroughBackpressured(readable, new CompressionStream(FORMAT_GZIP$1));
+				readable = pipeThroughBackpressured(readable, new GzipCompressionStream(FORMAT_GZIP$1, { level, chunkSize }));
 				readable = pipeThrough(readable, gzipCrc32Stream);
 			} else {
 				try {
@@ -1985,8 +1985,7 @@ class GzipToRawDeflateStream extends TransformStream {
 	}
 }
 
-function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize) {
-	const crc32 = new Crc32();
+function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, crc32) {
 	let outputLength = 0;
 	let inputDone = false;
 	let watchdogTimeout;
@@ -2060,7 +2059,7 @@ class InflateStream extends TransformStream {
 	constructor(options, { chunkSize, DecompressionStreamFallback, DecompressionStream }) {
 		super({});
 		const { zipCrypto, encrypted, checkCrc32, crc32, compressed, useCompressionStream, deflate64, format, compressionMethod, rawBitFlag, outputSize } = options;
-		let crc32Stream, decryptionStream;
+		let crc32Stream, decryptionStream, gzipCrc32;
 		let readable = super.readable;
 		if (encrypted) {
 			if (zipCrypto) {
@@ -2087,19 +2086,20 @@ class InflateStream extends TransformStream {
 					} catch {
 						throw error;
 					}
-					readable = pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize);
+					gzipCrc32 = new Crc32();
+					readable = pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, gzipCrc32);
 				}
 			}
 			readable = mapInflateStreamError(readable);
 		}
-		if (checkCrc32) {
+		if (checkCrc32 && !gzipCrc32) {
 			crc32Stream = new Crc32Stream();
 			readable = pipeThrough(readable, crc32Stream);
 		}
 		setReadable(this, readable, () => {
 			if (checkCrc32) {
-				const computedCrc32View = new DataView(crc32Stream.value.buffer);
-				if (crc32 != computedCrc32View.getUint32(0, false)) {
+				const computedCrc32 = gzipCrc32 ? gzipCrc32.get() >>> 0 : new DataView(crc32Stream.value.buffer).getUint32(0, false);
+				if (crc32 != computedCrc32) {
 					throw new Error(ERR_INVALID_CRC32);
 				}
 			}
@@ -2153,6 +2153,14 @@ function createCodecStream(CodecStreamClass, format, options) {
 		throw new Error(ERR_UNSUPPORTED_COMPRESSION);
 	}
 	return new CodecStreamClass(format, options);
+}
+
+function getGzipCompressionStream(useCompressionStream, CompressionStreamNative, CompressionStreamFallback) {
+	if (useCompressionStream && CompressionStreamNative) {
+		return CompressionStreamNative;
+	} else if (CompressionStreamFallback && CompressionStreamFallback.requiresModule) {
+		return CompressionStreamFallback;
+	}
 }
 
 function pipeThroughCompressionStream(readable, useCompressionStream, options, CompressionStreamNative, CompressionStreamFallback) {
