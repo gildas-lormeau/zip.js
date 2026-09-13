@@ -2500,10 +2500,12 @@
 								workerData.terminated = true;
 								worker.terminate();
 							}
-							terminateResolvers.forEach(resolve => resolve());
 						}
 						workerData.busy = false;
-						onTaskFinished(workerData);
+						const pendingTasks = onTaskFinished(workerData);
+						if (terminateResolvers) {
+							terminateResolvers.forEach(resolve => resolve(pendingTasks));
+						}
 					}
 				}
 			});
@@ -3188,7 +3190,10 @@
 
 		function onTaskFinished(workerData) {
 			clearStarvationTimeout();
-			if (pendingRequests.length) {
+			if (workerData.terminated) {
+				workerData.terminated = false;
+				return runPendingRequestsInline();
+			} else if (pendingRequests.length) {
 				const [{ resolve, stream, workerOptions }] = pendingRequests.splice(0, 1);
 				resolve(new CodecWorker(workerData, stream, workerOptions, onTaskFinished));
 				armStarvationTimeout();
@@ -3226,10 +3231,24 @@
 		starvationTimeout = null;
 		if (pendingRequests.length) {
 			const [{ resolve, stream, workerOptions }] = pendingRequests.splice(0, 1);
-			const inlineWorkerOptions = Object.assign({}, workerOptions, { useWebWorkers: false, workerURI: UNDEFINED_VALUE, createWorker: UNDEFINED_VALUE });
-			resolve(new CodecWorker({}, stream, inlineWorkerOptions, onInlineTaskFinished));
+			resolve(new CodecWorker({}, stream, getInlineWorkerOptions(workerOptions), onInlineTaskFinished));
 			armStarvationTimeout();
 		}
+	}
+
+	function runPendingRequestsInline() {
+		const tasks = pendingRequests.splice(0).map(({ resolve, stream, workerOptions }) => new Promise(resolveTask => {
+			resolve(new CodecWorker({}, stream, getInlineWorkerOptions(workerOptions), () => {
+				onInlineTaskFinished();
+				resolveTask();
+			}));
+		}));
+		clearStarvationTimeout();
+		return Promise.all(tasks);
+	}
+
+	function getInlineWorkerOptions(workerOptions) {
+		return Object.assign({}, workerOptions, { useWebWorkers: false, workerURI: UNDEFINED_VALUE, createWorker: UNDEFINED_VALUE });
 	}
 
 	function onInlineTaskFinished() {
@@ -3241,18 +3260,14 @@
 		const { config } = workerOptions;
 		const { terminateWorkerTimeout } = config;
 		if (Number.isFinite(terminateWorkerTimeout) && terminateWorkerTimeout >= 0) {
-			if (workerData.terminated) {
-				workerData.terminated = false;
-			} else {
-				workerData.terminateTimeout = setTimeout(async () => {
-					pool = pool.filter(data => data != workerData);
-					try {
-						await workerData.terminate();
-					} catch {
-						// ignored
-					}
-				}, terminateWorkerTimeout);
-			}
+			workerData.terminateTimeout = setTimeout(async () => {
+				pool = pool.filter(data => data != workerData);
+				try {
+					await workerData.terminate();
+				} catch {
+					// ignored
+				}
+			}, terminateWorkerTimeout);
 		}
 	}
 
@@ -3265,10 +3280,13 @@
 	}
 
 	async function terminateWorkers() {
-		await Promise.allSettled(pool.map(workerData => {
-			clearTerminateTimeout(workerData);
-			return workerData.terminate();
-		}));
+		await Promise.allSettled([
+			runPendingRequestsInline(),
+			...pool.map(workerData => {
+				clearTerminateTimeout(workerData);
+				return workerData.terminate();
+			})
+		]);
 		resetWebWorkerSupport();
 	}
 

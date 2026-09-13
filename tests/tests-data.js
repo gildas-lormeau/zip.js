@@ -269,6 +269,7 @@ export default ([
 	{ title: "USDZ", script: "./test-usdz.js" },
 	{ title: "Worker starvation", script: "./test-worker-starvation.js" },
 	{ title: "Worker timeout", script: "./test-worker-timeout.js" },
+	{ title: "Worker termination with a queued request", script: "./test-worker-terminate-pending.js" },
 	{ title: "Wrapped zip file", script: "./test-wrapped.js" },
 	{ title: "Writable Stream", script: "./test-writable-stream.js" },
 	{ title: "Zip Streams", script: "./test-zip-streams.js" },
