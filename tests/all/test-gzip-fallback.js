@@ -1,9 +1,11 @@
 /* global CompressionStream, DecompressionStream */
 
 // Drives the gzip fallback taken when the host codec lacks "deflate-raw", through wrappers that
-// refuse that format. On the read side the trailer carries the CRC-32 and the size declared by the
-// entry and the host inflater verifies both, so a corrupted CRC-32 fails even with checkCrc32 off,
-// and a wrong size fails as soon as the output has been read, without a watchdog.
+// refuse that format. The wrapper fills the fallback slot too, otherwise the native build reads
+// through its JavaScript port and never reaches the fallback. On the read side the trailer carries
+// the CRC-32 and the size declared by the entry and the host inflater verifies both, so a corrupted
+// CRC-32 fails even with checkCrc32 off, and a wrong size fails as soon as the output has been read,
+// without a watchdog.
 
 import * as zip from "../zip-lib.js";
 
@@ -40,7 +42,8 @@ async function test() {
 			useWebWorkers: false,
 			wasmURI: "file:///nonexistent/zip-module.wasm",
 			CompressionStream: LegacyCompressionStream,
-			DecompressionStream: LegacyDecompressionStream
+			DecompressionStream: LegacyDecompressionStream,
+			DecompressionStreamFallback: LegacyDecompressionStream
 		});
 		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { level: 9 });
 		await zipWriter.add("entry.txt", new zip.TextReader(CONTENT));
