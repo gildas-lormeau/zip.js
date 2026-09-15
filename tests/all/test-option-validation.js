@@ -568,8 +568,8 @@ function configureRejectsStreamsOfAnotherType() {
 // the three worker options are read as truthy values and not converted, as documented: "false" and "0" mean
 // true, so useWebWorkers: "0" asks the factory for a worker and useCompressionStream: "false" keeps the fallback
 // codec out, while the real false does the opposite. The fallback spy hands its input to the native stream, so
-// the second check runs where CompressionStream takes "deflate-raw": without it the spy is the only codec, and
-// where the native stream rejects the format the library recovers on its gzip route behind the spy's back
+// the second check runs where CompressionStream takes "deflate-raw": where the native stream rejects the format,
+// the truthy strings still reach the spy as the rescue codec before the gzip route, and the real false fails on it
 async function configureReadsBooleanOptionsAsTruthy() {
 	for (const propertyName of ["useWebWorkers", "useCompressionStream", "transferStreams"]) {
 		for (const propertyValue of ["false", "0", 0, "", false, true, "true"]) {

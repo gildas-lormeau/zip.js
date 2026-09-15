@@ -62,6 +62,7 @@ export default ([
 	{ title: "Comments", script: "./test-comments.js" },
 	{ title: "Compression method and level", script: "./test-compression-method-level.js" },
 	{ title: "Compression stream fallback", script: "./test-compression-stream-fallback.js", features: ["compressionStream"] },
+	{ title: "Fallback codec errors propagate when the native codec is off", script: "./test-fallback-error-propagation.js", features: ["compressionStream"] },
 	{ title: "Web worker startup fallback", script: "./test-worker-startup-fallback.js" },
 	{ title: "Web worker error before start", script: "./test-worker-error-before-start.js" },
 	{ title: "Codec import fallback", script: "./test-codec-import-fallback.js" },

@@ -1916,6 +1916,9 @@ class DeflateStream extends TransformStream {
 				try {
 					readable = pipeThroughCompressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStream, CompressionStreamFallback);
 				} catch (error) {
+					if (!useCompressionStream && CompressionStreamFallback) {
+						throw error;
+					}
 					let gzipStream;
 					try {
 						gzipStream = new CompressionStream(FORMAT_GZIP$1);
@@ -2137,7 +2140,7 @@ class InflateStream extends TransformStream {
 				try {
 					readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamFallback);
 				} catch (error) {
-					if (deflate64 || outputSize === UNDEFINED_VALUE) {
+					if (deflate64 || outputSize === UNDEFINED_VALUE || (!useCompressionStream && DecompressionStreamFallback)) {
 						throw error;
 					}
 					let gzipStream;
