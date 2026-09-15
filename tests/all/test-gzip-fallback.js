@@ -1,5 +1,10 @@
 /* global CompressionStream, DecompressionStream */
 
+// Drives the gzip fallback taken when the host codec lacks "deflate-raw", through wrappers that
+// refuse that format. On the read side the trailer carries the CRC-32 and the size declared by the
+// entry and the host inflater verifies both, so a corrupted CRC-32 fails even with checkCrc32 off,
+// and a wrong size fails as soon as the output has been read, without a watchdog.
+
 import * as zip from "../zip-lib.js";
 
 const CONTENT = "lorem ipsum dolor sit amet ".repeat(2000);
@@ -60,41 +65,15 @@ async function test() {
 		}
 		const corruptedCrcData = patchFirstCentralHeader(data, CENTRAL_HEADER_CRC32_OFFSET, 0xdeadbeef);
 		entries = await getEntries(corruptedCrcData);
-		const corruptedCrcText = await entries[0].getData(new zip.TextWriter(), { checkCrc32: false });
-		if (corruptedCrcText != CONTENT) {
-			throw new Error("unexpected content with a corrupted signature");
-		}
-		let caughtError;
-		try {
-			await entries[0].getData(new zip.TextWriter(), { checkCrc32: true });
-		} catch (error) {
-			caughtError = error;
-		}
-		if (!caughtError || caughtError.message != zip.ERR_INVALID_CRC32) {
-			throw new Error("expected an invalid signature error, got: " + caughtError);
+		for (const checkCrc32 of [false, true]) {
+			await expectError(entries[0], { checkCrc32 }, zip.ERR_INVALID_CRC32, "a corrupted crc32 and checkCrc32 " + checkCrc32);
 		}
 		const shrunkSizeData = patchFirstCentralHeader(data, CENTRAL_HEADER_UNCOMPRESSED_SIZE_OFFSET, entries[0].uncompressedSize - 1);
 		entries = await getEntries(shrunkSizeData);
-		caughtError = undefined;
-		try {
-			await entries[0].getData(new zip.TextWriter());
-		} catch (error) {
-			caughtError = error;
-		}
-		if (!caughtError) {
-			throw new Error("expected an error with a shrunk uncompressed size");
-		}
+		await expectError(entries[0], {}, zip.ERR_INVALID_UNCOMPRESSED_SIZE, "a shrunk uncompressed size");
 		const grownSizeData = patchFirstCentralHeader(data, CENTRAL_HEADER_UNCOMPRESSED_SIZE_OFFSET, entries[0].uncompressedSize + 1000);
 		entries = await getEntries(grownSizeData);
-		caughtError = undefined;
-		try {
-			await entries[0].getData(new zip.TextWriter());
-		} catch (error) {
-			caughtError = error;
-		}
-		if (!caughtError || caughtError.message != zip.ERR_INVALID_UNCOMPRESSED_SIZE) {
-			throw new Error("expected an invalid uncompressed size error, got: " + caughtError);
-		}
+		await expectError(entries[0], {}, zip.ERR_INVALID_UNCOMPRESSED_SIZE, "a grown uncompressed size");
 		zip.resetConfiguration();
 		zip.configure({ useWebWorkers: false });
 		entries = await getEntries(data);
@@ -115,6 +94,18 @@ async function getEntries(data) {
 	const entries = await zipReader.getEntries();
 	await zipReader.close();
 	return entries;
+}
+
+async function expectError(entry, options, message, label) {
+	let caughtError;
+	try {
+		await entry.getData(new zip.TextWriter(), options);
+	} catch (error) {
+		caughtError = error;
+	}
+	if (!caughtError || caughtError.message != message) {
+		throw new Error("expected " + message + " with " + label + ", got: " + caughtError);
+	}
 }
 
 function patchFirstCentralHeader(data, offset, value) {

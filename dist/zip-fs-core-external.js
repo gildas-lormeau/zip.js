@@ -1889,7 +1889,6 @@ const FORMAT_GZIP$1 = "gzip";
 const GZIP_HEADER_LENGTH = 10;
 const GZIP_TRAILER_LENGTH = 8;
 const GZIP_HEADER_BYTES = [0x1f, 0x8b, 0x08];
-const GZIP_OUTPUT_STALL_TIMEOUT = 5000;
 
 class DeflateStream extends TransformStream {
 
@@ -1986,72 +1985,133 @@ class GzipToRawDeflateStream extends TransformStream {
 }
 
 function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, crc32) {
+	const writer = gzipStream.writable.getWriter();
+	const reader = gzipStream.readable.getReader();
+	const outputCrc32 = crc32 === UNDEFINED_VALUE ? new Crc32() : UNDEFINED_VALUE;
 	let outputLength = 0;
 	let inputDone = false;
-	let watchdogTimeout;
+	let trailerWritten = false;
+	let idleCheckArmed = false;
+	let readCount = 0;
+	let readPending = false;
 	let resolveTrailerReady, rejectTrailerReady;
 	const trailerReady = new Promise((resolve, reject) => {
 		resolveTrailerReady = resolve;
 		rejectTrailerReady = reject;
 	});
 	trailerReady.catch(() => { });
-	if (!outputSize) {
-		resolveTrailerReady();
-	}
-	const gzipWrapStream = new TransformStream({
-		start(controller) {
+	pump();
+	return new ReadableStream({
+		async pull(controller) {
+			let result;
+			try {
+				result = await read();
+			} catch (error) {
+				throw trailerWritten ? getTrailerError(error) : error;
+			}
+			const { value, done } = result;
+			if (done) {
+				controller.close();
+			} else {
+				outputLength += value.length;
+				if (outputLength > outputSize) {
+					const error = new Error(ERR_INVALID_UNCOMPRESSED_SIZE);
+					rejectTrailerReady(error);
+					await cancel(reader, error);
+					throw error;
+				}
+				if (outputCrc32) {
+					outputCrc32.append(value);
+				}
+				controller.enqueue(value);
+			}
+		},
+		cancel(reason) {
+			rejectTrailerReady(reason);
+			return reader.cancel(reason);
+		}
+	});
+
+	async function pump() {
+		const inputReader = readable.getReader();
+		try {
 			const header = new Uint8Array(GZIP_HEADER_LENGTH);
 			header.set(GZIP_HEADER_BYTES);
-			controller.enqueue(header);
-		},
-		transform(chunk, controller) {
-			controller.enqueue(chunk);
-		},
-		async flush(controller) {
-			inputDone = true;
-			startWatchdog();
-			try {
-				await trailerReady;
-			} finally {
-				stopWatchdog();
+			await writer.write(header);
+			for (; ;) {
+				await writer.ready;
+				const { value, done } = await inputReader.read();
+				if (done) {
+					break;
+				}
+				await writer.write(value);
 			}
+			inputDone = true;
+			if (readPending) {
+				armIdleCheck();
+			}
+			await trailerReady;
 			const trailer = new Uint8Array(GZIP_TRAILER_LENGTH);
 			const dataView = getDataView(trailer);
-			dataView.setUint32(0, crc32.get(), true);
+			dataView.setUint32(0, outputCrc32 ? outputCrc32.get() : crc32, true);
 			dataView.setUint32(4, outputSize, true);
-			controller.enqueue(trailer);
-		},
-		cancel(reason) {
-			rejectTrailerReady(reason);
+			trailerWritten = true;
+			await writer.write(trailer);
+			await writer.close();
+		} catch (error) {
+			await abort(writer, error);
+			await cancel(inputReader, error);
 		}
-	});
-	const outputStream = new TransformStream({
-		transform(chunk, controller) {
-			crc32.append(chunk);
-			outputLength += chunk.length;
-			if (outputLength >= outputSize) {
-				resolveTrailerReady();
-			} else if (inputDone) {
-				startWatchdog();
+	}
+
+	function read() {
+		readCount++;
+		readPending = true;
+		const result = reader.read();
+		result.then(onReadSettled, onReadSettled);
+		if (inputDone) {
+			armIdleCheck();
+		}
+		return result;
+	}
+
+	function onReadSettled() {
+		readPending = false;
+	}
+
+	async function armIdleCheck() {
+		if (!idleCheckArmed) {
+			idleCheckArmed = true;
+			const count = readCount;
+			await nextTask();
+			idleCheckArmed = false;
+			if (readPending) {
+				if (readCount == count) {
+					resolveTrailerReady();
+				} else {
+					armIdleCheck();
+				}
 			}
-			controller.enqueue(chunk);
-		},
-		cancel(reason) {
-			rejectTrailerReady(reason);
 		}
+	}
+
+	function getTrailerError(error) {
+		const trailerError = new Error(outputLength == outputSize ? ERR_INVALID_CRC32 : ERR_INVALID_UNCOMPRESSED_SIZE);
+		trailerError.cause = error;
+		return trailerError;
+	}
+}
+
+function nextTask() {
+	return new Promise(resolve => {
+		const { port1, port2 } = new MessageChannel();
+		port2.onmessage = () => {
+			port1.close();
+			port2.close();
+			resolve();
+		};
+		port1.postMessage(UNDEFINED_VALUE);
 	});
-	readable = pipeThrough(readable, gzipWrapStream);
-	readable = pipeThroughBackpressured(readable, gzipStream);
-	return pipeThrough(readable, outputStream);
-
-	function startWatchdog() {
-		stopWatchdog();
-		watchdogTimeout = setTimeout(() => rejectTrailerReady(new Error(ERR_INVALID_UNCOMPRESSED_SIZE)), GZIP_OUTPUT_STALL_TIMEOUT);
-	}
-
-	function stopWatchdog() {
-		clearTimeout(watchdogTimeout);
-	}
 }
 
 class InflateStream extends TransformStream {
@@ -2059,7 +2119,7 @@ class InflateStream extends TransformStream {
 	constructor(options, { chunkSize, DecompressionStreamFallback, DecompressionStream }) {
 		super({});
 		const { zipCrypto, encrypted, checkCrc32, crc32, compressed, useCompressionStream, deflate64, format, compressionMethod, rawBitFlag, outputSize } = options;
-		let crc32Stream, decryptionStream, gzipCrc32;
+		let crc32Stream, decryptionStream, gzipFallback;
 		let readable = super.readable;
 		if (encrypted) {
 			if (zipCrypto) {
@@ -2086,19 +2146,19 @@ class InflateStream extends TransformStream {
 					} catch {
 						throw error;
 					}
-					gzipCrc32 = new Crc32();
-					readable = pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, gzipCrc32);
+					gzipFallback = true;
+					readable = pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, crc32);
 				}
 			}
 			readable = mapInflateStreamError(readable);
 		}
-		if (checkCrc32 && !gzipCrc32) {
+		if (checkCrc32 && !gzipFallback) {
 			crc32Stream = new Crc32Stream();
 			readable = pipeThrough(readable, crc32Stream);
 		}
 		setReadable(this, readable, () => {
-			if (checkCrc32) {
-				const computedCrc32 = gzipCrc32 ? gzipCrc32.get() >>> 0 : new DataView(crc32Stream.value.buffer).getUint32(0, false);
+			if (crc32Stream) {
+				const computedCrc32 = new DataView(crc32Stream.value.buffer).getUint32(0, false);
 				if (crc32 != computedCrc32) {
 					throw new Error(ERR_INVALID_CRC32);
 				}
