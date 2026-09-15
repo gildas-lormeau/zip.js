@@ -4,7 +4,9 @@
 // gzip so the CRC-32 comes from its trailer, a fallback without the flag keeps raw deflate and the
 // separate CRC pass, and the entries written through the wasm read back on both codecs with the CRC
 // check on, at the level they asked for. The module flag is declared in index.d.ts, so the spy that
-// stands for the wasm codec sets it the way a user class would and the minified builds read it.
+// stands for the wasm codec sets it the way a user class would and the minified builds read it. The
+// raw deflate half runs only where the native codec takes "deflate-raw": the plain spy delegates to it,
+// and with the native codec turned off a fallback that cannot be constructed now fails the entry.
 
 import * as zip from "../zip-lib.js";
 
@@ -43,14 +45,26 @@ async function test() {
 		ModuleFallback.requiresModule = true;
 		zip.configure({ useCompressionStream: false, CompressionStreamFallback: ModuleFallback });
 		await readEntries(await writeEntries([ENTRIES[1]]));
-		zip.configure({ CompressionStreamFallback: SpyFallback });
-		await readEntries(await writeEntries([ENTRIES[1]]));
-		if (formats.join() != "gzip,deflate-raw") {
+		const expectedFormats = ["gzip"];
+		if (supportsNativeDeflateRaw()) {
+			zip.configure({ CompressionStreamFallback: SpyFallback });
+			await readEntries(await writeEntries([ENTRIES[1]]));
+			expectedFormats.push("deflate-raw");
+		}
+		if (formats.join() != expectedFormats.join()) {
 			throw new Error("expected the gzip route for the module codec and raw deflate for the port, got " + formats.join());
 		}
 	} finally {
 		zip.resetConfiguration();
 		await zip.terminateWorkers();
+	}
+}
+
+function supportsNativeDeflateRaw() {
+	try {
+		return Boolean(new CompressionStream("deflate-raw"));
+	} catch {
+		return false;
 	}
 }
 
