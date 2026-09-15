@@ -63,6 +63,20 @@ class DeflateDecompressionStream extends TransformStream {
 initWorker({ CompressionStreamFallback: DeflateCompressionStream, DecompressionStreamFallback: DeflateDecompressionStream });
 configure({ CompressionStreamFallback: DeflateCompressionStream, DecompressionStreamFallback: DeflateDecompressionStream });
 
+// a class backed by a module declares its formats and the flag the library reads instead of probing it
+class ModuleCompressionStream extends DeflateCompressionStream {
+	static supportedFormats = ["deflate-raw", "gzip"];
+	static requiresModule = true;
+}
+
+class ModuleDecompressionStream extends DeflateDecompressionStream {
+	static supportedFormats = ["deflate-raw", "deflate64-raw"];
+	static requiresModule = true;
+}
+
+initWorker({ CompressionStreamFallback: ModuleCompressionStream, DecompressionStreamFallback: ModuleDecompressionStream });
+configure({ CompressionStreamFallback: ModuleCompressionStream, DecompressionStreamFallback: ModuleDecompressionStream });
+
 // the registry snapshot exposes the codec definitions, and the version is a string
 const registeredFormats: string[] = getRegisteredCodecs().map(codec => codec.format);
 const version: string = VERSION;

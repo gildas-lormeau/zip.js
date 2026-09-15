@@ -3,8 +3,8 @@
 // Checks the gzip route of the wasm deflate: a fallback codec that requires the module is opened as
 // gzip so the CRC-32 comes from its trailer, a fallback without the flag keeps raw deflate and the
 // separate CRC pass, and the entries written through the wasm read back on both codecs with the CRC
-// check on, at the level they asked for. The module flag is a mangled name in the minified builds,
-// so the spy that stands for the wasm codec answers true to any static property it is asked for.
+// check on, at the level they asked for. The module flag is declared in index.d.ts, so the spy that
+// stands for the wasm codec sets it the way a user class would and the minified builds read it.
 
 import * as zip from "../zip-lib.js";
 
@@ -39,11 +39,8 @@ async function test() {
 				return new CompressionStream(format, options);
 			}
 		}
-		const ModuleFallback = new Proxy(SpyFallback, {
-			get(target, property) {
-				return typeof property == "string" && !(property in target) ? true : Reflect.get(target, property);
-			}
-		});
+		class ModuleFallback extends SpyFallback { }
+		ModuleFallback.requiresModule = true;
 		zip.configure({ useCompressionStream: false, CompressionStreamFallback: ModuleFallback });
 		await readEntries(await writeEntries([ENTRIES[1]]));
 		zip.configure({ CompressionStreamFallback: SpyFallback });

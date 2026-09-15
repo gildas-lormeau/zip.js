@@ -195,6 +195,19 @@ declare class TransformStreamLike {
  */
 declare class CompressionStreamLike extends TransformStreamLike {
   /**
+   * The formats the class supports, e.g. `["deflate-raw", "gzip"]`. When it is declared, the library reads it
+   * instead of probing a format by constructing the class, which a class that requires a module cannot afford.
+   */
+  static supportedFormats?: string[];
+  /**
+   * `true` when the class cannot be constructed before the module the entry point loads is ready, i.e. the
+   * WebAssembly module of zip.js or the module loaded by the `init` function passed to {@link initWorker}.
+   * The library then waits for the module before constructing the class, uses `CompressionStream` instead when
+   * the module fails to load, and constructs the class with the `"gzip"` format in order to read the CRC-32 of
+   * the data from the trailer, so the class must support that format.
+   */
+  static requiresModule?: boolean;
+  /**
    * Creates the stream
    *
    * @param format The compression format.
@@ -207,6 +220,19 @@ declare class CompressionStreamLike extends TransformStreamLike {
  * Represents a generic class decompressing data, e.g. the native `DecompressionStream` class.
  */
 declare class DecompressionStreamLike extends TransformStreamLike {
+  /**
+   * The formats the class supports, e.g. `["deflate-raw", "deflate64-raw"]`. When it is declared, the library
+   * reads it instead of probing a format by constructing the class, which a class that requires a module cannot
+   * afford.
+   */
+  static supportedFormats?: string[];
+  /**
+   * `true` when the class cannot be constructed before the module the entry point loads is ready, i.e. the
+   * WebAssembly module of zip.js or the module loaded by the `init` function passed to {@link initWorker}.
+   * The library then waits for the module before constructing the class, and uses `DecompressionStream`
+   * instead when the module fails to load.
+   */
+  static requiresModule?: boolean;
   /**
    * Creates the stream
    *

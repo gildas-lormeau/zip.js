@@ -65,3 +65,24 @@ The writable stream.
 #### Inherited from
 
 [`TransformStreamLike`](TransformStreamLike.md).[`writable`](TransformStreamLike.md#writable)
+
+***
+
+### requiresModule?
+
+> `static` `optional` **requiresModule?**: `boolean`
+
+`true` when the class cannot be constructed before the module the entry point loads is ready, i.e. the
+WebAssembly module of zip.js or the module loaded by the `init` function passed to [initWorker](../functions/initWorker.md).
+The library then waits for the module before constructing the class, and uses `DecompressionStream`
+instead when the module fails to load.
+
+***
+
+### supportedFormats?
+
+> `static` `optional` **supportedFormats?**: `string`[]
+
+The formats the class supports, e.g. `["deflate-raw", "deflate64-raw"]`. When it is declared, the library
+reads it instead of probing a format by constructing the class, which a class that requires a module cannot
+afford.
