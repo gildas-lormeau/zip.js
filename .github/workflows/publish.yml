@@ -15,7 +15,7 @@ jobs:
   # this waits for its run on that exact commit and refuses to publish unless it succeeded
   check_tests:
     name: 'Check tests'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       actions: read
@@ -75,14 +75,14 @@ jobs:
 
   publish_jsr:
     needs: check_tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v5
       - run: npx jsr publish
 
   publish_npm:
     needs: check_tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v5
       # Setup .npmrc file to publish to npm
@@ -95,7 +95,7 @@ jobs:
 
   publish_docs:
     needs: check_tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
     steps:
