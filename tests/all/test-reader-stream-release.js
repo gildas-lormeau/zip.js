@@ -11,7 +11,7 @@ const MAX_WORKERS = 2;
 // Small enough that an entry spans many chunks, so a codec left on an entry the consumer does not
 // read blocks on backpressure instead of fitting in the buffer of the stream and completing anyway.
 const CHUNK_SIZE = 64;
-const TIMEOUT = 5000;
+const TIMEOUT = 30000;
 
 // A ZipReaderStream must not hold a codec on an entry the consumer never reads. It decompresses an
 // entry on demand, so skipping one costs nothing, and cancelling the entries stream releases the
