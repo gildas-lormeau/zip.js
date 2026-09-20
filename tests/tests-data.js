@@ -188,6 +188,7 @@ export default ([
 	{ title: "HTTP reader (resource changed)", script: "./test-http-reader-resource-changed.js" },
 	{ title: "HTTP range requests", script: "./test-http-range-requests.js" },
 	{ title: "HTTP range requests (window size)", script: "./test-http-range-window.js" },
+	{ title: "HTTP end of archive cache", script: "./test-http-eocd-cache.js" },
 	{ title: "Writer exact chunks", script: "./test-writer-exact-chunks.js" },
 	{ title: "Filename validation", script: "./test-filename-validation.js" },
 	{ title: "Entry metadata buffer", script: "./test-entry-metadata-buffer.js" },
