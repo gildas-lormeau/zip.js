@@ -63,8 +63,10 @@ The page answers four questions, each from one or two scripts of the harness:
   ship with the library, like the codecs of jszip and fflate, so those rows compare the
   libraries without the host's zlib in the picture.
 - **Checks.** No decompression row verifies the CRC-32 of the entries: zip.js and jszip leave
-  the check off by default, and fflate has none on read. Turning it on in zip.js adds one pass
-  over the output, about 15 ms per 20 MB.
+  the check off by default, and fflate has none on read. Turning it on in zip.js makes the
+  inflater verify the CRC-32 through a gzip trailer: about 7 ms per 20 MB on the WebAssembly
+  codec, within the noise on Node's `DecompressionStream`; the pure-JavaScript port keeps a
+  separate pass over the output, about 15 ms.
 - **Units.** MB in the tables is 10^6 bytes. The workload sizes (20 MB, 8 MB, 256 MB) and the
   MB/s throughputs use 2^20 bytes.
 
