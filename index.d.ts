@@ -5041,6 +5041,19 @@ export const ERR_INVALID_UNCOMPRESSED_SIZE: string;
  */
 export const ERR_INVALID_COMPRESSED_DATA: string;
 /**
+ * Codec out of memory error, thrown when the codec of an entry cannot allocate the memory it needs, e.g. when
+ * the fixed heap of the bundled WASM module is exhausted by too many entries processed concurrently in the same
+ * scope.
+ *
+ * @remarks
+ * The error the codec raised is kept as the `cause`. The failure is recognized by the `code` property of that
+ * error, `"Z_MEM_ERROR"`, which the bundled WASM codec sets and the native `DecompressionStream` of Node.js
+ * would set; a codec reporting the failure without it is reported as {@link ERR_INVALID_COMPRESSED_DATA} when
+ * reading, or with its own error when writing. When writing, only a codec that fails to allocate its state is
+ * reported with this error: a failure while compressing keeps the error of the codec.
+ */
+export const ERR_CODEC_OUT_OF_MEMORY: string;
+/**
  * Invalid password error
  */
 export const ERR_INVALID_PASSWORD: string;

@@ -1900,7 +1900,9 @@
 
 	const ERR_INVALID_UNCOMPRESSED_SIZE = "Invalid uncompressed size";
 	const ERR_INVALID_COMPRESSED_DATA = "Invalid compressed data";
+	const ERR_CODEC_OUT_OF_MEMORY = "Codec out of memory";
 	const ERR_INVALID_CRC32 = "Invalid CRC32";
+	const Z_MEM_ERROR_CODE = "Z_MEM_ERROR";
 	const FORMAT_DEFLATE_RAW = "deflate-raw";
 	const FORMAT_DEFLATE64_RAW = "deflate64-raw";
 	const FORMAT_GZIP = "gzip";
@@ -1935,13 +1937,13 @@
 						readable = pipeThroughCompressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStream, CompressionStreamFallback);
 					} catch (error) {
 						if (!useCompressionStream && CompressionStreamFallback) {
-							throw error;
+							throw mapMemoryError(error);
 						}
 						let gzipStream;
 						try {
 							gzipStream = new CompressionStream(FORMAT_GZIP);
 						} catch {
-							throw error;
+							throw mapMemoryError(error);
 						}
 						readable = pipeThroughBackpressured(readable, gzipStream);
 						readable = pipeThrough(readable, new GzipToRawDeflateStream());
@@ -2171,12 +2173,12 @@
 							readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamFallback, sourceErrors);
 						} catch (error) {
 							if (deflate64 || outputSize === UNDEFINED_VALUE || (!useCompressionStream && DecompressionStreamFallback)) {
-								throw error;
+								throw mapMemoryError(error);
 							}
 							try {
 								gzipStream = new DecompressionStream(FORMAT_GZIP);
 							} catch {
-								throw error;
+								throw mapMemoryError(error);
 							}
 						}
 					}
@@ -2333,7 +2335,19 @@
 		if (sourceErrors.has(error)) {
 			return error;
 		}
-		const mappedError = new Error(ERR_INVALID_COMPRESSED_DATA);
+		return mapError(error, isMemoryError(error) ? ERR_CODEC_OUT_OF_MEMORY : ERR_INVALID_COMPRESSED_DATA);
+	}
+
+	function mapMemoryError(error) {
+		return isMemoryError(error) ? mapError(error, ERR_CODEC_OUT_OF_MEMORY) : error;
+	}
+
+	function isMemoryError(error) {
+		return isErrorObject(error) && error.code == Z_MEM_ERROR_CODE;
+	}
+
+	function mapError(error, message) {
+		const mappedError = new Error(message);
 		mappedError.cause = error;
 		return mappedError;
 	}
@@ -6353,6 +6367,7 @@
 		ERR_AMBIGUOUS_ARCHIVE: ERR_AMBIGUOUS_ARCHIVE,
 		ERR_BAD_FORMAT: ERR_BAD_FORMAT,
 		ERR_CENTRAL_DIRECTORY_NOT_FOUND: ERR_CENTRAL_DIRECTORY_NOT_FOUND,
+		ERR_CODEC_OUT_OF_MEMORY: ERR_CODEC_OUT_OF_MEMORY,
 		ERR_ENCRYPTED: ERR_ENCRYPTED,
 		ERR_ENCRYPTED_CENTRAL_DIRECTORY: ERR_ENCRYPTED_CENTRAL_DIRECTORY,
 		ERR_ENTRY_DATA_OUT_OF_BOUNDS: ERR_ENTRY_DATA_OUT_OF_BOUNDS,
@@ -9338,6 +9353,7 @@
 	exports.ERR_AMBIGUOUS_ARCHIVE = ERR_AMBIGUOUS_ARCHIVE;
 	exports.ERR_BAD_FORMAT = ERR_BAD_FORMAT;
 	exports.ERR_CENTRAL_DIRECTORY_NOT_FOUND = ERR_CENTRAL_DIRECTORY_NOT_FOUND;
+	exports.ERR_CODEC_OUT_OF_MEMORY = ERR_CODEC_OUT_OF_MEMORY;
 	exports.ERR_DUPLICATED_NAME = ERR_DUPLICATED_NAME;
 	exports.ERR_ENCRYPTED = ERR_ENCRYPTED;
 	exports.ERR_ENCRYPTED_CENTRAL_DIRECTORY = ERR_ENCRYPTED_CENTRAL_DIRECTORY;

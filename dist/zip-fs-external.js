@@ -1931,7 +1931,9 @@ async function ensureCodecStreams(format, codecURI) {
 
 const ERR_INVALID_UNCOMPRESSED_SIZE = "Invalid uncompressed size";
 const ERR_INVALID_COMPRESSED_DATA = "Invalid compressed data";
+const ERR_CODEC_OUT_OF_MEMORY = "Codec out of memory";
 const ERR_INVALID_CRC32 = "Invalid CRC32";
+const Z_MEM_ERROR_CODE$1 = "Z_MEM_ERROR";
 const FORMAT_DEFLATE_RAW$1 = "deflate-raw";
 const FORMAT_DEFLATE64_RAW$1 = "deflate64-raw";
 const FORMAT_GZIP$1 = "gzip";
@@ -1966,13 +1968,13 @@ class DeflateStream extends TransformStream {
 					readable = pipeThroughCompressionStream(readable, useCompressionStream, { level, chunkSize }, CompressionStream, CompressionStreamFallback);
 				} catch (error) {
 					if (!useCompressionStream && CompressionStreamFallback) {
-						throw error;
+						throw mapMemoryError(error);
 					}
 					let gzipStream;
 					try {
 						gzipStream = new CompressionStream(FORMAT_GZIP$1);
 					} catch {
-						throw error;
+						throw mapMemoryError(error);
 					}
 					readable = pipeThroughBackpressured(readable, gzipStream);
 					readable = pipeThrough(readable, new GzipToRawDeflateStream());
@@ -2202,12 +2204,12 @@ class InflateStream extends TransformStream {
 						readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamFallback, sourceErrors);
 					} catch (error) {
 						if (deflate64 || outputSize === UNDEFINED_VALUE || (!useCompressionStream && DecompressionStreamFallback)) {
-							throw error;
+							throw mapMemoryError(error);
 						}
 						try {
 							gzipStream = new DecompressionStream(FORMAT_GZIP$1);
 						} catch {
-							throw error;
+							throw mapMemoryError(error);
 						}
 					}
 				}
@@ -2364,7 +2366,19 @@ function mapCodecError(error, sourceErrors) {
 	if (sourceErrors.has(error)) {
 		return error;
 	}
-	const mappedError = new Error(ERR_INVALID_COMPRESSED_DATA);
+	return mapError(error, isMemoryError(error) ? ERR_CODEC_OUT_OF_MEMORY : ERR_INVALID_COMPRESSED_DATA);
+}
+
+function mapMemoryError(error) {
+	return isMemoryError(error) ? mapError(error, ERR_CODEC_OUT_OF_MEMORY) : error;
+}
+
+function isMemoryError(error) {
+	return isErrorObject(error) && error.code == Z_MEM_ERROR_CODE$1;
+}
+
+function mapError(error, message) {
+	const mappedError = new Error(message);
 	mappedError.cause = error;
 	return mappedError;
 }
@@ -6408,6 +6422,7 @@ var zipReader = /*#__PURE__*/Object.freeze({
 	ERR_AMBIGUOUS_ARCHIVE: ERR_AMBIGUOUS_ARCHIVE,
 	ERR_BAD_FORMAT: ERR_BAD_FORMAT,
 	ERR_CENTRAL_DIRECTORY_NOT_FOUND: ERR_CENTRAL_DIRECTORY_NOT_FOUND,
+	ERR_CODEC_OUT_OF_MEMORY: ERR_CODEC_OUT_OF_MEMORY,
 	ERR_ENCRYPTED: ERR_ENCRYPTED,
 	ERR_ENCRYPTED_CENTRAL_DIRECTORY: ERR_ENCRYPTED_CENTRAL_DIRECTORY,
 	ERR_ENTRY_DATA_OUT_OF_BOUNDS: ERR_ENTRY_DATA_OUT_OF_BOUNDS,
@@ -9517,6 +9532,8 @@ const FORMAT_DEFLATE = "deflate";
 const FORMAT_DEFLATE_RAW = "deflate-raw";
 const FORMAT_DEFLATE64_RAW = "deflate64-raw";
 const FORMAT_GZIP = "gzip";
+const Z_MEM_ERROR = -4;
+const Z_MEM_ERROR_CODE = "Z_MEM_ERROR";
 
 let wasm$1, malloc, free, memory, initError;
 
@@ -9535,6 +9552,13 @@ function setInitError(error) {
 
 function resetWasmExports$1() {
 	wasm$1 = malloc = free = memory = initError = null;
+}
+
+function setZlibCode(error, result) {
+	if (result === Z_MEM_ERROR) {
+		error.code = Z_MEM_ERROR_CODE;
+	}
+	return error;
 }
 
 function _make(isCompress, type, options = {}) {
@@ -9599,7 +9623,7 @@ function _make(isCompress, type, options = {}) {
 			}
 			const result = disposeStream(state);
 			if (result !== 0) {
-				const error = new Error("end error:" + result);
+				const error = setZlibCode(new Error("end error:" + result), result);
 				readableController.error(error);
 				throw error;
 			}
@@ -9619,7 +9643,7 @@ function _make(isCompress, type, options = {}) {
 			state.in = malloc(inBufferSize);
 			state.inBufferSize = inBufferSize;
 			if (!state.out || !state.in) {
-				throw new Error("allocation failed");
+				throw setZlibCode(new Error("allocation failed"), Z_MEM_ERROR);
 			}
 			if (isCompress) {
 				state._process = wasm$1.deflate_process;
@@ -9655,7 +9679,7 @@ function _make(isCompress, type, options = {}) {
 				}
 			}
 			if (result !== 0) {
-				throw new Error("init failed:" + result);
+				throw setZlibCode(new Error("init failed:" + result), result);
 			}
 		} catch (error) {
 			disposeStream(state);
@@ -9682,7 +9706,7 @@ function _make(isCompress, type, options = {}) {
 				state.in = malloc(toRead);
 				state.inBufferSize = toRead;
 				if (!state.in) {
-					throw new Error("allocation failed");
+					throw setZlibCode(new Error("allocation failed"), Z_MEM_ERROR);
 				}
 			}
 			heap.set(chunk.subarray(offset, offset + toRead), state.in);
@@ -9691,7 +9715,7 @@ function _make(isCompress, type, options = {}) {
 			const code = (result >> 24) & 0xff;
 			const signedCode = (code & 0x80) ? code - 256 : code;
 			if (signedCode < 0) {
-				throw new Error("process error:" + signedCode);
+				throw setZlibCode(new Error("process error:" + signedCode), signedCode);
 			}
 			const prod = result & 0x00ffffff;
 			if (prod) {
@@ -9716,7 +9740,7 @@ function _make(isCompress, type, options = {}) {
 			const code = (result >> 24) & 0xff;
 			const signedCode = (code & 0x80) ? code - 256 : code;
 			if (signedCode < 0) {
-				throw new Error("process error:" + signedCode);
+				throw setZlibCode(new Error("process error:" + signedCode), signedCode);
 			}
 			const produced = result & 0x00ffffff;
 			if (produced) {
@@ -11578,4 +11602,4 @@ function decodeMimeTypes(data) {
 	return mimeTypes;
 }
 
-export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_ANCESTOR_ENTRY, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_DUPLICATED_NAME, ERR_DUPLICATE_IMPORTED_ENTRY, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_ENTRY_EXISTS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_HTTP_STATUS, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_BASE_URI, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_DUPLICATES, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORDS, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH, ERR_INVALID_PASS_THROUGH_VALUE, ERR_INVALID_READER, ERR_INVALID_READER_OPTIONS, ERR_INVALID_REQUEST_PASSWORD, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_URI, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_PARENT_NOT_DIRECTORY, ERR_READABLE_CONSUMED, ERR_RESERVED_COMPRESSION_METHOD, ERR_ROOT_DIRECTORY_NOT_MOVABLE, ERR_SPLIT_ZIP_FILE, ERR_TARGET_NOT_DIRECTORY, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_CRC32, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_PASS_THROUGH_VALUE, ERR_UNSUPPORTED_SPLIT_USDZ, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_WRITER_SIZE_NOT_WRITABLE, ERR_ZIP_CRYPTO_LAST_MOD_DATE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, VERSION, WARNING_APPENDED_DATA, WARNING_CLAMPED_LAST_MODIFICATION_DATE, WARNING_COMPRESSED_PATCHED_DATA, WARNING_COMPRESSION_UNAVAILABLE, WARNING_DUPLICATE_FILENAME, WARNING_MALFORMED_EXTRA_FIELD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY, WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY, WARNING_PREPENDED_CENTRAL_DIRECTORY, WARNING_PREPENDED_DATA, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA, WARNING_UNKNOWN_VERSION, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA, WARNING_UNSORTED_CENTRAL_DIRECTORY, WARNING_WRAPPED_ENTRIES_COUNT, Writer, ZipDirectoryEntry, ZipEntry, ZipFS, ZipFileEntry, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, fs, getMimeType, getRegisteredCodecs, getSupportedCompressionMethods, isZipFile, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };
+export { BlobReader, BlobWriter, Data64URIReader, Data64URIWriter, ERR_ABORTED, ERR_AMBIGUOUS_ARCHIVE, ERR_ANCESTOR_ENTRY, ERR_BAD_FORMAT, ERR_CENTRAL_DIRECTORY_NOT_FOUND, ERR_CODEC_OUT_OF_MEMORY, ERR_DUPLICATED_NAME, ERR_DUPLICATE_IMPORTED_ENTRY, ERR_ENCRYPTED, ERR_ENCRYPTED_CENTRAL_DIRECTORY, ERR_ENTRY_DATA_OUT_OF_BOUNDS, ERR_ENTRY_EXISTS, ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND, ERR_EOCDR_NOT_FOUND, ERR_EXTRAFIELD_ZIP64_NOT_FOUND, ERR_HTTP_RANGE, ERR_HTTP_RESOURCE_CHANGED, ERR_HTTP_STATUS, ERR_INVALID_AUTHENTICATION_CODE, ERR_INVALID_BASE_URI, ERR_INVALID_CODEC_DEFINITION, ERR_INVALID_CODEC_MODULE, ERR_INVALID_COMMENT, ERR_INVALID_COMMENT_TYPE, ERR_INVALID_COMPRESSED_DATA, ERR_INVALID_CRC32, ERR_INVALID_DATE, ERR_INVALID_DUPLICATES, ERR_INVALID_ENCRYPTION_STRENGTH, ERR_INVALID_ENTRY, ERR_INVALID_ENTRY_COMMENT, ERR_INVALID_ENTRY_COMMENT_TYPE, ERR_INVALID_ENTRY_NAME, ERR_INVALID_EXTRAFIELD, ERR_INVALID_EXTRAFIELD_DATA, ERR_INVALID_EXTRAFIELD_DATA_TYPE, ERR_INVALID_EXTRAFIELD_TYPE, ERR_INVALID_FILENAME_VALIDATION, ERR_INVALID_FUNCTION_OPTION, ERR_INVALID_GID, ERR_INVALID_LEVEL, ERR_INVALID_MAX_APPENDED_DATA_SIZE, ERR_INVALID_MAX_WORKERS, ERR_INVALID_MSDOS_ATTRIBUTES, ERR_INVALID_MSDOS_DATA, ERR_INVALID_PASSWORD, ERR_INVALID_PASSWORDS, ERR_INVALID_PASSWORD_TYPE, ERR_INVALID_PASS_THROUGH, ERR_INVALID_PASS_THROUGH_VALUE, ERR_INVALID_READER, ERR_INVALID_READER_OPTIONS, ERR_INVALID_REQUEST_PASSWORD, ERR_INVALID_SIGNAL, ERR_INVALID_SIGNATURE_DATA, ERR_INVALID_STRICTNESS, ERR_INVALID_UID, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_UNIX_EXTRA_FIELD_TYPE, ERR_INVALID_UNIX_ID_SIZE, ERR_INVALID_UNIX_MODE, ERR_INVALID_URI, ERR_INVALID_VERSION, ERR_ITERATOR_COMPLETED_TOO_SOON, ERR_LOCAL_FILE_HEADER_NOT_FOUND, ERR_OVERLAPPING_ENTRY, ERR_PARENT_NOT_DIRECTORY, ERR_READABLE_CONSUMED, ERR_RESERVED_COMPRESSION_METHOD, ERR_ROOT_DIRECTORY_NOT_MOVABLE, ERR_SPLIT_ZIP_FILE, ERR_TARGET_NOT_DIRECTORY, ERR_UNDEFINED_COMPRESSION_METHOD, ERR_UNDEFINED_CRC32, ERR_UNDEFINED_READER, ERR_UNDEFINED_UNCOMPRESSED_SIZE, ERR_UNDETERMINED_SIZE, ERR_UNSAFE_FILENAME, ERR_UNSUPPORTED_COMPRESSION, ERR_UNSUPPORTED_CONTEXT, ERR_UNSUPPORTED_CRYPTO_API, ERR_UNSUPPORTED_ENCRYPTION, ERR_UNSUPPORTED_ENCRYPTION_PASS_THROUGH, ERR_UNSUPPORTED_ENCRYPTION_USDZ, ERR_UNSUPPORTED_FORMAT, ERR_UNSUPPORTED_PASS_THROUGH_VALUE, ERR_UNSUPPORTED_SPLIT_USDZ, ERR_UNSUPPORTED_UINT64, ERR_WORKER_STARTUP_TIMEOUT, ERR_WRITER_NOT_INITIALIZED, ERR_WRITER_SIZE_NOT_WRITABLE, ERR_ZIP_CRYPTO_LAST_MOD_DATE, ERR_ZIP_NOT_EMPTY, HttpRangeReader, HttpReader, Reader, SplitDataReader, SplitDataWriter, TextReader, TextWriter, Uint8ArrayReader, Uint8ArrayWriter, VERSION, WARNING_APPENDED_DATA, WARNING_CLAMPED_LAST_MODIFICATION_DATE, WARNING_COMPRESSED_PATCHED_DATA, WARNING_COMPRESSION_UNAVAILABLE, WARNING_DUPLICATE_FILENAME, WARNING_MALFORMED_EXTRA_FIELD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG, WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY, WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY, WARNING_PREPENDED_CENTRAL_DIRECTORY, WARNING_PREPENDED_DATA, WARNING_TRAILING_CENTRAL_DIRECTORY_DATA, WARNING_UNKNOWN_VERSION, WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA, WARNING_UNSORTED_CENTRAL_DIRECTORY, WARNING_WRAPPED_ENTRIES_COUNT, Writer, ZipDirectoryEntry, ZipEntry, ZipFS, ZipFileEntry, ZipReader, ZipReaderStream, ZipWriter, ZipWriterStream, configure, createBlobTempStream, createOPFSTempStream, createSyncAccessHandleTempStream, fs, getMimeType, getRegisteredCodecs, getSupportedCompressionMethods, isZipFile, registerCodec, resetConfiguration, terminateWorkersAndModule as terminateWorkers, unregisterCodec };
