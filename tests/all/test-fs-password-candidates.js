@@ -12,7 +12,10 @@
 // inside the entry body checks that another failure of the read is reported as-is, its first chunks
 // left readable so that the probe of the password passes and the end of central directory scan, which
 // reads across the whole file, unaffected. The final ERR_INVALID_PASSWORD error carries the error
-// raised by the last candidate as its cause.
+// raised by the last candidate as its cause. The ZipCrypto header is random, so the fixture is
+// regenerated until none of the wrong candidates tried on that entry passes its one-byte check by
+// chance (2 in 256 per run otherwise), which would turn the ERR_INVALID_PASSWORD the hook expects
+// into the error of the read that follows the false accept.
 
 import * as zip from "../zip-lib.js";
 
@@ -35,6 +38,9 @@ const READABLE_BODY_LENGTH = 1024;
 const FALSE_ACCEPT_ERRORS = [zip.ERR_INVALID_CRC32, zip.ERR_INVALID_COMPRESSED_DATA, zip.ERR_INVALID_UNCOMPRESSED_SIZE];
 const EXPORT_PASSWORD = "export";
 const MAX_FALSE_ACCEPT_ATTEMPTS = 8192;
+const MAX_FIXTURE_ATTEMPTS = 64;
+const ZIPCRYPTO_ENTRY_NAME = "zipcrypto-gamma.txt";
+const WRONG_CANDIDATES = ["wrong", "alpha", "beta"];
 const ZIPCRYPTO_HEADER_LENGTH = 12;
 const CRC32_TABLE = createCrc32Table();
 const TIMEOUT = 20000;
@@ -43,7 +49,7 @@ export { test };
 
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
-	const source = await createSource(ENTRIES);
+	const source = await createSourceWithoutFalseAccept(ENTRIES, ZIPCRYPTO_ENTRY_NAME, WRONG_CANDIDATES);
 	const sharedSource = await createSource(SHARED_ENTRIES);
 	await testPasswordsAtImport(source);
 	await testPasswordsOnRead(source);
@@ -333,6 +339,17 @@ function createCrc32Table() {
 		table[index] = value >>> 0;
 	}
 	return table;
+}
+
+async function createSourceWithoutFalseAccept(entries, filename, candidates) {
+	for (let attempt = 0; attempt < MAX_FIXTURE_ATTEMPTS; attempt++) {
+		const source = await createSource(entries);
+		const { header, verificationByte } = await readZipCryptoHeader(source, filename);
+		if (candidates.every(candidate => getZipCryptoCheckByte(header, candidate) != verificationByte)) {
+			return source;
+		}
+	}
+	throw new Error("no fixture without a false accept of a wrong candidate in " + MAX_FIXTURE_ATTEMPTS + " attempts");
 }
 
 async function createSource(entries) {
