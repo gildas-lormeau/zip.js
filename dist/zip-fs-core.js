@@ -9512,6 +9512,7 @@
 	const ERR_ABORT_EXPORT = "zipjs-abort-export";
 	const ABORT_ERROR_NAME = "AbortError";
 	const EMPTY_RAW_PASSWORD = new Uint8Array(0);
+	const FALSE_ACCEPT_ERRORS = new Set([ERR_INVALID_CRC32, ERR_INVALID_UNCOMPRESSED_SIZE, ERR_INVALID_COMPRESSED_DATA]);
 
 	class ZipEntry {
 
@@ -10499,7 +10500,12 @@
 				release();
 			}
 		}
-		throw new Error(tried.size ? ERR_INVALID_PASSWORD : ERR_ENCRYPTED);
+		if (!tried.size) {
+			throw new Error(ERR_ENCRYPTED);
+		}
+		const passwordError = new Error(ERR_INVALID_PASSWORD);
+		passwordError.cause = error;
+		throw passwordError;
 
 		async function tryPasswordCandidate(candidate) {
 			tried.add(candidate.key);
@@ -10520,7 +10526,7 @@
 				rememberPassword(passwordState, candidate);
 				return { done: true, data };
 			} catch (readError) {
-				if (isAbortError(readError, signal) || (!entry.zipCrypto && !isInvalidPasswordError(readError))) {
+				if (isAbortError(readError, signal) || !isWrongPasswordError(readError, entry)) {
 					throw readError;
 				}
 				return { done: false, error: readError };
@@ -10530,6 +10536,10 @@
 
 	function isInvalidPasswordError(error) {
 		return isErrorObject(error) && error.message == ERR_INVALID_PASSWORD;
+	}
+
+	function isWrongPasswordError(error, entry) {
+		return isInvalidPasswordError(error) || (entry.zipCrypto && isErrorObject(error) && FALSE_ACCEPT_ERRORS.has(error.message));
 	}
 
 	function isAbortError(error, signal) {

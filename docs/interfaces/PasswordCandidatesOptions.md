@@ -25,9 +25,13 @@ encryption methods do on the first bytes of the entry, before any content is pro
 encrypted with ZipCrypto verifies the password on a single byte, so one wrong password in 256 passes
 that check and fails while reading the content instead: for such entries the password is first
 verified alone, the CRC32 of the content is then checked whatever the [ZipReaderOptions#checkCrc32](ZipReaderOptions.md#checkcrc32)
-option says, and any failure of the read is treated as a wrong password and the next candidate is
-tried. An entry encrypted with AES verifies it on two bytes, so a failure of the read that follows is
-reported as-is, e.g. as an [ERR\_INVALID\_AUTHENTICATION\_CODE](../variables/ERR_INVALID_AUTHENTICATION_CODE.md) error.
+option says, and a read failing with an [ERR\_INVALID\_CRC32](../variables/ERR_INVALID_CRC32.md), [ERR\_INVALID\_COMPRESSED\_DATA](../variables/ERR_INVALID_COMPRESSED_DATA.md)
+or [ERR\_INVALID\_UNCOMPRESSED\_SIZE](../variables/ERR_INVALID_UNCOMPRESSED_SIZE.md) error is treated as a wrong password and the next candidate is
+tried. Any other failure, e.g. a failure of the reader or an [ERR\_CODEC\_OUT\_OF\_MEMORY](../variables/ERR_CODEC_OUT_OF_MEMORY.md) error, is
+reported as-is. A corrupted entry read with the right password is reported as a wrong password too,
+since nothing tells it from a wrong password passing the check. An entry encrypted with AES verifies
+the password on two bytes, so a failure of the read that follows is reported as-is, e.g. as an
+[ERR\_INVALID\_AUTHENTICATION\_CODE](../variables/ERR_INVALID_AUTHENTICATION_CODE.md) error.
 
 The options are set when importing the zip file, in the [ZipDirectoryEntryExportOptions#readerOptions](ZipDirectoryEntryExportOptions.md#readeroptions)
 option of an export, and when reading one entry with `{@link ZipFileEntry}#get*()`. They apply to the
@@ -50,8 +54,9 @@ The passwords tried in order, after the [ZipReaderOptions#password](ZipReaderOpt
 passwords already accepted by another entry of the same imported zip file. An empty string is
 ignored.
 
-When every candidate fails, the entry raises an [ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error, unless the
-[PasswordCandidatesOptions#requestPassword](#requestpassword) option is set.
+When every candidate fails, the entry raises an [ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error whose `cause` is
+the error raised by the last candidate, unless the [PasswordCandidatesOptions#requestPassword](#requestpassword)
+option is set.
 
 A value which is neither an array of strings nor unset throws an [ERR\_INVALID\_PASSWORDS](../variables/ERR_INVALID_PASSWORDS.md)
 error.
@@ -68,8 +73,9 @@ called with the entry being read and with the error raised by the last candidate
 
 A string is tried on the entry, and the function is called again when it fails, with the
 [ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error. `undefined` or `null` gives up: the entry raises an
-[ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error, or an [ERR\_ENCRYPTED](../variables/ERR_ENCRYPTED.md) error when no candidate was
-tried. A value of another type throws an [ERR\_INVALID\_REQUEST\_PASSWORD](../variables/ERR_INVALID_REQUEST_PASSWORD.md) error. The
+[ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error whose `cause` is the error raised by the last candidate, or an
+[ERR\_ENCRYPTED](../variables/ERR_ENCRYPTED.md) error when no candidate was tried. A value of another type throws an
+[ERR\_INVALID\_REQUEST\_PASSWORD](../variables/ERR_INVALID_REQUEST_PASSWORD.md) error. The
 function is not called for the entries whose password is already known.
 
 When several entries are read concurrently, e.g. by `{@link ZipDirectoryEntry}#export*()` with the

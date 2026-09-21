@@ -297,8 +297,9 @@ The passwords tried in order, after the [ZipReaderOptions#password](ZipReaderOpt
 passwords already accepted by another entry of the same imported zip file. An empty string is
 ignored.
 
-When every candidate fails, the entry raises an [ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error, unless the
-[PasswordCandidatesOptions#requestPassword](PasswordCandidatesOptions.md#requestpassword) option is set.
+When every candidate fails, the entry raises an [ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error whose `cause` is
+the error raised by the last candidate, unless the [PasswordCandidatesOptions#requestPassword](PasswordCandidatesOptions.md#requestpassword)
+option is set.
 
 A value which is neither an array of strings nor unset throws an [ERR\_INVALID\_PASSWORDS](../variables/ERR_INVALID_PASSWORDS.md)
 error.
@@ -565,8 +566,9 @@ called with the entry being read and with the error raised by the last candidate
 
 A string is tried on the entry, and the function is called again when it fails, with the
 [ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error. `undefined` or `null` gives up: the entry raises an
-[ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error, or an [ERR\_ENCRYPTED](../variables/ERR_ENCRYPTED.md) error when no candidate was
-tried. A value of another type throws an [ERR\_INVALID\_REQUEST\_PASSWORD](../variables/ERR_INVALID_REQUEST_PASSWORD.md) error. The
+[ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error whose `cause` is the error raised by the last candidate, or an
+[ERR\_ENCRYPTED](../variables/ERR_ENCRYPTED.md) error when no candidate was tried. A value of another type throws an
+[ERR\_INVALID\_REQUEST\_PASSWORD](../variables/ERR_INVALID_REQUEST_PASSWORD.md) error. The
 function is not called for the entries whose password is already known.
 
 When several entries are read concurrently, e.g. by `{@link ZipDirectoryEntry}#export*()` with the

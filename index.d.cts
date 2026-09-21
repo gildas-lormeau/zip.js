@@ -4544,9 +4544,13 @@ export class ZipDirectoryEntry extends ZipEntry {
  * encrypted with ZipCrypto verifies the password on a single byte, so one wrong password in 256 passes
  * that check and fails while reading the content instead: for such entries the password is first
  * verified alone, the CRC32 of the content is then checked whatever the {@link ZipReaderOptions#checkCrc32}
- * option says, and any failure of the read is treated as a wrong password and the next candidate is
- * tried. An entry encrypted with AES verifies it on two bytes, so a failure of the read that follows is
- * reported as-is, e.g. as an {@link ERR_INVALID_AUTHENTICATION_CODE} error.
+ * option says, and a read failing with an {@link ERR_INVALID_CRC32}, {@link ERR_INVALID_COMPRESSED_DATA}
+ * or {@link ERR_INVALID_UNCOMPRESSED_SIZE} error is treated as a wrong password and the next candidate is
+ * tried. Any other failure, e.g. a failure of the reader or an {@link ERR_CODEC_OUT_OF_MEMORY} error, is
+ * reported as-is. A corrupted entry read with the right password is reported as a wrong password too,
+ * since nothing tells it from a wrong password passing the check. An entry encrypted with AES verifies
+ * the password on two bytes, so a failure of the read that follows is reported as-is, e.g. as an
+ * {@link ERR_INVALID_AUTHENTICATION_CODE} error.
  *
  * The options are set when importing the zip file, in the {@link ZipDirectoryEntryExportOptions#readerOptions}
  * option of an export, and when reading one entry with `{@link ZipFileEntry}#get*()`. They apply to the
@@ -4559,8 +4563,9 @@ export interface PasswordCandidatesOptions {
    * passwords already accepted by another entry of the same imported zip file. An empty string is
    * ignored.
    *
-   * When every candidate fails, the entry raises an {@link ERR_INVALID_PASSWORD} error, unless the
-   * {@link PasswordCandidatesOptions#requestPassword} option is set.
+   * When every candidate fails, the entry raises an {@link ERR_INVALID_PASSWORD} error whose `cause` is
+   * the error raised by the last candidate, unless the {@link PasswordCandidatesOptions#requestPassword}
+   * option is set.
    *
    * A value which is neither an array of strings nor unset throws an {@link ERR_INVALID_PASSWORDS}
    * error.
@@ -4573,8 +4578,9 @@ export interface PasswordCandidatesOptions {
    *
    * A string is tried on the entry, and the function is called again when it fails, with the
    * {@link ERR_INVALID_PASSWORD} error. `undefined` or `null` gives up: the entry raises an
-   * {@link ERR_INVALID_PASSWORD} error, or an {@link ERR_ENCRYPTED} error when no candidate was
-   * tried. A value of another type throws an {@link ERR_INVALID_REQUEST_PASSWORD} error. The
+   * {@link ERR_INVALID_PASSWORD} error whose `cause` is the error raised by the last candidate, or an
+   * {@link ERR_ENCRYPTED} error when no candidate was tried. A value of another type throws an
+   * {@link ERR_INVALID_REQUEST_PASSWORD} error. The
    * function is not called for the entries whose password is already known.
    *
    * When several entries are read concurrently, e.g. by `{@link ZipDirectoryEntry}#export*()` with the

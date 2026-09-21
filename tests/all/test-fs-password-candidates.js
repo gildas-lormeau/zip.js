@@ -7,7 +7,12 @@
 // also serves the false accept case: its one-byte check accepts one wrong password in 256, found by
 // brute force on the encryption header with the key schedule below rather than with the library, since an
 // aborted probe read leaks its WebAssembly buffers on the engines without the `cancel` transformer hook,
-// and that password must be demoted by the read that follows.
+// and that password must be demoted by the read that follows. Only the errors a false accept produces
+// demote a candidate: a stored ZipCrypto entry read through a reader failing the chunk reads starting
+// inside the entry body checks that another failure of the read is reported as-is, its first chunks
+// left readable so that the probe of the password passes and the end of central directory scan, which
+// reads across the whole file, unaffected. The final ERR_INVALID_PASSWORD error carries the error
+// raised by the last candidate as its cause.
 
 import * as zip from "../zip-lib.js";
 
@@ -24,6 +29,10 @@ const SHARED_ENTRIES = [
 	{ name: "c.txt", password: "shared" }
 ];
 const PASSWORDS = ["wrong", "alpha", "beta", "gamma"];
+const STORED_ENTRY = { name: "zipcrypto-stored.txt", password: "gamma", zipCrypto: true, level: 0, content: TEXT_CONTENT.repeat(2) };
+const READER_ERROR_MESSAGE = "simulated reader failure";
+const READABLE_BODY_LENGTH = 1024;
+const FALSE_ACCEPT_ERRORS = [zip.ERR_INVALID_CRC32, zip.ERR_INVALID_COMPRESSED_DATA, zip.ERR_INVALID_UNCOMPRESSED_SIZE];
 const EXPORT_PASSWORD = "export";
 const MAX_FALSE_ACCEPT_ATTEMPTS = 8192;
 const ZIPCRYPTO_HEADER_LENGTH = 12;
@@ -45,6 +54,7 @@ async function test() {
 	await testSharedPasswordAskedOnce(sharedSource);
 	await testFalseAcceptedZipCryptoPassword(source);
 	await testCorruptedEntryKeepsItsError(source);
+	await testReaderFailureKeepsItsError();
 	await testInvalidOptions(source);
 	await zip.terminateWorkers();
 }
@@ -60,7 +70,8 @@ async function testPasswordsOnRead(source) {
 	const fs = await importSource(source, {});
 	const entry = fs.find("aes-alpha.txt");
 	await assertRejects(() => entry.getText(), zip.ERR_ENCRYPTED, "read without password");
-	await assertRejects(() => entry.getText(undefined, { passwords: ["wrong", "beta"] }), zip.ERR_INVALID_PASSWORD, "read with wrong passwords");
+	const error = await assertRejects(() => entry.getText(undefined, { passwords: ["wrong", "beta"] }), zip.ERR_INVALID_PASSWORD, "read with wrong passwords");
+	assertCause(error, [zip.ERR_INVALID_PASSWORD], "read with wrong passwords");
 	await assertRejects(() => entry.getText(undefined, { passwords: [] }), zip.ERR_ENCRYPTED, "read with no candidate");
 	await checkContent(fs, { passwords: PASSWORDS });
 	const text = await entry.getText(undefined, { passwords: ["wrong"] });
@@ -105,7 +116,8 @@ async function testRequestPasswordGivesUp(source) {
 	const fs = await importSource(source, { requestPassword: () => undefined });
 	const entry = fs.find("aes-alpha.txt");
 	await assertRejects(() => entry.getText(), zip.ERR_ENCRYPTED, "give up without candidate");
-	await assertRejects(() => entry.getText(undefined, { passwords: ["wrong"] }), zip.ERR_INVALID_PASSWORD, "give up after a wrong candidate");
+	const error = await assertRejects(() => entry.getText(undefined, { passwords: ["wrong"] }), zip.ERR_INVALID_PASSWORD, "give up after a wrong candidate");
+	assertCause(error, [zip.ERR_INVALID_PASSWORD], "give up after a wrong candidate");
 	await assertRejects(() => entry.getText(undefined, { requestPassword: () => null }), zip.ERR_ENCRYPTED, "give up with null");
 	await assertRejects(() => entry.getText(undefined, { requestPassword: () => 42 }), zip.ERR_INVALID_REQUEST_PASSWORD, "answer of another type");
 	const plainEntry = fs.find("plain.txt");
@@ -184,7 +196,8 @@ async function testFalseAcceptedZipCryptoPassword(source) {
 		throw new Error("unexpected content after a false accept");
 	}
 	const otherFs = await importSource(source, {});
-	await assertRejects(() => otherFs.find("zipcrypto-gamma.txt").getText(undefined, { passwords: [falseAccept] }), zip.ERR_INVALID_PASSWORD, "false accept alone");
+	const error = await assertRejects(() => otherFs.find("zipcrypto-gamma.txt").getText(undefined, { passwords: [falseAccept] }), zip.ERR_INVALID_PASSWORD, "false accept alone");
+	assertCause(error, FALSE_ACCEPT_ERRORS, "false accept alone");
 	let promptedWith;
 	const promptedText = await otherFs.find("zipcrypto-gamma.txt").getText(undefined, {
 		passwords: [falseAccept],
@@ -217,6 +230,39 @@ async function testCorruptedEntryKeepsItsError(source) {
 		return;
 	}
 	throw new Error("a corrupted AES entry was read without error");
+}
+
+async function testReaderFailureKeepsItsError() {
+	const source = await createSource([STORED_ENTRY]);
+	const array = new Uint8Array(await source.arrayBuffer());
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array));
+	const [entry] = await zipReader.getEntries();
+	await zipReader.close();
+	const bodyOffset = entry.offset + ZIPCRYPTO_HEADER_LENGTH + READABLE_BODY_LENGTH;
+	const reader = new FailingReader(array, bodyOffset, bodyOffset + READABLE_BODY_LENGTH);
+	const fs = new zip.ZipFS();
+	await fs.importZip(reader);
+	const fileEntry = fs.find(STORED_ENTRY.name);
+	let probePassed;
+	try {
+		probePassed = await fileEntry.checkPassword(STORED_ENTRY.password);
+	} catch (error) {
+		throw new Error("the probe of the password reads into the failing range of the test reader", { cause: error });
+	}
+	if (!probePassed) {
+		throw new Error("the probe of the password rejected the right password");
+	}
+	await assertRejects(() => fileEntry.getText(undefined, { passwords: ["wrong", STORED_ENTRY.password] }), READER_ERROR_MESSAGE, "reader failure with the password among the candidates");
+	let promptedWith;
+	await assertRejects(() => fileEntry.getText(undefined, {
+		requestPassword(entry, error) {
+			promptedWith = error && error.message;
+			return STORED_ENTRY.password;
+		}
+	}), READER_ERROR_MESSAGE, "reader failure with the password given by requestPassword");
+	if (promptedWith !== undefined) {
+		throw new Error("requestPassword called again after a reader failure, with " + promptedWith);
+	}
 }
 
 async function testInvalidOptions(source) {
@@ -291,10 +337,27 @@ function createCrc32Table() {
 
 async function createSource(entries) {
 	const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
-	for (const { name, password, zipCrypto } of entries) {
-		await zipWriter.add(name, new zip.TextReader(TEXT_CONTENT + name), { password, zipCrypto });
+	for (const { name, password, zipCrypto, level, content = TEXT_CONTENT + name } of entries) {
+		await zipWriter.add(name, new zip.TextReader(content), { password, zipCrypto, level });
 	}
 	return zipWriter.close();
+}
+
+class FailingReader extends zip.Reader {
+	constructor(array, failureStart, failureEnd) {
+		super();
+		this.array = array;
+		this.size = array.length;
+		this.failureStart = failureStart;
+		this.failureEnd = failureEnd;
+	}
+
+	async readUint8Array(index, length) {
+		if (index >= this.failureStart && index < this.failureEnd) {
+			throw new Error(READER_ERROR_MESSAGE);
+		}
+		return this.array.slice(index, index + length);
+	}
 }
 
 async function importSource(source, options) {
@@ -317,11 +380,18 @@ async function assertRejects(run, message, description) {
 		await withTimeout(run(), description);
 	} catch (error) {
 		if (error.message == message) {
-			return;
+			return error;
 		}
 		throw new Error(description + " rejected with " + error.message + " instead of " + message, { cause: error });
 	}
 	throw new Error(description + " did not reject");
+}
+
+function assertCause(error, messages, description) {
+	const { cause } = error;
+	if (!cause || typeof cause != "object" || !messages.includes(cause.message)) {
+		throw new Error(description + ": the error does not carry the error raised by the last candidate as its cause, got " + (cause && cause.message));
+	}
 }
 
 function withTimeout(promise, description) {
