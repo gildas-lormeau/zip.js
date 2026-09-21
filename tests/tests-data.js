@@ -56,6 +56,7 @@ export default ([
 	{ title: "Gzip fallback on missing deflate-raw", script: "./test-gzip-fallback.js", features: ["compressionStream"] },
 	{ title: "Gzip trailer on the wasm codec", script: "./test-gzip-crc32-wasm.js", features: ["compressionStream", "wasmBuild"] },
 	{ title: "Gzip trailer on the inflate side", script: "./test-gzip-crc32-inflate.js", features: ["compressionStream", "wasmBuild"] },
+	{ title: "Invalid compressed data error", script: "./test-invalid-compressed-data.js" },
 	{ title: "Store fallback on missing codecs", script: "./test-store-fallback.js", features: ["wasmBuild"] },
 	{ title: "Wasm codec released on aborted reads and writes", script: "./test-wasm-stream-abort.js", features: ["wasmBuild"] },
 	{ title: "AES engine released on aborted reads and writes", script: "./test-aes-stream-abort.js", features: ["wasmBuild"] },

@@ -2005,7 +2005,7 @@
 		}
 	}
 
-	function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, crc32) {
+	function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, crc32, sourceErrors) {
 		const writer = gzipStream.writable.getWriter();
 		const reader = gzipStream.readable.getReader();
 		const outputCrc32 = crc32 === UNDEFINED_VALUE ? new Crc32() : UNDEFINED_VALUE;
@@ -2058,7 +2058,7 @@
 				await writer.write(header);
 				for (; ;) {
 					await writer.ready;
-					const { value, done } = await inputReader.read();
+					const { value, done } = await readSource(inputReader, sourceErrors);
 					if (done) {
 						break;
 					}
@@ -2087,7 +2087,9 @@
 		function read() {
 			readCount++;
 			readPending = true;
-			const result = reader.read();
+			const result = reader.read().catch(error => {
+				throw trailerWritten ? error : mapCodecError(error, sourceErrors);
+			});
 			result.then(onReadSettled, onReadSettled);
 			if (inputDone && outputCrc32) {
 				armIdleCheck();
@@ -2150,11 +2152,12 @@
 				}
 			}
 			if (compressed) {
+				const sourceErrors = new Set();
 				const codecStreams = format && getCodecStreams(format);
+				let gzipStream;
 				if (codecStreams) {
-					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.DecompressionStream, format, { chunkSize, compressionMethod, rawBitFlag, uncompressedSize: outputSize }));
+					readable = pipeThroughBackpressured(readable, createCodecStream(codecStreams.DecompressionStream, format, { chunkSize, compressionMethod, rawBitFlag, uncompressedSize: outputSize }), sourceErrors);
 				} else {
-					let gzipStream;
 					const GzipDecompressionStream = getGzipCodecStream(useCompressionStream, DecompressionStream, DecompressionStreamFallback);
 					if (checkCrc32 && !deflate64 && crc32 !== UNDEFINED_VALUE && outputSize !== UNDEFINED_VALUE && GzipDecompressionStream) {
 						try {
@@ -2165,7 +2168,7 @@
 					}
 					if (!gzipStream) {
 						try {
-							readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamFallback);
+							readable = pipeThroughCompressionStream(readable, useCompressionStream, { chunkSize, deflate64 }, DecompressionStream, DecompressionStreamFallback, sourceErrors);
 						} catch (error) {
 							if (deflate64 || outputSize === UNDEFINED_VALUE || (!useCompressionStream && DecompressionStreamFallback)) {
 								throw error;
@@ -2177,12 +2180,13 @@
 							}
 						}
 					}
-					if (gzipStream) {
-						gzipCrc32 = true;
-						readable = pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, crc32);
-					}
 				}
-				readable = mapInflateStreamError(readable);
+				if (gzipStream) {
+					gzipCrc32 = true;
+					readable = pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, crc32, sourceErrors);
+				} else {
+					readable = mapInflateStreamError(readable, sourceErrors);
+				}
 			}
 			if (checkCrc32 && !gzipCrc32) {
 				crc32Stream = new Crc32Stream();
@@ -2255,7 +2259,7 @@
 		}
 	}
 
-	function pipeThroughCompressionStream(readable, useCompressionStream, options, CompressionStreamNative, CompressionStreamFallback) {
+	function pipeThroughCompressionStream(readable, useCompressionStream, options, CompressionStreamNative, CompressionStreamFallback, sourceErrors) {
 		const Stream = useCompressionStream && CompressionStreamNative ?
 			CompressionStreamNative :
 			CompressionStreamFallback || CompressionStreamNative;
@@ -2270,14 +2274,14 @@
 				throw error;
 			}
 		}
-		return pipeThroughBackpressured(readable, codecStream);
+		return pipeThroughBackpressured(readable, codecStream, sourceErrors);
 	}
 
 	function pipeThrough(readable, transformStream) {
 		return toCompatibleReadable(readable).pipeThrough(transformStream);
 	}
 
-	function pipeThroughBackpressured(readable, transformStream) {
+	function pipeThroughBackpressured(readable, transformStream, sourceErrors) {
 		const writer = transformStream.writable.getWriter();
 		const reader = readable.getReader();
 		pump();
@@ -2287,7 +2291,7 @@
 			try {
 				for (; ;) {
 					await writer.ready;
-					const result = await reader.read();
+					const result = await readSource(reader, sourceErrors);
 					if (result.done) {
 						await writer.close();
 						break;
@@ -2317,7 +2321,24 @@
 		}
 	}
 
-	function mapInflateStreamError(readable) {
+	function readSource(reader, sourceErrors) {
+		const result = reader.read();
+		return sourceErrors ? result.catch(error => {
+			sourceErrors.add(error);
+			throw error;
+		}) : result;
+	}
+
+	function mapCodecError(error, sourceErrors) {
+		if (sourceErrors.has(error)) {
+			return error;
+		}
+		const mappedError = new Error(ERR_INVALID_COMPRESSED_DATA);
+		mappedError.cause = error;
+		return mappedError;
+	}
+
+	function mapInflateStreamError(readable, sourceErrors) {
 		const reader = readable.getReader();
 		return new ReadableStream({
 			async pull(controller) {
@@ -2330,12 +2351,7 @@
 					}
 				} catch (error) {
 					await cancel(reader, error);
-					if (error && error.message) {
-						throw error;
-					}
-					const mappedError = new Error(ERR_INVALID_COMPRESSED_DATA);
-					mappedError.cause = error;
-					throw mappedError;
+					throw mapCodecError(error, sourceErrors);
 				}
 			},
 			cancel(reason) {
@@ -3208,9 +3224,6 @@
 			responseError = errorValue.value;
 		} else {
 			responseError = Object.assign(new Error(message), { stack, code, name });
-			if (cause) {
-				responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
-			}
 		}
 		if (isErrorObject(responseError)) {
 			try {
@@ -3219,6 +3232,9 @@
 				}
 				if (codecImportFailed) {
 					responseError.codecImportFailed = true;
+				}
+				if (cause && responseError.cause === UNDEFINED_VALUE) {
+					responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
 				}
 				if (errorValue) {
 					if (responseError.name !== name) {
