@@ -325,10 +325,10 @@ entries can claim one node: they can hold the same filename, hold filenames diff
 path components ignored when building the tree (e.g. `"a/b.txt"` and `"./a/b.txt"`), or one can be
 a file and the other a directory holding it (e.g. `"a"` and `"a/b.txt"`).
 
-`"throw"` refuses the zip file with an [ERR\_DUPLICATE\_IMPORTED\_ENTRY](../variables/ERR_DUPLICATE_IMPORTED_ENTRY.md) error, whose `cause`
-property holds the [EntryMetaData](EntryMetaData.md) instance of the entry that could not be imported. The
-filesystem is left unchanged, i.e. the entries imported before the error are removed and the
-content held before the import is restored.
+`"throw"` refuses the zip file with an [ERR\_DUPLICATE\_IMPORTED\_ENTRY](../variables/ERR_DUPLICATE_IMPORTED_ENTRY.md) error, whose
+`cause.entry` property holds the [EntryMetaData](EntryMetaData.md) instance of the entry that could not be
+imported. The filesystem is left unchanged, i.e. the entries imported before the error are
+removed and the content held before the import is restored.
 
 `"keep-first"` ignores the entry claiming a node already taken, and `"keep-last"` replaces the
 entry holding the node, which is the behavior of most zip tools. The entries that do not collide
