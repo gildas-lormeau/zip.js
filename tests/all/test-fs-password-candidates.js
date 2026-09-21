@@ -163,12 +163,12 @@ async function testSharedPasswordAskedOnce(sharedSource) {
 async function testFalseAcceptedZipCryptoPassword(source) {
 	const { header, verificationByte } = await readZipCryptoHeader(source, "zipcrypto-gamma.txt");
 	let falseAccept, rejected;
-	for (let attempt = 0; attempt < MAX_FALSE_ACCEPT_ATTEMPTS && !falseAccept; attempt++) {
+	for (let attempt = 0; attempt < MAX_FALSE_ACCEPT_ATTEMPTS && !(falseAccept && rejected); attempt++) {
 		const candidate = "wrong" + attempt;
 		if (getZipCryptoCheckByte(header, candidate) == verificationByte) {
-			falseAccept = candidate;
-		} else if (!rejected) {
-			rejected = candidate;
+			falseAccept = falseAccept || candidate;
+		} else {
+			rejected = rejected || candidate;
 		}
 	}
 	if (!falseAccept) {
