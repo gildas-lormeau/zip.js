@@ -4,7 +4,9 @@
 // imported zip file, its data is read while the export initializes its readers, and the error of
 // that read used to get a `cause` naming the entry in place of the cause it carried, e.g. the codec
 // error behind ERR_INVALID_COMPRESSED_DATA or the failure of the reader of the zip file. The entry
-// is now set on the error itself, with its id and its name, and the cause stays.
+// is now set on the error itself, with its id and its name, and the cause stays. The cause of the
+// simulated error is assigned by hand: engines older than Chrome 93 and Firefox 91 ignore the
+// `cause` option of the Error constructor.
 
 import * as zip from "../zip-lib.js";
 
@@ -55,7 +57,9 @@ async function importedEntryFailureKeepsCause() {
 	class FailingReader extends zip.Uint8ArrayReader {
 		readUint8Array(index, length) {
 			if (armed && index >= LOCAL_HEADER_SIZE) {
-				throw new Error(ERROR_MESSAGE, { cause: rootCause });
+				const error = new Error(ERROR_MESSAGE);
+				error.cause = rootCause;
+				throw error;
 			}
 			return super.readUint8Array(index, length);
 		}
