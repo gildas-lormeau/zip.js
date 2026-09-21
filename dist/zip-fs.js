@@ -223,7 +223,7 @@
 	const ERR_INVALID_PASSWORD_TYPE = "Invalid password (password must be a string, rawPassword must be a Uint8Array)";
 	const ERR_INVALID_PASS_THROUGH_VALUE = "Invalid passThrough option (must be a boolean or 'compressed')";
 	const ERR_ABORTED = "The operation was aborted";
-	const ABORT_ERROR_NAME = "AbortError";
+	const ABORT_ERROR_NAME$1 = "AbortError";
 
 	function checkFunctionOption(value) {
 		if (value && typeof value != FUNCTION_TYPE) {
@@ -241,7 +241,7 @@
 
 	function throwIfAborted(signal) {
 		if (signal && signal.aborted) {
-			throw signal.reason === UNDEFINED_VALUE ? new DOMException(ERR_ABORTED, ABORT_ERROR_NAME) : signal.reason;
+			throw signal.reason === UNDEFINED_VALUE ? new DOMException(ERR_ABORTED, ABORT_ERROR_NAME$1) : signal.reason;
 		}
 	}
 
@@ -5376,8 +5376,8 @@
 			const passThroughCompression = Boolean(passThrough);
 			const passThroughEncryption = passThrough === true;
 			checkPasswordOption(password, rawPassword);
-			password = password && password.length && password;
-			rawPassword = rawPassword && rawPassword.length && rawPassword;
+			password = password && password.length ? password : UNDEFINED_VALUE;
+			rawPassword = rawPassword && rawPassword.length ? rawPassword : UNDEFINED_VALUE;
 			if (extraFieldAES) {
 				if (extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
 					throw new Error(ERR_UNSUPPORTED_COMPRESSION);
@@ -9946,7 +9946,11 @@
 	const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
 	const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
 	const ERR_UNSUPPORTED_PASS_THROUGH_VALUE = "The 'compressed' passThrough option is only supported by Entry#getData() and ZipWriter#add()";
+	const ERR_INVALID_PASSWORDS = "Invalid passwords option (must be an array of strings)";
+	const ERR_INVALID_REQUEST_PASSWORD = "Invalid requestPassword option (must be a function returning a string or undefined)";
 	const ERR_ABORT_EXPORT = "zipjs-abort-export";
+	const ABORT_ERROR_NAME = "AbortError";
+	const EMPTY_RAW_PASSWORD = new Uint8Array(0);
 
 	class ZipEntry {
 
@@ -10319,8 +10323,10 @@
 				zipReader = new ZipReader(reader, options);
 			}
 			checkPassThroughValue(options.passThrough);
+			checkPasswordCandidatesOptions(options);
 			const duplicates = checkDuplicatesOption(options.duplicates);
 			const importedEntries = [];
+			const passwordState = { known: [] };
 			const entries = await zipReader.getEntries(options);
 			for (const entry of entries) {
 				let parent = this;
@@ -10365,7 +10371,7 @@
 						}
 						importedEntries.push(addChild(parent, name, {
 							data: entry,
-							Reader: getZipBlobReader(Object.assign({}, options)),
+							Reader: getZipBlobReader(Object.assign({}, options), passwordState),
 							uncompressedSize: options.passThrough ? entry.compressedSize : entry.uncompressedSize,
 							passThrough: options.passThrough
 						}));
@@ -10694,7 +10700,7 @@
 		};
 	}
 
-	function getZipBlobReader(options) {
+	function getZipBlobReader(options, passwordState) {
 		return class extends Reader {
 
 			constructor(entry, options = {}) {
@@ -10707,12 +10713,12 @@
 				const zipBlobReader = this;
 				const readerOptions = Object.assign({}, options, zipBlobReader.options);
 				const { checkOverlappingEntry, checkOverlappingEntryOnly } = readerOptions;
-				const data = await zipBlobReader.entry.getData(new BlobWriter(), Object.assign(readerOptions, {
+				const data = await readEntryData(zipBlobReader.entry, Object.assign(readerOptions, {
 					checkPasswordOnly: false,
 					checkOverlappingEntry: checkOverlappingEntryOnly || checkOverlappingEntry,
 					checkOverlappingEntryOnly: false,
 					preventClose: false
-				}));
+				}), passwordState);
 				zipBlobReader.data = data;
 				zipBlobReader.blobReader = new BlobReader(data);
 				zipBlobReader.size = data.size;
@@ -10869,8 +10875,134 @@
 		}
 		if (readerOptions) {
 			checkPassThroughValue(readerOptions.passThrough);
+			checkPasswordCandidatesOptions(readerOptions);
 		}
 		return readerOptions;
+	}
+
+	function checkPasswordCandidatesOptions(options) {
+		const { passwords, requestPassword } = options;
+		if (passwords && (!Array.isArray(passwords) || passwords.some(password => typeof password != STRING_TYPE))) {
+			throw new Error(ERR_INVALID_PASSWORDS);
+		}
+		if (requestPassword && typeof requestPassword != FUNCTION_TYPE) {
+			throw new Error(ERR_INVALID_REQUEST_PASSWORD);
+		}
+	}
+
+	async function readEntryData(entry, options, passwordState) {
+		checkPasswordCandidatesOptions(options);
+		const { passwords, requestPassword, signal } = options;
+		options = Object.assign({}, options);
+		delete options.passwords;
+		delete options.requestPassword;
+		if (!entry.encrypted || options.passThrough || (!passwords && !requestPassword)) {
+			return entry.getData(new BlobWriter(), options);
+		}
+		const tried = new Set();
+		let error;
+		while (true) {
+			for (const candidate of getPasswordCandidates(options, passwordState, passwords)) {
+				if (!tried.has(candidate.key)) {
+					const result = await tryPasswordCandidate(candidate);
+					if (result.done) {
+						return result.data;
+					}
+					error = result.error;
+				}
+			}
+			if (!requestPassword) {
+				break;
+			}
+			if (passwordState.pending) {
+				await passwordState.pending;
+				continue;
+			}
+			let release;
+			passwordState.pending = new Promise(resolve => release = resolve);
+			try {
+				const answer = await requestPassword(entry, error);
+				if (answer === UNDEFINED_VALUE || answer === null) {
+					break;
+				}
+				// deno-lint-ignore valid-typeof
+				if (typeof answer != STRING_TYPE) {
+					throw new Error(ERR_INVALID_REQUEST_PASSWORD);
+				}
+				const result = await tryPasswordCandidate(getPasswordCandidate(answer));
+				if (result.done) {
+					return result.data;
+				}
+				error = result.error;
+			} finally {
+				passwordState.pending = UNDEFINED_VALUE;
+				release();
+			}
+		}
+		throw new Error(tried.size ? ERR_INVALID_PASSWORD : ERR_ENCRYPTED);
+
+		async function tryPasswordCandidate(candidate) {
+			tried.add(candidate.key);
+			const candidateOptions = Object.assign({}, options, candidate.options);
+			if (entry.zipCrypto) {
+				candidateOptions.checkCrc32 = true;
+				try {
+					await entry.getData(null, Object.assign({}, candidateOptions, { checkPasswordOnly: true }));
+				} catch (probeError) {
+					if (isInvalidPasswordError(probeError)) {
+						return { done: false, error: probeError };
+					}
+					throw probeError;
+				}
+			}
+			try {
+				const data = await entry.getData(new BlobWriter(), candidateOptions);
+				rememberPassword(passwordState, candidate);
+				return { done: true, data };
+			} catch (readError) {
+				if (isAbortError(readError, signal) || (!entry.zipCrypto && !isInvalidPasswordError(readError))) {
+					throw readError;
+				}
+				return { done: false, error: readError };
+			}
+		}
+	}
+
+	function isInvalidPasswordError(error) {
+		return isErrorObject(error) && error.message == ERR_INVALID_PASSWORD;
+	}
+
+	function isAbortError(error, signal) {
+		return Boolean(signal && signal.aborted) || (isErrorObject(error) && error.name == ABORT_ERROR_NAME);
+	}
+
+	function getPasswordCandidates(options, passwordState, passwords) {
+		const candidates = [];
+		const { password, rawPassword } = options;
+		if (rawPassword && rawPassword.length) {
+			candidates.push({ key: rawPassword, options: { password: "", rawPassword } });
+		}
+		if (password) {
+			candidates.push(getPasswordCandidate(password));
+		}
+		candidates.push(...passwordState.known);
+		if (passwords) {
+			candidates.push(...passwords.filter(password => password).map(getPasswordCandidate));
+		}
+		return candidates;
+	}
+
+	function getPasswordCandidate(password) {
+		return { key: password, options: { password, rawPassword: EMPTY_RAW_PASSWORD } };
+	}
+
+	function rememberPassword(passwordState, candidate) {
+		const { known } = passwordState;
+		const index = known.findIndex(knownCandidate => knownCandidate.key === candidate.key);
+		if (index != -1) {
+			known.splice(index, 1);
+		}
+		known.unshift(candidate);
 	}
 
 	function checkPassThroughValue(passThrough) {
@@ -11010,6 +11142,7 @@
 	async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 		const { onstart, onprogress, onend } = options;
 		checkPassThroughValue(options.passThrough);
+		checkPasswordCandidatesOptions(options);
 		const readerOptions = checkReaderOptions(options.readerOptions);
 		const abortController = new AbortController();
 		const { signal } = abortController;
@@ -11403,11 +11536,13 @@
 	exports.ERR_INVALID_MSDOS_ATTRIBUTES = ERR_INVALID_MSDOS_ATTRIBUTES;
 	exports.ERR_INVALID_MSDOS_DATA = ERR_INVALID_MSDOS_DATA;
 	exports.ERR_INVALID_PASSWORD = ERR_INVALID_PASSWORD;
+	exports.ERR_INVALID_PASSWORDS = ERR_INVALID_PASSWORDS;
 	exports.ERR_INVALID_PASSWORD_TYPE = ERR_INVALID_PASSWORD_TYPE;
 	exports.ERR_INVALID_PASS_THROUGH = ERR_INVALID_PASS_THROUGH;
 	exports.ERR_INVALID_PASS_THROUGH_VALUE = ERR_INVALID_PASS_THROUGH_VALUE;
 	exports.ERR_INVALID_READER = ERR_INVALID_READER;
 	exports.ERR_INVALID_READER_OPTIONS = ERR_INVALID_READER_OPTIONS;
+	exports.ERR_INVALID_REQUEST_PASSWORD = ERR_INVALID_REQUEST_PASSWORD;
 	exports.ERR_INVALID_SIGNAL = ERR_INVALID_SIGNAL;
 	exports.ERR_INVALID_SIGNATURE_DATA = ERR_INVALID_SIGNATURE_DATA;
 	exports.ERR_INVALID_STRICTNESS = ERR_INVALID_STRICTNESS;

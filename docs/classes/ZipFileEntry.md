@@ -228,7 +228,7 @@ Retrieves the content of the entry as an `ArrayBuffer` instance
 
 ##### options?
 
-[`EntryGetDataOptions`](../interfaces/EntryGetDataOptions.md)
+[`ZipFileEntryGetDataOptions`](../interfaces/ZipFileEntryGetDataOptions.md)
 
 The options.
 
@@ -256,7 +256,7 @@ The MIME type of the content.
 
 ##### options?
 
-[`EntryGetDataOptions`](../interfaces/EntryGetDataOptions.md)
+[`ZipFileEntryGetDataOptions`](../interfaces/ZipFileEntryGetDataOptions.md)
 
 The options.
 
@@ -290,7 +290,7 @@ The [Writer](Writer.md) instance.
 
 ##### options?
 
-[`EntryGetDataOptions`](../interfaces/EntryGetDataOptions.md)
+[`ZipFileEntryGetDataOptions`](../interfaces/ZipFileEntryGetDataOptions.md)
 
 The options.
 
@@ -318,7 +318,7 @@ The MIME type of the content.
 
 ##### options?
 
-[`EntryGetDataOptions`](../interfaces/EntryGetDataOptions.md)
+[`ZipFileEntryGetDataOptions`](../interfaces/ZipFileEntryGetDataOptions.md)
 
 The options.
 
@@ -384,7 +384,7 @@ The encoding of the text.
 
 ##### options?
 
-[`EntryGetDataOptions`](../interfaces/EntryGetDataOptions.md)
+[`ZipFileEntryGetDataOptions`](../interfaces/ZipFileEntryGetDataOptions.md)
 
 The options.
 
@@ -406,7 +406,7 @@ Retrieves the content of the entry as a `Uint8Array` instance
 
 ##### options?
 
-[`EntryGetDataOptions`](../interfaces/EntryGetDataOptions.md)
+[`ZipFileEntryGetDataOptions`](../interfaces/ZipFileEntryGetDataOptions.md)
 
 The options.
 
@@ -434,7 +434,7 @@ The `WritableStream` instance.
 
 ##### options?
 
-[`EntryGetDataOptions`](../interfaces/EntryGetDataOptions.md)
+[`ZipFileEntryGetDataOptions`](../interfaces/ZipFileEntryGetDataOptions.md)
 
 The options.
 

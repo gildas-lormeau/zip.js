@@ -136,6 +136,7 @@ export default ([
 	{ title: "Last access date and creation date", script: "./test-last-access-date.js" },
 	{ title: "Filesystem base 64", script: "./test-fs-base64.js" },
 	{ title: "Filesystem check password", script: "./test-fs-check-password.js" },
+	{ title: "Filesystem password candidates", script: "./test-fs-password-candidates.js" },
 	{ title: "Filesystem export", script: "./test-fs-export-options.js" },
 	{ title: "Filesystem entry options", script: "./test-fs-entry-options.js" },
 	{ title: "Filesystem passThrough entry options", script: "./test-fs-passthrough-entry-options.js" },

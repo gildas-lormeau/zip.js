@@ -2872,6 +2872,13 @@ export interface EntryGetDataOptions
 export interface EntryGetDataCheckPasswordOptions extends EntryGetDataOptions {}
 
 /**
+ * Represents the options passed to `{@link ZipFileEntry}#get*()`.
+ */
+export interface ZipFileEntryGetDataOptions
+  extends EntryGetDataOptions,
+    PasswordCandidatesOptions {}
+
+/**
  * Represents an instance used to create a zipped stream.
  *
  * @example
@@ -3977,7 +3984,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    * @param options The options.
    * @returns A promise resolving to a `string`.
    */
-  getText(encoding?: string, options?: EntryGetDataOptions): Promise<string>;
+  getText(encoding?: string, options?: ZipFileEntryGetDataOptions): Promise<string>;
   /**
    * Retrieves the content of the entry as a `Blob` instance
    *
@@ -3985,7 +3992,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    * @param options The options.
    * @returns A promise resolving to a `Blob` instance.
    */
-  getBlob(mimeType?: string, options?: EntryGetDataOptions): Promise<Blob>;
+  getBlob(mimeType?: string, options?: ZipFileEntryGetDataOptions): Promise<Blob>;
   /**
    * Retrieves the content of the entry as as a Data URI `string` encoded in Base64
    *
@@ -3995,7 +4002,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    */
   getData64URI(
     mimeType?: string,
-    options?: EntryGetDataOptions
+    options?: ZipFileEntryGetDataOptions
   ): Promise<string>;
   /**
    * Retrieves the content of the entry as a `Uint8Array` instance
@@ -4003,7 +4010,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    * @param options The options.
    * @returns A promise resolving to a `Uint8Array` instance.
    */
-  getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
+  getUint8Array(options?: ZipFileEntryGetDataOptions): Promise<Uint8Array>;
   /**
    * Retrieves the content of the entry via a `WritableStream` instance
    *
@@ -4013,7 +4020,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    */
   getWritable(
     writable?: WritableStream,
-    options?: EntryGetDataOptions
+    options?: ZipFileEntryGetDataOptions
   ): Promise<WritableStream>;
   /**
    * Retrieves the content of the entry via a {@link Writer} instance
@@ -4028,7 +4035,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
       | WritableWriter
       | WritableStream
       | AsyncGenerator<Writer<unknown> | WritableWriter | WritableStream>,
-    options?: EntryGetDataOptions
+    options?: ZipFileEntryGetDataOptions
   ): Promise<Type>;
   /**
    * Retrieves the content of the entry as an `ArrayBuffer` instance
@@ -4036,7 +4043,7 @@ export class ZipFileEntry<ReaderType, WriterType> extends ZipEntry {
    * @param options The options.
    * @returns A promise resolving to an `ArrayBuffer` instance.
    */
-  getArrayBuffer(options?: EntryGetDataOptions): Promise<ArrayBuffer>;
+  getArrayBuffer(options?: ZipFileEntryGetDataOptions): Promise<ArrayBuffer>;
   /**
    * Replaces the content of the entry with a `Blob` instance
    *
@@ -4511,10 +4518,82 @@ export class ZipDirectoryEntry extends ZipEntry {
 }
 
 /**
+ * Represents the options supplying several passwords to the entries imported from a zip file, tried in
+ * order when an entry is read.
+ *
+ * @remarks
+ * The core API takes one password per reader or per call. The filesystem API adds a list of
+ * candidates and a function asked for a password when the candidates fail, because it reads each
+ * entry into memory before using it and can therefore try again. The candidates are tried in this
+ * order: the {@link ZipReaderOptions#password} or {@link ZipReaderOptions#rawPassword} option,
+ * then the passwords that already decrypted an entry of the same imported zip file, most recent first,
+ * then the {@link PasswordCandidatesOptions#passwords} option. Each candidate is tried once per entry,
+ * and the entries of a zip file overwhelmingly share one password, so an archive costs one extra
+ * attempt per wrong candidate ahead of the right one, and not one per entry.
+ *
+ * A candidate is rejected when the entry raises an {@link ERR_INVALID_PASSWORD} error, which both
+ * encryption methods do on the first bytes of the entry, before any content is produced. An entry
+ * encrypted with ZipCrypto verifies the password on a single byte, so one wrong password in 256 passes
+ * that check and fails while reading the content instead: for such entries the password is first
+ * verified alone, the CRC32 of the content is then checked whatever the {@link ZipReaderOptions#checkCrc32}
+ * option says, and any failure of the read is treated as a wrong password and the next candidate is
+ * tried. An entry encrypted with AES verifies it on two bytes, so a failure of the read that follows is
+ * reported as-is, e.g. as an {@link ERR_INVALID_AUTHENTICATION_CODE} error.
+ *
+ * The options are set when importing the zip file, in the {@link ZipDirectoryEntryExportOptions#readerOptions}
+ * option of an export, and when reading one entry with `{@link ZipFileEntry}#get*()`. They apply to the
+ * entries imported from a zip file only, and never to the entries read as-is with the
+ * {@link ZipReaderOptions#passThrough} option, which are not decrypted.
+ */
+export interface PasswordCandidatesOptions {
+  /**
+   * The passwords tried in order, after the {@link ZipReaderOptions#password} option and the
+   * passwords already accepted by another entry of the same imported zip file. An empty string is
+   * ignored.
+   *
+   * When every candidate fails, the entry raises an {@link ERR_INVALID_PASSWORD} error, unless the
+   * {@link PasswordCandidatesOptions#requestPassword} option is set.
+   *
+   * A value which is neither an array of strings nor unset throws an {@link ERR_INVALID_PASSWORDS}
+   * error.
+   */
+  passwords?: string[];
+  /**
+   * The function asked for a password when every candidate has failed, or when there is none. It is
+   * called with the entry being read and with the error raised by the last candidate, which is
+   * `undefined` when no candidate was tried, and it can return a promise, e.g. when it prompts the user.
+   *
+   * A string is tried on the entry, and the function is called again when it fails, with the
+   * {@link ERR_INVALID_PASSWORD} error. `undefined` or `null` gives up: the entry raises an
+   * {@link ERR_INVALID_PASSWORD} error, or an {@link ERR_ENCRYPTED} error when no candidate was
+   * tried. A value of another type throws an {@link ERR_INVALID_REQUEST_PASSWORD} error. The
+   * function is not called for the entries whose password is already known.
+   *
+   * When several entries are read concurrently, e.g. by `{@link ZipDirectoryEntry}#export*()` with the
+   * {@link ZipWriterConstructorOptions#bufferedWrite} option, only one call is pending at a time: the
+   * other entries wait for its answer and try it before asking themselves. Cancelling the whole
+   * operation from the function is done with the {@link ZipReaderOptions#signal} option, since giving
+   * up fails the entry being read only.
+   *
+   * A value which is neither a function nor unset throws an {@link ERR_INVALID_REQUEST_PASSWORD}
+   * error.
+   *
+   * @param entry The entry being read.
+   * @param error The error raised by the last candidate, `undefined` when no candidate was tried.
+   * @returns The password to try, or `undefined` to give up.
+   */
+  requestPassword?(
+    entry: FileEntry,
+    error?: Error
+  ): Promise<string | undefined | null> | string | undefined | null;
+}
+
+/**
  * Represents the options passed to `{@link ZipDirectoryEntry}#import*()`.
  */
 export interface ZipDirectoryEntryImportOptions
-  extends Omit<ZipReaderConstructorOptions, "passThrough"> {
+  extends Omit<ZipReaderConstructorOptions, "passThrough">,
+    PasswordCandidatesOptions {
   /**
    * `true` to import the entries of the zip file as-is, without decompressing and decrypting them
    *
@@ -4689,7 +4768,7 @@ export interface ZipDirectoryEntryExportOptions
    *
    * A value which is neither an object nor unset throws an {@link ERR_INVALID_READER_OPTIONS} error.
    */
-  readerOptions?: Omit<ZipReaderConstructorOptions, "passThrough"> & { passThrough?: boolean };
+  readerOptions?: Omit<ZipReaderConstructorOptions, "passThrough"> & { passThrough?: boolean } & PasswordCandidatesOptions;
 }
 
 /**
@@ -4700,7 +4779,8 @@ export interface ZipDirectoryEntryExportOptions
  * file it creates and must close it for the data to be written.
  */
 export interface ZipDirectoryEntryExportFileSystemHandleOptions
-  extends EntryGetDataOptions {
+  extends EntryGetDataOptions,
+    PasswordCandidatesOptions {
   /**
    * `true` to write independent files concurrently instead of one after another.
    *
@@ -4722,7 +4802,7 @@ export interface ZipDirectoryEntryExportFileSystemHandleOptions
    *
    * A value which is neither an object nor unset throws an {@link ERR_INVALID_READER_OPTIONS} error.
    */
-  readerOptions?: Omit<ZipReaderConstructorOptions, "passThrough"> & { passThrough?: boolean };
+  readerOptions?: Omit<ZipReaderConstructorOptions, "passThrough"> & { passThrough?: boolean } & PasswordCandidatesOptions;
 }
 
 /**
@@ -5276,6 +5356,19 @@ export const ERR_UNSUPPORTED_PASS_THROUGH_VALUE: string;
  * unknown property of a `readerOptions` object is still ignored, as everywhere else in the API.
  */
 export const ERR_INVALID_READER_OPTIONS: string;
+/**
+ * Invalid passwords error (thrown by `{@link ZipDirectoryEntry}#import*()`, `{@link ZipDirectoryEntry}#export*()`,
+ * {@link ZipDirectoryEntry#exportFileSystemHandle} and `{@link ZipFileEntry}#get*()` when the
+ * {@link PasswordCandidatesOptions#passwords} option is neither an array of strings nor unset)
+ */
+export const ERR_INVALID_PASSWORDS: string;
+/**
+ * Invalid requestPassword error (thrown by `{@link ZipDirectoryEntry}#import*()`, `{@link ZipDirectoryEntry}#export*()`,
+ * {@link ZipDirectoryEntry#exportFileSystemHandle} and `{@link ZipFileEntry}#get*()` when the
+ * {@link PasswordCandidatesOptions#requestPassword} option is neither a function nor unset, and when it returns a
+ * value which is neither a string, `undefined` nor `null`)
+ */
+export const ERR_INVALID_REQUEST_PASSWORD: string;
 /**
  * Invalid entry error (thrown by {@link ZipWriter#add} when the {@link ZipWriterAddDataOptions#entry} option is
  * neither an entry nor unset)

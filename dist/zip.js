@@ -5356,8 +5356,8 @@
 			const passThroughCompression = Boolean(passThrough);
 			const passThroughEncryption = passThrough === true;
 			checkPasswordOption(password, rawPassword);
-			password = password && password.length && password;
-			rawPassword = rawPassword && rawPassword.length && rawPassword;
+			password = password && password.length ? password : UNDEFINED_VALUE;
+			rawPassword = rawPassword && rawPassword.length ? rawPassword : UNDEFINED_VALUE;
 			if (extraFieldAES) {
 				if (extraFieldAES.originalCompressionMethod != COMPRESSION_METHOD_AES) {
 					throw new Error(ERR_UNSUPPORTED_COMPRESSION);

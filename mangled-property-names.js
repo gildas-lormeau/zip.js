@@ -60,6 +60,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"initModule",
 	"initialOffset",
 	"interface",
+	"known",
 	"lastDiskNumber",
 	"lastFileEntry",
 	"lastModDateClamped",

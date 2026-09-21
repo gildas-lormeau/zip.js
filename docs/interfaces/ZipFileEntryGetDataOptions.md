@@ -2,21 +2,15 @@
 
 ***
 
-[@zip.js/zip.js](../globals.md) / EntryGetDataOptions
+[@zip.js/zip.js](../globals.md) / ZipFileEntryGetDataOptions
 
-# Interface: EntryGetDataOptions
+# Interface: ZipFileEntryGetDataOptions
 
-Represents the options passed to [FileEntry#getData](FileEntry.md#getdata) and `{@link ZipFileEntry}.get*`.
+Represents the options passed to `{@link ZipFileEntry}#get*()`.
 
 ## Extends
 
-- [`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md).[`ZipReaderOptions`](ZipReaderOptions.md).[`WorkerConfiguration`](WorkerConfiguration.md)
-
-## Extended by
-
-- [`EntryGetDataCheckPasswordOptions`](EntryGetDataCheckPasswordOptions.md)
-- [`ZipFileEntryGetDataOptions`](ZipFileEntryGetDataOptions.md)
-- [`ZipDirectoryEntryExportFileSystemHandleOptions`](ZipDirectoryEntryExportFileSystemHandleOptions.md)
+- [`EntryGetDataOptions`](EntryGetDataOptions.md).[`PasswordCandidatesOptions`](PasswordCandidatesOptions.md)
 
 ## Properties
 
@@ -45,7 +39,7 @@ false
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`checkAmbiguity`](ZipReaderOptions.md#checkambiguity)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`checkAmbiguity`](EntryGetDataOptions.md#checkambiguity)
 
 ***
 
@@ -64,7 +58,7 @@ true
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`checkAuthenticationCode`](ZipReaderOptions.md#checkauthenticationcode)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`checkAuthenticationCode`](EntryGetDataOptions.md#checkauthenticationcode)
 
 ***
 
@@ -84,7 +78,7 @@ false
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`checkCrc32`](ZipReaderOptions.md#checkcrc32)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`checkCrc32`](EntryGetDataOptions.md#checkcrc32)
 
 ***
 
@@ -112,7 +106,7 @@ it is `"tolerant"`.
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`checkLocalDirectory`](ZipReaderOptions.md#checklocaldirectory)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`checkLocalDirectory`](EntryGetDataOptions.md#checklocaldirectory)
 
 ***
 
@@ -139,7 +133,7 @@ when [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness) is `"strict"`
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`checkLocalFilename`](ZipReaderOptions.md#checklocalfilename)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`checkLocalFilename`](EntryGetDataOptions.md#checklocalfilename)
 
 ***
 
@@ -159,7 +153,7 @@ false
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`checkOverlappingEntry`](ZipReaderOptions.md#checkoverlappingentry)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`checkOverlappingEntry`](EntryGetDataOptions.md#checkoverlappingentry)
 
 ***
 
@@ -180,7 +174,7 @@ false
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`checkOverlappingEntryOnly`](ZipReaderOptions.md#checkoverlappingentryonly)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`checkOverlappingEntryOnly`](EntryGetDataOptions.md#checkoverlappingentryonly)
 
 ***
 
@@ -198,7 +192,7 @@ false
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`checkPasswordOnly`](ZipReaderOptions.md#checkpasswordonly)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`checkPasswordOnly`](EntryGetDataOptions.md#checkpasswordonly)
 
 ***
 
@@ -220,7 +214,7 @@ false
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`checkSignature`](ZipReaderOptions.md#checksignature)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`checkSignature`](EntryGetDataOptions.md#checksignature)
 
 ***
 
@@ -255,7 +249,7 @@ error. The filesystem API copies entries verbatim and only accepts a boolean, se
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`passThrough`](ZipReaderOptions.md#passthrough)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`passThrough`](EntryGetDataOptions.md#passthrough)
 
 ***
 
@@ -267,7 +261,27 @@ The password used to decrypt the content of the entry.
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`password`](ZipReaderOptions.md#password)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`password`](EntryGetDataOptions.md#password)
+
+***
+
+### passwords?
+
+> `optional` **passwords?**: `string`[]
+
+The passwords tried in order, after the [ZipReaderOptions#password](ZipReaderOptions.md#password) option and the
+passwords already accepted by another entry of the same imported zip file. An empty string is
+ignored.
+
+When every candidate fails, the entry raises an [ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error, unless the
+[PasswordCandidatesOptions#requestPassword](PasswordCandidatesOptions.md#requestpassword) option is set.
+
+A value which is neither an array of strings nor unset throws an [ERR\_INVALID\_PASSWORDS](../variables/ERR_INVALID_PASSWORDS.md)
+error.
+
+#### Inherited from
+
+[`PasswordCandidatesOptions`](PasswordCandidatesOptions.md).[`passwords`](PasswordCandidatesOptions.md#passwords)
 
 ***
 
@@ -291,7 +305,7 @@ false
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`preventClose`](ZipReaderOptions.md#preventclose)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`preventClose`](EntryGetDataOptions.md#preventclose)
 
 ***
 
@@ -303,7 +317,7 @@ The password used to encrypt the content of the entry (raw).
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`rawPassword`](ZipReaderOptions.md#rawpassword)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`rawPassword`](EntryGetDataOptions.md#rawpassword)
 
 ***
 
@@ -319,7 +333,7 @@ reason of the `AbortError`, or with `signal.reason` when it is set, without rely
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`signal`](ZipReaderOptions.md#signal)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`signal`](EntryGetDataOptions.md#signal)
 
 ***
 
@@ -351,7 +365,7 @@ bytes as well, which costs one extra read per entry whenever the local file head
 
 #### Inherited from
 
-[`ZipReaderOptions`](ZipReaderOptions.md).[`strictness`](ZipReaderOptions.md#strictness)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`strictness`](EntryGetDataOptions.md#strictness)
 
 ***
 
@@ -369,7 +383,7 @@ true
 
 #### Inherited from
 
-[`WorkerConfiguration`](WorkerConfiguration.md).[`transferStreams`](WorkerConfiguration.md#transferstreams)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`transferStreams`](EntryGetDataOptions.md#transferstreams)
 
 ***
 
@@ -389,7 +403,7 @@ true
 
 #### Inherited from
 
-[`WorkerConfiguration`](WorkerConfiguration.md).[`useCompressionStream`](WorkerConfiguration.md#usecompressionstream)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`useCompressionStream`](EntryGetDataOptions.md#usecompressionstream)
 
 ***
 
@@ -407,7 +421,7 @@ true
 
 #### Inherited from
 
-[`WorkerConfiguration`](WorkerConfiguration.md).[`useWebWorkers`](WorkerConfiguration.md#usewebworkers)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`useWebWorkers`](EntryGetDataOptions.md#usewebworkers)
 
 ## Methods
 
@@ -433,7 +447,7 @@ An empty promise or `undefined`.
 
 #### Inherited from
 
-[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md).[`onend`](EntryDataOnprogressOptions.md#onend)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`onend`](EntryGetDataOptions.md#onend)
 
 ***
 
@@ -465,7 +479,7 @@ An empty promise or `undefined`.
 
 #### Inherited from
 
-[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md).[`onprogress`](EntryDataOnprogressOptions.md#onprogress)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`onprogress`](EntryGetDataOptions.md#onprogress)
 
 ***
 
@@ -491,4 +505,53 @@ An empty promise or `undefined`.
 
 #### Inherited from
 
-[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md).[`onstart`](EntryDataOnprogressOptions.md#onstart)
+[`EntryGetDataOptions`](EntryGetDataOptions.md).[`onstart`](EntryGetDataOptions.md#onstart)
+
+***
+
+### requestPassword()?
+
+> `optional` **requestPassword**(`entry`, `error?`): `string` \| `Promise`\<`string` \| `null` \| `undefined`\> \| `null` \| `undefined`
+
+The function asked for a password when every candidate has failed, or when there is none. It is
+called with the entry being read and with the error raised by the last candidate, which is
+`undefined` when no candidate was tried, and it can return a promise, e.g. when it prompts the user.
+
+A string is tried on the entry, and the function is called again when it fails, with the
+[ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error. `undefined` or `null` gives up: the entry raises an
+[ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error, or an [ERR\_ENCRYPTED](../variables/ERR_ENCRYPTED.md) error when no candidate was
+tried. A value of another type throws an [ERR\_INVALID\_REQUEST\_PASSWORD](../variables/ERR_INVALID_REQUEST_PASSWORD.md) error. The
+function is not called for the entries whose password is already known.
+
+When several entries are read concurrently, e.g. by `{@link ZipDirectoryEntry}#export*()` with the
+[ZipWriterConstructorOptions#bufferedWrite](ZipWriterConstructorOptions.md#bufferedwrite) option, only one call is pending at a time: the
+other entries wait for its answer and try it before asking themselves. Cancelling the whole
+operation from the function is done with the [ZipReaderOptions#signal](ZipReaderOptions.md#signal) option, since giving
+up fails the entry being read only.
+
+A value which is neither a function nor unset throws an [ERR\_INVALID\_REQUEST\_PASSWORD](../variables/ERR_INVALID_REQUEST_PASSWORD.md)
+error.
+
+#### Parameters
+
+##### entry
+
+[`FileEntry`](FileEntry.md)
+
+The entry being read.
+
+##### error?
+
+`Error`
+
+The error raised by the last candidate, `undefined` when no candidate was tried.
+
+#### Returns
+
+`string` \| `Promise`\<`string` \| `null` \| `undefined`\> \| `null` \| `undefined`
+
+The password to try, or `undefined` to give up.
+
+#### Inherited from
+
+[`PasswordCandidatesOptions`](PasswordCandidatesOptions.md).[`requestPassword`](PasswordCandidatesOptions.md#requestpassword)

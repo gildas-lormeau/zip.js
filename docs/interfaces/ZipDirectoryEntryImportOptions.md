@@ -10,7 +10,7 @@ Represents the options passed to `{@link ZipDirectoryEntry}#import*()`.
 
 ## Extends
 
-- `Omit`\<[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md), `"passThrough"`\>
+- `Omit`\<[`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md), `"passThrough"`\>.[`PasswordCandidatesOptions`](PasswordCandidatesOptions.md)
 
 ## Extended by
 
@@ -520,6 +520,26 @@ The password used to decrypt the content of the entry.
 
 ***
 
+### passwords?
+
+> `optional` **passwords?**: `string`[]
+
+The passwords tried in order, after the [ZipReaderOptions#password](ZipReaderOptions.md#password) option and the
+passwords already accepted by another entry of the same imported zip file. An empty string is
+ignored.
+
+When every candidate fails, the entry raises an [ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error, unless the
+[PasswordCandidatesOptions#requestPassword](PasswordCandidatesOptions.md#requestpassword) option is set.
+
+A value which is neither an array of strings nor unset throws an [ERR\_INVALID\_PASSWORDS](../variables/ERR_INVALID_PASSWORDS.md)
+error.
+
+#### Inherited from
+
+[`PasswordCandidatesOptions`](PasswordCandidatesOptions.md).[`passwords`](PasswordCandidatesOptions.md#passwords)
+
+***
+
 ### preventClose?
 
 > `optional` **preventClose?**: `boolean`
@@ -657,3 +677,52 @@ true
 #### Inherited from
 
 [`WorkerConfiguration`](WorkerConfiguration.md).[`useWebWorkers`](WorkerConfiguration.md#usewebworkers)
+
+## Methods
+
+### requestPassword()?
+
+> `optional` **requestPassword**(`entry`, `error?`): `string` \| `Promise`\<`string` \| `null` \| `undefined`\> \| `null` \| `undefined`
+
+The function asked for a password when every candidate has failed, or when there is none. It is
+called with the entry being read and with the error raised by the last candidate, which is
+`undefined` when no candidate was tried, and it can return a promise, e.g. when it prompts the user.
+
+A string is tried on the entry, and the function is called again when it fails, with the
+[ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error. `undefined` or `null` gives up: the entry raises an
+[ERR\_INVALID\_PASSWORD](../variables/ERR_INVALID_PASSWORD.md) error, or an [ERR\_ENCRYPTED](../variables/ERR_ENCRYPTED.md) error when no candidate was
+tried. A value of another type throws an [ERR\_INVALID\_REQUEST\_PASSWORD](../variables/ERR_INVALID_REQUEST_PASSWORD.md) error. The
+function is not called for the entries whose password is already known.
+
+When several entries are read concurrently, e.g. by `{@link ZipDirectoryEntry}#export*()` with the
+[ZipWriterConstructorOptions#bufferedWrite](ZipWriterConstructorOptions.md#bufferedwrite) option, only one call is pending at a time: the
+other entries wait for its answer and try it before asking themselves. Cancelling the whole
+operation from the function is done with the [ZipReaderOptions#signal](ZipReaderOptions.md#signal) option, since giving
+up fails the entry being read only.
+
+A value which is neither a function nor unset throws an [ERR\_INVALID\_REQUEST\_PASSWORD](../variables/ERR_INVALID_REQUEST_PASSWORD.md)
+error.
+
+#### Parameters
+
+##### entry
+
+[`FileEntry`](FileEntry.md)
+
+The entry being read.
+
+##### error?
+
+`Error`
+
+The error raised by the last candidate, `undefined` when no candidate was tried.
+
+#### Returns
+
+`string` \| `Promise`\<`string` \| `null` \| `undefined`\> \| `null` \| `undefined`
+
+The password to try, or `undefined` to give up.
+
+#### Inherited from
+
+[`PasswordCandidatesOptions`](PasswordCandidatesOptions.md).[`requestPassword`](PasswordCandidatesOptions.md#requestpassword)

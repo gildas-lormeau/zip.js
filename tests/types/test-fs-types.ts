@@ -2,7 +2,7 @@
 // Compile with: npm run test-types
 import { ZipFS } from "../../index.js";
 import { ZipReader } from "../../index.js";
-import type { FS, ZipEntry, ZipDirectoryEntry, ZipFileEntry, EntryMetaData, ZipWriterAddDataOptions } from "../../index.js";
+import type { FS, ZipEntry, ZipDirectoryEntry, ZipFileEntry, EntryMetaData, FileEntry, ZipWriterAddDataOptions } from "../../index.js";
 
 const fs = new ZipFS();
 
@@ -36,6 +36,13 @@ const secondImportedEntryPromise: Promise<ZipEntry> = fs.importUint8Array(new Ui
 const entryProgressExportPromise: Promise<Uint8Array> = fs.exportUint8Array({
 	onentryprogress: (progress: number, total: number, entry: EntryMetaData) => void [progress, total, entry.filename]
 });
+const passwordCandidatesImportPromise: Promise<ZipEntry[]> = fs.importBlob(new Blob(), {
+	passwords: ["first", "second"],
+	requestPassword: (entry: FileEntry, error?: Error) => error ? undefined : Promise.resolve(entry.filename)
+});
+const passwordCandidatesExportPromise: Promise<Blob> = fs.exportBlob({ readerOptions: { passwords: ["first"], requestPassword: () => null } });
+const passwordCandidatesHandlePromise: Promise<unknown> = fs.exportFileSystemHandle(new Object() as never, { passwords: ["first"], readerOptions: { requestPassword: () => "second" } });
+const passwordCandidatesReadPromise: Promise<string> = textEntry.getText(undefined, { passwords: ["first"], requestPassword: async () => "second" });
 
 // the deprecated FS alias must keep type-checking until it dies with the zip.fs namespace it belongs to
 const deprecatedFS: FS = fs;
@@ -45,7 +52,8 @@ void [root, entries, children, byName, byId, found, directory, textEntry, entryO
 	importPromise, exportBlobPromise, importZipPromise, exportZipPromise,
 	protectedFlag, passwordPromise, readerPasswordPromise, exportHandlePromise,
 	signedExportPromise, commentedExportPromise, importZipReaderPromise,
-	entryProgressExportPromise, deprecatedFS, secondImportedEntryPromise];
+	entryProgressExportPromise, deprecatedFS, secondImportedEntryPromise,
+	passwordCandidatesImportPromise, passwordCandidatesExportPromise, passwordCandidatesHandlePromise, passwordCandidatesReadPromise];
 
 // members that do NOT exist on ZipFS at runtime must NOT type-check
 // @ts-expect-error ZipFS is not a file entry
@@ -72,3 +80,9 @@ fs.name;
 fs.id;
 // @ts-expect-error ZipFS has no parent property
 fs.parent;
+// @ts-expect-error passwords is a list, one password goes in the password option
+fs.importBlob(new Blob(), { passwords: "first" });
+// @ts-expect-error requestPassword returns a password, not a boolean
+fs.importBlob(new Blob(), { requestPassword: () => true });
+// @ts-expect-error the core reader takes one password
+new ZipReader(new Blob().stream(), { passwords: ["first"] });
