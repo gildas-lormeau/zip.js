@@ -1,8 +1,9 @@
 /* global Blob, setTimeout, clearTimeout */
 
-// The last case reads an entry with a string password next to an empty raw password, which means
-// "no raw password" like an empty string does: the AES stream used to wait forever for a key it
-// never derived, because the empty array was normalized to 0 instead of undefined.
+// The last cases use a string password next to an empty raw password, which means "no raw
+// password" like an empty string does. The reader used to normalize the empty array to 0 instead
+// of undefined, and the AES stream waited forever for a key it never derived; the writer used to
+// take it as the password itself, and the entry could not be read back with the string password.
 
 import * as zip from "../zip-lib.js";
 
@@ -21,6 +22,26 @@ async function test() {
 	await testRawPassword(true);
 	await testEmptyRawPassword(false);
 	await testEmptyRawPassword(true);
+	await testEmptyRawPasswordWrite(false);
+	await testEmptyRawPasswordWrite(true);
+}
+
+async function testEmptyRawPasswordWrite(zipCrypto) {
+	const blobWriter = new zip.BlobWriter("application/zip");
+	const zipWriter = new zip.ZipWriter(blobWriter, { password: PASSWORD, rawPassword: new Uint8Array(0), zipCrypto });
+	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
+	await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
+	const [entry] = await zipReader.getEntries();
+	if (!entry.encrypted) {
+		throw new Error("the entry written with an empty raw password is not encrypted");
+	}
+	const data = await entry.getData(new zip.BlobWriter(), { password: PASSWORD });
+	await zipReader.close();
+	await zip.terminateWorkers();
+	if (TEXT_CONTENT != await data.text()) {
+		throw new Error();
+	}
 }
 
 async function testEmptyRawPassword(zipCrypto) {
