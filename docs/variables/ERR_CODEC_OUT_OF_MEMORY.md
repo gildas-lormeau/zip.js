@@ -18,4 +18,7 @@ The error the codec raised is kept as the `cause`. The failure is recognized by 
 error, `"Z_MEM_ERROR"`, which the bundled WASM codec sets and the native `DecompressionStream` of Node.js
 would set; a codec reporting the failure without it is reported as [ERR\_INVALID\_COMPRESSED\_DATA](ERR_INVALID_COMPRESSED_DATA.md) when
 reading, or with its own error when writing. When writing, only a codec that fails to allocate its state is
-reported with this error: a failure while compressing keeps the error of the codec.
+reported with this error: a failure while compressing keeps the error of the codec. On a host whose native
+codec lacks `"deflate-raw"`, a bundled codec that cannot allocate its state when the entry starts is not
+reported either: the native codec takes over through a gzip container, unless `useCompressionStream` is
+`false`.

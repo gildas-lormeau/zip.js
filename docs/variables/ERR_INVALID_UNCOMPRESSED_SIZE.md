@@ -12,6 +12,7 @@ Invalid uncompressed size error, thrown when an entry inflates to more bytes tha
 
 ## Remarks
 
-An entry encrypted with AES that stores no CRC-32 (AE-2) and inflated through a gzip container, on a host
-whose inflater lacks `"deflate-raw"`, raises this error when it inflates to fewer bytes as well, since the
-end of its data is told by the stored size alone.
+An entry encrypted with AES that stores no CRC-32 (AE-2) raises this error when it inflates to fewer bytes
+as well, since the end of its data is told by the stored size alone, when it is inflated through a gzip
+container: on a host whose native inflater lacks `"deflate-raw"`, when the bundled codec cannot take over
+either, e.g. because its WASM module failed to load.

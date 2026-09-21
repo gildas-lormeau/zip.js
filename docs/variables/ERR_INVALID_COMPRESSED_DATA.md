@@ -20,6 +20,8 @@ reaches the caller unchanged.
 
 Bytes trailing a complete DEFLATE stream (e.g. a wrong `compressedSize`) are rejected by every
 codec, the native `DecompressionStream` (on Node.js, with `ERR_TRAILING_JUNK_AFTER_STREAM_END`
-as the `code` of the cause) and the bundled WASM and pure-JS codecs alike. Any data that is
-returned is always validated against the entry's uncompressed size (and CRC when
-[ZipReaderOptions#checkCrc32](../interfaces/ZipReaderOptions.md#checkcrc32) is set), so it is never silently truncated.
+as the `code` of the cause) and the bundled WASM and pure-JS codecs alike, except that with
+[ZipReaderOptions#checkCrc32](../interfaces/ZipReaderOptions.md#checkcrc32) set the native inflater of Node.js reports them as
+[ERR\_INVALID\_CRC32](ERR_INVALID_CRC32.md), see that error. Any data that is returned is always validated against
+the entry's uncompressed size (and CRC when [ZipReaderOptions#checkCrc32](../interfaces/ZipReaderOptions.md#checkcrc32) is set), so it is
+never silently truncated.

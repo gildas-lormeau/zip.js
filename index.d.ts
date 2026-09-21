@@ -5023,7 +5023,10 @@ export const ERR_INVALID_CODEC_MODULE: string;
  * When the inflater verifies the checksum itself, through a gzip trailer that zip.js builds from the stored
  * CRC-32 and uncompressed size, it rejects the trailer as a whole and its error is kept as the `cause`. A
  * stored uncompressed size larger than the data therefore raises this error too on that route, whereas a
- * stored size smaller than the data raises {@link ERR_INVALID_UNCOMPRESSED_SIZE} on every route.
+ * stored size smaller than the data raises {@link ERR_INVALID_UNCOMPRESSED_SIZE} on every route. Bytes
+ * trailing the DEFLATE stream, e.g. a wrong `compressedSize`, displace that trailer, and an inflater that
+ * reports them only once the real trailer has been written, as the one of Node.js does, raises this error
+ * in place of {@link ERR_INVALID_COMPRESSED_DATA}.
  */
 export const ERR_INVALID_CRC32: string;
 /**
@@ -5035,9 +5038,10 @@ export const ERR_INVALID_AUTHENTICATION_CODE: string;
  * Invalid uncompressed size error, thrown when an entry inflates to more bytes than its stored uncompressed size.
  *
  * @remarks
- * An entry encrypted with AES that stores no CRC-32 (AE-2) and inflated through a gzip container, on a host
- * whose inflater lacks `"deflate-raw"`, raises this error when it inflates to fewer bytes as well, since the
- * end of its data is told by the stored size alone.
+ * An entry encrypted with AES that stores no CRC-32 (AE-2) raises this error when it inflates to fewer bytes
+ * as well, since the end of its data is told by the stored size alone, when it is inflated through a gzip
+ * container: on a host whose native inflater lacks `"deflate-raw"`, when the bundled codec cannot take over
+ * either, e.g. because its WASM module failed to load.
  */
 export const ERR_INVALID_UNCOMPRESSED_SIZE: string;
 /**
@@ -5052,9 +5056,11 @@ export const ERR_INVALID_UNCOMPRESSED_SIZE: string;
  *
  * Bytes trailing a complete DEFLATE stream (e.g. a wrong `compressedSize`) are rejected by every
  * codec, the native `DecompressionStream` (on Node.js, with `ERR_TRAILING_JUNK_AFTER_STREAM_END`
- * as the `code` of the cause) and the bundled WASM and pure-JS codecs alike. Any data that is
- * returned is always validated against the entry's uncompressed size (and CRC when
- * {@link ZipReaderOptions#checkCrc32} is set), so it is never silently truncated.
+ * as the `code` of the cause) and the bundled WASM and pure-JS codecs alike, except that with
+ * {@link ZipReaderOptions#checkCrc32} set the native inflater of Node.js reports them as
+ * {@link ERR_INVALID_CRC32}, see that error. Any data that is returned is always validated against
+ * the entry's uncompressed size (and CRC when {@link ZipReaderOptions#checkCrc32} is set), so it is
+ * never silently truncated.
  */
 export const ERR_INVALID_COMPRESSED_DATA: string;
 /**
@@ -5067,7 +5073,10 @@ export const ERR_INVALID_COMPRESSED_DATA: string;
  * error, `"Z_MEM_ERROR"`, which the bundled WASM codec sets and the native `DecompressionStream` of Node.js
  * would set; a codec reporting the failure without it is reported as {@link ERR_INVALID_COMPRESSED_DATA} when
  * reading, or with its own error when writing. When writing, only a codec that fails to allocate its state is
- * reported with this error: a failure while compressing keeps the error of the codec.
+ * reported with this error: a failure while compressing keeps the error of the codec. On a host whose native
+ * codec lacks `"deflate-raw"`, a bundled codec that cannot allocate its state when the entry starts is not
+ * reported either: the native codec takes over through a gzip container, unless `useCompressionStream` is
+ * `false`.
  */
 export const ERR_CODEC_OUT_OF_MEMORY: string;
 /**
