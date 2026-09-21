@@ -1409,17 +1409,17 @@
 		const reader = stream.readable.getReader();
 		const readable = new ReadableStream({
 			async pull(controller) {
-				let result;
 				try {
-					result = await reader.read();
+					const { value, done } = await reader.read();
+					if (done) {
+						controller.close();
+					} else {
+						controller.enqueue(value);
+					}
 				} catch (error) {
 					disposeEngine(aesCrypto);
+					reader.cancel(error).catch(() => { });
 					throw error;
-				}
-				if (result.done) {
-					controller.close();
-				} else {
-					controller.enqueue(result.value);
 				}
 			},
 			cancel(reason) {

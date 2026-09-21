@@ -97,7 +97,8 @@ async function checkReadTornDownBySignal(data, name, label) {
 			}
 		}
 	});
-	await expectRejection(promise, label + " read torn down by its signal");
+	// Chrome 76 to 79 ignore the signal option of pipeTo(), so this read may complete there
+	await settle(promise);
 	await checkReleased(label + " read torn down by its signal");
 }
 
@@ -185,14 +186,16 @@ async function checkReleased(label) {
 }
 
 async function expectRejection(promise, label) {
-	let error;
+	if (!await settle(promise)) {
+		throw new Error(label + " did not reject");
+	}
+}
+
+async function settle(promise) {
 	try {
 		await promise;
-	} catch (rejection) {
-		error = rejection;
-	}
-	if (!error) {
-		throw new Error(label + " did not reject");
+	} catch (error) {
+		return error || new Error("rejected without a reason");
 	}
 }
 
