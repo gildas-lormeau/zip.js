@@ -8979,7 +8979,7 @@ function formatSupported(StreamClass, format) {
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const VERSION = "2.16.0";
+const VERSION = "2.16.1";
 
 /*
  Copyright (c) 2025 Gildas Lormeau. All rights reserved.
