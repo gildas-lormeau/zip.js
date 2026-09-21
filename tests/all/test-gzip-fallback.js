@@ -4,8 +4,9 @@
 // refuse that format. The wrapper fills the fallback slot too, otherwise the native build reads
 // through its JavaScript port and never reaches the fallback. On the read side the trailer carries
 // the CRC-32 and the size declared by the entry and the host inflater verifies both, so a corrupted
-// CRC-32 fails even with checkCrc32 off, and a wrong size fails as soon as the output has been read,
-// without a watchdog.
+// CRC-32 fails even with checkCrc32 off, a size smaller than the data fails as soon as the output
+// exceeds it, and a size larger than the data fails when the inflater rejects the trailer, which it
+// reports as a whole, hence with the CRC-32 error; all without a watchdog.
 
 import * as zip from "../zip-lib.js";
 
@@ -76,7 +77,7 @@ async function test() {
 		await expectError(entries[0], {}, zip.ERR_INVALID_UNCOMPRESSED_SIZE, "a shrunk uncompressed size");
 		const grownSizeData = patchFirstCentralHeader(data, CENTRAL_HEADER_UNCOMPRESSED_SIZE_OFFSET, entries[0].uncompressedSize + 1000);
 		entries = await getEntries(grownSizeData);
-		await expectError(entries[0], {}, zip.ERR_INVALID_UNCOMPRESSED_SIZE, "a grown uncompressed size");
+		await expectError(entries[0], {}, zip.ERR_INVALID_CRC32, "a grown uncompressed size");
 		zip.resetConfiguration();
 		zip.configure({ useWebWorkers: false });
 		entries = await getEntries(data);

@@ -2,11 +2,12 @@
 
 // Checks the gzip route of the inflate side: with the CRC check on, a codec that requires the module
 // or the native codec is opened as gzip and the trailer built from the entry's declared CRC-32 and
-// size makes the inflater verify both, so a corrupted CRC-32 fails with ERR_INVALID_CRC32 and a
-// wrong size with ERR_INVALID_UNCOMPRESSED_SIZE; with the check off the entry is read raw and a
-// corrupted CRC-32 is not looked at. The spy that stands for the wasm codec declares the module
-// flag the way a user class would; the raw deflate half runs only where the native codec takes
-// "deflate-raw".
+// size makes the inflater verify both. The inflater rejects the trailer as a whole, so a corrupted
+// CRC-32 and a declared size larger than the data both fail with ERR_INVALID_CRC32, while a declared
+// size smaller than the data fails with ERR_INVALID_UNCOMPRESSED_SIZE, counted by zip.js before the
+// trailer is reached; with the check off the entry is read raw and a corrupted CRC-32 is not looked
+// at. The spy that stands for the wasm codec declares the module flag the way a user class would;
+// the raw deflate half runs only where the native codec takes "deflate-raw".
 
 import * as zip from "../zip-lib.js";
 
@@ -78,7 +79,7 @@ async function checkCorruptedEntries(data, useCompressionStream) {
 	await expectError(entry, { checkCrc32: true }, zip.ERR_INVALID_UNCOMPRESSED_SIZE, label + ", a shrunk uncompressed size");
 	const grownSizeData = patchFirstCentralHeader(data, CENTRAL_HEADER_UNCOMPRESSED_SIZE_OFFSET, entry.uncompressedSize + 1000);
 	[entry] = await getEntries(grownSizeData);
-	await expectError(entry, { checkCrc32: true }, zip.ERR_INVALID_UNCOMPRESSED_SIZE, label + ", a grown uncompressed size");
+	await expectError(entry, { checkCrc32: true }, zip.ERR_INVALID_CRC32, label + ", a grown uncompressed size");
 }
 
 function supportsNativeDeflateRaw() {

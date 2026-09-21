@@ -5006,6 +5006,12 @@ export const ERR_INVALID_CODEC_MODULE: string;
 /**
  * Invalid CRC-32 checksum error, thrown when the {@link ZipReaderOptions#checkCrc32} option is set and the CRC-32
  * checksum of an entry does not match the value stored in the zip file.
+ *
+ * @remarks
+ * When the inflater verifies the checksum itself, through a gzip trailer that zip.js builds from the stored
+ * CRC-32 and uncompressed size, it rejects the trailer as a whole and its error is kept as the `cause`. A
+ * stored uncompressed size larger than the data therefore raises this error too on that route, whereas a
+ * stored size smaller than the data raises {@link ERR_INVALID_UNCOMPRESSED_SIZE} on every route.
  */
 export const ERR_INVALID_CRC32: string;
 /**
@@ -5014,7 +5020,7 @@ export const ERR_INVALID_CRC32: string;
  */
 export const ERR_INVALID_AUTHENTICATION_CODE: string;
 /**
- * Invalid uncompressed size error
+ * Invalid uncompressed size error, thrown when an entry inflates to more bytes than its stored uncompressed size.
  */
 export const ERR_INVALID_UNCOMPRESSED_SIZE: string;
 /**

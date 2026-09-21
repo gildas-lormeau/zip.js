@@ -7,9 +7,11 @@
 // Every inflate route is covered: the native and wasm codecs, with and without workers, with and without
 // the gzip trailer check that checkCrc32 enables. Bytes trailing a complete deflate stream, i.e. a
 // compressedSize larger than the stream, are rejected on every route too: the bundled codecs used to
-// drop them and return the content, the native ones never did. The gzip trailer route reports them by
-// its trailer check rather than as invalid compressed data. The cause of the reader failure is assigned
-// by hand: engines older than Chrome 93 and Firefox 91 ignore the `cause` option of the Error constructor.
+// drop them and return the content, the native ones never did. On the gzip trailer route the extra
+// bytes displace the trailer, and an inflater that reports it once the real trailer has been written,
+// as the one of Node.js does, makes the failure read as a CRC-32 mismatch. The cause of the reader
+// failure is assigned by hand: engines older than Chrome 93 and Firefox 91 ignore the `cause` option
+// of the Error constructor.
 
 import * as zip from "../zip-lib.js";
 
@@ -53,7 +55,7 @@ async function trailingBytesAreRejected(data, readerOptions, options, label) {
 		throw new Error(label + ": the entry with trailing bytes was read without an error");
 	}
 	const acceptedMessages = options.checkCrc32 ?
-		[zip.ERR_INVALID_COMPRESSED_DATA, zip.ERR_INVALID_CRC32, zip.ERR_INVALID_UNCOMPRESSED_SIZE] :
+		[zip.ERR_INVALID_COMPRESSED_DATA, zip.ERR_INVALID_CRC32] :
 		[zip.ERR_INVALID_COMPRESSED_DATA];
 	if (!acceptedMessages.includes(error.message)) {
 		throw new Error(label + ": expected " + acceptedMessages.join(" or ") + " for the entry with trailing bytes, got " + describe(error));

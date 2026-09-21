@@ -8,4 +8,4 @@
 
 > `const` **ERR\_INVALID\_UNCOMPRESSED\_SIZE**: `string`
 
-Invalid uncompressed size error
+Invalid uncompressed size error, thrown when an entry inflates to more bytes than its stored uncompressed size.

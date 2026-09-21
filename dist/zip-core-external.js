@@ -2072,7 +2072,7 @@ function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, cr
 			} catch (error) {
 				rejectTrailerReady(error);
 				await cancel(reader, error);
-				throw trailerWritten ? getTrailerError(error) : error;
+				throw error;
 			}
 		},
 		cancel(reason) {
@@ -2119,7 +2119,7 @@ function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, cr
 		readCount++;
 		readPending = true;
 		const result = reader.read().catch(error => {
-			throw trailerWritten ? error : mapCodecError(error, sourceErrors);
+			throw trailerWritten ? getTrailerError(error) : mapCodecError(error, sourceErrors);
 		});
 		result.then(onReadSettled, onReadSettled);
 		if (inputDone && outputCrc32) {
@@ -2149,7 +2149,7 @@ function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, cr
 	}
 
 	function getTrailerError(error) {
-		const trailerError = new Error(outputLength == outputSize ? ERR_INVALID_CRC32 : ERR_INVALID_UNCOMPRESSED_SIZE);
+		const trailerError = new Error(ERR_INVALID_CRC32);
 		trailerError.cause = error;
 		return trailerError;
 	}
