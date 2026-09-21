@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>ERR_INVALID_UNCOMPRESSED_SIZE | @zip.js/zip.js</title><meta name="description" content="Documentation for @zip.js/zip.js"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>ERR_CODEC_OUT_OF_MEMORY | @zip.js/zip.js</title><meta name="description" content="Documentation for @zip.js/zip.js"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container"><a href="../index.html" class="title">@zip.js/zip.js</a>
 <div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
@@ -8,19 +8,23 @@
 <div class="col-content">
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
-<li><a href="" aria-current="page">ERR_INVALID_UNCOMPRESSED_SIZE</a></li></ul>
-<h1>Variable ERR_INVALID_UNCOMPRESSED_SIZE<code class="tsd-tag">Const</code></h1></div>
-<div class="tsd-signature"><span class="tsd-kind-variable">ERR_INVALID_UNCOMPRESSED_SIZE</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-<div class="tsd-comment tsd-typography"><p>Invalid uncompressed size error, thrown when an entry inflates to more bytes than its stored uncompressed size.</p>
+<li><a href="" aria-current="page">ERR_CODEC_OUT_OF_MEMORY</a></li></ul>
+<h1>Variable ERR_CODEC_OUT_OF_MEMORY<code class="tsd-tag">Const</code></h1></div>
+<div class="tsd-signature"><span class="tsd-kind-variable">ERR_CODEC_OUT_OF_MEMORY</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+<div class="tsd-comment tsd-typography"><p>Codec out of memory error, thrown when the codec of an entry cannot allocate the memory it needs, e.g. when
+the fixed heap of the bundled WASM module is exhausted by too many entries processed concurrently in the same
+scope.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>An entry encrypted with AES that stores no CRC-32 (AE-2) and inflated through a gzip container, on a host
-whose inflater lacks <code>&quot;deflate-raw&quot;</code>, raises this error when it inflates to fewer bytes as well, since the
-end of its data is told by the stored size alone.</p>
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The error the codec raised is kept as the <code>cause</code>. The failure is recognized by the <code>code</code> property of that
+error, <code>&quot;Z_MEM_ERROR&quot;</code>, which the bundled WASM codec sets and the native <code>DecompressionStream</code> of Node.js
+would set; a codec reporting the failure without it is reported as <a href="ERR_INVALID_COMPRESSED_DATA.html" class="tsd-kind-variable">ERR_INVALID_COMPRESSED_DATA</a> when
+reading, or with its own error when writing. When writing, only a codec that fails to allocate its state is
+reported with this error: a failure while compressing keeps the error of the codec.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/1eb4b7ed769079e6a3186192e1232b3c1ba4a9b5/index.d.ts#L5042">index.d.ts:5042</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/1eb4b7ed769079e6a3186192e1232b3c1ba4a9b5/index.d.ts#L5072">index.d.ts:5072</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -11,22 +11,23 @@
 <li><a href="" aria-current="page">ERR_INVALID_COMPRESSED_DATA</a></li></ul>
 <h1>Variable ERR_INVALID_COMPRESSED_DATA<code class="tsd-tag">Const</code></h1></div>
 <div class="tsd-signature"><span class="tsd-kind-variable">ERR_INVALID_COMPRESSED_DATA</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-<div class="tsd-comment tsd-typography"><p>Invalid compressed data error</p>
+<div class="tsd-comment tsd-typography"><p>Invalid compressed data error, thrown when the codec rejects the compressed data of an entry.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The way malformed compressed data is reported is not uniform across codec
-backends. Bytes trailing a complete DEFLATE stream (e.g. a wrong
-<code>compressedSize</code>) are tolerated by the bundled WASM and pure-JS codecs, which
-decompress the valid data and ignore the extra bytes, but are rejected by the
-native <code>DecompressionStream</code> with its own <code>TypeError</code> (on Node,
-<code>ERR_TRAILING_JUNK_AFTER_STREAM_END</code>) rather than this error. Any data that is
-returned is always validated against the entry's uncompressed size (and CRC
-when <code>checkCrc32</code> is set), so it is never silently truncated; the backends
-differ only in whether trailing bytes are ignored or raised as an error.</p>
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The error is the same whatever inflates the data, and the error the codec raised is kept as its
+<code>cause</code>: the <code>TypeError</code> of a native <code>DecompressionStream</code>, whose message depends on the engine,
+or the error of the bundled WASM or pure-JS codec. An error raised while reading the data, e.g.
+by the reader of the zip file or by the decryption of the entry, is not a codec failure and
+reaches the caller unchanged.</p>
+<p>Bytes trailing a complete DEFLATE stream (e.g. a wrong <code>compressedSize</code>) are rejected by every
+codec, the native <code>DecompressionStream</code> (on Node.js, with <code>ERR_TRAILING_JUNK_AFTER_STREAM_END</code>
+as the <code>code</code> of the cause) and the bundled WASM and pure-JS codecs alike. Any data that is
+returned is always validated against the entry's uncompressed size (and CRC when
+<a href="../interfaces/ZipReaderOptions.html#checkcrc32" class="tsd-kind-property">ZipReaderOptions#checkCrc32</a> is set), so it is never silently truncated.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/bac2f91ec45ef20f13965961ac752b294ddca670/index.d.ts#L5034">index.d.ts:5034</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/1eb4b7ed769079e6a3186192e1232b3c1ba4a9b5/index.d.ts#L5059">index.d.ts:5059</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
