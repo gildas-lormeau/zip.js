@@ -744,7 +744,10 @@ The `AbortSignal` instance used to cancel the compression.
 
 A signal already aborted when the operation starts rejects it with [ERR\_ABORTED](../variables/ERR_ABORTED.md) as the
 reason of the `AbortError`, or with `signal.reason` when it is set, without relying on the
-`signal` option of `pipeTo` that the oldest supported engines ignore.
+`signal` option of `pipeTo` that the oldest supported engines ignore. A signal aborted while the
+entry is being added rejects the operation as well, whether its content is still being read or
+its compressed data still being written; on those engines, the data is written to the end before
+the operation is rejected.
 
 #### Inherited from
 

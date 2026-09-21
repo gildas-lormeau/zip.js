@@ -2009,7 +2009,10 @@ export interface ZipReaderOptions {
    *
    * A signal already aborted when the operation starts rejects it with {@link ERR_ABORTED} as the
    * reason of the `AbortError`, or with `signal.reason` when it is set, without relying on the
-   * `signal` option of `pipeTo` that the oldest supported engines ignore.
+   * `signal` option of `pipeTo` that the oldest supported engines ignore. A signal aborted while the
+   * entry is being read rejects the operation as well, whether its compressed data is still being
+   * consumed or its content still being written; on those engines, the content is written to the end
+   * before the operation is rejected.
    */
   signal?: AbortSignal;
   /**
@@ -3423,7 +3426,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    *
    * A signal already aborted when the operation starts rejects it with {@link ERR_ABORTED} as the
    * reason of the `AbortError`, or with `signal.reason` when it is set, without relying on the
-   * `signal` option of `pipeTo` that the oldest supported engines ignore.
+   * `signal` option of `pipeTo` that the oldest supported engines ignore. A signal aborted while the
+   * entry is being added rejects the operation as well, whether its content is still being read or
+   * its compressed data still being written; on those engines, the data is written to the end before
+   * the operation is rejected.
    */
   signal?: AbortSignal;
   /**
@@ -5027,6 +5033,11 @@ export const ERR_INVALID_CRC32: string;
 export const ERR_INVALID_AUTHENTICATION_CODE: string;
 /**
  * Invalid uncompressed size error, thrown when an entry inflates to more bytes than its stored uncompressed size.
+ *
+ * @remarks
+ * An entry encrypted with AES that stores no CRC-32 (AE-2) and inflated through a gzip container, on a host
+ * whose inflater lacks `"deflate-raw"`, raises this error when it inflates to fewer bytes as well, since the
+ * end of its data is told by the stored size alone.
  */
 export const ERR_INVALID_UNCOMPRESSED_SIZE: string;
 /**

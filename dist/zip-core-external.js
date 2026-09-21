@@ -2043,45 +2043,25 @@ function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, cr
 	const reader = gzipStream.readable.getReader();
 	const outputCrc32 = crc32 === UNDEFINED_VALUE ? new Crc32() : UNDEFINED_VALUE;
 	let outputLength = 0;
-	let inputDone = false;
 	let trailerWritten = false;
-	let idleCheckArmed = false;
-	let readCount = 0;
-	let readPending = false;
-	let resolveTrailerReady, rejectTrailerReady;
-	const trailerReady = new Promise((resolve, reject) => {
-		resolveTrailerReady = resolve;
-		rejectTrailerReady = reject;
-	});
-	trailerReady.catch(() => { });
-	pump();
-	return new ReadableStream({
-		async pull(controller) {
-			try {
-				const { value, done } = await read();
-				if (done) {
-					controller.close();
-				} else {
-					outputLength += value.length;
-					if (outputLength > outputSize) {
-						throw new Error(ERR_INVALID_UNCOMPRESSED_SIZE);
-					}
-					if (outputCrc32) {
-						outputCrc32.append(value);
-					}
-					controller.enqueue(value);
-				}
-			} catch (error) {
-				rejectTrailerReady(error);
-				await cancel(reader, error);
-				throw error;
-			}
+	let settled = false;
+	let resolvePull, controller;
+	const output = new ReadableStream({
+		start(streamController) {
+			controller = streamController;
+		},
+		pull() {
+			resumePump();
 		},
 		cancel(reason) {
-			rejectTrailerReady(reason);
+			settled = true;
+			resumePump();
 			return reader.cancel(reason);
 		}
 	});
+	pump();
+	drain();
+	return output;
 
 	async function pump() {
 		const inputReader = readable.getReader();
@@ -2090,6 +2070,7 @@ function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, cr
 			header.set(GZIP_HEADER_BYTES);
 			await writer.write(header);
 			for (; ;) {
+				await outputCapacity();
 				await writer.ready;
 				const { value, done } = await readSource(inputReader, sourceErrors);
 				if (done) {
@@ -2097,12 +2078,8 @@ function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, cr
 				}
 				await writer.write(value);
 			}
-			inputDone = true;
 			if (outputCrc32) {
-				if (readPending) {
-					armIdleCheck();
-				}
-				await trailerReady;
+				await writer.write(new Uint8Array(0));
 			}
 			const trailer = new Uint8Array(GZIP_TRAILER_LENGTH);
 			const dataView = getDataView(trailer);
@@ -2117,56 +2094,68 @@ function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, cr
 		}
 	}
 
-	function read() {
-		readCount++;
-		readPending = true;
-		const result = reader.read().catch(error => {
-			throw trailerWritten ? getTrailerError(error) : mapCodecError(error, sourceErrors);
-		});
-		result.then(onReadSettled, onReadSettled);
-		if (inputDone && outputCrc32) {
-			armIdleCheck();
-		}
-		return result;
-	}
-
-	function onReadSettled() {
-		readPending = false;
-	}
-
-	async function armIdleCheck() {
-		if (!idleCheckArmed) {
-			idleCheckArmed = true;
-			const count = readCount;
-			await nextTask();
-			idleCheckArmed = false;
-			if (readPending) {
-				if (readCount == count) {
-					resolveTrailerReady();
-				} else {
-					armIdleCheck();
+	async function drain() {
+		try {
+			for (; ;) {
+				const { value, done } = await read();
+				if (done) {
+					break;
 				}
+				outputLength += value.length;
+				if (outputLength > outputSize) {
+					throw new Error(ERR_INVALID_UNCOMPRESSED_SIZE);
+				}
+				if (outputCrc32) {
+					outputCrc32.append(value);
+				}
+				controller.enqueue(value);
 			}
+			if (!settled) {
+				settled = true;
+				controller.close();
+			}
+		} catch (error) {
+			fail(error);
+			await cancel(reader, error);
 		}
 	}
 
-	function getTrailerError(error) {
-		const trailerError = new Error(ERR_INVALID_CRC32);
-		trailerError.cause = error;
-		return trailerError;
+	function read() {
+		return reader.read().catch(error => {
+			if (trailerWritten) {
+				if (!outputCrc32) {
+					throw mapError(error, ERR_INVALID_CRC32);
+				}
+				if (outputLength != outputSize) {
+					throw mapError(error, ERR_INVALID_UNCOMPRESSED_SIZE);
+				}
+				return { done: true };
+			}
+			throw mapCodecError(error, sourceErrors);
+		});
 	}
-}
 
-function nextTask() {
-	return new Promise(resolve => {
-		const { port1, port2 } = new MessageChannel();
-		port2.onmessage = () => {
-			port1.close();
-			port2.close();
+	function outputCapacity() {
+		if (!settled && controller.desiredSize <= 0) {
+			return new Promise(resolve => resolvePull = resolve);
+		}
+	}
+
+	function resumePump() {
+		if (resolvePull) {
+			const resolve = resolvePull;
+			resolvePull = UNDEFINED_VALUE;
 			resolve();
-		};
-		port1.postMessage(UNDEFINED_VALUE);
-	});
+		}
+	}
+
+	function fail(error) {
+		if (!settled) {
+			settled = true;
+			controller.error(error);
+			resumePump();
+		}
+	}
 }
 
 class InflateStream extends TransformStream {
@@ -2764,10 +2753,11 @@ async function runWorker$1({ options, readable, writable, onTaskFinished, worker
 		}
 		codecStream = new CodecStream(options, config);
 		chunkStream = new ChunkStream(getChunkSize(config));
+		const { signal } = workerOptions.streamOptions;
 		await readable
 			.pipeThrough(codecStream)
 			.pipeThrough(chunkStream)
-			.pipeTo(writable, { preventClose: true, preventAbort: true });
+			.pipeTo(writable, { preventClose: true, preventAbort: true, signal });
 		const {
 			crc32,
 			inputSize,
@@ -2835,6 +2825,7 @@ async function runWorker$1({ options, readable, writable, onTaskFinished, worker
 const MODULE_WORKER_OPTIONS = { type: "module" };
 const ERROR_EVENT_TYPE = "error";
 const MESSAGE_ERROR_EVENT_TYPE = "messageerror";
+const ABORT_EVENT_TYPE = "abort";
 
 let webWorkerSource, webWorkerURI, webWorkerOptions;
 let transferStreamsSupported = true;
@@ -3011,6 +3002,13 @@ function watchClosedStream(writableSource, workerData) {
 			Object.assign(workerData, { destinationFailed: true, destinationError: error });
 		}
 	});
+	const { signal } = workerData.workerOptions.streamOptions;
+	if (signal) {
+		const onAbort = () => abortController.abort(signal.reason);
+		const removeAbortListener = () => signal.removeEventListener(ABORT_EVENT_TYPE, onAbort);
+		signal.addEventListener(ABORT_EVENT_TYPE, onAbort);
+		closed.then(removeAbortListener, removeAbortListener);
+	}
 	return {
 		writable, closed, abortPipe: () => {
 			aborting = true;
@@ -5607,6 +5605,7 @@ class ZipEntry {
 				({ writable } = writer);
 				const readable = toCompatibleReadable(reader.createReadable({ offset: dataOffset, size }));
 				const { outputSize: writtenSize } = await runWorker({ readable, writable }, workerOptions);
+				throwIfAborted(signal);
 				if (writtenSize != outputSize) {
 					throw Object.assign(new Error(ERR_INVALID_UNCOMPRESSED_SIZE), { outputSize: writtenSize });
 				}
@@ -7752,6 +7751,7 @@ async function createFileEntry(reader, writer, { diskNumberStart, lockFileEntry 
 			const result = await runWorker({ readable, writable }, workerOptions);
 			compressedSize = result.outputSize;
 			writer.size += compressedSize;
+			throwIfAborted(signal);
 			if (!passThroughCompression) {
 				uncompressedSize = result.inputSize;
 				if (!encrypted || zipCrypto) {

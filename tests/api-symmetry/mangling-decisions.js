@@ -9,7 +9,6 @@ const ACCEPTED_UNDECLARED = {};
 const ACCEPTED_HOST_ASSIGNMENTS = {
 	length: "arrays are emptied by assigning their length",
 	responseType: "XMLHttpRequest, in the fetch fallback of the HTTP readers",
-	onmessage: "MessagePort, the macrotask scheduler of the gzip route",
 	kind: "the FileSystemHandle shape ZipFS builds for the File System Access export",
 	getFile: "the FileSystemHandle shape ZipFS builds for the File System Access export",
 	values: "the FileSystemHandle shape ZipFS builds for the File System Access export",

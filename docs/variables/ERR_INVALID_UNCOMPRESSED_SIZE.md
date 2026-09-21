@@ -9,3 +9,9 @@
 > `const` **ERR\_INVALID\_UNCOMPRESSED\_SIZE**: `string`
 
 Invalid uncompressed size error, thrown when an entry inflates to more bytes than its stored uncompressed size.
+
+## Remarks
+
+An entry encrypted with AES that stores no CRC-32 (AE-2) and inflated through a gzip container, on a host
+whose inflater lacks `"deflate-raw"`, raises this error when it inflates to fewer bytes as well, since the
+end of its data is told by the stored size alone.
