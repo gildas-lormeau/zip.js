@@ -18,6 +18,7 @@ Optional URL parameters:
 - `keepTests` keeps the passed tests displayed on the page.
 - `withStreamsPolyfill` loads [web-streams-polyfill](https://github.com/MattiasBuelens/web-streams-polyfill) when `TransformStream` is unavailable, for browsers older than Firefox 102. It only polyfills the page: the web workers get their own scope, where `TransformStream` is still missing, so the worker script of zip.js throws when it is evaluated and the codecs run in the main scope instead. `test-worker-streams-polyfill.js` and `test-worker-streams-polyfill-native.js` are the tests covering the worker path on these browsers, by polyfilling the scope of the worker itself. They run one per build, since the WASM worker and the native worker bundle different codecs.
 - `maxParallelTests` overrides the number of tests running concurrently, 16 by default. Chromium 87 needs a low value, e.g. 4: under higher load its streams implementation randomly loses a backpressure wakeup and a test hangs until the timeout.
+- `script` runs a single test, named by its `script` field in `tests/tests-data.js`, e.g. `script=./test-wasm-stream-abort.js`, which is how a test is checked against unfixed code in a browser without waiting for the whole suite.
 
 Tests requiring a feature the browser does not support, e.g. `CompressionStream` or OPFS, are reported as skipped instead of failing.
 

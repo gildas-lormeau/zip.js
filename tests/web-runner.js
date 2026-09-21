@@ -49,7 +49,8 @@ const FEATURE_PROBES = {
 let wasmBuildProbe;
 
 const urlParams = new URLSearchParams(location.search);
-const browserTests = tests.filter(test => !test.env || test.env.includes("browser"));
+const scriptFilter = urlParams.get("script");
+const browserTests = tests.filter(test => (!test.env || test.env.includes("browser")) && (!scriptFilter || test.script == scriptFilter));
 const keepTests = urlParams.has("keepTests");
 const withStreamsPolyfill = urlParams.has("withStreamsPolyfill");
 const maxParallelTests = Number(urlParams.get("maxParallelTests")) || MAX_PARALLEL_TESTS;
