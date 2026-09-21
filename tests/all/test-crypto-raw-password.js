@@ -1,4 +1,8 @@
-/* global Blob */
+/* global Blob, setTimeout, clearTimeout */
+
+// The last case reads an entry with a string password next to an empty raw password, which means
+// "no raw password" like an empty string does: the AES stream used to wait forever for a key it
+// never derived, because the empty array was normalized to 0 instead of undefined.
 
 import * as zip from "../zip-lib.js";
 
@@ -8,10 +12,34 @@ const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 
 export { test };
 
+const PASSWORD = "password";
+const TIMEOUT = 10000;
+
 async function test() {
 	zip.configure({ useWebWorkers: true });
 	await testRawPassword(false);
 	await testRawPassword(true);
+	await testEmptyRawPassword(false);
+	await testEmptyRawPassword(true);
+}
+
+async function testEmptyRawPassword(zipCrypto) {
+	const blobWriter = new zip.BlobWriter("application/zip");
+	const zipWriter = new zip.ZipWriter(blobWriter, { password: PASSWORD, zipCrypto });
+	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB));
+	await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.BlobReader(await blobWriter.getData()));
+	const [entry] = await zipReader.getEntries();
+	let timeout;
+	const data = await Promise.race([
+		entry.getData(new zip.BlobWriter(), { password: PASSWORD, rawPassword: new Uint8Array(0) }),
+		new Promise((_, reject) => timeout = setTimeout(() => reject(new Error("read with an empty raw password timed out")), TIMEOUT))
+	]).finally(() => clearTimeout(timeout));
+	await zipReader.close();
+	await zip.terminateWorkers();
+	if (TEXT_CONTENT != await data.text()) {
+		throw new Error();
+	}
 }
 
 async function testRawPassword(zipCrypto) {
