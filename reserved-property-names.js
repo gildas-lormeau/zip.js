@@ -1,6 +1,6 @@
 /* global WebAssembly */
 
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
@@ -10,6 +10,10 @@ import { WORKER_MESSAGE_PROPERTY_NAMES } from "./worker-message-property-names.j
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const TYPESCRIPT_LIBRARY_PATH = path.join(ROOT, "node_modules", "typescript", "lib");
 const HOST_DECLARATION_FILE_NAME = /^lib\.(dom|webworker)\..*d\.ts$/;
+const LIBRARY_PATH = path.join(ROOT, "lib");
+const GENERATED_LIBRARY_FILE_NAME = /-inline(-[a-z]+)?\.js$|\.min\.js$/;
+const LOGICAL_ASSIGNMENT_OPERATORS = [ts.SyntaxKind.BarBarEqualsToken, ts.SyntaxKind.AmpersandAmpersandEqualsToken, ts.SyntaxKind.QuestionQuestionEqualsToken];
+const INCREMENT_OPERATORS = [ts.SyntaxKind.PlusPlusToken, ts.SyntaxKind.MinusMinusToken];
 const WASM_MODULE_PATH = path.join(ROOT, "lib", "core", "streams", "zlib-wasm", "zlib-streams.wasm");
 
 const ZLIB_STREAM_OPTION_PROPERTY_NAMES = ["inBufferSize", "outBuffer"];
@@ -24,6 +28,7 @@ export {
 	collectDeclarationNames,
 	collectHostMemberNames,
 	collectWasmExportNames,
+	collectAssignedPropertyNames,
 	getReservedPropertyNames
 };
 
@@ -60,6 +65,53 @@ function collectHostMemberNames() {
 function collectWasmExportNames() {
 	const module = new WebAssembly.Module(readFileSync(WASM_MODULE_PATH));
 	return WebAssembly.Module.exports(module).map(({ name }) => name);
+}
+
+function collectAssignedPropertyNames() {
+	const names = new Map();
+	visitDirectory(LIBRARY_PATH);
+	return names;
+
+	function visitDirectory(directoryPath) {
+		for (const fileName of readdirSync(directoryPath)) {
+			const filePath = path.join(directoryPath, fileName);
+			if (statSync(filePath).isDirectory()) {
+				visitDirectory(filePath);
+			} else if (fileName.endsWith(".js") && !GENERATED_LIBRARY_FILE_NAME.test(fileName)) {
+				visitFile(filePath);
+			}
+		}
+	}
+
+	function visitFile(filePath) {
+		const source = ts.createSourceFile(filePath, readFileSync(filePath, "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+		visit(source);
+
+		function visit(node) {
+			const target = getAssignmentTarget(node);
+			if (target && ts.isPropertyAccessExpression(target)) {
+				const name = target.name.text;
+				if (!names.has(name)) {
+					names.set(name, new Set());
+				}
+				names.get(name).add(path.relative(ROOT, filePath));
+			}
+			ts.forEachChild(node, visit);
+		}
+	}
+}
+
+function getAssignmentTarget(node) {
+	if (ts.isBinaryExpression(node) && isAssignmentOperator(node.operatorToken.kind)) {
+		return node.left;
+	}
+	if ((ts.isPrefixUnaryExpression(node) || ts.isPostfixUnaryExpression(node)) && INCREMENT_OPERATORS.includes(node.operator)) {
+		return node.operand;
+	}
+}
+
+function isAssignmentOperator(kind) {
+	return (kind >= ts.SyntaxKind.FirstAssignment && kind <= ts.SyntaxKind.LastAssignment) || LOGICAL_ASSIGNMENT_OPERATORS.includes(kind);
 }
 
 function collectDeclarationNames(filePath, membersOnly) {

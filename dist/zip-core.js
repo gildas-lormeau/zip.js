@@ -1307,7 +1307,7 @@
 					} else {
 						await ready;
 					}
-					if (aesCrypto.disposed) {
+					if (aesCrypto.discarded) {
 						return;
 					}
 					const output = new Uint8Array(chunk.length - AUTHENTICATION_CODE_LENGTH - ((chunk.length - AUTHENTICATION_CODE_LENGTH) % BLOCK_LENGTH));
@@ -1321,7 +1321,7 @@
 					} = aesCrypto;
 					if (engine) {
 						await ready;
-						if (aesCrypto.disposed) {
+						if (aesCrypto.discarded) {
 							return;
 						}
 						const originalAuthenticationCode = subarray(pendingInput, pendingInput.length - AUTHENTICATION_CODE_LENGTH);
@@ -1366,7 +1366,7 @@
 					} else {
 						await ready;
 					}
-					if (aesCrypto.disposed) {
+					if (aesCrypto.discarded) {
 						return;
 					}
 					const output = new Uint8Array(preamble.length + chunk.length - (chunk.length % BLOCK_LENGTH));
@@ -1381,7 +1381,7 @@
 					} = aesCrypto;
 					if (engine) {
 						await ready;
-						if (aesCrypto.disposed) {
+						if (aesCrypto.discarded) {
 							return;
 						}
 						const encryptedChunkArray = new Uint8Array(pendingInput);
@@ -1401,7 +1401,7 @@
 			password: encodePassword(password, rawPassword),
 			strength: encryptionStrength - 1,
 			pendingInput: EMPTY_UINT8_ARRAY,
-			disposed: false
+			discarded: false
 		});
 	}
 
@@ -1465,7 +1465,7 @@
 
 	function disposeEngine(aesCrypto) {
 		const { engine } = aesCrypto;
-		aesCrypto.disposed = true;
+		aesCrypto.discarded = true;
 		if (engine && engine.dispose) {
 			engine.dispose();
 		}
@@ -1482,7 +1482,7 @@
 		const keyLength = KEY_LENGTH[strength];
 		const compositeKey = await deriveKey(password, salt, keyLength * 2 + PASSWORD_VERIFICATION_LENGTH);
 		aesCrypto.engine = createEngine(subarray(compositeKey, 0, keyLength), subarray(compositeKey, keyLength, keyLength * 2));
-		if (aesCrypto.disposed) {
+		if (aesCrypto.discarded) {
 			disposeEngine(aesCrypto);
 		}
 		return subarray(compositeKey, keyLength * 2);
@@ -1636,11 +1636,11 @@
 	}
 
 	function createKeys(target, password, rawPassword) {
-		const keys = [0x12345678, 0x23456789, 0x34567890];
+		const cryptoKeys = [0x12345678, 0x23456789, 0x34567890];
 		Object.assign(target, {
-			keys,
-			crcKey0: new Crc32(keys[0]),
-			crcKey2: new Crc32(keys[2])
+			cryptoKeys,
+			crcKey0: new Crc32(cryptoKeys[0]),
+			crcKey2: new Crc32(cryptoKeys[2])
 		});
 		if (rawPassword) {
 			for (let index = 0; index < rawPassword.length; index++) {
@@ -1654,17 +1654,17 @@
 	}
 
 	function updateKeys(target, byte) {
-		let [, key1] = target.keys;
+		let [, key1] = target.cryptoKeys;
 		target.crcKey0.append([byte]);
 		const key0 = ~target.crcKey0.get();
 		key1 = getInt32(Math.imul(getInt32(key1 + getInt8(key0)), 134775813) + 1);
 		target.crcKey2.append([key1 >>> 24]);
 		const key2 = ~target.crcKey2.get();
-		target.keys = [key0, key1, key2];
+		target.cryptoKeys = [key0, key1, key2];
 	}
 
 	function getByte(target) {
-		const temp = target.keys[2] | 2;
+		const temp = target.cryptoKeys[2] | 2;
 		return getInt8(Math.imul(temp, (temp ^ 1)) >>> 8);
 	}
 
@@ -6152,7 +6152,7 @@
 	async function findEndOfCentralDirectory(reader, rejectAmbiguous, maxAppendedDataSize) {
 		const { size } = reader;
 		const anchoredLength = Math.min(size, END_OF_CENTRAL_DIR_LENGTH + MAX_16_BITS);
-		const remoteProbeBudget = { count: MAX_END_OF_CENTRAL_DIR_PROBES };
+		const remoteProbeBudget = { remaining: MAX_END_OF_CENTRAL_DIR_PROBES };
 		let endOfDirectoryInfo;
 		let plausibleEndOfDirectoryInfo;
 		let endOfDirectoryReachingEndCount = 0;
@@ -6245,8 +6245,8 @@
 		if (signatureOffset >= anchoredOffset) {
 			return getUint32$1(view, signatureOffset - anchoredOffset);
 		}
-		if (remoteProbeBudget.count > 0) {
-			remoteProbeBudget.count--;
+		if (remoteProbeBudget.remaining > 0) {
+			remoteProbeBudget.remaining--;
 			const signatureArray = await readUint8Array(reader, signatureOffset, 4);
 			return getUint32$1(getDataView(signatureArray), 0);
 		}

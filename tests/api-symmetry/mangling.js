@@ -26,6 +26,13 @@
 // The audit reads the source build, where nothing is mangled, because that is the only build in which an
 // internal member is still visible under its real name.
 //
+// An internal object never reaches a caller, so its property names are meant to be mangled, and the mirror
+// failure lives there: a state field whose name happens to be a DOM property, like the disposed flag an AES
+// stream got on 2026-09-21, ships unmangled in every bundle with nobody intending it. The names lib/ assigns
+// through a member assignment are read from the source for that check: one that is reserved without being
+// declared, a worker message name or reserved on purpose has to be a host object's property recorded in
+// mangling-decisions.js, or be renamed. A field that only ever exists through an object literal is not covered.
+//
 // A prototype is reachable from the class, but the members an instance carries are only reachable from an
 // instance, so an exported class the audit never constructs is a blind spot: contentType, encoding and url
 // all hid in one. Every exported class is therefore required to be instantiated here, and failing to do so
@@ -35,10 +42,17 @@
 
 import { readFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { collectDeclarationNames } from "../../reserved-property-names.js";
+import {
+	collectDeclarationNames,
+	collectAssignedPropertyNames,
+	collectWasmExportNames,
+	getReservedPropertyNames,
+	ZLIB_STREAM_OPTION_PROPERTY_NAMES,
+	AUDITED_KEEP_PROPERTY_NAMES
+} from "../../reserved-property-names.js";
 import { MANGLED_PROPERTY_NAMES } from "../../mangled-property-names.js";
 import { WORKER_MESSAGE_PROPERTY_NAMES } from "../../worker-message-property-names.js";
-import { ACCEPTED_UNDECLARED } from "./mangling-decisions.js";
+import { ACCEPTED_UNDECLARED, ACCEPTED_HOST_ASSIGNMENTS } from "./mangling-decisions.js";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const PASSWORD = "secret";
@@ -53,6 +67,7 @@ const exportedClasses = new Map();
 const instantiatedClasses = new Set();
 const failures = [];
 const usedExceptions = new Set();
+const usedHostAssignments = new Set();
 
 zip.configure({ useWebWorkers: false });
 
@@ -62,6 +77,7 @@ await zip.terminateWorkers();
 classify();
 checkExceptions();
 checkClassesInstantiated();
+checkInternalAssignments();
 summarize();
 
 function collectClasses() {
@@ -325,6 +341,33 @@ function checkExceptions() {
 			failures.push(`the exception recorded for ${name} no longer applies`);
 		}
 	});
+}
+
+// a name lib/ assigns that terser keeps for a reason nobody stated is an internal field colliding with a host
+// property, unless the object it is assigned on belongs to the host, which mangling-decisions.js records
+function checkInternalAssignments() {
+	const reserved = new Set(getReservedPropertyNames());
+	const reservedOnPurpose = new Set([...collectWasmExportNames(), ...ZLIB_STREAM_OPTION_PROPERTY_NAMES, ...AUDITED_KEEP_PROPERTY_NAMES]);
+	const assigned = collectAssignedPropertyNames();
+	let accepted = 0;
+	[...assigned.keys()].sort().forEach(name => {
+		if (!reserved.has(name) || declared.has(name) || workerMessageNames.has(name) || reservedOnPurpose.has(name)) {
+			return;
+		}
+		if (ACCEPTED_HOST_ASSIGNMENTS[name] !== undefined) {
+			usedHostAssignments.add(name);
+			accepted++;
+		} else {
+			const files = [...assigned.get(name)].sort().join(", ");
+			failures.push(`${name} is assigned in ${files} and survives minification only by name collision with a host property: rename it, or record it in mangling-decisions.js if the object is the host's`);
+		}
+	});
+	Object.keys(ACCEPTED_HOST_ASSIGNMENTS).forEach(name => {
+		if (!usedHostAssignments.has(name)) {
+			failures.push(`the host assignment recorded for ${name} no longer applies`);
+		}
+	});
+	console.log(`${assigned.size} property names assigned in lib/: ${accepted} kept as host assignments`);
 }
 
 // a base class is covered by an instance of any of its subclasses, since the fields its constructor sets are
