@@ -1743,11 +1743,16 @@ function toCompatibleReadable(readable) {
 	const reader = readable.getReader();
 	return new ReadableStream({
 		async pull(controller) {
-			const { value, done } = await reader.read();
-			if (done) {
-				controller.close();
-			} else {
-				controller.enqueue(value);
+			try {
+				const { value, done } = await reader.read();
+				if (done) {
+					controller.close();
+				} else {
+					controller.enqueue(value);
+				}
+			} catch (error) {
+				reader.cancel(error).catch(() => { });
+				throw error;
 			}
 		},
 		cancel(reason) {
@@ -2050,27 +2055,24 @@ function pipeThroughGzipDecompressionStream(readable, gzipStream, outputSize, cr
 	pump();
 	return new ReadableStream({
 		async pull(controller) {
-			let result;
 			try {
-				result = await read();
+				const { value, done } = await read();
+				if (done) {
+					controller.close();
+				} else {
+					outputLength += value.length;
+					if (outputLength > outputSize) {
+						throw new Error(ERR_INVALID_UNCOMPRESSED_SIZE);
+					}
+					if (outputCrc32) {
+						outputCrc32.append(value);
+					}
+					controller.enqueue(value);
+				}
 			} catch (error) {
+				rejectTrailerReady(error);
+				await cancel(reader, error);
 				throw trailerWritten ? getTrailerError(error) : error;
-			}
-			const { value, done } = result;
-			if (done) {
-				controller.close();
-			} else {
-				outputLength += value.length;
-				if (outputLength > outputSize) {
-					const error = new Error(ERR_INVALID_UNCOMPRESSED_SIZE);
-					rejectTrailerReady(error);
-					await cancel(reader, error);
-					throw error;
-				}
-				if (outputCrc32) {
-					outputCrc32.append(value);
-				}
-				controller.enqueue(value);
 			}
 		},
 		cancel(reason) {
@@ -2350,22 +2352,21 @@ function mapInflateStreamError(readable) {
 	const reader = readable.getReader();
 	return new ReadableStream({
 		async pull(controller) {
-			let result;
 			try {
-				result = await reader.read();
+				const { value, done } = await reader.read();
+				if (done) {
+					controller.close();
+				} else {
+					controller.enqueue(value);
+				}
 			} catch (error) {
+				await cancel(reader, error);
 				if (error && error.message) {
 					throw error;
 				}
 				const mappedError = new Error(ERR_INVALID_COMPRESSED_DATA);
 				mappedError.cause = error;
 				throw mappedError;
-			}
-			const { value, done } = result;
-			if (done) {
-				controller.close();
-			} else {
-				controller.enqueue(value);
 			}
 		},
 		cancel(reason) {
@@ -7197,9 +7198,11 @@ function resolveMetadata(zipWriter, name, options) {
 	const passThrough = checkPassThroughOption(getOptionValue(zipWriter, options, OPTION_PASS_THROUGH));
 	const passThroughCompression = Boolean(passThrough);
 	const passThroughEncryption = passThrough === true;
-	const password = getOptionValue(zipWriter, options, OPTION_PASSWORD);
-	const rawPassword = getOptionValue(zipWriter, options, OPTION_RAW_PASSWORD);
+	let password = getOptionValue(zipWriter, options, OPTION_PASSWORD);
+	let rawPassword = getOptionValue(zipWriter, options, OPTION_RAW_PASSWORD);
 	checkPasswordOption(password, rawPassword);
+	password = password && password.length ? password : UNDEFINED_VALUE;
+	rawPassword = rawPassword && rawPassword.length ? rawPassword : UNDEFINED_VALUE;
 	const encryptionStrength = getNumberOptionValue(zipWriter, options, OPTION_ENCRYPTION_STRENGTH, 3);
 	const zipCrypto = getOptionValue(zipWriter, options, PROPERTY_NAME_ZIPCRYPTO);
 	const extendedTimestamp = getOptionValue(zipWriter, options, OPTION_EXTENDED_TIMESTAMP, true);

@@ -59,6 +59,7 @@ export default ([
 	{ title: "Store fallback on missing codecs", script: "./test-store-fallback.js", features: ["wasmBuild"] },
 	{ title: "Wasm codec released on aborted reads and writes", script: "./test-wasm-stream-abort.js", features: ["wasmBuild"] },
 	{ title: "AES engine released on aborted reads and writes", script: "./test-aes-stream-abort.js", features: ["wasmBuild"] },
+	{ title: "Wasm heap capacity after aborted reads and writes", script: "./test-wasm-heap-capacity.js", features: ["wasmBuild"] },
 	{ title: "IO edge cases", script: "./test-io-edge-cases.js" },
 	{ title: "Blob", script: "./test-blob.js" },
 	{ title: "Blob reader without stream()", script: "./test-blob-reader-without-stream.js" },
