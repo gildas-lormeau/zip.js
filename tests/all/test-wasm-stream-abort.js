@@ -10,7 +10,8 @@
 // native codec is forced off so the wasm one runs on every engine, and a single worker slot keeps
 // every aborted task on the same heap. A wrong password aborts a read inside the worker, which is
 // kept and reused; a failing source aborts a write, which terminates the worker, so that direction
-// runs without workers only.
+// runs without workers only. Streams are not transferred to the worker: the leak is in the codec
+// heap, not in the transfer, and a few hundred transferred pairs crash the renderer of Chromium 87.
 
 import * as zip from "../zip-lib.js";
 
@@ -29,7 +30,7 @@ async function test() {
 	try {
 		await zip.terminateWorkers();
 		for (const useWebWorkers of [false, true]) {
-			zip.configure({ useWebWorkers, useCompressionStream: false, maxWorkers: 1 });
+			zip.configure({ useWebWorkers, useCompressionStream: false, maxWorkers: 1, transferStreams: false });
 			const data = await writeArchive();
 			const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
 			const [entry] = await zipReader.getEntries();
