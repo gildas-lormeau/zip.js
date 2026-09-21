@@ -28,6 +28,17 @@ stream is aborted or cancelled with a value that is not an object, or with a fro
 
 ***
 
+### entry?
+
+> `optional` **entry?**: [`ZipEntry`](../classes/ZipEntry.md)
+
+The related [ZipEntry](../classes/ZipEntry.md) (filesystem API), set with [EntryError#entryId](#entryid) and
+[EntryError#entryName](#entryname) when the data of an entry cannot be read while exporting. The error
+is the one the reader of the entry raised, rethrown with its `cause` intact, e.g. the codec error
+behind [ERR\_INVALID\_COMPRESSED\_DATA](../variables/ERR_INVALID_COMPRESSED_DATA.md) for an entry imported from a corrupted zip file.
+
+***
+
 ### entryErrors?
 
 > `optional` **entryErrors?**: `EntryError`[]
@@ -52,7 +63,8 @@ The id of the related [ZipEntry](../classes/ZipEntry.md) (filesystem API).
 > `optional` **entryName?**: `string`
 
 The name of the related [ZipEntry](../classes/ZipEntry.md), or of the related `FileSystemHandle` when importing
-one (filesystem API). Set by [ZipDirectoryEntry#addFileSystemHandle](../classes/ZipDirectoryEntry.md#addfilesystemhandle) and
+one (filesystem API), relative to the exported entry or to the parent of the handle. Set by the
+export methods, [ZipDirectoryEntry#addFileSystemHandle](../classes/ZipDirectoryEntry.md#addfilesystemhandle) and
 [ZipDirectoryEntry#exportFileSystemHandle](../classes/ZipDirectoryEntry.md#exportfilesystemhandle), which rethrow the original error rather than
 wrapping it, so its `message` stays comparable to the exported `ERR_*` constants.
 

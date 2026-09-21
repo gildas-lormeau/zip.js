@@ -2441,12 +2441,20 @@ export interface EntryError extends Error {
    */
   reason?: string;
   /**
+   * The related {@link ZipEntry} (filesystem API), set with {@link EntryError#entryId} and
+   * {@link EntryError#entryName} when the data of an entry cannot be read while exporting. The error
+   * is the one the reader of the entry raised, rethrown with its `cause` intact, e.g. the codec error
+   * behind {@link ERR_INVALID_COMPRESSED_DATA} for an entry imported from a corrupted zip file.
+   */
+  entry?: ZipEntry;
+  /**
    * The id of the related {@link ZipEntry} (filesystem API).
    */
   entryId?: number;
   /**
    * The name of the related {@link ZipEntry}, or of the related `FileSystemHandle` when importing
-   * one (filesystem API). Set by {@link ZipDirectoryEntry#addFileSystemHandle} and
+   * one (filesystem API), relative to the exported entry or to the parent of the handle. Set by the
+   * export methods, {@link ZipDirectoryEntry#addFileSystemHandle} and
    * {@link ZipDirectoryEntry#exportFileSystemHandle}, which rethrow the original error rather than
    * wrapping it, so its `message` stays comparable to the exported `ERR_*` constants.
    */

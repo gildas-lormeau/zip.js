@@ -10882,10 +10882,9 @@ async function initReaders(entry, options) {
 			await initStream(reader);
 		} catch (error) {
 			try {
+				error.entry = child;
 				error.entryId = child.id;
-				error.cause = {
-					entry: child
-				};
+				error.entryName = child.getRelativeName(entry);
 			} catch {
 				// ignored
 			}
