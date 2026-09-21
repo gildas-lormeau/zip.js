@@ -5,7 +5,9 @@
 // The fixture holds two AES entries under different passwords, a ZipCrypto entry and a plain entry, so a
 // candidate accepted by one entry is tried first on the next one and rejected there. The ZipCrypto entry
 // also serves the false accept case: its one-byte check accepts one wrong password in 256, found by
-// brute force, and that password must be demoted by the read that follows.
+// brute force on the encryption header with the key schedule below rather than with the library, since an
+// aborted probe read leaks its WebAssembly buffers on the engines without the `cancel` transformer hook,
+// and that password must be demoted by the read that follows.
 
 import * as zip from "../zip-lib.js";
 
@@ -24,6 +26,8 @@ const SHARED_ENTRIES = [
 const PASSWORDS = ["wrong", "alpha", "beta", "gamma"];
 const EXPORT_PASSWORD = "export";
 const MAX_FALSE_ACCEPT_ATTEMPTS = 8192;
+const ZIPCRYPTO_HEADER_LENGTH = 12;
+const CRC32_TABLE = createCrc32Table();
 const TIMEOUT = 20000;
 
 export { test };
@@ -157,17 +161,23 @@ async function testSharedPasswordAskedOnce(sharedSource) {
 }
 
 async function testFalseAcceptedZipCryptoPassword(source) {
-	const fs = await importSource(source, {});
-	const entry = fs.find("zipcrypto-gamma.txt");
-	let falseAccept;
+	const { header, verificationByte } = await readZipCryptoHeader(source, "zipcrypto-gamma.txt");
+	let falseAccept, rejected;
 	for (let attempt = 0; attempt < MAX_FALSE_ACCEPT_ATTEMPTS && !falseAccept; attempt++) {
 		const candidate = "wrong" + attempt;
-		if (await entry.checkPassword(candidate)) {
+		if (getZipCryptoCheckByte(header, candidate) == verificationByte) {
 			falseAccept = candidate;
+		} else if (!rejected) {
+			rejected = candidate;
 		}
 	}
 	if (!falseAccept) {
 		throw new Error("no wrong password accepted by the ZipCrypto check in " + MAX_FALSE_ACCEPT_ATTEMPTS + " attempts");
+	}
+	const fs = await importSource(source, {});
+	const entry = fs.find("zipcrypto-gamma.txt");
+	if (!await entry.checkPassword(falseAccept) || await entry.checkPassword(rejected)) {
+		throw new Error("the ZipCrypto check of the test disagrees with the library");
 	}
 	const text = await entry.getText(undefined, { passwords: [falseAccept, "gamma"] });
 	if (text != TEXT_CONTENT + "zipcrypto-gamma.txt") {
@@ -231,6 +241,52 @@ async function testInvalidOptions(source) {
 		await importSource(source, options);
 		await plainEntry.getText(undefined, options);
 	}
+}
+
+async function readZipCryptoHeader(source, filename) {
+	const zipReader = new zip.ZipReader(new zip.BlobReader(source));
+	const entries = await zipReader.getEntries();
+	const entry = entries.find(entry => entry.filename == filename);
+	const data = await entry.getData(new zip.Uint8ArrayWriter(), { passThrough: true });
+	await zipReader.close();
+	const verificationByte = entry.bitFlag.dataDescriptor ? (entry.rawLastModDate >>> 8) & 0xff : (entry.crc32 >>> 24) & 0xff;
+	return { header: data.slice(0, ZIPCRYPTO_HEADER_LENGTH), verificationByte };
+}
+
+function getZipCryptoCheckByte(header, password) {
+	const keys = [0x12345678, 0x23456789, 0x34567890];
+	for (let index = 0; index < password.length; index++) {
+		updateZipCryptoKeys(keys, password.charCodeAt(index));
+	}
+	let byte;
+	for (let index = 0; index < header.length; index++) {
+		const temp = (keys[2] | 2) >>> 0;
+		byte = header[index] ^ ((Math.imul(temp, temp ^ 1) >>> 8) & 0xff);
+		updateZipCryptoKeys(keys, byte);
+	}
+	return byte;
+}
+
+function updateZipCryptoKeys(keys, byte) {
+	keys[0] = updateCrc32(keys[0], byte);
+	keys[1] = (Math.imul((keys[1] + (keys[0] & 0xff)) >>> 0, 134775813) + 1) >>> 0;
+	keys[2] = updateCrc32(keys[2], keys[1] >>> 24);
+}
+
+function updateCrc32(crc, byte) {
+	return (CRC32_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8)) >>> 0;
+}
+
+function createCrc32Table() {
+	const table = new Uint32Array(256);
+	for (let index = 0; index < 256; index++) {
+		let value = index;
+		for (let bit = 0; bit < 8; bit++) {
+			value = value & 1 ? 0xEDB88320 ^ (value >>> 1) : value >>> 1;
+		}
+		table[index] = value >>> 0;
+	}
+	return table;
 }
 
 async function createSource(entries) {
