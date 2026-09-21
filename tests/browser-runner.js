@@ -95,6 +95,7 @@ async function main({ browserName, headless, executablePath, urlSearch, buildMod
 				testResults = await runSuite({ browserName, headless, executablePath, urlSearch, port });
 			} catch (error) {
 				if (attempt >= MAX_SUITE_ATTEMPTS || !BROWSER_LOST_ERRORS.includes(error.name)) {
+					logBrowserLossContext(browserName);
 					throw error;
 				}
 				console.error(browserName + ": the browser was lost (" + error.name + "), starting it again");

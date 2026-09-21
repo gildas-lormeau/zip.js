@@ -1354,7 +1354,8 @@ class AESDecryptionStream extends TransformStream {
 						invalidAuthenticationCode |= authenticationCode[indexByte] ^ originalAuthenticationCode[indexByte];
 					}
 					if (invalidAuthenticationCode && checkAuthenticationCode) {
-						throw new Error(ERR_INVALID_AUTHENTICATION_CODE);
+						controller.error(new Error(ERR_INVALID_AUTHENTICATION_CODE));
+						return;
 					}
 					controller.enqueue(decryptedChunkArray);
 				}
