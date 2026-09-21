@@ -1310,12 +1310,12 @@ let createEngine$1 = createEngine$2;
 class AESDecryptionStream extends TransformStream {
 
 	constructor({ password, rawPassword, encryptionStrength, checkPasswordOnly, checkAuthenticationCode = true }) {
+		const aesCrypto = {};
 		super({
 			start() {
-				initAesCrypto(this, password, rawPassword, encryptionStrength);
+				initAesCrypto(aesCrypto, password, rawPassword, encryptionStrength);
 			},
 			async transform(chunk, controller) {
-				const aesCrypto = this;
 				const {
 					password,
 					strength,
@@ -1334,6 +1334,9 @@ class AESDecryptionStream extends TransformStream {
 				} else {
 					await ready;
 				}
+				if (aesCrypto.disposed) {
+					return;
+				}
 				const output = new Uint8Array(chunk.length - AUTHENTICATION_CODE_LENGTH - ((chunk.length - AUTHENTICATION_CODE_LENGTH) % BLOCK_LENGTH));
 				controller.enqueue(append(aesCrypto, chunk, output, 0, AUTHENTICATION_CODE_LENGTH, true));
 			},
@@ -1342,9 +1345,12 @@ class AESDecryptionStream extends TransformStream {
 					engine,
 					pendingInput,
 					ready
-				} = this;
+				} = aesCrypto;
 				if (engine) {
 					await ready;
+					if (aesCrypto.disposed) {
+						return;
+					}
 					const originalAuthenticationCode = subarray(pendingInput, pendingInput.length - AUTHENTICATION_CODE_LENGTH);
 					const decryptedChunkArray = new Uint8Array(subarray(pendingInput, 0, pendingInput.length - AUTHENTICATION_CODE_LENGTH));
 					engine.process(decryptedChunkArray, true);
@@ -1359,23 +1365,21 @@ class AESDecryptionStream extends TransformStream {
 					}
 					controller.enqueue(decryptedChunkArray);
 				}
-			},
-			cancel() {
-				disposeEngine(this);
 			}
 		});
+		setDisposingReadable(this, aesCrypto);
 	}
 }
 
 class AESEncryptionStream extends TransformStream {
 
 	constructor({ password, rawPassword, encryptionStrength }) {
+		const aesCrypto = {};
 		super({
 			start() {
-				initAesCrypto(this, password, rawPassword, encryptionStrength);
+				initAesCrypto(aesCrypto, password, rawPassword, encryptionStrength);
 			},
 			async transform(chunk, controller) {
-				const aesCrypto = this;
 				const {
 					password,
 					strength,
@@ -1389,6 +1393,9 @@ class AESEncryptionStream extends TransformStream {
 				} else {
 					await ready;
 				}
+				if (aesCrypto.disposed) {
+					return;
+				}
 				const output = new Uint8Array(preamble.length + chunk.length - (chunk.length % BLOCK_LENGTH));
 				output.set(preamble, 0);
 				controller.enqueue(append(aesCrypto, chunk, output, preamble.length, 0, false));
@@ -1398,19 +1405,20 @@ class AESEncryptionStream extends TransformStream {
 					engine,
 					pendingInput,
 					ready
-				} = this;
+				} = aesCrypto;
 				if (engine) {
 					await ready;
+					if (aesCrypto.disposed) {
+						return;
+					}
 					const encryptedChunkArray = new Uint8Array(pendingInput);
 					engine.process(encryptedChunkArray, false);
 					const authenticationCode = subarray(engine.digest(), 0, AUTHENTICATION_CODE_LENGTH);
 					controller.enqueue(concat(encryptedChunkArray, authenticationCode));
 				}
-			},
-			cancel() {
-				disposeEngine(this);
 			}
 		});
+		setDisposingReadable(this, aesCrypto);
 	}
 }
 
@@ -1423,7 +1431,37 @@ function initAesCrypto(aesCrypto, password, rawPassword, encryptionStrength) {
 		ready: new Promise(resolve => aesCrypto.resolveReady = resolve),
 		password: encodePassword(password, rawPassword),
 		strength: encryptionStrength - 1,
-		pendingInput: EMPTY_UINT8_ARRAY
+		pendingInput: EMPTY_UINT8_ARRAY,
+		disposed: false
+	});
+}
+
+function setDisposingReadable(stream, aesCrypto) {
+	const reader = stream.readable.getReader();
+	const readable = new ReadableStream({
+		async pull(controller) {
+			let result;
+			try {
+				result = await reader.read();
+			} catch (error) {
+				disposeEngine(aesCrypto);
+				throw error;
+			}
+			if (result.done) {
+				controller.close();
+			} else {
+				controller.enqueue(result.value);
+			}
+		},
+		cancel(reason) {
+			disposeEngine(aesCrypto);
+			return reader.cancel(reason);
+		}
+	});
+	Object.defineProperty(stream, "readable", {
+		get() {
+			return readable;
+		}
 	});
 }
 
@@ -1456,7 +1494,9 @@ async function createDecryptionKeys(decrypt, strength, password, preamble) {
 	}
 }
 
-function disposeEngine({ engine }) {
+function disposeEngine(aesCrypto) {
+	const { engine } = aesCrypto;
+	aesCrypto.disposed = true;
 	if (engine && engine.dispose) {
 		engine.dispose();
 	}
@@ -1473,6 +1513,9 @@ async function createKeys$1(aesCrypto, strength, password, salt) {
 	const keyLength = KEY_LENGTH[strength];
 	const compositeKey = await deriveKey(password, salt, keyLength * 2 + PASSWORD_VERIFICATION_LENGTH);
 	aesCrypto.engine = createEngine$1(subarray(compositeKey, 0, keyLength), subarray(compositeKey, keyLength, keyLength * 2));
+	if (aesCrypto.disposed) {
+		disposeEngine(aesCrypto);
+	}
 	return subarray(compositeKey, keyLength * 2);
 }
 
