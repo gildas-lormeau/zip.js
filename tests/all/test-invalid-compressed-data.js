@@ -5,8 +5,11 @@
 // be right on Node.js only. A codec failure is told from an error fed into the codec by identity, not by
 // text, so the failure of the reader of the zip file reaches the caller unchanged, with its own cause.
 // Every inflate route is covered: the native and wasm codecs, with and without workers, with and without
-// the gzip trailer check that checkCrc32 enables. The cause of the reader failure is assigned by hand:
-// engines older than Chrome 93 and Firefox 91 ignore the `cause` option of the Error constructor.
+// the gzip trailer check that checkCrc32 enables. Bytes trailing a complete deflate stream, i.e. a
+// compressedSize larger than the stream, are rejected on every route too: the bundled codecs used to
+// drop them and return the content, the native ones never did. The gzip trailer route reports them by
+// its trailer check rather than as invalid compressed data. The cause of the reader failure is assigned
+// by hand: engines older than Chrome 93 and Firefox 91 ignore the `cause` option of the Error constructor.
 
 import * as zip from "../zip-lib.js";
 
@@ -15,9 +18,11 @@ const ENTRY_SIZE = 200000;
 const LOCAL_HEADER_SIZE = 30;
 const CORRUPTION_OFFSET = 1024;
 const CORRUPTION_LENGTH = 64;
+const TRAILING_LENGTH = 512;
 const SOURCE_FAILURE_OFFSET = 4096;
 const SOURCE_ERROR_MESSAGE = "simulated stream error";
 const ROOT_CAUSE_MESSAGE = "disk failure";
+const DEFLATE_METHOD = 8;
 
 export { test };
 
@@ -25,18 +30,36 @@ async function test() {
 	try {
 		const data = await createZip();
 		const corrupted = corrupt(data);
+		const trailing = await appendTrailingBytes(data);
 		for (const useWebWorkers of [false, true]) {
 			for (const useCompressionStream of [true, false]) {
 				for (const checkCrc32 of [false, true]) {
 					const label = "useWebWorkers=" + useWebWorkers + ", useCompressionStream=" + useCompressionStream + ", checkCrc32=" + checkCrc32;
 					const readerOptions = { useWebWorkers, useCompressionStream };
 					await corruptedEntryIsMapped(corrupted, readerOptions, { checkCrc32 }, label);
+					await trailingBytesAreRejected(trailing, readerOptions, { checkCrc32 }, label);
 					await sourceFailureIsKept(data, readerOptions, { checkCrc32 }, label);
 				}
 			}
 		}
 	} finally {
 		await zip.terminateWorkers();
+	}
+}
+
+async function trailingBytesAreRejected(data, readerOptions, options, label) {
+	const error = await readEntry(data, readerOptions, options, zip.Uint8ArrayReader);
+	if (!error) {
+		throw new Error(label + ": the entry with trailing bytes was read without an error");
+	}
+	const acceptedMessages = options.checkCrc32 ?
+		[zip.ERR_INVALID_COMPRESSED_DATA, zip.ERR_INVALID_CRC32, zip.ERR_INVALID_UNCOMPRESSED_SIZE] :
+		[zip.ERR_INVALID_COMPRESSED_DATA];
+	if (!acceptedMessages.includes(error.message)) {
+		throw new Error(label + ": expected " + acceptedMessages.join(" or ") + " for the entry with trailing bytes, got " + describe(error));
+	}
+	if (!error.cause || typeof error.cause != "object") {
+		throw new Error(label + ": the error of the entry with trailing bytes does not carry the error of the codec as its cause, got " + describe(error.cause));
 	}
 }
 
@@ -96,6 +119,20 @@ async function readEntry(data, readerOptions, options, Reader) {
 async function createZip() {
 	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { useWebWorkers: false });
 	await zipWriter.add(ENTRY_NAME, new zip.Uint8ArrayReader(pattern(ENTRY_SIZE)), { level: 9 });
+	return zipWriter.close();
+}
+
+async function appendTrailingBytes(data) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { useWebWorkers: false });
+	const [entry] = await zipReader.getEntries();
+	const compressed = await entry.getData(new zip.Uint8ArrayWriter(), { passThrough: true });
+	const { crc32 } = entry;
+	await zipReader.close();
+	const trailing = new Uint8Array(compressed.length + TRAILING_LENGTH);
+	trailing.set(compressed);
+	trailing.fill(0x5a, compressed.length);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { useWebWorkers: false });
+	await zipWriter.add(ENTRY_NAME, new zip.Uint8ArrayReader(trailing), { passThrough: true, compressionMethod: DEFLATE_METHOD, uncompressedSize: ENTRY_SIZE, crc32 });
 	return zipWriter.close();
 }
 

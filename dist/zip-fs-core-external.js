@@ -3268,7 +3268,7 @@ function getResponseError(errorData, errorValue) {
 			if (codecImportFailed) {
 				responseError.codecImportFailed = true;
 			}
-			if (cause && responseError.cause === UNDEFINED_VALUE) {
+			if (cause && !isErrorObject(responseError.cause)) {
 				responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
 			}
 			if (errorValue) {
@@ -9546,7 +9546,7 @@ function _make(isCompress, type, options = {}) {
 	const level = (typeof options.level === "number") ? options.level : -1;
 	const outBufferSize = (typeof options.outBuffer === "number") ? options.outBuffer : 64 * 1024;
 	const inBufferSize = (typeof options.inBufferSize === "number") ? options.inBufferSize : 64 * 1024;
-	const state = { out: 0, in: 0, inBufferSize: 0, streamHandle: 0 };
+	const state = { out: 0, in: 0, inBufferSize: 0, streamHandle: 0, streamEnded: false };
 	let readableController, writableController, resolveWrite, cancelReason;
 	let backpressure = true;
 	let cancelled = false;
@@ -9670,6 +9670,9 @@ function _make(isCompress, type, options = {}) {
 		const out = state.out;
 		let offset = 0;
 		while (offset < chunk.length) {
+			if (state.streamEnded) {
+				throw new Error("trailing data after the end of the stream");
+			}
 			const toRead = Math.min(chunk.length - offset, 32 * 1024);
 			if (!state.in || state.inBufferSize < toRead) {
 				if (state.in && free) {
@@ -9695,7 +9698,9 @@ function _make(isCompress, type, options = {}) {
 				enqueue(heap.slice(out, out + prod));
 			}
 			const consumed = last_consumed(state.streamHandle);
-			if (consumed === 0 && prod === 0) {
+			if (code === 1) {
+				state.streamEnded = true;
+			} else if (consumed === 0 && prod === 0) {
 				break;
 			}
 			offset += consumed;

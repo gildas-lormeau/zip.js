@@ -48,7 +48,10 @@ const LITERAL_MESSAGES = {
 		"init failed:": "a zlib return code rendered as text, so the message carries a number and is not " +
 			"comparable against a constant anyway",
 		"process error:": "same",
-		"end error:": "same"
+		"end error:": "same",
+		"trailing data after the end of the stream": "the WASM codec rejecting bytes after the end of the stream, " +
+			"which reaches the caller as ERR_INVALID_COMPRESSED_DATA with this error as its cause, like every " +
+			"other failure of a decompression codec"
 	}
 };
 

@@ -3233,7 +3233,7 @@
 				if (codecImportFailed) {
 					responseError.codecImportFailed = true;
 				}
-				if (cause && responseError.cause === UNDEFINED_VALUE) {
+				if (cause && !isErrorObject(responseError.cause)) {
 					responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
 				}
 				if (errorValue) {

@@ -18,11 +18,8 @@ or the error of the bundled WASM or pure-JS codec. An error raised while reading
 by the reader of the zip file or by the decryption of the entry, is not a codec failure and
 reaches the caller unchanged.
 
-The codecs do not all reject the same data. Bytes trailing a complete DEFLATE stream (e.g. a
-wrong `compressedSize`) are rejected by the native `DecompressionStream` (on Node.js, with
-`ERR_TRAILING_JUNK_AFTER_STREAM_END` as the `code` of the cause) but tolerated by the bundled
-WASM and pure-JS codecs, which decompress the valid data and ignore the extra bytes, unless
-[ZipReaderOptions#checkCrc32](../interfaces/ZipReaderOptions.md#checkcrc32) makes them verify the checksum through a gzip trailer that
-the extra bytes displace. Any data that is returned is always validated against the entry's
-uncompressed size (and CRC when `checkCrc32` is set), so it is never silently truncated; the
-backends differ only in whether trailing bytes are ignored or raised as an error.
+Bytes trailing a complete DEFLATE stream (e.g. a wrong `compressedSize`) are rejected by every
+codec, the native `DecompressionStream` (on Node.js, with `ERR_TRAILING_JUNK_AFTER_STREAM_END`
+as the `code` of the cause) and the bundled WASM and pure-JS codecs alike. Any data that is
+returned is always validated against the entry's uncompressed size (and CRC when
+[ZipReaderOptions#checkCrc32](../interfaces/ZipReaderOptions.md#checkcrc32) is set), so it is never silently truncated.

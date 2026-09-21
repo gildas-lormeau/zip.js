@@ -110,6 +110,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"sourceBlob",
 	"startupError",
 	"startupTimeout",
+	"streamEnded",
 	"streamHandle",
 	"streamOptions",
 	"terminateResolvers",
