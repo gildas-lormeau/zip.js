@@ -9416,6 +9416,8 @@ const FORMAT_DEFLATE64_RAW = "deflate64-raw";
 const FORMAT_GZIP = "gzip";
 const Z_MEM_ERROR = -4;
 const Z_MEM_ERROR_CODE = "Z_MEM_ERROR";
+const COMPRESSION_FORMATS = [FORMAT_DEFLATE, FORMAT_DEFLATE_RAW, FORMAT_GZIP];
+const DECOMPRESSION_FORMATS = [FORMAT_DEFLATE, FORMAT_DEFLATE_RAW, FORMAT_GZIP, FORMAT_DEFLATE64_RAW];
 
 let wasm$1, malloc, free, memory, initError;
 
@@ -9444,6 +9446,9 @@ function setZlibCode(error, result) {
 }
 
 function _make(isCompress, type, options = {}) {
+	if (!(isCompress ? COMPRESSION_FORMATS : DECOMPRESSION_FORMATS).includes(type)) {
+		throw new TypeError("Unsupported format: " + type);
+	}
 	if (!wasm$1) {
 		const error = new Error("WASM module not loaded");
 		error.cause = initError;
@@ -9681,10 +9686,10 @@ class DecompressionStreamZlib {
 CompressionStreamZlib.requiresModule = true;
 DecompressionStreamZlib.requiresModule = true;
 // Constructing these classes before the module is loaded throws, so capability probes cannot rely
-// on trying the constructor; the formats are declared instead, next to the branches implementing
-// them in _make().
-CompressionStreamZlib.supportedFormats = [FORMAT_DEFLATE, FORMAT_DEFLATE_RAW, FORMAT_GZIP];
-DecompressionStreamZlib.supportedFormats = [FORMAT_DEFLATE, FORMAT_DEFLATE_RAW, FORMAT_GZIP, FORMAT_DEFLATE64_RAW];
+// on trying the constructor; the formats are declared instead, the lists _make() checks a format
+// against before anything else.
+CompressionStreamZlib.supportedFormats = COMPRESSION_FORMATS;
+DecompressionStreamZlib.supportedFormats = DECOMPRESSION_FORMATS;
 
 /*
  Copyright (c) 2026 Gildas Lormeau. All rights reserved.
