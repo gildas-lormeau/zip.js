@@ -106,7 +106,9 @@ async function main({ browserName, headless, executablePath, urlSearch, buildMod
 	}
 	for (const failure of testResults.failures) {
 		console.error("FAIL " + failure.title + " (" + failure.script + ")");
-		console.error("  " + (failure.stack || failure.message || "unknown error"));
+		const stack = failure.stack || "";
+		const message = failure.message || "";
+		console.error("  " + (message && !stack.includes(message) ? message + "\n  " : "") + (stack || message || "unknown error"));
 	}
 	if (testResults.slowCleanups && testResults.slowCleanups.length) {
 		console.error(browserName + ": frame cleanup timed out for: " + testResults.slowCleanups.join(", "));
