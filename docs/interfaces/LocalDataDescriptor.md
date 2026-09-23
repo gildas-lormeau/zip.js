@@ -46,3 +46,18 @@ read as starting at the first byte.
 
 The uncompressed size stored in the record, which is allowed to differ from
 [EntryMetaData#uncompressedSize](EntryMetaData.md#uncompressedsize).
+
+***
+
+### zip64
+
+> **zip64**: `boolean`
+
+`true` if the sizes are stored as 8-byte values.
+
+Neither record tells the width reliably: a writer streaming an entry chooses it before the local file header is
+written, and the central directory record comes last, so e.g. an entry placed past 4 GB can carry a Zip64 extra
+field in its central directory record for its offset alone and a 4-byte record. The record is therefore read
+with the layout, among the two widths with and without the signature, whose values agree with the central
+directory; when none does, the width announced by the Zip64 extra field of the local file header or of the
+central directory record is used, without the signature.

@@ -6005,32 +6005,27 @@
 	}) {
 		let dataDescriptorLength = 0;
 		if (dataDescriptor) {
-			if (extraFieldZip64) {
-				dataDescriptorLength = DATA_DESCRIPTOR_RECORD_ZIP_64_LENGTH;
-			} else {
-				dataDescriptorLength = DATA_DESCRIPTOR_RECORD_LENGTH;
-			}
-		}
-		if (dataDescriptorLength) {
-			const dataDescriptorArray = await readUint8Array(reader, dataOffset + compressedSize, dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH);
+			const zip64 = Boolean(extraFieldZip64);
+			const dataDescriptorArray = await readUint8Array(reader, dataOffset + compressedSize, DATA_DESCRIPTOR_RECORD_ZIP_64_LENGTH + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH);
 			const dataDescriptorView = getDataView(dataDescriptorArray);
-			let signature = dataDescriptorArray.length == dataDescriptorLength + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH &&
-				getUint32$1(dataDescriptorView, 0) == DATA_DESCRIPTOR_RECORD_SIGNATURE;
-			if (signature) {
-				const signedDataDescriptor = readDataDescriptor(dataDescriptorView, DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH, extraFieldZip64);
-				const matchCrc32 = (fileEntry.encrypted && !fileEntry.zipCrypto) || signedDataDescriptor.crc32 == crc32;
-				if (matchCrc32 &&
-					signedDataDescriptor.compressedSize == compressedSize &&
-					signedDataDescriptor.uncompressedSize == uncompressedSize) {
-					dataDescriptorLength += DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH;
-				} else {
-					signature = false;
+			const ignoreCrc32 = fileEntry.encrypted && !fileEntry.zipCrypto;
+			let localDataDescriptor;
+			for (const [zip64Layout, signature] of [[zip64, true], [zip64, false], [!zip64, true], [!zip64, false]]) {
+				const candidate = readDataDescriptor(dataDescriptorView, zip64Layout, signature);
+				if (candidate && (ignoreCrc32 || candidate.crc32 == crc32) &&
+					candidate.compressedSize == compressedSize && candidate.uncompressedSize == uncompressedSize) {
+					localDataDescriptor = candidate;
+					break;
 				}
 			}
-			if (dataDescriptorArray.length >= dataDescriptorLength) {
-				const localDataDescriptor = readDataDescriptor(dataDescriptorView, signature ? DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH : 0, extraFieldZip64);
-				localDataDescriptor.signature = signature;
+			if (!localDataDescriptor) {
+				localDataDescriptor = readDataDescriptor(dataDescriptorView, zip64, false);
+			}
+			if (localDataDescriptor) {
 				fileEntry.localDirectory.dataDescriptor = localDataDescriptor;
+				dataDescriptorLength = getDataDescriptorLength(localDataDescriptor.zip64, localDataDescriptor.signature);
+			} else {
+				dataDescriptorLength = getDataDescriptorLength(zip64, false);
 			}
 		}
 		const range = {
@@ -6095,18 +6090,31 @@
 		return mergedRanges;
 	}
 
-	function readDataDescriptor(dataDescriptorView, offset, extraFieldZip64) {
+	function readDataDescriptor(dataDescriptorView, zip64, signature) {
+		const offset = signature ? DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH : 0;
+		if (dataDescriptorView.byteLength < getDataDescriptorLength(zip64, signature) ||
+			(signature && getUint32$1(dataDescriptorView, 0) != DATA_DESCRIPTOR_RECORD_SIGNATURE)) {
+			return UNDEFINED_VALUE;
+		}
 		const crc32 = getUint32$1(dataDescriptorView, offset);
 		let compressedSize;
 		let uncompressedSize;
-		if (extraFieldZip64) {
-			compressedSize = getBigUint64(dataDescriptorView, offset + 4);
-			uncompressedSize = getBigUint64(dataDescriptorView, offset + 12);
-		} else {
-			compressedSize = getUint32$1(dataDescriptorView, offset + 4);
-			uncompressedSize = getUint32$1(dataDescriptorView, offset + 8);
+		try {
+			if (zip64) {
+				compressedSize = getBigUint64(dataDescriptorView, offset + 4);
+				uncompressedSize = getBigUint64(dataDescriptorView, offset + 12);
+			} else {
+				compressedSize = getUint32$1(dataDescriptorView, offset + 4);
+				uncompressedSize = getUint32$1(dataDescriptorView, offset + 8);
+			}
+		} catch {
+			return UNDEFINED_VALUE;
 		}
-		return { crc32, compressedSize, uncompressedSize };
+		return { signature, zip64, crc32, compressedSize, uncompressedSize };
+	}
+
+	function getDataDescriptorLength(zip64, signature) {
+		return (zip64 ? DATA_DESCRIPTOR_RECORD_ZIP_64_LENGTH : DATA_DESCRIPTOR_RECORD_LENGTH) + (signature ? DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH : 0);
 	}
 
 	function getDiskOffset$1(reader, diskNumber) {
