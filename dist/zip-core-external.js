@@ -3280,8 +3280,13 @@ function getResponseError(errorData, errorValue) {
 			if (codecImportFailed) {
 				responseError.codecImportFailed = true;
 			}
-			if (cause && !isErrorObject(responseError.cause)) {
-				responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
+			if (cause) {
+				if (!isErrorObject(responseError.cause)) {
+					responseError.cause = Object.assign(new Error(cause.message), { name: cause.name });
+				}
+				if (cause.code !== UNDEFINED_VALUE && responseError.cause.code !== cause.code) {
+					responseError.cause.code = cause.code;
+				}
 			}
 			if (errorValue) {
 				if (responseError.name !== name) {
@@ -5756,6 +5761,12 @@ function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory
 			malformedExtraField = true;
 		}
 		directory.extraFieldZip64 = extraFieldZip64;
+	} else if (ZIP64_PROPERTIES.some(([propertyName, max]) => directory[propertyName] == max)) {
+		if (localDirectory) {
+			malformedExtraField = true;
+		} else {
+			throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
+		}
 	}
 	const extraFieldUnicodePath = extraField.get(EXTRAFIELD_TYPE_UNICODE_PATH);
 	if (extraFieldUnicodePath) {

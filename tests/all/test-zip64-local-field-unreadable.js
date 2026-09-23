@@ -1,8 +1,8 @@
 /* global ReadableStream, TextEncoder */
 
-// A zip64 extra field that cannot be read, because it is too short for the sentinels of its record
-// or because it holds a value above Number.MAX_SAFE_INTEGER, is fatal in the central directory,
-// where the sizes and the offset of an entry have no other source. In the local file header the
+// A zip64 extra field that cannot be read, because it is too short for the sentinels of its record,
+// because it is missing behind them or because it holds a value above Number.MAX_SAFE_INTEGER, is
+// fatal in the central directory, where the sizes and the offset of an entry have no other source. In the local file header the
 // same defect is a local disagreement like any other: the sizes come from the central directory and
 // the data offset from the header's own lengths, so the entry stays readable and the field is
 // reported as a malformed extra field. An entry without a data descriptor keeps its sentinel sizes,
@@ -19,9 +19,11 @@ const CENTRAL_FILE_HEADER_SIGNATURE = 0x02014b50;
 const LOCAL_HEADER_SIZE = 30;
 const CENTRAL_HEADER_SIZE = 46;
 const UNSAFE_VALUE = BigInt(Number.MAX_SAFE_INTEGER) + 1n;
+// once the field is gone from both records, nothing tells the width of the data descriptor any more
 const DAMAGES = [
-	["truncated", truncateExtraFieldZip64, zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND],
-	["unsafe value", writeUnsafeValueInExtraFieldZip64, zip.ERR_UNSUPPORTED_UINT64]
+	{ label: "truncated", damage: truncateExtraFieldZip64, directoryError: zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, descriptorWidthKnown: true },
+	{ label: "unsafe value", damage: writeUnsafeValueInExtraFieldZip64, directoryError: zip.ERR_UNSUPPORTED_UINT64, descriptorWidthKnown: true },
+	{ label: "missing", damage: removeExtraFieldZip64, directoryError: zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, descriptorWidthKnown: false }
 ];
 
 export { test };
@@ -29,8 +31,8 @@ export { test };
 async function test() {
 	zip.configure({ useWebWorkers: false });
 	try {
-		for (const [label, damage, directoryError] of DAMAGES) {
-			await streamedEntryStaysReadable(label, damage);
+		for (const { label, damage, directoryError, descriptorWidthKnown } of DAMAGES) {
+			await streamedEntryStaysReadable(label, damage, descriptorWidthKnown);
 			await entryWithoutDataDescriptorIsAmbiguous(label, damage);
 			await centralDirectoryStaysFatal(label, damage, directoryError);
 		}
@@ -39,7 +41,7 @@ async function test() {
 	}
 }
 
-async function streamedEntryStaysReadable(label, damage) {
+async function streamedEntryStaysReadable(label, damage, descriptorWidthKnown) {
 	const bytes = await writeEntry({ readable: streamOf(CONTENT) }, {});
 	await readEntry(bytes, {}, [], label);
 	damageLocalExtraFieldZip64(bytes, damage);
@@ -49,7 +51,7 @@ async function streamedEntryStaysReadable(label, damage) {
 			throw new Error(label + ": the content must be read from the central directory metadata");
 		}
 		const { dataDescriptor } = entry.localDirectory;
-		if (!dataDescriptor || dataDescriptor.uncompressedSize != CONTENT.length) {
+		if (descriptorWidthKnown && (!dataDescriptor || dataDescriptor.uncompressedSize != CONTENT.length)) {
 			throw new Error(label + ": the data descriptor must still be read with 8-byte sizes, got " + JSON.stringify(dataDescriptor));
 		}
 	}
@@ -150,6 +152,12 @@ function truncateExtraFieldZip64(view, offset, length) {
 function writeUnsafeValueInExtraFieldZip64(view, offset, length) {
 	const fieldOffset = findExtraFieldZip64(view, offset, length);
 	view.setBigUint64(fieldOffset + 4, UNSAFE_VALUE, true);
+}
+
+// renames the field, so the record keeps its length and the sentinels have no field behind them
+function removeExtraFieldZip64(view, offset, length) {
+	const fieldOffset = findExtraFieldZip64(view, offset, length);
+	view.setUint16(fieldOffset, EXTRAFIELD_TYPE_FILLER, true);
 }
 
 function findExtraFieldZip64(view, offset, length) {

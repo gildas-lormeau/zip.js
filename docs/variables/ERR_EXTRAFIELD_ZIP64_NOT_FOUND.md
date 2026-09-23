@@ -12,9 +12,9 @@ Extra field Zip64 not found error
 
 ## Remarks
 
-Raised by [ZipReader#getEntries](../classes/ZipReader.md#getentries) when the Zip64 extra field of a central directory record is too short
-to hold the values that the `0xFFFFFFFF` and `0xFFFF` sentinels of the record defer to it, since the sizes and
-the offset of the entry have no other source. The same defect in a local file header is not fatal, because
+Raised by [ZipReader#getEntries](../classes/ZipReader.md#getentries) when the Zip64 extra field of a central directory record is missing or
+too short to hold the values that the `0xFFFFFFFF` and `0xFFFF` sentinels of the record defer to it, since the
+sizes and the offset of the entry have no other source. The same defect in a local file header is not fatal, because
 the sizes of an entry are read from the central directory: [FileEntry#getData](../interfaces/FileEntry.md#getdata) reports it as
 [WARNING\_MALFORMED\_EXTRA\_FIELD](WARNING_MALFORMED_EXTRA_FIELD.md) on [EntryMetaData#warnings](../interfaces/EntryMetaData.md#warnings), and an entry without a data descriptor
 keeps the sentinels as its local sizes, which the local file header check reports as
