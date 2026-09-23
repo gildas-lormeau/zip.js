@@ -82,7 +82,7 @@ export default ([
 	{ title: "External core entries", script: "./test-external-core-entries.js" },
 	{ title: "Custom codec registration", script: "./test-register-codec.js" },
 	{ title: "Custom worker factory", script: "./test-create-worker.js" },
-	{ title: "Worker error cause code", script: "./test-worker-cause-code.js", env: ["browser", "deno", "bun"] },
+	{ title: "Worker error cause code", script: "./test-worker-cause-code.js", env: ["browser", "deno", "bun"], features: ["moduleWorker"] },
 	{ title: "Web worker with a streams polyfill", script: "./test-worker-streams-polyfill.js", env: ["browser"], features: ["wasmBuild"] },
 	{ title: "Web worker with a streams polyfill (native build)", script: "./test-worker-streams-polyfill-native.js", env: ["browser"], features: ["nativeBuild"] },
 	{ title: "Module web worker with a streams polyfill", script: "./test-worker-streams-polyfill-module.js", env: ["deno", "bun"] },
