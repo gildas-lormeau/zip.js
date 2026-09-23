@@ -7,10 +7,12 @@
 // record for its offset alone, no local zip64 field and a 4-byte descriptor, while its large streamed
 // entries get an 8-byte descriptor with no local field either. The reader used to take 8 bytes whenever
 // either record carried the field, then read the sizes of the small entry across the next record, which the
-// 64-bit guard rejected under checkOverlappingEntry. It now keeps the layout whose values agree with the
-// central directory, among the two widths with and without the signature, and falls back to the announced
-// width when none does. The archives below are built by hand; the ones past 4 GiB sit behind a reader that
-// fakes the prefix, so the offsets are real and nothing that large is allocated.
+// 64-bit guard rejected under checkOverlappingEntry. It now keeps the layout whose sizes agree with the
+// central directory, among the two widths with and without the signature, the CRC-32 breaking ties, so a
+// descriptor whose CRC-32 alone is corrupt still reports its own fields; when no layout agrees it falls back
+// to the announced width, signed when the record starts with the signature. The archives below are built by
+// hand; the ones past 4 GiB sit behind a reader that fakes the prefix, so the offsets are real and nothing
+// that large is allocated.
 
 import * as zip from "../zip-lib.js";
 
@@ -83,20 +85,29 @@ async function checkArchive(testCase, order) {
 }
 
 async function checkCorruptDescriptor() {
-	const bytes = buildArchive({ prefix: 0, descriptor: { zip64: false, signature: true }, corruptDescriptor: true });
+	const [corruptCrc32, crc32] = await readCorruptDescriptor({ corruptCrc32: true });
+	if (!corruptCrc32 || !corruptCrc32.signature || corruptCrc32.zip64 || corruptCrc32.crc32 != ((crc32 ^ 0xFFFFFFFF) >>> 0) ||
+		corruptCrc32.compressedSize != FIRST_CONTENT.length || corruptCrc32.uncompressedSize != FIRST_CONTENT.length) {
+		throw new Error("a descriptor whose CRC-32 alone disagrees must be read with the layout its sizes select, got " + JSON.stringify(corruptCrc32));
+	}
+	const [corruptSizes] = await readCorruptDescriptor({ corruptSizes: true });
+	if (!corruptSizes || !corruptSizes.signature || corruptSizes.zip64 || corruptSizes.compressedSize != FIRST_CONTENT.length + 1) {
+		throw new Error("a descriptor agreeing with no layout must be read at the announced width with its signature, got " + JSON.stringify(corruptSizes));
+	}
+}
+
+async function readCorruptDescriptor(corruption) {
+	const bytes = buildArchive({ prefix: 0, descriptor: { zip64: false, signature: true }, ...corruption });
 	const zipReader = new zip.ZipReader(new PrefixedReader(0, bytes), { checkOverlappingEntry: true });
 	const entries = await zipReader.getEntries();
 	for (const entry of entries) {
 		await entry.getData(new zip.TextWriter());
 	}
 	await zipReader.close();
-	const { dataDescriptor } = entries[0].localDirectory;
-	if (!dataDescriptor || dataDescriptor.signature || dataDescriptor.zip64) {
-		throw new Error("a descriptor agreeing with no layout must be read at the announced width without the signature, got " + JSON.stringify(dataDescriptor));
-	}
+	return [entries[0].localDirectory.dataDescriptor, entries[0].crc32];
 }
 
-function buildArchive({ prefix, descriptor, directorySizes64, corruptDescriptor }) {
+function buildArchive({ prefix, descriptor, directorySizes64, corruptCrc32, corruptSizes }) {
 	const encoder = new TextEncoder();
 	const parts = [];
 	let length = 0;
@@ -123,7 +134,7 @@ function buildArchive({ prefix, descriptor, directorySizes64, corruptDescriptor 
 			if (entry.descriptor.signature) {
 				push(uint32(DATA_DESCRIPTOR_SIGNATURE));
 			}
-			push(uint32(corruptDescriptor ? entry.crc32 ^ 0xFFFFFFFF : entry.crc32), size(entry.data.length), size(entry.data.length));
+			push(uint32(corruptCrc32 ? entry.crc32 ^ 0xFFFFFFFF : entry.crc32), size(corruptSizes ? entry.data.length + 1 : entry.data.length), size(entry.data.length));
 		}
 	}
 	const directoryOffset = prefix + length;

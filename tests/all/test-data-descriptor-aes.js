@@ -1,9 +1,12 @@
-// Under checkOverlappingEntry the layout of a data descriptor is chosen by comparing its CRC-32 and sizes with
-// the central directory. The CRC-32 comparison used to be skipped for every AES entry, although an AE-1 entry
-// stores one; it is now skipped only when the central directory stores none, i.e. for AE-2 entries. An AE-1
-// entry whose descriptor CRC-32 disagrees is therefore read at the announced width without the signature, like
-// any other descriptor agreeing with no layout, where its signed layout used to be accepted on the sizes alone.
-// The writer emits AE-2 only, so the AE-1 entries are patched from an AE-2 one, as test-aes-crc32.js does.
+// Under checkOverlappingEntry the layout of a data descriptor is chosen by comparing its sizes, and its CRC-32 when
+// several layouts qualify and the central directory stores one, with the central directory. An AE-2 entry stores 0
+// as its CRC-32 in both records and zip.js leaves it undefined, so its descriptor is chosen on the sizes alone; an
+// AE-1 entry stores the CRC-32 of its data, and its descriptor is chosen like the descriptor of any other entry. A
+// descriptor whose CRC-32 disagrees with the central directory is still read with the layout its sizes select and
+// reports the CRC-32 it stores; it used to be read at the announced width without its signature, i.e. at a layout
+// known not to match, its CRC-32 then being the signature bytes and its sizes the fields shifted by four bytes. The
+// writer emits AE-2 for every entry it encrypts, so the AE-1 entries are patched from an AE-2 one, as
+// test-aes-crc32.js does.
 
 import * as zip from "../zip-lib.js";
 
@@ -22,9 +25,9 @@ async function test() {
 	try {
 		const crc32 = await readPlainCrc32();
 		const ae2Data = await writeEntry();
-		await expectDescriptor(ae2Data, { signature: true, crc32: 0 }, "AE-2");
-		await expectDescriptor(patchAE1(ae2Data, crc32, crc32), { signature: true, crc32 }, "AE-1 with an agreeing descriptor");
-		await expectDescriptor(patchAE1(ae2Data, crc32, 0), { signature: false }, "AE-1 with a disagreeing descriptor");
+		await expectDescriptor(patchAE1(ae2Data, crc32, 0), 0, "AE-1 with a disagreeing descriptor");
+		await expectDescriptor(patchAE1(ae2Data, crc32, crc32), crc32, "AE-1 with an agreeing descriptor");
+		await expectDescriptor(ae2Data, 0, "AE-2");
 	} finally {
 		await zip.terminateWorkers();
 	}
@@ -43,7 +46,7 @@ async function writeEntry() {
 	return zipWriter.close();
 }
 
-async function expectDescriptor(data, expected, label) {
+async function expectDescriptor(data, expectedCrc32, label) {
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { checkOverlappingEntry: true });
 	const [entry] = await zipReader.getEntries();
 	const text = await entry.getData(new zip.TextWriter(), { password: PASSWORD });
@@ -52,11 +55,9 @@ async function expectDescriptor(data, expected, label) {
 		throw new Error(label + ": the entry must be read");
 	}
 	const { dataDescriptor } = entry.localDirectory;
-	const matched = expected.signature;
-	if (!dataDescriptor || dataDescriptor.zip64 || dataDescriptor.signature != expected.signature ||
-		(matched && (dataDescriptor.crc32 != expected.crc32 ||
-			dataDescriptor.compressedSize != entry.compressedSize || dataDescriptor.uncompressedSize != entry.uncompressedSize))) {
-		throw new Error(label + ": expected " + JSON.stringify(expected) + ", got " + JSON.stringify(dataDescriptor));
+	if (!dataDescriptor || !dataDescriptor.signature || dataDescriptor.zip64 || dataDescriptor.crc32 != expectedCrc32 ||
+		dataDescriptor.compressedSize != entry.compressedSize || dataDescriptor.uncompressedSize != entry.uncompressedSize) {
+		throw new Error(label + ": expected a signed 4-byte descriptor with crc32 " + expectedCrc32 + ", got " + JSON.stringify(dataDescriptor));
 	}
 }
 

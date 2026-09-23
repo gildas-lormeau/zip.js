@@ -6061,19 +6061,11 @@ async function detectOverlappingEntry({
 		const zip64 = Boolean(extraFieldZip64);
 		const dataDescriptorArray = await readUint8Array(reader, dataOffset + compressedSize, DATA_DESCRIPTOR_RECORD_ZIP_64_LENGTH + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH);
 		const dataDescriptorView = getDataView(dataDescriptorArray);
-		const ignoreCrc32 = crc32 === UNDEFINED_VALUE;
-		let localDataDescriptor;
-		for (const [zip64Layout, signature] of [[zip64, true], [zip64, false], [!zip64, true], [!zip64, false]]) {
-			const candidate = readDataDescriptor(dataDescriptorView, zip64Layout, signature);
-			if (candidate && (ignoreCrc32 || candidate.crc32 == crc32) &&
-				candidate.compressedSize == compressedSize && candidate.uncompressedSize == uncompressedSize) {
-				localDataDescriptor = candidate;
-				break;
-			}
-		}
-		if (!localDataDescriptor) {
-			localDataDescriptor = readDataDescriptor(dataDescriptorView, zip64, false);
-		}
+		const candidates = [[zip64, true], [zip64, false], [!zip64, true], [!zip64, false]]
+			.map(([zip64Layout, signature]) => readDataDescriptor(dataDescriptorView, zip64Layout, signature))
+			.filter(candidate => candidate && candidate.compressedSize == compressedSize && candidate.uncompressedSize == uncompressedSize);
+		const localDataDescriptor = candidates.find(candidate => candidate.crc32 == crc32) || candidates[0] ||
+			readDataDescriptor(dataDescriptorView, zip64, true) || readDataDescriptor(dataDescriptorView, zip64, false);
 		if (localDataDescriptor) {
 			fileEntry.localDirectory.dataDescriptor = localDataDescriptor;
 			dataDescriptorLength = getDataDescriptorLength(localDataDescriptor.zip64, localDataDescriptor.signature);
