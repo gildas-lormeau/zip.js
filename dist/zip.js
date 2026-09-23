@@ -5727,7 +5727,9 @@
 		});
 		const extraFieldZip64 = extraField.get(EXTRAFIELD_TYPE_ZIP64);
 		if (extraFieldZip64) {
-			readExtraFieldZip64(extraFieldZip64, directory);
+			if (!readExtraFieldZip64(extraFieldZip64, directory, localDirectory)) {
+				malformedExtraField = true;
+			}
 			directory.extraFieldZip64 = extraFieldZip64;
 		}
 		const extraFieldUnicodePath = extraField.get(EXTRAFIELD_TYPE_UNICODE_PATH);
@@ -5787,12 +5789,15 @@
 		return malformedExtraField;
 	}
 
-	function readExtraFieldZip64(extraFieldZip64, directory) {
+	function readExtraFieldZip64(extraFieldZip64, directory, localDirectory) {
 		directory.zip64 = true;
 		const extraFieldView = getDataView(extraFieldZip64.data);
 		const missingProperties = ZIP64_PROPERTIES.filter(([propertyName, max]) => directory[propertyName] == max);
 		const requiredLength = missingProperties.reduce((length, [, max]) => length + ZIP64_EXTRACTION[max].bytes, 0);
 		if (extraFieldZip64.data.length < requiredLength) {
+			if (localDirectory) {
+				return false;
+			}
 			throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
 		}
 		for (let indexMissingProperty = 0, offset = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
@@ -5801,6 +5806,7 @@
 			directory[propertyName] = extraFieldZip64[propertyName] = extraction.getValue(extraFieldView, offset);
 			offset += extraction.bytes;
 		}
+		return true;
 	}
 
 	function readExtraFieldUnicode(extraFieldUnicode, propertyName, rawPropertyName, directory, fileEntry) {

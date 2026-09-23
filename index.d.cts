@@ -4989,6 +4989,16 @@ export const ERR_CENTRAL_DIRECTORY_NOT_FOUND: string;
 export const ERR_LOCAL_FILE_HEADER_NOT_FOUND: string;
 /**
  * Extra field Zip64 not found error
+ *
+ * @remarks
+ * Raised by {@link ZipReader#getEntries} when the Zip64 extra field of a central directory record is too short
+ * to hold the values that the `0xFFFFFFFF` and `0xFFFF` sentinels of the record defer to it, since the sizes and
+ * the offset of the entry have no other source. The same defect in a local file header is not fatal, because
+ * the sizes of an entry are read from the central directory: {@link FileEntry#getData} reports it as
+ * {@link WARNING_MALFORMED_EXTRA_FIELD} on {@link EntryMetaData#warnings}, and an entry without a data descriptor
+ * keeps the sentinels as its local sizes, which the local file header check reports as
+ * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES}, an error or a warning depending on
+ * {@link ZipReaderOptions#strictness}.
  */
 export const ERR_EXTRAFIELD_ZIP64_NOT_FOUND: string;
 /**

@@ -292,6 +292,7 @@ export default ([
 	{ title: "Zip64 (local compressed size)", script: "./test-zip64-local-compressed-size.js" },
 	{ title: "Zip64 (passthrough)", script: "./test-zip64-passthrough.js" },
 	{ title: "Zip64 (streamed local extra field)", script: "./test-zip64-stream-local-field.js" },
+	{ title: "Zip64 (truncated local extra field)", script: "./test-zip64-local-field-truncated.js" },
 	{ title: "Zip64 (entry layout)", script: "./test-zip64-entry-layout.js" },
 	{ title: "Zip64", script: "./test-zip64.js" },
 	{ title: "Zipcrypto", script: "./test-zipcrypto.js" }
