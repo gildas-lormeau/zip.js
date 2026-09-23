@@ -8,5 +8,8 @@
 
 > `const` **WARNING\_MALFORMED\_EXTRA\_FIELD**: `string`
 
-Warning reason: the extra field data of a record cannot be fully parsed; the raw bytes stay available in
-`rawExtraField` (see [ZipReader#warnings](../classes/ZipReader.md#warnings) and [EntryMetaData#warnings](../interfaces/EntryMetaData.md#warnings))
+Warning reason: the extra field data of a record cannot be fully parsed, or one of its fields is ignored: an AES
+extra field shorter than 7 bytes, or on a record that is not encrypted and whose compression method is not 99, and
+a Zip64 extra field of a local file header that is too short for the sentinels of the header or holds a value
+above `Number.MAX_SAFE_INTEGER`.
+The raw bytes stay available in `rawExtraField` (see [ZipReader#warnings](../classes/ZipReader.md#warnings) and [EntryMetaData#warnings](../interfaces/EntryMetaData.md#warnings))

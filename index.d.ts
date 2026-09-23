@@ -5273,7 +5273,9 @@ export const ERR_INVALID_MAX_APPENDED_DATA_SIZE: string;
  * Unsupported 64-bit value error
  *
  * @remarks Thrown when a 64-bit size, offset, or entry count read from a zip file exceeds `Number.MAX_SAFE_INTEGER`,
- * instead of processing the value with a loss of precision.
+ * instead of processing the value with a loss of precision. A local file header whose Zip64 extra field holds such a
+ * value is not rejected, since the sizes of an entry are read from the central directory: the field is reported as
+ * {@link WARNING_MALFORMED_EXTRA_FIELD} instead, see {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND}.
  */
 export const ERR_UNSUPPORTED_UINT64: string;
 /**
@@ -5527,8 +5529,11 @@ export const WARNING_UNKNOWN_VERSION: string;
  */
 export const WARNING_COMPRESSED_PATCHED_DATA: string;
 /**
- * Warning reason: the extra field data of a record cannot be fully parsed; the raw bytes stay available in
- * `rawExtraField` (see {@link ZipReader#warnings} and {@link EntryMetaData#warnings})
+ * Warning reason: the extra field data of a record cannot be fully parsed, or one of its fields is ignored: an AES
+ * extra field shorter than 7 bytes, or on a record that is not encrypted and whose compression method is not 99, and
+ * a Zip64 extra field of a local file header that is too short for the sentinels of the header or holds a value
+ * above `Number.MAX_SAFE_INTEGER`.
+ * The raw bytes stay available in `rawExtraField` (see {@link ZipReader#warnings} and {@link EntryMetaData#warnings})
  */
 export const WARNING_MALFORMED_EXTRA_FIELD: string;
 /**

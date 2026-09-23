@@ -5757,10 +5757,13 @@ function readCommonFooter(fileEntry, directory, dataView, offset, localDirectory
 		directory.extraFieldUnicodeComment = extraFieldUnicodeComment;
 	}
 	const extraFieldAES = extraField.get(EXTRAFIELD_TYPE_AES);
-	if (extraFieldAES && extraFieldAES.data.length >= 7) {
+	if (extraFieldAES && (compressionMethod == COMPRESSION_METHOD_AES || directory.encrypted) && extraFieldAES.data.length >= 7) {
 		readExtraFieldAES(extraFieldAES, directory, compressionMethod);
 		directory.extraFieldAES = extraFieldAES;
 	} else {
+		if (extraFieldAES) {
+			malformedExtraField = true;
+		}
 		directory.compressionMethod = compressionMethod;
 	}
 	const extraFieldPkwareUnix = extraField.get(EXTRAFIELD_TYPE_PKWARE_UNIX);
@@ -5814,12 +5817,23 @@ function readExtraFieldZip64(extraFieldZip64, directory, localDirectory) {
 		}
 		throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
 	}
-	for (let indexMissingProperty = 0, offset = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
-		const [propertyName, max] = missingProperties[indexMissingProperty];
-		const extraction = ZIP64_EXTRACTION[max];
-		directory[propertyName] = extraFieldZip64[propertyName] = extraction.getValue(extraFieldView, offset);
-		offset += extraction.bytes;
+	const values = [];
+	try {
+		for (let indexMissingProperty = 0, offset = 0; indexMissingProperty < missingProperties.length; indexMissingProperty++) {
+			const [, max] = missingProperties[indexMissingProperty];
+			const extraction = ZIP64_EXTRACTION[max];
+			values.push(extraction.getValue(extraFieldView, offset));
+			offset += extraction.bytes;
+		}
+	} catch (error) {
+		if (localDirectory) {
+			return false;
+		}
+		throw error;
 	}
+	missingProperties.forEach(([propertyName], indexMissingProperty) => {
+		directory[propertyName] = extraFieldZip64[propertyName] = values[indexMissingProperty];
+	});
 	return true;
 }
 

@@ -45,6 +45,7 @@ export default ([
 	{ title: "Malformed: uncompressed size under-run", script: "./test-malformed-uncompressed-size-under.js" },
 	{ title: "Malformed: AES extra field on non-AES method", script: "./test-malformed-aes-method.js" },
 	{ title: "Malformed: unsupported AES strength", script: "./test-malformed-aes-strength.js" },
+	{ title: "Stray AES extra field", script: "./test-stray-aes-extra-field.js" },
 	{ title: "Invalid chunk size configuration", script: "./test-config-chunk-size.js" },
 	{ title: "Writer edge cases", script: "./test-writer-edge-cases.js" },
 	{ title: "Is zip file", script: "./test-is-zip-file.js" },
@@ -292,7 +293,7 @@ export default ([
 	{ title: "Zip64 (local compressed size)", script: "./test-zip64-local-compressed-size.js" },
 	{ title: "Zip64 (passthrough)", script: "./test-zip64-passthrough.js" },
 	{ title: "Zip64 (streamed local extra field)", script: "./test-zip64-stream-local-field.js" },
-	{ title: "Zip64 (truncated local extra field)", script: "./test-zip64-local-field-truncated.js" },
+	{ title: "Zip64 (unreadable local extra field)", script: "./test-zip64-local-field-unreadable.js" },
 	{ title: "Zip64 (entry layout)", script: "./test-zip64-entry-layout.js" },
 	{ title: "Zip64", script: "./test-zip64.js" },
 	{ title: "Zipcrypto", script: "./test-zipcrypto.js" }
