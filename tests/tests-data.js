@@ -47,6 +47,7 @@ export default ([
 	{ title: "Malformed: unsupported AES strength", script: "./test-malformed-aes-strength.js" },
 	{ title: "Stray AES extra field", script: "./test-stray-aes-extra-field.js" },
 	{ title: "Encrypted flag cleared in the local header", script: "./test-encrypted-flag-local-mismatch.js" },
+	{ title: "Strong encryption flag mismatch", script: "./test-strong-encryption-flag-mismatch.js" },
 	{ title: "Invalid chunk size configuration", script: "./test-config-chunk-size.js" },
 	{ title: "Writer edge cases", script: "./test-writer-edge-cases.js" },
 	{ title: "Is zip file", script: "./test-is-zip-file.js" },

@@ -4848,7 +4848,7 @@
 	const CHARSET_UTF8 = "utf-8";
 	const PROPERTY_NAME_UTF8_SUFFIX = "UTF8";
 	const CHARSET_CP437 = "cp437";
-	const BITFLAG_AMBIGUITY_MASK = BITFLAG_ENCRYPTED | BITFLAG_DATA_DESCRIPTOR | BITFLAG_LANG_ENCODING_FLAG;
+	const BITFLAG_AMBIGUITY_MASK = BITFLAG_ENCRYPTED | BITFLAG_DATA_DESCRIPTOR | BITFLAG_STRONG_ENCRYPTION | BITFLAG_LANG_ENCODING_FLAG;
 	const VENDOR_VERSION_AE_1$1 = 1;
 	const ZIP64_PROPERTIES = [
 		[PROPERTY_NAME_UNCOMPRESSED_SIZE, MAX_32_BITS],
@@ -5507,7 +5507,7 @@
 			if (!passThroughEncryption) {
 				fileEntry.zipCrypto = zipCrypto;
 			}
-			if (encrypted && (localDirectory.rawBitFlag & BITFLAG_STRONG_ENCRYPTION) == BITFLAG_STRONG_ENCRYPTION) {
+			if (encrypted && (zipEntry.rawBitFlag & BITFLAG_STRONG_ENCRYPTION) == BITFLAG_STRONG_ENCRYPTION) {
 				throw new Error(ERR_UNSUPPORTED_ENCRYPTION);
 			}
 			const registeredCodec = passThroughCompression ? UNDEFINED_VALUE : getRegisteredCodec(compressionMethod);
