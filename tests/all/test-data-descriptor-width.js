@@ -1,7 +1,8 @@
 /* global TextEncoder */
 
-// The width of the sizes of a data descriptor is not told reliably by either record: a writer streaming an
-// entry chooses it before the local file header is written, and the central directory record comes last.
+// The width of the sizes of a data descriptor is not told reliably by either record: the local file header
+// is written before a streaming writer knows the sizes, and the zip64 extra field of the central directory
+// record, written last, describes that record, not the descriptor.
 // Go's archive/zip gives a small entry placed past 4 GiB a zip64 extra field in the central directory
 // record for its offset alone, no local zip64 field and a 4-byte descriptor, while its large streamed
 // entries get an 8-byte descriptor with no local field either. The reader used to take 8 bytes whenever
