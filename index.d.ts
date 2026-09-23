@@ -5601,7 +5601,8 @@ export const WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME: string;
 /**
  * Warning reason: the general purpose bit flag of the local file header contradicts the central directory
  * (see {@link EntryMetaData#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} when
- * {@link ZipReaderOptions#checkLocalDirectory} is enabled
+ * {@link ZipReaderOptions#checkLocalDirectory} is enabled. The entry is read as the central directory declares,
+ * its encrypted flag included.
  */
 export const WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG: string;
 /**

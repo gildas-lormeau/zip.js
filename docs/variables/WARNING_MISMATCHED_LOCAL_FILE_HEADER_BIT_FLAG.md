@@ -10,4 +10,5 @@
 
 Warning reason: the general purpose bit flag of the local file header contradicts the central directory
 (see [EntryMetaData#warnings](../interfaces/EntryMetaData.md#warnings)); the reason of [ERR\_AMBIGUOUS\_ARCHIVE](ERR_AMBIGUOUS_ARCHIVE.md) when
-[ZipReaderOptions#checkLocalDirectory](../interfaces/ZipReaderOptions.md#checklocaldirectory) is enabled
+[ZipReaderOptions#checkLocalDirectory](../interfaces/ZipReaderOptions.md#checklocaldirectory) is enabled. The entry is read as the central directory declares,
+its encrypted flag included.

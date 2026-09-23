@@ -5527,7 +5527,7 @@ let ZipEntry$1 = class ZipEntry {
 			fileEntry.gid = gid;
 		}
 		const checkPasswordOnly = getOptionValue$1(zipEntry, options, OPTION_CHECK_PASSWORD_ONLY);
-		const encrypted = zipEntry.encrypted && localDirectory.encrypted && (!passThroughEncryption || checkPasswordOnly);
+		const encrypted = zipEntry.encrypted && (!passThroughEncryption || checkPasswordOnly);
 		const zipCrypto = encrypted && !extraFieldAES;
 		if (!passThroughEncryption) {
 			fileEntry.zipCrypto = zipCrypto;
