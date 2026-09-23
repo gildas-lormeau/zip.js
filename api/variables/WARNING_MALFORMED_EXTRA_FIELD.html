@@ -11,11 +11,14 @@
 <li><a href="" aria-current="page">WARNING_MALFORMED_EXTRA_FIELD</a></li></ul>
 <h1>Variable WARNING_MALFORMED_EXTRA_FIELD<code class="tsd-tag">Const</code></h1></div>
 <div class="tsd-signature"><span class="tsd-kind-variable">WARNING_MALFORMED_EXTRA_FIELD</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-<div class="tsd-comment tsd-typography"><p>Warning reason: the extra field data of a record cannot be fully parsed; the raw bytes stay available in
-<code>rawExtraField</code> (see <a href="../classes/ZipReader.html#warnings" class="tsd-kind-property">ZipReader#warnings</a> and <a href="../interfaces/EntryMetaData.html#warnings" class="tsd-kind-property">EntryMetaData#warnings</a>)</p>
+<div class="tsd-comment tsd-typography"><p>Warning reason: the extra field data of a record cannot be fully parsed, or one of its fields is ignored: an AES
+extra field shorter than 7 bytes, or on a record that is not encrypted and whose compression method is not 99, and
+the Zip64 extra field of a local file header that is missing behind the sentinels of the header, too short for
+them, or holds a value above <code>Number.MAX_SAFE_INTEGER</code>.
+The raw bytes stay available in <code>rawExtraField</code> (see <a href="../classes/ZipReader.html#warnings" class="tsd-kind-property">ZipReader#warnings</a> and <a href="../interfaces/EntryMetaData.html#warnings" class="tsd-kind-property">EntryMetaData#warnings</a>)</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/1eb4b7ed769079e6a3186192e1232b3c1ba4a9b5/index.d.ts#L5514">index.d.ts:5514</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/3b17c72fc46bbaaed00b250f0095f4902b965d94/index.d.ts#L5538">index.d.ts:5538</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

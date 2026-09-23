@@ -15,12 +15,13 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>An entry encrypted with AES that stores no CRC-32 (AE-2) and inflated through a gzip container, on a host
-whose inflater lacks <code>&quot;deflate-raw&quot;</code>, raises this error when it inflates to fewer bytes as well, since the
-end of its data is told by the stored size alone.</p>
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>An entry encrypted with AES that stores no CRC-32 (AE-2) raises this error when it inflates to fewer bytes
+as well, since the end of its data is told by the stored size alone, when it is inflated through a gzip
+container: on a host whose native inflater lacks <code>&quot;deflate-raw&quot;</code>, when the bundled codec cannot take over
+either, e.g. because its WASM module failed to load.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/1eb4b7ed769079e6a3186192e1232b3c1ba4a9b5/index.d.ts#L5042">index.d.ts:5042</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/3b17c72fc46bbaaed00b250f0095f4902b965d94/index.d.ts#L5056">index.d.ts:5056</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

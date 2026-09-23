@@ -19,10 +19,13 @@ checksum of an entry does not match the value stored in the zip file.</p>
 <h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>When the inflater verifies the checksum itself, through a gzip trailer that zip.js builds from the stored
 CRC-32 and uncompressed size, it rejects the trailer as a whole and its error is kept as the <code>cause</code>. A
 stored uncompressed size larger than the data therefore raises this error too on that route, whereas a
-stored size smaller than the data raises <a href="ERR_INVALID_UNCOMPRESSED_SIZE.html" class="tsd-kind-variable">ERR_INVALID_UNCOMPRESSED_SIZE</a> on every route.</p>
+stored size smaller than the data raises <a href="ERR_INVALID_UNCOMPRESSED_SIZE.html" class="tsd-kind-variable">ERR_INVALID_UNCOMPRESSED_SIZE</a> on every route. Bytes
+trailing the DEFLATE stream, e.g. a wrong <code>compressedSize</code>, displace that trailer, and an inflater that
+reports them only once the real trailer has been written, as the one of Node.js does, raises this error
+in place of <a href="ERR_INVALID_COMPRESSED_DATA.html" class="tsd-kind-variable">ERR_INVALID_COMPRESSED_DATA</a>.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/1eb4b7ed769079e6a3186192e1232b3c1ba4a9b5/index.d.ts#L5028">index.d.ts:5028</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/3b17c72fc46bbaaed00b250f0095f4902b965d94/index.d.ts#L5041">index.d.ts:5041</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

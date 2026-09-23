@@ -12,9 +12,20 @@
 <h1>Variable ERR_EXTRAFIELD_ZIP64_NOT_FOUND<code class="tsd-tag">Const</code></h1></div>
 <div class="tsd-signature"><span class="tsd-kind-variable">ERR_EXTRAFIELD_ZIP64_NOT_FOUND</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>Extra field Zip64 not found error</p>
-</div><aside class="tsd-sources">
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Raised by <a href="../classes/ZipReader.html#getentries" class="tsd-kind-method">ZipReader#getEntries</a> when the Zip64 extra field of a central directory record is missing or
+too short to hold the values that the <code>0xFFFFFFFF</code> and <code>0xFFFF</code> sentinels of the record defer to it, since the
+sizes and the offset of the entry have no other source. The same defect in a local file header is not fatal, because
+the sizes of an entry are read from the central directory: <a href="../interfaces/FileEntry.html#getdata" class="tsd-kind-method">FileEntry#getData</a> reports it as
+<a href="WARNING_MALFORMED_EXTRA_FIELD.html" class="tsd-kind-variable">WARNING_MALFORMED_EXTRA_FIELD</a> on <a href="../interfaces/EntryMetaData.html#warnings" class="tsd-kind-property">EntryMetaData#warnings</a>, and an entry without a data descriptor
+keeps the sentinels as its local sizes, which the local file header check reports as
+<a href="WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES.html" class="tsd-kind-variable">WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES</a>, an error or a warning depending on
+<a href="../interfaces/ZipReaderOptions.html#strictness" class="tsd-kind-property">ZipReaderOptions#strictness</a>.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/1eb4b7ed769079e6a3186192e1232b3c1ba4a9b5/index.d.ts#L4993">index.d.ts:4993</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/3b17c72fc46bbaaed00b250f0095f4902b965d94/index.d.ts#L5003">index.d.ts:5003</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
