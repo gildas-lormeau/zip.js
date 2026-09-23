@@ -299,6 +299,7 @@ export default ([
 	{ title: "Zip64 (unreadable local extra field)", script: "./test-zip64-local-field-unreadable.js" },
 	{ title: "Zip64 (entry layout)", script: "./test-zip64-entry-layout.js" },
 	{ title: "Data descriptor width", script: "./test-data-descriptor-width.js" },
+	{ title: "Data descriptor of AES entries", script: "./test-data-descriptor-aes.js" },
 	{ title: "Zip64", script: "./test-zip64.js" },
 	{ title: "Zipcrypto", script: "./test-zipcrypto.js" }
 ]);

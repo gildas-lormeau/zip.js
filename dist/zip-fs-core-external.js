@@ -6061,7 +6061,7 @@ async function detectOverlappingEntry({
 		const zip64 = Boolean(extraFieldZip64);
 		const dataDescriptorArray = await readUint8Array(reader, dataOffset + compressedSize, DATA_DESCRIPTOR_RECORD_ZIP_64_LENGTH + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH);
 		const dataDescriptorView = getDataView(dataDescriptorArray);
-		const ignoreCrc32 = fileEntry.encrypted && !fileEntry.zipCrypto;
+		const ignoreCrc32 = crc32 === UNDEFINED_VALUE;
 		let localDataDescriptor;
 		for (const [zip64Layout, signature] of [[zip64, true], [zip64, false], [!zip64, true], [!zip64, false]]) {
 			const candidate = readDataDescriptor(dataDescriptorView, zip64Layout, signature);
