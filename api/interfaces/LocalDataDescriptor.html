@@ -16,7 +16,7 @@
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">LocalDataDescriptor</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#compressedsize">compressedSize</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#crc32">crc32</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#signature">signature</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#uncompressedsize">uncompressedSize</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#zip64">zip64</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/07cb71766e8471afa1cd98503698e2caf5c1296a/index.d.ts#L2238">index.d.ts:2238</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/dd9e5b47cf471b4fb4ab1d648c235e2d4257adeb/index.d.ts#L2238">index.d.ts:2238</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -40,24 +40,24 @@
 <a href="EntryMetaData.html#compressedsize" class="tsd-kind-property">EntryMetaData#compressedSize</a>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/07cb71766e8471afa1cd98503698e2caf5c1296a/index.d.ts#L2267">index.d.ts:2267</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/dd9e5b47cf471b4fb4ab1d648c235e2d4257adeb/index.d.ts#L2268">index.d.ts:2268</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="crc32"><span>crc32</span><a href="#crc32" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">crc32</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The CRC-32 checksum stored in the record, which is allowed to differ from <a href="EntryMetaData.html#crc32" class="tsd-kind-property">EntryMetaData#crc32</a>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/07cb71766e8471afa1cd98503698e2caf5c1296a/index.d.ts#L2262">index.d.ts:2262</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/dd9e5b47cf471b4fb4ab1d648c235e2d4257adeb/index.d.ts#L2263">index.d.ts:2263</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="signature"><span>signature</span><a href="#signature" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">signature</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p><code>true</code> if the record is preceded by its optional signature.</p>
 <p>The signature is not part of the original format, it is a later convention writers are free to follow. It is
-reported as absent when the values following it disagree with the central directory, since the record is then
-read as starting at the first byte.</p>
+<code>false</code> when the record is read as starting at its first byte, see <a href="#zip64" class="tsd-kind-property">LocalDataDescriptor#zip64</a> for how the
+layout is chosen.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/07cb71766e8471afa1cd98503698e2caf5c1296a/index.d.ts#L2246">index.d.ts:2246</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/dd9e5b47cf471b4fb4ab1d648c235e2d4257adeb/index.d.ts#L2246">index.d.ts:2246</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="uncompressedsize"><span>uncompressed<wbr/>Size</span><a href="#uncompressedsize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">uncompressedSize</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
@@ -65,7 +65,7 @@ read as starting at the first byte.</p>
 <a href="EntryMetaData.html#uncompressedsize" class="tsd-kind-property">EntryMetaData#uncompressedSize</a>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/07cb71766e8471afa1cd98503698e2caf5c1296a/index.d.ts#L2272">index.d.ts:2272</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/dd9e5b47cf471b4fb4ab1d648c235e2d4257adeb/index.d.ts#L2273">index.d.ts:2273</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="zip64"><span>zip64</span><a href="#zip64" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">zip64</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -74,12 +74,13 @@ read as starting at the first byte.</p>
 sizes, and the Zip64 extra field of the central directory record, written last, describes that record, not the
 descriptor, so e.g. an entry placed past 4 GB can carry a Zip64 extra field in its central directory record for
 its offset alone and a descriptor with 4-byte sizes. The record is therefore read with the layout, among the two
-widths with and without the signature, whose values agree with the central directory; when none does, the width
-announced by the Zip64 extra field of the local file header or of the central directory record is used, without
-the signature.</p>
+widths with and without the signature, whose sizes agree with the central directory, its CRC-32 too when the
+central directory stores one and several layouts qualify; when none does, the width announced by the Zip64 extra
+field of the local file header or of the central directory record is used, with the signature when the record
+starts with one.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/07cb71766e8471afa1cd98503698e2caf5c1296a/index.d.ts#L2258">index.d.ts:2258</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/dd9e5b47cf471b4fb4ab1d648c235e2d4257adeb/index.d.ts#L2259">index.d.ts:2259</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
