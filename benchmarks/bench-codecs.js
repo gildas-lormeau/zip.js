@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import * as fflate from "fflate";
 import { loadFiles } from "./lib/corpus.js";
+import { QUICK_NOTE, runs, resultsPath } from "./lib/settings.js";
 import { setWasmExports, CompressionStreamZlib, DecompressionStreamZlib } from "../lib/core/streams/zlib-wasm/zlib-streams.js";
 import {
 	CompressionStreamZlib as CompressionStreamJS,
@@ -23,7 +24,7 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const WASM_PATH = join(HERE, "..", "lib", "core", "streams", "zlib-wasm", "zlib-streams.wasm");
-const RUNS = Number(process.env.RUNS || 3);
+const RUNS = runs(3);
 const LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const CHUNK_SIZE = 256 * 1024;
 const MB = 1024 * 1024;
@@ -52,7 +53,7 @@ const decompressPoints = [
 report();
 
 function report() {
-	console.log(`# Codecs — ${corpus.length} bytes of compressible text — Node ${process.version}, ${RUNS} runs\n`);
+	console.log(`# Codecs — ${corpus.length} bytes of compressible text — Node ${process.version}, ${RUNS} runs${QUICK_NOTE}\n`);
 	console.log("Compression, sorted by output size. A row is on the frontier when nothing smaller is faster.\n");
 	const sorted = [...compressPoints].sort((pointLeft, pointRight) => pointLeft.size - pointRight.size);
 	let bestMs = Infinity;
@@ -67,7 +68,7 @@ function report() {
 	for (const point of decompressPoints) {
 		console.log(`${point.codec.padEnd(18)} ${point.setting.padEnd(17)} ${point.ms.toFixed(0).padStart(6)} ms   ${(megabytes / (point.ms / 1000)).toFixed(1).padStart(6)} MB/s`);
 	}
-	const outPath = join(HERE, "results", "codecs-results.json");
+	const outPath = resultsPath("codecs-results.json");
 	writeFileSync(outPath, JSON.stringify({
 		runtime: process.version,
 		runs: RUNS,

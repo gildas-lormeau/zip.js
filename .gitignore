@@ -2,6 +2,7 @@ node_modules
 .vscode
 .DS_Store
 benchmarks/.corpus
+benchmarks/results/quick
 tests/corpus
 tests/fidelity/corpus
 tests/fidelity/.cov

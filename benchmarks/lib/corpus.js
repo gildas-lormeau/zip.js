@@ -1,13 +1,17 @@
 // Deterministic corpus generation for the benchmarks.
 // Datasets are cached under .corpus/ so every run and every library sees identical bytes.
 // No Math.random: a seeded PRNG keeps results reproducible across machines and runs.
+// QUICK=1 divides every size by SCALE (lib/settings.js) and caches those datasets under their
+// own names, so a quick run never reads a full dataset or overwrites one.
 
 import { mkdirSync, existsSync, writeFileSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { QUICK, SCALE } from "./settings.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CORPUS_DIR = join(HERE, "..", ".corpus");
+const CACHE_SUFFIX = QUICK ? "-quick" : "";
 
 // mulberry32: tiny, fast, deterministic PRNG.
 function prng(seed) {
@@ -59,19 +63,26 @@ function ensureDir() {
 }
 
 // Workload registry. Each entry yields { files: { name: Uint8Array }, ... } lazily and caches to disk.
+// The keys name the full sizes; the labels say what a run actually measured.
 const MB = 1024 * 1024;
+const TEXT_BYTES = 20 * MB / SCALE;
+const HUGE_BYTES = 256 * MB / SCALE;
+const SMALL_FILES = 5000 / SCALE;
+const PARALLEL_BYTES = 8 * MB / SCALE;
+export const megabytes = (bytes) => (bytes / MB).toLocaleString("en-US", { maximumFractionDigits: 1 }) + " MB";
 
 export const WORKLOADS = {
-	"text-20mb": { kind: "single", label: "Compressible text (20 MB)", seed: 1, bytes: 20 * MB, gen: makeText },
-	"random-20mb": { kind: "single", label: "Incompressible data (20 MB)", seed: 2, bytes: 20 * MB, gen: makeRandom },
-	"many-files": { kind: "multi", label: "5,000 small files (~2 KB each)", seed: 4, count: 5000, each: 2048, gen: makeText },
-	"huge-256mb": { kind: "disk", label: "Large file, disk-to-disk (256 MB)", seed: 5, bytes: 256 * MB, gen: makeText },
+	"text-20mb": { kind: "single", label: `Compressible text (${megabytes(TEXT_BYTES)})`, seed: 1, bytes: TEXT_BYTES, gen: makeText },
+	"random-20mb": { kind: "single", label: `Incompressible data (${megabytes(TEXT_BYTES)})`, seed: 2, bytes: TEXT_BYTES, gen: makeRandom },
+	"many-files": { kind: "multi", label: `${SMALL_FILES.toLocaleString("en-US")} small files (~2 KB each)`, seed: 4, count: SMALL_FILES, each: 2048, gen: makeText },
+	"huge-256mb": { kind: "disk", label: `Large file, disk-to-disk (${megabytes(HUGE_BYTES)})`, seed: 5, bytes: HUGE_BYTES, gen: makeText },
 	// A handful of large entries: enough per-entry work that running codecs in parallel matters.
-	"parallel-8x8mb": { kind: "multi", label: "8 files x 8 MB (parallel-friendly)", seed: 6, count: 8, each: 8 * MB, gen: makeText }
+	"parallel-8x8mb": { kind: "multi", label: `8 files x ${megabytes(PARALLEL_BYTES)} (parallel-friendly)`, seed: 6, count: 8, each: PARALLEL_BYTES, gen: makeText }
 };
 
-function cachePath(name) {
-	return join(CORPUS_DIR, name + ".bin");
+// The path of a cached dataset; a quick run gets its own files (see CACHE_SUFFIX).
+export function cachePath(name, extension = ".bin") {
+	return join(CORPUS_DIR, name + CACHE_SUFFIX + extension);
 }
 
 // Returns { files: { [name]: Uint8Array } } for in-memory workloads.
@@ -117,6 +128,6 @@ if (process.argv[1] && process.argv[1].endsWith("corpus.js")) {
 		} else {
 			loadFiles(name);
 		}
-		console.log("ready:", name);
+		console.log("ready:", name, "-", w.label);
 	}
 }

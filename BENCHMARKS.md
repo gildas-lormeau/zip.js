@@ -391,7 +391,10 @@ node bench-runtimes.js   # the runtime tables; also: bun bench-runtimes.js, deno
 
 Each script writes its JSON to `benchmarks/results/`; the `*-run.log` files there are the
 console output of the runs behind this page. `RUNS=<n>` sets the number of repetitions (default
-3, 5 in `bench-aes.js`). `ZIPJS_BUNDLE=<path to a previous index.min.js> node bench-aes.js` adds
+3, 5 in `bench-aes.js`). `QUICK=1` divides every workload by 8, runs each measurement once and
+writes under `benchmarks/results/quick/`; the scripts then finish in seconds instead of minutes,
+which is enough to check that they run and not enough to read a number from.
+`ZIPJS_BUNDLE=<path to a previous index.min.js> node bench-aes.js` adds
 the row of a previous release; `git show v2.13.1:index.min.js` gave the sjcl row. The browser
 encryption table comes from `benchmarks/bench-aes.html`, served from the repository root
 (`npx http-server -p 8080`, then `http://localhost:8080/benchmarks/bench-aes.html`), with

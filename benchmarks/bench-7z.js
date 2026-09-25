@@ -10,7 +10,7 @@
 // deployment model, mirroring how 7-Zip's mmap/threads are its own.
 //
 // Env: RUNS (default 3), SEVENZIP (binary override), SKIP_HUGE=1 to skip the 256 MB combo,
-// ONLY=<workload[,workload]> to run a subset of the plan,
+// ONLY=<workload[,workload]> to run a subset of the plan, QUICK=1 (see lib/settings.js),
 // ZIPJS_BACKEND=wasm to run zip.js on the bundled WebAssembly zlib instead of CompressionStream.
 
 import { spawnSync } from "node:child_process";
@@ -19,13 +19,11 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { Readable, Writable } from "node:stream";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
 import * as zip from "../index.js";
-import { WORKLOADS, loadFiles, ensureDiskFile } from "./lib/corpus.js";
+import { WORKLOADS, loadFiles, ensureDiskFile, cachePath } from "./lib/corpus.js";
+import { QUICK_NOTE, runs, resultsPath } from "./lib/settings.js";
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const RUNS = Number(process.env.RUNS || 3);
+const RUNS = runs(3);
 const LEVEL = 6;
 const BACKEND = process.env.ZIPJS_BACKEND || "cs";
 const ZIPJS_LABEL = BACKEND === "wasm" ? "zip.js wasm" : "zip.js";
@@ -53,7 +51,7 @@ const SEVENZIP = findSevenZip();
 
 // The "many-files" workload is in-memory in corpus.js; 7-Zip needs it as a real tree on disk.
 function ensureTree(workloadName) {
-	const dir = join(HERE, ".corpus", workloadName + "-tree");
+	const dir = cachePath(workloadName, "-tree");
 	if (!existsSync(dir)) {
 		mkdirSync(dir, { recursive: true });
 		const { files } = loadFiles(workloadName);
@@ -179,7 +177,7 @@ function resetDir(dir) {
 }
 
 async function main() {
-	console.log(`# ${RUNTIME} vs ${SEVENZIP} — ${RUNS} runs/combo, median — level ${LEVEL} — zip.js backend: ${BACKEND}\n`);
+	console.log(`# ${RUNTIME} vs ${SEVENZIP} — ${RUNS} runs/combo, median — level ${LEVEL} — zip.js backend: ${BACKEND}${QUICK_NOTE}\n`);
 	const results = { generatedBy: "bench-7z.js", runtime: RUNTIME, sevenZip: SEVENZIP, backend: BACKEND, runs: RUNS, rows: [] };
 	const workDir = join(tmpdir(), `bench-7z-${process.pid}`);
 	resetDir(workDir);
@@ -232,7 +230,7 @@ async function main() {
 
 	await zip.terminateWorkers();
 	rmSync(workDir, { recursive: true, force: true });
-	const outPath = join(HERE, "results", `7z-${RUNTIME_ID}${BACKEND === "wasm" ? "-wasm" : ""}-results.json`);
+	const outPath = resultsPath(`7z-${RUNTIME_ID}${BACKEND === "wasm" ? "-wasm" : ""}-results.json`);
 	writeFileSync(outPath, JSON.stringify(results, null, 2));
 	console.log("wrote " + outPath);
 }

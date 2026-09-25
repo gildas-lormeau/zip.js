@@ -13,10 +13,11 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { writeFileSync } from "node:fs";
 import { WORKLOADS } from "./lib/corpus.js";
+import { QUICK_NOTE, runs, resultsPath } from "./lib/settings.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RUN_ONE = join(HERE, "run-one.js");
-const RUNS = Number(process.env.RUNS || 3);
+const RUNS = runs(3);
 
 const LIBS = ["zipjs", "jszip", "fflate", "archiver"];
 const LIB_LABEL = { zipjs: "@zip.js/zip.js", jszip: "jszip", fflate: "fflate", archiver: "archiver" };
@@ -90,7 +91,7 @@ function runCombo(lib, op, workload, config) {
 function main() {
 	const baseline = measureBaseline();
 	const results = { generatedBy: "bench.js", runtime: process.version, runs: RUNS, baselineRssBytes: baseline, rows: [] };
-	console.log(`# Node ${process.version} — ${RUNS} runs/combo — baseline RSS ${(baseline / 1e6).toFixed(0)} MB\n`);
+	console.log(`# Node ${process.version} — ${RUNS} runs/combo — baseline RSS ${(baseline / 1e6).toFixed(0)} MB${QUICK_NOTE}\n`);
 
 	for (const { op, workloads } of PLAN) {
 		for (const workload of workloads) {
@@ -117,7 +118,7 @@ function main() {
 		}
 	}
 
-	const outPath = join(HERE, "results", "node-results.json");
+	const outPath = resultsPath("node-results.json");
 	writeFileSync(outPath, JSON.stringify(results, null, 2));
 	console.log("wrote " + outPath);
 }

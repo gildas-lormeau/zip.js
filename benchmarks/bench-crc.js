@@ -21,14 +21,13 @@
 // real corpus, not repeated-string data, or the number is meaningless.
 
 import { performance } from "node:perf_hooks";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
 import { writeFileSync } from "node:fs";
-import { loadFiles, WORKLOADS } from "./lib/corpus.js";
+import { loadFiles, WORKLOADS, megabytes } from "./lib/corpus.js";
+import { QUICK_NOTE, SCALE, runs, resultsPath } from "./lib/settings.js";
 import { DeflateStream } from "../lib/core/streams/zip-entry-stream.js";
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const RUNS = Number(process.env.RUNS || 7);
+const RUNS = runs(7);
+const BEST_CASE_BYTES = 20 * 1024 * 1024 / SCALE;
 
 // Datasets span the compressibility axis so the trick's workload-dependence is visible:
 //   - highly-compressible: deflate finishes fast (long matches), CRC is a big fraction -> best case
@@ -37,7 +36,7 @@ const RUNS = Number(process.env.RUNS || 7);
 function datasets() {
 	const list = [];
 	// Best case: 20 MB of a repeated block — compresses to almost nothing, so compression is cheap.
-	list.push({ label: "Highly compressible (20 MB, best case)", data: Buffer.from("the quick brown fox jumps over the lazy dog 0123456789 ".repeat((20 * 1024 * 1024) / 54)) });
+	list.push({ label: `Highly compressible (${megabytes(BEST_CASE_BYTES)}, best case)`, data: Buffer.from("the quick brown fox jumps over the lazy dog 0123456789 ".repeat(BEST_CASE_BYTES / 54)) });
 	for (const workload of ["text-20mb", "random-20mb"]) {
 		list.push({ label: WORKLOADS[workload].label, data: Object.values(loadFiles(workload).files)[0], workload });
 	}
@@ -98,7 +97,7 @@ async function measure(data, mode) {
 
 async function main() {
 	const results = { runtime: process.version, runs: RUNS, rows: [] };
-	console.log(`# Write-path CRC strategy — native CompressionStream — Node ${process.version}, ${RUNS} runs\n`);
+	console.log(`# Write-path CRC strategy — native CompressionStream — Node ${process.version}, ${RUNS} runs${QUICK_NOTE}\n`);
 	console.log("#   gzip-trick : compress as gzip, harvest CRC-32 from the trailer (no separate CRC pass)");
 	console.log("#   baseline   : compress as deflate-raw + separate slice-by-8 Crc32Stream\n");
 
@@ -125,7 +124,7 @@ async function main() {
 		});
 	}
 
-	const outPath = join(HERE, "results", "crc-results.json");
+	const outPath = resultsPath("crc-results.json");
 	writeFileSync(outPath, JSON.stringify(results, null, 2));
 	console.log("wrote " + outPath);
 }

@@ -18,13 +18,12 @@
 // Node, Bun (bun bench-aes.js) and Deno (deno run -A bench-aes.js).
 
 import { performance } from "node:perf_hooks";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { dirname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { writeFileSync } from "node:fs";
 import { loadFiles, WORKLOADS } from "./lib/corpus.js";
+import { QUICK_NOTE, runs, resultsPath } from "./lib/settings.js";
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const RUNS = Number(process.env.RUNS || 5);
+const RUNS = runs(5);
 const BUNDLE = process.env.ZIPJS_BUNDLE;
 const WORKLOAD = "random-20mb";
 const PASSWORD = "password";
@@ -78,7 +77,7 @@ async function main() {
 	const data = Object.values(loadFiles(WORKLOAD).files)[0];
 	const label = WORKLOADS[WORKLOAD].label;
 	const results = { runtime: RUNTIME, runs: RUNS, workload: WORKLOAD, bytes: data.length, rows: [] };
-	console.log(`# AES-256 encryption, stored entry, single thread — ${RUNTIME}, ${RUNS} runs\n`);
+	console.log(`# AES-256 encryption, stored entry, single thread — ${RUNTIME}, ${RUNS} runs${QUICK_NOTE}\n`);
 	console.log(label);
 
 	const zip = await import("../index.js");
@@ -105,7 +104,7 @@ async function main() {
 		await previous.terminateWorkers();
 	}
 
-	const outPath = join(HERE, "results", `aes-${RUNTIME.split(" ")[0].toLowerCase()}-results.json`);
+	const outPath = resultsPath(`aes-${RUNTIME.split(" ")[0].toLowerCase()}-results.json`);
 	writeFileSync(outPath, JSON.stringify(results, null, 2));
 	console.log("\nwrote " + outPath);
 }

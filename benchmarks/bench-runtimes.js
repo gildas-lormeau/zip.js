@@ -17,16 +17,14 @@
 // results/runtimes-<runtime>-results.json.
 
 import { performance } from "node:perf_hooks";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
 import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { loadFiles, ensureDiskFile, WORKLOADS } from "./lib/corpus.js";
+import { QUICK_NOTE, runs, resultsPath } from "./lib/settings.js";
 import * as zip from "../index.js";
 import { CompressionStreamZlib, DecompressionStreamZlib } from "../lib/core/streams/zlib-js/zlib-streams.min.js";
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const RUNS = Number(process.env.RUNS || 3);
+const RUNS = runs(3);
 const RUNTIME = globalThis.Deno ? "Deno " + globalThis.Deno.version.deno : globalThis.Bun ? "Bun " + globalThis.Bun.version : "Node " + process.version;
 const PARALLEL_WORKLOAD = "parallel-8x8mb";
 const SINGLE_WORKLOAD = "huge-256mb";
@@ -117,7 +115,7 @@ function report(label, result, inputBytes) {
 
 async function main() {
 	const results = { runtime: RUNTIME, runs: RUNS, rows: [] };
-	console.log(`# Runtimes — ${RUNTIME}, ${RUNS} runs\n`);
+	console.log(`# Runtimes — ${RUNTIME}, ${RUNS} runs${QUICK_NOTE}\n`);
 
 	const { files } = loadFiles(PARALLEL_WORKLOAD);
 	const parallelBytes = WORKLOADS[PARALLEL_WORKLOAD].count * WORKLOADS[PARALLEL_WORKLOAD].each;
@@ -163,7 +161,7 @@ async function main() {
 		results.rows.push({ part: "levels", label, inputBytes: text.length, ...result });
 	}
 
-	const outPath = join(HERE, "results", `runtimes-${RUNTIME.split(" ")[0].toLowerCase()}-results.json`);
+	const outPath = resultsPath(`runtimes-${RUNTIME.split(" ")[0].toLowerCase()}-results.json`);
 	writeFileSync(outPath, JSON.stringify(results, null, 2));
 	console.log("\nwrote " + outPath);
 }

@@ -14,10 +14,11 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { writeFileSync } from "node:fs";
 import { WORKLOADS } from "./lib/corpus.js";
+import { QUICK_NOTE, runs, resultsPath } from "./lib/settings.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RUN_ONE = join(HERE, "run-one.js");
-const RUNS = Number(process.env.RUNS || 3);
+const RUNS = runs(3);
 const WORKLOAD = "parallel-8x8mb";
 
 // Each config: [label, lib, extra args for run-one after workload+mode]
@@ -73,7 +74,7 @@ function main() {
 	const baseline = measureBaseline();
 	const inputBytes = WORKLOADS[WORKLOAD].count * WORKLOADS[WORKLOAD].each;
 	const results = { runtime: process.version, runs: RUNS, workload: WORKLOADS[WORKLOAD].label, inputBytes, baselineRssBytes: baseline, rows: [] };
-	console.log(`# Backend & parallelism — ${WORKLOADS[WORKLOAD].label} — Node ${process.version}, ${RUNS} runs, baseline ${(baseline / 1e6).toFixed(0)} MB\n`);
+	console.log(`# Backend & parallelism — ${WORKLOADS[WORKLOAD].label} — Node ${process.version}, ${RUNS} runs, baseline ${(baseline / 1e6).toFixed(0)} MB${QUICK_NOTE}\n`);
 
 	// Reference time = zip.js CompressionStream sequential, computed after the run.
 	for (const [label, lib, extra] of CONFIGS) {
@@ -97,7 +98,7 @@ function main() {
 		for (const r of results.rows) if (r.medianMs) r.speedupVsCsSeq = seqRow.medianMs / r.medianMs;
 	}
 
-	const outPath = join(HERE, "results", "backends-results.json");
+	const outPath = resultsPath("backends-results.json");
 	writeFileSync(outPath, JSON.stringify(results, null, 2));
 	console.log("\nwrote " + outPath);
 }
