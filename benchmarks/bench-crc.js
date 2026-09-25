@@ -55,11 +55,11 @@ class SpyCompressionStream extends CompressionStream {
 // Real DeflateStream, configured so the native compressor is used either through the gzip trick
 // (trick) or through the deflate-raw + Crc32Stream fallback (baseline).
 function makeDeflateStream(mode) {
-	const base = { compressed: true, signed: true, encrypted: false, zipCrypto: false, level: 6 };
+	const base = { compressed: true, computeCrc32: true, encrypted: false, zipCrypto: false, level: 6 };
 	if (mode === "trick") {
 		return new DeflateStream({ ...base, useCompressionStream: true }, { chunkSize: 64 * 1024, CompressionStream: SpyCompressionStream });
 	}
-	return new DeflateStream({ ...base, useCompressionStream: false }, { chunkSize: 64 * 1024, CompressionStreamZlib: SpyCompressionStream });
+	return new DeflateStream({ ...base, useCompressionStream: false }, { chunkSize: 64 * 1024, CompressionStreamFallback: SpyCompressionStream });
 }
 
 async function compressOnce(data, mode) {
@@ -74,7 +74,7 @@ async function compressOnce(data, mode) {
 		}
 		outputSize += value.length;
 	}
-	return { outputSize, signature: deflateStream.signature >>> 0 };
+	return { outputSize, signature: deflateStream.crc32 >>> 0 };
 }
 
 async function measure(data, mode) {
