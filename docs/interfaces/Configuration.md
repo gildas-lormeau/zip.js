@@ -40,10 +40,15 @@ The size of the chunks in bytes during data compression/decompression.
 Values lower than 64 are raised to 64, and a value that is not an integer greater than 0 is replaced with the default
 value.
 
+#### Remarks
+
+Every stage of the pipeline of an entry holds up to one chunk, and the data crosses the boundary of a web worker one
+chunk per message, so a larger value costs more memory per entry in progress and buys fewer messages.
+
 #### Default Value
 
 ```ts
-65536
+262144
 ```
 
 ***

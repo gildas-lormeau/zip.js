@@ -27,6 +27,6 @@ async function test() {
 		}
 	} finally {
 		await zip.terminateWorkers();
-		zip.configure({ chunkSize: 64 * 1024 });
+		zip.resetConfiguration();
 	}
 }

@@ -19,6 +19,8 @@ const WRITE_ORDER_ENTRY_NAMES = ["large.bin", "docs/", "empty.bin", "last.bin", 
 export { test };
 
 async function test() {
+	// the minimum counts of progress events below assume the large entry spans four chunks
+	zip.configure({ chunkSize: 64 * 1024 });
 	try {
 		for (const options of [
 			{ level: 0 },
@@ -32,6 +34,7 @@ async function test() {
 		await testImportedProgress();
 	} finally {
 		await zip.terminateWorkers();
+		zip.resetConfiguration();
 	}
 }
 

@@ -293,7 +293,7 @@ function toNumber(value) {
  */
 
 
-const DEFAULT_CHUNK_SIZE$1 = 64 * 1024;
+const DEFAULT_CHUNK_SIZE$1 = 256 * 1024;
 const MINIMUM_CHUNK_SIZE = 64;
 const MINIMUM_PROPERTY_VALUE = 1;
 const ERR_INVALID_MAX_WORKERS = "Invalid maxWorkers (must be an integer greater than 0)";
@@ -2422,7 +2422,7 @@ function mapInflateStreamError(readable, sourceErrors) {
  */
 
 
-const DEFAULT_CHUNK_SIZE = 64 * 1024;
+const DEFAULT_CHUNK_SIZE = 256 * 1024;
 const MESSAGE_EVENT_TYPE = "message";
 const MESSAGE_START = "start";
 const MESSAGE_PULL = "pull";

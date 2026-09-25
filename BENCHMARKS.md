@@ -280,9 +280,10 @@ differ:
   sequential, and the chunk size changes nothing. Node has no `Worker` global, so
   `useWebWorkers` spawns nothing there and the entries run in-process, in the same time.
 - **Bun** runs `CompressionStream` off the JavaScript thread only for writes larger than 128 KB
-  (its native implementation, since Bun 1.4 in August 2026). zip.js writes 64 KB chunks by
-  default, so concurrent `add()` alone gains nothing on Bun; `chunkSize: 256 * 1024` makes it
-  4.9× faster, and `useWebWorkers: true` 4.7×.
+  (its native implementation, since Bun 1.4 in August 2026). zip.js wrote 64 KB chunks by
+  default up to version 2.18.2, when this was measured, so concurrent `add()` alone gained
+  nothing on Bun; `chunkSize: 256 * 1024`, the default since, makes it 4.9× faster, and
+  `useWebWorkers: true` 4.7×.
 - **Deno** runs `CompressionStream` on the JavaScript thread whatever the write size: concurrent
   `add()` alone gains nothing, `useWebWorkers: true` is 3.9× faster.
 
@@ -310,7 +311,7 @@ zlib builds.
 
 On bulk data zip.js adds almost nothing over the host's `CompressionStream`, so its throughput is
 that of the zlib the runtime ships, and they differ. One 256 MB text file, one thread, in
-memory, fed in 64 KB writes as zip.js does; gzip is Apple's, timed as a child process:
+memory, fed in 64 KB writes as zip.js did up to version 2.18.2; gzip is Apple's, timed as a child process:
 
 | Runtime | `CompressionStream` alone | zip.js, one entry | Output |
 |---|--:|--:|--:|
