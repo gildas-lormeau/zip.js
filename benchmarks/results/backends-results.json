@@ -3,13 +3,13 @@
   "runs": 3,
   "workload": "8 files x 8 MB (parallel-friendly)",
   "inputBytes": 67108864,
-  "baselineRssBytes": 49889280,
+  "baselineRssBytes": 49381376,
   "rows": [
     {
       "label": "zip.js — CompressionStream, sequential",
       "lib": "zipjs",
-      "medianMs": 2421.1198750000003,
-      "peakRssBytes": 406355968,
+      "medianMs": 2244.584541,
+      "peakRssBytes": 415023104,
       "outputSize": 19590989,
       "ratio": 3.425496487186022,
       "speedupVsCsSeq": 1
@@ -17,83 +17,83 @@
     {
       "label": "zip.js — CompressionStream, parallel",
       "lib": "zipjs",
-      "medianMs": 676.202833,
-      "peakRssBytes": 436502528,
+      "medianMs": 598.355917,
+      "peakRssBytes": 466173952,
       "outputSize": 19590989,
       "ratio": 3.425496487186022,
-      "speedupVsCsSeq": 3.580463962652461
+      "speedupVsCsSeq": 3.75125318765754
     },
     {
       "label": "zip.js — WASM, sequential",
       "lib": "zipjs",
-      "medianMs": 3553.4102499999995,
-      "peakRssBytes": 421920768,
+      "medianMs": 3389.335083,
+      "peakRssBytes": 420757504,
       "outputSize": 19734824,
       "ratio": 3.4005301491414364,
-      "speedupVsCsSeq": 0.6813510697223887
+      "speedupVsCsSeq": 0.6622492276606811
     },
     {
       "label": "zip.js — WASM, parallel",
       "lib": "zipjs",
-      "medianMs": 3576.748917,
-      "peakRssBytes": 443908096,
+      "medianMs": 3369.184416,
+      "peakRssBytes": 459423744,
       "outputSize": 19734824,
       "ratio": 3.4005301491414364,
-      "speedupVsCsSeq": 0.6769051815442264
+      "speedupVsCsSeq": 0.6662100567545781
     },
     {
       "label": "zip.js — pure-JS, sequential",
       "lib": "zipjs",
-      "medianMs": 4007.9610829999997,
-      "peakRssBytes": 420659200,
+      "medianMs": 3871.971042,
+      "peakRssBytes": 420216832,
       "outputSize": 19734824,
       "ratio": 3.4005301491414364,
-      "speedupVsCsSeq": 0.6040776905916879
+      "speedupVsCsSeq": 0.5797007561917609
     },
     {
       "label": "zip.js — pure-JS, parallel",
       "lib": "zipjs",
-      "medianMs": 3953.663625,
-      "peakRssBytes": 438288384,
+      "medianMs": 3821.6915,
+      "peakRssBytes": 446283776,
       "outputSize": 19734824,
       "ratio": 3.4005301491414364,
-      "speedupVsCsSeq": 0.6123737638403672
+      "speedupVsCsSeq": 0.5873275069429336
     },
     {
       "label": "jszip (pako)",
       "lib": "jszip",
-      "medianMs": 5787.730208000001,
-      "peakRssBytes": 378667008,
+      "medianMs": 5628.960875,
+      "peakRssBytes": 381075456,
       "outputSize": 19734552,
       "ratio": 3.400577018419268,
-      "speedupVsCsSeq": 0.4183194081253899
+      "speedupVsCsSeq": 0.39875646515308216
     },
     {
       "label": "fflate — zipSync",
       "lib": "fflate",
-      "medianMs": 3165.374083,
-      "peakRssBytes": 369278976,
+      "medianMs": 3082.539125,
+      "peakRssBytes": 367640576,
       "outputSize": 20031041,
       "ratio": 3.3502434546462165,
-      "speedupVsCsSeq": 0.7648763815951166
+      "speedupVsCsSeq": 0.728160925126944
     },
     {
       "label": "fflate — async (worker pool)",
       "lib": "fflate",
-      "medianMs": 768.085833,
-      "peakRssBytes": 560201728,
+      "medianMs": 763.9192089999999,
+      "peakRssBytes": 562413568,
       "outputSize": 20031041,
       "ratio": 3.3502434546462165,
-      "speedupVsCsSeq": 3.1521475478118868
+      "speedupVsCsSeq": 2.9382485929870112
     },
     {
       "label": "archiver (Node zlib)",
       "lib": "archiver",
-      "medianMs": 2323.9932499999995,
-      "peakRssBytes": 359825408,
+      "medianMs": 2270.3410409999997,
+      "peakRssBytes": 359989248,
       "outputSize": 19590845,
       "ratio": 3.4255216658597423,
-      "speedupVsCsSeq": 1.041792989286867
+      "speedupVsCsSeq": 0.9886552286485317
     }
   ]
 }

@@ -6,77 +6,77 @@
       "part": "parallel",
       "label": "sequential add()",
       "inputBytes": 67108864,
-      "medianMs": 1191.7094160000006,
-      "outputBytes": 19851518
+      "medianMs": 1198.2322089999998,
+      "outputBytes": 19852080
     },
     {
       "part": "parallel",
       "label": "concurrent add()",
       "inputBytes": 67108864,
-      "medianMs": 1194.9383340000004,
-      "outputBytes": 19851518
+      "medianMs": 239.49829099999988,
+      "outputBytes": 19852080
     },
     {
       "part": "parallel",
-      "label": "concurrent add(), chunkSize 256 KB",
+      "label": "concurrent add(), chunkSize 64 KB",
       "inputBytes": 67108864,
-      "medianMs": 244.242209,
-      "outputBytes": 19852080
+      "medianMs": 1196.528875,
+      "outputBytes": 19851518
     },
     {
       "part": "parallel",
       "label": "concurrent add(), useWebWorkers",
       "inputBytes": 67108864,
-      "medianMs": 252.3622919999998,
-      "outputBytes": 19851531
+      "medianMs": 245.91733399999976,
+      "outputBytes": 19852080
     },
     {
       "part": "single",
-      "label": "CompressionStream, 64 KB writes",
+      "label": "CompressionStream, 256 KB writes",
       "inputBytes": 268435456,
-      "medianMs": 4726.271666999997,
-      "outputBytes": 79367072
+      "medianMs": 4722.405875,
+      "outputBytes": 79369402
     },
     {
       "part": "single",
       "label": "zip.js, one entry",
       "inputBytes": 268435456,
-      "medianMs": 4768.058791999996,
-      "outputBytes": 79367220
+      "medianMs": 4749.061125,
+      "outputBytes": 79369550
     },
     {
       "part": "single",
       "label": "gzip -6",
       "inputBytes": 268435456,
-      "medianMs": 12428.50091599999,
+      "medianMs": 12361.110292000005,
       "outputBytes": 78902263
     },
     {
       "part": "levels",
       "label": "level 6 (CompressionStream)",
       "inputBytes": 20971520,
-      "medianMs": 370.85275000000547,
-      "outputBytes": 6201882
+      "medianMs": 368.24649999999383,
+      "outputBytes": 6202060
     },
     {
       "part": "levels",
       "label": "level 5 (WASM zlib)",
       "inputBytes": 20971520,
-      "medianMs": 464.4331250000105,
+      "medianMs": 459.05425000000105,
       "outputBytes": 6562330
     },
     {
       "part": "levels",
       "label": "level 5 (pure-JS zlib)",
       "inputBytes": 20971520,
-      "medianMs": 664.979124999998,
+      "medianMs": 661.1158339999965,
       "outputBytes": 6562330
     },
     {
       "part": "levels",
       "label": "level 1 (WASM zlib)",
       "inputBytes": 20971520,
-      "medianMs": 167.6464169999963,
+      "medianMs": 176.60712500000955,
       "outputBytes": 7531190
     }
   ]

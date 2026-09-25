@@ -1,11 +1,11 @@
 // The same zip.js code under Node, Bun and Deno. Two parts:
 //
 //   1. 8 x 8 MB compressible entries at level 6, i.e. the host's CompressionStream: sequential
-//      add(), concurrent add(), concurrent add() with 256 KB chunks, and concurrent add() through
-//      the Web Worker pool. Concurrent add() alone only parallelizes when the runtime runs the
-//      codec off the JS thread, and Bun does so for writes larger than 128 KB only, which is what
-//      the chunkSize row shows.
-//   2. one 256 MB compressible file, one thread, in memory: the raw CompressionStream fed 64 KB
+//      add(), concurrent add(), concurrent add() with 64 KB chunks (the default up to 2.18.2), and
+//      concurrent add() through the Web Worker pool. Concurrent add() alone only parallelizes when
+//      the runtime runs the codec off the JS thread, and Bun does so for writes larger than 128 KB
+//      only, which is what the chunkSize row shows.
+//   2. one 256 MB compressible file, one thread, in memory: the raw CompressionStream fed 256 KB
 //      writes (what zip.js writes by default), zip.js around it, and Apple's gzip -6 as a classic
 //      zlib reference. This part measures the zlib each runtime vendors, not zip.js.
 //   3. one 20 MB compressible entry at the default level, which is the host's CompressionStream,
@@ -125,7 +125,7 @@ async function main() {
 	const PARALLEL = [
 		["sequential add()", { concurrent: false, useWebWorkers: false }],
 		["concurrent add()", { concurrent: true, useWebWorkers: false }],
-		["concurrent add(), chunkSize 256 KB", { concurrent: true, useWebWorkers: false, chunkSize: 256 * 1024 }],
+		["concurrent add(), chunkSize 64 KB", { concurrent: true, useWebWorkers: false, chunkSize: 64 * 1024 }],
 		["concurrent add(), useWebWorkers", { concurrent: true, useWebWorkers: true }]
 	];
 	for (const [label, options] of PARALLEL) {
@@ -138,7 +138,7 @@ async function main() {
 	const data = readFileSync(path);
 	console.log("\n" + WORKLOADS[SINGLE_WORKLOAD].label + ", one thread, in memory");
 	const SINGLE = [
-		["CompressionStream, 64 KB writes", () => rawCompressionStream(data, 64 * 1024)],
+		["CompressionStream, 256 KB writes", () => rawCompressionStream(data, 256 * 1024)],
 		["zip.js, one entry", () => zipSingleEntry(data)],
 		["gzip -6", () => gzip(path)]
 	];

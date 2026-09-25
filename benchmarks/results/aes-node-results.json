@@ -7,22 +7,22 @@
     {
       "engine": "wasm",
       "label": "WebAssembly engine",
-      "writeMs": 152.20945899999992,
-      "readMs": 153.50070800000003,
+      "writeMs": 144.8874169999999,
+      "readMs": 144.27033400000005,
       "archiveBytes": 20971718
     },
     {
       "engine": "js",
       "label": "JavaScript engine",
-      "writeMs": 175.71958399999994,
-      "readMs": 175.80570799999987,
+      "writeMs": 169.54258300000038,
+      "readMs": 186.52562500000022,
       "archiveBytes": 20971718
     },
     {
       "engine": "bundle",
       "label": "/private/tmp/claude-501/-Users-gildas-Desktop-Dev-project-zip-js/3e986b7f-66f3-4d51-8c1e-3cb7cfcf9527/scratchpad/zipjs-2.13.1.min.js",
-      "writeMs": 787.7102500000001,
-      "readMs": 799.9403330000005,
+      "writeMs": 767.6051660000012,
+      "readMs": 779.8089999999993,
       "archiveBytes": 20971718
     }
   ]
