@@ -7381,7 +7381,7 @@ async function resolveSizes(zipWriter, reader, { resolvedOptions: metadata }, op
 	if (reader) {
 		reader = new GenericReader(reader);
 		await initStream(reader);
-		if (!reader.readable && !reader.readUint8Array) {
+		if (!reader.readUint8Array && !reader.readable) {
 			throw new Error(ERR_INVALID_READER);
 		}
 		({ size: contentSize } = reader);

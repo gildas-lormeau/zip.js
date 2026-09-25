@@ -42,7 +42,7 @@ The data to read.
 
 > **readable**: `ReadableStream`
 
-The `ReadableStream` instance.
+The `ReadableStream` instance, a new one reading the data from its start on each access.
 
 #### Inherited from
 

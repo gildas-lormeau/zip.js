@@ -49,6 +49,7 @@ export default ([
 	{ title: "Encrypted flag cleared in the local header", script: "./test-encrypted-flag-local-mismatch.js" },
 	{ title: "Strong encryption flag mismatch", script: "./test-strong-encryption-flag-mismatch.js" },
 	{ title: "Invalid chunk size configuration", script: "./test-config-chunk-size.js" },
+	{ title: "Reader reads during add", script: "./test-reader-add-reads.js" },
 	{ title: "Writer edge cases", script: "./test-writer-edge-cases.js" },
 	{ title: "Is zip file", script: "./test-is-zip-file.js" },
 	{ title: "Warnings channel", script: "./test-warnings.js" },
