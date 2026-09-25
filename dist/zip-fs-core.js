@@ -185,7 +185,6 @@
 	const OPTION_CHECK_AUTHENTICATION_CODE = "checkAuthenticationCode";
 	const OPTION_USE_WEB_WORKERS = "useWebWorkers";
 	const OPTION_USE_COMPRESSION_STREAM = "useCompressionStream";
-	const OPTION_TRANSFER_STREAMS = "transferStreams";
 	const OPTION_PREVENT_CLOSE = "preventClose";
 	const OPTION_ENCRYPTION_STRENGTH = "encryptionStrength";
 	const OPTION_EXTENDED_TIMESTAMP = "extendedTimestamp";
@@ -2598,7 +2597,7 @@
 	class CodecWorker {
 
 		constructor(workerData, { readable, writable }, workerOptions, onTaskFinished) {
-			const { options, config, streamOptions, useWebWorkers, transferStreams, workerURI } = workerOptions;
+			const { options, config, streamOptions, useWebWorkers, workerURI } = workerOptions;
 			let { createWorker } = workerOptions;
 			const { signal } = streamOptions;
 			if (createWorkerFailed) {
@@ -2615,7 +2614,6 @@
 				workerOptions,
 				workerURI,
 				createWorker,
-				transferStreams,
 				terminate() {
 					return new Promise(resolve => {
 						const { worker, busy } = workerData;
@@ -2793,12 +2791,6 @@
 	const ABORT_EVENT_TYPE = "abort";
 
 	let webWorkerSource, webWorkerURI, webWorkerOptions;
-	let transferStreamsSupported = true;
-	try {
-		transferStreamsSupported = typeof structuredClone == FUNCTION_TYPE && structuredClone(new DOMException("", "AbortError")).code !== UNDEFINED_VALUE;
-	} catch {
-		// ignored
-	}
 
 	setWebWorkerBackend(createWebWorkerInterface);
 
@@ -2885,14 +2877,11 @@
 		});
 		const { readable, options } = workerData;
 		const { writable, closed, abortPipe } = watchClosedStream(workerData.writable, workerData);
-		let streamsTransferred;
 		try {
-			streamsTransferred = sendMessage({
+			sendMessage({
 				type: MESSAGE_START,
 				options,
-				config,
-				readable,
-				writable
+				config
 			}, workerData);
 		} catch (error) {
 			abortPipe();
@@ -2904,12 +2893,10 @@
 			workerData.onTaskFinished();
 			throw error;
 		}
-		if (!streamsTransferred) {
-			Object.assign(workerData, {
-				reader: readable.getReader(),
-				writer: writable.getWriter()
-			});
-		}
+		Object.assign(workerData, {
+			reader: readable.getReader(),
+			writer: writable.getWriter()
+		});
 		const { workerStartupTimeout } = config;
 		if (!workerData.workerAlive && Number.isFinite(workerStartupTimeout) && workerStartupTimeout >= 0) {
 			workerData.startupTimeout = setTimeout(() => onStartupTimeout(workerData), workerStartupTimeout);
@@ -2942,7 +2929,7 @@
 		}
 
 		async function closeWritable() {
-			if (!streamsTransferred && !writable.locked) {
+			if (!writable.locked) {
 				try {
 					await writable.getWriter().close();
 				} catch {
@@ -3133,31 +3120,14 @@
 		}
 	}
 
-	function sendMessage(message, { worker, writer, transferStreams, workerAlive }) {
+	function sendMessage(message, { worker, writer }) {
 		try {
-			const { value, readable, writable } = message;
-			const transferables = [];
+			const { value } = message;
 			if (value) {
 				message.value = toExactUint8Array(value);
-				transferables.push(message.value.buffer);
-			}
-			if (transferStreams && transferStreamsSupported && workerAlive) {
-				if (readable) {
-					transferables.push(readable);
-				}
-				if (writable) {
-					transferables.push(writable);
-				}
-			} else {
-				message.readable = message.writable = null;
-			}
-			if (transferables.length) {
 				try {
-					worker.postMessage(message, transferables);
-					return true;
+					worker.postMessage(message, [message.value.buffer]);
 				} catch {
-					transferStreamsSupported = false;
-					message.readable = message.writable = null;
 					worker.postMessage(message);
 				}
 			} else {
@@ -3306,7 +3276,7 @@
 
 	async function runWorker(stream, workerOptions) {
 		const { options, config } = workerOptions;
-		const { transferStreams, useWebWorkers, useCompressionStream, compressed, checkCrc32, computeCrc32, encrypted, format, codecURI } = options;
+		const { useWebWorkers, useCompressionStream, compressed, checkCrc32, computeCrc32, encrypted, format, codecURI } = options;
 		const { workerURI, createWorker, maxWorkers } = config;
 		if (format) {
 			if (codecURI) {
@@ -3314,7 +3284,6 @@
 			}
 			await ensureCodecStreams(format, options.codecURI);
 		}
-		workerOptions.transferStreams = !format && (transferStreams || (transferStreams === UNDEFINED_VALUE && config.transferStreams));
 		const streamCopy = !compressed && !checkCrc32 && !computeCrc32 && !encrypted;
 		const workerSupported = format === UNDEFINED_VALUE || Boolean(options.codecURI);
 		workerOptions.useWebWorkers = !streamCopy && workerSupported && (useWebWorkers || (useWebWorkers === UNDEFINED_VALUE && config.useWebWorkers));
@@ -5558,7 +5527,6 @@
 					encrypted,
 					useWebWorkers: getOptionValue$1(zipEntry, options, OPTION_USE_WEB_WORKERS),
 					useCompressionStream,
-					transferStreams: getOptionValue$1(zipEntry, options, OPTION_TRANSFER_STREAMS),
 					deflate64,
 					format: registeredCodec ? registeredCodec.format : UNDEFINED_VALUE,
 					codecURI: registeredCodec ? registeredCodec.codecURI : UNDEFINED_VALUE,
@@ -7255,7 +7223,6 @@
 		const ntfsTimestamp = getOptionValue(zipWriter, options, OPTION_NTFS_TIMESTAMP);
 		const keepOrder = getOptionValue(zipWriter, options, OPTION_KEEP_ORDER, true);
 		const useWebWorkers = getOptionValue(zipWriter, options, OPTION_USE_WEB_WORKERS);
-		const transferStreams = getOptionValue(zipWriter, options, OPTION_TRANSFER_STREAMS);
 		const bufferedWrite = getOptionValue(zipWriter, options, OPTION_BUFFERED_WRITE);
 		const createTempStream = getFunctionOptionValue(zipWriter, options, OPTION_CREATE_TEMP_STREAM);
 		const dataDescriptorSignature = getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR_SIGNATURE, true);
@@ -7321,7 +7288,6 @@
 				ntfsTimestamp,
 				keepOrder,
 				useWebWorkers,
-				transferStreams,
 				bufferedWrite,
 				createTempStream,
 				dataDescriptorSignature,
@@ -7765,7 +7731,6 @@
 			rawExtraField,
 			rawCentralExtraField,
 			useWebWorkers,
-			transferStreams,
 			onstart,
 			onprogress,
 			onend,
@@ -7853,7 +7818,6 @@
 					encrypted: encrypted && !passThroughEncryption,
 					useWebWorkers,
 					useCompressionStream,
-					transferStreams,
 					format,
 					codecURI,
 					compressionMethod

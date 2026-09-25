@@ -10,14 +10,14 @@
 //   argument   - it is set by an argument of the API rather than by an option
 //   computed   - the writer computes it, it is not an input
 //   derived    - the reader decodes it from another property
-//   deprecated - an alias kept for compatibility
+//   deprecated - an alias kept for compatibility, or null when it is ignored and nothing replaces it
 //   readOnly   - the reader exposes it and the writer does not produce it, deliberately
 //
 // Writer option categories:
 //   properties - the entry properties that expose its effect
 //   archive    - it acts on the whole archive rather than on an entry
 //   machinery  - it changes how the data is produced, not what the headers record
-//   deprecated - an alias kept for compatibility
+//   deprecated - an alias kept for compatibility, or null when it is ignored and nothing replaces it
 //   writeOnly  - the writer produces it and the reader does not expose it
 
 const ENTRY_PROPERTIES = {
@@ -154,7 +154,7 @@ const WRITER_OPTIONS = {
 	signCentralDirectory: { archive: "the digital signature record, read with ZipReader#digitalSignature" },
 	useWebWorkers: { machinery: "chooses where the codec runs" },
 	useCompressionStream: { machinery: "chooses which codec implementation runs" },
-	transferStreams: { machinery: "chooses how the data reaches the worker" },
+	transferStreams: { deprecated: null },
 	onstart: { machinery: "reports progress" },
 	onprogress: { machinery: "reports progress" },
 	onend: { machinery: "reports progress" }

@@ -10,12 +10,11 @@ async function test() {
 		await testAbortedBufferedFlush();
 		await testFailedDirectWrite();
 		// the same recovery over the worker message protocol, where outputSize has to cross the postMessage
-		// boundary instead of being read from the codec in the same scope. transferStreams: false pins that
-		// protocol, which is also what the first entry of any archive uses before a worker reports alive
-		zip.configure({ useWebWorkers: true, transferStreams: false });
+		// boundary instead of being read from the codec in the same scope
+		zip.configure({ useWebWorkers: true });
 		await testFailedDirectWrite();
 	} finally {
-		zip.configure({ useWebWorkers: false, transferStreams: true });
+		zip.configure({ useWebWorkers: false });
 		await zip.terminateWorkers();
 	}
 }

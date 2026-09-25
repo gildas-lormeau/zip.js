@@ -24,11 +24,10 @@ async function test() {
 		const controller = new AbortController();
 		const signal = controller.signal;
 		const abortedResult = entries[0].getData(new zip.TextWriter(), {
-			transferStreams: false,
 			onstart: () => controller.abort(),
 			signal
 		});
-		const queuedResult = entries[1].getData(new zip.TextWriter(), { transferStreams: false });
+		const queuedResult = entries[1].getData(new zip.TextWriter());
 		let aborted = false;
 		try {
 			await abortedResult;

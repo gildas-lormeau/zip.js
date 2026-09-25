@@ -30,7 +30,7 @@ async function test() {
 	try {
 		await zip.terminateWorkers();
 		for (const useWebWorkers of [false, true]) {
-			zip.configure({ useWebWorkers, useCompressionStream: false, maxWorkers: 1, transferStreams: false });
+			zip.configure({ useWebWorkers, useCompressionStream: false, maxWorkers: 1 });
 			const data = await writeArchive();
 			const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
 			const [entry] = await zipReader.getEntries();

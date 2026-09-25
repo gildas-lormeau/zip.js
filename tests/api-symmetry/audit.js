@@ -125,7 +125,7 @@ function report(label, surface, members, decisions, categories) {
 function checkReferences(decisions, category, members, label) {
 	Object.keys(decisions).forEach(name => {
 		const value = decisions[name][category];
-		if (value !== undefined) {
+		if (value !== undefined && value !== null) {
 			const references = Array.isArray(value) ? value : [value];
 			references.forEach(reference => {
 				if (!members.has(reference.split(".")[0])) {

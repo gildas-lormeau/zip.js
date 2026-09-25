@@ -32,10 +32,6 @@ const LITERAL_MESSAGES = {
 			"io.js sees the failure, so a caller comparing against it would miss the default path entirely. " +
 			"Exporting it would promise an identification that only holds for useXHR: true"
 	},
-	"lib/core/codec-worker-web.js": {
-		"": "the argument of a DOMException built to probe whether structuredClone preserves the code " +
-			"property, never thrown"
-	},
 	"lib/core/web-worker-base.js": {
 		"Unknown error": "the placeholder for a worker that failed without reporting anything, so the " +
 			"message is the absence of an identification rather than one a caller could act on"

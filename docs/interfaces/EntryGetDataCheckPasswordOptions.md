@@ -352,11 +352,16 @@ bytes as well, which costs one extra read per entry whenever the local file head
 
 ***
 
-### transferStreams?
+### ~~transferStreams?~~
 
 > `optional` **transferStreams?**: `boolean`
 
 `true` to transfer stream ownership to web workers.
+
+#### Deprecated
+
+The option is ignored: the data always crosses the worker boundary chunk by chunk, transferring the
+streams instead was slower on every engine measured.
 
 #### Default Value
 

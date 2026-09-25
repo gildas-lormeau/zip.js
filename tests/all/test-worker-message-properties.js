@@ -61,8 +61,7 @@ async function test() {
 			{ password: PASSWORD, zipCrypto: true },
 			{ rawPassword: new TextEncoder().encode(PASSWORD) }
 		]) {
-			await testEntry(options, true);
-			await testEntry(options, false);
+			await testEntry(options);
 		}
 		await testCheckPasswordOnly();
 		await testCodecImportFailure();
@@ -97,7 +96,7 @@ async function testCodecImportFailure() {
 		codecURI: "data:text/javascript;base64," + btoa(CODEC_MODULE_CODE)
 	});
 	try {
-		configure(true);
+		configure();
 		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
 		await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT), { compressionMethod: COMPRESSION_METHOD_XOR });
 		const data = await zipWriter.close();
@@ -117,21 +116,21 @@ async function testCodecImportFailure() {
 	}
 }
 
-async function testEntry(options, transferStreams) {
-	const data = await writeEntry(options, transferStreams);
+async function testEntry(options) {
+	const data = await writeEntry(options);
 	const text = await readEntry(data, {
 		password: options.password,
 		rawPassword: options.rawPassword,
 		checkCrc32: options.checkCrc32
-	}, transferStreams);
+	});
 	if (text != TEXT_CONTENT) {
 		throw new Error();
 	}
 }
 
 async function testCheckPasswordOnly() {
-	const data = await writeEntry({ password: PASSWORD }, true);
-	configure(true);
+	const data = await writeEntry({ password: PASSWORD });
+	configure();
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
 	try {
 		const entries = await zipReader.getEntries();
@@ -141,8 +140,8 @@ async function testCheckPasswordOnly() {
 	}
 }
 
-async function writeEntry(options, transferStreams) {
-	configure(transferStreams);
+async function writeEntry(options) {
+	configure();
 	const uint8ArrayWriter = new zip.Uint8ArrayWriter();
 	const zipWriter = new zip.ZipWriter(uint8ArrayWriter);
 	await zipWriter.add(FILENAME, new zip.TextReader(TEXT_CONTENT), options);
@@ -150,8 +149,8 @@ async function writeEntry(options, transferStreams) {
 	return uint8ArrayWriter.getData();
 }
 
-async function readEntry(data, options, transferStreams) {
-	configure(transferStreams);
+async function readEntry(data, options) {
+	configure();
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
 	try {
 		const entries = await zipReader.getEntries();
@@ -161,8 +160,8 @@ async function readEntry(data, options, transferStreams) {
 	}
 }
 
-function configure(transferStreams) {
-	zip.configure({ chunkSize: 1024, maxWorkers: 1, useWebWorkers: true, transferStreams });
+function configure() {
+	zip.configure({ chunkSize: 1024, maxWorkers: 1, useWebWorkers: true });
 }
 
 function recordNames(names, value, depth = 0) {
