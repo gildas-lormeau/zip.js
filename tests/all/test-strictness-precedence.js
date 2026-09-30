@@ -44,6 +44,7 @@ async function test() {
 		await assertLocalDirectoryChecked(mismatchedCrc32Data, { checkLocalDirectory: false }, {}, false, "checkLocalDirectory false skips the whole comparison");
 		await assertLocalDirectoryChecked(mismatchedCrc32Data, { strictness: "strict" }, { checkLocalDirectory: false }, false, "checkLocalDirectory false over a strict reader");
 		await assertLocalDirectoryChecked(mismatchedCrc32Data, { checkLocalDirectory: false }, { strictness: "strict" }, false, "checkLocalDirectory false beats a strict call");
+		await assertGetEntriesOptionsReachGetData(mismatchedFilenameData, mismatchedCrc32Data);
 		await assertCheckLocalFilename(mismatchedFilenameData, mismatchedCrc32Data);
 		await assertSelfExtracting(mismatchedCrc32Data, mismatchedFilenameData);
 		await assertReadCounts();
@@ -89,9 +90,20 @@ async function assertGetEntries(testCase, data) {
 	}
 }
 
-async function assertLocalDirectoryChecked(data, readerOptions, callOptions, expected, name) {
+// the options passed to getEntries() govern the entries it returns: they sit between the constructor options
+// and the getData() options, with the same strictness resolution at each level
+async function assertGetEntriesOptionsReachGetData(mismatchedFilenameData, mismatchedCrc32Data) {
+	await assertLocalDirectoryChecked(mismatchedFilenameData, {}, {}, true, "checkAmbiguity on getEntries compares the filename", { checkAmbiguity: true });
+	await assertLocalDirectoryChecked(mismatchedCrc32Data, {}, {}, false, "tolerant on getEntries skips the comparison", { strictness: "tolerant" });
+	await assertLocalDirectoryChecked(mismatchedCrc32Data, {}, { strictness: "strict" }, true, "getData beats getEntries", { strictness: "tolerant" });
+	await assertLocalDirectoryChecked(mismatchedFilenameData, { checkAmbiguity: true }, {}, false, "checkAmbiguity false on getEntries downgrades a strict reader", { checkAmbiguity: false });
+	await assertLocalDirectoryChecked(mismatchedCrc32Data, { strictness: "tolerant" }, {}, false, "checkAmbiguity false on getEntries keeps a tolerant reader tolerant", { checkAmbiguity: false });
+	await assertLocalDirectoryChecked(mismatchedFilenameData, {}, {}, true, "checkLocalDirectory on getEntries compares the filename", { checkLocalDirectory: true });
+}
+
+async function assertLocalDirectoryChecked(data, readerOptions, callOptions, expected, name, getEntriesOptions = {}) {
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), readerOptions);
-	const entries = await zipReader.getEntries();
+	const entries = await zipReader.getEntries(getEntriesOptions);
 	let rejected = false;
 	try {
 		await entries[0].getData(new zip.Uint8ArrayWriter(), callOptions);
