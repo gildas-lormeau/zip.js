@@ -1,6 +1,6 @@
 {
 	"name": "@zip-js/zip-js",
-	"version": "2.21.0",
+	"version": "2.22.0",
 	"exports": {
 		".": "./index.js",
 		"./external": "./lib/zip-fs-external.js",
