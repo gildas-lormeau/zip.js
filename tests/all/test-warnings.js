@@ -26,6 +26,7 @@ async function test() {
 		await checkMalformedLocalExtraField();
 		await checkTrailingCentralDirectoryData();
 		await checkMismatchedCentralDirectoryOffset();
+		await checkCentralDirectoryOffsetPastTheEnd();
 		await checkMissingZip64ExtraField();
 		await checkMismatchedLocalFileHeader();
 		await checkUnknownZip64ExtensibleData();
@@ -199,6 +200,37 @@ async function checkMismatchedCentralDirectoryOffset() {
 	}
 }
 
+// the stored central directory offset lands past the end of the file or too close to it to hold a record:
+// first damaged records with intact entries, then archives written behind a prefix later removed whose
+// comment or zip64 records sit between the central directory and the end of the file
+async function checkCentralDirectoryOffsetPastTheEnd() {
+	const damaged = await buildArchive();
+	const endOfDirectoryOffset = findEndOfCentralDirectory(damaged);
+	getView(damaged).setUint32(endOfDirectoryOffset + 16, damaged.length + JUNK_LENGTH, true);
+	const truncated = await buildArchive();
+	getView(truncated).setUint32(endOfDirectoryOffset + 16, truncated.length - 2, true);
+	const commented = await buildArchive({}, {}, new TextEncoder().encode("archive comment"));
+	shiftOffsets(commented, commented.length + JUNK_LENGTH);
+	const zip64 = await buildArchive({}, { zip64: true });
+	shiftOffsets(zip64, zip64.length + JUNK_LENGTH);
+	const cases = [
+		["a damaged end of central directory record", damaged],
+		["a stored offset just before the end of the file", truncated],
+		["a removed prefix and a comment", commented],
+		["a removed prefix and zip64 records", zip64]
+	];
+	for (const [label, data] of cases) {
+		const { reader, entries } = await readEntries(data);
+		assertWarning(reader.warnings, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
+		assert(!reader.warnings.some(warning => warning.reason == zip.WARNING_PREPENDED_DATA),
+			"no data is prepended with " + label);
+		assert(entries.length == 2, "the entries must stay listed with " + label);
+		assert(await entries[0].getData(new zip.TextWriter()) == "first content", "the first entry must stay readable with " + label);
+		assert(await entries[1].getData(new zip.TextWriter()) == "second content", "the second entry must stay readable with " + label);
+		await assertStrictRejection(data, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
+	}
+}
+
 // one central directory record carries the Zip64 sentinel in its compressed size with no Zip64 extra field:
 // that entry is unreadable, the other one must stay listed and readable, and strict rejects the archive
 async function checkMissingZip64ExtraField() {
@@ -303,11 +335,30 @@ async function checkReaderStreamChunk() {
 	reader.releaseLock();
 }
 
-async function buildArchive(options = {}, writerOptions = {}) {
+async function buildArchive(options = {}, writerOptions = {}, comment) {
 	const writer = new zip.ZipWriter(new zip.Uint8ArrayWriter(), Object.assign({ level: 0 }, writerOptions));
 	await writer.add("aa.txt", new zip.TextReader("first content"), options);
 	await writer.add("bb.txt", new zip.TextReader("second content"), options);
-	return writer.close();
+	return writer.close(comment);
+}
+
+// rewrites every offset as if the archive had been written behind a prefix of delta bytes
+function shiftOffsets(data, delta) {
+	const view = getView(data);
+	const endOfDirectoryOffset = findEndOfCentralDirectory(data);
+	let centralDirectoryOffset = view.getUint32(endOfDirectoryOffset + 16, true);
+	if (centralDirectoryOffset == 0xffffffff) {
+		const zip64Offset = Number(view.getBigUint64(endOfDirectoryOffset - 12, true));
+		centralDirectoryOffset = Number(view.getBigUint64(zip64Offset + 48, true));
+		view.setBigUint64(zip64Offset + 48, BigInt(centralDirectoryOffset + delta), true);
+	} else {
+		view.setUint32(endOfDirectoryOffset + 16, centralDirectoryOffset + delta, true);
+	}
+	for (let offset = centralDirectoryOffset; view.getUint32(offset, true) == 0x02014b50;
+		offset += 46 + view.getUint16(offset + 28, true) + view.getUint16(offset + 30, true) + view.getUint16(offset + 32, true)) {
+		assert(view.getUint32(offset + 42, true) != 0xffffffff, "the local header offsets must fit in 32 bits");
+		view.setUint32(offset + 42, view.getUint32(offset + 42, true) + delta, true);
+	}
 }
 
 async function readEntries(data, options) {

@@ -35,10 +35,12 @@ async function test() {
 	const filesystemOK = await testFilesystem();
 	const splitOutputOK = await testSplitOutput();
 	const prependedDataOK = await testPrependedData(data);
+	const concatenatedOK = await testConcatenated();
 	if (!zip64OK ||
 		!filesystemOK ||
 		!splitOutputOK ||
 		!prependedDataOK ||
+		!concatenatedOK ||
 		entries.length != 2 ||
 		entries[0].filename != "first.txt" ||
 		entries[1].filename != "second.txt" ||
@@ -145,6 +147,33 @@ async function testPrependedData(signedData) {
 		entries[1].filename == "second.txt" &&
 		content == TEXT_CONTENT &&
 		equalArrays(zipReader.digitalSignature, SIGNATURE_DATA);
+}
+
+// two signed archives with the same layout concatenated: the stored offset of the last one lands on the
+// central directory of the first, so the signature record is what locates the central directory of the last
+async function testConcatenated() {
+	const lastSignatureData = new Uint8Array([0x30, 0x82, 0x02, 0x01, 0xca, 0xfe, 0xba, 0xbe]);
+	const firstData = await buildSignedZipFile("the first archive", SIGNATURE_DATA);
+	const lastData = await buildSignedZipFile("the last archive!", lastSignatureData);
+	const data = new Uint8Array(firstData.length + lastData.length);
+	data.set(firstData);
+	data.set(lastData, firstData.length);
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+	const entries = await zipReader.getEntries();
+	const content = await entries[0].getData(new zip.TextWriter());
+	await zipReader.close();
+	return firstData.length == lastData.length &&
+		entries.length == 2 &&
+		content == "the last archive!" &&
+		zipReader.warnings.some(warning => warning.reason == zip.WARNING_PREPENDED_CENTRAL_DIRECTORY) &&
+		equalArrays(zipReader.digitalSignature, lastSignatureData);
+}
+
+async function buildSignedZipFile(content, signatureData) {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { level: 0 });
+	await zipWriter.add("first.txt", new zip.TextReader(content));
+	await zipWriter.add("second.txt", new zip.TextReader(content));
+	return zipWriter.close(undefined, { signCentralDirectory: () => signatureData });
 }
 
 async function getCloseError(options) {
