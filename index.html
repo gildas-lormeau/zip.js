@@ -383,6 +383,68 @@ configure({
 			compression <code>level</code> values and, via the <code>"deflate64-raw"</code> format, of Deflate64
 			decompression.
 		</p>
+		<h2 id="zstd">Zstandard entries</h2>
+		<p>
+			Zip files with entries compressed with Zstandard (compression method 93) are produced by 7-Zip, WinZip
+			and, since Node.js 26.8, by the ZIP API of <code>node:zlib</code>. zip.js lists these entries but reports
+			an <code>ERR_UNSUPPORTED_COMPRESSION</code> error when reading their data until a codec is registered
+			with <code>registerCodec()</code>. A codec is a pair of classes implementing the
+			<code>CompressionStream</code> and <code>DecompressionStream</code> interfaces; the
+			<code>versionNeeded</code> value <code>63</code> is the version required to extract Zstandard entries.
+		</p>
+		<p>
+			In Node.js 22.15 and later, <code>node:zlib</code> provides Zstandard streams, so the codec below needs
+			no dependency. It reads and writes such entries with <code>ZipReader</code> and <code>ZipWriter</code>,
+			the written entries are readable by 7-Zip and by the ZIP API of <code>node:zlib</code>, and the
+			<code>uncompressedSize</code> option received by the compression class is passed on as the pledged
+			source size when it is known.
+		</p>
+		<pre><code class="prettyprint">import { Duplex } from "node:stream";
+import { createZstdCompress, createZstdDecompress } from "node:zlib";
+import { registerCodec, ZipWriter } from "@zip.js/zip.js";
+
+class ZstdCompressionStream {
+  constructor(format, options) {
+    return Duplex.toWeb(createZstdCompress({ pledgedSrcSize: options.uncompressedSize }));
+  }
+}
+
+class ZstdDecompressionStream {
+  constructor() {
+    return Duplex.toWeb(createZstdDecompress());
+  }
+}
+
+registerCodec({
+  compressionMethod: 93,
+  format: "zstd",
+  versionNeeded: 63,
+  CompressionStream: ZstdCompressionStream,
+  DecompressionStream: ZstdDecompressionStream
+});
+
+const zipWriter = new ZipWriter(writer);
+await zipWriter.add("lorem.txt", reader, { compressionMethod: 93 });</code></pre>
+		<p>
+			Bun implements the <a href="https://github.com/whatwg/compression/issues/54">proposal</a> adding the
+			format to the Compression Streams API, so its classes can be registered as they are: zip.js constructs
+			them with the registered format as first argument.
+		</p>
+		<pre><code class="prettyprint">registerCodec({
+  compressionMethod: 93,
+  format: "zstd",
+  versionNeeded: 63,
+  CompressionStream,
+  DecompressionStream
+});</code></pre>
+		<p>
+			In browsers and Deno, no Zstandard implementation is built in yet. Reading is covered by a JavaScript
+			decoder such as <a href="https://github.com/101arrowz/fzstd">fzstd</a>, wrapped in a
+			<code>TransformStream</code> as in the codec used by the
+			<a href="https://github.com/gildas-lormeau/zip.js/blob/master/tests/vendor/zstd-codec.js">test suite</a>;
+			writing needs a WebAssembly build of Zstandard. When a codec is registered with the
+			<code>codecURI</code> option instead of classes, it runs in the web workers.
+		</p>
 		<h2 id="build">Build</h2>
 		<p>
 			The <a href="builder/index.html">online builder</a> generates a customized standalone build of zip.js
