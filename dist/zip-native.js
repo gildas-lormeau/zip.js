@@ -4899,16 +4899,22 @@
 					directoryDataOffset = getDiskOffset$1(reader, getUint32$1(endOfDirectoryLocatorView, 4)) + getBigUint64(endOfDirectoryLocatorView, 8);
 					let endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
 					let endOfDirectoryView = getDataView(endOfDirectoryArray);
-					const expectedDirectoryDataOffset = endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH - ZIP64_END_OF_CENTRAL_DIR_LENGTH;
-					if ((endOfDirectoryArray.length < ZIP64_END_OF_CENTRAL_DIR_LENGTH || getUint32$1(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) &&
-						directoryDataOffset != expectedDirectoryDataOffset && expectedDirectoryDataOffset >= 0) {
-						const originalDirectoryDataOffset = directoryDataOffset;
-						directoryDataOffset = expectedDirectoryDataOffset;
-						if (directoryDataOffset > originalDirectoryDataOffset) {
-							prependedDataLength = directoryDataOffset - originalDirectoryDataOffset;
+					if (endOfDirectoryArray.length < ZIP64_END_OF_CENTRAL_DIR_LENGTH || getUint32$1(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
+						const locatorOffset = endOfDirectoryInfo.offset - ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH;
+						let expectedDirectoryDataOffset = locatorOffset - ZIP64_END_OF_CENTRAL_DIR_LENGTH;
+						if (!await startsWithSignature(reader, expectedDirectoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_SIGNATURE)) {
+							expectedDirectoryDataOffset = await findZip64EndOfDirectoryOffset(reader, locatorOffset);
 						}
-						endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
-						endOfDirectoryView = getDataView(endOfDirectoryArray);
+						if (expectedDirectoryDataOffset !== UNDEFINED_VALUE && expectedDirectoryDataOffset >= 0 &&
+							directoryDataOffset != expectedDirectoryDataOffset) {
+							const originalDirectoryDataOffset = directoryDataOffset;
+							directoryDataOffset = expectedDirectoryDataOffset;
+							if (directoryDataOffset > originalDirectoryDataOffset) {
+								prependedDataLength = directoryDataOffset - originalDirectoryDataOffset;
+							}
+							endOfDirectoryArray = await readUint8Array(reader, directoryDataOffset, ZIP64_END_OF_CENTRAL_DIR_LENGTH);
+							endOfDirectoryView = getDataView(endOfDirectoryArray);
+						}
 					}
 					if (endOfDirectoryArray.length < ZIP64_END_OF_CENTRAL_DIR_LENGTH || getUint32$1(endOfDirectoryView, 0) != ZIP64_END_OF_CENTRAL_DIR_SIGNATURE) {
 						throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
@@ -4995,18 +5001,19 @@
 						directoryDataOffset = expectedDirectoryDataOffset;
 						directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
 						directoryView = getDataView(directoryArray);
-						if (directoryDataOffset > originalDirectoryDataOffset) {
-							prependedDataLength += directoryDataOffset - originalDirectoryDataOffset;
+						const offsetDelta = directoryDataOffset - originalDirectoryDataOffset;
+						const localHeaderOffset = getFirstLocalHeaderOffset(directoryArray, directoryView);
+						const localHeaderFound = localHeaderOffset !== UNDEFINED_VALUE &&
+							await startsWithSignature(reader, localHeaderOffset, LOCAL_FILE_HEADER_SIGNATURE);
+						const shiftedLocalHeaderFound = localHeaderOffset !== UNDEFINED_VALUE &&
+							await startsWithSignature(reader, localHeaderOffset + offsetDelta, LOCAL_FILE_HEADER_SIGNATURE);
+						if (offsetDelta > 0 && !(localHeaderFound && !shiftedLocalHeaderFound)) {
+							prependedDataLength += offsetDelta;
 							prependedCentralDirectory = storedPointsAtDirectory;
 						} else {
 							reportAmbiguity(checkAmbiguity, warnings, WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
-							const offsetDelta = directoryDataOffset - originalDirectoryDataOffset;
-							if (directoryArray.length >= CENTRAL_FILE_HEADER_LENGTH) {
-								const localHeaderOffset = getUint32$1(directoryView, 42);
-								if (!await startsWithSignature(reader, localHeaderOffset, LOCAL_FILE_HEADER_SIGNATURE) &&
-									await startsWithSignature(reader, localHeaderOffset + offsetDelta, LOCAL_FILE_HEADER_SIGNATURE)) {
-									prependedDataLength += offsetDelta;
-								}
+							if (offsetDelta < 0 && !localHeaderFound && shiftedLocalHeaderFound) {
+								prependedDataLength += offsetDelta;
 							}
 						}
 					}
@@ -5672,6 +5679,46 @@
 				return startOffset + indexByte;
 			}
 		}
+	}
+
+	async function findZip64EndOfDirectoryOffset(reader, endOffset) {
+		const startOffset = Math.max(0, endOffset - (ZIP64_END_OF_CENTRAL_DIR_LENGTH + MAX_16_BITS));
+		const tailArray = await readUint8Array(reader, startOffset, endOffset - startOffset);
+		const tailView = getDataView(tailArray);
+		for (let indexByte = tailArray.length - ZIP64_END_OF_CENTRAL_DIR_LENGTH; indexByte >= 0; indexByte--) {
+			if (getUint32$1(tailView, indexByte) == ZIP64_END_OF_CENTRAL_DIR_SIGNATURE &&
+				indexByte + 12 + Number(tailView.getBigUint64(indexByte + 4, true)) == tailArray.length) {
+				return startOffset + indexByte;
+			}
+		}
+	}
+
+	function getFirstLocalHeaderOffset(directoryArray, directoryView) {
+		if (directoryArray.length < CENTRAL_FILE_HEADER_LENGTH) {
+			return UNDEFINED_VALUE;
+		}
+		const localHeaderOffset = getUint32$1(directoryView, 42);
+		if (localHeaderOffset != MAX_32_BITS) {
+			return localHeaderOffset;
+		}
+		let offsetExtraField = CENTRAL_FILE_HEADER_LENGTH + getUint16$1(directoryView, 28);
+		const endExtraField = Math.min(offsetExtraField + getUint16$1(directoryView, 30), directoryArray.length);
+		while (offsetExtraField + 4 <= endExtraField) {
+			const type = getUint16$1(directoryView, offsetExtraField);
+			const size = getUint16$1(directoryView, offsetExtraField + 2);
+			if (type == EXTRAFIELD_TYPE_ZIP64) {
+				let offsetValue = offsetExtraField + 4;
+				if (getUint32$1(directoryView, 24) == MAX_32_BITS) {
+					offsetValue += 8;
+				}
+				if (getUint32$1(directoryView, 20) == MAX_32_BITS) {
+					offsetValue += 8;
+				}
+				return offsetValue + 8 <= endExtraField ? getBigUint64(directoryView, offsetValue) : UNDEFINED_VALUE;
+			}
+			offsetExtraField += 4 + size;
+		}
+		return UNDEFINED_VALUE;
 	}
 
 	function readDigitalSignature(signatureRecordArray) {

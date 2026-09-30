@@ -5650,16 +5650,18 @@ export const WARNING_PREPENDED_CENTRAL_DIRECTORY: string;
  */
 export const WARNING_TRAILING_CENTRAL_DIRECTORY_DATA: string;
 /**
- * Warning reason: the end of central directory record stores a central directory offset that points past the
- * central directory actually found before it, so the archive was read from the directory found rather than from
- * the stored offset (see {@link ZipReader#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} under
+ * Warning reason: the end of central directory record stores a central directory offset that does not point at
+ * the central directory actually found before it, so the archive was read from the directory found rather than
+ * from the stored offset (see {@link ZipReader#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} under
  * `strictness: "strict"`
  *
  * @remarks
  * Such an archive is typically one written with absolute offsets for a prefix that is no longer there, e.g. a
- * self-extracting archive whose stub was removed. When the local file header of the first entry is found at
- * the same shifted position, the entries are read from the shifted positions; otherwise the offsets stored in
- * the central directory are used as they are.
+ * self-extracting archive whose stub was removed, or one whose end of central directory record was damaged.
+ * When the local file header of the first entry is found at the same shifted position only, the entries are
+ * read from the shifted positions; otherwise the offsets stored in the central directory are used as they are.
+ * A stored offset short of the directory whose entries are found at the shifted positions is diagnosed as
+ * {@link WARNING_PREPENDED_DATA} instead.
  */
 export const WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET: string;
 /**

@@ -27,6 +27,8 @@ async function test() {
 		await checkTrailingCentralDirectoryData();
 		await checkMismatchedCentralDirectoryOffset();
 		await checkCentralDirectoryOffsetPastTheEnd();
+		await checkCentralDirectoryOffsetBeforeTheDirectory();
+		await checkShiftedZip64Offsets();
 		await checkMissingZip64ExtraField();
 		await checkMismatchedLocalFileHeader();
 		await checkUnknownZip64ExtensibleData();
@@ -231,6 +233,51 @@ async function checkCentralDirectoryOffsetPastTheEnd() {
 	}
 }
 
+// the stored central directory offset lands before the directory while the entries sit where their records
+// say: a damaged offset, then a declared length short of exactly one record whose count matches, both of which
+// used to be diagnosed as prepended data with every entry shifted past its local file header
+async function checkCentralDirectoryOffsetBeforeTheDirectory() {
+	const damaged = await buildArchive();
+	const endOfDirectoryOffset = findEndOfCentralDirectory(damaged);
+	const damagedView = getView(damaged);
+	damagedView.setUint32(endOfDirectoryOffset + 16, damagedView.getUint32(endOfDirectoryOffset + 16, true) - 1, true);
+	const shortened = await buildArchive();
+	const shortenedView = getView(shortened);
+	const centralDirectoryLength = shortenedView.getUint32(endOfDirectoryOffset + 12, true);
+	shortenedView.setUint32(endOfDirectoryOffset + 12, centralDirectoryLength / 2, true);
+	shortenedView.setUint16(endOfDirectoryOffset + 8, 1, true);
+	shortenedView.setUint16(endOfDirectoryOffset + 10, 1, true);
+	for (const [label, data, filenames] of [["a damaged offset", damaged, ["aa.txt", "bb.txt"]], ["a shortened directory", shortened, ["bb.txt"]]]) {
+		const { reader, entries } = await readEntries(data, { extractPrependedData: true });
+		assertWarning(reader.warnings, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
+		assert(entries.map(entry => entry.filename).join() == filenames.join(), "the entries must stay listed with " + label);
+		assert(reader.warnings.some(warning => warning.reason == zip.WARNING_PREPENDED_DATA) == (entries[0].offset > 0),
+			"the bytes before the first listed entry are the prepended data with " + label);
+		assert(reader.prependedData.length == entries[0].offset, "the prepended data must stop at the first listed entry with " + label);
+		for (const entry of entries) {
+			assert(await entry.getData(new zip.TextWriter()) == (entry.filename == "aa.txt" ? "first content" : "second content"),
+				entry.filename + " must stay readable with " + label);
+		}
+		await assertStrictRejection(data, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
+	}
+}
+
+// the offsets of the records are saturated and resolved by their zip64 extra fields, and every offset is off by
+// the same amount, as after a removed prefix: the probe deciding whether the entries moved must read the zip64
+// field rather than the sentinel
+async function checkShiftedZip64Offsets() {
+	const data = saturateOffsets(await buildArchive(), JUNK_LENGTH);
+	const { reader, entries } = await readEntries(data);
+	assertWarning(reader.warnings, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
+	assert(!reader.warnings.some(warning => warning.reason == zip.WARNING_PREPENDED_DATA), "no data is prepended with shifted zip64 offsets");
+	assert(entries.length == 2, "the entries must stay listed with shifted zip64 offsets");
+	assert(await entries[0].getData(new zip.TextWriter()) == "first content", "the first entry must stay readable with shifted zip64 offsets");
+	assert(await entries[1].getData(new zip.TextWriter()) == "second content", "the second entry must stay readable with shifted zip64 offsets");
+	const { reader: intactReader, entries: intactEntries } = await readEntries(saturateOffsets(await buildArchive(), 0));
+	assert(!intactReader.warnings.length, "saturated offsets resolved by zip64 fields must not warn");
+	assert(await intactEntries[1].getData(new zip.TextWriter()) == "second content", "the entries must stay readable with saturated offsets");
+}
+
 // one central directory record carries the Zip64 sentinel in its compressed size or in its offset with no Zip64
 // extra field: that entry is unreadable but fully parsed otherwise, the other one must stay listed and readable,
 // the sentinel offset must not pass for a position, and strict rejects the archive
@@ -295,6 +342,11 @@ async function checkUnknownZip64ExtensibleData() {
 	const { reader, entries } = await readEntries(data);
 	assertWarning(reader.warnings, zip.WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA);
 	assert(entries.length == 2, "the entries must stay listed with unknown zip64 extensible data");
+	const { reader: prependedReader, entries: prependedEntries } = await readEntries(concat(new Uint8Array(JUNK_LENGTH), data));
+	assertWarning(prependedReader.warnings, zip.WARNING_UNKNOWN_ZIP64_EXTENSIBLE_DATA);
+	assertWarning(prependedReader.warnings, zip.WARNING_PREPENDED_DATA);
+	assert(prependedEntries.length == 2, "the entries must stay listed behind prepended data with zip64 extensible data");
+	assert(await prependedEntries[1].getData(new zip.TextWriter()) == "second content", "the entries must stay readable behind prepended data with zip64 extensible data");
 }
 
 async function checkMismatchedZip64EndOfCentralDirectory() {
@@ -346,6 +398,36 @@ async function buildArchive(options = {}, writerOptions = {}, comment) {
 	await writer.add("aa.txt", new zip.TextReader("first content"), options);
 	await writer.add("bb.txt", new zip.TextReader("second content"), options);
 	return writer.close(comment);
+}
+
+// rebuilds the central directory with saturated offsets resolved by zip64 extra fields, every offset shifted
+// by delta bytes, and a stored central directory offset shifted by the same amount
+function saturateOffsets(data, delta) {
+	const view = getView(data);
+	const endOfDirectoryOffset = findEndOfCentralDirectory(data);
+	const centralDirectoryOffset = view.getUint32(endOfDirectoryOffset + 16, true);
+	const records = [];
+	let offset = centralDirectoryOffset;
+	while (offset < endOfDirectoryOffset) {
+		const recordLength = 46 + view.getUint16(offset + 28, true) + view.getUint16(offset + 30, true) + view.getUint16(offset + 32, true);
+		const record = new Uint8Array(recordLength + 12);
+		record.set(data.subarray(offset, offset + recordLength));
+		const recordView = getView(record);
+		recordView.setUint16(recordLength, 0x0001, true);
+		recordView.setUint16(recordLength + 2, 8, true);
+		recordView.setBigUint64(recordLength + 4, BigInt(recordView.getUint32(42, true) + delta), true);
+		recordView.setUint16(6, 45, true);
+		recordView.setUint32(42, 0xffffffff, true);
+		recordView.setUint16(30, recordView.getUint16(30, true) + 12, true);
+		records.push(record);
+		offset += recordLength;
+	}
+	const result = concat(data.subarray(0, centralDirectoryOffset), ...records, data.subarray(endOfDirectoryOffset));
+	const resultView = getView(result);
+	const resultEndOfDirectoryOffset = findEndOfCentralDirectory(result);
+	resultView.setUint32(resultEndOfDirectoryOffset + 12, records.reduce((length, record) => length + record.length, 0), true);
+	resultView.setUint32(resultEndOfDirectoryOffset + 16, centralDirectoryOffset + delta, true);
+	return result;
 }
 
 // rewrites every offset as if the archive had been written behind a prefix of delta bytes
