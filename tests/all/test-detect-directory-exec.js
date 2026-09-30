@@ -9,12 +9,12 @@ async function test() {
 		{
 			name: "option-directory",
 			options: { compressionMethod: 0, directory: true },
-			expect: { directory: true, executable: true }
+			expect: { directory: true, executable: false }
 		},
 		{
 			name: "filename-slash",
 			addArgs: ["dir/", null, { compressionMethod: 0 }],
-			expect: { directory: true, executable: true }
+			expect: { directory: true, executable: false }
 		},
 		{
 			name: "msdos-raw-dir",

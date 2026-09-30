@@ -38,6 +38,12 @@ async function test() {
 		if (type !== testCase.type) {
 			throw new Error(`${testCase.name}: expected file type ${testCase.type.toString(8)}, got ${type.toString(8)}`);
 		}
+		// the execute bits of a directory (0o40755 by default) mean searchable, so the flag stays false for
+		// directories like it does for symlinks, and only the executable file reports it
+		const expectedExecutable = testCase.name == "executable.txt";
+		if (entry.executable !== expectedExecutable) {
+			throw new Error(`${testCase.name}: expected executable ${expectedExecutable}, got ${entry.executable}`);
+		}
 	}
 	const msDosBlobWriter = new zip.BlobWriter("application/zip");
 	const msDosZipWriter = new zip.ZipWriter(msDosBlobWriter, { msDosCompatible: true });

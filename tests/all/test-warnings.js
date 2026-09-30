@@ -26,6 +26,7 @@ async function test() {
 		await checkMalformedLocalExtraField();
 		await checkTrailingCentralDirectoryData();
 		await checkMismatchedCentralDirectoryOffset();
+		await checkMissingZip64ExtraField();
 		await checkMismatchedLocalFileHeader();
 		await checkUnknownZip64ExtensibleData();
 		await checkMismatchedZip64EndOfCentralDirectory();
@@ -196,6 +197,34 @@ async function checkMismatchedCentralDirectoryOffset() {
 		assert(await entries[1].getData(new zip.TextWriter()) == "second content", "the second entry must stay readable with " + label);
 		await assertStrictRejection(data, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
 	}
+}
+
+// one central directory record carries the Zip64 sentinel in its compressed size with no Zip64 extra field:
+// that entry is unreadable, the other one must stay listed and readable, and strict rejects the archive
+async function checkMissingZip64ExtraField() {
+	const data = await buildArchive();
+	const view = getView(data);
+	const centralDirectoryOffset = view.getUint32(findEndOfCentralDirectory(data) + 16, true);
+	view.setUint32(centralDirectoryOffset + 20, 0xffffffff, true);
+	const { reader, entries } = await readEntries(data);
+	const warning = assertWarning(reader.warnings, zip.WARNING_MISSING_ZIP64_EXTRA_FIELD);
+	assert(warning.filename == "aa.txt", "the warning must name the entry lacking the zip64 field");
+	assert(entries.length == 2, "the other entries must stay listed");
+	assert(await entries[1].getData(new zip.TextWriter()) == "second content", "the intact entry must stay readable");
+	let error;
+	try {
+		await entries[0].getData(new zip.TextWriter());
+	} catch (thrown) {
+		error = thrown;
+	}
+	assert(error && error.message == zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, "reading the damaged entry must fail with the zip64 field error");
+	try {
+		await readEntries(data, { strictness: "strict" });
+	} catch (strictError) {
+		assert(strictError.message == zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, "strict must reject the archive with the zip64 field error");
+		return;
+	}
+	throw new Error("strict must reject an archive whose central directory record lacks a zip64 field");
 }
 
 async function checkMismatchedLocalFileHeader() {

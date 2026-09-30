@@ -49,7 +49,8 @@ async function testTruncatedZip64ExtraField() {
 	const array = addCentralDirectoryExtraField(await writeZip(), new Uint8Array([0x01, 0x00, 0x00, 0x00]), (view, directoryOffset) => {
 		view.setUint32(directoryOffset + 24, 0xFFFFFFFF, true);
 	});
-	await expectControlledError(array, zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
+	await expectControlledError(array, zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, { strictness: "strict" });
+	await expectDeferredError(array, zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, zip.WARNING_MISSING_ZIP64_EXTRA_FIELD);
 }
 
 // truncated Unicode path, AES and extended timestamp extra fields must be
@@ -100,14 +101,36 @@ function addCentralDirectoryExtraField(array, extraField, patchDirectoryRecord) 
 	return result;
 }
 
-async function expectControlledError(array, expectedMessage) {
-	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array));
+async function expectControlledError(array, expectedMessage, options) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array), options);
 	try {
 		await zipReader.getEntries();
 		throw new Error("no error thrown");
 	} catch (error) {
 		if (error.message != expectedMessage) {
 			throw error;
+		}
+	} finally {
+		await zipReader.close();
+	}
+}
+
+// at the default strictness the archive stays listable: the damaged entry is reported as a warning and
+// only reading its data throws
+async function expectDeferredError(array, expectedMessage, expectedReason) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array));
+	try {
+		const [entry] = await zipReader.getEntries();
+		if (!zipReader.warnings.some(warning => warning.reason == expectedReason)) {
+			throw new Error("expected the warning " + JSON.stringify(expectedReason) + ", got " + JSON.stringify(zipReader.warnings));
+		}
+		try {
+			await entry.getData(new zip.TextWriter());
+			throw new Error("no error thrown when reading the entry");
+		} catch (error) {
+			if (error.message != expectedMessage) {
+				throw error;
+			}
 		}
 	} finally {
 		await zipReader.close();

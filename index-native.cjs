@@ -4796,6 +4796,7 @@ const WARNING_PREPENDED_DATA = "prepended data";
 const WARNING_PREPENDED_CENTRAL_DIRECTORY = "prepended central directory";
 const WARNING_TRAILING_CENTRAL_DIRECTORY_DATA = "trailing central directory data";
 const WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET = "mismatched central directory offset";
+const WARNING_MISSING_ZIP64_EXTRA_FIELD = "missing zip64 extra field";
 const WARNING_DUPLICATE_FILENAME = "duplicate filename";
 const WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY = "mismatched zip64 end of central directory record";
 const WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY = "multiple end of central directory records";
@@ -5130,7 +5131,16 @@ class ZipReader {
 				filename,
 				comment
 			});
-			const malformedExtraField = readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
+			let malformedExtraField;
+			try {
+				malformedExtraField = readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
+			} catch (error) {
+				if (checkAmbiguity || error.message != ERR_EXTRAFIELD_ZIP64_NOT_FOUND) {
+					throw error;
+				}
+				fileEntry.zip64ExtraFieldMissing = true;
+				addWarning(warnings, WARNING_MISSING_ZIP64_EXTRA_FIELD, fileEntry.filename);
+			}
 			filename = fileEntry.filename;
 			if (normalizeFilename) {
 				const normalizedFilename = normalizeFilename(filename);
@@ -5172,11 +5182,12 @@ class ZipReader {
 			const sticky = Boolean(fileEntry.unixMode & FILE_ATTR_UNIX_STICKY_MASK);
 			const unixType = fileEntry.unixMode === UNDEFINED_VALUE ? unixExternalUpper : fileEntry.unixMode;
 			const symlink = (unixType & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_SYMLINK;
-			const executable = !symlink && ((fileEntry.unixMode !== UNDEFINED_VALUE)
-				? ((fileEntry.unixMode & FILE_ATTR_UNIX_EXECUTABLE_MASK) != 0)
-				: (unixCompatible && ((unixExternalUpper & FILE_ATTR_UNIX_EXECUTABLE_MASK) != 0)));
 			const modeIsDir = fileEntry.unixMode !== UNDEFINED_VALUE && ((fileEntry.unixMode & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_DIR);
 			const upperIsDir = ((unixExternalUpper & FILE_ATTR_UNIX_TYPE_MASK) == FILE_ATTR_UNIX_TYPE_DIR);
+			const directory = modeIsDir || upperIsDir || (msDosCompatible && msdosAttributes.directory) || fileEntry.filename.endsWith(DIRECTORY_SIGNATURE);
+			const executable = !symlink && !directory && ((fileEntry.unixMode !== UNDEFINED_VALUE)
+				? ((fileEntry.unixMode & FILE_ATTR_UNIX_EXECUTABLE_MASK) != 0)
+				: (unixCompatible && ((unixExternalUpper & FILE_ATTR_UNIX_EXECUTABLE_MASK) != 0)));
 			Object.assign(fileEntry, {
 				setuid,
 				setgid,
@@ -5184,7 +5195,7 @@ class ZipReader {
 				symlink,
 				unixExternalUpper,
 				executable,
-				directory: modeIsDir || upperIsDir || (msDosCompatible && msdosAttributes.directory) || fileEntry.filename.endsWith(DIRECTORY_SIGNATURE),
+				directory,
 				zipCrypto: fileEntry.encrypted && !fileEntry.extraFieldAES
 			});
 			const entry = new Entry(fileEntry);
@@ -5403,6 +5414,9 @@ let ZipEntry$1 = class ZipEntry {
 
 	async getData(writer, fileEntry, readRanges, options = {}) {
 		const zipEntry = this;
+		if (zipEntry.zip64ExtraFieldMissing) {
+			throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
+		}
 		const config = getConfiguration();
 		const {
 			reader,
@@ -6460,6 +6474,7 @@ var zipReader = /*#__PURE__*/Object.freeze({
 	WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES: WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES,
 	WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME: WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME,
 	WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY: WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY,
+	WARNING_MISSING_ZIP64_EXTRA_FIELD: WARNING_MISSING_ZIP64_EXTRA_FIELD,
 	WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY: WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY,
 	WARNING_PREPENDED_CENTRAL_DIRECTORY: WARNING_PREPENDED_CENTRAL_DIRECTORY,
 	WARNING_PREPENDED_DATA: WARNING_PREPENDED_DATA,
@@ -11298,6 +11313,7 @@ exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD = WARNING_MISMAT
 exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES = WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES;
 exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME = WARNING_MISMATCHED_LOCAL_FILE_HEADER_FILENAME;
 exports.WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY = WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY;
+exports.WARNING_MISSING_ZIP64_EXTRA_FIELD = WARNING_MISSING_ZIP64_EXTRA_FIELD;
 exports.WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY = WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY;
 exports.WARNING_PREPENDED_CENTRAL_DIRECTORY = WARNING_PREPENDED_CENTRAL_DIRECTORY;
 exports.WARNING_PREPENDED_DATA = WARNING_PREPENDED_DATA;

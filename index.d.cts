@@ -1546,7 +1546,9 @@ export class ZipReader<Type> {
    * {@link WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET}, {@link WARNING_DUPLICATE_FILENAME} and
    * {@link WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY}.
    * {@link WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY} is the one reason of that group which is never tolerated,
-   * so it is only ever the reason of an error.
+   * so it is only ever the reason of an error. {@link WARNING_MISSING_ZIP64_EXTRA_FIELD} is deposited when an
+   * entry cannot be read because its central directory record lacks a Zip64 extra field, and `"strict"` throws
+   * {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND} for it.
    *
    * The warnings related to the local file header of an entry are deposited on
    * {@link EntryMetaData#warnings} when its data is read, not here.
@@ -2523,7 +2525,9 @@ export interface EntryMetaData {
    * `true` if the entry is an executable file
    *
    * Always `false` when {@link EntryMetaData#symlink} is `true`: the permissions of a symbolic link
-   * are not meaningful, Unix systems store them as `0o777`.
+   * are not meaningful, Unix systems store them as `0o777`. Always `false` when
+   * {@link EntryMetaData#directory} is `true` too: the execute bits of a directory mean that it can be
+   * searched, and every directory carries them; read {@link EntryMetaData#unixMode} for the bits themselves.
    */
   executable: boolean;
   /**
@@ -5644,6 +5648,14 @@ export const WARNING_TRAILING_CENTRAL_DIRECTORY_DATA: string;
  * are used as they are.
  */
 export const WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET: string;
+/**
+ * Warning reason: a central directory record holds the Zip64 sentinel in a size, offset or disk number field
+ * but carries no Zip64 extra field resolving it (see {@link ZipReader#warnings}). The entry is listed, its
+ * sizes and offset are unusable, and reading its data throws {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND}; the
+ * other entries are unaffected. Under `strictness: "strict"`, {@link ZipReader#getEntries} throws
+ * {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND} instead.
+ */
+export const WARNING_MISSING_ZIP64_EXTRA_FIELD: string;
 /**
  * Warning reason: several entries share the same filename (see {@link ZipReader#warnings}); the reason of
  * {@link ERR_AMBIGUOUS_ARCHIVE} under `strictness: "strict"`

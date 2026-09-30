@@ -95,7 +95,9 @@ The number of the disk where the entry data starts.
 `true` if the entry is an executable file
 
 Always `false` when [EntryMetaData#symlink](#symlink) is `true`: the permissions of a symbolic link
-are not meaningful, Unix systems store them as `0o777`.
+are not meaningful, Unix systems store them as `0o777`. Always `false` when
+EntryMetaData#directory is `true` too: the execute bits of a directory mean that it can be
+searched, and every directory carries them; read [EntryMetaData#unixMode](#unixmode) for the bits themselves.
 
 ***
 

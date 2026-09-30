@@ -135,6 +135,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"zip64DiskNumberStart",
 	"zip64Enabled",
 	"zip64Entries",
+	"zip64ExtraFieldMissing",
 	"zip64Offset",
 	"zip64UncompressedSize"
 ];

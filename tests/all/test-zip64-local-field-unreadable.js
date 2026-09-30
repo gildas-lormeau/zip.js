@@ -34,7 +34,7 @@ async function test() {
 		for (const { label, damage, directoryError, descriptorWidthKnown } of DAMAGES) {
 			await streamedEntryStaysReadable(label, damage, descriptorWidthKnown);
 			await entryWithoutDataDescriptorIsAmbiguous(label, damage);
-			await centralDirectoryStaysFatal(label, damage, directoryError);
+			await centralDirectoryFieldFailsTheEntry(label, damage, directoryError);
 		}
 	} finally {
 		await zip.terminateWorkers();
@@ -69,22 +69,53 @@ async function entryWithoutDataDescriptorIsAmbiguous(label, damage) {
 	}
 }
 
-async function centralDirectoryStaysFatal(label, damage, directoryError) {
+// a central directory record whose zip64 field is missing or truncated leaves that entry unreadable: strict
+// rejects the archive, the other levels list the entry with a warning and fail its getData(); an unsafe
+// 64-bit value stays fatal at every level
+async function centralDirectoryFieldFailsTheEntry(label, damage, directoryError) {
 	const bytes = await writeEntry(new zip.TextReader(CONTENT), { zip64: true, dataDescriptor: false, level: 0 });
 	const view = getView(bytes);
 	const directoryOffset = findSignature(view, CENTRAL_FILE_HEADER_SIGNATURE);
 	const filenameLength = view.getUint16(directoryOffset + 28, true);
 	const extraFieldLength = view.getUint16(directoryOffset + 30, true);
 	damage(view, directoryOffset + CENTRAL_HEADER_SIZE + filenameLength, extraFieldLength);
+	const strictError = await getEntriesError(bytes, { strictness: "strict" });
+	if (!strictError || strictError.message != directoryError) {
+		throw new Error(label + ": an unreadable zip64 extra field in the central directory must be fatal under strict, got " + (strictError ? strictError.message : "no error"));
+	}
+	if (directoryError != zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND) {
+		const error = await getEntriesError(bytes, {});
+		if (!error || error.message != directoryError) {
+			throw new Error(label + ": must stay fatal at the default level, got " + (error ? error.message : "no error"));
+		}
+		return;
+	}
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(bytes));
-	let error;
+	const [entry] = await zipReader.getEntries();
+	const warning = zipReader.warnings.find(warning => warning.reason == zip.WARNING_MISSING_ZIP64_EXTRA_FIELD);
+	if (!warning || warning.filename != FILENAME) {
+		throw new Error(label + ": the missing zip64 field must be reported as a warning naming the entry, got " + JSON.stringify(zipReader.warnings));
+	}
+	let dataError;
+	try {
+		await entry.getData(new zip.TextWriter());
+	} catch (thrown) {
+		dataError = thrown;
+	}
+	await zipReader.close();
+	if (!dataError || dataError.message != zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND) {
+		throw new Error(label + ": reading the entry must fail with the missing zip64 field error, got " + (dataError ? dataError.message : "no error"));
+	}
+}
+
+async function getEntriesError(bytes, options) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(bytes), options);
 	try {
 		await zipReader.getEntries();
-	} catch (thrown) {
-		error = thrown;
-	}
-	if (!error || error.message != directoryError) {
-		throw new Error(label + ": an unreadable zip64 extra field in the central directory must stay fatal, got " + (error ? error.message : "no error"));
+	} catch (error) {
+		return error;
+	} finally {
+		await zipReader.close();
 	}
 }
 
