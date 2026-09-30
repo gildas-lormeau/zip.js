@@ -231,32 +231,38 @@ async function checkCentralDirectoryOffsetPastTheEnd() {
 	}
 }
 
-// one central directory record carries the Zip64 sentinel in its compressed size with no Zip64 extra field:
-// that entry is unreadable, the other one must stay listed and readable, and strict rejects the archive
+// one central directory record carries the Zip64 sentinel in its compressed size or in its offset with no Zip64
+// extra field: that entry is unreadable but fully parsed otherwise, the other one must stay listed and readable,
+// the sentinel offset must not pass for a position, and strict rejects the archive
 async function checkMissingZip64ExtraField() {
-	const data = await buildArchive();
-	const view = getView(data);
-	const centralDirectoryOffset = view.getUint32(findEndOfCentralDirectory(data) + 16, true);
-	view.setUint32(centralDirectoryOffset + 20, 0xffffffff, true);
-	const { reader, entries } = await readEntries(data);
-	const warning = assertWarning(reader.warnings, zip.WARNING_MISSING_ZIP64_EXTRA_FIELD);
-	assert(warning.filename == "aa.txt", "the warning must name the entry lacking the zip64 field");
-	assert(entries.length == 2, "the other entries must stay listed");
-	assert(await entries[1].getData(new zip.TextWriter()) == "second content", "the intact entry must stay readable");
-	let error;
-	try {
-		await entries[0].getData(new zip.TextWriter());
-	} catch (thrown) {
-		error = thrown;
+	for (const [label, fieldOffset] of [["compressed size", 20], ["offset", 42]]) {
+		const data = await buildArchive();
+		const view = getView(data);
+		const centralDirectoryOffset = view.getUint32(findEndOfCentralDirectory(data) + 16, true);
+		view.setUint32(centralDirectoryOffset + fieldOffset, 0xffffffff, true);
+		const { reader, entries } = await readEntries(data);
+		const warning = assertWarning(reader.warnings, zip.WARNING_MISSING_ZIP64_EXTRA_FIELD);
+		assert(warning.filename == "aa.txt", "the warning must name the entry lacking the zip64 field in its " + label);
+		assert(reader.warnings.length == 1, "no other warning must be deposited with a sentinel " + label +
+			", got " + JSON.stringify(reader.warnings.map(warning => warning.reason)));
+		assert(entries.length == 2, "the other entries must stay listed with a sentinel " + label);
+		assert(entries[0].compressionMethod === 0, "the damaged entry must be parsed past its sentinel " + label);
+		assert(await entries[1].getData(new zip.TextWriter()) == "second content", "the intact entry must stay readable with a sentinel " + label);
+		let error;
+		try {
+			await entries[0].getData(new zip.TextWriter());
+		} catch (thrown) {
+			error = thrown;
+		}
+		assert(error && error.message == zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, "reading the damaged entry must fail with the zip64 field error");
+		let strictError;
+		try {
+			await readEntries(data, { strictness: "strict" });
+		} catch (thrown) {
+			strictError = thrown;
+		}
+		assert(strictError && strictError.message == zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, "strict must reject the archive with the zip64 field error");
 	}
-	assert(error && error.message == zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, "reading the damaged entry must fail with the zip64 field error");
-	try {
-		await readEntries(data, { strictness: "strict" });
-	} catch (strictError) {
-		assert(strictError.message == zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, "strict must reject the archive with the zip64 field error");
-		return;
-	}
-	throw new Error("strict must reject an archive whose central directory record lacks a zip64 field");
 }
 
 async function checkMismatchedLocalFileHeader() {
