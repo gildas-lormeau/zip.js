@@ -3338,6 +3338,13 @@ export interface ZipWriterAppendZipOptions {
    * central directory, and the entry is copied when it returns (or resolves to) `true`. The function can read
    * the data of the entry with {@link Entry#getData} to decide: every call completes before any data is copied.
    *
+   * The second argument is the entry of the current zip which has the same filename, as {@link ZipWriter#add}
+   * or a previous call to {@link ZipWriter#appendZip} left it, or `undefined` when there is none. It is the way to
+   * apply a duplicate filename policy, since keeping both entries throws `ERR_DUPLICATED_NAME`: return
+   * `!existingEntry` to keep the entry of the current zip, call {@link ZipWriter#remove} with `existingEntry` and
+   * return `true` to replace it, or compare `crc32`, `uncompressedSize` or `lastModDate` to decide. An entry
+   * being added concurrently by a pending {@link ZipWriter#add} call is not passed.
+   *
    * @remarks
    * When the option is set, the data of the zip file is copied entry by entry and the entries left out leave no
    * bytes behind in the output, unlike {@link ZipWriter#remove}, which drops an entry from the central directory
@@ -3356,9 +3363,10 @@ export interface ZipWriterAppendZipOptions {
    * as well.
    *
    * @param entry The entry read from the zip file.
+   * @param existingEntry The entry of the current zip with the same filename, if any.
    * @returns `true` to copy the entry.
    */
-  filter?: (entry: Entry) => boolean | Promise<boolean>;
+  filter?: (entry: Entry, existingEntry?: EntryMetaData) => boolean | Promise<boolean>;
   /**
    * The options of the {@link ZipReader} which reads the zip file.
    *

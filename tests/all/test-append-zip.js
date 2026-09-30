@@ -20,6 +20,7 @@ async function test() {
 		await keepsThePrependZipGuard();
 		await copiesOnlyTheFilteredEntries();
 		await replacesAnEntryThroughTheFilter();
+		await passesTheExistingEntryToTheFilter();
 		await keepsEveryEntryWithAPermissiveFilter();
 		await acceptsAnAsyncFilter();
 		await letsTheFilterReadTheEntryData();
@@ -198,6 +199,49 @@ async function replacesAnEntryThroughTheFilter() {
 	await addEntry(zipWriter, "s2.txt");
 	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: entry => entry.filename != "s2.txt" });
 	await checkEntries(await zipWriter.close(), ["s2.txt", "s1.txt", "s3.txt"]);
+}
+
+// the filter sees the entry of the current zip sharing the name, whether add() or a previous appendZip wrote it,
+// so a duplicate policy is a return value: keep the existing entry, replace it through remove(), or compare them
+async function passesTheExistingEntryToTheFilter() {
+	const source = await buildZipFile(["s1.txt", "s2.txt", "s3.txt"]);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	const addedEntry = await addEntry(zipWriter, "s2.txt");
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(await buildZipFile(["s3.txt"])));
+	const seen = new Map();
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), {
+		filter(entry, existingEntry) {
+			seen.set(entry.filename, existingEntry);
+			return !existingEntry;
+		}
+	});
+	const existingAdded = seen.get("s2.txt");
+	const existingAppended = seen.get("s3.txt");
+	if (seen.size != 3 || seen.get("s1.txt") !== undefined || !existingAdded || !existingAppended) {
+		throw new Error("expected the filter to receive the existing entries of s2.txt and s3.txt only, got " + Array.from(seen.keys()).join());
+	}
+	if (existingAdded.filename != "s2.txt" || existingAdded.crc32 != addedEntry.crc32 || existingAdded.uncompressedSize != addedEntry.uncompressedSize ||
+		existingAdded.lastModDate.getTime() != LAST_MOD_DATE.getTime() || existingAppended.filename != "s3.txt" || existingAppended.crc32 === undefined) {
+		throw new Error("expected the existing entries to carry the metadata of the written entries");
+	}
+	await checkEntries(await zipWriter.close(), ["s2.txt", "s3.txt", "s1.txt"]);
+	const replacingWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await replacingWriter.add("s2.txt", new zip.TextReader("old content"), { lastModDate: LAST_MOD_DATE });
+	await replacingWriter.appendZip(new zip.Uint8ArrayReader(source), {
+		filter(entry, existingEntry) {
+			if (existingEntry) {
+				if (existingEntry.crc32 == entry.crc32) {
+					return false;
+				}
+				if (!replacingWriter.remove(existingEntry)) {
+					throw new Error("expected the existing entry to be removable from the filter");
+				}
+			}
+			return true;
+		}
+	});
+	// the removed entry leaves its bytes at the start of the output, which the strict level reports as prepended data
+	await checkEntries(await replacingWriter.close(), ["s1.txt", "s2.txt", "s3.txt"], { strictness: "balanced" });
 }
 
 async function keepsEveryEntryWithAPermissiveFilter() {
@@ -594,8 +638,8 @@ function addEntry(zipWriter, filename) {
 	return zipWriter.add(filename, new zip.TextReader("content of " + filename), { lastModDate: LAST_MOD_DATE });
 }
 
-async function checkEntries(data, expectedFilenames, { ignoreOrder } = {}) {
-	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { strictness: "strict", checkCrc32: true });
+async function checkEntries(data, expectedFilenames, { ignoreOrder, strictness = "strict" } = {}) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { strictness, checkCrc32: true });
 	const entries = await zipReader.getEntries();
 	const contents = await Promise.all(entries.map(entry => entry.getData(new zip.TextWriter())));
 	await zipReader.close();

@@ -12,11 +12,18 @@ Represents the options passed to [ZipWriter#appendZip](../classes/ZipWriter.md#a
 
 ### filter?
 
-> `optional` **filter?**: (`entry`) => `boolean` \| `Promise`\<`boolean`\>
+> `optional` **filter?**: (`entry`, `existingEntry?`) => `boolean` \| `Promise`\<`boolean`\>
 
 Selects the entries of the zip file to copy: the function is called once per entry, in the order of the
 central directory, and the entry is copied when it returns (or resolves to) `true`. The function can read
 the data of the entry with Entry#getData to decide: every call completes before any data is copied.
+
+The second argument is the entry of the current zip which has the same filename, as [ZipWriter#add](../classes/ZipWriter.md#add)
+or a previous call to [ZipWriter#appendZip](../classes/ZipWriter.md#appendzip) left it, or `undefined` when there is none. It is the way to
+apply a duplicate filename policy, since keeping both entries throws `ERR_DUPLICATED_NAME`: return
+`!existingEntry` to keep the entry of the current zip, call [ZipWriter#remove](../classes/ZipWriter.md#remove) with `existingEntry` and
+return `true` to replace it, or compare `crc32`, `uncompressedSize` or `lastModDate` to decide. An entry
+being added concurrently by a pending [ZipWriter#add](../classes/ZipWriter.md#add) call is not passed.
 
 #### Parameters
 
@@ -25,6 +32,12 @@ the data of the entry with Entry#getData to decide: every call completes before 
 [`Entry`](../type-aliases/Entry.md)
 
 The entry read from the zip file.
+
+##### existingEntry?
+
+[`EntryMetaData`](EntryMetaData.md)
+
+The entry of the current zip with the same filename, if any.
 
 #### Returns
 

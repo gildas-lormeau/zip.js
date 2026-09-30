@@ -6892,7 +6892,7 @@
 			const entries = await zipReader$1.getEntries();
 			const keptEntries = [];
 			for (const entry of entries) {
-				if (!filter || await filter(entry)) {
+				if (!filter || await filter(entry, getExistingEntry(fileEntries, entry.filename))) {
 					keptEntries.push(entry);
 				}
 			}
@@ -6995,6 +6995,11 @@
 				releaseLockWriter();
 			}
 		}
+	}
+
+	function getExistingEntry(fileEntries, filename) {
+		const fileEntry = fileEntries.get(filename);
+		return fileEntry ? new Entry(fileEntry) : UNDEFINED_VALUE;
 	}
 
 	async function prependZipEntries(zipWriter, reader) {
