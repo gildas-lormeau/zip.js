@@ -19,7 +19,9 @@ async function test() {
 	if (data !== TEXT_CONTENT) {
 		throw new Error();
 	}
-	await entries[0].getData(new zip.TextWriter(), { checkOverlappingEntry: true });
+	// the first entry announces a data descriptor it does not carry, which the descriptor check would reject
+	// before the overlap is looked at; only the overlap detection is under test here
+	await entries[0].getData(new zip.TextWriter(), { checkOverlappingEntry: true, checkLocalDirectory: false });
 	if (data !== TEXT_CONTENT) {
 		throw new Error();
 	}

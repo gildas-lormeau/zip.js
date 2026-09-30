@@ -83,13 +83,30 @@ async function test() {
 		const localZeroedArray = array.slice();
 		localZeroedArray.fill(0, 14, 26);
 		await readEntries(localZeroedArray);
+		// a data descriptor disagreeing with the central directory must be rejected when the descriptor is read
+		const descriptorBlobWriter = new zip.BlobWriter("application/zip");
+		const descriptorZipWriter = new zip.ZipWriter(descriptorBlobWriter, { level: 0, dataDescriptor: true });
+		for (let indexContent = 0; indexContent < CONTENTS.length; indexContent++) {
+			await descriptorZipWriter.add("file" + indexContent + ".txt", new zip.TextReader(CONTENTS[indexContent]));
+		}
+		await descriptorZipWriter.close();
+		const descriptorArray = new Uint8Array(await (await descriptorBlobWriter.getData()).arrayBuffer());
+		const descriptorView = new DataView(descriptorArray.buffer);
+		let descriptorOffset = 0;
+		while (descriptorView.getUint32(descriptorOffset, true) != 0x08074b50) {
+			descriptorOffset++;
+		}
+		await readEntries(descriptorArray, { checkOverlappingEntry: true });
+		descriptorArray[descriptorOffset + 4] ^= 0xff;
+		await expectAmbiguousEntry(descriptorArray, zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES, { checkOverlappingEntry: true });
+		await readEntriesUnchecked(descriptorArray, { checkOverlappingEntry: true, checkLocalDirectory: false }, zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES);
 	} finally {
 		await zip.terminateWorkers();
 	}
 }
 
-async function readEntries(array) {
-	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array), { checkAmbiguity: true });
+async function readEntries(array, options = {}) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array), { checkAmbiguity: true, ...options });
 	try {
 		const entries = await zipReader.getEntries();
 		if (entries.length != CONTENTS.length) {
@@ -106,8 +123,8 @@ async function readEntries(array) {
 	}
 }
 
-async function readEntriesUnchecked(array) {
-	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array));
+async function readEntriesUnchecked(array, options = {}, expectedWarning) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array), options);
 	try {
 		const entries = await zipReader.getEntries();
 		for (let indexEntry = 0; indexEntry < entries.length; indexEntry++) {
@@ -115,6 +132,9 @@ async function readEntriesUnchecked(array) {
 			if (data != CONTENTS[indexEntry]) {
 				throw new Error();
 			}
+		}
+		if (expectedWarning && !entries[0].warnings.some(warning => warning.reason == expectedWarning)) {
+			throw new Error();
 		}
 	} finally {
 		await zipReader.close();
@@ -135,8 +155,8 @@ async function expectAmbiguous(array, reason) {
 	}
 }
 
-async function expectAmbiguousEntry(array, reason) {
-	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array), { checkAmbiguity: true });
+async function expectAmbiguousEntry(array, reason, options = {}) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array), { checkAmbiguity: true, ...options });
 	try {
 		const entries = await zipReader.getEntries();
 		try {

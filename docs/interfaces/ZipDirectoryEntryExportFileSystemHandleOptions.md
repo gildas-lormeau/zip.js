@@ -28,7 +28,10 @@ file header of the entry disagrees with its central directory record in a way th
 (e.g. streaming readers based on local file headers) interpret the entry differently. This detects mismatched
 filenames, general purpose bit flags (encryption, data descriptor and language encoding flags), compression
 methods, CRC-32 checksums and sizes. The extra fields are not compared because the zip specification allows
-them to differ.
+them to differ. A local file header whose CRC-32 checksum and sizes are all zero without the data descriptor
+flag is tolerated, because some streaming writers leave these fields blank. When the entry has a data
+descriptor, its CRC-32 checksum and sizes are compared with the central directory record instead, provided
+the descriptor is read, i.e. when [ZipReaderOptions#checkOverlappingEntry](ZipReaderOptions.md#checkoverlappingentry) is set.
 
 This is the boolean form of [ZipReaderOptions#strictness](ZipReaderOptions.md#strictness): `true` means `"strict"` and `false` means
 any value but `"strict"`. When both options are set, the value passed to [FileEntry#getData](FileEntry.md#getdata) takes

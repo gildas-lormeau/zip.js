@@ -28,8 +28,9 @@ async function test() {
 		await testGetData(source, name, options);
 	}
 	const overlappingSource = new Blob([await (await fetch(new URL(OVERLAPPING_ZIP_URL, import.meta.url))).arrayBuffer()]);
+	// the first entry of the fixture announces a data descriptor it does not carry, see test-overlapping-entries.js
 	for (const name of OVERLAPPING_CHECK_OPTIONS) {
-		const options = {};
+		const options = { checkLocalDirectory: false };
 		options[name] = true;
 		await testOverlappingDetected(overlappingSource, name, () => exportBlob(overlappingSource, { readerOptions: options }, {}));
 		await testOverlappingDetected(overlappingSource, name, () => exportBlob(overlappingSource, {}, options));

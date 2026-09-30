@@ -7,7 +7,8 @@ export { test };
 async function test() {
 	zip.configure({ chunkSize: 128, useWebWorkers: true });
 	const readable = (await fetch(new URL("../data/lorem-overlapping-entries.zip", import.meta.url))).body;
-	const zipReader = new zip.ZipReader(readable, { checkOverlappingEntryOnly: true });
+	// the first entry of the fixture announces a data descriptor it does not carry, see test-overlapping-entries.js
+	const zipReader = new zip.ZipReader(readable, { checkOverlappingEntryOnly: true, checkLocalDirectory: false });
 	const entries = await zipReader.getEntries();
 	try {
 		for (const entry of entries) {

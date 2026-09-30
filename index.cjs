@@ -5593,6 +5593,7 @@ let ZipEntry$1 = class ZipEntry {
 				extraFieldZip64: extraFieldZip64 || localDirectory.extraFieldZip64,
 				readRanges
 			});
+			validateDataDescriptor(zipEntry, localDirectory, checkLocalDirectory ? UNDEFINED_VALUE : warnings);
 		}
 		let writable, abortError, aborted;
 		try {
@@ -6388,6 +6389,18 @@ function validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename, chec
 			localDirectory.compressedSize != zipEntry.compressedSize ||
 			localDirectory.uncompressedSize != zipEntry.uncompressedSize)) {
 		reportAmbiguity(reject, warnings, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES);
+	}
+}
+
+function validateDataDescriptor(zipEntry, localDirectory, warnings) {
+	const { dataDescriptor } = localDirectory;
+	const maskedLocalDirectory = zipEntry.decryptedDirectory &&
+		(localDirectory.rawBitFlag & BITFLAG_MASKED_LOCAL_HEADERS) == BITFLAG_MASKED_LOCAL_HEADERS;
+	if (dataDescriptor && !maskedLocalDirectory &&
+		((zipEntry.crc32 !== UNDEFINED_VALUE && dataDescriptor.crc32 != zipEntry.crc32) ||
+			dataDescriptor.compressedSize != zipEntry.compressedSize ||
+			dataDescriptor.uncompressedSize != zipEntry.uncompressedSize)) {
+		reportAmbiguity(!warnings, warnings, WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES);
 	}
 }
 

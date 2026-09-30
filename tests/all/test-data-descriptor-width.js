@@ -10,7 +10,9 @@
 // 64-bit guard rejected under checkOverlappingEntry. It now keeps the layout whose sizes agree with the
 // central directory, among the two widths with and without the signature, the CRC-32 breaking ties, so a
 // descriptor whose CRC-32 alone is corrupt still reports its own fields; when no layout agrees it falls back
-// to the announced width, signed when the record starts with the signature. The archives below are built by
+// to the announced width, signed when the record starts with the signature. A descriptor disagreeing with the
+// central directory is then reported like a disagreeing local file header, so the corrupt cases read with
+// checkLocalDirectory off and expect the warning. The archives below are built by
 // hand; the ones past 4 GiB sit behind a reader that fakes the prefix, so the offsets are real and nothing
 // that large is allocated.
 
@@ -98,12 +100,15 @@ async function checkCorruptDescriptor() {
 
 async function readCorruptDescriptor(corruption) {
 	const bytes = buildArchive({ prefix: 0, descriptor: { zip64: false, signature: true }, ...corruption });
-	const zipReader = new zip.ZipReader(new PrefixedReader(0, bytes), { checkOverlappingEntry: true });
+	const zipReader = new zip.ZipReader(new PrefixedReader(0, bytes), { checkOverlappingEntry: true, checkLocalDirectory: false });
 	const entries = await zipReader.getEntries();
 	for (const entry of entries) {
 		await entry.getData(new zip.TextWriter());
 	}
 	await zipReader.close();
+	if (!entries[0].warnings.some(warning => warning.reason == zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES)) {
+		throw new Error("a corrupt descriptor must be reported, got " + JSON.stringify(entries[0].warnings));
+	}
 	return [entries[0].localDirectory.dataDescriptor, entries[0].crc32];
 }
 

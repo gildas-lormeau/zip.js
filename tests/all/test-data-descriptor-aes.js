@@ -3,7 +3,8 @@
 // as its CRC-32 in both records and zip.js leaves it undefined, so its descriptor is chosen on the sizes alone; an
 // AE-1 entry stores the CRC-32 of its data, and its descriptor is chosen like the descriptor of any other entry. A
 // descriptor whose CRC-32 disagrees with the central directory is still read with the layout its sizes select and
-// reports the CRC-32 it stores; it used to be read at the announced width without its signature, i.e. at a layout
+// reports the CRC-32 it stores, the disagreement being reported like a disagreeing local file header (the
+// readers below turn checkLocalDirectory off to get the warning instead of the rejection); it used to be read at the announced width without its signature, i.e. at a layout
 // known not to match, its CRC-32 then being the signature bytes and its sizes the fields shifted by four bytes. The
 // writer emits AE-2 for every entry it encrypts, so the AE-1 entries are patched from an AE-2 one, as
 // test-aes-crc32.js does.
@@ -25,9 +26,9 @@ async function test() {
 	try {
 		const crc32 = await readPlainCrc32();
 		const ae2Data = await writeEntry();
-		await expectDescriptor(patchAE1(ae2Data, crc32, 0), 0, "AE-1 with a disagreeing descriptor");
-		await expectDescriptor(patchAE1(ae2Data, crc32, crc32), crc32, "AE-1 with an agreeing descriptor");
-		await expectDescriptor(ae2Data, 0, "AE-2");
+		await expectDescriptor(patchAE1(ae2Data, crc32, 0), 0, "AE-1 with a disagreeing descriptor", true);
+		await expectDescriptor(patchAE1(ae2Data, crc32, crc32), crc32, "AE-1 with an agreeing descriptor", false);
+		await expectDescriptor(ae2Data, 0, "AE-2", false);
 	} finally {
 		await zip.terminateWorkers();
 	}
@@ -46,13 +47,17 @@ async function writeEntry() {
 	return zipWriter.close();
 }
 
-async function expectDescriptor(data, expectedCrc32, label) {
-	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { checkOverlappingEntry: true });
+async function expectDescriptor(data, expectedCrc32, label, expectedWarning) {
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data), { checkOverlappingEntry: true, checkLocalDirectory: false });
 	const [entry] = await zipReader.getEntries();
 	const text = await entry.getData(new zip.TextWriter(), { password: PASSWORD });
 	await zipReader.close();
 	if (text != TEXT_CONTENT) {
 		throw new Error(label + ": the entry must be read");
+	}
+	const warned = entry.warnings.some(warning => warning.reason == zip.WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES);
+	if (warned != expectedWarning) {
+		throw new Error(label + ": expected the mismatch warning to be " + expectedWarning + ", got " + JSON.stringify(entry.warnings));
 	}
 	const { dataDescriptor } = entry.localDirectory;
 	if (!dataDescriptor || !dataDescriptor.signature || dataDescriptor.zip64 || dataDescriptor.crc32 != expectedCrc32 ||
