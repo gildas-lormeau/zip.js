@@ -1,15 +1,17 @@
 # Benchmarks
 
 Measurements of [@zip.js/zip.js](https://www.npmjs.com/package/@zip.js/zip.js) against
-[jszip](https://github.com/Stuk/jszip), [fflate](https://github.com/101arrowz/fflate) and
-[archiver](https://github.com/archiverjs/node-archiver), of zip.js's own codec backends, and of
+[jszip](https://github.com/Stuk/jszip), [fflate](https://github.com/101arrowz/fflate),
+[archiver](https://github.com/archiverjs/node-archiver) and the
+[ZIP API of `node:zlib`](https://nodejs.org/api/zlib.html#class-zlibzipentry), of zip.js's own
+codec backends, and of
 the runtimes it runs on. Every number on this page comes from the harness in
 [`benchmarks/`](benchmarks/), on the machine, date and versions below. The results are specific
 to them; run the harness on your machine before relying on any of them.
 
 The page answers four questions, each from one or two scripts of the harness:
 
-- [How does zip.js compare with jszip, fflate and archiver?](#zipjs-against-jszip-fflate-and-archiver)
+- [How does zip.js compare with jszip, fflate, archiver and node:zlib?](#zipjs-against-jszip-fflate-archiver-and-nodezlib)
   `bench.js`, on Node.
 - [Which codec backend of zip.js is fastest, and what does concurrent `add()` buy?](#the-codec-backends-of-zipjs)
   `bench-codecs.js` and `bench-backends.js`, on Node.
@@ -23,13 +25,14 @@ The page answers four questions, each from one or two scripts of the harness:
 |---|---|
 | Machine | Apple M2, 8 cores (4 performance + 4 efficiency), 16 GB RAM |
 | OS | macOS 27.0 (arm64) |
-| Runtimes | Node.js v26.7.0, Bun 1.4.2, Deno 2.9.7 |
+| Runtimes | Node.js v26.10.0, Bun 1.4.2, Deno 2.9.7 |
 | Browsers | Firefox 156, Chrome 153, headless (the browser encryption table only) |
-| zip.js | 2.19.0, measured at 96084cc8; the later commits of the release change no codec or stream path |
+| zip.js | 2.19.0 |
 | jszip | 3.10.2 |
 | fflate | 0.8.3 |
 | archiver | 8.0.0 |
-| Measured | 2026-09-26 |
+| node:zlib | the ZIP API built into Node.js 26.10.0, experimental, added in 26.8.0 |
+| Measured | 2026-09-30; the browser encryption table on 2026-09-26 |
 
 ## Method
 
@@ -56,29 +59,32 @@ The page answers four questions, each from one or two scripts of the harness:
   is not comparable with one here: only a column measured in the same run isolates a single
   variable, as the `chunkSize` 64 KB column of the
   [runtime table](#concurrent-add-per-runtime) does for the default chunk size.
-- **Level.** Every library compresses at its own level 6. A level is not a unit shared between
+- **Level.** Every library compresses at its own level 6; the ZIP API of `node:zlib` has no level
+  option and deflates at zlib's default, which is 6. A level is not a unit shared between
   libraries: zlib's level 6 and fflate's level 6 are different parameter sets and produce
   different sizes, so every time is printed next to the size it achieved, and the
   [Codecs](#codecs-at-equal-output-size) table compares by output size instead.
-- **Codecs.** Every head-to-head table names the codec of each row. archiver runs Node's `zlib`
-  module, the host's zlib written in C; jszip (pako) and fflate deflate and inflate in
-  JavaScript. zip.js selects its codec at runtime, so it has one row per backend: the
+- **Codecs.** Every head-to-head table names the codec of each row. archiver and the ZIP API of
+  `node:zlib` run Node's `zlib` module, the host's zlib written in C; jszip (pako) and fflate
+  deflate and inflate in JavaScript. zip.js selects its codec at runtime, so it has one row per backend: the
   `CompressionStream` and `DecompressionStream` of the runtime, Node's zlib here and the default
   where they exist; the bundled WebAssembly zlib; and the pure-JavaScript zlib port. The last two
   ship with the library, like the codecs of jszip and fflate, so those rows compare the
   libraries without the host's zlib in the picture.
 - **Checks.** No decompression row verifies the CRC-32 of the entries: zip.js and jszip leave
-  the check off by default, and fflate has none on read. Turning it on in zip.js makes the
+  the check off by default, fflate has none on read, and `node:zlib` verifies by default so its
+  row passes `verify: false`. Turning it on in zip.js makes the
   inflater verify the CRC-32 through a gzip trailer: about 7 ms per 20 MB on the WebAssembly
   codec, within the noise on Node's `DecompressionStream`; the pure-JavaScript port keeps a
   separate pass over the output, about 15 ms.
 - **Units.** MB in the tables is 10^6 bytes. The workload sizes (20 MB, 8 MB, 256 MB) and the
   MB/s throughputs use 2^20 bytes.
 
-## zip.js against jszip, fflate and archiver
+## zip.js against jszip, fflate, archiver and node:zlib
 
 One Node process per measurement (`benchmarks/bench.js`), one thread, every library at its
-level 6. zip.js appears once per codec backend.
+level 6. zip.js appears once per codec backend. The `node:zlib` rows use the ZIP API built into
+Node.js since 26.8.0: `ZipEntry.create()` and `createZipArchive()` to write, `ZipBuffer` to read.
 
 ### Compression
 
@@ -87,33 +93,37 @@ size each row produced:
 
 | Library | Codec | Compressible text (20 MB) | Incompressible data (20 MB) | 5,000 files × ~2 KB |
 |---|---|--:|--:|--:|
-| @zip.js/zip.js | `CompressionStream` | **698 ms** / 6.1 MB | 350 ms / 21.0 MB | 864 ms / 4.9 MB |
-| @zip.js/zip.js | WASM zlib | 1049 ms / 6.2 MB | 461 ms / 21.0 MB | 666 ms / 4.9 MB |
-| @zip.js/zip.js | pure-JS zlib | 1218 ms / 6.2 MB | 817 ms / 21.0 MB | 1107 ms / 4.9 MB |
-| jszip | pako (JavaScript) | 1702 ms / 6.2 MB | 855 ms / 21.0 MB | 834 ms / 4.7 MB |
-| fflate | fflate (JavaScript) | 908 ms / 6.3 MB | **296 ms** / 21.0 MB | **276 ms** / 4.8 MB |
-| archiver | Node `zlib` (C) | 702 ms / 6.1 MB | 355 ms / 21.0 MB | 421 ms / 4.8 MB |
+| @zip.js/zip.js | `CompressionStream` | 730 ms / 6.1 MB | 357 ms / 21.0 MB | 731 ms / 4.9 MB |
+| @zip.js/zip.js | WASM zlib | 1098 ms / 6.2 MB | 460 ms / 21.0 MB | 551 ms / 4.9 MB |
+| @zip.js/zip.js | pure-JS zlib | 1229 ms / 6.2 MB | 787 ms / 21.0 MB | 962 ms / 4.9 MB |
+| jszip | pako (JavaScript) | 1753 ms / 6.2 MB | 854 ms / 21.0 MB | 846 ms / 4.7 MB |
+| fflate | fflate (JavaScript) | 908 ms / 6.3 MB | **298 ms** / 21.0 MB | **278 ms** / 4.8 MB |
+| archiver | Node `zlib` (C) | 708 ms / 6.1 MB | 359 ms / 21.0 MB | 423 ms / 4.8 MB |
+| node:zlib | Node `zlib` (C) | **678 ms** / 6.1 MB | 346 ms / 21.0 MB | 371 ms / 4.7 MB |
 
 Peak memory for the same runs (Δ over baseline):
 
 | Library | Codec | Compressible text (20 MB) | Incompressible data (20 MB) | 5,000 files × ~2 KB |
 |---|---|--:|--:|--:|
-| @zip.js/zip.js | `CompressionStream` | 108 MB | 160 MB | 251 MB |
-| @zip.js/zip.js | WASM zlib | 115 MB | 187 MB | 260 MB |
-| @zip.js/zip.js | pure-JS zlib | 113 MB | 167 MB | 281 MB |
-| jszip | pako (JavaScript) | 69 MB | 93 MB | 261 MB |
-| fflate | fflate (JavaScript) | **62 MB** | 108 MB | **103 MB** |
-| archiver | Node `zlib` (C) | 71 MB | **74 MB** | 136 MB |
+| @zip.js/zip.js | `CompressionStream` | 115 MB | 184 MB | 262 MB |
+| @zip.js/zip.js | WASM zlib | 139 MB | 206 MB | 244 MB |
+| @zip.js/zip.js | pure-JS zlib | 126 MB | 182 MB | 287 MB |
+| jszip | pako (JavaScript) | 76 MB | 102 MB | 269 MB |
+| fflate | fflate (JavaScript) | 68 MB | 114 MB | **106 MB** |
+| archiver | Node `zlib` (C) | 78 MB | 90 MB | 151 MB |
+| node:zlib | Node `zlib` (C) | **51 MB** | **82 MB** | 245 MB |
 
-On the text file zip.js with `CompressionStream` and archiver take the same time, 698 and
-702 ms, for the same output size: both run Node's zlib. With the codecs that ship with each
-library, fflate takes 908 ms for 2 % more bytes, zip.js's WebAssembly zlib 1049 ms, its
-pure-JavaScript port 1218 ms and jszip 1702 ms. On incompressible data fflate is the fastest row
-and archiver the smallest in memory. On 5,000 small files the WebAssembly backend is 23 % faster
-than `CompressionStream`, so a native stream costs more per entry than a WebAssembly one; fflate
-takes 41 % of the WebAssembly row's time there against 87 % on the 20 MB file, and the
-difference is the work zip.js does per entry, a stream and a header each. The zip.js rows use
-the most memory on the two 20 MB files.
+On the text file the three rows that run Node's zlib take the same time within 8 %, for the
+same output size: `node:zlib` 678 ms, archiver 708 ms and zip.js with `CompressionStream`
+730 ms. With the codecs that ship with each library, fflate takes 908 ms for 2 % more bytes,
+zip.js's WebAssembly zlib 1098 ms, its pure-JavaScript port 1229 ms and jszip 1753 ms. On
+incompressible data fflate is the fastest row and `node:zlib` the smallest in memory. On 5,000
+small files the WebAssembly backend is 25 % faster than `CompressionStream`, so a native stream
+costs more per entry than a WebAssembly one; fflate takes 50 % of the WebAssembly row's time
+there against 83 % on the 20 MB file, and the difference is the work zip.js does per entry, a
+stream and a header each. `node:zlib` takes 371 ms on the same files and archiver 423 ms, both
+on the same zlib as `CompressionStream`. The zip.js rows use the most memory on the two 20 MB
+files, where `node:zlib`, which holds one buffer per entry and no stream, uses the least.
 
 ### Decompression
 
@@ -122,56 +132,59 @@ excluded.
 
 | Library | Codec | Compressible text (20 MB) | 5,000 files × ~2 KB |
 |---|---|--:|--:|
-| @zip.js/zip.js | `DecompressionStream` | **61 ms** | 629 ms |
-| @zip.js/zip.js | WASM zlib | 72 ms | 474 ms |
-| @zip.js/zip.js | pure-JS zlib | 154 ms | 613 ms |
-| jszip | pako (JavaScript) | 133 ms | 440 ms |
-| fflate | fflate (JavaScript) | 123 ms | **102 ms** |
+| @zip.js/zip.js | `DecompressionStream` | 64 ms | 485 ms |
+| @zip.js/zip.js | WASM zlib | 71 ms | 342 ms |
+| @zip.js/zip.js | pure-JS zlib | 155 ms | 527 ms |
+| jszip | pako (JavaScript) | 140 ms | 438 ms |
+| fflate | fflate (JavaScript) | 116 ms | **101 ms** |
+| node:zlib | Node `zlib` (C) | **60 ms** | 183 ms |
 
 Peak memory for the same runs (Δ over baseline):
 
 | Library | Codec | Compressible text (20 MB) | 5,000 files × ~2 KB |
 |---|---|--:|--:|
-| @zip.js/zip.js | `DecompressionStream` | 135 MB | 348 MB |
-| @zip.js/zip.js | WASM zlib | 165 MB | 453 MB |
-| @zip.js/zip.js | pure-JS zlib | 155 MB | 467 MB |
-| jszip | pako (JavaScript) | 103 MB | 303 MB |
-| fflate | fflate (JavaScript) | **92 MB** | **119 MB** |
+| @zip.js/zip.js | `DecompressionStream` | 151 MB | 355 MB |
+| @zip.js/zip.js | WASM zlib | 171 MB | 358 MB |
+| @zip.js/zip.js | pure-JS zlib | 158 MB | 353 MB |
+| jszip | pako (JavaScript) | 103 MB | 284 MB |
+| fflate | fflate (JavaScript) | **97 MB** | **123 MB** |
+| node:zlib | Node `zlib` (C) | 99 MB | 255 MB |
 
-On the 20 MB stream `DecompressionStream` takes 61 ms and the WebAssembly inflate 72 ms, then
-fflate 123 ms, jszip 133 ms and the pure-JavaScript port 154 ms. The WebAssembly row includes
-the module instantiation a fresh process pays once, about 20 ms. Warm, the WebAssembly inflate
-is 24 % faster than `DecompressionStream` in the [Codecs](#codecs-at-equal-output-size) table.
-On 5,000 small files the order reverses: fflate takes 102 ms, jszip 440 ms and the three zip.js
-rows 474 to 629 ms, with `DecompressionStream` the slowest of them, the same per-entry cost as
-in compression. fflate uses the least memory on both workloads, 34 % of the
-`DecompressionStream` row on the small files, and the WebAssembly and pure-JavaScript rows peak
-higher than `DecompressionStream`. The three zip.js rows allocate the same 800 MB of stream objects over the
-5,000 entries, about 160 KB per entry. The WebAssembly and pure-JavaScript codecs run on the
-JavaScript thread, so V8's incremental marking keeps more of that garbage alive between
-collections, and that is the difference between the rows.
+On the 20 MB stream `node:zlib` takes 60 ms and `DecompressionStream` 64 ms, the same zlib
+reached two ways, then the WebAssembly inflate 71 ms, fflate 116 ms, jszip 140 ms and the
+pure-JavaScript port 155 ms. The WebAssembly row includes the module instantiation a fresh
+process pays once, about 20 ms. Warm, the WebAssembly inflate is 27 % faster than
+`DecompressionStream` in the [Codecs](#codecs-at-equal-output-size) table. On 5,000 small files
+the order changes: fflate takes 101 ms, `node:zlib` 183 ms, then the WebAssembly row 342 ms,
+jszip 438 ms, `DecompressionStream` 485 ms and the pure-JavaScript port 527 ms, the same
+per-entry cost as in compression. fflate uses the least memory on both workloads, 35 % of the
+`DecompressionStream` row on the small files. The three zip.js rows allocate the same 800 MB of
+stream objects over the 5,000 entries, about 160 KB per entry, and peak within 5 MB of each
+other.
 
 ### Streaming a 256 MB file, disk to disk
 
 One file read with `fs.createReadStream` in 64 KB chunks and one archive written with
 `fs.createWriteStream`, one entry, each library's streaming API. zip.js takes Web Streams, so its
 rows go through Node's `Readable.toWeb` and `Writable.toWeb` bridges; the other libraries take
-the Node streams directly.
+the Node streams directly, `node:zlib` through `ZipEntry.createStream()`.
 
 | Library | Codec | Median time | Peak memory (Δ) | Output |
 |---|---|--:|--:|--:|
-| @zip.js/zip.js | `CompressionStream` | **8927 ms** | 85 MB | 78.3 MB |
-| archiver | Node `zlib` (C) | 9131 ms | 75 MB | 78.3 MB |
-| fflate | fflate (JavaScript) | 12394 ms | **42 MB** | 80.2 MB |
-| @zip.js/zip.js | WASM zlib | 13320 ms | 122 MB | 78.9 MB |
-| @zip.js/zip.js | pure-JS zlib | 15082 ms | 116 MB | 78.9 MB |
-| jszip | pako (JavaScript) | 22243 ms | 74 MB | 78.9 MB |
+| node:zlib | Node `zlib` (C) | **8905 ms** | **42 MB** | 78.3 MB |
+| @zip.js/zip.js | `CompressionStream` | 8926 ms | 117 MB | 78.3 MB |
+| archiver | Node `zlib` (C) | 9167 ms | 81 MB | 78.3 MB |
+| fflate | fflate (JavaScript) | 12781 ms | 57 MB | 80.2 MB |
+| @zip.js/zip.js | WASM zlib | 13405 ms | 128 MB | 78.9 MB |
+| @zip.js/zip.js | pure-JS zlib | 15326 ms | 123 MB | 78.9 MB |
+| jszip | pako (JavaScript) | 22809 ms | 83 MB | 78.9 MB |
 
-Every row streams: the peaks stay between 42 MB (fflate) and 122 MB (the WebAssembly zlib)
-over baseline on the 256 MB input. zip.js with `CompressionStream` and archiver take the same
-time within 3 %; jszip takes 2.5× that. With its WebAssembly zlib zip.js takes 1.5× the
-`CompressionStream` time and 1.1× fflate's, for 1.6 % fewer bytes; the pure-JavaScript port
-takes 1.2× fflate's time.
+Every row streams: the peaks stay between 42 MB (`node:zlib`) and 128 MB (the WebAssembly zlib)
+over baseline on the 256 MB input. The three rows on Node's zlib take the same time within 3 %;
+jszip takes 2.6× that. With its WebAssembly zlib zip.js takes 1.5× the `CompressionStream` time
+and 1.05× fflate's, for 1.6 % fewer bytes; the pure-JavaScript port takes 1.2× fflate's time.
+The 256 KB chunks zip.js holds at each stage of its pipeline are what separates its
+`CompressionStream` row from `node:zlib` in memory, 117 against 42 MB, at the same speed.
 
 ## The codec backends of zip.js
 
@@ -192,20 +205,20 @@ fastest such row. A row with an empty last column is beaten by nothing on the ta
 
 | Codec | Setting | Output | Ratio | Time | Throughput | Beaten by |
 |---|---|--:|--:|--:|--:|---|
-| WASM zlib | level 8 | 6,115,980 | 3.429 | 1479 ms | 13.5 MB/s | |
-| `CompressionStream` | no level control | 6,120,503 | 3.426 | 693 ms | 28.9 MB/s | |
-| WASM zlib | level 6 | 6,165,103 | 3.402 | 1026 ms | 19.5 MB/s | `CompressionStream` |
+| WASM zlib | level 8 | 6,115,980 | 3.429 | 1486 ms | 13.5 MB/s | |
+| `CompressionStream` | no level control | 6,120,503 | 3.426 | 695 ms | 28.8 MB/s | |
+| WASM zlib | level 6 | 6,165,103 | 3.402 | 1025 ms | 19.5 MB/s | `CompressionStream` |
 | fflate | level 8, its best | 6,239,025 | 3.361 | 755 ms | 26.5 MB/s | `CompressionStream` |
-| fflate | level 6 | 6,257,881 | 3.351 | 732 ms | 27.3 MB/s | `CompressionStream` |
-| WASM zlib | level 5 | 6,562,182 | 3.196 | 494 ms | 40.5 MB/s | |
-| fflate | level 5 | 6,648,574 | 3.154 | 532 ms | 37.6 MB/s | WASM zlib level 5 |
-| WASM zlib | level 4 | 6,907,987 | 3.036 | 275 ms | 72.7 MB/s | |
-| fflate | level 1 | 7,261,700 | 2.888 | 315 ms | 63.6 MB/s | WASM zlib level 4 |
-| WASM zlib | level 2 | 7,359,387 | 2.850 | 195 ms | 102.8 MB/s | |
-| WASM zlib | level 1 | 7,531,042 | 2.785 | 171 ms | 116.7 MB/s | |
+| fflate | level 6 | 6,257,881 | 3.351 | 751 ms | 26.6 MB/s | `CompressionStream` |
+| WASM zlib | level 5 | 6,562,182 | 3.196 | 493 ms | 40.6 MB/s | |
+| fflate | level 5 | 6,648,574 | 3.154 | 534 ms | 37.5 MB/s | WASM zlib level 5 |
+| WASM zlib | level 4 | 6,907,987 | 3.036 | 277 ms | 72.3 MB/s | |
+| fflate | level 1 | 7,261,700 | 2.888 | 319 ms | 62.8 MB/s | WASM zlib level 4 |
+| WASM zlib | level 2 | 7,359,387 | 2.850 | 210 ms | 95.0 MB/s | |
+| WASM zlib | level 1 | 7,531,042 | 2.785 | 173 ms | 115.8 MB/s | |
 
 The pure-JavaScript port produces the same size as the WebAssembly codec at every level and
-takes 1.0 to 1.8× its time, the gap closing at the higher levels; the full 28-row table is in
+takes 1.0 to 1.9× its time, the gap closing at the higher levels; the full 28-row table is in
 `benchmarks/results/codecs-results.json`.
 
 Every fflate row is beaten by a zlib row: by the host's `CompressionStream` at fflate's levels 6
@@ -217,16 +230,16 @@ Decompression of the same stream:
 
 | Codec | Time | Throughput |
 |---|--:|--:|
-| WASM zlib | **42 ms** | 479.8 MB/s |
-| `DecompressionStream` | 55 ms | 365.1 MB/s |
-| pure-JS zlib | 109 ms | 182.7 MB/s |
-| fflate | 121 ms | 165.6 MB/s |
+| WASM zlib | **41 ms** | 483.7 MB/s |
+| `DecompressionStream` | 56 ms | 359.1 MB/s |
+| pure-JS zlib | 108 ms | 185.1 MB/s |
+| fflate | 122 ms | 164.4 MB/s |
 
-The WebAssembly inflate is 24 % faster than Node's `DecompressionStream`; fflate's inflate takes
-2.9× the time of the WebAssembly one, the pure-JavaScript port 2.6×.
+The WebAssembly inflate is 27 % faster than Node's `DecompressionStream`; fflate's inflate takes
+3.0× the time of the WebAssembly one, the pure-JavaScript port 2.6×.
 
-Alone, the WebAssembly backend deflates at level 6 in 1.48× the time of `CompressionStream` for
-0.7 % more bytes and inflates 24 % faster than `DecompressionStream`. zip.js uses it by itself
+Alone, the WebAssembly backend deflates at level 6 in 1.47× the time of `CompressionStream` for
+0.7 % more bytes and inflates 27 % faster than `DecompressionStream`. zip.js uses it by itself
 when no `CompressionStream` exists or when a level other than the default is requested;
 `useCompressionStream: false` selects it on every host, for an output that does not depend on
 the host's zlib.
@@ -239,22 +252,28 @@ that buys with each backend.
 
 | Configuration | Median time | Output | vs jszip |
 |---|--:|--:|--:|
-| **zip.js — `CompressionStream`, concurrent `add()`** | **598 ms** | 19.6 MB | **9.4×** |
-| fflate — async (its own worker pool) | 764 ms | 20.0 MB | 7.4× |
-| zip.js — `CompressionStream`, sequential `add()` | 2245 ms | 19.6 MB | 2.5× |
-| archiver — Node zlib | 2270 ms | 19.6 MB | 2.5× |
-| fflate — `zipSync` (single thread) | 3083 ms | 20.0 MB | 1.8× |
-| zip.js — WASM zlib, concurrent `add()` | 3369 ms | 19.7 MB | 1.7× |
-| zip.js — WASM zlib, sequential `add()` | 3389 ms | 19.7 MB | 1.7× |
-| zip.js — pure-JS zlib, concurrent `add()` | 3822 ms | 19.7 MB | 1.5× |
-| zip.js — pure-JS zlib, sequential `add()` | 3872 ms | 19.7 MB | 1.5× |
-| jszip (pako, single thread) | 5629 ms | 19.7 MB | 1.0× |
+| node:zlib — `ZipEntry.create()` for every entry at once | **596 ms** | 19.6 MB | **9.6×** |
+| **zip.js — `CompressionStream`, concurrent `add()`** | **602 ms** | 19.6 MB | **9.5×** |
+| fflate — async (its own worker pool) | 757 ms | 20.0 MB | 7.6× |
+| node:zlib — `ZipEntry.create()` one entry at a time | 2209 ms | 19.6 MB | 2.6× |
+| zip.js — `CompressionStream`, sequential `add()` | 2257 ms | 19.6 MB | 2.5× |
+| archiver — Node zlib | 2278 ms | 19.6 MB | 2.5× |
+| fflate — `zipSync` (single thread) | 3191 ms | 20.0 MB | 1.8× |
+| zip.js — WASM zlib, sequential `add()` | 3367 ms | 19.7 MB | 1.7× |
+| zip.js — WASM zlib, concurrent `add()` | 3402 ms | 19.7 MB | 1.7× |
+| zip.js — pure-JS zlib, sequential `add()` | 3868 ms | 19.7 MB | 1.5× |
+| zip.js — pure-JS zlib, concurrent `add()` | 3930 ms | 19.7 MB | 1.5× |
+| jszip (pako, single thread) | 5719 ms | 19.7 MB | 1.0× |
 
-With the host's `CompressionStream`, zip.js goes from 2245 ms with sequential `add()` calls to
-598 ms with concurrent ones, 3.8×, without Web Workers: Node runs `CompressionStream` off the
+With the host's `CompressionStream`, zip.js goes from 2257 ms with sequential `add()` calls to
+602 ms with concurrent ones, 3.7×, without Web Workers: Node runs `CompressionStream` off the
 main thread, so the entries compress on several cores while the JavaScript thread only feeds
-them. fflate's async API, which runs its own worker pool, takes 764 ms on the same input; its
-output is 2 % larger than the zlib rows, so it does slightly less work. The WebAssembly and
+them. The ZIP API of `node:zlib` gets the same 3.7× from the same threadpool when its
+`ZipEntry.create()` calls are issued at once, 2209 to 596 ms, the same time as zip.js within
+noise; the difference is in memory, not time: `node:zlib` holds every compressed entry until
+`createZipArchive()` serializes them, while zip.js writes each entry as its codec finishes.
+fflate's async API, which runs its own worker pool, takes 757 ms on the same input; its output
+is 2 % larger than the zlib rows, so it does slightly less work. The WebAssembly and
 pure-JavaScript backends run on the main thread, and concurrent `add()` changes nothing for them.
 
 Requesting a non-default level, e.g. `{ level: 5 }`, selects the bundled codec instead of
@@ -276,21 +295,21 @@ differ:
 
 | Runtime | sequential `add()` | concurrent `add()` | concurrent `add()`, `chunkSize` 64 KB | concurrent `add()` + `useWebWorkers` |
 |---|--:|--:|--:|--:|
-| Node.js v26.7.0 | 2.23 s | **0.59 s** | 0.59 s | 0.61 s |
-| Bun 1.4.2 | 1.20 s | **0.24 s** | 1.20 s | 0.25 s |
-| Deno 2.9.7 | 1.39 s | 1.30 s | 1.31 s | **0.34 s** |
+| Node.js v26.10.0 | 2.25 s | **0.62 s** | 0.59 s | 0.59 s |
+| Bun 1.4.2 | 1.19 s | **0.26 s** | 1.20 s | 0.27 s |
+| Deno 2.9.7 | 1.35 s | 1.35 s | 1.39 s | **0.37 s** |
 
 - **Node** runs `CompressionStream` off the JavaScript thread, on the libuv threadpool, four
-  threads by default (`UV_THREADPOOL_SIZE`): concurrent `add()` alone is 3.8× faster than
+  threads by default (`UV_THREADPOOL_SIZE`): concurrent `add()` alone is 3.6× faster than
   sequential, and the chunk size changes nothing. Node has no `Worker` global, so
   `useWebWorkers` spawns nothing there and the entries run in-process, in the same time.
 - **Bun** runs `CompressionStream` off the JavaScript thread only for writes larger than 128 KB
   (its native implementation, since Bun 1.4 in August 2026). With the 256 KB chunks zip.js
-  writes by default, concurrent `add()` alone is 5.0× faster than sequential; with the 64 KB
+  writes by default, concurrent `add()` alone is 4.5× faster than sequential; with the 64 KB
   chunks that were the default up to version 2.18.2 it gains nothing, and `useWebWorkers: true`
-  is 4.8× faster.
+  is 4.5× faster too.
 - **Deno** runs `CompressionStream` on the JavaScript thread whatever the write size: concurrent
-  `add()` alone gains 7 %, `useWebWorkers: true` is 4.1× faster.
+  `add()` alone gains nothing, `useWebWorkers: true` is 3.6× faster.
 
 ### Compression levels
 
@@ -300,13 +319,13 @@ column runs the same JavaScript on each engine. One 20 MB text entry, one thread
 
 | Runtime | level 6, `CompressionStream` | level 5, WASM zlib | level 5, pure-JS zlib | level 1, WASM zlib |
 |---|--:|--:|--:|--:|
-| Node.js v26.7.0 | 694 ms / 6.12 MB | 509 ms / 6.56 MB | 773 ms / 6.56 MB | 185 ms / 7.53 MB |
-| Bun 1.4.2 | 368 ms / 6.20 MB | 459 ms / 6.56 MB | 661 ms / 6.56 MB | 177 ms / 7.53 MB |
-| Deno 2.9.7 | 408 ms / 6.20 MB | 574 ms / 6.56 MB | 666 ms / 6.56 MB | 219 ms / 7.53 MB |
+| Node.js v26.10.0 | 691 ms / 6.12 MB | 512 ms / 6.56 MB | 774 ms / 6.56 MB | 186 ms / 7.53 MB |
+| Bun 1.4.2 | 430 ms / 6.20 MB | 465 ms / 6.56 MB | 665 ms / 6.56 MB | 166 ms / 7.53 MB |
+| Deno 2.9.7 | 409 ms / 6.20 MB | 592 ms / 6.56 MB | 682 ms / 6.56 MB | 236 ms / 7.53 MB |
 
-On Node, level 5 on the WebAssembly codec is 27 % faster than the default for 7 % more bytes.
+On Node, level 5 on the WebAssembly codec is 26 % faster than the default for 7 % more bytes.
 On Bun and Deno the default is already faster than level 5, so level 5 there is slower and
-larger; only level 1 buys speed on them, 52 % on Bun and 46 % on Deno, at 21 % more bytes. The
+larger; only level 1 buys speed on them, 61 % on Bun and 42 % on Deno, at 21 % more bytes. The
 pure-JavaScript port at level 5 takes 1.5× the WebAssembly time on Node, 1.4× on Bun and 1.2×
 on Deno, and is slower than the default on every runtime. The two bundled codecs produce the
 same size on every runtime; the level-6 sizes differ because they come from three different
@@ -320,13 +339,13 @@ memory, fed in 256 KB writes as zip.js does; gzip is Apple's, timed as a child p
 
 | Runtime | `CompressionStream` alone | zip.js, one entry | Output |
 |---|--:|--:|--:|
-| Node.js v26.7.0 | 8.85 s | 8.91 s | 78.3 MB |
-| Bun 1.4.2 | 4.72 s | 4.75 s | 79.4 MB |
-| Deno 2.9.7 | 5.05 s | 5.20 s | 79.4 MB |
-| Apple `gzip -6`, classic zlib | 12.2 to 12.6 s | | 78.9 MB |
+| Node.js v26.10.0 | 9.06 s | 9.10 s | 78.3 MB |
+| Bun 1.4.2 | 4.74 s | 4.85 s | 79.4 MB |
+| Deno 2.9.7 | 5.22 s | 5.21 s | 79.4 MB |
+| Apple `gzip -6`, classic zlib | 12.4 to 12.5 s | | 78.9 MB |
 
 zip.js is within 3 % of the raw stream on every runtime. On this file Bun's `CompressionStream`
-takes 53 % of Node's time and Deno's 57 %, for about 1.4 % more bytes; Apple's gzip takes 1.4×
+takes 52 % of Node's time and Deno's 58 %, for about 1.4 % more bytes; Apple's gzip takes 1.4×
 Node's time. Which zlib each runtime ships is not verified here; the table measures the result.
 
 ## Encryption: AES-256 on a stored entry
@@ -340,9 +359,9 @@ one archive written, then read back.
 
 | Engine | Node.js | Bun | Deno |
 |---|--:|--:|--:|
-| WebAssembly, linked into the module of the WebAssembly builds | **138 / 139 MB/s** | **122 / 124** | 128 / 128 |
-| JavaScript, the fallback of those builds and the engine of the native and core builds | 118 / 107 | 115 / 115 | **145 / 145** |
-| 2.13.1, sjcl | 26 / 26 | 28 / 28 | 20 / 19 |
+| WebAssembly, linked into the module of the WebAssembly builds | **134 / 135 MB/s** | **119 / 121** | 124 / 124 |
+| JavaScript, the fallback of those builds and the engine of the native and core builds | 119 / 108 | 115 / 117 | **144 / 133** |
+| 2.13.1, sjcl (measured on 2026-09-26, Node.js v26.7.0) | 26 / 26 | 28 / 28 | 20 / 19 |
 
 The same measurement in a browser, through the Web Worker pool, on 32 MB of bytes generated in
 the page (the corpus is not served to the browser), median of 3 passes
@@ -355,13 +374,13 @@ file):
 | JavaScript | 79 / 79 | 104 / 104 |
 | 2.13.1, sjcl | 17 / 17 | 22 / 22 |
 
-- The JavaScript engine is 4.1 to 4.7× sjcl on Node, Bun and in the two browsers, and 7.3 to
-  7.6× on Deno, where sjcl was slowest. sjcl ran the cipher 16 bytes
+- The JavaScript engine is 4.1 to 4.7× sjcl on Node, Bun and in the two browsers, and 7.0 to
+  7.2× on Deno, where sjcl was slowest. sjcl ran the cipher 16 bytes
   at a time through a bit-array layer; the new engine works on typed arrays and is fed whole
   chunks, with the AES rounds and the SHA-1 steps written out. Every build has it.
 - The WebAssembly kernel is the same C code on every host, with the same rounds written out:
-  122 to 139 MB/s on Node, Bun and Deno, 125 to 138 MB/s in the two browsers. The JavaScript
-  engine is within 8 % of it on Bun and 23 % on Node, ahead of it on Deno, and 1.3 to 1.6×
+  119 to 135 MB/s on Node, Bun and Deno, 125 to 138 MB/s in the two browsers. The JavaScript
+  engine is within 4 % of it on Bun and 20 % on Node, ahead of it on Deno, and 1.3 to 1.6×
   slower in the browsers. The WebAssembly builds use
   the kernel whenever their module loads and fall back to the JavaScript engine when it cannot,
   for instance under a Content Security Policy that does not allow WebAssembly
@@ -385,7 +404,7 @@ The harness lives in [`benchmarks/`](benchmarks/). `bench.js` and `bench-backend
 
 ```sh
 cd benchmarks
-npm install              # jszip, fflate, archiver (zip.js is used from the repository)
+npm install              # jszip, fflate, archiver (zip.js is used from the repository, node:zlib is built in)
 npm run corpus           # generate the datasets under .corpus/
 node bench.js            # the head-to-head tables: compress, decompress, disk streaming
 node bench-backends.js   # the concurrent add() and backends table

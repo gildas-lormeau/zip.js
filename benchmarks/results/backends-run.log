@@ -1,14 +1,16 @@
-# Backend & parallelism — 8 files x 8 MB (parallel-friendly) — Node v26.7.0, 3 runs, baseline 49 MB
+# Backend & parallelism — 8 files x 8 MB (parallel-friendly) — Node v26.10.0, 3 runs, baseline 49 MB
 
-zip.js — CompressionStream, sequential        2245 ms   peak  415 MB   out 19.6 MB   ratio 3.425
-zip.js — CompressionStream, parallel           598 ms   peak  466 MB   out 19.6 MB   ratio 3.425
-zip.js — WASM, sequential                     3389 ms   peak  421 MB   out 19.7 MB   ratio 3.401
-zip.js — WASM, parallel                       3369 ms   peak  459 MB   out 19.7 MB   ratio 3.401
-zip.js — pure-JS, sequential                  3872 ms   peak  420 MB   out 19.7 MB   ratio 3.401
-zip.js — pure-JS, parallel                    3822 ms   peak  446 MB   out 19.7 MB   ratio 3.401
-jszip (pako)                                  5629 ms   peak  381 MB   out 19.7 MB   ratio 3.401
-fflate — zipSync                              3083 ms   peak  368 MB   out 20.0 MB   ratio 3.350
-fflate — async (worker pool)                   764 ms   peak  562 MB   out 20.0 MB   ratio 3.350
-archiver (Node zlib)                          2270 ms   peak  360 MB   out 19.6 MB   ratio 3.426
+zip.js — CompressionStream, sequential        2257 ms   peak  426 MB   out 19.6 MB   ratio 3.425
+zip.js — CompressionStream, parallel           602 ms   peak  472 MB   out 19.6 MB   ratio 3.425
+zip.js — WASM, sequential                     3367 ms   peak  436 MB   out 19.7 MB   ratio 3.401
+zip.js — WASM, parallel                       3402 ms   peak  457 MB   out 19.7 MB   ratio 3.401
+zip.js — pure-JS, sequential                  3868 ms   peak  427 MB   out 19.7 MB   ratio 3.401
+zip.js — pure-JS, parallel                    3930 ms   peak  449 MB   out 19.7 MB   ratio 3.401
+jszip (pako)                                  5719 ms   peak  388 MB   out 19.7 MB   ratio 3.401
+fflate — zipSync                              3191 ms   peak  374 MB   out 20.0 MB   ratio 3.350
+fflate — async (worker pool)                   757 ms   peak  538 MB   out 20.0 MB   ratio 3.350
+archiver (Node zlib)                          2278 ms   peak  366 MB   out 19.6 MB   ratio 3.426
+node:zlib — ZipEntry.create, sequential       2209 ms   peak  343 MB   out 19.6 MB   ratio 3.426
+node:zlib — ZipEntry.create, parallel          596 ms   peak  351 MB   out 19.6 MB   ratio 3.426
 
 wrote /Users/gildas/Desktop/Dev/project-zip-js/zip-js/benchmarks/results/backends-results.json

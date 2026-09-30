@@ -3,6 +3,7 @@
 //   - jszip (pako, single-threaded)
 //   - fflate sync (single-threaded) and async (its worker pool)
 //   - archiver (Node zlib on the libuv threadpool)
+//   - node:zlib's ZipEntry.create (Node 26.8+, Node zlib on the libuv threadpool), sequential vs parallel
 // The point: zip.js + native CompressionStream + concurrent add() runs codecs on multiple threads
 // WITHOUT Web Workers, so it parallelizes even in a plain Node process.
 //
@@ -32,7 +33,9 @@ const CONFIGS = [
 	["jszip (pako)", "jszip", []],
 	["fflate — zipSync", "fflate", ["single", "cs", "sequential"]],
 	["fflate — async (worker pool)", "fflate", ["single", "cs", "parallel"]],
-	["archiver (Node zlib)", "archiver", []]
+	["archiver (Node zlib)", "archiver", []],
+	["node:zlib — ZipEntry.create, sequential", "nodezip", ["single", "cs", "sequential"]],
+	["node:zlib — ZipEntry.create, parallel", "nodezip", ["single", "cs", "parallel"]]
 ];
 
 function measureBaseline() {

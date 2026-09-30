@@ -1,201 +1,201 @@
 {
-  "runtime": "v26.7.0",
+  "runtime": "v26.10.0",
   "runs": 3,
   "inputBytes": 20971520,
   "compress": [
     {
       "codec": "WASM",
       "setting": "level 1",
-      "ms": 171.37220900000003,
+      "ms": 172.78070799999998,
       "size": 7531042,
       "frontier": true
     },
     {
       "codec": "pure-JS",
       "setting": "level 1",
-      "ms": 313.6495,
+      "ms": 326.1552079999999,
       "size": 7531042,
       "frontier": false
     },
     {
       "codec": "fflate",
       "setting": "level 1",
-      "ms": 314.64195800000016,
+      "ms": 318.5816669999999,
       "size": 7261700,
       "frontier": false
     },
     {
       "codec": "WASM",
       "setting": "level 2",
-      "ms": 194.55820799999992,
+      "ms": 210.42841699999963,
       "size": 7359387,
       "frontier": true
     },
     {
       "codec": "pure-JS",
       "setting": "level 2",
-      "ms": 337.98049999999967,
+      "ms": 335.72620800000004,
       "size": 7359387,
       "frontier": false
     },
     {
       "codec": "fflate",
       "setting": "level 2",
-      "ms": 468.55833299999995,
+      "ms": 471.34904200000074,
       "size": 7090030,
       "frontier": false
     },
     {
       "codec": "WASM",
       "setting": "level 3",
-      "ms": 352.00166700000045,
+      "ms": 351.49783299999945,
       "size": 7048833,
       "frontier": false
     },
     {
       "codec": "pure-JS",
       "setting": "level 3",
-      "ms": 485.5024169999997,
+      "ms": 488.45645799999966,
       "size": 7048833,
       "frontier": false
     },
     {
       "codec": "fflate",
       "setting": "level 3",
-      "ms": 493.8627089999991,
+      "ms": 496.9043750000001,
       "size": 6934972,
       "frontier": false
     },
     {
       "codec": "WASM",
       "setting": "level 4",
-      "ms": 274.99691600000006,
+      "ms": 276.56245800000033,
       "size": 6907987,
       "frontier": true
     },
     {
       "codec": "pure-JS",
       "setting": "level 4",
-      "ms": 438.6951250000002,
+      "ms": 439.4963750000006,
       "size": 6907987,
       "frontier": false
     },
     {
       "codec": "fflate",
       "setting": "level 4",
-      "ms": 801.9638340000001,
+      "ms": 801.8768330000003,
       "size": 6648556,
       "frontier": false
     },
     {
       "codec": "WASM",
       "setting": "level 5",
-      "ms": 493.82887499999924,
+      "ms": 492.705833,
       "size": 6562182,
       "frontier": true
     },
     {
       "codec": "pure-JS",
       "setting": "level 5",
-      "ms": 708.9864159999997,
+      "ms": 711.4250829999983,
       "size": 6562182,
       "frontier": false
     },
     {
       "codec": "fflate",
       "setting": "level 5",
-      "ms": 531.8005830000002,
+      "ms": 533.7824580000015,
       "size": 6648574,
       "frontier": false
     },
     {
       "codec": "WASM",
       "setting": "level 6",
-      "ms": 1025.895124999999,
+      "ms": 1024.5514169999988,
       "size": 6165103,
       "frontier": false
     },
     {
       "codec": "pure-JS",
       "setting": "level 6",
-      "ms": 1121.2754170000007,
+      "ms": 1120.768458999999,
       "size": 6165103,
       "frontier": false
     },
     {
       "codec": "fflate",
       "setting": "level 6",
-      "ms": 731.947709,
+      "ms": 750.9882499999985,
       "size": 6257881,
       "frontier": false
     },
     {
       "codec": "WASM",
       "setting": "level 7",
-      "ms": 1241.096458,
+      "ms": 1243.841124999999,
       "size": 6129948,
       "frontier": false
     },
     {
       "codec": "pure-JS",
       "setting": "level 7",
-      "ms": 1290.8853340000023,
+      "ms": 1328.1655830000018,
       "size": 6129948,
       "frontier": false
     },
     {
       "codec": "fflate",
       "setting": "level 7",
-      "ms": 747.1649999999936,
+      "ms": 761.3826249999984,
       "size": 6240878,
       "frontier": false
     },
     {
       "codec": "WASM",
       "setting": "level 8",
-      "ms": 1479.1235410000008,
+      "ms": 1485.9084999999977,
       "size": 6115980,
       "frontier": true
     },
     {
       "codec": "pure-JS",
       "setting": "level 8",
-      "ms": 1483.4404580000046,
+      "ms": 1520.583292000003,
       "size": 6115980,
       "frontier": false
     },
     {
       "codec": "fflate",
       "setting": "level 8",
-      "ms": 754.8092909999978,
+      "ms": 755.1716670000023,
       "size": 6239025,
       "frontier": false
     },
     {
       "codec": "WASM",
       "setting": "level 9",
-      "ms": 1479.1710420000018,
+      "ms": 1469.762125000001,
       "size": 6115980,
-      "frontier": false
+      "frontier": true
     },
     {
       "codec": "pure-JS",
       "setting": "level 9",
-      "ms": 1511.4701249999998,
+      "ms": 1489.000874999998,
       "size": 6115980,
       "frontier": false
     },
     {
       "codec": "fflate",
       "setting": "level 9",
-      "ms": 751.0920000000042,
+      "ms": 755.4601659999971,
       "size": 6239025,
       "frontier": false
     },
     {
       "codec": "CompressionStream",
       "setting": "no level control",
-      "ms": 692.7085000000006,
+      "ms": 694.9145419999986,
       "size": 6120503,
       "frontier": true
     }
@@ -204,25 +204,25 @@
     {
       "codec": "WASM",
       "setting": "inflate",
-      "ms": 41.68274999999994,
+      "ms": 41.347666999994544,
       "size": 20971520
     },
     {
       "codec": "pure-JS",
       "setting": "inflate",
-      "ms": 109.4632500000007,
+      "ms": 108.03654200000165,
       "size": 20971520
     },
     {
       "codec": "fflate",
       "setting": "inflate",
-      "ms": 120.79583300000377,
+      "ms": 121.69120799999655,
       "size": 20971520
     },
     {
       "codec": "CompressionStream",
       "setting": "inflate",
-      "ms": 54.779709000002185,
+      "ms": 55.70133299999725,
       "size": 20971520
     }
   ]

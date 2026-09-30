@@ -3,7 +3,7 @@
 // /usr/bin/time -l, so this process must do nothing but the measured work.
 //
 // Usage: node run-one.js <lib> <op> <workload> [mode] [backend]
-//   lib:      zipjs | jszip | fflate | archiver
+//   lib:      zipjs | jszip | fflate | archiver | nodezip
 //   op:       compress | decompress | compressDisk
 //   workload: a key from WORKLOADS (corpus.js)
 //   mode:     zip.js only: single | workers   (default single)
@@ -19,7 +19,8 @@ const ADAPTERS = {
 	zipjs: () => import("./adapters/zipjs.js"),
 	jszip: () => import("./adapters/jszip.js"),
 	fflate: () => import("./adapters/fflate.js"),
-	archiver: () => import("./adapters/archiver.js")
+	archiver: () => import("./adapters/archiver.js"),
+	nodezip: () => import("./adapters/nodezip.js")
 };
 
 async function main() {
@@ -55,7 +56,8 @@ async function main() {
 }
 
 // Produce an in-memory archive to feed decompress(). zip.js returns a Uint8Array from close();
-// jszip/fflate return Uint8Array. archiver can't decompress so it never reaches here.
+// jszip/fflate return Uint8Array, node:zlib a Buffer. archiver can't decompress so it never
+// reaches here.
 async function buildArchive(adapter, files) {
 	if (adapter.name === "@zip.js/zip.js") {
 		const zip = await import("../index.js");
@@ -80,6 +82,14 @@ async function buildArchive(adapter, files) {
 		const input = {};
 		for (const [entryName, data] of Object.entries(files)) input[entryName] = [data, { level: 6 }];
 		return zipSync(input, {});
+	}
+	if (adapter.name === "node:zlib") {
+		const { ZipEntry, createZipArchive } = await import("node:zlib");
+		const entries = [];
+		for (const [entryName, data] of Object.entries(files)) entries.push(await ZipEntry.create(entryName, data));
+		const chunks = [];
+		for await (const chunk of createZipArchive(entries)) chunks.push(chunk);
+		return Buffer.concat(chunks);
 	}
 	throw new Error("no archive builder for " + adapter.name);
 }

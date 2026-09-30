@@ -1,41 +1,41 @@
-# Codecs — 20971520 bytes of compressible text — Node v26.7.0, 3 runs
+# Codecs — 20971520 bytes of compressible text — Node v26.10.0, 3 runs
 
 Compression, sorted by output size. A row is on the frontier when nothing smaller is faster.
 
-WASM               level 8             6115980   ratio 3.429     1479 ms     13.5 MB/s   frontier
-pure-JS            level 8             6115980   ratio 3.429     1483 ms     13.5 MB/s   
-WASM               level 9             6115980   ratio 3.429     1479 ms     13.5 MB/s   
-pure-JS            level 9             6115980   ratio 3.429     1511 ms     13.2 MB/s   
-CompressionStream  no level control    6120503   ratio 3.426      693 ms     28.9 MB/s   frontier
-WASM               level 7             6129948   ratio 3.421     1241 ms     16.1 MB/s   
-pure-JS            level 7             6129948   ratio 3.421     1291 ms     15.5 MB/s   
-WASM               level 6             6165103   ratio 3.402     1026 ms     19.5 MB/s   
+WASM               level 8             6115980   ratio 3.429     1486 ms     13.5 MB/s   frontier
+pure-JS            level 8             6115980   ratio 3.429     1521 ms     13.2 MB/s   
+WASM               level 9             6115980   ratio 3.429     1470 ms     13.6 MB/s   frontier
+pure-JS            level 9             6115980   ratio 3.429     1489 ms     13.4 MB/s   
+CompressionStream  no level control    6120503   ratio 3.426      695 ms     28.8 MB/s   frontier
+WASM               level 7             6129948   ratio 3.421     1244 ms     16.1 MB/s   
+pure-JS            level 7             6129948   ratio 3.421     1328 ms     15.1 MB/s   
+WASM               level 6             6165103   ratio 3.402     1025 ms     19.5 MB/s   
 pure-JS            level 6             6165103   ratio 3.402     1121 ms     17.8 MB/s   
 fflate             level 8             6239025   ratio 3.361      755 ms     26.5 MB/s   
-fflate             level 9             6239025   ratio 3.361      751 ms     26.6 MB/s   
-fflate             level 7             6240878   ratio 3.360      747 ms     26.8 MB/s   
-fflate             level 6             6257881   ratio 3.351      732 ms     27.3 MB/s   
-WASM               level 5             6562182   ratio 3.196      494 ms     40.5 MB/s   frontier
-pure-JS            level 5             6562182   ratio 3.196      709 ms     28.2 MB/s   
+fflate             level 9             6239025   ratio 3.361      755 ms     26.5 MB/s   
+fflate             level 7             6240878   ratio 3.360      761 ms     26.3 MB/s   
+fflate             level 6             6257881   ratio 3.351      751 ms     26.6 MB/s   
+WASM               level 5             6562182   ratio 3.196      493 ms     40.6 MB/s   frontier
+pure-JS            level 5             6562182   ratio 3.196      711 ms     28.1 MB/s   
 fflate             level 4             6648556   ratio 3.154      802 ms     24.9 MB/s   
-fflate             level 5             6648574   ratio 3.154      532 ms     37.6 MB/s   
-WASM               level 4             6907987   ratio 3.036      275 ms     72.7 MB/s   frontier
-pure-JS            level 4             6907987   ratio 3.036      439 ms     45.6 MB/s   
-fflate             level 3             6934972   ratio 3.024      494 ms     40.5 MB/s   
-WASM               level 3             7048833   ratio 2.975      352 ms     56.8 MB/s   
-pure-JS            level 3             7048833   ratio 2.975      486 ms     41.2 MB/s   
-fflate             level 2             7090030   ratio 2.958      469 ms     42.7 MB/s   
-fflate             level 1             7261700   ratio 2.888      315 ms     63.6 MB/s   
-WASM               level 2             7359387   ratio 2.850      195 ms    102.8 MB/s   frontier
-pure-JS            level 2             7359387   ratio 2.850      338 ms     59.2 MB/s   
-WASM               level 1             7531042   ratio 2.785      171 ms    116.7 MB/s   frontier
-pure-JS            level 1             7531042   ratio 2.785      314 ms     63.8 MB/s   
+fflate             level 5             6648574   ratio 3.154      534 ms     37.5 MB/s   
+WASM               level 4             6907987   ratio 3.036      277 ms     72.3 MB/s   frontier
+pure-JS            level 4             6907987   ratio 3.036      439 ms     45.5 MB/s   
+fflate             level 3             6934972   ratio 3.024      497 ms     40.2 MB/s   
+WASM               level 3             7048833   ratio 2.975      351 ms     56.9 MB/s   
+pure-JS            level 3             7048833   ratio 2.975      488 ms     40.9 MB/s   
+fflate             level 2             7090030   ratio 2.958      471 ms     42.4 MB/s   
+fflate             level 1             7261700   ratio 2.888      319 ms     62.8 MB/s   
+WASM               level 2             7359387   ratio 2.850      210 ms     95.0 MB/s   frontier
+pure-JS            level 2             7359387   ratio 2.850      336 ms     59.6 MB/s   
+WASM               level 1             7531042   ratio 2.785      173 ms    115.8 MB/s   frontier
+pure-JS            level 1             7531042   ratio 2.785      326 ms     61.3 MB/s   
 
 Decompression of the same level-6 stream.
 
-WASM               inflate               42 ms    479.8 MB/s
-pure-JS            inflate              109 ms    182.7 MB/s
-fflate             inflate              121 ms    165.6 MB/s
-CompressionStream  inflate               55 ms    365.1 MB/s
+WASM               inflate               41 ms    483.7 MB/s
+pure-JS            inflate              108 ms    185.1 MB/s
+fflate             inflate              122 ms    164.4 MB/s
+CompressionStream  inflate               56 ms    359.1 MB/s
 
 wrote /Users/gildas/Desktop/Dev/project-zip-js/zip-js/benchmarks/results/codecs-results.json

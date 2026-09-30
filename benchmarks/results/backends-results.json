@@ -1,15 +1,15 @@
 {
-  "runtime": "v26.7.0",
+  "runtime": "v26.10.0",
   "runs": 3,
   "workload": "8 files x 8 MB (parallel-friendly)",
   "inputBytes": 67108864,
-  "baselineRssBytes": 49381376,
+  "baselineRssBytes": 49430528,
   "rows": [
     {
       "label": "zip.js — CompressionStream, sequential",
       "lib": "zipjs",
-      "medianMs": 2244.584541,
-      "peakRssBytes": 415023104,
+      "medianMs": 2256.915459,
+      "peakRssBytes": 425721856,
       "outputSize": 19590989,
       "ratio": 3.425496487186022,
       "speedupVsCsSeq": 1
@@ -17,83 +17,101 @@
     {
       "label": "zip.js — CompressionStream, parallel",
       "lib": "zipjs",
-      "medianMs": 598.355917,
-      "peakRssBytes": 466173952,
+      "medianMs": 602.0357499999999,
+      "peakRssBytes": 472055808,
       "outputSize": 19590989,
       "ratio": 3.425496487186022,
-      "speedupVsCsSeq": 3.75125318765754
+      "speedupVsCsSeq": 3.748806377362142
     },
     {
       "label": "zip.js — WASM, sequential",
       "lib": "zipjs",
-      "medianMs": 3389.335083,
-      "peakRssBytes": 420757504,
+      "medianMs": 3366.808459,
+      "peakRssBytes": 435830784,
       "outputSize": 19734824,
       "ratio": 3.4005301491414364,
-      "speedupVsCsSeq": 0.6622492276606811
+      "speedupVsCsSeq": 0.6703426959044598
     },
     {
       "label": "zip.js — WASM, parallel",
       "lib": "zipjs",
-      "medianMs": 3369.184416,
-      "peakRssBytes": 459423744,
+      "medianMs": 3402.220791,
+      "peakRssBytes": 456835072,
       "outputSize": 19734824,
       "ratio": 3.4005301491414364,
-      "speedupVsCsSeq": 0.6662100567545781
+      "speedupVsCsSeq": 0.6633653715156548
     },
     {
       "label": "zip.js — pure-JS, sequential",
       "lib": "zipjs",
-      "medianMs": 3871.971042,
-      "peakRssBytes": 420216832,
+      "medianMs": 3867.604334,
+      "peakRssBytes": 427114496,
       "outputSize": 19734824,
       "ratio": 3.4005301491414364,
-      "speedupVsCsSeq": 0.5797007561917609
+      "speedupVsCsSeq": 0.5835435230950384
     },
     {
       "label": "zip.js — pure-JS, parallel",
       "lib": "zipjs",
-      "medianMs": 3821.6915,
-      "peakRssBytes": 446283776,
+      "medianMs": 3930.491792,
+      "peakRssBytes": 448905216,
       "outputSize": 19734824,
       "ratio": 3.4005301491414364,
-      "speedupVsCsSeq": 0.5873275069429336
+      "speedupVsCsSeq": 0.5742068876962559
     },
     {
       "label": "jszip (pako)",
       "lib": "jszip",
-      "medianMs": 5628.960875,
-      "peakRssBytes": 381075456,
+      "medianMs": 5718.888334,
+      "peakRssBytes": 387940352,
       "outputSize": 19734552,
       "ratio": 3.400577018419268,
-      "speedupVsCsSeq": 0.39875646515308216
+      "speedupVsCsSeq": 0.39464233731967807
     },
     {
       "label": "fflate — zipSync",
       "lib": "fflate",
-      "medianMs": 3082.539125,
-      "peakRssBytes": 367640576,
+      "medianMs": 3190.8615419999996,
+      "peakRssBytes": 374095872,
       "outputSize": 20031041,
       "ratio": 3.3502434546462165,
-      "speedupVsCsSeq": 0.728160925126944
+      "speedupVsCsSeq": 0.7073059828178531
     },
     {
       "label": "fflate — async (worker pool)",
       "lib": "fflate",
-      "medianMs": 763.9192089999999,
-      "peakRssBytes": 562413568,
+      "medianMs": 757.375417,
+      "peakRssBytes": 538034176,
       "outputSize": 20031041,
       "ratio": 3.3502434546462165,
-      "speedupVsCsSeq": 2.9382485929870112
+      "speedupVsCsSeq": 2.979916443472313
     },
     {
       "label": "archiver (Node zlib)",
       "lib": "archiver",
-      "medianMs": 2270.3410409999997,
-      "peakRssBytes": 359989248,
+      "medianMs": 2278.2045000000003,
+      "peakRssBytes": 366297088,
       "outputSize": 19590845,
       "ratio": 3.4255216658597423,
-      "speedupVsCsSeq": 0.9886552286485317
+      "speedupVsCsSeq": 0.9906553423979276
+    },
+    {
+      "label": "node:zlib — ZipEntry.create, sequential",
+      "lib": "nodezip",
+      "medianMs": 2209.2627079999997,
+      "peakRssBytes": 343375872,
+      "outputSize": 19590717,
+      "ratio": 3.42554404721379,
+      "speedupVsCsSeq": 1.0215695267147016
+    },
+    {
+      "label": "node:zlib — ZipEntry.create, parallel",
+      "lib": "nodezip",
+      "medianMs": 595.849167,
+      "peakRssBytes": 350732288,
+      "outputSize": 19590717,
+      "ratio": 3.42554404721379,
+      "speedupVsCsSeq": 3.7877294859086375
     }
   ]
 }

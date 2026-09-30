@@ -19,8 +19,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const RUN_ONE = join(HERE, "run-one.js");
 const RUNS = runs(3);
 
-const LIBS = ["zipjs", "jszip", "fflate", "archiver"];
-const LIB_LABEL = { zipjs: "@zip.js/zip.js", jszip: "jszip", fflate: "fflate", archiver: "archiver" };
+const LIBS = ["zipjs", "jszip", "fflate", "archiver", "nodezip"];
+const LIB_LABEL = { zipjs: "@zip.js/zip.js", jszip: "jszip", fflate: "fflate", archiver: "archiver", nodezip: "node:zlib" };
 
 // The benchmark plan: which ops run on which workloads.
 const PLAN = [
