@@ -100,7 +100,8 @@ systems, and it also occurs as the trail byte of legitimate double-byte filename
 another charset.
 
 Names are validated, never rewritten, so the filename reported for an entry always matches its central
-directory record.
+directory record. The name validated is the final one, i.e. the name of a valid Unicode Path extra field
+(see [EntryMetaData#extraFieldUnicodePath](EntryMetaData.md#extrafieldunicodepath)) when the entry carries one.
 
 #### Default Value
 
@@ -248,8 +249,9 @@ The decrypted and decompressed central directory records.
 The function called for normalizing the filename of each entry, e.g. to repair the names rejected by
 [GetEntriesOptions#filenameValidation](GetEntriesOptions.md#filenamevalidation).
 
-It is called with the decoded filename, after [GetEntriesOptions#decodeText](GetEntriesOptions.md#decodetext) and before the name is
-validated, so a name it fails to repair is still rejected. The returned name becomes the name of the entry:
+It is called with the decoded filename, after [GetEntriesOptions#decodeText](GetEntriesOptions.md#decodetext) and after a valid Unicode
+Path extra field (see [EntryMetaData#extraFieldUnicodePath](EntryMetaData.md#extrafieldunicodepath)) has replaced the name, and before the name
+is validated, so a name it fails to repair is still rejected. The returned name becomes the name of the entry:
 it is used to detect directory entries by their trailing `"/"`, and to detect duplicate filenames when
 [GetEntriesOptions#checkAmbiguity](#checkambiguity) is set, so two names normalized into the same name are reported as
 an [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md) error instead of silently shadowing each other. The raw filename remains

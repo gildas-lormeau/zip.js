@@ -1761,7 +1761,8 @@ export interface GetEntriesOptions {
    * another charset.
    *
    * Names are validated, never rewritten, so the filename reported for an entry always matches its central
-   * directory record.
+   * directory record. The name validated is the final one, i.e. the name of a valid Unicode Path extra field
+   * (see {@link EntryMetaData#extraFieldUnicodePath}) when the entry carries one.
    *
    * @defaultValue The value of {@link GetEntriesOptions#strictness}.
    */
@@ -1770,8 +1771,9 @@ export interface GetEntriesOptions {
    * The function called for normalizing the filename of each entry, e.g. to repair the names rejected by
    * {@link GetEntriesOptions#filenameValidation}.
    *
-   * It is called with the decoded filename, after {@link GetEntriesOptions#decodeText} and before the name is
-   * validated, so a name it fails to repair is still rejected. The returned name becomes the name of the entry:
+   * It is called with the decoded filename, after {@link GetEntriesOptions#decodeText} and after a valid Unicode
+   * Path extra field (see {@link EntryMetaData#extraFieldUnicodePath}) has replaced the name, and before the name
+   * is validated, so a name it fails to repair is still rejected. The returned name becomes the name of the entry:
    * it is used to detect directory entries by their trailing `"/"`, and to detect duplicate filenames when
    * {@link GetEntriesOptions#checkAmbiguity} is set, so two names normalized into the same name are reported as
    * an {@link ERR_AMBIGUOUS_ARCHIVE} error instead of silently shadowing each other. The raw filename remains

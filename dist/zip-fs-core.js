@@ -5085,17 +5085,6 @@
 				if (filename === UNDEFINED_VALUE) {
 					filename = decodeText(rawFilename, rawFilenameEncoding);
 				}
-				if (normalizeFilename) {
-					const normalizedFilename = normalizeFilename(filename);
-					if (normalizedFilename !== UNDEFINED_VALUE) {
-						filename = normalizedFilename;
-					}
-				}
-				if (isUnsafeFilename(filename, filenameValidation)) {
-					const error = new Error(ERR_UNSAFE_FILENAME);
-					error.filename = filename;
-					throw error;
-				}
 				let comment = decode(rawComment, rawCommentEncoding, TEXT_TYPE_COMMENT);
 				if (comment === UNDEFINED_VALUE) {
 					comment = decodeText(rawComment, rawCommentEncoding);
@@ -5123,7 +5112,20 @@
 					filename,
 					comment
 				});
-				if (readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6)) {
+				const malformedExtraField = readCommonFooter(fileEntry, fileEntry, directoryView, offset + 6);
+				filename = fileEntry.filename;
+				if (normalizeFilename) {
+					const normalizedFilename = normalizeFilename(filename);
+					if (normalizedFilename !== UNDEFINED_VALUE) {
+						filename = fileEntry.filename = normalizedFilename;
+					}
+				}
+				if (isUnsafeFilename(filename, filenameValidation)) {
+					const error = new Error(ERR_UNSAFE_FILENAME);
+					error.filename = filename;
+					throw error;
+				}
+				if (malformedExtraField) {
 					addWarning(warnings, WARNING_MALFORMED_EXTRA_FIELD, filename);
 				}
 				fileEntry.offset += prependedDataLength;

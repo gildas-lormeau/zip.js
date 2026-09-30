@@ -4,6 +4,10 @@
 // it is legal on UNIX file systems and it also occurs as the trail byte of double-byte filenames (CP932
 // here) decoded with another charset. A ".." component delimited by backslashes is still rejected,
 // because a Windows host resolves it as a parent directory, and no correctly decoded name contains one.
+// The name validated is the final one: a valid Unicode Path extra field (0x7075) replaces the decoded name
+// before normalization and validation, so it cannot smuggle a name the central directory would not pass.
+
+/* global TextEncoder */
 
 import * as zip from "../zip-lib.js";
 
@@ -23,7 +27,67 @@ async function test() {
 	await normalizationRunsAfterDecodingAndBeforeValidation();
 	await normalizationDetectsCollisions();
 	await filesystemInheritsNormalization();
+	await unicodePathOverrideIsValidated();
 	await zip.terminateWorkers();
+}
+
+async function unicodePathOverrideIsValidated() {
+	const data = await buildZip(["safe.txt"], "content", unicodePathExtraField("safe.txt", "../evil.txt"));
+	for (const filenameValidation of [undefined, "balanced", "strict"]) {
+		try {
+			await readEntries(data, { filenameValidation });
+		} catch (error) {
+			if (error.message != zip.ERR_UNSAFE_FILENAME || error.filename != "../evil.txt") {
+				throw error;
+			}
+			continue;
+		}
+		throw new Error("expected the Unicode Path override \"../evil.txt\" to be rejected with " + filenameValidation);
+	}
+	const tolerantEntries = await readEntries(data, { filenameValidation: "tolerant" });
+	if (tolerantEntries[0].filename != "../evil.txt") {
+		throw new Error("expected the tolerant level to keep the override, got \"" + tolerantEntries[0].filename + "\"");
+	}
+	let receivedFilename;
+	const entries = await readEntries(data, {
+		normalizeFilename: filename => {
+			receivedFilename = filename;
+			return stripLeadingParents(filename);
+		}
+	});
+	if (receivedFilename != "../evil.txt") {
+		throw new Error("expected the hook to receive the override, got \"" + receivedFilename + "\"");
+	}
+	if (entries[0].filename != "evil.txt") {
+		throw new Error("expected the repaired override \"evil.txt\" got \"" + entries[0].filename + "\"");
+	}
+	const untouchedEntries = await readEntries(await buildZip(["safe.txt"], "content", unicodePathExtraField("safe.txt", "other.txt")), {});
+	if (untouchedEntries[0].filename != "other.txt") {
+		throw new Error("expected a safe override to be kept, got \"" + untouchedEntries[0].filename + "\"");
+	}
+}
+
+function unicodePathExtraField(rawName, overrideName) {
+	const encoder = new TextEncoder();
+	const rawBytes = encoder.encode(rawName);
+	const overrideBytes = encoder.encode(overrideName);
+	const body = new Uint8Array(5 + overrideBytes.length);
+	const view = new DataView(body.buffer);
+	view.setUint8(0, 1);
+	view.setUint32(1, crc32(rawBytes), true);
+	body.set(overrideBytes, 5);
+	return new Map([[0x7075, body]]);
+}
+
+function crc32(bytes) {
+	let crc = 0xFFFFFFFF;
+	for (let index = 0; index < bytes.length; index++) {
+		crc ^= bytes[index];
+		for (let bit = 0; bit < 8; bit++) {
+			crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+		}
+	}
+	return (crc ^ 0xFFFFFFFF) >>> 0;
 }
 
 async function normalizationRepairsRejectedNames() {
@@ -176,11 +240,11 @@ async function readEntries(data, options) {
 	}
 }
 
-async function buildZip(names, content = "content") {
-	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+async function buildZip(names, content = "content", extraField) {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { useUnicodeFileNames: !extraField });
 	for (const name of names) {
 		const directory = name.endsWith("/");
-		await zipWriter.add(name, directory ? undefined : new zip.TextReader(content), { directory });
+		await zipWriter.add(name, directory ? undefined : new zip.TextReader(content), { directory, extraField });
 	}
 	return zipWriter.close();
 }
