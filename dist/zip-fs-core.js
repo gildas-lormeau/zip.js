@@ -4970,10 +4970,6 @@
 			let declaredDirectoryDataLength = directoryDataLength;
 			const centralDirectoryEndOffset = endOfDirectoryInfo.offset -
 				(zip64EndOfDirectory ? zip64EndOfDirectoryLength + ZIP64_END_OF_CENTRAL_DIR_LOCATOR_LENGTH : 0);
-			if (directoryDataOffset >= reader.size) {
-				prependedDataLength = reader.size - directoryDataOffset - directoryDataLength - END_OF_CENTRAL_DIR_LENGTH;
-				directoryDataOffset = reader.size - directoryDataLength - END_OF_CENTRAL_DIR_LENGTH;
-			}
 			if (expectedLastDiskNumber != lastDiskNumber) {
 				throw new Error(ERR_SPLIT_ZIP_FILE);
 			}
@@ -4981,32 +4977,37 @@
 				throw new Error(ERR_BAD_FORMAT);
 			}
 			let offset = 0;
-			let directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
+			let directoryArray = directoryDataOffset < reader.size ?
+				await readUint8Array(reader, directoryDataOffset, directoryDataLength) :
+				EMPTY_UINT8_ARRAY;
 			let directoryView = getDataView(directoryArray);
 			if (directoryDataLength) {
-				if (directoryArray.length < 4) {
-					throw new Error(ERR_BAD_FORMAT);
-				}
 				let expectedDirectoryDataOffset = centralDirectoryEndOffset - directoryDataLength;
 				if (directoryDataOffset != expectedDirectoryDataOffset && diskNumber == lastDiskNumber) {
-					const storedPointsAtDirectory = getUint32$1(directoryView, offset) == CENTRAL_FILE_HEADER_SIGNATURE ||
+					const storedPointsAtDirectory = directoryArray.length >= 4 && (
+						getUint32$1(directoryView, offset) == CENTRAL_FILE_HEADER_SIGNATURE ||
 						Boolean(directoryEncryptionInfo && directoryEncryptionInfo.compressedSize) ||
-						detectEncryptedCentralDirectory(directoryView);
+						detectEncryptedCentralDirectory(directoryView));
+					if (!storedPointsAtDirectory && expectedDirectoryDataOffset < 0) {
+						throw new Error(ERR_BAD_FORMAT);
+					}
 					let reconcile = !storedPointsAtDirectory;
 					if (expectedDirectoryDataOffset >= 0 && expectedDirectoryDataOffset + 4 <= reader.size) {
-						const expectedPointsAtDirectory = await pointsAtDirectory(reader, expectedDirectoryDataOffset);
-						if (storedPointsAtDirectory) {
-							reconcile = expectedPointsAtDirectory;
-						} else if (!expectedPointsAtDirectory) {
+						let expectedPointsAtDirectory = await pointsAtDirectory(reader, expectedDirectoryDataOffset);
+						if (!expectedPointsAtDirectory) {
 							const signatureRecordOffset = await findDigitalSignatureRecordOffset(reader, centralDirectoryEndOffset);
 							const signedDirectoryDataOffset = signatureRecordOffset - directoryDataLength;
 							if (signatureRecordOffset !== UNDEFINED_VALUE && signedDirectoryDataOffset >= 0 &&
 								await pointsAtDirectory(reader, signedDirectoryDataOffset)) {
 								expectedDirectoryDataOffset = signedDirectoryDataOffset;
+								expectedPointsAtDirectory = true;
 							}
 						}
+						if (storedPointsAtDirectory) {
+							reconcile = expectedPointsAtDirectory;
+						}
 					}
-					if (reconcile) {
+					if (reconcile && expectedDirectoryDataOffset != directoryDataOffset) {
 						const originalDirectoryDataOffset = directoryDataOffset;
 						directoryDataOffset = expectedDirectoryDataOffset;
 						directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
@@ -5026,6 +5027,9 @@
 							}
 						}
 					}
+				}
+				if (directoryArray.length < 4) {
+					throw new Error(ERR_BAD_FORMAT);
 				}
 			}
 			const expectedDirectoryDataLength = centralDirectoryEndOffset - directoryDataOffset;
@@ -6675,7 +6679,7 @@
 				await lockWriter;
 				if (zipWriter.addSplitZipSignature) {
 					delete zipWriter.addSplitZipSignature;
-					if (!await startsWithSplitZipSignature(reader)) {
+					if (filter || !await startsWithSplitZipSignature(reader)) {
 						await writeData(zipWriter.writer, getSplitZipSignatureArray());
 						zipWriter.offset += SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
 					}
@@ -6686,8 +6690,7 @@
 						version,
 						rawLastModDate,
 						rawFilename,
-						bitFlag,
-						encrypted,
+						rawBitFlag,
 						uncompressedSize,
 						compressedSize,
 						extraFieldZip64
@@ -6696,7 +6699,6 @@
 						compressionMethod,
 						rawExtraField,
 					} = entry;
-					const { level, languageEncodingFlag, dataDescriptor } = bitFlag;
 					rawExtraField = removeExtraFieldZip64(rawExtraField || EMPTY_UINT8_ARRAY);
 					if (entry.extraFieldAES) {
 						compressionMethod = COMPRESSION_METHOD_AES;
@@ -6704,13 +6706,12 @@
 					const extraFieldLength = getLength(rawExtraField);
 					const zip64UncompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.uncompressedSize !== UNDEFINED_VALUE;
 					const zip64CompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.compressedSize !== UNDEFINED_VALUE;
-					const bitFlagValue = (getBitFlag(level, languageEncodingFlag, dataDescriptor, encrypted, compressionMethod) & ~BITFLAG_LEVEL) | (level << 1);
 					const {
 						headerArray,
 						headerView
 					} = getHeaderArrayData({
 						version,
-						bitFlag: bitFlagValue,
+						bitFlag: rawBitFlag,
 						compressionMethod,
 						uncompressedSize,
 						compressedSize,

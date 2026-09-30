@@ -3,6 +3,8 @@
 import * as zip from "../zip-lib.js";
 
 const LAST_MOD_DATE = new Date(2026, 0, 1, 12, 0, 0);
+const SPLIT_ZIP_FILE_SIGNATURE = [0x50, 0x4b, 0x07, 0x08];
+const RAW_BIT_FLAGS = 0x1040;
 
 export { test };
 
@@ -23,6 +25,7 @@ async function test() {
 		await letsTheFilterReadTheEntryData();
 		await dropsTheBytesOutsideTheEntriesWhenFiltering();
 		await filtersIntoASplitZipFile();
+		await keepsTheRawBitFlag();
 		await rejectsAFilterWhichIsNotAFunction();
 	} finally {
 		await zip.terminateWorkers();
@@ -217,24 +220,36 @@ async function dropsTheBytesOutsideTheEntriesWhenFiltering() {
 	}
 }
 
+// the first disk starts with the split zip file signature whether or not the source carries one: the filter
+// copies from the first kept entry, so the signature of the source is never copied
 async function filtersIntoASplitZipFile() {
-	const source = await buildZipFile(["s1.txt", "s2.txt", "s3.txt", "s4.txt"]);
-	const writers = [];
-	function* writerGenerator() {
-		while (true) {
-			const writer = new zip.Uint8ArrayWriter();
-			writer.maxSize = 150;
-			writers.push(writer);
-			yield writer;
-		}
+	const filenames = ["s1.txt", "s2.txt", "s3.txt", "s4.txt"];
+	await filterIntoASplitZipFile(await buildZipFile(filenames), "a source without the split zip file signature");
+	const sourceWriters = [];
+	const sourceZipWriter = new zip.ZipWriter(nextDiskWriter(sourceWriters, 1 << 20));
+	for (const filename of filenames) {
+		await addEntry(sourceZipWriter, filename);
 	}
-	const zipWriter = new zip.ZipWriter(writerGenerator());
+	await sourceZipWriter.close();
+	const [splitSource] = await Promise.all(sourceWriters.map(writer => writer.getData()));
+	if (sourceWriters.length != 1 || !startsWithSplitZipSignature(splitSource)) {
+		throw new Error("expected a single disk starting with the split zip file signature");
+	}
+	await filterIntoASplitZipFile(splitSource, "a source starting with the split zip file signature");
+}
+
+async function filterIntoASplitZipFile(source, description) {
+	const writers = [];
+	const zipWriter = new zip.ZipWriter(nextDiskWriter(writers, 150));
 	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: entry => entry.filename != "s2.txt" && entry.filename != "s4.txt" });
 	await addEntry(zipWriter, "a.txt");
 	await zipWriter.close();
 	const disks = await Promise.all(writers.map(writer => writer.getData()));
 	if (disks.length < 2) {
-		throw new Error("expected the output to span several disks, got " + disks.length);
+		throw new Error("expected the output to span several disks with " + description + ", got " + disks.length);
+	}
+	if (!startsWithSplitZipSignature(disks[0])) {
+		throw new Error("expected the first disk to start with the split zip file signature with " + description);
 	}
 	const zipReader = new zip.ZipReader(new zip.SplitDataReader(disks.map(disk => new zip.Uint8ArrayReader(disk))), { strictness: "strict", checkCrc32: true });
 	const entries = await zipReader.getEntries();
@@ -242,11 +257,45 @@ async function filtersIntoASplitZipFile() {
 	await zipReader.close();
 	const filenames = entries.map(entry => entry.filename);
 	if (filenames.join() != "s1.txt,s3.txt,a.txt") {
-		throw new Error("expected entries s1.txt,s3.txt,a.txt in the split output, got " + filenames.join());
+		throw new Error("expected entries s1.txt,s3.txt,a.txt in the split output with " + description + ", got " + filenames.join());
 	}
 	if (!contents.every((content, entryIndex) => content == "content of " + filenames[entryIndex])) {
-		throw new Error("expected the entry contents to be preserved in the split output");
+		throw new Error("expected the entry contents to be preserved in the split output with " + description);
 	}
+}
+
+// the bit flag of a copied entry is written as-is, including the bits zip.js never sets itself
+async function keepsTheRawBitFlag() {
+	const source = await buildZipFile(["s1.txt"]);
+	const view = new DataView(source.buffer, source.byteOffset, source.byteLength);
+	const centralDirectoryOffset = view.getUint32(source.length - 22 + 16, true);
+	view.setUint16(6, view.getUint16(6, true) | RAW_BIT_FLAGS, true);
+	view.setUint16(centralDirectoryOffset + 8, view.getUint16(centralDirectoryOffset + 8, true) | RAW_BIT_FLAGS, true);
+	for (const options of [{}, { filter: () => true }]) {
+		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await zipWriter.appendZip(new zip.Uint8ArrayReader(source), options);
+		const output = await zipWriter.close();
+		const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(output), { strictness: "strict", checkCrc32: true });
+		const [entry] = await zipReader.getEntries();
+		const content = await entry.getData(new zip.TextWriter());
+		await zipReader.close();
+		if ((entry.rawBitFlag & RAW_BIT_FLAGS) != RAW_BIT_FLAGS || content != "content of s1.txt") {
+			throw new Error("expected the bit flag to be copied as-is, got 0x" + entry.rawBitFlag.toString(16));
+		}
+	}
+}
+
+function* nextDiskWriter(writers, maxSize) {
+	while (true) {
+		const writer = new zip.Uint8ArrayWriter();
+		writer.maxSize = maxSize;
+		writers.push(writer);
+		yield writer;
+	}
+}
+
+function startsWithSplitZipSignature(disk) {
+	return SPLIT_ZIP_FILE_SIGNATURE.every((byte, index) => disk[index] == byte);
 }
 
 async function rejectsAFilterWhichIsNotAFunction() {
