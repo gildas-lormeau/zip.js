@@ -189,23 +189,6 @@ The delay in milliseconds before idle web workers are automatically terminated. 
 
 ***
 
-### ~~transferStreams?~~
-
-> `optional` **transferStreams?**: `boolean`
-
-`true` to transfer stream ownership to web workers.
-
-#### Deprecated
-
-The option is ignored whatever its value: the data always crosses the worker boundary chunk by
-chunk, transferring the streams instead was slower on every engine measured.
-
-#### Inherited from
-
-[`WorkerConfiguration`](WorkerConfiguration.md).[`transferStreams`](WorkerConfiguration.md#transferstreams)
-
-***
-
 ### useCompressionStream?
 
 > `optional` **useCompressionStream?**: `boolean`

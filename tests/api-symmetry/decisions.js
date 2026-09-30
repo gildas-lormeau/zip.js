@@ -154,7 +154,6 @@ const WRITER_OPTIONS = {
 	signCentralDirectory: { archive: "the digital signature record, read with ZipReader#digitalSignature" },
 	useWebWorkers: { machinery: "chooses where the codec runs" },
 	useCompressionStream: { machinery: "chooses which codec implementation runs" },
-	transferStreams: { deprecated: null },
 	onstart: { machinery: "reports progress" },
 	onprogress: { machinery: "reports progress" },
 	onend: { machinery: "reports progress" }

@@ -635,13 +635,6 @@ export interface WorkerConfiguration {
    * @defaultValue true
    */
   useCompressionStream?: boolean;
-  /**
-   * `true` to transfer stream ownership to web workers.
-   *
-   * @deprecated The option is ignored whatever its value: the data always crosses the worker boundary chunk by
-   * chunk, transferring the streams instead was slower on every engine measured.
-   */
-  transferStreams?: boolean;
 }
 
 /**

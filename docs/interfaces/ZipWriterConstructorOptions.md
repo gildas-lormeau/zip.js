@@ -569,23 +569,6 @@ true
 
 ***
 
-### ~~transferStreams?~~
-
-> `optional` **transferStreams?**: `boolean`
-
-`true` to transfer stream ownership to web workers.
-
-#### Deprecated
-
-The option is ignored whatever its value: the data always crosses the worker boundary chunk by
-chunk, transferring the streams instead was slower on every engine measured.
-
-#### Inherited from
-
-[`WorkerConfiguration`](WorkerConfiguration.md).[`transferStreams`](WorkerConfiguration.md#transferstreams)
-
-***
-
 ### uid?
 
 > `optional` **uid?**: `number`

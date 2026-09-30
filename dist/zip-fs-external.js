@@ -329,7 +329,6 @@ const DEFAULT_CONFIGURATION = {
 	workerStartupTimeout: 5000,
 	useWebWorkers: true,
 	useCompressionStream: true,
-	transferStreams: true,
 	CompressionStream: typeof CompressionStream != UNDEFINED_TYPE && CompressionStream,
 	DecompressionStream: typeof DecompressionStream != UNDEFINED_TYPE && DecompressionStream
 };
@@ -343,8 +342,7 @@ const URI_PROPERTY_NAMES = [
 ];
 const BOOLEAN_PROPERTY_NAMES = [
 	"useCompressionStream",
-	"useWebWorkers",
-	"transferStreams"
+	"useWebWorkers"
 ];
 const NUMBER_PROPERTY_NAMES = [
 	"chunkSize",
