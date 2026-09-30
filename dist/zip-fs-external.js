@@ -5074,6 +5074,9 @@ class ZipReader {
 			if (directoryArray.length < 4) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
+		} else if (!filesLength && directoryDataOffset < centralDirectoryEndOffset && diskNumber == lastDiskNumber) {
+			prependedDataLength += centralDirectoryEndOffset - directoryDataOffset;
+			directoryDataOffset = centralDirectoryEndOffset;
 		}
 		const expectedDirectoryDataLength = centralDirectoryEndOffset - directoryDataOffset;
 		if (directoryDataLength != expectedDirectoryDataLength && expectedDirectoryDataLength >= 0 && diskNumber == lastDiskNumber) {
@@ -5662,10 +5665,7 @@ let ZipEntry$1 = class ZipEntry {
 				writer.size += writtenSize;
 			}
 		} catch (error) {
-			const { outputSize: failedOutputSize } = workerOptions;
-			if (failedOutputSize !== UNDEFINED_VALUE) {
-				writer.size += failedOutputSize;
-			} else if (isErrorObject(error) && error.outputSize !== UNDEFINED_VALUE) {
+			if (isErrorObject(error) && error.outputSize !== UNDEFINED_VALUE) {
 				writer.size += error.outputSize;
 			}
 			if (!checkPasswordOnly || !isErrorObject(error) || error.message != ERR_ABORT_CHECK_PASSWORD) {
@@ -6736,133 +6736,7 @@ class ZipWriter {
 	}
 
 	appendZip(reader, options = {}) {
-		return watchPromiseError(this, this.appendZipEntries(reader, options));
-	}
-
-	async appendZipEntries(reader, options = {}) {
-		const zipWriter = this;
-		const { pendingAddFileCalls, filenames, fileEntries } = zipWriter;
-		const filter = checkFunctionOption(options.filter);
-		while (pendingAddFileCalls.size) {
-			await Promise.allSettled(Array.from(pendingAddFileCalls));
-		}
-		let resolveAppendZip;
-		const promiseAppendZip = new Promise(resolve => resolveAppendZip = resolve);
-		pendingAddFileCalls.add(promiseAppendZip);
-		const appendedFilenames = [];
-		let releaseLockWriter;
-		try {
-			reader = new GenericReader(reader);
-			await initStream(reader);
-			if (reader.size === UNDEFINED_VALUE || !reader.readUint8Array) {
-				reader = new BlobReader(await streamToBlob(reader.readable));
-				await initStream(reader);
-			}
-			const { ZipReader, getEntryDataDescriptorLength } = await Promise.resolve().then(function () { return zipReader; });
-			const zipReader$1 = new ZipReader(reader);
-			const entries = await zipReader$1.getEntries();
-			const keptEntries = [];
-			for (const entry of entries) {
-				if (!filter || await filter(entry)) {
-					keptEntries.push(entry);
-				}
-			}
-			await zipReader$1.close();
-			await initStream(zipWriter.writer);
-			const { directoryOffset } = zipReader$1;
-			keptEntries.forEach(({ filename }) => {
-				if (filenames.has(filename)) {
-					throw new Error(ERR_DUPLICATED_NAME);
-				}
-				filenames.add(filename);
-				appendedFilenames.push(filename);
-			});
-			zipWriter.writerLocked = true;
-			const { lockWriter } = zipWriter;
-			zipWriter.lockWriter = new Promise(resolve => releaseLockWriter = () => {
-				zipWriter.writerLocked = false;
-				resolve();
-			});
-			await lockWriter;
-			if (zipWriter.addSplitZipSignature) {
-				delete zipWriter.addSplitZipSignature;
-				if (filter || !await startsWithSplitZipSignature(reader)) {
-					await writeData(zipWriter.writer, getSplitZipSignatureArray());
-					zipWriter.offset += SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
-				}
-			}
-			const entryPositions = await copyZipData(zipWriter, reader, entries, keptEntries, directoryOffset, Boolean(filter), getEntryDataDescriptorLength);
-			keptEntries.forEach(entry => {
-				const {
-					version,
-					rawLastModDate,
-					rawFilename,
-					rawBitFlag,
-					uncompressedSize,
-					compressedSize,
-					extraFieldZip64
-				} = entry;
-				let {
-					compressionMethod,
-					rawExtraField,
-				} = entry;
-				rawExtraField = removeExtraFieldZip64(rawExtraField || EMPTY_UINT8_ARRAY);
-				if (entry.extraFieldAES) {
-					compressionMethod = COMPRESSION_METHOD_AES;
-				}
-				const extraFieldLength = getLength(rawExtraField);
-				const zip64UncompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.uncompressedSize !== UNDEFINED_VALUE;
-				const zip64CompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.compressedSize !== UNDEFINED_VALUE;
-				const {
-					headerArray,
-					headerView
-				} = getHeaderArrayData({
-					version,
-					bitFlag: rawBitFlag,
-					compressionMethod,
-					uncompressedSize,
-					compressedSize,
-					rawLastModDate,
-					rawFilename,
-					zip64CompressedSize,
-					zip64UncompressedSize,
-					extraFieldLength
-				});
-				const { crc32 } = entry;
-				if (crc32 !== UNDEFINED_VALUE) {
-					setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
-				}
-				const { offset, diskNumberStart } = entryPositions.get(entry);
-				Object.assign(entry, {
-					zip64Enabled: true,
-					zip64UncompressedSize,
-					zip64CompressedSize,
-					offset,
-					diskNumberStart,
-					zip64DiskNumberStart: false,
-					rawExtraFieldZip64: EMPTY_UINT8_ARRAY,
-					rawExtraFieldAES: EMPTY_UINT8_ARRAY,
-					rawExtraFieldExtendedTimestamp: EMPTY_UINT8_ARRAY,
-					rawExtraFieldNTFS: EMPTY_UINT8_ARRAY,
-					rawExtraFieldUnix: EMPTY_UINT8_ARRAY,
-					rawCentralExtraFieldUnix: EMPTY_UINT8_ARRAY,
-					rawExtraField,
-					rawCentralExtraField: EMPTY_UINT8_ARRAY,
-					headerArray,
-					headerView
-				});
-				fileEntries.set(entry.filename, entry);
-			});
-		} catch (error) {
-			appendedFilenames.forEach(filename => filenames.delete(filename));
-			throw error;
-		} finally {
-			resolveAppendZip();
-			pendingAddFileCalls.delete(promiseAppendZip);
-			if (releaseLockWriter) {
-				releaseLockWriter();
-			}
-		}
+		return watchPromiseError(this, appendZipEntries(this, reader, options));
 	}
 
 	add(name = "", reader, options = {}) {
@@ -7024,11 +6898,136 @@ function watchPromiseError(zipWriter, promise) {
 	return watchedPromise;
 }
 
+async function appendZipEntries(zipWriter, reader, options = {}) {
+	const { pendingAddFileCalls, filenames, fileEntries } = zipWriter;
+	const filter = checkFunctionOption(options.filter);
+	while (pendingAddFileCalls.size) {
+		await Promise.allSettled(Array.from(pendingAddFileCalls));
+	}
+	let resolveAppendZip;
+	const promiseAppendZip = new Promise(resolve => resolveAppendZip = resolve);
+	pendingAddFileCalls.add(promiseAppendZip);
+	const appendedFilenames = [];
+	let releaseLockWriter;
+	try {
+		reader = new GenericReader(reader);
+		await initStream(reader);
+		if (reader.size === UNDEFINED_VALUE || !reader.readUint8Array) {
+			reader = new BlobReader(await streamToBlob(reader.readable));
+			await initStream(reader);
+		}
+		const { ZipReader, getEntryDataDescriptorLength } = await Promise.resolve().then(function () { return zipReader; });
+		const zipReader$1 = new ZipReader(reader);
+		const entries = await zipReader$1.getEntries();
+		const keptEntries = [];
+		for (const entry of entries) {
+			if (!filter || await filter(entry)) {
+				keptEntries.push(entry);
+			}
+		}
+		await zipReader$1.close();
+		await initStream(zipWriter.writer);
+		const { directoryOffset } = zipReader$1;
+		keptEntries.forEach(({ filename }) => {
+			if (filenames.has(filename)) {
+				throw new Error(ERR_DUPLICATED_NAME);
+			}
+			filenames.add(filename);
+			appendedFilenames.push(filename);
+		});
+		zipWriter.writerLocked = true;
+		const { lockWriter } = zipWriter;
+		zipWriter.lockWriter = new Promise(resolve => releaseLockWriter = () => {
+			zipWriter.writerLocked = false;
+			resolve();
+		});
+		await lockWriter;
+		if (zipWriter.addSplitZipSignature) {
+			delete zipWriter.addSplitZipSignature;
+			if (filter || !await startsWithSplitZipSignature(reader)) {
+				await writeData(zipWriter.writer, getSplitZipSignatureArray());
+				zipWriter.offset += SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
+			}
+		}
+		const entryPositions = await copyZipData(zipWriter, reader, entries, keptEntries, directoryOffset, Boolean(filter), getEntryDataDescriptorLength);
+		keptEntries.forEach(entry => {
+			const {
+				version,
+				rawLastModDate,
+				rawFilename,
+				rawBitFlag,
+				uncompressedSize,
+				compressedSize,
+				extraFieldZip64
+			} = entry;
+			let {
+				compressionMethod,
+				rawExtraField,
+			} = entry;
+			rawExtraField = removeExtraFieldZip64(rawExtraField || EMPTY_UINT8_ARRAY);
+			if (entry.extraFieldAES) {
+				compressionMethod = COMPRESSION_METHOD_AES;
+			}
+			const extraFieldLength = getLength(rawExtraField);
+			const zip64UncompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.uncompressedSize !== UNDEFINED_VALUE;
+			const zip64CompressedSize = Boolean(extraFieldZip64) && extraFieldZip64.compressedSize !== UNDEFINED_VALUE;
+			const {
+				headerArray,
+				headerView
+			} = getHeaderArrayData({
+				version,
+				bitFlag: rawBitFlag,
+				compressionMethod,
+				uncompressedSize,
+				compressedSize,
+				rawLastModDate,
+				rawFilename,
+				zip64CompressedSize,
+				zip64UncompressedSize,
+				extraFieldLength
+			});
+			const { crc32 } = entry;
+			if (crc32 !== UNDEFINED_VALUE) {
+				setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
+			}
+			const { offset, diskNumberStart } = entryPositions.get(entry);
+			Object.assign(entry, {
+				zip64Enabled: true,
+				zip64UncompressedSize,
+				zip64CompressedSize,
+				offset,
+				diskNumberStart,
+				zip64DiskNumberStart: false,
+				rawExtraFieldZip64: EMPTY_UINT8_ARRAY,
+				rawExtraFieldAES: EMPTY_UINT8_ARRAY,
+				rawExtraFieldExtendedTimestamp: EMPTY_UINT8_ARRAY,
+				rawExtraFieldNTFS: EMPTY_UINT8_ARRAY,
+				rawExtraFieldUnix: EMPTY_UINT8_ARRAY,
+				rawCentralExtraFieldUnix: EMPTY_UINT8_ARRAY,
+				rawExtraField,
+				rawCentralExtraField: EMPTY_UINT8_ARRAY,
+				headerArray,
+				headerView
+			});
+			fileEntries.set(entry.filename, entry);
+		});
+	} catch (error) {
+		appendedFilenames.forEach(filename => filenames.delete(filename));
+		throw error;
+	} finally {
+		resolveAppendZip();
+		pendingAddFileCalls.delete(promiseAppendZip);
+		if (releaseLockWriter) {
+			releaseLockWriter();
+		}
+	}
+}
+
 async function prependZipEntries(zipWriter, reader) {
 	if (zipWriter.filenames.size) {
 		throw new Error(ERR_ZIP_NOT_EMPTY);
 	}
-	await zipWriter.appendZipEntries(reader);
+	await appendZipEntries(zipWriter, reader);
 }
 
 async function addFileEntry(zipWriter, name, reader, options) {
@@ -8889,11 +8888,13 @@ async function copyData(zipWriter, reader, offset, size) {
 		try {
 			await flushBufferedData(createReadable(reader, { offset, size }), writer, UNDEFINED_VALUE, chunkLength => copiedLength += chunkLength);
 		} catch (error) {
-			zipWriter.hasCorruptedEntries = true;
-			try {
-				error.corruptedEntry = true;
-			} catch {
-				// ignored
+			if (copiedLength) {
+				zipWriter.hasCorruptedEntries = true;
+				try {
+					error.corruptedEntry = true;
+				} catch {
+					// ignored
+				}
 			}
 			throw error;
 		} finally {

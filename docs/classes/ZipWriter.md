@@ -201,7 +201,8 @@ The data of the zip file is copied, its central directory is rebuilt and its ent
 the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
 the disks of the output, which is a single zip file unless the writer is a split zip file writer. The data of
 the entries is copied as-is; in particular, the constraints set by [ZipWriterConstructorOptions#usdz](../interfaces/ZipWriterConstructorOptions.md#usdz)
-are not applied to the copied entries.
+are not applied to the copied entries. The comment and the digital signature of the zip file are not copied,
+since its central directory is rebuilt: pass them to [ZipWriter#close](#close).
 
 Pending [ZipWriter#add](#add) calls are completed before the data is copied, and add() calls made
 while the copy is in progress are written after it. If an entry of the zip file has the same

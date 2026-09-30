@@ -4,7 +4,6 @@ const MANGLED_PROPERTY_NAMES = [
 	"_process",
 	"abortPipe",
 	"addSplitZipSignature",
-	"appendZipEntries",
 	"archiveClosed",
 	"array",
 	"blobPromise",

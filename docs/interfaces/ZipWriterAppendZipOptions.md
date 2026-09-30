@@ -16,7 +16,7 @@ Represents the options passed to [ZipWriter#appendZip](../classes/ZipWriter.md#a
 
 Selects the entries of the zip file to copy: the function is called once per entry, in the order of the
 central directory, and the entry is copied when it returns (or resolves to) `true`. The function can read
-the data of the entry with Entry#getData to decide, the zip file is closed after the last call.
+the data of the entry with Entry#getData to decide: every call completes before any data is copied.
 
 #### Parameters
 

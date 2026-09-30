@@ -90,7 +90,28 @@ async function completesBeforeAnUnawaitedClose() {
 	await checkEntries(await zipWriter.close(), ["s1.txt", "s2.txt"]);
 }
 
+// the flag says bytes of a broken entry were written: a source failing before the first byte leaves the output intact
 async function marksAFailedCopyAsCorrupted() {
+	const cleanSource = await buildZipFile(["s1.txt"]);
+	const throwingReader = new zip.Uint8ArrayReader(cleanSource);
+	const readUint8ArrayClean = throwingReader.readUint8Array.bind(throwingReader);
+	throwingReader.readUint8Array = (index, length, ...args) => {
+		if (index == 0 && length > 30 && length < cleanSource.length) {
+			throw new Error("failing reader");
+		}
+		return readUint8ArrayClean(index, length, ...args);
+	};
+	const cleanWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	let cleanError;
+	try {
+		await cleanWriter.appendZip(throwingReader, { filter: () => true });
+	} catch (appendError) {
+		cleanError = appendError;
+	}
+	if (!cleanError || cleanError.corruptedEntry || cleanWriter.hasCorruptedEntries) {
+		throw new Error("expected a source failing before the first copied byte to leave the zip clean, got " + (cleanError ? cleanError.message : "no error"));
+	}
+	await cleanWriter.close();
 	const sourceWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
 	await sourceWriter.add("s1.txt", new zip.TextReader("x".repeat(600)), { level: 0, lastModDate: LAST_MOD_DATE });
 	await sourceWriter.add("s2.txt", new zip.TextReader("y".repeat(600)), { level: 0, lastModDate: LAST_MOD_DATE });

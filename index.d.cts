@@ -1545,8 +1545,9 @@ export class ZipReader<Type> {
    * {@link WARNING_APPENDED_DATA}, {@link WARNING_PREPENDED_DATA}, {@link WARNING_TRAILING_CENTRAL_DIRECTORY_DATA},
    * {@link WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET}, {@link WARNING_DUPLICATE_FILENAME} and
    * {@link WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY}.
-   * {@link WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY} is the one reason of that group which is never tolerated,
-   * so it is only ever the reason of an error. {@link WARNING_MISSING_ZIP64_EXTRA_FIELD} is deposited when an
+   * {@link WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY} is never deposited as a warning: `"balanced"` rejects it
+   * like `"strict"`, and `"tolerant"` reads the last record and reports the stale one as
+   * {@link WARNING_TRAILING_CENTRAL_DIRECTORY_DATA}. {@link WARNING_MISSING_ZIP64_EXTRA_FIELD} is deposited when an
    * entry cannot be read because its central directory record lacks a Zip64 extra field, and `"strict"` throws
    * {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND} for it.
    *
@@ -3078,7 +3079,8 @@ export class ZipWriter<Type> {
    * the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
    * the disks of the output, which is a single zip file unless the writer is a split zip file writer. The data of
    * the entries is copied as-is; in particular, the constraints set by {@link ZipWriterConstructorOptions#usdz}
-   * are not applied to the copied entries.
+   * are not applied to the copied entries. The comment and the digital signature of the zip file are not copied,
+   * since its central directory is rebuilt: pass them to {@link ZipWriter#close}.
    *
    * Pending {@link ZipWriter#add} calls are completed before the data is copied, and add() calls made
    * while the copy is in progress are written after it. If an entry of the zip file has the same
@@ -3331,7 +3333,7 @@ export interface ZipWriterAppendZipOptions {
   /**
    * Selects the entries of the zip file to copy: the function is called once per entry, in the order of the
    * central directory, and the entry is copied when it returns (or resolves to) `true`. The function can read
-   * the data of the entry with {@link Entry#getData} to decide, the zip file is closed after the last call.
+   * the data of the entry with {@link Entry#getData} to decide: every call completes before any data is copied.
    *
    * @remarks
    * When the option is set, the data of the zip file is copied entry by entry and the entries left out leave no
@@ -5311,7 +5313,8 @@ export const ERR_ENTRY_DATA_OUT_OF_BOUNDS: string;
  *
  * @remarks The thrown error carries a `reason` property describing the ambiguity: `"appended data"`,
  * `"prepended data"`, `"trailing central directory data"`, `"multiple end of central directory records"`,
- * `"mismatched zip64 end of central directory record"`, `"duplicate filename"`, or, when
+ * `"mismatched central directory offset"`, `"mismatched zip64 end of central directory record"`,
+ * `"duplicate filename"`, or, when
  * {@link ZipReaderOptions#checkLocalDirectory} compares the local header of an entry with its central
  * directory record, `"mismatched local file header (filename)"`,
  * `"mismatched local file header (general purpose bit flag)"`,
@@ -5687,8 +5690,9 @@ export const WARNING_DUPLICATE_FILENAME: string;
 export const WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY: string;
 /**
  * Warning reason: more than one end of central directory record reaches the end of the file, so another reader
- * may select a different one and list different entries; the reason of {@link ERR_AMBIGUOUS_ARCHIVE} when
- * {@link ZipReaderOptions#checkAmbiguity} is enabled
+ * may select a different one and list different entries; the reason of {@link ERR_AMBIGUOUS_ARCHIVE} under
+ * `strictness: "strict"` and `"balanced"`. It is never deposited as a warning: `"tolerant"` reads the last
+ * record and reports the stale one as {@link WARNING_TRAILING_CENTRAL_DIRECTORY_DATA}.
  */
 export const WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY: string;
 /**

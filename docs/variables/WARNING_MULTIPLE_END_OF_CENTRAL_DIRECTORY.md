@@ -9,5 +9,6 @@
 > `const` **WARNING\_MULTIPLE\_END\_OF\_CENTRAL\_DIRECTORY**: `string`
 
 Warning reason: more than one end of central directory record reaches the end of the file, so another reader
-may select a different one and list different entries; the reason of [ERR\_AMBIGUOUS\_ARCHIVE](ERR_AMBIGUOUS_ARCHIVE.md) when
-[ZipReaderOptions#checkAmbiguity](../interfaces/ZipReaderOptions.md#checkambiguity) is enabled
+may select a different one and list different entries; the reason of [ERR\_AMBIGUOUS\_ARCHIVE](ERR_AMBIGUOUS_ARCHIVE.md) under
+`strictness: "strict"` and `"balanced"`. It is never deposited as a warning: `"tolerant"` reads the last
+record and reports the stale one as [WARNING\_TRAILING\_CENTRAL\_DIRECTORY\_DATA](WARNING_TRAILING_CENTRAL_DIRECTORY_DATA.md).

@@ -175,8 +175,9 @@ one of them and the evidence is already in hand, the same reason string is depos
 [WARNING\_APPENDED\_DATA](../variables/WARNING_APPENDED_DATA.md), [WARNING\_PREPENDED\_DATA](../variables/WARNING_PREPENDED_DATA.md), [WARNING\_TRAILING\_CENTRAL\_DIRECTORY\_DATA](../variables/WARNING_TRAILING_CENTRAL_DIRECTORY_DATA.md),
 [WARNING\_MISMATCHED\_CENTRAL\_DIRECTORY\_OFFSET](../variables/WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET.md), [WARNING\_DUPLICATE\_FILENAME](../variables/WARNING_DUPLICATE_FILENAME.md) and
 [WARNING\_MISMATCHED\_ZIP64\_END\_OF\_CENTRAL\_DIRECTORY](../variables/WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY.md).
-[WARNING\_MULTIPLE\_END\_OF\_CENTRAL\_DIRECTORY](../variables/WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY.md) is the one reason of that group which is never tolerated,
-so it is only ever the reason of an error. [WARNING\_MISSING\_ZIP64\_EXTRA\_FIELD](../variables/WARNING_MISSING_ZIP64_EXTRA_FIELD.md) is deposited when an
+[WARNING\_MULTIPLE\_END\_OF\_CENTRAL\_DIRECTORY](../variables/WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY.md) is never deposited as a warning: `"balanced"` rejects it
+like `"strict"`, and `"tolerant"` reads the last record and reports the stale one as
+[WARNING\_TRAILING\_CENTRAL\_DIRECTORY\_DATA](../variables/WARNING_TRAILING_CENTRAL_DIRECTORY_DATA.md). [WARNING\_MISSING\_ZIP64\_EXTRA\_FIELD](../variables/WARNING_MISSING_ZIP64_EXTRA_FIELD.md) is deposited when an
 entry cannot be read because its central directory record lacks a Zip64 extra field, and `"strict"` throws
 [ERR\_EXTRAFIELD\_ZIP64\_NOT\_FOUND](../variables/ERR_EXTRAFIELD_ZIP64_NOT_FOUND.md) for it.
 
