@@ -32,6 +32,9 @@ async function test() {
 		await rejectsAnEntryWithoutItsZip64Field();
 		await rejectsDuplicateFilenamesInTheSource();
 		await leavesTheFilterEntriesUntouched();
+		await readsTheSourceWithTheReaderOptions();
+		await letsTheFilterReadEncryptedEntriesWithTheReaderOptions();
+		await rejectsReaderOptionsWhichAreNotAnObject();
 		await rejectsAFilterWhichIsNotAFunction();
 	} finally {
 		await zip.terminateWorkers();
@@ -504,6 +507,64 @@ function* nextDiskWriter(writers, maxSize) {
 
 function startsWithSplitZipSignature(disk) {
 	return SPLIT_ZIP_FILE_SIGNATURE.every((byte, index) => disk[index] == byte);
+}
+
+// the source is read with the default reader options unless readerOptions says otherwise: a zip file the reader
+// rejects by default, here for an unsafe filename, can still be copied as-is
+async function readsTheSourceWithTheReaderOptions() {
+	const source = await buildZipFile(["../evil.txt", "ok.txt"]);
+	await expectAppendZipError(source, {}, zip.ERR_UNSAFE_FILENAME, "an unsafe filename without reader options");
+	for (const options of [{ readerOptions: { filenameValidation: "tolerant" } }, { readerOptions: { strictness: "tolerant" }, filter: () => true }]) {
+		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await zipWriter.appendZip(new zip.Uint8ArrayReader(source), options);
+		const output = await zipWriter.close();
+		const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(output), { filenameValidation: "tolerant", checkCrc32: true });
+		const entries = await zipReader.getEntries();
+		const contents = await Promise.all(entries.map(entry => entry.getData(new zip.TextWriter())));
+		await zipReader.close();
+		if (entries.map(entry => entry.filename).join() != "../evil.txt,ok.txt" || contents.join() != "content of ../evil.txt,content of ok.txt") {
+			throw new Error("expected the entries to be copied as-is with " + JSON.stringify(options) + ", got " + entries.map(entry => entry.filename).join());
+		}
+	}
+}
+
+async function letsTheFilterReadEncryptedEntriesWithTheReaderOptions() {
+	const sourceWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { password: "secret" });
+	await addEntry(sourceWriter, "s1.txt");
+	await addEntry(sourceWriter, "s2.txt");
+	const source = await sourceWriter.close();
+	const readData = entry => entry.getData(new zip.TextWriter());
+	let error;
+	const failingWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	try {
+		await failingWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: readData });
+	} catch (appendError) {
+		error = appendError;
+	}
+	await failingWriter.close();
+	if (!error || error.message != zip.ERR_ENCRYPTED) {
+		throw new Error("expected the filter to fail reading an encrypted entry without a password, got " + (error ? error.message : "no error"));
+	}
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), {
+		readerOptions: { password: "secret" },
+		filter: async entry => (await readData(entry)) == "content of s2.txt"
+	});
+	const output = await zipWriter.close();
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(output), { password: "secret", strictness: "strict", checkCrc32: true });
+	const entries = await zipReader.getEntries();
+	const contents = await Promise.all(entries.map(readData));
+	await zipReader.close();
+	if (entries.map(entry => entry.filename).join() != "s2.txt" || contents.join() != "content of s2.txt") {
+		throw new Error("expected the encrypted entry chosen by the filter to be copied, got " + entries.map(entry => entry.filename).join());
+	}
+}
+
+async function rejectsReaderOptionsWhichAreNotAnObject() {
+	const source = await buildZipFile(["s1.txt"]);
+	for (const readerOptions of ["secret", ["secret"]]) {
+		await expectAppendZipError(source, { readerOptions }, zip.ERR_INVALID_READER_OPTIONS, "readerOptions " + JSON.stringify(readerOptions));
+	}
 }
 
 async function rejectsAFilterWhichIsNotAFunction() {

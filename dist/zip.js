@@ -225,6 +225,7 @@
 	const ERR_INVALID_SIGNAL = "Invalid signal (must be an AbortSignal instance)";
 	const ERR_INVALID_PASSWORD_TYPE = "Invalid password (password must be a string, rawPassword must be a Uint8Array)";
 	const ERR_INVALID_PASS_THROUGH_VALUE = "Invalid passThrough option (must be a boolean or 'compressed')";
+	const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
 	const ERR_ABORTED = "The operation was aborted";
 	const ABORT_ERROR_NAME = "AbortError";
 
@@ -233,6 +234,13 @@
 			throw new Error(ERR_INVALID_FUNCTION_OPTION);
 		}
 		return value;
+	}
+
+	function checkReaderOptionsObject(readerOptions) {
+		if (readerOptions && (typeof readerOptions != OBJECT_TYPE || Array.isArray(readerOptions))) {
+			throw new Error(ERR_INVALID_READER_OPTIONS);
+		}
+		return readerOptions;
 	}
 
 	function checkSignalOption(signal) {
@@ -6855,6 +6863,7 @@
 	async function appendZipEntries(zipWriter, reader, options = {}) {
 		const { pendingAddFileCalls, filenames, fileEntries } = zipWriter;
 		const filter = checkFunctionOption(options.filter);
+		const readerOptions = checkReaderOptionsObject(options.readerOptions);
 		while (pendingAddFileCalls.size) {
 			await Promise.allSettled(Array.from(pendingAddFileCalls));
 		}
@@ -6871,7 +6880,7 @@
 				await initStream(reader);
 			}
 			const { ZipReader, getEntryDataDescriptorLength } = await Promise.resolve().then(function () { return zipReader; });
-			const zipReader$1 = new ZipReader(reader);
+			const zipReader$1 = new ZipReader(reader, readerOptions);
 			const entries = await zipReader$1.getEntries();
 			const keptEntries = [];
 			for (const entry of entries) {
@@ -10237,6 +10246,7 @@
 	exports.ERR_INVALID_PASSWORD_TYPE = ERR_INVALID_PASSWORD_TYPE;
 	exports.ERR_INVALID_PASS_THROUGH_VALUE = ERR_INVALID_PASS_THROUGH_VALUE;
 	exports.ERR_INVALID_READER = ERR_INVALID_READER;
+	exports.ERR_INVALID_READER_OPTIONS = ERR_INVALID_READER_OPTIONS;
 	exports.ERR_INVALID_SIGNAL = ERR_INVALID_SIGNAL;
 	exports.ERR_INVALID_SIGNATURE_DATA = ERR_INVALID_SIGNATURE_DATA;
 	exports.ERR_INVALID_STRICTNESS = ERR_INVALID_STRICTNESS;

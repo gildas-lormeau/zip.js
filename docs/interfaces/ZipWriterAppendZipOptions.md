@@ -49,3 +49,23 @@ with a local file header and to end before the next entry or the central directo
 throws [ERR\_LOCAL\_FILE\_HEADER\_NOT\_FOUND](../variables/ERR_LOCAL_FILE_HEADER_NOT_FOUND.md) or [ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) and leaves the current zip
 unchanged. The same checks apply when the output is a split zip file, whose entries are copied one by one
 as well.
+
+***
+
+### readerOptions?
+
+> `optional` **readerOptions?**: [`ZipReaderConstructorOptions`](ZipReaderConstructorOptions.md)
+
+The options of the [ZipReader](../classes/ZipReader.md) which reads the zip file.
+
+#### Remarks
+
+The zip file is read with the default options otherwise, so a zip file which a `ZipReader` rejects by default
+cannot be appended as-is: set [ZipReaderConstructorOptions#filenameValidation](GetEntriesOptions.md#filenamevalidation) or
+[ZipReaderConstructorOptions#strictness](ZipReaderOptions.md#strictness) here to copy the entries of a zip file holding unsafe or
+unusual filenames, [ZipReaderConstructorOptions#filenameEncoding](GetEntriesOptions.md#filenameencoding) to decode the filenames the
+duplicate check and the `filter` option see, and [ZipReaderConstructorOptions#password](ZipReaderOptions.md#password) to let
+`filter` read the data of encrypted entries with Entry#getData. The bytes of the entries are copied
+as-is whatever the options are.
+
+A value which is neither an object nor unset throws an [ERR\_INVALID\_READER\_OPTIONS](../variables/ERR_INVALID_READER_OPTIONS.md) error.

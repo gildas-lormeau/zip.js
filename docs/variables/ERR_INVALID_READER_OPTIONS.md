@@ -10,7 +10,8 @@
 
 Invalid readerOptions error (thrown by `{@link ZipDirectoryEntry}#export*()`,
 [ZipDirectoryEntry#getExportedSize](../classes/ZipDirectoryEntry.md#getexportedsize) and [ZipDirectoryEntry#exportFileSystemHandle](../classes/ZipDirectoryEntry.md#exportfilesystemhandle) when the
-[ZipDirectoryEntryExportOptions#readerOptions](../interfaces/ZipDirectoryEntryExportOptions.md#readeroptions) option is neither an object nor unset)
+[ZipDirectoryEntryExportOptions#readerOptions](../interfaces/ZipDirectoryEntryExportOptions.md#readeroptions) option is neither an object nor unset, and by
+[ZipWriter#appendZip](../classes/ZipWriter.md#appendzip) for [ZipWriterAppendZipOptions#readerOptions](../interfaces/ZipWriterAppendZipOptions.md#readeroptions))
 
 ## Remarks
 

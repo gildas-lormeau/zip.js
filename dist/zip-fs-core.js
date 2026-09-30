@@ -225,6 +225,7 @@
 	const ERR_INVALID_SIGNAL = "Invalid signal (must be an AbortSignal instance)";
 	const ERR_INVALID_PASSWORD_TYPE = "Invalid password (password must be a string, rawPassword must be a Uint8Array)";
 	const ERR_INVALID_PASS_THROUGH_VALUE = "Invalid passThrough option (must be a boolean or 'compressed')";
+	const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
 	const ERR_ABORTED = "The operation was aborted";
 	const ABORT_ERROR_NAME$1 = "AbortError";
 
@@ -233,6 +234,13 @@
 			throw new Error(ERR_INVALID_FUNCTION_OPTION);
 		}
 		return value;
+	}
+
+	function checkReaderOptionsObject(readerOptions) {
+		if (readerOptions && (typeof readerOptions != OBJECT_TYPE || Array.isArray(readerOptions))) {
+			throw new Error(ERR_INVALID_READER_OPTIONS);
+		}
+		return readerOptions;
 	}
 
 	function checkSignalOption(signal) {
@@ -6865,6 +6873,7 @@
 	async function appendZipEntries(zipWriter, reader, options = {}) {
 		const { pendingAddFileCalls, filenames, fileEntries } = zipWriter;
 		const filter = checkFunctionOption(options.filter);
+		const readerOptions = checkReaderOptionsObject(options.readerOptions);
 		while (pendingAddFileCalls.size) {
 			await Promise.allSettled(Array.from(pendingAddFileCalls));
 		}
@@ -6881,7 +6890,7 @@
 				await initStream(reader);
 			}
 			const { ZipReader, getEntryDataDescriptorLength } = await Promise.resolve().then(function () { return zipReader; });
-			const zipReader$1 = new ZipReader(reader);
+			const zipReader$1 = new ZipReader(reader, readerOptions);
 			const entries = await zipReader$1.getEntries();
 			const keptEntries = [];
 			for (const entry of entries) {
@@ -9723,7 +9732,6 @@
 	const DUPLICATES_KEEP_LAST = "keep-last";
 	const DUPLICATES_VALUES = new Set([DUPLICATES_THROW, DUPLICATES_KEEP_FIRST, DUPLICATES_KEEP_LAST]);
 	const ERR_INVALID_PASS_THROUGH = "Invalid passThrough option (use readerOptions.passThrough or set uncompressedSize for each entry)";
-	const ERR_INVALID_READER_OPTIONS = "Invalid readerOptions (must be an object)";
 	const ERR_UNSUPPORTED_PASS_THROUGH_VALUE = "The 'compressed' passThrough option is only supported by Entry#getData() and ZipWriter#add()";
 	const ERR_INVALID_PASSWORDS = "Invalid passwords option (must be an array of strings)";
 	const ERR_INVALID_REQUEST_PASSWORD = "Invalid requestPassword option (must be a function returning a string or undefined)";
@@ -10649,9 +10657,7 @@
 	}
 
 	function checkReaderOptions(readerOptions) {
-		if (readerOptions && (typeof readerOptions != OBJECT_TYPE || Array.isArray(readerOptions))) {
-			throw new Error(ERR_INVALID_READER_OPTIONS);
-		}
+		checkReaderOptionsObject(readerOptions);
 		if (readerOptions) {
 			checkPassThroughValue(readerOptions.passThrough);
 			checkPasswordCandidatesOptions(readerOptions);

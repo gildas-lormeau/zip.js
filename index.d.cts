@@ -3366,6 +3366,21 @@ export interface ZipWriterAppendZipOptions {
    * @returns `true` to copy the entry.
    */
   filter?: (entry: Entry) => boolean | Promise<boolean>;
+  /**
+   * The options of the {@link ZipReader} which reads the zip file.
+   *
+   * @remarks
+   * The zip file is read with the default options otherwise, so a zip file which a `ZipReader` rejects by default
+   * cannot be appended as-is: set {@link ZipReaderConstructorOptions#filenameValidation} or
+   * {@link ZipReaderConstructorOptions#strictness} here to copy the entries of a zip file holding unsafe or
+   * unusual filenames, {@link ZipReaderConstructorOptions#filenameEncoding} to decode the filenames the
+   * duplicate check and the `filter` option see, and {@link ZipReaderConstructorOptions#password} to let
+   * `filter` read the data of encrypted entries with {@link Entry#getData}. The bytes of the entries are copied
+   * as-is whatever the options are.
+   *
+   * A value which is neither an object nor unset throws an {@link ERR_INVALID_READER_OPTIONS} error.
+   */
+  readerOptions?: ZipReaderConstructorOptions;
 }
 
 export interface ZipWriterCloseOptions extends EntryOnprogressOptions {
@@ -5509,7 +5524,8 @@ export const ERR_UNSUPPORTED_PASS_THROUGH_VALUE: string;
 /**
  * Invalid readerOptions error (thrown by `{@link ZipDirectoryEntry}#export*()`,
  * {@link ZipDirectoryEntry#getExportedSize} and {@link ZipDirectoryEntry#exportFileSystemHandle} when the
- * {@link ZipDirectoryEntryExportOptions#readerOptions} option is neither an object nor unset)
+ * {@link ZipDirectoryEntryExportOptions#readerOptions} option is neither an object nor unset, and by
+ * {@link ZipWriter#appendZip} for {@link ZipWriterAppendZipOptions#readerOptions})
  *
  * @remarks A value of another type was silently ignored: a password passed as a string instead of an object failed
  * with the unrelated {@link ERR_ENCRYPTED}, while the other options were dropped without any error. Note that an
