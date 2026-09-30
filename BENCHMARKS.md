@@ -25,7 +25,7 @@ The page answers four questions, each from one or two scripts of the harness:
 | OS | macOS 27.0 (arm64) |
 | Runtimes | Node.js v26.7.0, Bun 1.4.2, Deno 2.9.7 |
 | Browsers | Firefox 156, Chrome 153, headless (the browser encryption table only) |
-| zip.js | 2.18.2 plus the commits up to 96084cc8 on master, which make 256 KB the default `chunkSize` |
+| zip.js | 2.19.0, measured at 96084cc8; the later commits of the release change no codec or stream path |
 | jszip | 3.10.2 |
 | fflate | 0.8.3 |
 | archiver | 8.0.0 |
