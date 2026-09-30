@@ -1,3 +1,5 @@
+/* global TextEncoder */
+
 import * as zip from "../zip-lib.js";
 
 const LAST_MOD_DATE = new Date(2026, 0, 1, 12, 0, 0);
@@ -14,6 +16,13 @@ async function test() {
 		await completesBeforeAnUnawaitedClose();
 		await marksAFailedCopyAsCorrupted();
 		await keepsThePrependZipGuard();
+		await copiesOnlyTheFilteredEntries();
+		await replacesAnEntryThroughTheFilter();
+		await keepsEveryEntryWithAPermissiveFilter();
+		await acceptsAnAsyncFilter();
+		await dropsTheBytesOutsideTheEntriesWhenFiltering();
+		await filtersIntoASplitZipFile();
+		await rejectsAFilterWhichIsNotAFunction();
 	} finally {
 		await zip.terminateWorkers();
 	}
@@ -123,6 +132,125 @@ async function keepsThePrependZipGuard() {
 	if (!error || error.message != zip.ERR_ZIP_NOT_EMPTY) {
 		throw new Error("expected prependZip to reject a non-empty zip, got " + (error ? error.message : "no error"));
 	}
+}
+
+// the entries left out leave no bytes behind: the output is the archive a direct write of the kept entries
+// produces, so the filter is the copy-through edit of an existing zip file
+async function copiesOnlyTheFilteredEntries() {
+	const source = await buildZipFile(["s1.txt", "s2.txt", "s3.txt"]);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	const seen = [];
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), {
+		filter(entry) {
+			seen.push(entry.filename);
+			return entry.filename != "s2.txt";
+		}
+	});
+	const output = await zipWriter.close();
+	if (seen.join() != "s1.txt,s2.txt,s3.txt") {
+		throw new Error("expected the filter to see every entry in order, got " + seen.join());
+	}
+	const directOutput = await buildZipFile(["s1.txt", "s3.txt"]);
+	if (!equalBytes(output, directOutput)) {
+		throw new Error("expected the same bytes as a direct write of the kept entries, got " + output.length + " vs " + directOutput.length + " bytes");
+	}
+	await checkEntries(output, ["s1.txt", "s3.txt"]);
+}
+
+// replacing = leaving the entry out and adding its replacement; the duplicate check must only see the kept names
+async function replacesAnEntryThroughTheFilter() {
+	const source = await buildZipFile(["s1.txt", "s2.txt", "s3.txt"]);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await addEntry(zipWriter, "s2.txt");
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: entry => entry.filename != "s2.txt" });
+	await checkEntries(await zipWriter.close(), ["s2.txt", "s1.txt", "s3.txt"]);
+}
+
+async function keepsEveryEntryWithAPermissiveFilter() {
+	const source = await buildZipFile(["s1.txt", "s2.txt"]);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: () => true });
+	const output = await zipWriter.close();
+	if (!equalBytes(output, source)) {
+		throw new Error("expected a permissive filter to copy the zip file as-is");
+	}
+}
+
+async function acceptsAnAsyncFilter() {
+	const source = await buildZipFile(["s1.txt", "s2.txt", "s3.txt"]);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), {
+		filter: entry => Promise.resolve(entry.filename == "s3.txt")
+	});
+	await checkEntries(await zipWriter.close(), ["s3.txt"]);
+}
+
+// a self-extracting stub before the first entry is copied by a plain appendZip and dropped by a filtered one
+async function dropsTheBytesOutsideTheEntriesWhenFiltering() {
+	const stub = new TextEncoder().encode("#!/bin/sh\nexit 0\n");
+	const archive = await buildZipFile(["s1.txt", "s2.txt"]);
+	const source = new Uint8Array(stub.length + archive.length);
+	source.set(stub);
+	source.set(archive, stub.length);
+	const plainWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await plainWriter.appendZip(new zip.Uint8ArrayReader(source));
+	const plainOutput = await plainWriter.close();
+	if (plainOutput.length != source.length) {
+		throw new Error("expected a plain copy to keep the stub, got " + plainOutput.length + " vs " + source.length + " bytes");
+	}
+	const filteringWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await filteringWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: () => true });
+	const filteredOutput = await filteringWriter.close();
+	if (!equalBytes(filteredOutput, archive)) {
+		throw new Error("expected a filtered copy to drop the stub, got " + filteredOutput.length + " vs " + archive.length + " bytes");
+	}
+}
+
+async function filtersIntoASplitZipFile() {
+	const source = await buildZipFile(["s1.txt", "s2.txt", "s3.txt", "s4.txt"]);
+	const writers = [];
+	function* writerGenerator() {
+		while (true) {
+			const writer = new zip.Uint8ArrayWriter();
+			writer.maxSize = 150;
+			writers.push(writer);
+			yield writer;
+		}
+	}
+	const zipWriter = new zip.ZipWriter(writerGenerator());
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: entry => entry.filename != "s2.txt" && entry.filename != "s4.txt" });
+	await addEntry(zipWriter, "a.txt");
+	await zipWriter.close();
+	const disks = await Promise.all(writers.map(writer => writer.getData()));
+	if (disks.length < 2) {
+		throw new Error("expected the output to span several disks, got " + disks.length);
+	}
+	const zipReader = new zip.ZipReader(new zip.SplitDataReader(disks.map(disk => new zip.Uint8ArrayReader(disk))), { strictness: "strict", checkCrc32: true });
+	const entries = await zipReader.getEntries();
+	const contents = await Promise.all(entries.map(entry => entry.getData(new zip.TextWriter())));
+	await zipReader.close();
+	const filenames = entries.map(entry => entry.filename);
+	if (filenames.join() != "s1.txt,s3.txt,a.txt") {
+		throw new Error("expected entries s1.txt,s3.txt,a.txt in the split output, got " + filenames.join());
+	}
+	if (!contents.every((content, entryIndex) => content == "content of " + filenames[entryIndex])) {
+		throw new Error("expected the entry contents to be preserved in the split output");
+	}
+}
+
+async function rejectsAFilterWhichIsNotAFunction() {
+	const source = await buildZipFile(["s1.txt"]);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	let error;
+	try {
+		await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: "s1.txt" });
+	} catch (appendError) {
+		error = appendError;
+	}
+	if (!error || error.message != zip.ERR_INVALID_FUNCTION_OPTION) {
+		throw new Error("expected an invalid function option error, got " + (error ? error.message : "no error"));
+	}
+	await checkEntries(await zipWriter.close(), []);
 }
 
 async function buildZipFile(filenames) {

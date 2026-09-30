@@ -6,7 +6,7 @@
 
 # Interface: ZipWriterCloseOptions
 
-Represents the options passed to  [ZipWriter#close](../classes/ZipWriter.md#close).
+Represents options passed to [ZipReader#getEntries](../classes/ZipReader.md#getentries), [ZipReader#getEntriesGenerator](../classes/ZipReader.md#getentriesgenerator), and [ZipWriter#close](../classes/ZipWriter.md#close).
 
 ## Extends
 

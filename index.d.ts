@@ -3082,7 +3082,13 @@ export class ZipWriter<Type> {
    * The returned promise can safely be left un-awaited: {@link ZipWriter#close} waits for the copy
    * and throws its error if it was not caught.
    *
+   * With the {@link ZipWriterAppendZipOptions#filter} option, only the entries the function keeps are copied.
+   * Combined with {@link ZipWriter#add}, this edits an existing zip file into a new one without decompressing
+   * its data: the entries to keep are copied as-is, the entries to delete or replace are left out, and the
+   * replacements and additions are added afterwards.
+   *
    * @param reader The {@link Reader} instance used to read the content of the zip file.
+   * @param options The options.
    * @returns A promise resolving when the zip file has been added.
    */
   appendZip<ReaderType>(
@@ -3092,7 +3098,8 @@ export class ZipWriter<Type> {
       | ReadableStream
       | Reader<unknown>[]
       | ReadableReader[]
-      | ReadableStream[]
+      | ReadableStream[],
+    options?: ZipWriterAppendZipOptions
   ): Promise<void>;
 
   /**
@@ -3310,6 +3317,28 @@ export interface ZipWriterAddDataOptions
 /**
  * Represents the options passed to  {@link ZipWriter#close}.
  */
+/**
+ * Represents the options passed to {@link ZipWriter#appendZip}.
+ */
+export interface ZipWriterAppendZipOptions {
+  /**
+   * Selects the entries of the zip file to copy: the function is called once per entry, in the order of the
+   * central directory, and the entry is copied when it returns (or resolves to) `true`.
+   *
+   * @remarks
+   * When the option is set, the data of the zip file is copied entry by entry and the entries left out leave no
+   * bytes behind in the output, unlike {@link ZipWriter#remove}, which drops an entry from the central directory
+   * after its data has been written. The bytes of the zip file outside its entries, e.g. a self-extracting stub
+   * before the first entry, are not copied either. Without the option, the data of the zip file is copied as a
+   * whole. The duplicate filename check applies to the entries kept only, so an entry can be replaced by
+   * leaving it out and adding its replacement with {@link ZipWriter#add}.
+   *
+   * @param entry The entry read from the zip file.
+   * @returns `true` to copy the entry.
+   */
+  filter?: (entry: Entry) => boolean | Promise<boolean>;
+}
+
 export interface ZipWriterCloseOptions extends EntryOnprogressOptions {
   /**
    * `true` to use Zip64 to write the entries directory.

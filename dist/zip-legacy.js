@@ -6578,13 +6578,14 @@
 			return watchPromiseError(this, prependZipEntries(this, reader));
 		}
 
-		appendZip(reader) {
-			return watchPromiseError(this, this.appendZipEntries(reader));
+		appendZip(reader, options = {}) {
+			return watchPromiseError(this, this.appendZipEntries(reader, options));
 		}
 
-		async appendZipEntries(reader) {
+		async appendZipEntries(reader, options = {}) {
 			const zipWriter = this;
 			const { pendingAddFileCalls, filenames, fileEntries } = zipWriter;
+			const filter = checkFunctionOption(options.filter);
 			while (pendingAddFileCalls.size) {
 				await Promise.allSettled(Array.from(pendingAddFileCalls));
 			}
@@ -6606,7 +6607,13 @@
 				await zipReader$1.close();
 				await initStream(zipWriter.writer);
 				const { directoryOffset } = zipReader$1;
-				entries.forEach(({ filename }) => {
+				const keptEntries = [];
+				for (const entry of entries) {
+					if (!filter || await filter(entry)) {
+						keptEntries.push(entry);
+					}
+				}
+				keptEntries.forEach(({ filename }) => {
 					if (filenames.has(filename)) {
 						throw new Error(ERR_DUPLICATED_NAME);
 					}
@@ -6627,8 +6634,8 @@
 						zipWriter.offset += SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
 					}
 				}
-				const entryPositions = await copyZipData(zipWriter, reader, entries, directoryOffset);
-				entries.forEach(entry => {
+				const entryPositions = await copyZipData(zipWriter, reader, entries, keptEntries, directoryOffset, Boolean(filter));
+				keptEntries.forEach(entry => {
 					const {
 						version,
 						rawLastModDate,
@@ -8541,26 +8548,42 @@
 		return rawExtraField;
 	}
 
-	async function copyZipData(zipWriter, reader, entries, directoryOffset) {
+	async function copyZipData(zipWriter, reader, entries, keptEntries, directoryOffset, compact) {
 		const { writer } = zipWriter;
 		const entryPositions = new Map();
-		if (writer.closeDisk) {
+		if (writer.closeDisk || compact) {
 			const sortedEntries = Array.from(entries).sort((firstEntry, secondEntry) =>
 				getSourceOffset(reader, firstEntry) - getSourceOffset(reader, secondEntry));
-			let copiedLength = 0;
-			for (const entry of sortedEntries) {
-				const sourceOffset = getSourceOffset(reader, entry);
-				await copyData(zipWriter, reader, copiedLength, sourceOffset - copiedLength);
-				if (exceedsAvailableSize(writer, await getLocalHeaderLength(reader, sourceOffset))) {
-					await writer.closeDisk();
+			const regionEnds = getRegionEnds(reader, sortedEntries, directoryOffset);
+			const keptEntrySet = new Set(keptEntries);
+			let copiedOffset = 0;
+			let lastPosition;
+			for (let indexEntry = 0; indexEntry < sortedEntries.length; indexEntry++) {
+				const entry = sortedEntries[indexEntry];
+				if (keptEntrySet.has(entry)) {
+					const sourceOffset = getSourceOffset(reader, entry);
+					if (sourceOffset < copiedOffset) {
+						entryPositions.set(entry, lastPosition);
+					} else {
+						if (!compact) {
+							await copyData(zipWriter, reader, copiedOffset, sourceOffset - copiedOffset);
+						}
+						if (writer.closeDisk && exceedsAvailableSize(writer, await getLocalHeaderLength(reader, sourceOffset))) {
+							await writer.closeDisk();
+						}
+						lastPosition = {
+							offset: getSegmentOffset(zipWriter, writer),
+							diskNumberStart: getDiskNumber(writer)
+						};
+						entryPositions.set(entry, lastPosition);
+						await copyData(zipWriter, reader, sourceOffset, regionEnds[indexEntry] - sourceOffset);
+						copiedOffset = regionEnds[indexEntry];
+					}
 				}
-				entryPositions.set(entry, {
-					offset: getSegmentOffset(zipWriter, writer),
-					diskNumberStart: getDiskNumber(writer)
-				});
-				copiedLength = sourceOffset;
 			}
-			await copyData(zipWriter, reader, copiedLength, directoryOffset - copiedLength);
+			if (!compact) {
+				await copyData(zipWriter, reader, copiedOffset, directoryOffset - copiedOffset);
+			}
 		} else {
 			const baseOffset = zipWriter.offset;
 			await copyData(zipWriter, reader, 0, directoryOffset);
@@ -8570,6 +8593,20 @@
 			}));
 		}
 		return entryPositions;
+	}
+
+	function getRegionEnds(reader, sortedEntries, directoryOffset) {
+		const regionEnds = new Array(sortedEntries.length);
+		let regionEnd = directoryOffset;
+		for (let indexEntry = sortedEntries.length - 1; indexEntry >= 0; indexEntry--) {
+			const sourceOffset = getSourceOffset(reader, sortedEntries[indexEntry]);
+			const nextEntry = sortedEntries[indexEntry + 1];
+			if (nextEntry && getSourceOffset(reader, nextEntry) > sourceOffset) {
+				regionEnd = getSourceOffset(reader, nextEntry);
+			}
+			regionEnds[indexEntry] = regionEnd;
+		}
+		return regionEnds;
 	}
 
 	async function copyData(zipWriter, reader, offset, size) {

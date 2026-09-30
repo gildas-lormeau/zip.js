@@ -164,7 +164,7 @@ and throws its error if it was not caught.
 
 ### appendZip()
 
-> **appendZip**\<`ReaderType`\>(`reader`): `Promise`\<`void`\>
+> **appendZip**\<`ReaderType`\>(`reader`, `options?`): `Promise`\<`void`\>
 
 Adds the entries of an existing zip file into the current zip. This method can be called at any
 time, including between calls to [ZipWriter#add](#add) and repeatedly to merge several zip files.
@@ -182,6 +182,12 @@ time, including between calls to [ZipWriter#add](#add) and repeatedly to merge s
 `ReadableStream`\<`any`\> \| `ReadableStream`\<`any`\>[] \| [`ReadableReader`](../interfaces/ReadableReader.md) \| [`Reader`](Reader.md)\<`unknown`\>[] \| [`ReadableReader`](../interfaces/ReadableReader.md)[] \| [`Reader`](Reader.md)\<`ReaderType`\>
 
 The [Reader](Reader.md) instance used to read the content of the zip file.
+
+##### options?
+
+[`ZipWriterAppendZipOptions`](../interfaces/ZipWriterAppendZipOptions.md)
+
+The options.
 
 #### Returns
 
@@ -205,6 +211,11 @@ the conflicts.
 
 The returned promise can safely be left un-awaited: [ZipWriter#close](#close) waits for the copy
 and throws its error if it was not caught.
+
+With the [ZipWriterAppendZipOptions#filter](../interfaces/ZipWriterAppendZipOptions.md#filter) option, only the entries the function keeps are copied.
+Combined with [ZipWriter#add](#add), this edits an existing zip file into a new one without decompressing
+its data: the entries to keep are copied as-is, the entries to delete or replace are left out, and the
+replacements and additions are added afterwards.
 
 ***
 

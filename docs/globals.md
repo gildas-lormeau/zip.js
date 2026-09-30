@@ -85,6 +85,7 @@
 - [ZipReaderGetEntriesOptions](interfaces/ZipReaderGetEntriesOptions.md)
 - [ZipReaderOptions](interfaces/ZipReaderOptions.md)
 - [ZipWriterAddDataOptions](interfaces/ZipWriterAddDataOptions.md)
+- [ZipWriterAppendZipOptions](interfaces/ZipWriterAppendZipOptions.md)
 - [ZipWriterCloseOptions](interfaces/ZipWriterCloseOptions.md)
 - [ZipWriterConstructorOptions](interfaces/ZipWriterConstructorOptions.md)
 
