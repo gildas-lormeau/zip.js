@@ -51,6 +51,11 @@ The page answers four questions, each from one or two scripts of the harness:
   table; it is not a verdict.
 - **Memory.** Peak resident set size reported by `/usr/bin/time -l`, as a delta over an empty
   Node process (about 50 MB). It is the highest of the 3 runs, while the time is their median.
+- **Versions of this page.** A re-run replaces the whole page, and the runtimes, browsers and OS
+  move between two runs along with zip.js, so a number read from an older version of the page
+  is not comparable with one here: only a column measured in the same run isolates a single
+  variable, as the `chunkSize` 64 KB column of the
+  [runtime table](#concurrent-add-per-runtime) does for the default chunk size.
 - **Level.** Every library compresses at its own level 6. A level is not a unit shared between
   libraries: zlib's level 6 and fflate's level 6 are different parameter sets and produce
   different sizes, so every time is printed next to the size it achieved, and the

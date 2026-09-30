@@ -472,9 +472,10 @@ A backslash is otherwise not interpreted as a path separator: it is a valid file
 systems, and it also occurs as the trail byte of legitimate double-byte filenames (e.g. CP932) decoded with
 another charset.
 
-Names are validated, never rewritten, so the filename reported for an entry always matches its central
-directory record. The name validated is the final one, i.e. the name of a valid Unicode Path extra field
-(see [EntryMetaData#extraFieldUnicodePath](EntryMetaData.md#extrafieldunicodepath)) when the entry carries one.
+Names are validated, never rewritten: the filename reported for an entry is the one its central directory
+record stores, decoded, or the one of its Unicode Path extra field when the entry carries a valid one (see
+[EntryMetaData#extraFieldUnicodePath](EntryMetaData.md#extrafieldunicodepath)), and the bytes of the record stay available in
+[EntryMetaData#rawFilename](EntryMetaData.md#rawfilename). The name validated is that final name.
 
 #### Default Value
 

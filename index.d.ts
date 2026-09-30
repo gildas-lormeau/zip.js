@@ -1758,9 +1758,10 @@ export interface GetEntriesOptions {
    * systems, and it also occurs as the trail byte of legitimate double-byte filenames (e.g. CP932) decoded with
    * another charset.
    *
-   * Names are validated, never rewritten, so the filename reported for an entry always matches its central
-   * directory record. The name validated is the final one, i.e. the name of a valid Unicode Path extra field
-   * (see {@link EntryMetaData#extraFieldUnicodePath}) when the entry carries one.
+   * Names are validated, never rewritten: the filename reported for an entry is the one its central directory
+   * record stores, decoded, or the one of its Unicode Path extra field when the entry carries a valid one (see
+   * {@link EntryMetaData#extraFieldUnicodePath}), and the bytes of the record stay available in
+   * {@link EntryMetaData#rawFilename}. The name validated is that final name.
    *
    * @defaultValue The value of {@link GetEntriesOptions#strictness}.
    */
