@@ -88,6 +88,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"pendingRanges",
 	"previousFileEntry",
 	"rawCentralExtraField",
+	"rawCentralExtraFieldUnix",
 	"rawExtraFieldAES",
 	"rawExtraFieldExtendedTimestamp",
 	"rawExtraFieldNTFS",

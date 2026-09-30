@@ -2385,13 +2385,13 @@ export interface LocalDirectory {
   extraFieldNTFS?: EntryExtraFieldNTFS;
   /**
    * The Info-ZIP Unix type 2 extra field (0x7855). Its uid/gid are stored in the local file header only, the
-   * central directory version carries no data and merely flags their presence.
+   * central directory version carries no data and merely flags their presence. Its ids are used when the
+   * header holds no New Unix extra field (0x7875).
    */
   extraFieldUnix?: EntryExtraFieldUnix;
   /**
-   * The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers. It is read
-   * whenever the type 2 extra field (0x7855) is absent or carries no ids, which is its usual state in the
-   * central directory.
+   * The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers. It takes
+   * precedence over the type 2 extra field (0x7855) when a header carries both.
    */
   extraFieldInfoZip?: EntryExtraFieldUnix;
   /**
@@ -2754,13 +2754,13 @@ export interface EntryMetaData {
   extraFieldNTFS?: EntryExtraFieldNTFS;
   /**
    * The Info-ZIP Unix type 2 extra field (0x7855). Its uid/gid are stored in the local file header only, the
-   * central directory version carries no data and merely flags their presence.
+   * central directory version carries no data and merely flags their presence. Its ids are used when the
+   * header holds no New Unix extra field (0x7875).
    */
   extraFieldUnix?: EntryExtraFieldUnix;
   /**
-   * The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers. It is read
-   * whenever the type 2 extra field (0x7855) is absent or carries no ids, which is its usual state in the
-   * central directory.
+   * The Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid in both headers. It takes
+   * precedence over the type 2 extra field (0x7855) when a header carries both.
    */
   extraFieldInfoZip?: EntryExtraFieldUnix;
   /**
@@ -2792,8 +2792,8 @@ export interface EntryMetaData {
    *
    * The local file header is the only place where the Info-ZIP Unix extra fields type 1 (0x5855) and type 2
    * (0x7855) store the uid/gid, so this is where they are read for entries carrying just these fields, e.g.
-   * with `entry.localDirectory.extraFieldUnixType1.uid`. The values are not merged into
-   * {@link EntryMetaData#uid} and {@link EntryMetaData#gid}, which are read from the central directory.
+   * with `entry.localDirectory.extraFieldUnixType1.uid`. The values fill in {@link EntryMetaData#uid} and
+   * {@link EntryMetaData#gid} only when the central directory gave none, see {@link EntryMetaData#uid}.
    */
   localDirectory?: LocalDirectory;
   /**
@@ -3656,8 +3656,10 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * Which Unix extra field format to write when creating entries that include Unix metadata.
    * - "infozip": Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid up to 32 bits.
    * - "unix": Info-ZIP Unix extra field type 2 (0x7855), storing fixed 2-byte uid/gid (0..65535); a
-   *   larger uid or gid is rejected. The Unix mode is not part of this field; it is written to the
-   *   external file attributes.
+   *   larger uid or gid is rejected. The ids are written in the local file header only, the central
+   *   directory copy is empty as Info-ZIP specifies, so a reader working from the central directory,
+   *   {@link ZipReader} included, reports them once the entry data has been read. The Unix mode is not
+   *   part of this field; it is written to the external file attributes.
    *
    * When {@link ZipFS} exports imported entries, their uid/gid are re-emitted as "infozip" regardless
    * of the field type found in the imported zip file, unless this option is set explicitly.

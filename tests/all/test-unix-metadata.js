@@ -34,6 +34,8 @@ async function test() {
 					await zipReader.close();
 					throw new Error(`case ${c.name}: expected extraFieldUnix alias or map entry`);
 				}
+				// the 0x7855 ids live in the local file header, so they are known once the data is read
+				await entry.getData(new zip.Uint8ArrayWriter());
 			}
 			if (entry.uid !== 1000 || entry.gid !== 1000) {
 				await zipReader.close();

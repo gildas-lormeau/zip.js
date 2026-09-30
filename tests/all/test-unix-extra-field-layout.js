@@ -9,6 +9,8 @@ export { test };
 //   0x7875 "ux"  (infozip) : version(1) + uidSize(1) + uid + gidSize(1) + gid  (variable length)
 // The file mode is carried in the external file attributes, not in the 0x7855 field. This test pins
 // the on-disk layout so it cannot silently regress to the old (0x7875-shaped) 0x7855 encoding.
+// Info-ZIP stores the 0x7855 ids in the local file header only: the central directory copy is the
+// tag with TSize 0, so the ids of such an entry are read when its data is, not at getEntries().
 async function test() {
 	zip.configure({ useWebWorkers: false });
 	try {
@@ -34,8 +36,15 @@ async function checkUnixField() {
 	if (view.getUint16(0, true) != 1000 || view.getUint16(2, true) != 1234) {
 		throw new Error("0x7855 uid/gid not encoded as fixed 2-byte values");
 	}
-	// uid/gid come from the field, the mode from the external file attributes
-	const entry = await read(bytes);
+	const centralField = centralExtraField(bytes, 0x7855);
+	if (!centralField) {
+		throw new Error("missing central 0x7855 field");
+	}
+	if (centralField.length != 0) {
+		throw new Error("central 0x7855 body length " + centralField.length + ", expected 0");
+	}
+	// uid/gid come from the local field once the data is read, the mode from the external file attributes
+	const entry = await read(bytes, true);
 	if (entry.uid != 1000 || entry.gid != 1234) {
 		throw new Error("0x7855 uid/gid did not round-trip");
 	}
@@ -88,9 +97,12 @@ async function write(options) {
 	return writer.close();
 }
 
-async function read(bytes) {
+async function read(bytes, readData) {
 	const reader = new zip.ZipReader(new zip.BlobReader(new Blob([bytes])));
 	const [entry] = await reader.getEntries();
+	if (readData) {
+		await entry.getData(new zip.Uint8ArrayWriter());
+	}
 	await reader.close();
 	return entry;
 }
@@ -100,7 +112,20 @@ function localExtraField(bytes, tag) {
 	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 	const filenameLength = view.getUint16(26, true);
 	const extraFieldLength = view.getUint16(28, true);
-	let offset = 30 + filenameLength;
+	return findExtraField(bytes, tag, 30 + filenameLength, extraFieldLength);
+}
+
+// return the body of the given extra field tag in the first central directory record
+function centralExtraField(bytes, tag) {
+	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+	const directoryOffset = view.getUint32(bytes.length - 22 + 16, true);
+	const filenameLength = view.getUint16(directoryOffset + 28, true);
+	const extraFieldLength = view.getUint16(directoryOffset + 30, true);
+	return findExtraField(bytes, tag, directoryOffset + 46 + filenameLength, extraFieldLength);
+}
+
+function findExtraField(bytes, tag, offset, extraFieldLength) {
+	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 	const end = offset + extraFieldLength;
 	while (offset + 4 <= end) {
 		const fieldTag = view.getUint16(offset, true);

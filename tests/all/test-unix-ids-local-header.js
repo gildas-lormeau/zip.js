@@ -11,7 +11,8 @@ export { test };
 // 0x7875 only in its else branch. The local header is already parsed and its fields already interpreted
 // when the entry data is read, so the ids are now taken from there when the central directory has none.
 // They must not go the other way: 0x7855 truncates ids to 16 bits, so a local value never overwrites one
-// read from the central directory.
+// read from the central directory, and within one header 0x7875 takes precedence over a 0x7855 that
+// carries ids too, as Info-ZIP's extrafld.txt specifies for the newer field.
 
 const CONTENT = "content";
 const UID = 501;
@@ -24,9 +25,25 @@ async function test() {
 	try {
 		await idsComeFromTheLocalHeader();
 		await emptyType2DoesNotShadowNewUnix();
+		await newUnixWinsOverType2InTheSameHeader();
 		await localIdsDoNotOverwriteCentralOnes();
 	} finally {
 		await zip.terminateWorkers();
+	}
+}
+
+// Both fields carry ids in the central directory: the 16-bit ones of 0x7855 must not win.
+async function newUnixWinsOverType2InTheSameHeader() {
+	const data = await write({ uid: LARGE_UID, gid: GID, unixExtraFieldType: "infozip", extraField: type2Field(TRUNCATED_UID, GID) });
+	const entry = await readEntry(data);
+	if (!entry.extraFieldUnix || !entry.extraFieldInfoZip) {
+		throw new Error("expected both Unix extra fields to be reported");
+	}
+	if (entry.uid != LARGE_UID) {
+		throw new Error("expected the 0x7875 uid " + LARGE_UID + ", got " + entry.uid);
+	}
+	if (entry.extraFieldUnix.uid != TRUNCATED_UID) {
+		throw new Error("expected the 0x7855 field to still report " + TRUNCATED_UID + ", got " + entry.extraFieldUnix.uid);
 	}
 }
 
@@ -63,20 +80,22 @@ async function emptyType2DoesNotShadowNewUnix() {
 }
 
 // 0x7855 holds 16-bit ids, so an id that does not fit comes back truncated. The central directory value
-// wins whenever it has one.
+// wins whenever it has one: here the central directory carries only a 0x7875 field and the local header
+// only a 0x7855 one.
 async function localIdsDoNotOverwriteCentralOnes() {
 	const data = await write({
-		uid: LARGE_UID,
-		gid: GID,
-		unixExtraFieldType: "infozip",
+		centralExtraField: newUnixField(LARGE_UID, GID),
 		localExtraField: type2Field(TRUNCATED_UID, GID)
 	});
 	const reader = new zip.ZipReader(new zip.BlobReader(new Blob([data])));
 	const [entry] = await reader.getEntries();
+	if (entry.uid != LARGE_UID) {
+		throw new Error("expected the central directory uid " + LARGE_UID + ", got " + entry.uid);
+	}
 	await entry.getData(new zip.TextWriter());
 	await reader.close();
 	if (entry.uid != LARGE_UID) {
-		throw new Error("expected the central directory uid " + LARGE_UID + ", got " + entry.uid);
+		throw new Error("expected the central directory uid " + LARGE_UID + " to be kept, got " + entry.uid);
 	}
 	if (entry.localDirectory.uid != TRUNCATED_UID) {
 		throw new Error("expected the local header to still report " + TRUNCATED_UID + ", got " + entry.localDirectory.uid);
@@ -89,6 +108,17 @@ function type2Field(uid, gid) {
 	view.setUint16(0, uid, true);
 	view.setUint16(2, gid, true);
 	return new Map([[0x7855, data]]);
+}
+
+function newUnixField(uid, gid) {
+	const data = new Uint8Array(11);
+	const view = new DataView(data.buffer);
+	view.setUint8(0, 1);
+	view.setUint8(1, 4);
+	view.setUint32(2, uid, true);
+	view.setUint8(6, 4);
+	view.setUint32(7, gid, true);
+	return new Map([[0x7875, data]]);
 }
 
 async function write(options) {

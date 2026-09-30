@@ -5768,18 +5768,16 @@
 			readExtraFieldNTFS(extraFieldNTFS, directory);
 			directory.extraFieldNTFS = extraFieldNTFS;
 		}
-		const extraFieldUnix = extraField.get(EXTRAFIELD_TYPE_UNIX);
+		const extraFieldInfoZip = extraField.get(EXTRAFIELD_TYPE_INFOZIP);
 		let unixIdsRead;
-		if (extraFieldUnix) {
-			unixIdsRead = readExtraFieldUnix(extraFieldUnix, directory, false);
-			directory.extraFieldUnix = extraFieldUnix;
+		if (extraFieldInfoZip) {
+			unixIdsRead = readExtraFieldUnix(extraFieldInfoZip, directory, true);
+			directory.extraFieldInfoZip = extraFieldInfoZip;
 		}
-		if (!unixIdsRead) {
-			const extraFieldInfoZip = extraField.get(EXTRAFIELD_TYPE_INFOZIP);
-			if (extraFieldInfoZip) {
-				readExtraFieldUnix(extraFieldInfoZip, directory, true);
-				directory.extraFieldInfoZip = extraFieldInfoZip;
-			}
+		const extraFieldUnix = extraField.get(EXTRAFIELD_TYPE_UNIX);
+		if (extraFieldUnix) {
+			readExtraFieldUnix(extraFieldUnix, unixIdsRead ? {} : directory, false);
+			directory.extraFieldUnix = extraFieldUnix;
 		}
 		const extraFieldExtendedTimestamp = extraField.get(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
 		if (extraFieldExtendedTimestamp) {
@@ -6667,6 +6665,7 @@
 						rawExtraFieldExtendedTimestamp: EMPTY_UINT8_ARRAY,
 						rawExtraFieldNTFS: EMPTY_UINT8_ARRAY,
 						rawExtraFieldUnix: EMPTY_UINT8_ARRAY,
+						rawCentralExtraFieldUnix: EMPTY_UINT8_ARRAY,
 						rawExtraField,
 						rawCentralExtraField: EMPTY_UINT8_ARRAY,
 						headerArray,
@@ -7719,6 +7718,7 @@
 			extraFieldExtendedTimestampTime,
 			rawExtraFieldNTFS,
 			rawExtraFieldUnix,
+			rawCentralExtraFieldUnix,
 			rawExtraFieldAES,
 		} = headerInfo;
 		const { dataDescriptorArray } = dataDescriptorInfo;
@@ -7784,6 +7784,7 @@
 			rawExtraFieldExtendedTimestamp,
 			rawExtraFieldNTFS,
 			rawExtraFieldUnix,
+			rawCentralExtraFieldUnix,
 			rawExtraFieldAES,
 			rawExtraField,
 			rawCentralExtraField,
@@ -8007,6 +8008,7 @@
 			rawExtraFieldNTFS = rawExtraFieldExtendedTimestamp = EMPTY_UINT8_ARRAY;
 		}
 		let rawExtraFieldUnix;
+		let rawCentralExtraFieldUnix;
 		try {
 			const { uid, gid, unixExtraFieldType } = options;
 			if (unixExtraFieldType == INFOZIP_EXTRA_FIELD_TYPE && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
@@ -8021,7 +8023,7 @@
 				extraFieldUnix.writeBytes(uidBytes);
 				extraFieldUnix.writeUint8(gidBytes.length);
 				extraFieldUnix.writeBytes(gidBytes);
-				rawExtraFieldUnix = extraFieldUnix.array;
+				rawExtraFieldUnix = rawCentralExtraFieldUnix = extraFieldUnix.array;
 			} else if (unixExtraFieldType == UNIX_EXTRA_FIELD_TYPE && (uid !== UNDEFINED_VALUE || gid !== UNDEFINED_VALUE)) {
 				const extraFieldUnix = createRecordWriter(8);
 				extraFieldUnix.writeUint16(EXTRAFIELD_TYPE_UNIX);
@@ -8029,11 +8031,15 @@
 				extraFieldUnix.writeUint16((uid === UNDEFINED_VALUE ? 0 : uid) & MAX_16_BITS);
 				extraFieldUnix.writeUint16((gid === UNDEFINED_VALUE ? 0 : gid) & MAX_16_BITS);
 				rawExtraFieldUnix = extraFieldUnix.array;
+				const centralExtraFieldUnix = createRecordWriter(4);
+				centralExtraFieldUnix.writeUint16(EXTRAFIELD_TYPE_UNIX);
+				centralExtraFieldUnix.writeUint16(0);
+				rawCentralExtraFieldUnix = centralExtraFieldUnix.array;
 			} else {
-				rawExtraFieldUnix = EMPTY_UINT8_ARRAY;
+				rawExtraFieldUnix = rawCentralExtraFieldUnix = EMPTY_UINT8_ARRAY;
 			}
 		} catch {
-			rawExtraFieldUnix = EMPTY_UINT8_ARRAY;
+			rawExtraFieldUnix = rawCentralExtraFieldUnix = EMPTY_UINT8_ARRAY;
 		}
 		if (compressionMethod === UNDEFINED_VALUE) {
 			compressionMethod = compressed ? COMPRESSION_METHOD_DEFLATE : COMPRESSION_METHOD_STORE;
@@ -8125,6 +8131,7 @@
 			rawExtraFieldExtendedTimestamp,
 			rawExtraFieldNTFS,
 			rawExtraFieldUnix,
+			rawCentralExtraFieldUnix,
 			rawExtraFieldAES,
 			extraFieldLength
 		};
@@ -8300,7 +8307,7 @@
 				rawExtraFieldAES,
 				rawComment,
 				rawExtraFieldNTFS,
-				rawExtraFieldUnix,
+				rawCentralExtraFieldUnix,
 				rawExtraField,
 				rawCentralExtraField,
 				extraFieldExtendedTimestampFlag,
@@ -8362,7 +8369,7 @@
 				rawExtraFieldZip64,
 				rawExtraFieldAES,
 				rawExtraFieldNTFS,
-				rawExtraFieldUnix,
+				rawCentralExtraFieldUnix,
 				rawExtraFieldTimestamp,
 				rawExtraField,
 				rawCentralExtraField);
@@ -8391,7 +8398,7 @@
 				rawExtraFieldAES,
 				rawExtraFieldExtendedTimestamp,
 				rawExtraFieldNTFS,
-				rawExtraFieldUnix,
+				rawCentralExtraFieldUnix,
 				rawExtraField,
 				rawCentralExtraField,
 				rawComment,
@@ -8408,7 +8415,7 @@
 				uncompressedSize,
 				compressedSize
 			} = fileEntry;
-			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawExtraFieldUnix, rawExtraField, rawCentralExtraField);
+			const extraFieldLength = getLength(rawExtraFieldZip64, rawExtraFieldAES, rawExtraFieldExtendedTimestamp, rawExtraFieldNTFS, rawCentralExtraFieldUnix, rawExtraField, rawCentralExtraField);
 			const directoryRecordLength = CENTRAL_FILE_HEADER_LENGTH + getLength(rawFilename, rawComment) + extraFieldLength;
 			if (exceedsAvailableSize(writer, offset + directoryRecordLength - directoryDiskOffset)) {
 				await writeData(writer, directoryArray.slice(directoryDiskOffset, offset));
@@ -8444,7 +8451,7 @@
 			directoryRecord.writeBytes(rawExtraFieldAES);
 			directoryRecord.writeBytes(rawExtraFieldExtendedTimestamp);
 			directoryRecord.writeBytes(rawExtraFieldNTFS);
-			directoryRecord.writeBytes(rawExtraFieldUnix);
+			directoryRecord.writeBytes(rawCentralExtraFieldUnix);
 			directoryRecord.writeBytes(rawExtraField);
 			directoryRecord.writeBytes(rawCentralExtraField);
 			directoryRecord.writeBytes(rawComment);

@@ -41,6 +41,10 @@ async function test() {
 				const entries = await zipReader.getEntries();
 				if (!entries || entries.length !== 1) throw new Error(`${c.name}:${type} expected 1 entry`);
 				const entry = entries[0];
+				if (type === "unix") {
+					// the 0x7855 ids live in the local file header, so they are known once the data is read
+					await entry.getData(new zip.Uint8ArrayWriter());
+				}
 				if (entry.uid !== c.uid || entry.gid !== c.uid) {
 					throw new Error(`${c.name}:${type} uid/gid mismatch: got ${entry.uid}/${entry.gid}`);
 				}

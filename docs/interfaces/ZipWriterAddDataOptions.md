@@ -878,8 +878,10 @@ decompressed.
 Which Unix extra field format to write when creating entries that include Unix metadata.
 - "infozip": Info-ZIP New Unix extra field (0x7875), storing variable-length uid/gid up to 32 bits.
 - "unix": Info-ZIP Unix extra field type 2 (0x7855), storing fixed 2-byte uid/gid (0..65535); a
-  larger uid or gid is rejected. The Unix mode is not part of this field; it is written to the
-  external file attributes.
+  larger uid or gid is rejected. The ids are written in the local file header only, the central
+  directory copy is empty as Info-ZIP specifies, so a reader working from the central directory,
+  [ZipReader](../classes/ZipReader.md) included, reports them once the entry data has been read. The Unix mode is not
+  part of this field; it is written to the external file attributes.
 
 When [ZipFS](../classes/ZipFS.md) exports imported entries, their uid/gid are re-emitted as "infozip" regardless
 of the field type found in the imported zip file, unless this option is set explicitly.
