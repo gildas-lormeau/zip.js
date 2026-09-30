@@ -3336,16 +3336,19 @@ export interface ZipWriterAppendZipOptions {
    * @remarks
    * When the option is set, the data of the zip file is copied entry by entry and the entries left out leave no
    * bytes behind in the output, unlike {@link ZipWriter#remove}, which drops an entry from the central directory
-   * after its data has been written. The bytes of the zip file outside its entries, e.g. a self-extracting stub
-   * before the first entry, are not copied either. Without the option, the data of the zip file is copied as a
-   * whole. The duplicate filename check applies to the entries kept only, so an entry can be replaced by
-   * leaving it out and adding its replacement with {@link ZipWriter#add}.
+   * after its data has been written. The bytes of the zip file outside the entries kept are not copied either:
+   * a self-extracting stub, the data of entries removed earlier and the padding between entries, so a zip file
+   * aligned with {@link ZipWriterConstructorOptions#usdz} is not aligned any more once filtered. Without the
+   * option, the data of the zip file is copied as a whole. The duplicate filename check applies to the entries
+   * kept only, so an entry can be replaced by leaving it out and adding its replacement with {@link ZipWriter#add}.
    *
-   * The region copied for an entry runs from its offset to the offset of the next entry or to the central
-   * directory. Before anything is written, each kept entry is checked to start with a local file header and to
-   * fit in its region; otherwise the method throws {@link ERR_LOCAL_FILE_HEADER_NOT_FOUND} or
-   * {@link ERR_OVERLAPPING_ENTRY} and leaves the current zip unchanged. The same checks apply when the output is
-   * a split zip file, whose entries are copied one by one as well.
+   * An entry is copied from its local file header to the end of its data or, when it has one, of its data
+   * descriptor, whose layout is read back from the zip file; when no layout matches, the entry is copied up to
+   * the next entry or to the central directory. Before anything is written, each kept entry is checked to start
+   * with a local file header and to end before the next entry or the central directory; otherwise the method
+   * throws {@link ERR_LOCAL_FILE_HEADER_NOT_FOUND} or {@link ERR_OVERLAPPING_ENTRY} and leaves the current zip
+   * unchanged. The same checks apply when the output is a split zip file, whose entries are copied one by one
+   * as well.
    *
    * @param entry The entry read from the zip file.
    * @returns `true` to copy the entry.

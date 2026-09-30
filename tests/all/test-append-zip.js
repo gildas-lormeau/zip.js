@@ -24,6 +24,7 @@ async function test() {
 		await acceptsAnAsyncFilter();
 		await letsTheFilterReadTheEntryData();
 		await dropsTheBytesOutsideTheEntriesWhenFiltering();
+		await dropsTheBytesBetweenTheEntriesWhenFiltering();
 		await filtersIntoASplitZipFile();
 		await keepsTheRawBitFlag();
 		await rejectsARecordPointingInsideAKeptEntry();
@@ -287,6 +288,69 @@ async function keepsTheRawBitFlag() {
 	}
 }
 
+// the bytes left by a removed entry and the padding between two entries are dropped as well, whatever the
+// data descriptor layout of the entries: the end of a kept entry is read back from the zip file
+async function dropsTheBytesBetweenTheEntriesWhenFiltering() {
+	const layouts = [{}, { dataDescriptor: false }, { zip64: true }, { dataDescriptorSignature: false }, { zip64: true, dataDescriptorSignature: false }];
+	for (const writerOptions of layouts) {
+		const description = JSON.stringify(writerOptions);
+		const directOutput = await buildZipFile(["a.txt", "b.txt"], writerOptions);
+		const sourceWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), writerOptions);
+		await addEntry(sourceWriter, "a.txt");
+		await sourceWriter.add("x.txt", new zip.TextReader("x".repeat(160)), { lastModDate: LAST_MOD_DATE });
+		await addEntry(sourceWriter, "b.txt");
+		sourceWriter.remove("x.txt");
+		const removedSource = await sourceWriter.close();
+		await expectFilteredOutput(removedSource, directOutput, "a removed entry with " + description);
+		const padding = new Uint8Array(7).fill(0xaa);
+		const view = new DataView(directOutput.buffer, directOutput.byteOffset, directOutput.byteLength);
+		const centralDirectoryOffset = getCentralDirectoryOffset(view);
+		const secondRecordOffset = centralDirectoryOffset + 46 + view.getUint16(centralDirectoryOffset + 28, true) +
+			view.getUint16(centralDirectoryOffset + 30, true) + view.getUint16(centralDirectoryOffset + 32, true);
+		const secondEntryOffset = view.getUint32(secondRecordOffset + 42, true);
+		if (secondEntryOffset == 0xffffffff) {
+			throw new Error("expected a 32-bit offset in the second record with " + description);
+		}
+		const paddedSource = new Uint8Array(directOutput.length + padding.length);
+		paddedSource.set(directOutput.subarray(0, secondEntryOffset));
+		paddedSource.set(padding, secondEntryOffset);
+		paddedSource.set(directOutput.subarray(secondEntryOffset), secondEntryOffset + padding.length);
+		const paddedView = new DataView(paddedSource.buffer, paddedSource.byteOffset, paddedSource.byteLength);
+		paddedView.setUint32(secondRecordOffset + padding.length + 42, secondEntryOffset + padding.length, true);
+		setCentralDirectoryOffset(paddedView, centralDirectoryOffset + padding.length, padding.length);
+		await expectFilteredOutput(paddedSource, directOutput, "padding between the entries with " + description);
+	}
+}
+
+function getCentralDirectoryOffset(view) {
+	const offset = view.getUint32(view.byteLength - 22 + 16, true);
+	if (offset != 0xffffffff) {
+		return offset;
+	}
+	const zip64Offset = Number(view.getBigUint64(view.byteLength - 22 - 12, true));
+	return Number(view.getBigUint64(zip64Offset + 48, true));
+}
+
+function setCentralDirectoryOffset(view, centralDirectoryOffset, delta) {
+	if (view.getUint32(view.byteLength - 22 + 16, true) != 0xffffffff) {
+		view.setUint32(view.byteLength - 22 + 16, centralDirectoryOffset, true);
+	} else {
+		const zip64Offset = Number(view.getBigUint64(view.byteLength - 22 - 12, true)) + delta;
+		view.setBigUint64(view.byteLength - 22 - 12, BigInt(zip64Offset), true);
+		view.setBigUint64(zip64Offset + 48, BigInt(centralDirectoryOffset), true);
+	}
+}
+
+async function expectFilteredOutput(source, expectedOutput, description) {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: () => true });
+	const output = await zipWriter.close();
+	if (!equalBytes(output, expectedOutput)) {
+		throw new Error("expected the same bytes as a direct write of the kept entries with " + description + ", got " + output.length + " vs " + expectedOutput.length + " bytes");
+	}
+	await checkEntries(output, ["a.txt", "b.txt"]);
+}
+
 // the regions copied by a filter come from the central directory offsets, so a record lying about its offset
 // must be caught before any byte is written: an unkept record inside a kept entry would truncate it silently
 async function rejectsARecordPointingInsideAKeptEntry() {
@@ -367,8 +431,8 @@ async function rejectsAFilterWhichIsNotAFunction() {
 	await checkEntries(await zipWriter.close(), []);
 }
 
-async function buildZipFile(filenames) {
-	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+async function buildZipFile(filenames, writerOptions = {}) {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter(), writerOptions);
 	for (const filename of filenames) {
 		await addEntry(zipWriter, filename);
 	}

@@ -5082,8 +5082,10 @@
 					addWarning(warnings, WARNING_WRAPPED_ENTRIES_COUNT);
 				}
 			}
+			const entryOptions = Object.assign({}, zipReader.options, options, { [OPTION_STRICTNESS]: strictness });
+			delete entryOptions[OPTION_CHECK_AMBIGUITY];
 			for (let indexFile = 0; indexFile < filesLength; indexFile++) {
-				const fileEntry = new ZipEntry$1(reader, zipReader.options);
+				const fileEntry = new ZipEntry$1(reader, entryOptions);
 				if (offset + CENTRAL_FILE_HEADER_LENGTH > directoryArray.length || getUint32$1(directoryView, offset) != CENTRAL_FILE_HEADER_SIGNATURE) {
 					if (indexFile == 0 && !decryptedDirectory && (zip64EndOfDirectoryVersion2 || detectEncryptedCentralDirectory(directoryView))) {
 						throw new Error(ERR_ENCRYPTED_CENTRAL_DIRECTORY);
@@ -6115,13 +6117,7 @@
 		let dataDescriptorLength = 0;
 		if (dataDescriptor) {
 			const zip64 = Boolean(extraFieldZip64);
-			const dataDescriptorArray = await readUint8Array(reader, dataOffset + compressedSize, DATA_DESCRIPTOR_RECORD_ZIP_64_LENGTH + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH);
-			const dataDescriptorView = getDataView(dataDescriptorArray);
-			const candidates = [[zip64, true], [zip64, false], [!zip64, true], [!zip64, false]]
-				.map(([zip64Layout, signature]) => readDataDescriptor(dataDescriptorView, zip64Layout, signature))
-				.filter(candidate => candidate && candidate.compressedSize == compressedSize && candidate.uncompressedSize == uncompressedSize);
-			const localDataDescriptor = candidates.find(candidate => candidate.crc32 == crc32) || candidates[0] ||
-				readDataDescriptor(dataDescriptorView, zip64, true) || readDataDescriptor(dataDescriptorView, zip64, false);
+			const localDataDescriptor = await readLocalDataDescriptor(reader, dataOffset + compressedSize, { crc32, compressedSize, uncompressedSize, zip64 });
 			if (localDataDescriptor) {
 				fileEntry.localDirectory.dataDescriptor = localDataDescriptor;
 				dataDescriptorLength = getDataDescriptorLength(localDataDescriptor.zip64, localDataDescriptor.signature);
@@ -6189,6 +6185,25 @@
 			}
 		}
 		return mergedRanges;
+	}
+
+	async function readLocalDataDescriptor(reader, offset, { crc32, compressedSize, uncompressedSize, zip64 }) {
+		const maxLength = DATA_DESCRIPTOR_RECORD_ZIP_64_LENGTH + DATA_DESCRIPTOR_RECORD_SIGNATURE_LENGTH;
+		const length = Math.min(maxLength, Math.max(0, reader.size - offset));
+		const dataDescriptorArray = length ? await readUint8Array(reader, offset, length) : EMPTY_UINT8_ARRAY;
+		const dataDescriptorView = getDataView(dataDescriptorArray);
+		const candidates = [[zip64, true], [zip64, false], [!zip64, true], [!zip64, false]]
+			.map(([zip64Layout, signature]) => readDataDescriptor(dataDescriptorView, zip64Layout, signature))
+			.filter(candidate => candidate && candidate.compressedSize == compressedSize && candidate.uncompressedSize == uncompressedSize);
+		return candidates.find(candidate => candidate.crc32 == crc32) || candidates[0] ||
+			readDataDescriptor(dataDescriptorView, zip64, true) || readDataDescriptor(dataDescriptorView, zip64, false);
+	}
+
+	async function getEntryDataDescriptorLength(reader, offset, { crc32, compressedSize, uncompressedSize, extraFieldZip64 }) {
+		const dataDescriptor = await readLocalDataDescriptor(reader, offset, { crc32, compressedSize, uncompressedSize, zip64: Boolean(extraFieldZip64) });
+		if (dataDescriptor && dataDescriptor.compressedSize == compressedSize && dataDescriptor.uncompressedSize == uncompressedSize) {
+			return getDataDescriptorLength(dataDescriptor.zip64, dataDescriptor.signature);
+		}
 	}
 
 	function readDataDescriptor(dataDescriptorView, zip64, signature) {
@@ -6564,6 +6579,7 @@
 		WARNING_WRAPPED_ENTRIES_COUNT: WARNING_WRAPPED_ENTRIES_COUNT,
 		ZipReader: ZipReader,
 		ZipReaderStream: ZipReaderStream,
+		getEntryDataDescriptorLength: getEntryDataDescriptorLength,
 		isZipFile: isZipFile
 	});
 
@@ -6709,7 +6725,7 @@
 					reader = new BlobReader(await streamToBlob(reader.readable));
 					await initStream(reader);
 				}
-				const { ZipReader } = await Promise.resolve().then(function () { return zipReader; });
+				const { ZipReader, getEntryDataDescriptorLength } = await Promise.resolve().then(function () { return zipReader; });
 				const zipReader$1 = new ZipReader(reader);
 				const entries = await zipReader$1.getEntries();
 				const keptEntries = [];
@@ -6742,7 +6758,7 @@
 						zipWriter.offset += SPLIT_ZIP_FILE_SIGNATURE_LENGTH;
 					}
 				}
-				const entryPositions = await copyZipData(zipWriter, reader, entries, keptEntries, directoryOffset, Boolean(filter));
+				const entryPositions = await copyZipData(zipWriter, reader, entries, keptEntries, directoryOffset, Boolean(filter), getEntryDataDescriptorLength);
 				keptEntries.forEach(entry => {
 					const {
 						version,
@@ -8751,7 +8767,7 @@
 		return rawExtraField;
 	}
 
-	async function copyZipData(zipWriter, reader, entries, keptEntries, directoryOffset, compact) {
+	async function copyZipData(zipWriter, reader, entries, keptEntries, directoryOffset, compact, getEntryDataDescriptorLength) {
 		const { writer } = zipWriter;
 		const entryPositions = new Map();
 		if (writer.closeDisk || compact) {
@@ -8768,9 +8784,15 @@
 					if (localHeaderLength === UNDEFINED_VALUE) {
 						throw new Error(ERR_LOCAL_FILE_HEADER_NOT_FOUND);
 					}
-					if (sourceOffset + localHeaderLength + entry.compressedSize > regionEnds[indexEntry]) {
+					let entryEnd = sourceOffset + localHeaderLength + entry.compressedSize;
+					if (entry.bitFlag.dataDescriptor) {
+						const dataDescriptorLength = await getEntryDataDescriptorLength(reader, entryEnd, entry);
+						entryEnd = dataDescriptorLength === UNDEFINED_VALUE ? Math.max(entryEnd, regionEnds[indexEntry]) : entryEnd + dataDescriptorLength;
+					}
+					if (entryEnd > regionEnds[indexEntry]) {
 						throw new Error(ERR_OVERLAPPING_ENTRY);
 					}
+					regionEnds[indexEntry] = entryEnd;
 					localHeaderLengths.set(entry, localHeaderLength);
 				}
 			}

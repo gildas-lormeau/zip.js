@@ -53,6 +53,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"filenames",
 	"generation",
 	"getDiskOffset",
+	"getEntryDataDescriptorLength",
 	"getValue",
 	"headerArray",
 	"headerInfo",
