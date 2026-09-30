@@ -36,6 +36,7 @@ async function test() {
 		await readsTheSourceWithTheReaderOptions();
 		await letsTheFilterReadEncryptedEntriesWithTheReaderOptions();
 		await rejectsReaderOptionsWhichAreNotAnObject();
+		await keepsTheWriterUsableWhenTheFilterThrows();
 		await rejectsAFilterWhichIsNotAFunction();
 	} finally {
 		await zip.terminateWorkers();
@@ -609,6 +610,36 @@ async function rejectsReaderOptionsWhichAreNotAnObject() {
 	for (const readerOptions of ["secret", ["secret"]]) {
 		await expectAppendZipError(source, { readerOptions }, zip.ERR_INVALID_READER_OPTIONS, "readerOptions " + JSON.stringify(readerOptions));
 	}
+	// a falsy value means "not set", like everywhere else in the API
+	for (const readerOptions of [null, false, 0, ""]) {
+		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { readerOptions, filter: () => true });
+		await checkEntries(await zipWriter.close(), ["s1.txt"]);
+	}
+}
+
+async function keepsTheWriterUsableWhenTheFilterThrows() {
+	const source = await buildZipFile(["s1.txt", "s2.txt"]);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await addEntry(zipWriter, "a.txt");
+	let error;
+	try {
+		await zipWriter.appendZip(new zip.Uint8ArrayReader(source), {
+			filter(entry) {
+				if (entry.filename == "s2.txt") {
+					throw new Error("filter failure");
+				}
+				return true;
+			}
+		});
+	} catch (appendError) {
+		error = appendError;
+	}
+	if (!error || error.message != "filter failure" || zipWriter.hasCorruptedEntries) {
+		throw new Error("expected the filter error to be thrown with nothing written, got " + (error ? error.message : "no error"));
+	}
+	await addEntry(zipWriter, "s1.txt");
+	await checkEntries(await zipWriter.close(), ["a.txt", "s1.txt"]);
 }
 
 async function rejectsAFilterWhichIsNotAFunction() {

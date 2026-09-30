@@ -3079,8 +3079,9 @@ export class ZipWriter<Type> {
    * are not applied to the copied entries. The comment and the digital signature of the zip file are not copied,
    * since its central directory is rebuilt: pass them to {@link ZipWriter#close}.
    *
-   * Pending {@link ZipWriter#add} calls are completed before the data is copied, and add() calls made
-   * while the copy is in progress are written after it. If an entry of the zip file has the same
+   * Pending {@link ZipWriter#add} calls are completed before the data is copied. add() calls made while the
+   * `filter` option runs are written before the copied entries, and add() calls made once the copy has started
+   * are written after it. If an entry of the zip file has the same
    * filename as an entry of the current zip, the method throws with the `ERR_DUPLICATED_NAME` error
    * message and leaves the current zip unchanged; call {@link ZipWriter#remove} beforehand to resolve
    * the conflicts. The same error is thrown when two entries of the zip file share a filename, since a
@@ -3170,10 +3171,11 @@ export class ZipWriter<Type> {
    * Removes an entry from the central directory that will be written for the zip file. The entry
    * data itself cannot be removed because it has already been streamed to the output.
    *
-   * @param entry The entry to remove. This can be an {@link Entry} instance or the filename of the entry.
+   * @param entry The entry to remove. This can be an {@link Entry} instance, the {@link EntryMetaData} returned by
+   * {@link ZipWriter#add} or passed to the `filter` option of {@link ZipWriter#appendZip}, or the filename of the entry.
    * @returns `true` if the entry has been removed, `false` otherwise.
    */
-  remove(entry: Entry | string): boolean;
+  remove(entry: EntryMetaData | string): boolean;
 
   /**
    * Writes the entries directory, writes the global comment, and returns the content of the zip file

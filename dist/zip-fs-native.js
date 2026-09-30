@@ -4853,7 +4853,7 @@
 		constructor(reader, options = {}) {
 			Object.assign(this, {
 				reader: new GenericReader(reader),
-				options,
+				options: options || {},
 				readRanges: { indexes: new Set(), sortedRanges: [], pendingRanges: [] },
 				entriesMissingZip64ExtraField: new WeakSet()
 			});
@@ -6891,14 +6891,18 @@
 			}
 			const { ZipReader, getEntryDataDescriptorLength } = await Promise.resolve().then(function () { return zipReader; });
 			const zipReader$1 = new ZipReader(reader, readerOptions);
-			const entries = await zipReader$1.getEntries();
 			const keptEntries = [];
-			for (const entry of entries) {
-				if (!filter || await filter(entry, getExistingEntry(fileEntries, entry.filename))) {
-					keptEntries.push(entry);
+			let entries;
+			try {
+				entries = await zipReader$1.getEntries();
+				for (const entry of entries) {
+					if (!filter || await filter(entry, getExistingEntry(fileEntries, entry.filename))) {
+						keptEntries.push(entry);
+					}
 				}
+			} finally {
+				await zipReader$1.close();
 			}
-			await zipReader$1.close();
 			await initStream(zipWriter.writer);
 			const { directoryOffset, entriesMissingZip64ExtraField } = zipReader$1;
 			keptEntries.forEach(entry => {

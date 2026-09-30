@@ -206,8 +206,9 @@ the entries is copied as-is; in particular, the constraints set by [ZipWriterCon
 are not applied to the copied entries. The comment and the digital signature of the zip file are not copied,
 since its central directory is rebuilt: pass them to [ZipWriter#close](#close).
 
-Pending [ZipWriter#add](#add) calls are completed before the data is copied, and add() calls made
-while the copy is in progress are written after it. If an entry of the zip file has the same
+Pending [ZipWriter#add](#add) calls are completed before the data is copied. add() calls made while the
+`filter` option runs are written before the copied entries, and add() calls made once the copy has started
+are written after it. If an entry of the zip file has the same
 filename as an entry of the current zip, the method throws with the `ERR_DUPLICATED_NAME` error
 message and leaves the current zip unchanged; call [ZipWriter#remove](#remove) beforehand to resolve
 the conflicts. The same error is thrown when two entries of the zip file share a filename, since a
@@ -317,9 +318,10 @@ data itself cannot be removed because it has already been streamed to the output
 
 ##### entry
 
-`string` \| [`Entry`](../type-aliases/Entry.md)
+`string` \| [`EntryMetaData`](../interfaces/EntryMetaData.md)
 
-The entry to remove. This can be an [Entry](../type-aliases/Entry.md) instance or the filename of the entry.
+The entry to remove. This can be an [Entry](../type-aliases/Entry.md) instance, the [EntryMetaData](../interfaces/EntryMetaData.md) returned by
+[ZipWriter#add](#add) or passed to the `filter` option of [ZipWriter#appendZip](#appendzip), or the filename of the entry.
 
 #### Returns
 
