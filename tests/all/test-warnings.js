@@ -60,6 +60,13 @@ async function checkPrependedData() {
 	assertWarning(reader.warnings, zip.WARNING_PREPENDED_DATA);
 	assert(entries.length == 2, "the entries must stay readable behind prepended data");
 	await assertStrictRejection(data, zip.WARNING_PREPENDED_DATA);
+	const emptyData = concat(new Uint8Array(JUNK_LENGTH), await new zip.ZipWriter(new zip.Uint8ArrayWriter()).close());
+	const { reader: emptyReader, entries: emptyEntries } = await readEntries(emptyData, { extractPrependedData: true });
+	assertWarning(emptyReader.warnings, zip.WARNING_PREPENDED_DATA);
+	assert(emptyReader.warnings.length == 1, "an empty archive behind prepended data must deposit that reason only, got " +
+		JSON.stringify(emptyReader.warnings.map(warning => warning.reason)));
+	assert(!emptyEntries.length && emptyReader.prependedData.length == JUNK_LENGTH, "the prepended data of an empty archive must be extracted");
+	await assertStrictRejection(emptyData, zip.WARNING_PREPENDED_DATA);
 }
 
 // two archives with the same layout concatenated: the stored central directory offset of the last
