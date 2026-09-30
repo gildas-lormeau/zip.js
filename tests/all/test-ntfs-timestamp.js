@@ -6,6 +6,7 @@ const TEXT_CONTENT = "Lorem ipsum dolor sit amet";
 const FILENAME = "lorem.txt";
 const BLOB = new Blob([TEXT_CONTENT], { type: zip.getMimeType(FILENAME) });
 const IN_RANGE_DATE = new Date(2021, 0, 1, 12, 30, 20);
+const SUB_SECOND_DATE = new Date(IN_RANGE_DATE.getTime() + 750);
 const OUT_OF_RANGE_DATE = new Date(2040, 4, 15, 12, 30, 20);
 const ANCIENT_DATE = new Date(1500, 0, 1);
 const MAX_JS_DATE = new Date(8640000000000000);
@@ -35,6 +36,12 @@ async function test() {
 		typeof creationDateEntry.rawCreationDate != "bigint" ||
 		typeof creationDateEntry.rawLastModDate != "number") {
 		throw new Error();
+	}
+	const subSecondEntry = await writeAndReadEntry({ lastModDate: SUB_SECOND_DATE, creationDate: IN_RANGE_DATE });
+	if (!subSecondEntry.extraFieldNTFS || !subSecondEntry.extraFieldExtendedTimestamp ||
+		subSecondEntry.lastModDate.getTime() != SUB_SECOND_DATE.getTime() ||
+		subSecondEntry.extraFieldExtendedTimestamp.lastModDate.getTime() != IN_RANGE_DATE.getTime()) {
+		throw new Error("the NTFS timestamp must win over the extended timestamp on lastModDate");
 	}
 	const forcedEntry = await writeAndReadEntry({ lastModDate: IN_RANGE_DATE }, { ntfsTimestamp: true });
 	if (!forcedEntry.extraFieldNTFS) {

@@ -173,7 +173,8 @@ its entries instead). The other reasons are the checks that
 `strictness: "strict"` rejects with [ERR\_AMBIGUOUS\_ARCHIVE](../variables/ERR_AMBIGUOUS_ARCHIVE.md): when the effective strictness tolerates
 one of them and the evidence is already in hand, the same reason string is deposited as a warning instead —
 [WARNING\_APPENDED\_DATA](../variables/WARNING_APPENDED_DATA.md), [WARNING\_PREPENDED\_DATA](../variables/WARNING_PREPENDED_DATA.md), [WARNING\_TRAILING\_CENTRAL\_DIRECTORY\_DATA](../variables/WARNING_TRAILING_CENTRAL_DIRECTORY_DATA.md),
-[WARNING\_DUPLICATE\_FILENAME](../variables/WARNING_DUPLICATE_FILENAME.md) and [WARNING\_MISMATCHED\_ZIP64\_END\_OF\_CENTRAL\_DIRECTORY](../variables/WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY.md).
+[WARNING\_MISMATCHED\_CENTRAL\_DIRECTORY\_OFFSET](../variables/WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET.md), [WARNING\_DUPLICATE\_FILENAME](../variables/WARNING_DUPLICATE_FILENAME.md) and
+[WARNING\_MISMATCHED\_ZIP64\_END\_OF\_CENTRAL\_DIRECTORY](../variables/WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY.md).
 [WARNING\_MULTIPLE\_END\_OF\_CENTRAL\_DIRECTORY](../variables/WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY.md) is the one reason of that group which is never tolerated,
 so it is only ever the reason of an error.
 

@@ -25,6 +25,7 @@ async function test() {
 		await checkMalformedCentralExtraField();
 		await checkMalformedLocalExtraField();
 		await checkTrailingCentralDirectoryData();
+		await checkMismatchedCentralDirectoryOffset();
 		await checkMismatchedLocalFileHeader();
 		await checkUnknownZip64ExtensibleData();
 		await checkMismatchedZip64EndOfCentralDirectory();
@@ -165,6 +166,35 @@ async function checkTrailingCentralDirectoryData() {
 		const content = await entries[0].getData(new zip.TextWriter());
 		assert(content == "first content", "the entries must stay readable with " + label + " trailing central directory data");
 		await assertStrictRejection(bytes, zip.WARNING_TRAILING_CENTRAL_DIRECTORY_DATA);
+	}
+}
+
+// the stored central directory offset points past the directory actually found: first with intact local
+// header offsets (a damaged end of central directory record), then with every offset shifted by the same
+// amount (an archive written with absolute offsets whose prefix was removed), whose entries must be found
+// at the shifted positions
+async function checkMismatchedCentralDirectoryOffset() {
+	const damaged = await buildArchive();
+	const damagedView = getView(damaged);
+	const endOfDirectoryOffset = findEndOfCentralDirectory(damaged);
+	damagedView.setUint32(endOfDirectoryOffset + 16, damagedView.getUint32(endOfDirectoryOffset + 16, true) + 1, true);
+	const shifted = await buildArchive();
+	const shiftedView = getView(shifted);
+	const centralDirectoryOffset = shiftedView.getUint32(endOfDirectoryOffset + 16, true);
+	const centralDirectoryLength = shiftedView.getUint32(endOfDirectoryOffset + 12, true);
+	shiftedView.setUint32(endOfDirectoryOffset + 16, centralDirectoryOffset + JUNK_LENGTH, true);
+	for (let offset = centralDirectoryOffset; offset < centralDirectoryOffset + centralDirectoryLength; offset += centralDirectoryLength / 2) {
+		shiftedView.setUint32(offset + 42, shiftedView.getUint32(offset + 42, true) + JUNK_LENGTH, true);
+	}
+	for (const [label, data] of [["a damaged end of central directory record", damaged], ["shifted offsets", shifted]]) {
+		const { reader, entries } = await readEntries(data);
+		assertWarning(reader.warnings, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
+		assert(!reader.warnings.some(warning => warning.reason == zip.WARNING_PREPENDED_DATA),
+			"no data is prepended with " + label);
+		assert(entries.length == 2, "the entries must stay listed with " + label);
+		assert(await entries[0].getData(new zip.TextWriter()) == "first content", "the first entry must stay readable with " + label);
+		assert(await entries[1].getData(new zip.TextWriter()) == "second content", "the second entry must stay readable with " + label);
+		await assertStrictRejection(data, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
 	}
 }
 

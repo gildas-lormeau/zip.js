@@ -398,8 +398,9 @@ when that extra field is present.
 > **rawLastModDate**: `number` \| `bigint`
 
 The last modification date (raw), as the MS-DOS date and time stored in the header. Unlike
-[EntryMetaData#lastModDate](#lastmoddate), it is not replaced by the value of the NTFS extra field when that field
-is present; read [EntryMetaData#extraFieldNTFS](#extrafieldntfs) for the raw NTFS value.
+[EntryMetaData#lastModDate](#lastmoddate), it is not replaced by the value of the extended timestamp or NTFS extra
+field when one is present (the NTFS value wins over the extended timestamp one, being the finer of the two);
+read [EntryMetaData#extraFieldNTFS](#extrafieldntfs) for the raw NTFS value.
 
 ***
 

@@ -1543,7 +1543,8 @@ export class ZipReader<Type> {
    * `strictness: "strict"` rejects with {@link ERR_AMBIGUOUS_ARCHIVE}: when the effective strictness tolerates
    * one of them and the evidence is already in hand, the same reason string is deposited as a warning instead —
    * {@link WARNING_APPENDED_DATA}, {@link WARNING_PREPENDED_DATA}, {@link WARNING_TRAILING_CENTRAL_DIRECTORY_DATA},
-   * {@link WARNING_DUPLICATE_FILENAME} and {@link WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY}.
+   * {@link WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET}, {@link WARNING_DUPLICATE_FILENAME} and
+   * {@link WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY}.
    * {@link WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY} is the one reason of that group which is never tolerated,
    * so it is only ever the reason of an error.
    *
@@ -2570,8 +2571,9 @@ export interface EntryMetaData {
   creationDate?: Date;
   /**
    * The last modification date (raw), as the MS-DOS date and time stored in the header. Unlike
-   * {@link EntryMetaData#lastModDate}, it is not replaced by the value of the NTFS extra field when that field
-   * is present; read {@link EntryMetaData#extraFieldNTFS} for the raw NTFS value.
+   * {@link EntryMetaData#lastModDate}, it is not replaced by the value of the extended timestamp or NTFS extra
+   * field when one is present (the NTFS value wins over the extended timestamp one, being the finer of the two);
+   * read {@link EntryMetaData#extraFieldNTFS} for the raw NTFS value.
    */
   rawLastModDate: number | bigint;
   /**
@@ -4999,7 +5001,9 @@ export const ERR_BAD_FORMAT: string;
  */
 export const ERR_EOCDR_NOT_FOUND: string;
 /**
- * Zip64 End of Central Directory Locator not found error
+ * Zip64 End of Central Directory Locator not found error: the end of central directory record holds a Zip64
+ * sentinel in its offset, size or disk number field but no Zip64 locator precedes it, or the locator does not
+ * point at a Zip64 end of central directory record
  */
 export const ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND: string;
 /**
@@ -5598,6 +5602,19 @@ export const WARNING_PREPENDED_CENTRAL_DIRECTORY: string;
  * the reason of {@link ERR_AMBIGUOUS_ARCHIVE} under `strictness: "strict"`
  */
 export const WARNING_TRAILING_CENTRAL_DIRECTORY_DATA: string;
+/**
+ * Warning reason: the end of central directory record stores a central directory offset that points past the
+ * central directory actually found before it, so the archive was read from the directory found rather than from
+ * the stored offset (see {@link ZipReader#warnings}); the reason of {@link ERR_AMBIGUOUS_ARCHIVE} under
+ * `strictness: "strict"`
+ *
+ * @remarks
+ * Such an archive is typically one written with absolute offsets for a prefix that is no longer there, e.g. a
+ * self-extracting archive whose stub was removed. When the local file headers are found at the same shifted
+ * positions, the entries are read from those positions; otherwise the offsets stored in the central directory
+ * are used as they are.
+ */
+export const WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET: string;
 /**
  * Warning reason: several entries share the same filename (see {@link ZipReader#warnings}); the reason of
  * {@link ERR_AMBIGUOUS_ARCHIVE} under `strictness: "strict"`

@@ -4781,6 +4781,7 @@
 	const WARNING_PREPENDED_DATA = "prepended data";
 	const WARNING_PREPENDED_CENTRAL_DIRECTORY = "prepended central directory";
 	const WARNING_TRAILING_CENTRAL_DIRECTORY_DATA = "trailing central directory data";
+	const WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET = "mismatched central directory offset";
 	const WARNING_DUPLICATE_FILENAME = "duplicate filename";
 	const WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY = "mismatched zip64 end of central directory record";
 	const WARNING_MULTIPLE_END_OF_CENTRAL_DIRECTORY = "multiple end of central directory records";
@@ -4943,6 +4944,8 @@
 						reportAmbiguity(checkAmbiguity, warnings, WARNING_MISMATCHED_ZIP64_END_OF_CENTRAL_DIRECTORY);
 					}
 					directoryDataOffset = getDiskOffset$1(reader, diskNumber) + getBigUint64(endOfDirectoryView, 48) + prependedDataLength;
+				} else if (directoryDataOffset == MAX_32_BITS || directoryDataLength == MAX_32_BITS || diskNumber == MAX_16_BITS) {
+					throw new Error(ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND);
 				}
 			}
 			let declaredDirectoryDataLength = directoryDataLength;
@@ -4987,12 +4990,22 @@
 					if (reconcile) {
 						const originalDirectoryDataOffset = directoryDataOffset;
 						directoryDataOffset = expectedDirectoryDataOffset;
+						directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
+						directoryView = getDataView(directoryArray);
 						if (directoryDataOffset > originalDirectoryDataOffset) {
 							prependedDataLength += directoryDataOffset - originalDirectoryDataOffset;
 							prependedCentralDirectory = storedPointsAtDirectory;
+						} else {
+							reportAmbiguity(checkAmbiguity, warnings, WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
+							const offsetDelta = directoryDataOffset - originalDirectoryDataOffset;
+							if (directoryArray.length >= CENTRAL_FILE_HEADER_LENGTH) {
+								const localHeaderOffset = getUint32$1(directoryView, 42);
+								if (!await startsWithSignature(reader, localHeaderOffset, LOCAL_FILE_HEADER_SIGNATURE) &&
+									await startsWithSignature(reader, localHeaderOffset + offsetDelta, LOCAL_FILE_HEADER_SIGNATURE)) {
+									prependedDataLength += offsetDelta;
+								}
+							}
 						}
-						directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
-						directoryView = getDataView(directoryArray);
 					}
 				}
 			}
@@ -5213,10 +5226,10 @@
 			const extractAppendedData = getOptionValue$1(zipReader, options, OPTION_EXTRACT_APPENDED_DATA);
 			const splitZipSignatureLength = (checkAmbiguity || extractPrependedData) && filesLength &&
 				startOffset == SPLIT_ZIP_FILE_SIGNATURE_LENGTH && await startsWithSplitZipMarker(reader) ? SPLIT_ZIP_FILE_SIGNATURE_LENGTH : 0;
-			if (checkAmbiguity && (prependedDataLength || (filesLength && startOffset > splitZipSignatureLength))) {
+			if (checkAmbiguity && (prependedDataLength > 0 || (filesLength && startOffset > splitZipSignatureLength))) {
 				throwAmbiguousArchive(WARNING_PREPENDED_DATA);
 			}
-			if (prependedDataLength || (filesLength && startOffset > SPLIT_ZIP_FILE_SIGNATURE_LENGTH)) {
+			if (prependedDataLength > 0 || (filesLength && startOffset > SPLIT_ZIP_FILE_SIGNATURE_LENGTH)) {
 				addWarning(warnings, WARNING_PREPENDED_DATA);
 			}
 			if (prependedCentralDirectory) {
@@ -5614,8 +5627,15 @@
 	}
 
 	async function pointsAtDirectory(reader, offset) {
+		return startsWithSignature(reader, offset, CENTRAL_FILE_HEADER_SIGNATURE);
+	}
+
+	async function startsWithSignature(reader, offset, signature) {
+		if (offset < 0 || offset + 4 > reader.size) {
+			return false;
+		}
 		const signatureArray = await readUint8Array(reader, offset, 4);
-		return getUint32$1(getDataView(signatureArray), 0) == CENTRAL_FILE_HEADER_SIGNATURE;
+		return getUint32$1(getDataView(signatureArray), 0) == signature;
 	}
 
 	async function findDigitalSignatureRecordOffset(reader, endOffset) {
@@ -5761,6 +5781,11 @@
 			readExtraFieldUnixDates(extraFieldUnixType1, directory);
 			directory.extraFieldUnixType1 = extraFieldUnixType1;
 		}
+		const extraFieldExtendedTimestamp = extraField.get(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
+		if (extraFieldExtendedTimestamp) {
+			readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory, localDirectory);
+			directory.extraFieldExtendedTimestamp = extraFieldExtendedTimestamp;
+		}
 		const extraFieldNTFS = extraField.get(EXTRAFIELD_TYPE_NTFS);
 		if (extraFieldNTFS) {
 			readExtraFieldNTFS(extraFieldNTFS, directory);
@@ -5776,11 +5801,6 @@
 		if (extraFieldUnix) {
 			readExtraFieldUnix(extraFieldUnix, unixIdsRead ? {} : directory, false);
 			directory.extraFieldUnix = extraFieldUnix;
-		}
-		const extraFieldExtendedTimestamp = extraField.get(EXTRAFIELD_TYPE_EXTENDED_TIMESTAMP);
-		if (extraFieldExtendedTimestamp) {
-			readExtraFieldExtendedTimestamp(extraFieldExtendedTimestamp, directory, localDirectory);
-			directory.extraFieldExtendedTimestamp = extraFieldExtendedTimestamp;
 		}
 		const extraFieldUSDZ = extraField.get(EXTRAFIELD_TYPE_USDZ);
 		if (extraFieldUSDZ) {
@@ -6420,6 +6440,7 @@
 		WARNING_COMPRESSED_PATCHED_DATA: WARNING_COMPRESSED_PATCHED_DATA,
 		WARNING_DUPLICATE_FILENAME: WARNING_DUPLICATE_FILENAME,
 		WARNING_MALFORMED_EXTRA_FIELD: WARNING_MALFORMED_EXTRA_FIELD,
+		WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET: WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET,
 		WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG: WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG,
 		WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD: WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD,
 		WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES: WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES,
@@ -9546,6 +9567,7 @@
 	exports.WARNING_COMPRESSION_UNAVAILABLE = WARNING_COMPRESSION_UNAVAILABLE;
 	exports.WARNING_DUPLICATE_FILENAME = WARNING_DUPLICATE_FILENAME;
 	exports.WARNING_MALFORMED_EXTRA_FIELD = WARNING_MALFORMED_EXTRA_FIELD;
+	exports.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET = WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET;
 	exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG = WARNING_MISMATCHED_LOCAL_FILE_HEADER_BIT_FLAG;
 	exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD = WARNING_MISMATCHED_LOCAL_FILE_HEADER_COMPRESSION_METHOD;
 	exports.WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES = WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES;

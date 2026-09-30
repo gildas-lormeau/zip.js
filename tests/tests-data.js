@@ -38,6 +38,7 @@ export default ([
 	{ title: "Malformed: EOCD too short", script: "./test-malformed-eocd-too-short.js" },
 	{ title: "Malformed: split signature without EOCD", script: "./test-malformed-split-signature.js" },
 	{ title: "Malformed: multi-disk last-disk number", script: "./test-malformed-multi-disk.js" },
+	{ title: "Malformed: Zip64 sentinel without locator", script: "./test-malformed-zip64-sentinel.js" },
 	{ title: "Malformed: central directory offset past EOF", script: "./test-malformed-cd-offset-past-eof.js" },
 	{ title: "Malformed: central directory truncated", script: "./test-malformed-cd-truncated.js" },
 	{ title: "Malformed: central directory offset negative", script: "./test-malformed-cd-offset-negative.js" },
