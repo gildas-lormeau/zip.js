@@ -63,7 +63,35 @@ async function test() {
 	if (!ancientAccessDateEntry.extraFieldNTFS || ancientAccessDateEntry.extraFieldNTFS.lastAccessDate.getTime() != MIN_NTFS_DATE_TIME) {
 		throw new Error();
 	}
+	await checkCentralDatesWinOverLocalDates();
 	await zip.terminateWorkers();
+}
+
+// the NTFS field of the local header is read when the data is read, but the central directory stays the
+// source of the access and creation dates when it holds them
+async function checkCentralDatesWinOverLocalDates() {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.add(FILENAME, new zip.BlobReader(BLOB), { lastModDate: IN_RANGE_DATE, lastAccessDate: IN_RANGE_DATE, creationDate: IN_RANGE_DATE });
+	const data = await zipWriter.close();
+	const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+	let offset = 30 + view.getUint16(26, true);
+	const extraFieldEnd = offset + view.getUint16(28, true);
+	while (offset < extraFieldEnd && view.getUint16(offset, true) != 0x000a) {
+		offset += 4 + view.getUint16(offset + 2, true);
+	}
+	if (offset >= extraFieldEnd || view.getUint16(offset + 8, true) != 0x0001) {
+		throw new Error("expected an NTFS field in the local header");
+	}
+	const patchedTime = view.getBigUint64(offset + 12 + 8, true) + BigInt(10000 * 60000);
+	view.setBigUint64(offset + 12 + 8, patchedTime, true);
+	view.setBigUint64(offset + 12 + 16, patchedTime, true);
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+	const [entry] = await zipReader.getEntries();
+	await entry.getData(new zip.TextWriter());
+	await zipReader.close();
+	if (entry.lastAccessDate.getTime() != IN_RANGE_DATE.getTime() || entry.creationDate.getTime() != IN_RANGE_DATE.getTime()) {
+		throw new Error("expected the access and creation dates of the central directory to win over the local header");
+	}
 }
 
 async function writeAndReadEntry(options, writerOptions = {}) {

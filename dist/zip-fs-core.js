@@ -5517,10 +5517,10 @@
 			}
 			validateLocalDirectory(zipEntry, localDirectory, rawLocalFilename, checkLocalFilename, checkLocalDirectory ? UNDEFINED_VALUE : warnings);
 			const { lastAccessDate, creationDate, uid, gid } = localDirectory;
-			if (lastAccessDate) {
+			if (lastAccessDate && fileEntry.lastAccessDate === UNDEFINED_VALUE) {
 				fileEntry.lastAccessDate = lastAccessDate;
 			}
-			if (creationDate) {
+			if (creationDate && fileEntry.creationDate === UNDEFINED_VALUE) {
 				fileEntry.creationDate = creationDate;
 			}
 			if (uid !== UNDEFINED_VALUE && fileEntry.uid === UNDEFINED_VALUE) {
@@ -5663,13 +5663,7 @@
 	};
 
 	function detectEncryptedCentralDirectory(directoryView) {
-		const maxOffset = Math.min(directoryView.byteLength, 1024) - 3;
-		for (let offset = 0; offset < maxOffset; offset++) {
-			if (getUint32$1(directoryView, offset) == ARCHIVE_EXTRA_DATA_SIGNATURE) {
-				return true;
-			}
-		}
-		return false;
+		return directoryView.byteLength >= 4 && getUint32$1(directoryView, 0) == ARCHIVE_EXTRA_DATA_SIGNATURE;
 	}
 
 	function getWrappedFilesLength(directoryView, directoryArray, offset) {

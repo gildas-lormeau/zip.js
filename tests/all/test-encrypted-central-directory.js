@@ -32,9 +32,10 @@ function buildArchive(withArchiveExtraDataRecord) {
 	for (let indexByte = 0; indexByte < 56; indexByte++) {
 		data[indexByte] = (indexByte * 37 + 11) & 0xff;
 	}
+	// the archive extra data record immediately precedes the central directory (APPNOTE 4.3.11.1)
 	if (withArchiveExtraDataRecord) {
-		view.setUint32(16, 0x08064b50, true);
-		view.setUint32(20, 8, true);
+		view.setUint32(0, 0x08064b50, true);
+		view.setUint32(4, 8, true);
 	}
 	view.setUint32(56, 0x06054b50, true);
 	view.setUint16(64, 2, true);

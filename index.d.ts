@@ -2570,11 +2570,13 @@ export interface EntryMetaData {
    */
   lastModDate: Date;
   /**
-   * The last access date.
+   * The last access date, read from the extra fields of the central directory record or, when it holds none, from
+   * the extra fields of the local file header once the data of the entry has been read.
    */
   lastAccessDate?: Date;
   /**
-   * The creation date.
+   * The creation date, read from the extra fields of the central directory record or, when it holds none, from
+   * the extra fields of the local file header once the data of the entry has been read.
    */
   creationDate?: Date;
   /**
@@ -3077,7 +3079,9 @@ export class ZipWriter<Type> {
    * @remarks
    * The data of the zip file is copied, its central directory is rebuilt and its entries are relocated to
    * the positions they get in the output. The disks of a split zip file passed as input are therefore unrelated to
-   * the disks of the output, which is a single zip file unless the writer is a split zip file writer. The data of
+   * the disks of the output, which is a single zip file unless the writer is a split zip file writer. In that case,
+   * the bytes before the first entry (e.g. a self-extracting stub) are copied after the split zip file signature of
+   * the first disk, where no system runs them; use the {@link ZipWriterAppendZipOptions#filter} option to drop them. The data of
    * the entries is copied as-is; in particular, the constraints set by {@link ZipWriterConstructorOptions#usdz}
    * are not applied to the copied entries. The comment and the digital signature of the zip file are not copied,
    * since its central directory is rebuilt: pass them to {@link ZipWriter#close}.

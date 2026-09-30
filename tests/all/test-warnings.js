@@ -18,6 +18,7 @@ async function test() {
 		await checkAppendedData();
 		await checkPrependedData();
 		await checkPrependedCentralDirectory();
+		await checkArchiveExtraDataSignatureInEntryData();
 		await checkUnknownVersion();
 		await checkCompressedPatchedData();
 		await checkUnsortedCentralDirectory();
@@ -67,6 +68,26 @@ async function checkPrependedData() {
 		JSON.stringify(emptyReader.warnings.map(warning => warning.reason)));
 	assert(!emptyEntries.length && emptyReader.prependedData.length == JUNK_LENGTH, "the prepended data of an empty archive must be extracted");
 	await assertStrictRejection(emptyData, zip.WARNING_PREPENDED_DATA);
+}
+
+// the archive extra data record can only start the directory data, so its signature inside the entry data the
+// stored offset points at behind a prefix must not make that offset look like an encrypted directory
+async function checkArchiveExtraDataSignatureInEntryData() {
+	const writer = new zip.ZipWriter(new zip.Uint8ArrayWriter(), { level: 0 });
+	const content = new Uint8Array(132).fill(0x78);
+	content.set([0x50, 0x4b, 0x06, 0x08], 64);
+	await writer.add("aa.bin", new zip.Uint8ArrayReader(content));
+	const archive = await writer.close();
+	const view = getView(archive);
+	const dataOffset = 30 + view.getUint16(26, true) + view.getUint16(28, true);
+	const centralDirectoryOffset = view.getUint32(findEndOfCentralDirectory(archive) + 16, true);
+	const data = concat(new Uint8Array(centralDirectoryOffset - dataOffset - 32), archive);
+	const { reader, entries } = await readEntries(data);
+	assertWarning(reader.warnings, zip.WARNING_PREPENDED_DATA);
+	assert(!reader.warnings.some(warning => warning.reason == zip.WARNING_PREPENDED_CENTRAL_DIRECTORY),
+		"entry data holding the archive extra data signature must not pass as a central directory");
+	assert(entries.length == 1 && (await entries[0].getData(new zip.Uint8ArrayWriter())).length == content.length, "the entry must stay readable");
+	await assertStrictRejection(data, zip.WARNING_PREPENDED_DATA);
 }
 
 // two archives with the same layout concatenated: the stored central directory offset of the last

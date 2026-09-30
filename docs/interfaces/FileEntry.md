@@ -91,7 +91,8 @@ encrypted with AES in AE-2 format.
 
 > `optional` **creationDate?**: `Date`
 
-The creation date.
+The creation date, read from the extra fields of the central directory record or, when it holds none, from
+the extra fields of the local file header once the data of the entry has been read.
 
 #### Inherited from
 
@@ -390,7 +391,8 @@ The internal file attributes (raw).
 
 > `optional` **lastAccessDate?**: `Date`
 
-The last access date.
+The last access date, read from the extra fields of the central directory record or, when it holds none, from
+the extra fields of the local file header once the data of the entry has been read.
 
 #### Inherited from
 
