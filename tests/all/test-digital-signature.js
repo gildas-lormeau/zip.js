@@ -34,9 +34,11 @@ async function test() {
 	const zip64OK = await testZip64();
 	const filesystemOK = await testFilesystem();
 	const splitOutputOK = await testSplitOutput();
+	const prependedDataOK = await testPrependedData(data);
 	if (!zip64OK ||
 		!filesystemOK ||
 		!splitOutputOK ||
+		!prependedDataOK ||
 		entries.length != 2 ||
 		entries[0].filename != "first.txt" ||
 		entries[1].filename != "second.txt" ||
@@ -128,6 +130,21 @@ async function testSplitOutput() {
 		}
 	}
 	return true;
+}
+
+async function testPrependedData(signedData) {
+	const prependedData = new Uint8Array([0x23, 0x21, 0x2f, 0x62, 0x69, 0x6e, 0x2f, 0x73, 0x68, 0x0a, 0x65, 0x78, 0x69, 0x74, 0x20, 0x30, 0x0a]);
+	const data = new Uint8Array(prependedData.length + signedData.length);
+	data.set(prependedData);
+	data.set(signedData, prependedData.length);
+	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(data));
+	const entries = await zipReader.getEntries();
+	const content = await entries[1].getData(new zip.TextWriter());
+	await zipReader.close();
+	return entries.length == 2 &&
+		entries[1].filename == "second.txt" &&
+		content == TEXT_CONTENT &&
+		equalArrays(zipReader.digitalSignature, SIGNATURE_DATA);
 }
 
 async function getCloseError(options) {

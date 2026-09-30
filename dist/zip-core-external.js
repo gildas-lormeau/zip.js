@@ -4998,15 +4998,24 @@ class ZipReader {
 			if (directoryArray.length < 4) {
 				throw new Error(ERR_BAD_FORMAT);
 			}
-			const expectedDirectoryDataOffset = centralDirectoryEndOffset - directoryDataLength;
+			let expectedDirectoryDataOffset = centralDirectoryEndOffset - directoryDataLength;
 			if (directoryDataOffset != expectedDirectoryDataOffset && diskNumber == lastDiskNumber) {
 				const storedPointsAtDirectory = getUint32$1(directoryView, offset) == CENTRAL_FILE_HEADER_SIGNATURE ||
 					Boolean(directoryEncryptionInfo && directoryEncryptionInfo.compressedSize) ||
 					detectEncryptedCentralDirectory(directoryView);
 				let reconcile = !storedPointsAtDirectory;
-				if (!reconcile && expectedDirectoryDataOffset >= 0 && expectedDirectoryDataOffset + 4 <= reader.size) {
-					const expectedSignatureArray = await readUint8Array(reader, expectedDirectoryDataOffset, 4);
-					reconcile = getUint32$1(getDataView(expectedSignatureArray), 0) == CENTRAL_FILE_HEADER_SIGNATURE;
+				if (expectedDirectoryDataOffset >= 0 && expectedDirectoryDataOffset + 4 <= reader.size) {
+					const expectedPointsAtDirectory = await pointsAtDirectory(reader, expectedDirectoryDataOffset);
+					if (storedPointsAtDirectory) {
+						reconcile = expectedPointsAtDirectory;
+					} else if (!expectedPointsAtDirectory) {
+						const signatureRecordOffset = await findDigitalSignatureRecordOffset(reader, centralDirectoryEndOffset);
+						const signedDirectoryDataOffset = signatureRecordOffset - directoryDataLength;
+						if (signatureRecordOffset !== UNDEFINED_VALUE && signedDirectoryDataOffset >= 0 &&
+							await pointsAtDirectory(reader, signedDirectoryDataOffset)) {
+							expectedDirectoryDataOffset = signedDirectoryDataOffset;
+						}
+					}
 				}
 				if (reconcile) {
 					const originalDirectoryDataOffset = directoryDataOffset;
@@ -5635,6 +5644,23 @@ function getWrappedFilesLength(directoryView, directoryArray, offset) {
 		wrappedFilesLength++;
 	}
 	return wrappedFilesLength % (MAX_16_BITS + 1) ? 0 : wrappedFilesLength;
+}
+
+async function pointsAtDirectory(reader, offset) {
+	const signatureArray = await readUint8Array(reader, offset, 4);
+	return getUint32$1(getDataView(signatureArray), 0) == CENTRAL_FILE_HEADER_SIGNATURE;
+}
+
+async function findDigitalSignatureRecordOffset(reader, endOffset) {
+	const startOffset = Math.max(0, endOffset - (6 + MAX_16_BITS));
+	const tailArray = await readUint8Array(reader, startOffset, endOffset - startOffset);
+	const tailView = getDataView(tailArray);
+	for (let indexByte = tailArray.length - 6; indexByte >= 0; indexByte--) {
+		if (getUint32$1(tailView, indexByte) == DIGITAL_SIGNATURE_RECORD_SIGNATURE &&
+			indexByte + 6 + getUint16$1(tailView, indexByte + 4) == tailArray.length) {
+			return startOffset + indexByte;
+		}
+	}
 }
 
 function readDigitalSignature(signatureRecordArray) {
