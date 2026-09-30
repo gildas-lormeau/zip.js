@@ -5626,7 +5626,7 @@
 		return wrappedFilesLength % (MAX_16_BITS + 1) ? 0 : wrappedFilesLength;
 	}
 
-	async function pointsAtDirectory(reader, offset) {
+	function pointsAtDirectory(reader, offset) {
 		return startsWithSignature(reader, offset, CENTRAL_FILE_HEADER_SIGNATURE);
 	}
 
