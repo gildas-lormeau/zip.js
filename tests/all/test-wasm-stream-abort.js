@@ -10,8 +10,8 @@
 // native codec is forced off so the wasm one runs on every engine, and a single worker slot keeps
 // every aborted task on the same heap. A wrong password aborts a read inside the worker, which is
 // kept and reused; a failing source aborts a write, which terminates the worker, so that direction
-// runs without workers only. Streams are not transferred to the worker: the leak is in the codec
-// heap, not in the transfer, and a few hundred transferred pairs crash the renderer of Chromium 87.
+// runs without workers only. Only chunks cross to the worker, never the streams themselves, so the
+// leak measured here is the codec heap's alone.
 
 import * as zip from "../zip-lib.js";
 

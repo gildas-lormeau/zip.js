@@ -8,11 +8,10 @@ const WORKER_SCRIPT_URI = new URL("./worker-streams-polyfill-module.js", import.
 
 export { test };
 
-// the streams transferred to the worker are created by the engine, so they only pipe through the
-// polyfilled streams of the worker if zip.js adapts them to the implementation of the worker scope.
-// a single worker makes the second task reuse the worker of the first one, which is the moment
-// where the streams are transferred. Bun does not support transferable streams, so it only covers
-// the worker exchanging the data with messages
+// the worker script installs the polyfill before importing the zip.js module worker, so the codec
+// runs on polyfilled streams in the worker scope while the chunks arrive by message from the
+// engine's own streams on the calling side. a single worker makes the second task reuse the worker
+// of the first one, so the reuse path runs on the polyfill too
 async function test() {
 	const workerErrors = [];
 	let createdWorkers = 0;
