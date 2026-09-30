@@ -30,6 +30,8 @@ async function test() {
 		await rejectsARecordPointingInsideAKeptEntry();
 		await rejectsARecordPointingPastTheCentralDirectory();
 		await rejectsAnEntryWithoutItsZip64Field();
+		await rejectsDuplicateFilenamesInTheSource();
+		await leavesTheFilterEntriesUntouched();
 		await rejectsAFilterWhichIsNotAFunction();
 	} finally {
 		await zip.terminateWorkers();
@@ -430,17 +432,65 @@ async function rejectsAnEntryWithoutItsZip64Field() {
 	}
 }
 
+// a ZipWriter holds one entry per filename, so a source whose own names repeat is rejected before any byte is
+// written unless the filter keeps one of them
+async function rejectsDuplicateFilenamesInTheSource() {
+	const source = await buildZipFile(["a.txt", "b.txt"]);
+	const view = new DataView(source.buffer, source.byteOffset, source.byteLength);
+	const secondEntryOffset = view.getUint32(getRecordOffset(view, 1) + 42, true);
+	const filename = new TextEncoder().encode("a.txt");
+	source.set(filename, secondEntryOffset + 30);
+	source.set(filename, getRecordOffset(view, 1) + 46);
+	await expectAppendZipError(source, {}, zip.ERR_DUPLICATED_NAME, "a source with duplicate filenames");
+	await expectAppendZipError(source, { filter: () => true }, zip.ERR_DUPLICATED_NAME, "duplicate filenames kept by the filter");
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: entry => entry.offset == 0 });
+	await checkEntries(await zipWriter.close(), ["a.txt"]);
+}
+
+// the entries passed to the filter belong to the caller once the callback returns: the copy must not rewrite
+// their offsets or hang the fields of the rebuilt central directory on them
+async function leavesTheFilterEntriesUntouched() {
+	const source = await buildZipFile(["s1.txt", "s2.txt"]);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await addEntry(zipWriter, "a.txt");
+	const seen = [];
+	const snapshots = [];
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), {
+		filter(entry) {
+			seen.push(entry);
+			snapshots.push(snapshotEntry(entry));
+			return true;
+		}
+	});
+	const output = await zipWriter.close();
+	seen.forEach((entry, entryIndex) => {
+		if (snapshotEntry(entry) != snapshots[entryIndex]) {
+			throw new Error("expected the entry " + entry.filename + " seen by the filter to stay unchanged, got " + snapshotEntry(entry));
+		}
+	});
+	await checkEntries(output, ["a.txt", "s1.txt", "s2.txt"]);
+}
+
+function snapshotEntry(entry) {
+	return JSON.stringify({ keys: Object.keys(entry).sort(), offset: entry.offset, extraFieldLength: entry.rawExtraField.length });
+}
+
+function getRecordOffset(view, indexRecord) {
+	let recordOffset = view.getUint32(view.byteLength - 22 + 16, true);
+	for (let index = 0; index < indexRecord; index++) {
+		recordOffset += 46 + view.getUint16(recordOffset + 28, true) + view.getUint16(recordOffset + 30, true) + view.getUint16(recordOffset + 32, true);
+	}
+	return recordOffset;
+}
+
 function setRecordOffset(source, indexRecord, offset) {
 	setRecordField(source, indexRecord, 42, offset);
 }
 
 function setRecordField(source, indexRecord, fieldOffset, value) {
 	const view = new DataView(source.buffer, source.byteOffset, source.byteLength);
-	let recordOffset = view.getUint32(source.length - 22 + 16, true);
-	for (let index = 0; index < indexRecord; index++) {
-		recordOffset += 46 + view.getUint16(recordOffset + 28, true) + view.getUint16(recordOffset + 30, true) + view.getUint16(recordOffset + 32, true);
-	}
-	view.setUint32(recordOffset + fieldOffset, value, true);
+	view.setUint32(getRecordOffset(view, indexRecord) + fieldOffset, value, true);
 }
 
 function* nextDiskWriter(writers, maxSize) {

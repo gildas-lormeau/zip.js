@@ -3090,7 +3090,10 @@ export class ZipWriter<Type> {
    * while the copy is in progress are written after it. If an entry of the zip file has the same
    * filename as an entry of the current zip, the method throws with the `ERR_DUPLICATED_NAME` error
    * message and leaves the current zip unchanged; call {@link ZipWriter#remove} beforehand to resolve
-   * the conflicts. An entry whose sizes or offset are unusable because its Zip64 extra field is missing (see
+   * the conflicts. The same error is thrown when two entries of the zip file share a filename, since a
+   * `ZipWriter` holds one entry per filename: use the {@link ZipWriterAppendZipOptions#filter} option to
+   * keep one of them. The entries passed to `filter` are not modified by the copy. An entry whose sizes or
+   * offset are unusable because its Zip64 extra field is missing (see
    * {@link WARNING_MISSING_ZIP64_EXTRA_FIELD}) cannot be copied: the method throws
    * {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND} and leaves the current zip unchanged, unless the
    * {@link ZipWriterAppendZipOptions#filter} option leaves the entry out.

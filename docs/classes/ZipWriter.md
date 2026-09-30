@@ -210,7 +210,10 @@ Pending [ZipWriter#add](#add) calls are completed before the data is copied, and
 while the copy is in progress are written after it. If an entry of the zip file has the same
 filename as an entry of the current zip, the method throws with the `ERR_DUPLICATED_NAME` error
 message and leaves the current zip unchanged; call [ZipWriter#remove](#remove) beforehand to resolve
-the conflicts. An entry whose sizes or offset are unusable because its Zip64 extra field is missing (see
+the conflicts. The same error is thrown when two entries of the zip file share a filename, since a
+`ZipWriter` holds one entry per filename: use the [ZipWriterAppendZipOptions#filter](../interfaces/ZipWriterAppendZipOptions.md#filter) option to
+keep one of them. The entries passed to `filter` are not modified by the copy. An entry whose sizes or
+offset are unusable because its Zip64 extra field is missing (see
 [WARNING\_MISSING\_ZIP64\_EXTRA\_FIELD](../variables/WARNING_MISSING_ZIP64_EXTRA_FIELD.md)) cannot be copied: the method throws
 [ERR\_EXTRAFIELD\_ZIP64\_NOT\_FOUND](../variables/ERR_EXTRAFIELD_ZIP64_NOT_FOUND.md) and leaves the current zip unchanged, unless the
 [ZipWriterAppendZipOptions#filter](../interfaces/ZipWriterAppendZipOptions.md#filter) option leaves the entry out.

@@ -6955,7 +6955,7 @@ async function appendZipEntries(zipWriter, reader, options = {}) {
 				setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
 			}
 			const { offset, diskNumberStart } = entryPositions.get(entry);
-			Object.assign(entry, {
+			fileEntries.set(entry.filename, Object.assign({}, entry, {
 				zip64Enabled: true,
 				zip64UncompressedSize,
 				zip64CompressedSize,
@@ -6972,8 +6972,7 @@ async function appendZipEntries(zipWriter, reader, options = {}) {
 				rawCentralExtraField: EMPTY_UINT8_ARRAY,
 				headerArray,
 				headerView
-			});
-			fileEntries.set(entry.filename, entry);
+			}));
 		});
 	} catch (error) {
 		appendedFilenames.forEach(filename => filenames.delete(filename));
