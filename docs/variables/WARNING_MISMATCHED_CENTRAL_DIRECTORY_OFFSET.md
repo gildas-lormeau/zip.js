@@ -16,6 +16,6 @@ the stored offset (see [ZipReader#warnings](../classes/ZipReader.md#warnings)); 
 ## Remarks
 
 Such an archive is typically one written with absolute offsets for a prefix that is no longer there, e.g. a
-self-extracting archive whose stub was removed. When the local file headers are found at the same shifted
-positions, the entries are read from those positions; otherwise the offsets stored in the central directory
-are used as they are.
+self-extracting archive whose stub was removed. When the local file header of the first entry is found at
+the same shifted position, the entries are read from the shifted positions; otherwise the offsets stored in
+the central directory are used as they are.

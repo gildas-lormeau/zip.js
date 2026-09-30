@@ -6617,15 +6617,15 @@
 				const { ZipReader } = await Promise.resolve().then(function () { return zipReader; });
 				const zipReader$1 = new ZipReader(reader);
 				const entries = await zipReader$1.getEntries();
-				await zipReader$1.close();
-				await initStream(zipWriter.writer);
-				const { directoryOffset } = zipReader$1;
 				const keptEntries = [];
 				for (const entry of entries) {
 					if (!filter || await filter(entry)) {
 						keptEntries.push(entry);
 					}
 				}
+				await zipReader$1.close();
+				await initStream(zipWriter.writer);
+				const { directoryOffset } = zipReader$1;
 				keptEntries.forEach(({ filename }) => {
 					if (filenames.has(filename)) {
 						throw new Error(ERR_DUPLICATED_NAME);

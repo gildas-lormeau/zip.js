@@ -20,6 +20,7 @@ async function test() {
 		await replacesAnEntryThroughTheFilter();
 		await keepsEveryEntryWithAPermissiveFilter();
 		await acceptsAnAsyncFilter();
+		await letsTheFilterReadTheEntryData();
 		await dropsTheBytesOutsideTheEntriesWhenFiltering();
 		await filtersIntoASplitZipFile();
 		await rejectsAFilterWhichIsNotAFunction();
@@ -183,6 +184,16 @@ async function acceptsAnAsyncFilter() {
 		filter: entry => Promise.resolve(entry.filename == "s3.txt")
 	});
 	await checkEntries(await zipWriter.close(), ["s3.txt"]);
+}
+
+// the filter runs before the source is closed, so it can decide on the content of an entry
+async function letsTheFilterReadTheEntryData() {
+	const source = await buildZipFile(["s1.txt", "s2.txt", "s3.txt"]);
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), {
+		filter: async entry => (await entry.getData(new zip.TextWriter())) != "content of s2.txt"
+	});
+	await checkEntries(await zipWriter.close(), ["s1.txt", "s3.txt"]);
 }
 
 // a self-extracting stub before the first entry is copied by a plain appendZip and dropped by a filtered one

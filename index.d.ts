@@ -3327,7 +3327,8 @@ export interface ZipWriterAddDataOptions
 export interface ZipWriterAppendZipOptions {
   /**
    * Selects the entries of the zip file to copy: the function is called once per entry, in the order of the
-   * central directory, and the entry is copied when it returns (or resolves to) `true`.
+   * central directory, and the entry is copied when it returns (or resolves to) `true`. The function can read
+   * the data of the entry with {@link Entry#getData} to decide, the zip file is closed after the last call.
    *
    * @remarks
    * When the option is set, the data of the zip file is copied entry by entry and the entries left out leave no
@@ -5643,9 +5644,9 @@ export const WARNING_TRAILING_CENTRAL_DIRECTORY_DATA: string;
  *
  * @remarks
  * Such an archive is typically one written with absolute offsets for a prefix that is no longer there, e.g. a
- * self-extracting archive whose stub was removed. When the local file headers are found at the same shifted
- * positions, the entries are read from those positions; otherwise the offsets stored in the central directory
- * are used as they are.
+ * self-extracting archive whose stub was removed. When the local file header of the first entry is found at
+ * the same shifted position, the entries are read from the shifted positions; otherwise the offsets stored in
+ * the central directory are used as they are.
  */
 export const WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET: string;
 /**

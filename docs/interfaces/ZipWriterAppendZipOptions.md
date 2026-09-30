@@ -15,7 +15,8 @@ Represents the options passed to [ZipWriter#appendZip](../classes/ZipWriter.md#a
 > `optional` **filter?**: (`entry`) => `boolean` \| `Promise`\<`boolean`\>
 
 Selects the entries of the zip file to copy: the function is called once per entry, in the order of the
-central directory, and the entry is copied when it returns (or resolves to) `true`.
+central directory, and the entry is copied when it returns (or resolves to) `true`. The function can read
+the data of the entry with Entry#getData to decide, the zip file is closed after the last call.
 
 #### Parameters
 
