@@ -15,7 +15,7 @@
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">ZipWriterAppendZipOptions</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#filter">filter</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a href="../types/Entry.html" class="tsd-signature-type tsd-kind-type-alias">Entry</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/38508528fe00b094447d9122b7725ab412149e2d/index.d.ts#L3327">index.d.ts:3327</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/32385d370e5e4697a3328138389ce7ebd0e06dab/index.d.ts#L3339">index.d.ts:3339</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -33,7 +33,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">filter</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a href="../types/Entry.html" class="tsd-signature-type tsd-kind-type-alias">Entry</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography"><p>Selects the entries of the zip file to copy: the function is called once per entry, in the order of the
 central directory, and the entry is copied when it returns (or resolves to) <code>true</code>. The function can read
-the data of the entry with Entry#getData to decide, the zip file is closed after the last call.</p>
+the data of the entry with Entry#getData to decide: every call completes before any data is copied.</p>
 </div>
 <div class="tsd-type-declaration">
 <h4>Type Declaration</h4>
@@ -54,13 +54,21 @@ the data of the entry with Entry#getData to decide, the zip file is closed after
 <div class="tsd-tag-remarks">
 <h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>When the option is set, the data of the zip file is copied entry by entry and the entries left out leave no
 bytes behind in the output, unlike <a href="../classes/ZipWriter.html#remove" class="tsd-kind-method">ZipWriter#remove</a>, which drops an entry from the central directory
-after its data has been written. The bytes of the zip file outside its entries, e.g. a self-extracting stub
-before the first entry, are not copied either. Without the option, the data of the zip file is copied as a
-whole. The duplicate filename check applies to the entries kept only, so an entry can be replaced by
-leaving it out and adding its replacement with <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a>.</p>
+after its data has been written. The bytes of the zip file outside the entries kept are not copied either:
+a self-extracting stub, the data of entries removed earlier and the padding between entries, so a zip file
+aligned with <a href="ZipWriterConstructorOptions.html#usdz" class="tsd-kind-property">ZipWriterConstructorOptions#usdz</a> is not aligned any more once filtered. Without the
+option, the data of the zip file is copied as a whole. The duplicate filename check applies to the entries
+kept only, so an entry can be replaced by leaving it out and adding its replacement with <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a>.</p>
+<p>An entry is copied from its local file header to the end of its data or, when it has one, of its data
+descriptor, whose layout is read back from the zip file; when no layout matches, the entry is copied up to
+the next entry or to the central directory. Before anything is written, each kept entry is checked to start
+with a local file header and to end before the next entry or the central directory; otherwise the method
+throws <a href="../variables/ERR_LOCAL_FILE_HEADER_NOT_FOUND.html" class="tsd-kind-variable">ERR_LOCAL_FILE_HEADER_NOT_FOUND</a> or <a href="../variables/ERR_OVERLAPPING_ENTRY.html" class="tsd-kind-variable">ERR_OVERLAPPING_ENTRY</a> and leaves the current zip
+unchanged. The same checks apply when the output is a split zip file, whose entries are copied one by one
+as well.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/38508528fe00b094447d9122b7725ab412149e2d/index.d.ts#L3344">index.d.ts:3344</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/32385d370e5e4697a3328138389ce7ebd0e06dab/index.d.ts#L3365">index.d.ts:3365</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

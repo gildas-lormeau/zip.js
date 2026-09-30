@@ -17,10 +17,11 @@
 <div class="tsd-tag-remarks">
 <h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Thrown by <a href="../interfaces/FileEntry.html#getdata" class="tsd-kind-method">FileEntry#getData</a> when <a href="../interfaces/ZipReaderOptions.html#checkoverlappingentry" class="tsd-kind-property">ZipReaderOptions#checkOverlappingEntry</a> is set and the
 data of the entry overlaps the data of an entry already read. The thrown error carries the other entry in its
-<code>overlappingEntry</code> property.</p>
+<code>overlappingEntry</code> property. Also thrown by <a href="../classes/ZipWriter.html#appendzip" class="tsd-kind-method">ZipWriter#appendZip</a> when the data of a copied entry runs
+into the next entry or into the central directory (see <a href="../interfaces/ZipWriterAppendZipOptions.html#filter" class="tsd-kind-property">ZipWriterAppendZipOptions#filter</a>).</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/38508528fe00b094447d9122b7725ab412149e2d/index.d.ts#L5286">index.d.ts:5286</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/32385d370e5e4697a3328138389ce7ebd0e06dab/index.d.ts#L5312">index.d.ts:5312</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
