@@ -13,9 +13,9 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>Represents the options passed to <a href="../classes/ZipWriter.html#appendzip" class="tsd-kind-method">ZipWriter#appendZip</a>.</p>
 </div></section>
-<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">ZipWriterAppendZipOptions</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#filter">filter</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a href="../types/Entry.html" class="tsd-signature-type tsd-kind-type-alias">Entry</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">ZipWriterAppendZipOptions</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#filter">filter</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a href="../types/Entry.html" class="tsd-signature-type tsd-kind-type-alias">Entry</a><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">existingEntry</span><span class="tsd-signature-symbol">?:</span> <a href="EntryMetaData.html" class="tsd-signature-type tsd-kind-interface">EntryMetaData</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#readeroptions">readerOptions</a><span class="tsd-signature-symbol">?:</span> <a href="ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/32385d370e5e4697a3328138389ce7ebd0e06dab/index.d.ts#L3339">index.d.ts:3339</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/00efcb5a024a6dfced2d2d8732b31dec34852224/index.d.ts#L3337">index.d.ts:3337</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -24,29 +24,39 @@
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-index-list"><a href="#filter" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>filter?</span></a>
+<a href="#readeroptions" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>reader<wbr/>Options?</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="filter"><code class="tsd-tag">Optional</code><span>filter</span><a href="#filter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">filter</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a href="../types/Entry.html" class="tsd-signature-type tsd-kind-type-alias">Entry</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-signature"><span class="tsd-kind-property">filter</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a href="../types/Entry.html" class="tsd-signature-type tsd-kind-type-alias">Entry</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">existingEntry</span><span class="tsd-signature-symbol">?:</span> <a href="EntryMetaData.html" class="tsd-signature-type tsd-kind-interface">EntryMetaData</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography"><p>Selects the entries of the zip file to copy: the function is called once per entry, in the order of the
 central directory, and the entry is copied when it returns (or resolves to) <code>true</code>. The function can read
 the data of the entry with Entry#getData to decide: every call completes before any data is copied.</p>
+<p>The second argument is the entry of the current zip which has the same filename, as <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a>
+or a previous call to <a href="../classes/ZipWriter.html#appendzip" class="tsd-kind-method">ZipWriter#appendZip</a> left it, or <code>undefined</code> when there is none. It is the way to
+apply a duplicate filename policy, since keeping both entries throws <code>ERR_DUPLICATED_NAME</code>: return
+<code>!existingEntry</code> to keep the entry of the current zip, call <a href="../classes/ZipWriter.html#remove" class="tsd-kind-method">ZipWriter#remove</a> with <code>existingEntry</code> and
+return <code>true</code> to replace it, or compare <code>crc32</code>, <code>uncompressedSize</code> or <code>lastModDate</code> to decide. An entry
+being added concurrently by a pending <a href="../classes/ZipWriter.html#add" class="tsd-kind-method">ZipWriter#add</a> call is not passed.</p>
 </div>
 <div class="tsd-type-declaration">
 <h4>Type Declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures">
-<li class="tsd-signature"><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a href="../types/Entry.html" class="tsd-signature-type tsd-kind-type-alias">Entry</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-signature"><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a href="../types/Entry.html" class="tsd-signature-type tsd-kind-type-alias">Entry</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">existingEntry</span><span class="tsd-signature-symbol">?:</span> <a href="EntryMetaData.html" class="tsd-signature-type tsd-kind-interface">EntryMetaData</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">entry</span>: <a href="../types/Entry.html" class="tsd-signature-type tsd-kind-type-alias">Entry</a></span>
 <div class="tsd-comment tsd-typography"><p>The entry read from the zip file.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">existingEntry</span>: <a href="EntryMetaData.html" class="tsd-signature-type tsd-kind-interface">EntryMetaData</a></span>
+<div class="tsd-comment tsd-typography"><p>The entry of the current zip with the same filename, if any.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>true</code> to copy the entry.</p>
 </li></ul></li></ul></div>
@@ -68,7 +78,25 @@ unchanged. The same checks apply when the output is a split zip file, whose entr
 as well.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/32385d370e5e4697a3328138389ce7ebd0e06dab/index.d.ts#L3365">index.d.ts:3365</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/00efcb5a024a6dfced2d2d8732b31dec34852224/index.d.ts#L3371">index.d.ts:3371</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="readeroptions"><code class="tsd-tag">Optional</code><span>reader<wbr/>Options</span><a href="#readeroptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">readerOptions</span><span class="tsd-signature-symbol">?:</span> <a href="ZipReaderConstructorOptions.html" class="tsd-signature-type tsd-kind-interface">ZipReaderConstructorOptions</a></div>
+<div class="tsd-comment tsd-typography"><p>The options of the <a href="../classes/ZipReader.html" class="tsd-kind-class">ZipReader</a> which reads the zip file.</p>
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks-1">Remarks<a href="#remarks-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The zip file is read with the default options otherwise, so a zip file which a <code>ZipReader</code> rejects by default
+cannot be appended as-is: set <a href="GetEntriesOptions.html#filenamevalidation" class="tsd-kind-property">ZipReaderConstructorOptions#filenameValidation</a> or
+<a href="ZipReaderOptions.html#strictness" class="tsd-kind-property">ZipReaderConstructorOptions#strictness</a> here to copy the entries of a zip file holding unsafe or
+unusual filenames, <a href="GetEntriesOptions.html#filenameencoding" class="tsd-kind-property">ZipReaderConstructorOptions#filenameEncoding</a> to decode the filenames the
+duplicate check and the <code>filter</code> option see, and <a href="ZipReaderOptions.html#password" class="tsd-kind-property">ZipReaderConstructorOptions#password</a> to let
+<code>filter</code> read the data of encrypted entries with Entry#getData. The bytes of the entries are copied
+as-is whatever the options are.</p>
+<p>A value which is neither an object nor unset throws an <a href="../variables/ERR_INVALID_READER_OPTIONS.html" class="tsd-kind-variable">ERR_INVALID_READER_OPTIONS</a> error.</p>
+</div></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/gildas-lormeau/zip.js/blob/00efcb5a024a6dfced2d2d8732b31dec34852224/index.d.ts#L3386">index.d.ts:3386</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -85,7 +113,7 @@ as well.</p>
 <h3>On This Page</h3></summary>
 <div class="tsd-accordion-details">
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
-<div><a href="#filter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>filter</span></a></div></details></div></details></div>
+<div><a href="#filter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>filter</span></a><a href="#readeroptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>reader<wbr/>Options</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">@zip.js/zip.js</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
