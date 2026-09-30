@@ -29,6 +29,7 @@ async function test() {
 		await keepsTheRawBitFlag();
 		await rejectsARecordPointingInsideAKeptEntry();
 		await rejectsARecordPointingPastTheCentralDirectory();
+		await rejectsAnEntryWithoutItsZip64Field();
 		await rejectsAFilterWhichIsNotAFunction();
 	} finally {
 		await zip.terminateWorkers();
@@ -415,13 +416,31 @@ async function expectAppendZipError(source, options, expectedMessage, descriptio
 	await checkEntries(await zipWriter.close(), ["x.txt", "y.txt"]);
 }
 
+// a Zip64 sentinel without a Zip64 extra field leaves the entry with unusable sizes (compressed size field) or an
+// unusable offset (offset field); appendZip must refuse to copy it rather than write an unreadable entry
+async function rejectsAnEntryWithoutItsZip64Field() {
+	for (const [fieldOffset, description] of [[20, "a sentinel compressed size"], [42, "a sentinel offset"]]) {
+		const source = await buildZipFile(["a.txt", "b.txt"]);
+		setRecordField(source, 0, fieldOffset, 0xffffffff);
+		await expectAppendZipError(source, {}, zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, description + " without a filter");
+		await expectAppendZipError(source, { filter: () => true }, zip.ERR_EXTRAFIELD_ZIP64_NOT_FOUND, description + " kept by the filter");
+		const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+		await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: entry => entry.filename == "b.txt" });
+		await checkEntries(await zipWriter.close(), ["b.txt"]);
+	}
+}
+
 function setRecordOffset(source, indexRecord, offset) {
+	setRecordField(source, indexRecord, 42, offset);
+}
+
+function setRecordField(source, indexRecord, fieldOffset, value) {
 	const view = new DataView(source.buffer, source.byteOffset, source.byteLength);
 	let recordOffset = view.getUint32(source.length - 22 + 16, true);
 	for (let index = 0; index < indexRecord; index++) {
 		recordOffset += 46 + view.getUint16(recordOffset + 28, true) + view.getUint16(recordOffset + 30, true) + view.getUint16(recordOffset + 32, true);
 	}
-	view.setUint32(recordOffset + 42, offset, true);
+	view.setUint32(recordOffset + fieldOffset, value, true);
 }
 
 function* nextDiskWriter(writers, maxSize) {

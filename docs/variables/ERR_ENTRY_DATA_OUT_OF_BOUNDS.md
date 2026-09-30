@@ -12,4 +12,6 @@ Entry data out of bounds error
 
 ## Remarks
 
-Thrown by [FileEntry#getData](../interfaces/FileEntry.md#getdata) when the declared extent of the entry data (i.e. its offset plus its compressed size) ends past the end of the zip file.
+Thrown by [FileEntry#getData](../interfaces/FileEntry.md#getdata) when the declared extent of the entry data (i.e. its offset plus
+its compressed size) ends past the central directory or past the end of the zip file, whatever
+[ZipReaderOptions#strictness](../interfaces/ZipReaderOptions.md#strictness) and [ZipReaderOptions#checkOverlappingEntry](../interfaces/ZipReaderOptions.md#checkoverlappingentry) are set to.

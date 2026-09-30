@@ -40,6 +40,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"endOfDirectoryReachingEndCount",
 	"engine",
 	"entriesLength",
+	"entriesMissingZip64ExtraField",
 	"entryIdCounter",
 	"entryOptions",
 	"eocdCache",

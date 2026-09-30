@@ -3086,7 +3086,10 @@ export class ZipWriter<Type> {
    * while the copy is in progress are written after it. If an entry of the zip file has the same
    * filename as an entry of the current zip, the method throws with the `ERR_DUPLICATED_NAME` error
    * message and leaves the current zip unchanged; call {@link ZipWriter#remove} beforehand to resolve
-   * the conflicts.
+   * the conflicts. An entry whose sizes or offset are unusable because its Zip64 extra field is missing (see
+   * {@link WARNING_MISSING_ZIP64_EXTRA_FIELD}) cannot be copied: the method throws
+   * {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND} and leaves the current zip unchanged, unless the
+   * {@link ZipWriterAppendZipOptions#filter} option leaves the entry out.
    *
    * The returned promise can safely be left un-awaited: {@link ZipWriter#close} waits for the copy
    * and throws its error if it was not caught.
@@ -5076,7 +5079,8 @@ export const ERR_LOCAL_FILE_HEADER_NOT_FOUND: string;
  * {@link WARNING_MALFORMED_EXTRA_FIELD} on {@link EntryMetaData#warnings}, and an entry without a data descriptor
  * keeps the sentinels as its local sizes, which the local file header check reports as
  * {@link WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES}, an error or a warning depending on
- * {@link ZipReaderOptions#strictness}.
+ * {@link ZipReaderOptions#strictness}. Also thrown by {@link ZipWriter#appendZip}, before anything is written,
+ * when an entry to copy lacks the field (see {@link WARNING_MISSING_ZIP64_EXTRA_FIELD}).
  */
 export const ERR_EXTRAFIELD_ZIP64_NOT_FOUND: string;
 /**
@@ -5305,7 +5309,9 @@ export const ERR_OVERLAPPING_ENTRY: string;
 /**
  * Entry data out of bounds error
  *
- * @remarks Thrown by {@link FileEntry#getData} when the declared extent of the entry data (i.e. its offset plus its compressed size) ends past the end of the zip file.
+ * @remarks Thrown by {@link FileEntry#getData} when the declared extent of the entry data (i.e. its offset plus
+ * its compressed size) ends past the central directory or past the end of the zip file, whatever
+ * {@link ZipReaderOptions#strictness} and {@link ZipReaderOptions#checkOverlappingEntry} are set to.
  */
 export const ERR_ENTRY_DATA_OUT_OF_BOUNDS: string;
 /**
@@ -5673,9 +5679,9 @@ export const WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET: string;
 /**
  * Warning reason: a central directory record holds the Zip64 sentinel in a size, offset or disk number field
  * but carries no Zip64 extra field resolving it (see {@link ZipReader#warnings}). The entry is listed, its
- * sizes and offset are unusable, and reading its data throws {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND}; the
- * other entries are unaffected. Under `strictness: "strict"`, {@link ZipReader#getEntries} throws
- * {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND} instead.
+ * sizes and offset are unusable, and reading its data or copying it with {@link ZipWriter#appendZip} throws
+ * {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND}; the other entries are unaffected. Under `strictness: "strict"`,
+ * {@link ZipReader#getEntries} throws {@link ERR_EXTRAFIELD_ZIP64_NOT_FOUND} instead.
  */
 export const WARNING_MISSING_ZIP64_EXTRA_FIELD: string;
 /**

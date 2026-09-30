@@ -22,10 +22,11 @@ async function test() {
 		offset += 46 + view.getUint16(offset + 28, true) + view.getUint16(offset + 30, true) + view.getUint16(offset + 32, true);
 	}
 	await readIntactEntriesInReverse(array.slice());
-	// forge the last entry so that its data range contains the second entry entirely
-	const containedEntryOffset = view.getUint32(recordOffsets[1] + 42, true);
+	// forge the last entry so that its data range contains the second entry entirely, ending before the
+	// central directory since the data of an entry is bounded by it
+	const containerDataOffset = 30 + view.getUint16(26, true) + view.getUint16(28, true);
 	view.setUint32(recordOffsets[2] + 42, 0, true);
-	view.setUint32(recordOffsets[2] + 20, containedEntryOffset + 200, true);
+	view.setUint32(recordOffsets[2] + 20, directoryOffset - containerDataOffset - 1, true);
 	const zipReader = new zip.ZipReader(new zip.Uint8ArrayReader(array), { checkOverlappingEntry: true, checkLocalDirectory: false });
 	const entries = await zipReader.getEntries();
 	try {

@@ -128,6 +128,7 @@
 	const INFINITY_VALUE = Infinity;
 	const ERR_LOCAL_FILE_HEADER_NOT_FOUND = "Local file header not found";
 	const ERR_OVERLAPPING_ENTRY = "Overlapping entry found";
+	const ERR_EXTRAFIELD_ZIP64_NOT_FOUND = "Zip64 extra field not found";
 
 	const UNDEFINED_TYPE = "undefined";
 	const FUNCTION_TYPE = "function";
@@ -4768,7 +4769,6 @@
 	const ERR_EOCDR_NOT_FOUND = "End of central directory not found";
 	const ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = "End of Zip64 central directory locator not found";
 	const ERR_CENTRAL_DIRECTORY_NOT_FOUND = "Central directory header not found";
-	const ERR_EXTRAFIELD_ZIP64_NOT_FOUND = "Zip64 extra field not found";
 	const ERR_ENCRYPTED = "File contains encrypted entry";
 	const ERR_UNSUPPORTED_ENCRYPTION = "Encryption method not supported";
 	const ERR_SPLIT_ZIP_FILE = "Split zip file";
@@ -4836,7 +4836,8 @@
 			Object.assign(this, {
 				reader: new GenericReader(reader),
 				options,
-				readRanges: { indexes: new Set(), sortedRanges: [], pendingRanges: [] }
+				readRanges: { indexes: new Set(), sortedRanges: [], pendingRanges: [] },
+				entriesMissingZip64ExtraField: new WeakSet()
 			});
 		}
 
@@ -5214,12 +5215,15 @@
 					zipCrypto: fileEntry.encrypted && !fileEntry.extraFieldAES
 				});
 				const entry = new Entry(fileEntry);
-				entry.getData = (writer, options) => fileEntry.getData(writer, entry, zipReader.readRanges, options);
+				if (fileEntry.zip64ExtraFieldMissing) {
+					zipReader.entriesMissingZip64ExtraField.add(entry);
+				}
+				entry.getData = (writer, options) => fileEntry.getData(writer, entry, zipReader, options);
 				entry.arrayBuffer = async options => {
 					const writer = new TransformStream();
 					const arrayBufferPromise = streamToBlob(writer.readable).then(blob => blob.arrayBuffer());
 					arrayBufferPromise.catch(() => { });
-					await fileEntry.getData(writer, entry, zipReader.readRanges,
+					await fileEntry.getData(writer, entry, zipReader,
 						Object.assign({}, options, { preventClose: false }));
 					return arrayBufferPromise;
 				};
@@ -5427,8 +5431,9 @@
 			});
 		}
 
-		async getData(writer, fileEntry, readRanges, options = {}) {
+		async getData(writer, fileEntry, zipReader, options = {}) {
 			const zipEntry = this;
+			const { readRanges, directoryOffset } = zipReader;
 			if (zipEntry.zip64ExtraFieldMissing) {
 				throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
 			}
@@ -5534,7 +5539,7 @@
 					throw new Error(ERR_ENCRYPTED);
 				}
 			}
-			if (dataOffset + compressedSize > reader.size) {
+			if (dataOffset + compressedSize > Math.min(reader.size, directoryOffset)) {
 				throw new Error(ERR_ENTRY_DATA_OUT_OF_BOUNDS);
 			}
 			const size = compressedSize;
@@ -6882,8 +6887,12 @@
 			}
 			await zipReader$1.close();
 			await initStream(zipWriter.writer);
-			const { directoryOffset } = zipReader$1;
-			keptEntries.forEach(({ filename }) => {
+			const { directoryOffset, entriesMissingZip64ExtraField } = zipReader$1;
+			keptEntries.forEach(entry => {
+				const { filename } = entry;
+				if (entriesMissingZip64ExtraField.has(entry)) {
+					throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
+				}
 				if (filenames.has(filename)) {
 					throw new Error(ERR_DUPLICATED_NAME);
 				}

@@ -19,4 +19,5 @@ the sizes of an entry are read from the central directory: [FileEntry#getData](.
 [WARNING\_MALFORMED\_EXTRA\_FIELD](WARNING_MALFORMED_EXTRA_FIELD.md) on [EntryMetaData#warnings](../interfaces/EntryMetaData.md#warnings), and an entry without a data descriptor
 keeps the sentinels as its local sizes, which the local file header check reports as
 [WARNING\_MISMATCHED\_LOCAL\_FILE\_HEADER\_CRC32\_OR\_SIZES](WARNING_MISMATCHED_LOCAL_FILE_HEADER_CRC32_OR_SIZES.md), an error or a warning depending on
-[ZipReaderOptions#strictness](../interfaces/ZipReaderOptions.md#strictness).
+[ZipReaderOptions#strictness](../interfaces/ZipReaderOptions.md#strictness). Also thrown by [ZipWriter#appendZip](../classes/ZipWriter.md#appendzip), before anything is written,
+when an entry to copy lacks the field (see [WARNING\_MISSING\_ZIP64\_EXTRA\_FIELD](WARNING_MISSING_ZIP64_EXTRA_FIELD.md)).
