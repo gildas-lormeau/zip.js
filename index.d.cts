@@ -3341,6 +3341,12 @@ export interface ZipWriterAppendZipOptions {
    * whole. The duplicate filename check applies to the entries kept only, so an entry can be replaced by
    * leaving it out and adding its replacement with {@link ZipWriter#add}.
    *
+   * The region copied for an entry runs from its offset to the offset of the next entry or to the central
+   * directory. Before anything is written, each kept entry is checked to start with a local file header and to
+   * fit in its region; otherwise the method throws {@link ERR_LOCAL_FILE_HEADER_NOT_FOUND} or
+   * {@link ERR_OVERLAPPING_ENTRY} and leaves the current zip unchanged. The same checks apply when the output is
+   * a split zip file, whose entries are copied one by one as well.
+   *
    * @param entry The entry read from the zip file.
    * @returns `true` to copy the entry.
    */
@@ -5049,6 +5055,9 @@ export const ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND: string;
 export const ERR_CENTRAL_DIRECTORY_NOT_FOUND: string;
 /**
  * Local file header not found error
+ *
+ * @remarks Also thrown by {@link ZipWriter#appendZip} when a copied entry does not point at a local file header
+ * (see {@link ZipWriterAppendZipOptions#filter}).
  */
 export const ERR_LOCAL_FILE_HEADER_NOT_FOUND: string;
 /**
@@ -5284,7 +5293,8 @@ export const ERR_SPLIT_ZIP_FILE: string;
  *
  * @remarks Thrown by {@link FileEntry#getData} when {@link ZipReaderOptions#checkOverlappingEntry} is set and the
  * data of the entry overlaps the data of an entry already read. The thrown error carries the other entry in its
- * `overlappingEntry` property.
+ * `overlappingEntry` property. Also thrown by {@link ZipWriter#appendZip} when the data of a copied entry runs
+ * into the next entry or into the central directory (see {@link ZipWriterAppendZipOptions#filter}).
  */
 export const ERR_OVERLAPPING_ENTRY: string;
 /**

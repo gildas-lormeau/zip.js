@@ -126,6 +126,9 @@
 
 	const UNDEFINED_VALUE = undefined;
 	const INFINITY_VALUE = Infinity;
+	const ERR_LOCAL_FILE_HEADER_NOT_FOUND = "Local file header not found";
+	const ERR_OVERLAPPING_ENTRY = "Overlapping entry found";
+
 	const UNDEFINED_TYPE = "undefined";
 	const FUNCTION_TYPE = "function";
 	const OBJECT_TYPE = "object";
@@ -4765,12 +4768,10 @@
 	const ERR_EOCDR_NOT_FOUND = "End of central directory not found";
 	const ERR_EOCDR_LOCATOR_ZIP64_NOT_FOUND = "End of Zip64 central directory locator not found";
 	const ERR_CENTRAL_DIRECTORY_NOT_FOUND = "Central directory header not found";
-	const ERR_LOCAL_FILE_HEADER_NOT_FOUND = "Local file header not found";
 	const ERR_EXTRAFIELD_ZIP64_NOT_FOUND = "Zip64 extra field not found";
 	const ERR_ENCRYPTED = "File contains encrypted entry";
 	const ERR_UNSUPPORTED_ENCRYPTION = "Encryption method not supported";
 	const ERR_SPLIT_ZIP_FILE = "Split zip file";
-	const ERR_OVERLAPPING_ENTRY = "Overlapping entry found";
 	const ERR_ENTRY_DATA_OUT_OF_BOUNDS = "Entry data out of bounds";
 	const ERR_AMBIGUOUS_ARCHIVE = "Ambiguous archive";
 	const ERR_ENCRYPTED_CENTRAL_DIRECTORY = "Encrypted central directory is not supported";
@@ -5154,13 +5155,17 @@
 				if (malformedExtraField) {
 					addWarning(warnings, WARNING_MALFORMED_EXTRA_FIELD, filename);
 				}
-				fileEntry.offset += prependedDataLength;
-				const entryPosition = getDiskOffset$1(reader, fileEntry.diskNumberStart) + fileEntry.offset;
-				startOffset = Math.min(entryPosition, startOffset);
-				if (entryPosition < previousEntryPosition) {
-					addWarning(warnings, WARNING_UNSORTED_CENTRAL_DIRECTORY, filename);
+				if (fileEntry.zip64ExtraFieldMissing && fileEntry.offset == MAX_32_BITS) {
+					startOffset = 0;
+				} else {
+					fileEntry.offset += prependedDataLength;
+					const entryPosition = getDiskOffset$1(reader, fileEntry.diskNumberStart) + fileEntry.offset;
+					startOffset = Math.min(entryPosition, startOffset);
+					if (entryPosition < previousEntryPosition) {
+						addWarning(warnings, WARNING_UNSORTED_CENTRAL_DIRECTORY, filename);
+					}
+					previousEntryPosition = entryPosition;
 				}
-				previousEntryPosition = entryPosition;
 				if ((fileEntry.version & MAX_8_BITS) > MAX_KNOWN_VERSION) {
 					addWarning(warnings, WARNING_UNKNOWN_VERSION, filename);
 				}
@@ -5766,6 +5771,7 @@
 			uncompressedSize: getUint32$1(dataView, offset + HEADER_OFFSET_UNCOMPRESSED_SIZE)
 		});
 		const extraFieldZip64 = extraField.get(EXTRAFIELD_TYPE_ZIP64);
+		let extraFieldZip64Missing;
 		if (extraFieldZip64) {
 			if (!readExtraFieldZip64(extraFieldZip64, directory, localDirectory)) {
 				malformedExtraField = true;
@@ -5775,7 +5781,7 @@
 			if (localDirectory) {
 				malformedExtraField = true;
 			} else {
-				throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
+				extraFieldZip64Missing = true;
 			}
 		}
 		const extraFieldUnicodePath = extraField.get(EXTRAFIELD_TYPE_UNICODE_PATH);
@@ -5832,6 +5838,9 @@
 		const extraFieldUSDZ = extraField.get(EXTRAFIELD_TYPE_USDZ);
 		if (extraFieldUSDZ) {
 			directory.extraFieldUSDZ = extraFieldUSDZ;
+		}
+		if (extraFieldZip64Missing) {
+			throw new Error(ERR_EXTRAFIELD_ZIP64_NOT_FOUND);
 		}
 		return malformedExtraField;
 	}
@@ -8593,6 +8602,21 @@
 				getSourceOffset(reader, firstEntry) - getSourceOffset(reader, secondEntry));
 			const regionEnds = getRegionEnds(reader, sortedEntries, directoryOffset);
 			const keptEntrySet = new Set(keptEntries);
+			const localHeaderLengths = new Map();
+			for (let indexEntry = 0; indexEntry < sortedEntries.length; indexEntry++) {
+				const entry = sortedEntries[indexEntry];
+				if (keptEntrySet.has(entry)) {
+					const sourceOffset = getSourceOffset(reader, entry);
+					const localHeaderLength = await getLocalHeaderLength(reader, sourceOffset);
+					if (localHeaderLength === UNDEFINED_VALUE) {
+						throw new Error(ERR_LOCAL_FILE_HEADER_NOT_FOUND);
+					}
+					if (sourceOffset + localHeaderLength + entry.compressedSize > regionEnds[indexEntry]) {
+						throw new Error(ERR_OVERLAPPING_ENTRY);
+					}
+					localHeaderLengths.set(entry, localHeaderLength);
+				}
+			}
 			let copiedOffset = 0;
 			let lastPosition;
 			for (let indexEntry = 0; indexEntry < sortedEntries.length; indexEntry++) {
@@ -8605,7 +8629,7 @@
 						if (!compact) {
 							await copyData(zipWriter, reader, copiedOffset, sourceOffset - copiedOffset);
 						}
-						if (writer.closeDisk && exceedsAvailableSize(writer, await getLocalHeaderLength(reader, sourceOffset))) {
+						if (writer.closeDisk && exceedsAvailableSize(writer, localHeaderLengths.get(entry))) {
 							await writer.closeDisk();
 						}
 						lastPosition = {
@@ -8639,7 +8663,7 @@
 			const sourceOffset = getSourceOffset(reader, sortedEntries[indexEntry]);
 			const nextEntry = sortedEntries[indexEntry + 1];
 			if (nextEntry && getSourceOffset(reader, nextEntry) > sourceOffset) {
-				regionEnd = getSourceOffset(reader, nextEntry);
+				regionEnd = Math.min(getSourceOffset(reader, nextEntry), directoryOffset);
 			}
 			regionEnds[indexEntry] = regionEnd;
 		}
@@ -8668,11 +8692,16 @@
 	}
 
 	async function getLocalHeaderLength(reader, offset) {
-		const headerArray = await readUint8Array(reader, offset, HEADER_SIZE);
+		const headerArray = offset >= 0 && offset + HEADER_SIZE <= reader.size ?
+			await readUint8Array(reader, offset, HEADER_SIZE) :
+			EMPTY_UINT8_ARRAY;
 		if (getLength(headerArray) < HEADER_SIZE) {
-			return HEADER_SIZE;
+			return UNDEFINED_VALUE;
 		}
 		const headerView = getDataView(headerArray);
+		if (getUint32(headerView, 0) != LOCAL_FILE_HEADER_SIGNATURE) {
+			return UNDEFINED_VALUE;
+		}
 		return HEADER_SIZE +
 			getUint16(headerView, HEADER_OFFSET_FILENAME_LENGTH + LOCAL_HEADER_COMMON_OFFSET) +
 			getUint16(headerView, HEADER_OFFSET_EXTRAFIELD_LENGTH + LOCAL_HEADER_COMMON_OFFSET);

@@ -40,3 +40,9 @@ after its data has been written. The bytes of the zip file outside its entries, 
 before the first entry, are not copied either. Without the option, the data of the zip file is copied as a
 whole. The duplicate filename check applies to the entries kept only, so an entry can be replaced by
 leaving it out and adding its replacement with [ZipWriter#add](../classes/ZipWriter.md#add).
+
+The region copied for an entry runs from its offset to the offset of the next entry or to the central
+directory. Before anything is written, each kept entry is checked to start with a local file header and to
+fit in its region; otherwise the method throws [ERR\_LOCAL\_FILE\_HEADER\_NOT\_FOUND](../variables/ERR_LOCAL_FILE_HEADER_NOT_FOUND.md) or
+[ERR\_OVERLAPPING\_ENTRY](../variables/ERR_OVERLAPPING_ENTRY.md) and leaves the current zip unchanged. The same checks apply when the output is
+a split zip file, whose entries are copied one by one as well.

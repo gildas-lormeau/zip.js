@@ -26,6 +26,8 @@ async function test() {
 		await dropsTheBytesOutsideTheEntriesWhenFiltering();
 		await filtersIntoASplitZipFile();
 		await keepsTheRawBitFlag();
+		await rejectsARecordPointingInsideAKeptEntry();
+		await rejectsARecordPointingPastTheCentralDirectory();
 		await rejectsAFilterWhichIsNotAFunction();
 	} finally {
 		await zip.terminateWorkers();
@@ -283,6 +285,58 @@ async function keepsTheRawBitFlag() {
 			throw new Error("expected the bit flag to be copied as-is, got 0x" + entry.rawBitFlag.toString(16));
 		}
 	}
+}
+
+// the regions copied by a filter come from the central directory offsets, so a record lying about its offset
+// must be caught before any byte is written: an unkept record inside a kept entry would truncate it silently
+async function rejectsARecordPointingInsideAKeptEntry() {
+	const source = await buildZipFile(["a.txt", "b.txt", "c.txt"]);
+	setRecordOffset(source, 1, 10);
+	await expectAppendZipError(source, { filter: entry => entry.filename != "b.txt" }, zip.ERR_OVERLAPPING_ENTRY, "an unkept record inside a kept entry");
+	await expectAppendZipError(source, { filter: () => true }, zip.ERR_OVERLAPPING_ENTRY, "a kept record inside another entry");
+}
+
+async function rejectsARecordPointingPastTheCentralDirectory() {
+	const source = await buildZipFile(["a.txt", "b.txt"]);
+	const view = new DataView(source.buffer, source.byteOffset, source.byteLength);
+	setRecordOffset(source, 1, view.getUint32(source.length - 22 + 16, true) + 8);
+	await expectAppendZipError(source, { filter: () => true }, zip.ERR_LOCAL_FILE_HEADER_NOT_FOUND, "a kept record past the central directory");
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await zipWriter.appendZip(new zip.Uint8ArrayReader(source), { filter: entry => entry.filename == "a.txt" });
+	const output = await zipWriter.close();
+	const directoryOffset = new DataView(output.buffer, output.byteOffset, output.byteLength).getUint32(output.length - 22 + 16, true);
+	if (directoryOffset > view.getUint32(source.length - 22 + 16, true)) {
+		throw new Error("expected the copied region to stop at the central directory of the source");
+	}
+	await checkEntries(output, ["a.txt"]);
+}
+
+async function expectAppendZipError(source, options, expectedMessage, description) {
+	const zipWriter = new zip.ZipWriter(new zip.Uint8ArrayWriter());
+	await addEntry(zipWriter, "x.txt");
+	let error;
+	try {
+		await zipWriter.appendZip(new zip.Uint8ArrayReader(source), options);
+	} catch (appendError) {
+		error = appendError;
+	}
+	if (!error || error.message != expectedMessage) {
+		throw new Error("expected " + expectedMessage + " with " + description + ", got " + (error ? error.message : "no error"));
+	}
+	if (zipWriter.hasCorruptedEntries) {
+		throw new Error("expected nothing to be written with " + description);
+	}
+	await addEntry(zipWriter, "y.txt");
+	await checkEntries(await zipWriter.close(), ["x.txt", "y.txt"]);
+}
+
+function setRecordOffset(source, indexRecord, offset) {
+	const view = new DataView(source.buffer, source.byteOffset, source.byteLength);
+	let recordOffset = view.getUint32(source.length - 22 + 16, true);
+	for (let index = 0; index < indexRecord; index++) {
+		recordOffset += 46 + view.getUint16(recordOffset + 28, true) + view.getUint16(recordOffset + 30, true) + view.getUint16(recordOffset + 32, true);
+	}
+	view.setUint32(recordOffset + 42, offset, true);
 }
 
 function* nextDiskWriter(writers, maxSize) {
