@@ -28,6 +28,7 @@ async function test() {
 		await checkTrailingCentralDirectoryData();
 		await checkMismatchedCentralDirectoryOffset();
 		await checkCentralDirectoryOffsetPastTheEnd();
+		await checkRemovedPrefixHoldingTheFirstEntry();
 		await checkCentralDirectoryOffsetBeforeTheDirectory();
 		await checkShiftedZip64Offsets();
 		await checkMissingZip64ExtraField();
@@ -259,6 +260,28 @@ async function checkCentralDirectoryOffsetPastTheEnd() {
 		assert(await entries[1].getData(new zip.TextWriter()) == "second content", "the second entry must stay readable with " + label);
 		await assertStrictRejection(data, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
 	}
+}
+
+// an archive written behind a prefix later removed together with the whole first entry (a self-extracting
+// page whose first entry is the face shown by the host): the first record proves nothing, its local header
+// being in neither position, so the shift must be confirmed by the next record
+async function checkRemovedPrefixHoldingTheFirstEntry() {
+	const PREFIX_LENGTH = 61;
+	const data = await buildArchive({}, { offset: PREFIX_LENGTH });
+	const view = getView(data);
+	let secondLocalHeaderOffset = 4;
+	while (view.getUint32(secondLocalHeaderOffset, true) != 0x04034b50) {
+		secondLocalHeaderOffset++;
+	}
+	const recovered = data.slice(secondLocalHeaderOffset);
+	assert(PREFIX_LENGTH < recovered.length, "the stored offset of the first entry must land inside the recovered bytes");
+	const { reader, entries } = await readEntries(recovered);
+	assertWarning(reader.warnings, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
+	assert(entries.length == 2, "the entries must stay listed");
+	assert(entries[0].offset < 0 && entries[1].offset == 0, "the entries must be shifted to the start of the recovered bytes");
+	assert(reader.warnings.length == 1, "the removed first entry must not be reported as unsorted");
+	assert(await entries[1].getData(new zip.TextWriter()) == "second content", "the second entry must stay readable");
+	await assertStrictRejection(recovered, zip.WARNING_MISMATCHED_CENTRAL_DIRECTORY_OFFSET);
 }
 
 // the stored central directory offset lands before the directory while the entries sit where their records

@@ -5042,11 +5042,8 @@ class ZipReader {
 					directoryArray = await readUint8Array(reader, directoryDataOffset, directoryDataLength);
 					directoryView = getDataView(directoryArray);
 					const offsetDelta = directoryDataOffset - originalDirectoryDataOffset;
-					const localHeaderOffset = getFirstLocalHeaderOffset(directoryArray, directoryView);
-					const localHeaderFound = localHeaderOffset !== UNDEFINED_VALUE &&
-						await startsWithSignature(reader, localHeaderOffset, LOCAL_FILE_HEADER_SIGNATURE);
-					const shiftedLocalHeaderFound = localHeaderOffset !== UNDEFINED_VALUE &&
-						await startsWithSignature(reader, localHeaderOffset + offsetDelta, LOCAL_FILE_HEADER_SIGNATURE);
+					const { localHeaderFound, shiftedLocalHeaderFound } =
+						await probeLocalHeaders(reader, directoryArray, directoryView, offsetDelta);
 					if (offsetDelta > 0 && !(localHeaderFound && !shiftedLocalHeaderFound)) {
 						prependedDataLength += offsetDelta;
 						prependedCentralDirectory = storedPointsAtDirectory;
@@ -5097,7 +5094,7 @@ class ZipReader {
 		const commentEncoding = getOptionValue$1(zipReader, options, OPTION_COMMENT_ENCODING);
 		const filenames = new Set();
 		let duplicateFilename;
-		let previousEntryPosition = -1;
+		let previousEntryPosition = -Infinity;
 		const recoverWrappedFilesLength = !checkAmbiguity && !zip64EndOfDirectory;
 		if (!filesLength && recoverWrappedFilesLength) {
 			filesLength = getWrappedFilesLength(directoryView, directoryArray, offset);
@@ -5733,25 +5730,44 @@ async function findZip64EndOfDirectoryOffset(reader, endOffset) {
 	}
 }
 
-function getFirstLocalHeaderOffset(directoryArray, directoryView) {
-	if (directoryArray.length < CENTRAL_FILE_HEADER_LENGTH) {
-		return UNDEFINED_VALUE;
+async function probeLocalHeaders(reader, directoryArray, directoryView, offsetDelta) {
+	let result = { localHeaderFound: false, shiftedLocalHeaderFound: false };
+	let recordOffset = 0;
+	while (recordOffset + CENTRAL_FILE_HEADER_LENGTH <= directoryArray.length &&
+		getUint32$1(directoryView, recordOffset) == CENTRAL_FILE_HEADER_SIGNATURE) {
+		const localHeaderOffset = getLocalHeaderOffset(directoryArray, directoryView, recordOffset);
+		if (localHeaderOffset !== UNDEFINED_VALUE) {
+			const localHeaderFound = await startsWithSignature(reader, localHeaderOffset, LOCAL_FILE_HEADER_SIGNATURE);
+			const shiftedLocalHeaderFound = await startsWithSignature(reader, localHeaderOffset + offsetDelta, LOCAL_FILE_HEADER_SIGNATURE);
+			if (!recordOffset) {
+				result = { localHeaderFound, shiftedLocalHeaderFound };
+			}
+			if (localHeaderFound != shiftedLocalHeaderFound) {
+				return { localHeaderFound, shiftedLocalHeaderFound };
+			}
+		}
+		recordOffset += CENTRAL_FILE_HEADER_LENGTH + getUint16$1(directoryView, recordOffset + 28) +
+			getUint16$1(directoryView, recordOffset + 30) + getUint16$1(directoryView, recordOffset + 32);
 	}
-	const localHeaderOffset = getUint32$1(directoryView, 42);
+	return result;
+}
+
+function getLocalHeaderOffset(directoryArray, directoryView, recordOffset) {
+	const localHeaderOffset = getUint32$1(directoryView, recordOffset + 42);
 	if (localHeaderOffset != MAX_32_BITS) {
 		return localHeaderOffset;
 	}
-	let offsetExtraField = CENTRAL_FILE_HEADER_LENGTH + getUint16$1(directoryView, 28);
-	const endExtraField = Math.min(offsetExtraField + getUint16$1(directoryView, 30), directoryArray.length);
+	let offsetExtraField = recordOffset + CENTRAL_FILE_HEADER_LENGTH + getUint16$1(directoryView, recordOffset + 28);
+	const endExtraField = Math.min(offsetExtraField + getUint16$1(directoryView, recordOffset + 30), directoryArray.length);
 	while (offsetExtraField + 4 <= endExtraField) {
 		const type = getUint16$1(directoryView, offsetExtraField);
 		const size = getUint16$1(directoryView, offsetExtraField + 2);
 		if (type == EXTRAFIELD_TYPE_ZIP64) {
 			let offsetValue = offsetExtraField + 4;
-			if (getUint32$1(directoryView, 24) == MAX_32_BITS) {
+			if (getUint32$1(directoryView, recordOffset + 24) == MAX_32_BITS) {
 				offsetValue += 8;
 			}
-			if (getUint32$1(directoryView, 20) == MAX_32_BITS) {
+			if (getUint32$1(directoryView, recordOffset + 20) == MAX_32_BITS) {
 				offsetValue += 8;
 			}
 			return offsetValue + 8 <= endExtraField ? getBigUint64(directoryView, offsetValue) : UNDEFINED_VALUE;
