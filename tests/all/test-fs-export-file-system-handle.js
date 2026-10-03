@@ -15,6 +15,8 @@ export { test };
 async function test() {
 	await exportTree(false);
 	await exportTree(true);
+	await exportFilteredTree(false);
+	await exportFilteredTree(true);
 	await exportImportedTree(false);
 	await exportImportedTree(true);
 	await exportPassThroughTree({ passThrough: true });
@@ -70,6 +72,48 @@ async function exportTree(concurrent) {
 	}
 	if (!dirExists(target.root, ["sub", "empty"])) {
 		throw new Error("empty directory not created (concurrent=" + concurrent + ")");
+	}
+}
+
+async function exportFilteredTree(concurrent) {
+	const fs = new zip.ZipFS();
+	fs.addText("readme.txt", "hello world");
+	const subDirectory = fs.addDirectory("sub");
+	subDirectory.addText("nested.txt", "nested content");
+	subDirectory.addDirectory("empty");
+	fs.addUint8Array("data.bin", new Uint8Array([1, 2, 3, 4, 5]));
+
+	const label = "filter concurrent=" + concurrent;
+	const visited = [];
+	const target = createMockWriteDirectory();
+	const progress = createProgressWatcher(label);
+	await fs.exportFileSystemHandle(target.handle, Object.assign({
+		concurrent,
+		filter: entry => {
+			visited.push(entry.getFullname());
+			return entry.name != "sub" && entry.name != "data.bin";
+		}
+	}, progress.options));
+	progress.assertCompleted(11);
+	if (visited.sort().join() != "data.bin,readme.txt,sub") {
+		throw new Error("unexpected visit " + visited.join() + " (" + label + ")");
+	}
+	const files = flatten(target.root);
+	assertText(files["readme.txt"], "hello world", label);
+	if (Object.keys(files).length != 1 || target.root.entries.has("sub") || target.root.entries.has("data.bin")) {
+		throw new Error("filtered entries written (" + label + ")");
+	}
+	if (fs.getChildren({ recursive: true }).length != 5) {
+		throw new Error("tree changed (" + label + ")");
+	}
+	let caught;
+	try {
+		await fs.exportFileSystemHandle(createMockWriteDirectory().handle, { filter: 1 });
+	} catch (error) {
+		caught = error;
+	}
+	if (!caught || caught.message != zip.ERR_INVALID_FUNCTION_OPTION) {
+		throw new Error("invalid filter accepted (" + label + ")");
 	}
 }
 

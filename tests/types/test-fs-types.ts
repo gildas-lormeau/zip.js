@@ -46,6 +46,9 @@ const passwordCandidatesReadPromise: Promise<string> = textEntry.getText(undefin
 const filteredImportPromise: Promise<ZipEntry[]> = fs.importBlob(new Blob(), { filter: (entry: Entry) => !entry.directory && entry.filename.endsWith(".txt") });
 const filteredExportPromise: Promise<Blob> = fs.exportBlob({ filter: async (entry: ZipEntry) => entry.name != "skipped" });
 const filteredSizePromise: Promise<number> = fs.getExportedSize({ filter: (entry: ZipEntry) => entry.name.endsWith(".txt") });
+const filteredHandleExportPromise: Promise<unknown> = fs.exportFileSystemHandle(new Object() as never, { filter: (entry: ZipEntry) => entry.name != "skipped" });
+const filteredHandleAddPromise: Promise<ZipEntry[]> = fs.addFileSystemHandle(new Object() as never, { comment: "comment", filter: (handle: FileSystemHandle, path: string) => handle.kind == "file" && !path.includes("node_modules") });
+const filteredEntryAddPromise: Promise<ZipEntry[]> = fs.addFileSystemEntry(new Object() as never, { filter: async handle => handle.name != ".git" });
 
 // the deprecated FS alias must keep type-checking until it dies with the zip.fs namespace it belongs to
 const deprecatedFS: FS = fs;
@@ -57,7 +60,7 @@ void [root, entries, children, byName, byId, found, directory, textEntry, entryO
 	signedExportPromise, commentedExportPromise, importZipReaderPromise,
 	entryProgressExportPromise, deprecatedFS, secondImportedEntryPromise,
 	passwordCandidatesImportPromise, passwordCandidatesExportPromise, passwordCandidatesHandlePromise, passwordCandidatesReadPromise,
-	filteredImportPromise, filteredExportPromise, filteredSizePromise];
+	filteredImportPromise, filteredExportPromise, filteredSizePromise, filteredHandleExportPromise, filteredHandleAddPromise, filteredEntryAddPromise];
 
 // members that do NOT exist on ZipFS at runtime must NOT type-check
 // @ts-expect-error ZipFS is not a file entry
@@ -94,3 +97,5 @@ new ZipReader(new Blob().stream(), { passwords: ["first"] });
 fs.importBlob(new Blob(), { filter: "*.txt" });
 // @ts-expect-error the export filter is a function
 fs.exportBlob({ filter: "*.txt" });
+// @ts-expect-error the handle filter is a function
+fs.addFileSystemHandle(new Object() as never, { filter: "*.txt" });

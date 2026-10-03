@@ -75,6 +75,7 @@
 - [TempStream](interfaces/TempStream.md)
 - [WorkerConfiguration](interfaces/WorkerConfiguration.md)
 - [WritableWriter](interfaces/WritableWriter.md)
+- [ZipDirectoryEntryAddFileSystemHandleOptions](interfaces/ZipDirectoryEntryAddFileSystemHandleOptions.md)
 - [ZipDirectoryEntryExportFileSystemHandleOptions](interfaces/ZipDirectoryEntryExportFileSystemHandleOptions.md)
 - [ZipDirectoryEntryExportOptions](interfaces/ZipDirectoryEntryExportOptions.md)
 - [ZipDirectoryEntryGetChildrenOptions](interfaces/ZipDirectoryEntryGetChildrenOptions.md)

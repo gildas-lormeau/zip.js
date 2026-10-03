@@ -245,6 +245,40 @@ false
 
 ***
 
+### filter?
+
+> `optional` **filter?**: (`entry`) => `boolean` \| `Promise`\<`boolean`\>
+
+The function called for each entry of the tree to decide whether it is written.
+
+It receives the [ZipEntry](../classes/ZipEntry.md) instance and the entry is written when it returns (or resolves to)
+`true`. The entries are visited in tree order, parents first, and every call completes before any file
+or directory is created.
+
+#### Parameters
+
+##### entry
+
+[`ZipEntry`](../classes/ZipEntry.md)
+
+The entry of the tree.
+
+#### Returns
+
+`boolean` \| `Promise`\<`boolean`\>
+
+`true` to write the entry.
+
+#### Remarks
+
+Leaving out a directory leaves out its whole subtree, which is not visited and not created. The entries
+left out are not read and not counted by the `total` of [EntryDataOnprogressOptions#onprogress](EntryDataOnprogressOptions.md#onprogress).
+The tree itself is left unchanged.
+
+A value which is neither a function nor unset throws an [ERR\_INVALID\_FUNCTION\_OPTION](../variables/ERR_INVALID_FUNCTION_OPTION.md) error.
+
+***
+
 ### passThrough?
 
 > `optional` **passThrough?**: `boolean` \| `"compressed"`

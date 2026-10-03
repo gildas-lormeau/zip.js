@@ -11076,19 +11076,6 @@ class ZipFS {
 
 const fs = { FS: ZipFS, ZipDirectoryEntry, ZipFileEntry };
 
-function getTotalSize(entries, getEntrySize) {
-	let size = 0;
-	const pendingEntries = Array.from(entries);
-	while (pendingEntries.length) {
-		const entry = pendingEntries.pop();
-		size += getEntrySize(entry) || 0;
-		for (const child of entry.children) {
-			pendingEntries.push(child);
-		}
-	}
-	return size;
-}
-
 function getSelectedSize(selectedEntries, getEntrySize) {
 	let size = 0;
 	for (const entry of selectedEntries) {
@@ -11526,6 +11513,9 @@ async function exportZip(zipWriter, entry, selectedEntries, totalSize, options, 
 }
 
 function addFileSystemHandle(zipEntry, handle, options) {
+	options = Object.assign({}, options);
+	const filter = checkFunctionOption(options.filter);
+	delete options.filter;
 	return addFile(zipEntry, handle, []);
 
 	async function addFile(parentEntry, handle, addedEntries, parentName = "") {
@@ -11534,6 +11524,9 @@ function addFileSystemHandle(zipEntry, handle, options) {
 			try {
 				if (handle.isFile || handle.isDirectory) {
 					handle = await transformToFileSystemhandle(handle);
+				}
+				if (filter && !await filter(handle, entryName)) {
+					return addedEntries;
 				}
 				if (handle.kind == "file") {
 					const file = await handle.getFile();
@@ -11580,12 +11573,14 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 	const releaseSignal = forwardAbort(options.signal, abortController);
 	const getDataOptions = Object.assign({}, options, readerOptions, {
 		signal,
+		filter: UNDEFINED_VALUE,
 		onstart: UNDEFINED_VALUE,
 		onprogress: UNDEFINED_VALUE,
 		onend: UNDEFINED_VALUE,
 		preventClose: false
 	});
-	const totalSize = getTotalSize([zipEntry], entry => getExtractedSize(entry, getDataOptions.passThrough));
+	const selectedEntries = await selectEntries(zipEntry, checkFunctionOption(options.filter));
+	const totalSize = getSelectedSize(selectedEntries, entry => getExtractedSize(entry, getDataOptions.passThrough));
 	const exportedEntryNames = [];
 	let exportAborted = false;
 	let writtenSize = 0;
@@ -11629,8 +11624,9 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 	}
 
 	async function exportChildren(entry, parentHandle) {
+		const children = entry.children.filter(child => selectedEntries.has(child));
 		if (options.concurrent) {
-			const results = await Promise.allSettled(entry.children.map(child => exportChild(child, parentHandle)));
+			const results = await Promise.allSettled(children.map(child => exportChild(child, parentHandle)));
 			const rejectedResults = results.filter(result => result.status == "rejected");
 			if (rejectedResults.length) {
 				const failedResults = rejectedResults.filter(result => !isExportAborted(result.reason));
@@ -11638,7 +11634,7 @@ async function exportFileSystemHandle(zipEntry, directoryHandle, options) {
 				throw aggregateEntryErrors(reportedResults.map(result => result.reason));
 			}
 		} else {
-			for (const child of entry.children) {
+			for (const child of children) {
 				await exportChild(child, parentHandle);
 			}
 		}

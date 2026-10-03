@@ -22,8 +22,49 @@ async function test() {
 	try {
 		await testOptions({ comment: COMMENT, lastModDate: OPTION_DATE }, OPTION_DATE);
 		await testOptions({ comment: COMMENT }, FILE_DATE);
+		await testFilter();
 	} finally {
 		await zip.terminateWorkers();
+	}
+}
+
+async function testFilter() {
+	let zipFs = new zip.ZipFS();
+	const visited = [];
+	const added = await zipFs.addFileSystemHandle(createSourceHandle(), {
+		comment: COMMENT,
+		filter: (handle, path) => {
+			visited.push(path + ":" + handle.kind);
+			return handle.name != "sub";
+		}
+	});
+	if (visited.join() != "root:directory,root/readme.txt:file,root/sub:directory") {
+		throw new Error("unexpected visit " + visited.join());
+	}
+	const entries = await readEntries(await zipFs.exportUint8Array());
+	if ([...entries.keys()].sort().join() != "root/,root/readme.txt") {
+		throw new Error("unexpected entries " + [...entries.keys()].join());
+	}
+	if (added.length != 2 || added.some(entry => entry.options.filter !== undefined) || entries.get("root/readme.txt").comment != COMMENT) {
+		throw new Error("filter leaked into the entry options");
+	}
+	zipFs = new zip.ZipFS();
+	await zipFs.addFileSystemHandle(createSourceHandle(), { filter: async (handle, path) => handle.kind == "directory" || path == "root/sub/nested.txt" });
+	if (!zipFs.find("root/sub/nested.txt") || zipFs.find("root/readme.txt")) {
+		throw new Error("file filter failed");
+	}
+	zipFs = new zip.ZipFS();
+	if ((await zipFs.addFileSystemHandle(createSourceHandle(), { filter: () => false })).length || zipFs.children.length) {
+		throw new Error("root handle not filtered");
+	}
+	let caught;
+	try {
+		await zipFs.addFileSystemHandle(createSourceHandle(), { filter: "root" });
+	} catch (error) {
+		caught = error;
+	}
+	if (!caught || caught.message != zip.ERR_INVALID_FUNCTION_OPTION) {
+		throw new Error("invalid filter accepted");
 	}
 }
 

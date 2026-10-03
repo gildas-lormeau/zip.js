@@ -210,7 +210,7 @@ The `FileSystemEntry` instance.
 
 ##### options?
 
-[`ZipWriterAddDataOptions`](../interfaces/ZipWriterAddDataOptions.md)
+[`ZipDirectoryEntryAddFileSystemHandleOptions`](../interfaces/ZipDirectoryEntryAddFileSystemHandleOptions.md)
 
 The options.
 
@@ -250,7 +250,7 @@ The `fileSystemHandle` instance.
 
 ##### options?
 
-[`ZipWriterAddDataOptions`](../interfaces/ZipWriterAddDataOptions.md)
+[`ZipDirectoryEntryAddFileSystemHandleOptions`](../interfaces/ZipDirectoryEntryAddFileSystemHandleOptions.md)
 
 The options.
 

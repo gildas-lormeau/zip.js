@@ -4344,7 +4344,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   addFileSystemEntry(
     fileSystemEntry: FileSystemEntryLike,
-    options?: ZipWriterAddDataOptions
+    options?: ZipDirectoryEntryAddFileSystemHandleOptions
   ): Promise<ZipEntry[]>;
   /**
    * Adds an entry with content provided via a `FileSystemHandle` instance
@@ -4363,7 +4363,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    */
   addFileSystemHandle(
     fileSystemHandle: FileSystemHandleLike,
-    options?: ZipWriterAddDataOptions
+    options?: ZipDirectoryEntryAddFileSystemHandleOptions
   ): Promise<ZipEntry[]>;
   /**
    * Extracts a zip file provided as a `Blob` instance into the entry
@@ -4779,6 +4779,34 @@ export interface ZipDirectoryEntryImportOptions
 }
 
 /**
+ * Represents the options passed to {@link ZipDirectoryEntry#addFileSystemHandle} and
+ * {@link ZipDirectoryEntry#addFileSystemEntry}.
+ */
+export interface ZipDirectoryEntryAddFileSystemHandleOptions extends ZipWriterAddDataOptions {
+  /**
+   * The function called for each file and directory found to decide whether it is added.
+   *
+   * It receives the handle and its path, i.e. the name of the handle passed to the method followed by the
+   * names of the directories walked down to it, and the file or directory is added when it returns (or
+   * resolves to) `true`. The handle passed to the method is visited first, with its name as the path.
+   *
+   * @remarks
+   * Leaving out a directory leaves out its whole content, which is not visited. The entries added carry the
+   * other options, and never this one.
+   *
+   * {@link ZipDirectoryEntry#addFileSystemEntry} passes a handle built from each `FileSystemEntry`
+   * instance, which exposes `kind` and `name` and the `getFile()` or `values()` method of its kind.
+   *
+   * A value which is neither a function nor unset throws an {@link ERR_INVALID_FUNCTION_OPTION} error.
+   *
+   * @param handle The handle of the file or directory.
+   * @param path The path of the handle, relative to the parent of the handle passed to the method.
+   * @returns `true` to add the file or directory.
+   */
+  filter?: (handle: FileSystemHandle, path: string) => boolean | Promise<boolean>;
+}
+
+/**
  * Represents the options passed to {@link ZipDirectoryEntry#importHttpContent}.
  */
 export interface ZipDirectoryEntryImportHttpOptions
@@ -4955,6 +4983,24 @@ export interface ZipDirectoryEntryExportFileSystemHandleOptions
    * @defaultValue false
    */
   concurrent?: boolean;
+  /**
+   * The function called for each entry of the tree to decide whether it is written.
+   *
+   * It receives the {@link ZipEntry} instance and the entry is written when it returns (or resolves to)
+   * `true`. The entries are visited in tree order, parents first, and every call completes before any file
+   * or directory is created.
+   *
+   * @remarks
+   * Leaving out a directory leaves out its whole subtree, which is not visited and not created. The entries
+   * left out are not read and not counted by the `total` of {@link EntryDataOnprogressOptions#onprogress}.
+   * The tree itself is left unchanged.
+   *
+   * A value which is neither a function nor unset throws an {@link ERR_INVALID_FUNCTION_OPTION} error.
+   *
+   * @param entry The entry of the tree.
+   * @returns `true` to write the entry.
+   */
+  filter?: (entry: ZipEntry) => boolean | Promise<boolean>;
   /**
    * The options passed to the Reader instances.
    *

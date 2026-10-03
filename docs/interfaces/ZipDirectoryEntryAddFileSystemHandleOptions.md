@@ -2,19 +2,16 @@
 
 ***
 
-[@zip.js/zip.js](../globals.md) / ZipWriterAddDataOptions
+[@zip.js/zip.js](../globals.md) / ZipDirectoryEntryAddFileSystemHandleOptions
 
-# Interface: ZipWriterAddDataOptions
+# Interface: ZipDirectoryEntryAddFileSystemHandleOptions
 
-Represents the options passed to [ZipWriter#add](../classes/ZipWriter.md#add).
+Represents the options passed to [ZipDirectoryEntry#addFileSystemHandle](../classes/ZipDirectoryEntry.md#addfilesystemhandle) and
+[ZipDirectoryEntry#addFileSystemEntry](../classes/ZipDirectoryEntry.md#addfilesystementry).
 
 ## Extends
 
-- [`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md).[`WorkerConfiguration`](WorkerConfiguration.md)
-
-## Extended by
-
-- [`ZipDirectoryEntryAddFileSystemHandleOptions`](ZipDirectoryEntryAddFileSystemHandleOptions.md)
+- [`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md)
 
 ## Properties
 
@@ -34,7 +31,7 @@ false
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`bufferedWrite`](ZipWriterConstructorOptions.md#bufferedwrite)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`bufferedWrite`](ZipWriterAddDataOptions.md#bufferedwrite)
 
 ***
 
@@ -43,6 +40,10 @@ false
 > `optional` **centralExtraField?**: `Map`\<`number`, `Uint8Array`\<`ArrayBufferLike`\>\>
 
 The extra field of the entry written only in the central directory record.
+
+#### Inherited from
+
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`centralExtraField`](ZipWriterAddDataOptions.md#centralextrafield)
 
 ***
 
@@ -60,6 +61,10 @@ Language Encoding (EFS)), set by [ZipWriterConstructorOptions#useUnicodeFileName
 bytes here throws [ERR\_INVALID\_ENTRY\_COMMENT\_TYPE](../variables/ERR_INVALID_ENTRY_COMMENT_TYPE.md) instead of writing their textual
 representation.
 
+#### Inherited from
+
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`comment`](ZipWriterAddDataOptions.md#comment)
+
 ***
 
 ### compressionMethod?
@@ -70,7 +75,7 @@ The compression method (e.g. 8 for DEFLATE, 0 for STORE).
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`compressionMethod`](ZipWriterConstructorOptions.md#compressionmethod)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`compressionMethod`](ZipWriterAddDataOptions.md#compressionmethod)
 
 ***
 
@@ -87,6 +92,10 @@ published the checksum (see [ZipWriterConstructorOptions#encrypted](ZipWriterCon
 set to `"compressed"` the writer performs the encryption itself, so storing the checksum of the content would disclose what that
 encryption hides: the option is ignored, the entry is marked as AE-2 and the checksum fields are set to 0. See the remarks of
 [ZipWriterConstructorOptions#password](ZipWriterConstructorOptions.md#password).
+
+#### Inherited from
+
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`crc32`](ZipWriterAddDataOptions.md#crc32)
 
 ***
 
@@ -117,7 +126,7 @@ queuing strategy holding a single chunk.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`createTempStream`](ZipWriterConstructorOptions.md#createtempstream)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`createTempStream`](ZipWriterAddDataOptions.md#createtempstream)
 
 ***
 
@@ -134,7 +143,7 @@ option is set, so that the entries do not carry a meaningless creation time.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`creationDate`](ZipWriterConstructorOptions.md#creationdate)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`creationDate`](ZipWriterAddDataOptions.md#creationdate)
 
 ***
 
@@ -155,7 +164,7 @@ value is `true`.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`dataDescriptor`](ZipWriterConstructorOptions.md#datadescriptor)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`dataDescriptor`](ZipWriterAddDataOptions.md#datadescriptor)
 
 ***
 
@@ -173,7 +182,7 @@ true
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`dataDescriptorSignature`](ZipWriterConstructorOptions.md#datadescriptorsignature)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`dataDescriptorSignature`](ZipWriterAddDataOptions.md#datadescriptorsignature)
 
 ***
 
@@ -188,6 +197,10 @@ true
 ```ts
 false
 ```
+
+#### Inherited from
+
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`directory`](ZipWriterAddDataOptions.md#directory)
 
 ***
 
@@ -204,7 +217,7 @@ It declares that the data is already encrypted, so it does not apply when `passT
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`encrypted`](ZipWriterConstructorOptions.md#encrypted)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`encrypted`](ZipWriterAddDataOptions.md#encrypted)
 
 ***
 
@@ -225,7 +238,7 @@ The encryption strength (AES):
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`encryptionStrength`](ZipWriterConstructorOptions.md#encryptionstrength)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`encryptionStrength`](ZipWriterAddDataOptions.md#encryptionstrength)
 
 ***
 
@@ -247,7 +260,7 @@ about to store verbatim. This option hands it the entry instead, and the options
 [EntryMetaData#internalFileAttributes](EntryMetaData.md#internalfileattributes), [DirectoryEntry#directory](DirectoryEntry.md#directory), [EntryMetaData#uid](EntryMetaData.md#uid),
 [EntryMetaData#gid](EntryMetaData.md#gid) and the extra fields of the entry which zip.js does not interpret itself are always read from it.
 
-[ZipWriterAddDataOptions#uncompressedSize](#uncompressedsize), [ZipWriterAddDataOptions#crc32](#crc32),
+[ZipWriterAddDataOptions#uncompressedSize](ZipWriterAddDataOptions.md#uncompressedsize), [ZipWriterAddDataOptions#crc32](ZipWriterAddDataOptions.md#crc32),
 [EntryMetaData#compressionMethod](EntryMetaData.md#compressionmethod), [ZipWriterConstructorOptions#dataDescriptor](ZipWriterConstructorOptions.md#datadescriptor) and
 [ZipWriterConstructorOptions#rawLastModDate](ZipWriterConstructorOptions.md#rawlastmoddate) are read from it as well when the
 [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option is set, since the data is then stored as it is read.
@@ -274,6 +287,10 @@ A value which is not an object throws an [ERR\_INVALID\_ENTRY](../variables/ERR_
 [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) is `true` rather than `"compressed"`. Under `"compressed"` the
 entry is encrypted again, or not encrypted at all, so the date is free to change. See the remarks of that option.
 
+#### Inherited from
+
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`entry`](ZipWriterAddDataOptions.md#entry)
+
 ***
 
 ### executable?
@@ -287,6 +304,10 @@ entry is encrypted again, or not encrypted at all, so the date is free to change
 ```ts
 false
 ```
+
+#### Inherited from
+
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`executable`](ZipWriterAddDataOptions.md#executable)
 
 ***
 
@@ -316,7 +337,7 @@ true
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`extendedTimestamp`](ZipWriterConstructorOptions.md#extendedtimestamp)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`extendedTimestamp`](ZipWriterAddDataOptions.md#extendedtimestamp)
 
 ***
 
@@ -333,7 +354,7 @@ attribute for folder entries, Unix default permissions when `msDosCompatible` is
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`externalFileAttributes`](ZipWriterConstructorOptions.md#externalfileattributes)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`externalFileAttributes`](ZipWriterAddDataOptions.md#externalfileattributes)
 
 ***
 
@@ -342,6 +363,52 @@ attribute for folder entries, Unix default permissions when `msDosCompatible` is
 > `optional` **extraField?**: `Map`\<`number`, `Uint8Array`\<`ArrayBufferLike`\>\>
 
 The extra field of the entry, written in the local file header and the central directory.
+
+#### Inherited from
+
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`extraField`](ZipWriterAddDataOptions.md#extrafield)
+
+***
+
+### filter?
+
+> `optional` **filter?**: (`handle`, `path`) => `boolean` \| `Promise`\<`boolean`\>
+
+The function called for each file and directory found to decide whether it is added.
+
+It receives the handle and its path, i.e. the name of the handle passed to the method followed by the
+names of the directories walked down to it, and the file or directory is added when it returns (or
+resolves to) `true`. The handle passed to the method is visited first, with its name as the path.
+
+#### Parameters
+
+##### handle
+
+`FileSystemHandle`
+
+The handle of the file or directory.
+
+##### path
+
+`string`
+
+The path of the handle, relative to the parent of the handle passed to the method.
+
+#### Returns
+
+`boolean` \| `Promise`\<`boolean`\>
+
+`true` to add the file or directory.
+
+#### Remarks
+
+Leaving out a directory leaves out its whole content, which is not visited. The entries added carry the
+other options, and never this one.
+
+[ZipDirectoryEntry#addFileSystemEntry](../classes/ZipDirectoryEntry.md#addfilesystementry) passes a handle built from each `FileSystemEntry`
+instance, which exposes `kind` and `name` and the `getFile()` or `values()` method of its kind.
+
+A value which is neither a function nor unset throws an [ERR\_INVALID\_FUNCTION\_OPTION](../variables/ERR_INVALID_FUNCTION_OPTION.md) error.
 
 ***
 
@@ -353,7 +420,7 @@ The Unix group id to write in the Unix extra field or as part of the external at
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`gid`](ZipWriterConstructorOptions.md#gid)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`gid`](ZipWriterAddDataOptions.md#gid)
 
 ***
 
@@ -371,7 +438,7 @@ The internal file attribute.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`internalFileAttributes`](ZipWriterConstructorOptions.md#internalfileattributes)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`internalFileAttributes`](ZipWriterAddDataOptions.md#internalfileattributes)
 
 ***
 
@@ -395,7 +462,7 @@ true
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`keepOrder`](ZipWriterConstructorOptions.md#keeporder)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`keepOrder`](ZipWriterAddDataOptions.md#keeporder)
 
 ***
 
@@ -412,7 +479,7 @@ option is set, so that the entries do not carry a meaningless access time.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`lastAccessDate`](ZipWriterConstructorOptions.md#lastaccessdate)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`lastAccessDate`](ZipWriterAddDataOptions.md#lastaccessdate)
 
 ***
 
@@ -436,7 +503,7 @@ The current date.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`lastModDate`](ZipWriterConstructorOptions.md#lastmoddate)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`lastModDate`](ZipWriterAddDataOptions.md#lastmoddate)
 
 ***
 
@@ -472,7 +539,7 @@ see the remarks of that option.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`level`](ZipWriterConstructorOptions.md#level)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`level`](ZipWriterAddDataOptions.md#level)
 
 ***
 
@@ -481,6 +548,10 @@ see the remarks of that option.
 > `optional` **localExtraField?**: `Map`\<`number`, `Uint8Array`\<`ArrayBufferLike`\>\>
 
 The extra field of the entry written only in the local file header.
+
+#### Inherited from
+
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`localExtraField`](ZipWriterAddDataOptions.md#localextrafield)
 
 ***
 
@@ -517,7 +588,7 @@ the Unix metadata it leaves out of the entry.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`msdosAttributes`](ZipWriterConstructorOptions.md#msdosattributes)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`msdosAttributes`](ZipWriterAddDataOptions.md#msdosattributes)
 
 ***
 
@@ -538,14 +609,14 @@ lost. What counts is that the option is provided, not its value: `0` and `{}` tr
 
 Setting any Unix metadata option, i.e. [ZipWriterConstructorOptions#uid](ZipWriterConstructorOptions.md#uid),
 [ZipWriterConstructorOptions#gid](ZipWriterConstructorOptions.md#gid), [ZipWriterConstructorOptions#unixMode](ZipWriterConstructorOptions.md#unixmode),
-[ZipWriterConstructorOptions#unixExtraFieldType](ZipWriterConstructorOptions.md#unixextrafieldtype) or [ZipWriterAddDataOptions#executable](#executable),
+[ZipWriterConstructorOptions#unixExtraFieldType](ZipWriterConstructorOptions.md#unixextrafieldtype) or [ZipWriterAddDataOptions#executable](ZipWriterAddDataOptions.md#executable),
 takes precedence and keeps the Unix attributes, with the MS-DOS attributes written into the low byte.
 [ZipWriterConstructorOptions#externalFileAttributes](ZipWriterConstructorOptions.md#externalfileattributes) is preserved as well, although the entry still
 declares the MS-DOS platform.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`msdosAttributesRaw`](ZipWriterConstructorOptions.md#msdosattributesraw)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`msdosAttributesRaw`](ZipWriterAddDataOptions.md#msdosattributesraw)
 
 ***
 
@@ -557,7 +628,7 @@ declares the MS-DOS platform.
 
 It also selects the MS-DOS platform for [ZipWriterConstructorOptions#versionMadeBy](ZipWriterConstructorOptions.md#versionmadeby) and leaves the Unix
 attributes out of the entries. Setting any Unix metadata option, e.g.
-[ZipWriterConstructorOptions#unixMode](ZipWriterConstructorOptions.md#unixmode) or [ZipWriterAddDataOptions#executable](#executable), turns it back off, and setting
+[ZipWriterConstructorOptions#unixMode](ZipWriterConstructorOptions.md#unixmode) or [ZipWriterAddDataOptions#executable](ZipWriterAddDataOptions.md#executable), turns it back off, and setting
 [ZipWriterConstructorOptions#msdosAttributesRaw](ZipWriterConstructorOptions.md#msdosattributesraw) or [ZipWriterConstructorOptions#msdosAttributes](ZipWriterConstructorOptions.md#msdosattributes)
 turns it on, overriding an explicit `false`.
 
@@ -573,7 +644,7 @@ false
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`msDosCompatible`](ZipWriterConstructorOptions.md#msdoscompatible)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`msDosCompatible`](ZipWriterAddDataOptions.md#msdoscompatible)
 
 ***
 
@@ -591,7 +662,7 @@ This option is ignored if the [ZipWriterConstructorOptions#extendedTimestamp](Zi
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`ntfsTimestamp`](ZipWriterConstructorOptions.md#ntfstimestamp)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`ntfsTimestamp`](ZipWriterAddDataOptions.md#ntfstimestamp)
 
 ***
 
@@ -615,7 +686,7 @@ The option is only read when the [ZipWriter](../classes/ZipWriter.md) is created
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`offset`](ZipWriterConstructorOptions.md#offset)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`offset`](ZipWriterAddDataOptions.md#offset)
 
 ***
 
@@ -633,7 +704,7 @@ neither does the [ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructo
 already compressed and are written as-is in the entry headers, the method in its own field and the level in
 the level bits of the general purpose bit flag. The method must be set, otherwise an
 [ERR\_UNDEFINED\_COMPRESSION\_METHOD](../variables/ERR_UNDEFINED_COMPRESSION_METHOD.md) error is thrown; the level is optional and leaves those bits unset.
-The [ZipWriterAddDataOptions#crc32](#crc32) option must be set as well, otherwise an [ERR\_UNDEFINED\_CRC32](../variables/ERR_UNDEFINED_CRC32.md)
+The [ZipWriterAddDataOptions#crc32](ZipWriterAddDataOptions.md#crc32) option must be set as well, otherwise an [ERR\_UNDEFINED\_CRC32](../variables/ERR_UNDEFINED_CRC32.md)
 error is thrown, unless the entry is written as AES in AE-2 format, which stores no checksum.
 
 The level is read from the options of the entry only. A level set on the options of the writer applies to
@@ -651,11 +722,11 @@ The codecs run in a fixed order, the data is compressed and then encrypted, so t
 of these two stages are skipped rather than which one. `"compressed"` declares that the data is already
 compressed but not yet encrypted, so the compression stage is skipped and the encryption stage runs: it
 encrypts an entry without recompressing it, which is what the `true` value cannot express and why it rejects
-a password. The [ZipWriterAddDataOptions#uncompressedSize](#uncompressedsize) and
+a password. The [ZipWriterAddDataOptions#uncompressedSize](ZipWriterAddDataOptions.md#uncompressedsize) and
 [ZipWriterAddDataOptions#compressionMethod](ZipWriterConstructorOptions.md#compressionmethod) options are still the caller's to declare, since neither
 can be derived from data which is not decompressed.
 
-The CRC32 of the entry cannot be computed either, so the [ZipWriterAddDataOptions#crc32](#crc32) option is
+The CRC32 of the entry cannot be computed either, so the [ZipWriterAddDataOptions#crc32](ZipWriterAddDataOptions.md#crc32) option is
 the caller's to declare as well. It is written as-is for an entry which is not AES-encrypted, i.e. for a
 plain or a ZipCrypto entry, both of which store the checksum in clear anyway. It is dropped for an
 AES-encrypted entry, which is marked AE-2 with the checksum fields set to 0: the encryption stage runs
@@ -676,7 +747,7 @@ values of the source entry must then be forwarded, otherwise reading the copied 
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`passThrough`](ZipWriterConstructorOptions.md#passthrough)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`passThrough`](ZipWriterAddDataOptions.md#passthrough)
 
 ***
 
@@ -696,7 +767,7 @@ code instead.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`password`](ZipWriterConstructorOptions.md#password)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`password`](ZipWriterAddDataOptions.md#password)
 
 ***
 
@@ -714,7 +785,7 @@ false
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`preventClose`](ZipWriterConstructorOptions.md#preventclose)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`preventClose`](ZipWriterAddDataOptions.md#preventclose)
 
 ***
 
@@ -734,7 +805,7 @@ and time of the source zip file.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`rawLastModDate`](ZipWriterConstructorOptions.md#rawlastmoddate)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`rawLastModDate`](ZipWriterAddDataOptions.md#rawlastmoddate)
 
 ***
 
@@ -746,7 +817,7 @@ The password used to encrypt the content of the entry (raw).
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`rawPassword`](ZipWriterConstructorOptions.md#rawpassword)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`rawPassword`](ZipWriterAddDataOptions.md#rawpassword)
 
 ***
 
@@ -758,7 +829,7 @@ The password used to encrypt the content of the entry (raw).
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`setgid`](ZipWriterConstructorOptions.md#setgid)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`setgid`](ZipWriterAddDataOptions.md#setgid)
 
 ***
 
@@ -770,7 +841,7 @@ The password used to encrypt the content of the entry (raw).
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`setuid`](ZipWriterConstructorOptions.md#setuid)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`setuid`](ZipWriterAddDataOptions.md#setuid)
 
 ***
 
@@ -789,7 +860,7 @@ the operation is rejected.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`signal`](ZipWriterConstructorOptions.md#signal)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`signal`](ZipWriterAddDataOptions.md#signal)
 
 ***
 
@@ -802,7 +873,11 @@ is unset or `false`.
 
 #### Deprecated
 
-Use [ZipWriterAddDataOptions#crc32](#crc32) instead.
+Use [ZipWriterAddDataOptions#crc32](ZipWriterAddDataOptions.md#crc32) instead.
+
+#### Inherited from
+
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`signature`](ZipWriterAddDataOptions.md#signature)
 
 ***
 
@@ -814,7 +889,7 @@ Use [ZipWriterAddDataOptions#crc32](#crc32) instead.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`sticky`](ZipWriterConstructorOptions.md#sticky)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`sticky`](ZipWriterAddDataOptions.md#sticky)
 
 ***
 
@@ -832,7 +907,7 @@ true
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`supportZip64SplitFile`](ZipWriterConstructorOptions.md#supportzip64splitfile)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`supportZip64SplitFile`](ZipWriterAddDataOptions.md#supportzip64splitfile)
 
 ***
 
@@ -844,7 +919,7 @@ The Unix owner id to write in the Unix extra field or as part of the external at
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`uid`](ZipWriterConstructorOptions.md#uid)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`uid`](ZipWriterAddDataOptions.md#uid)
 
 ***
 
@@ -855,6 +930,10 @@ The Unix owner id to write in the Unix extra field or as part of the external at
 The uncompressed size of the entry. This option is ignored if the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option is unset
 or `false`. It is required when it is set to `true` or to `"compressed"`, since the size cannot be derived from data which is not
 decompressed.
+
+#### Inherited from
+
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`uncompressedSize`](ZipWriterAddDataOptions.md#uncompressedsize)
 
 ***
 
@@ -875,7 +954,7 @@ of the field type found in the imported zip file, unless this option is set expl
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`unixExtraFieldType`](ZipWriterConstructorOptions.md#unixextrafieldtype)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`unixExtraFieldType`](ZipWriterAddDataOptions.md#unixextrafieldtype)
 
 ***
 
@@ -897,7 +976,7 @@ file type.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`unixMode`](ZipWriterConstructorOptions.md#unixmode)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`unixMode`](ZipWriterAddDataOptions.md#unixmode)
 
 ***
 
@@ -928,7 +1007,7 @@ false
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`usdz`](ZipWriterConstructorOptions.md#usdz)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`usdz`](ZipWriterAddDataOptions.md#usdz)
 
 ***
 
@@ -948,7 +1027,7 @@ true
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`useCompressionStream`](ZipWriterConstructorOptions.md#usecompressionstream)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`useCompressionStream`](ZipWriterAddDataOptions.md#usecompressionstream)
 
 ***
 
@@ -982,7 +1061,7 @@ by the readers honoring the flag, including [ZipReader](../classes/ZipReader.md)
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`useUnicodeFileNames`](ZipWriterConstructorOptions.md#useunicodefilenames)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`useUnicodeFileNames`](ZipWriterAddDataOptions.md#useunicodefilenames)
 
 ***
 
@@ -1000,7 +1079,7 @@ true
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`useWebWorkers`](ZipWriterConstructorOptions.md#usewebworkers)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`useWebWorkers`](ZipWriterAddDataOptions.md#usewebworkers)
 
 ***
 
@@ -1020,7 +1099,7 @@ entries and 51 for AES-encrypted entries.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`version`](ZipWriterConstructorOptions.md#version)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`version`](ZipWriterAddDataOptions.md#version)
 
 ***
 
@@ -1045,7 +1124,7 @@ both cases.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`versionMadeBy`](ZipWriterConstructorOptions.md#versionmadeby)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`versionMadeBy`](ZipWriterAddDataOptions.md#versionmadeby)
 
 ***
 
@@ -1067,7 +1146,7 @@ false
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`zip64`](ZipWriterConstructorOptions.md#zip64)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`zip64`](ZipWriterAddDataOptions.md#zip64)
 
 ***
 
@@ -1088,7 +1167,7 @@ false
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`zipCrypto`](ZipWriterConstructorOptions.md#zipcrypto)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`zipCrypto`](ZipWriterAddDataOptions.md#zipcrypto)
 
 ## Methods
 
@@ -1124,7 +1203,7 @@ The encoded text or `undefined` if the text should be encoded by zip.js.
 
 #### Inherited from
 
-[`ZipWriterConstructorOptions`](ZipWriterConstructorOptions.md).[`encodeText`](ZipWriterConstructorOptions.md#encodetext)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`encodeText`](ZipWriterAddDataOptions.md#encodetext)
 
 ***
 
@@ -1150,7 +1229,7 @@ An empty promise or `undefined`.
 
 #### Inherited from
 
-[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md).[`onend`](EntryDataOnprogressOptions.md#onend)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`onend`](ZipWriterAddDataOptions.md#onend)
 
 ***
 
@@ -1182,7 +1261,7 @@ An empty promise or `undefined`.
 
 #### Inherited from
 
-[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md).[`onprogress`](EntryDataOnprogressOptions.md#onprogress)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`onprogress`](ZipWriterAddDataOptions.md#onprogress)
 
 ***
 
@@ -1208,4 +1287,4 @@ An empty promise or `undefined`.
 
 #### Inherited from
 
-[`EntryDataOnprogressOptions`](EntryDataOnprogressOptions.md).[`onstart`](EntryDataOnprogressOptions.md#onstart)
+[`ZipWriterAddDataOptions`](ZipWriterAddDataOptions.md).[`onstart`](ZipWriterAddDataOptions.md#onstart)
