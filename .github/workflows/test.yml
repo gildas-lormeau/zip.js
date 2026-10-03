@@ -87,13 +87,29 @@ jobs:
   # enforced by nothing but whoever remembered to run `npm test` before pushing. this job is also the
   # only one on a case-sensitive filesystem, which is where a mismatched filename actually fails
   #
-  # it runs `test-ci`, i.e. everything but the two bun runners, which `npm test` still runs locally:
-  # the "Zip64 (auto)" test builds a 4GB blob to cross the zip64 boundary, and bun holds it in memory
-  # where deno passes the same test in 683ms. it takes the runner down with it, reported as a cancelled
-  # job rather than as a failure
+  # it runs the scripts of `test-ci`, i.e. everything but the two bun runners, which `npm test` still
+  # runs locally: the "Zip64 (auto)" test builds a 4GB blob to cross the zip64 boundary, and bun holds
+  # it in memory where deno passes the same test in 683ms. it takes the runner down with it, reported
+  # as a cancelled job rather than as a failure
+  #
+  # the scripts are split over three runners because the single job running them one after another
+  # was the longest of the workflow, about 45 seconds behind the slowest browser job. the lanes own
+  # distinct scripts so that a failure names its runtime, and `test-registration` stays out: the lint
+  # job already runs it. `test-ci` is the list to keep in step with when a script is added
   runtimes:
-    name: 'Test node and deno'
+    name: 'Test ${{ matrix.lane }}'
     runs-on: ubuntu-26.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lane: node
+            scripts: test-node test-node-dist test-api-symmetry test-api-shape test-api-mangling test-api-exports
+          - lane: deno
+            scripts: test-deno test-deno-dist test-deno-polyfill
+          - lane: deno polyfills and types
+            scripts: test-web-streams-polyfill test-fidelity test-types
 
     steps:
       - name: Checkout code
@@ -105,6 +121,7 @@ jobs:
           node-version: '24'
 
       - name: Set up Deno
+        if: matrix.lane != 'node'
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
@@ -113,7 +130,12 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm run test-ci
+        run: |
+          for script in ${{ matrix.scripts }}; do
+            echo "::group::npm run $script"
+            npm run $script || exit 1
+            echo "::endgroup::"
+          done
 
   test:
     name: Test ${{ matrix.browser }} ${{ matrix.version }}${{ format(matrix.build && ' ({0})' || '', matrix.build) }} on ${{ matrix.os }}
