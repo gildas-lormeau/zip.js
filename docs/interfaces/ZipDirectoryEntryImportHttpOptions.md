@@ -388,6 +388,10 @@ did not collide: `"keep-last"` replaces the directory with the file, and the ent
 it, since a file node cannot hold them. `"keep-first"` keeps the directory and its entries and ignores
 the file instead, so the two policies are mirrors of each other for that shape.
 
+The policy applies to the entries kept by [ZipDirectoryEntryImportOptions#filter](ZipDirectoryEntryImportOptions.md#filter) only: an entry
+left out claims no node, so it collides with nothing, and `"keep-first"` keeps the first entry that the
+filter let through.
+
 #### Default Value
 
 ```ts

@@ -4751,6 +4751,10 @@ export interface ZipDirectoryEntryImportOptions
    * it, since a file node cannot hold them. `"keep-first"` keeps the directory and its entries and ignores
    * the file instead, so the two policies are mirrors of each other for that shape.
    *
+   * The policy applies to the entries kept by {@link ZipDirectoryEntryImportOptions#filter} only: an entry
+   * left out claims no node, so it collides with nothing, and `"keep-first"` keeps the first entry that the
+   * filter let through.
+   *
    * @defaultValue "throw"
    */
   duplicates?: "throw" | "keep-first" | "keep-last";
