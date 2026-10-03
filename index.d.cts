@@ -4754,6 +4754,28 @@ export interface ZipDirectoryEntryImportOptions
    * @defaultValue "throw"
    */
   duplicates?: "throw" | "keep-first" | "keep-last";
+  /**
+   * The function called for each entry of the zip file to decide whether it is imported.
+   *
+   * It receives the entry read from the central directory and the entry is imported when it returns (or
+   * resolves to) `true`. The function can read the data of the entry with {@link Entry#getData} to decide,
+   * with the {@link ZipReaderOptions#password} option of the import when the entry is encrypted.
+   *
+   * @remarks
+   * The entries left out never reach the {@link ZipDirectoryEntryImportOptions#duplicates} policy, so an
+   * entry can be replaced by leaving it out and adding its replacement afterwards.
+   *
+   * A zip file stores a flat list of filenames, where a directory record is optional and may come after the
+   * entries below it, so leaving out a directory entry does not leave out the files below it: filter them on
+   * their filename instead. The parent directories of an imported file are still created when the zip file
+   * holds no record for them, as without the option.
+   *
+   * A value which is neither a function nor unset throws an {@link ERR_INVALID_FUNCTION_OPTION} error.
+   *
+   * @param entry The entry read from the zip file.
+   * @returns `true` to import the entry.
+   */
+  filter?: (entry: Entry) => boolean | Promise<boolean>;
 }
 
 /**
@@ -4827,6 +4849,26 @@ export interface ZipDirectoryEntryExportOptions
    * The MIME type of the exported data when relevant.
    */
   mimeType?: string;
+  /**
+   * The function called for each entry of the tree to decide whether it is exported.
+   *
+   * It receives the {@link ZipEntry} instance and the entry is exported when it returns (or resolves to)
+   * `true`. The entries are visited in tree order, parents first, and every call completes before any data
+   * is written.
+   *
+   * @remarks
+   * Leaving out a directory leaves out its whole subtree, which is not visited. The entries left out are not
+   * read, so a `ReadableStream` added with {@link ZipDirectoryEntry#addReadable} stays unconsumed, and they are
+   * not counted by {@link ZipDirectoryEntry#getExportedSize}, by the `total` of
+   * {@link ZipDirectoryEntryExportOptions#onentryprogress} or by the `total` of
+   * {@link EntryDataOnprogressOptions#onprogress}. The tree itself is left unchanged.
+   *
+   * A value which is neither a function nor unset throws an {@link ERR_INVALID_FUNCTION_OPTION} error.
+   *
+   * @param entry The entry of the tree.
+   * @returns `true` to export the entry.
+   */
+  filter?: (entry: ZipEntry) => boolean | Promise<boolean>;
   /**
    * The function called each time an entry is written.
    *

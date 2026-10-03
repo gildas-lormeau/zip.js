@@ -445,6 +445,44 @@ The value of [GetEntriesOptions#strictness](ZipReaderGetEntriesOptions.md#strict
 
 ***
 
+### filter?
+
+> `optional` **filter?**: (`entry`) => `boolean` \| `Promise`\<`boolean`\>
+
+The function called for each entry of the zip file to decide whether it is imported.
+
+It receives the entry read from the central directory and the entry is imported when it returns (or
+resolves to) `true`. The function can read the data of the entry with Entry#getData to decide,
+with the [ZipReaderOptions#password](ZipReaderOptions.md#password) option of the import when the entry is encrypted.
+
+#### Parameters
+
+##### entry
+
+[`Entry`](../type-aliases/Entry.md)
+
+The entry read from the zip file.
+
+#### Returns
+
+`boolean` \| `Promise`\<`boolean`\>
+
+`true` to import the entry.
+
+#### Remarks
+
+The entries left out never reach the [ZipDirectoryEntryImportOptions#duplicates](#duplicates) policy, so an
+entry can be replaced by leaving it out and adding its replacement afterwards.
+
+A zip file stores a flat list of filenames, where a directory record is optional and may come after the
+entries below it, so leaving out a directory entry does not leave out the files below it: filter them on
+their filename instead. The parent directories of an imported file are still created when the zip file
+holds no record for them, as without the option.
+
+A value which is neither a function nor unset throws an [ERR\_INVALID\_FUNCTION\_OPTION](../variables/ERR_INVALID_FUNCTION_OPTION.md) error.
+
+***
+
 ### maxAppendedDataSize?
 
 > `optional` **maxAppendedDataSize?**: `number`

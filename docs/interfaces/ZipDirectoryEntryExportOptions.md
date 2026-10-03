@@ -257,6 +257,42 @@ attribute for folder entries, Unix default permissions when `msDosCompatible` is
 
 ***
 
+### filter?
+
+> `optional` **filter?**: (`entry`) => `boolean` \| `Promise`\<`boolean`\>
+
+The function called for each entry of the tree to decide whether it is exported.
+
+It receives the [ZipEntry](../classes/ZipEntry.md) instance and the entry is exported when it returns (or resolves to)
+`true`. The entries are visited in tree order, parents first, and every call completes before any data
+is written.
+
+#### Parameters
+
+##### entry
+
+[`ZipEntry`](../classes/ZipEntry.md)
+
+The entry of the tree.
+
+#### Returns
+
+`boolean` \| `Promise`\<`boolean`\>
+
+`true` to export the entry.
+
+#### Remarks
+
+Leaving out a directory leaves out its whole subtree, which is not visited. The entries left out are not
+read, so a `ReadableStream` added with [ZipDirectoryEntry#addReadable](../classes/ZipDirectoryEntry.md#addreadable) stays unconsumed, and they are
+not counted by [ZipDirectoryEntry#getExportedSize](../classes/ZipDirectoryEntry.md#getexportedsize), by the `total` of
+[ZipDirectoryEntryExportOptions#onentryprogress](#onentryprogress) or by the `total` of
+[EntryDataOnprogressOptions#onprogress](EntryDataOnprogressOptions.md#onprogress). The tree itself is left unchanged.
+
+A value which is neither a function nor unset throws an [ERR\_INVALID\_FUNCTION\_OPTION](../variables/ERR_INVALID_FUNCTION_OPTION.md) error.
+
+***
+
 ### gid?
 
 > `optional` **gid?**: `number`

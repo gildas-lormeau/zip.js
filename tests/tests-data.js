@@ -178,6 +178,7 @@ export default ([
 	{ title: "Filesystem export date stability", script: "./test-fs-export-date-stability.js" },
 	{ title: "Filesystem import ZipReader", script: "./test-fs-import-zip-reader.js" },
 	{ title: "Filesystem remove", script: "./test-fs-remove.js" },
+	{ title: "Filesystem import and export filter", script: "./test-fs-filter.js" },
 	{ title: "Filesystem deep tree", script: "./test-fs-deep-tree.js" },
 	{ title: "Filesystem deprecated namespace", script: "./test-fs-deprecated-namespace.js" },
 	{ title: "Filesystem HTTP reader", script: "./test-fs-http-reader.js" },

@@ -10730,12 +10730,16 @@
 			checkPassThroughValue(options.passThrough);
 			checkPasswordCandidatesOptions(options);
 			const duplicates = checkDuplicatesOption(options.duplicates);
+			const filter = checkFunctionOption(options.filter);
 			const importedEntries = [];
 			const passwordState = { known: [] };
 			const entries = await zipReader.getEntries(options);
 			for (const entry of entries) {
 				let parent = this;
 				try {
+					if (filter && !await filter(entry)) {
+						continue;
+					}
 					const path = entry.filename.split("/").filter(pathPart => pathPart != "" && pathPart != ".");
 					const name = path.pop();
 					let skippedEntry = false;
@@ -10829,12 +10833,14 @@
 			if (!zipWriterProvided && options.bufferedWrite === UNDEFINED_VALUE) {
 				options.bufferedWrite = true;
 			}
+			const readerOptions = checkReaderOptions(options.readerOptions);
+			const selectedEntries = await selectEntries(zipEntry, checkFunctionOption(options.filter));
 			const [readers] = await Promise.all([
-				initReaders(zipEntry, checkReaderOptions(options.readerOptions)),
+				initReaders(zipEntry, selectedEntries, readerOptions),
 				zipWriterProvided ? UNDEFINED_VALUE : initStream(writer)
 			]);
 			const zipWriter = zipWriterProvided ? writer : new ZipWriter(writer, options);
-			await exportZip(zipWriter, zipEntry, getTotalSize([zipEntry], getUncompressedSize), options, readers);
+			await exportZip(zipWriter, zipEntry, selectedEntries, getSelectedSize(selectedEntries, getUncompressedSize), options, readers);
 			if (zipWriterProvided) {
 				return zipWriter;
 			}
@@ -10849,14 +10855,15 @@
 			if (options.bufferedWrite === UNDEFINED_VALUE) {
 				options.bufferedWrite = true;
 			}
-			const children = zipEntry.getChildren({ recursive: true });
+			const selectedEntries = await selectEntries(zipEntry, checkFunctionOption(options.filter));
+			const children = Array.from(selectedEntries);
 			const entries = children.filter(child => !isImplicitDirectory(child)).map(child => {
 				const { name, entryOptions } = getChildEntryOptions(child, zipEntry, options);
 				return { name, size: child.directory ? 0 : getDeterminedSize(child, isPassThrough(child, options)), options: entryOptions };
 			});
 			const writeOrderGuaranteed = !options.bufferedWrite ||
 				(entries.every(entry => entry.options.keepOrder !== false) &&
-					children.every(child => isImplicitDirectory(child) || !child.children.length));
+					children.every(child => isImplicitDirectory(child) || !child.children.some(grandChild => selectedEntries.has(grandChild))));
 			return await getEntriesSize(options, entries, writeOrderGuaranteed, options.globalComment);
 		}
 
@@ -11085,6 +11092,31 @@
 		return size;
 	}
 
+	function getSelectedSize(selectedEntries, getEntrySize) {
+		let size = 0;
+		for (const entry of selectedEntries) {
+			size += getEntrySize(entry) || 0;
+		}
+		return size;
+	}
+
+	async function selectEntries(entry, filter) {
+		const selectedEntries = new Set();
+		const pendingDirectories = [entry];
+		let directoryIndex = 0;
+		while (directoryIndex < pendingDirectories.length) {
+			for (const child of pendingDirectories[directoryIndex++].children) {
+				if (!filter || await filter(child)) {
+					selectedEntries.add(child);
+					if (child.directory) {
+						pendingDirectories.push(child);
+					}
+				}
+			}
+		}
+		return selectedEntries;
+	}
+
 	function getUncompressedSize(entry) {
 		return entry.uncompressedSize;
 	}
@@ -11164,20 +11196,9 @@
 		}
 	}
 
-	async function initReaders(entry, options) {
-		const fileEntries = [];
-		const pendingEntries = [entry];
+	async function initReaders(entry, selectedEntries, options) {
+		const fileEntries = Array.from(selectedEntries).filter(child => !child.directory);
 		const readers = new Map();
-		while (pendingEntries.length) {
-			const pendingEntry = pendingEntries.pop();
-			for (const child of pendingEntry.children) {
-				if (child.directory) {
-					pendingEntries.push(child);
-				} else {
-					fileEntries.push(child);
-				}
-			}
-		}
 		await Promise.all(fileEntries.map(async child => {
 			const reader = child.reader = createReader(child.Reader, child.data, options);
 			readers.set(child, reader);
@@ -11450,10 +11471,10 @@
 		return child.directory && child.data === null;
 	}
 
-	async function exportZip(zipWriter, entry, totalSize, options, readers) {
+	async function exportZip(zipWriter, entry, selectedEntries, totalSize, options, readers) {
 		const { onstart, onprogress, onend, onentryprogress } = options;
 		const selectedEntry = entry;
-		const totalEntries = getTotalSize(entry.children, child => isImplicitDirectory(child) ? 0 : 1);
+		const totalEntries = getSelectedSize(selectedEntries, child => isImplicitDirectory(child) ? 0 : 1);
 		let writtenSize = 0;
 		let writtenEntries = 0;
 		if (onstart) {
@@ -11473,7 +11494,9 @@
 		async function processChildren(entry) {
 			const results = await Promise.allSettled(entry.children.map(async child => {
 				await addChild(child);
-				await processChildren(child);
+				if (selectedEntries.has(child)) {
+					await processChildren(child);
+				}
 			}));
 			const errorResult = results.find(result => result.status == "rejected");
 			if (errorResult) {
@@ -11482,7 +11505,7 @@
 		}
 
 		async function addChild(child) {
-			if (isImplicitDirectory(child)) {
+			if (isImplicitDirectory(child) || !selectedEntries.has(child)) {
 				return;
 			}
 			const { name, entryOptions } = getChildEntryOptions(child, selectedEntry, options);
