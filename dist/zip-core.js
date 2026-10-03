@@ -9146,7 +9146,7 @@
 	 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	 */
 
-	const VERSION = "2.22.1";
+	const VERSION = "2.23.0";
 
 	/*
 	 Copyright (c) 2025 Gildas Lormeau. All rights reserved.
