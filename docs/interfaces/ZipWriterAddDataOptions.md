@@ -148,7 +148,10 @@ When set to `false`, the [ZipWriterConstructorOptions#bufferedWrite](ZipWriterCo
 set to `true`. It will be automatically set to `false` when it is `undefined` and the
 [ZipWriterConstructorOptions#bufferedWrite](ZipWriterConstructorOptions.md#bufferedwrite) option is set to `true`, or when the entry is a folder
 or an empty entry stored without compression or encryption, since the header can then carry the sizes and
-the CRC-32 directly. It will be automatically set to `true` when the
+the CRC-32 directly. The same applies to an entry written with [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough)
+from a reader of known size when [ZipWriterAddDataOptions#crc32](#crc32) is provided, or when the entry is
+AES-encrypted and therefore stores no CRC-32, unless it is encrypted with ZipCrypto, whose password
+verification byte depends on this flag. It will be automatically set to `true` when the
 [ZipWriterConstructorOptions#zipCrypto](ZipWriterConstructorOptions.md#zipcrypto) option is set to `true`, except for such a folder or empty
 entry, which holds no encrypted data and therefore needs no descriptor either. Otherwise, the default
 value is `true`.

@@ -30,7 +30,7 @@ async function test() {
 	const rawData = await entries[0].getData(new zip.BlobWriter(), { passThrough: true });
 	await zipReader.close();
 	const uncompressedSize = TEXT_CONTENT.length;
-	const ae1Bytes = await rewrite(rawData, uncompressedSize, { crc32: expectedCrc32 }, expectedCrc32);
+	const ae1Bytes = await rewrite(rawData, uncompressedSize, { crc32: expectedCrc32, dataDescriptor: true }, expectedCrc32);
 	const localHeaderOffset = findSignature(ae1Bytes, LOCAL_FILE_HEADER_SIGNATURE);
 	const centralHeaderOffset = findSignature(ae1Bytes, CENTRAL_FILE_HEADER_SIGNATURE);
 	const dataDescriptorOffset = findSignature(ae1Bytes.subarray(localHeaderOffset + 4, centralHeaderOffset), DATA_DESCRIPTOR_SIGNATURE) + localHeaderOffset + 4;
@@ -41,9 +41,13 @@ async function test() {
 		getVendorVersion(ae1Bytes, centralHeaderOffset) != 1) {
 		throw new Error();
 	}
-	const ae1BufferedBytes = await rewrite(rawData, uncompressedSize, { crc32: expectedCrc32, dataDescriptor: false }, expectedCrc32);
+	// with the CRC-32 and the sizes known in advance, the default writes them in the local header instead
+	const ae1BufferedBytes = await rewrite(rawData, uncompressedSize, { crc32: expectedCrc32 }, expectedCrc32);
 	const bufferedLocalHeaderOffset = findSignature(ae1BufferedBytes, LOCAL_FILE_HEADER_SIGNATURE);
+	const bufferedCentralHeaderOffset = findSignature(ae1BufferedBytes, CENTRAL_FILE_HEADER_SIGNATURE);
 	if (readUint32(ae1BufferedBytes, bufferedLocalHeaderOffset + 14) != expectedCrc32 ||
+		(readUint16(ae1BufferedBytes, bufferedLocalHeaderOffset + 6) & 0x8) != 0 ||
+		readUint32(ae1BufferedBytes, bufferedLocalHeaderOffset + 18) != readUint32(ae1BufferedBytes, bufferedCentralHeaderOffset + 20) ||
 		getVendorVersion(ae1BufferedBytes, bufferedLocalHeaderOffset) != 1) {
 		throw new Error();
 	}
@@ -98,6 +102,10 @@ function getVendorVersion(bytes, headerOffset) {
 		}
 	}
 	throw new Error();
+}
+
+function readUint16(bytes, offset) {
+	return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(offset, true);
 }
 
 function readUint32(bytes, offset) {

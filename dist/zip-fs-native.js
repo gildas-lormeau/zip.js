@@ -7574,7 +7574,6 @@
 		if (hasContent) {
 			if (!passThroughCompression) {
 				if (contentSize === UNDEFINED_VALUE) {
-					dataDescriptor = true;
 					if (zip64 || zip64 === UNDEFINED_VALUE) {
 						zip64 = unknownSize = true;
 						maximumCompressedSize = MAX_32_BITS + 1;
@@ -7591,7 +7590,10 @@
 			}
 		}
 		const emptyEntry = !encryptedEntry && (!hasContent || (contentSize === 0 && !passThroughCompression)) && !isCompressed(compressionMethod, level);
-		if (emptyEntry && getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR) === UNDEFINED_VALUE) {
+		const crc32Provided = options.crc32 !== UNDEFINED_VALUE || options[PROPERTY_NAME_SIGNATURE] !== UNDEFINED_VALUE;
+		const completeHeader = passThroughCompression && hasContent && contentSize !== UNDEFINED_VALUE &&
+			!(encryptedEntry && zipCrypto) && (crc32Provided || (encryptedEntry && !zipCrypto));
+		if ((emptyEntry || completeHeader) && getOptionValue(zipWriter, options, OPTION_DATA_DESCRIPTOR) === UNDEFINED_VALUE) {
 			dataDescriptor = false;
 		}
 		const zip64UncompressedSize = zip64Enabled || unknownSize || uncompressedSize >= MAX_32_BITS;
@@ -7609,6 +7611,8 @@
 			resolvedOptions: {
 				dataDescriptor,
 				emptyEntry,
+				completeHeader,
+				knownCompressedSize: completeHeader ? maximumCompressedSize : UNDEFINED_VALUE,
 				zip64,
 				zip64Enabled,
 				unknownSize,
@@ -7729,6 +7733,7 @@
 			keepOrder,
 			dataDescriptor,
 			emptyEntry,
+			completeHeader,
 			signal
 		} = options;
 		const {
@@ -7750,7 +7755,7 @@
 		const lockPreviousFileEntry = keepOrder && previousFileEntry ? previousFileEntry.lockFileEntry : UNDEFINED_VALUE;
 		fileEntries.set(name, fileEntry);
 		try {
-			if (options.bufferedWrite || !keepOrder || zipWriter.writerLocked || zipWriter.bufferedWrites || zipWriter.directWrites || (!dataDescriptor && !emptyEntry)) {
+			if (options.bufferedWrite || !keepOrder || zipWriter.writerLocked || zipWriter.bufferedWrites || zipWriter.directWrites || (!dataDescriptor && !emptyEntry && !completeHeader)) {
 				bufferedWrite = true;
 				zipWriter.bufferedWrites++;
 				if (options.createTempStream) {
@@ -8101,10 +8106,12 @@
 			zip64UncompressedSize,
 			zip64CompressedSize,
 			uncompressedSize,
+			knownCompressedSize,
 			unknownSize,
 			crc32
 		} = options;
 		let { version, compressionMethod } = options;
+		const compressedSize = dataDescriptor ? UNDEFINED_VALUE : knownCompressedSize;
 		const compressed = !directory && isCompressed(compressionMethod, level);
 		let rawLocalExtraFieldZip64;
 		const uncompressedFile = passThroughCompression || !compressed;
@@ -8120,7 +8127,7 @@
 				extraFieldZip64.writeUint64(uncompressedSize);
 				if (uncompressedFile) {
 					const encryptionOverhead = getEncryptionOverhead(encrypted, zipCrypto, encryptionStrength);
-					extraFieldZip64.writeUint64(passThroughCompression ? 0 : uncompressedSize + encryptionOverhead);
+					extraFieldZip64.writeUint64(passThroughCompression ? (compressedSize === UNDEFINED_VALUE ? 0 : compressedSize) : uncompressedSize + encryptionOverhead);
 				}
 			}
 		} else {
@@ -8262,6 +8269,7 @@
 			bitFlag: getBitFlag(level, useUnicodeFileNames, dataDescriptor, encrypted, compressionMethod),
 			compressionMethod,
 			uncompressedSize,
+			compressedSize,
 			lastModDate: clampedLastModDate,
 			rawLastModDate: rawLastModDateOption,
 			rawFilename,
@@ -8269,6 +8277,9 @@
 			zip64UncompressedSize,
 			extraFieldLength
 		});
+		if (compressedSize !== UNDEFINED_VALUE && passThroughCompression && crc32 !== UNDEFINED_VALUE) {
+			setUint32(headerView, HEADER_OFFSET_SIGNATURE, crc32);
+		}
 		const localHeader = createRecordWriter(HEADER_SIZE + getLength(rawFilename) + extraFieldLength);
 		const localHeaderArray = localHeader.array;
 		const localHeaderView = getDataView(localHeaderArray);
