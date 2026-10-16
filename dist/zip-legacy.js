@@ -6649,6 +6649,7 @@
 	const ERR_INVALID_MSDOS_ATTRIBUTES = "Invalid msdosAttributesRaw (must be integer 0..255)";
 	const ERR_INVALID_MSDOS_DATA = "Invalid msdosAttributes (must be an object with boolean flags)";
 	const ERR_INVALID_LEVEL = "Invalid level (must be integer 0..9)";
+	const ERR_INVALID_UNCOMPRESSED_SIZE_OPTION = "Invalid uncompressedSize option (must be a non-negative integer)";
 	const ERR_INVALID_SIGNATURE_DATA = "Signature data exceeds 64KB";
 	const ERR_INVALID_ENTRY = "Invalid entry option (must be an entry returned by ZipReader#getEntries())";
 	const ERR_ZIP_CRYPTO_LAST_MOD_DATE = "The last modification date of an entry encrypted with ZipCrypto cannot be changed when passThrough is set";
@@ -7531,8 +7532,10 @@
 		let maximumCompressedSize = 0;
 		let uncompressedSize = 0;
 		let unknownSize = false;
+		const uncompressedSizeOption = toNumber(options[PROPERTY_NAME_UNCOMPRESSED_SIZE]);
+		checkIntegerOption(uncompressedSizeOption, Number.MAX_SAFE_INTEGER, ERR_INVALID_UNCOMPRESSED_SIZE_OPTION);
 		if (passThroughCompression && hasContent) {
-			uncompressedSize = options[PROPERTY_NAME_UNCOMPRESSED_SIZE];
+			uncompressedSize = uncompressedSizeOption;
 			if (uncompressedSize === UNDEFINED_VALUE) {
 				throw new Error(ERR_UNDEFINED_UNCOMPRESSED_SIZE);
 			}
@@ -7553,13 +7556,14 @@
 		const encryptionOverhead = getEncryptionOverhead(encryptedEntry, zipCrypto, encryptionStrength);
 		if (hasContent) {
 			if (!passThroughCompression) {
-				if (contentSize === UNDEFINED_VALUE) {
+				const expectedSize = contentSize === UNDEFINED_VALUE ? uncompressedSizeOption : contentSize;
+				if (expectedSize === UNDEFINED_VALUE) {
 					if (zip64 || zip64 === UNDEFINED_VALUE) {
 						zip64 = unknownSize = true;
 						maximumCompressedSize = MAX_32_BITS + 1;
 					}
 				} else {
-					options.uncompressedSize = uncompressedSize = contentSize;
+					options.uncompressedSize = uncompressedSize = expectedSize;
 					maximumCompressedSize = (isCompressed(compressionMethod, level) ? getMaximumCompressedSize(uncompressedSize) : uncompressedSize) + encryptionOverhead;
 				}
 			} else {
@@ -9694,6 +9698,7 @@
 	exports.ERR_INVALID_STRICTNESS = ERR_INVALID_STRICTNESS;
 	exports.ERR_INVALID_UID = ERR_INVALID_UID;
 	exports.ERR_INVALID_UNCOMPRESSED_SIZE = ERR_INVALID_UNCOMPRESSED_SIZE;
+	exports.ERR_INVALID_UNCOMPRESSED_SIZE_OPTION = ERR_INVALID_UNCOMPRESSED_SIZE_OPTION;
 	exports.ERR_INVALID_UNIX_EXTRA_FIELD_TYPE = ERR_INVALID_UNIX_EXTRA_FIELD_TYPE;
 	exports.ERR_INVALID_UNIX_ID_SIZE = ERR_INVALID_UNIX_ID_SIZE;
 	exports.ERR_INVALID_UNIX_MODE = ERR_INVALID_UNIX_MODE;

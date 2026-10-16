@@ -23,6 +23,7 @@ async function test() {
 	await passwordRejectsOtherTypes();
 	await passwordKeepsAcceptingEmptyValues();
 	await encryptionStrengthRejectsNonIntegers();
+	await uncompressedSizeRejectsInvalidValues();
 	await strictnessRejectsUnknownValues();
 	await filenameValidationRejectsUnknownValues();
 	await maxAppendedDataSizeRejectsInvalidNumbers();
@@ -57,6 +58,16 @@ async function test() {
 	configureAcceptsAnythingWithoutConfigurableProperties();
 	await createReadableNormalizesChunkSizesThatUsedToHang();
 	await zip.terminateWorkers();
+}
+
+// the option is validated whether or not it is used for the layout, so a reader with a size probes it too
+async function uncompressedSizeRejectsInvalidValues() {
+	for (const uncompressedSize of [-1, 1.5, NaN, Infinity, null, "big", "", {}, [], true]) {
+		await assertThrows({ uncompressedSize }, zip.ERR_INVALID_UNCOMPRESSED_SIZE_OPTION, "uncompressedSize: " + JSON.stringify(uncompressedSize));
+	}
+	for (const uncompressedSize of [0, CONTENT.length, "880"]) {
+		await readEntries(await buildZip({ uncompressedSize }));
+	}
 }
 
 async function levelRejectsValuesOutsideItsRange() {

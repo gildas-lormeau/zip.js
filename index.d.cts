@@ -3260,9 +3260,16 @@ export interface ZipWriterAddDataOptions
    */
   centralExtraField?: Map<number, Uint8Array>;
   /**
-   * The uncompressed size of the entry. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is unset
-   * or `false`. It is required when it is set to `true` or to `"compressed"`, since the size cannot be derived from data which is not
-   * decompressed.
+   * The uncompressed size of the entry. It is required when the {@link ZipWriterConstructorOptions#passThrough} option is set to
+   * `true` or to `"compressed"`, since the size cannot be derived from data which is not decompressed.
+   *
+   * @remarks
+   * Without `passThrough`, it is read only when the reader has no `size`, e.g. a `ReadableStream`, and it then stands for the
+   * size the reader is expected to have: the entry is laid out like one read from a reader of that size, so it is not written in
+   * Zip64 format below 4 GB and, with {@link ZipWriterConstructorOptions#bufferedWrite}, it needs no data descriptor. The sizes
+   * written in the entry are the ones measured while writing it, so a wrong value is harmless unless the data crosses 4 GB, which
+   * throws {@link ERR_UNSUPPORTED_FORMAT}. A value which is not a non-negative integer throws
+   * {@link ERR_INVALID_UNCOMPRESSED_SIZE_OPTION}.
    */
   uncompressedSize?: number;
   /**
@@ -5492,6 +5499,10 @@ export const ERR_ITERATOR_COMPLETED_TOO_SOON: string;
  * Undefined uncompressed size error
  */
 export const ERR_UNDEFINED_UNCOMPRESSED_SIZE: string;
+/**
+ * Invalid uncompressedSize option error (the option must be a non-negative integer)
+ */
+export const ERR_INVALID_UNCOMPRESSED_SIZE_OPTION: string;
 /**
  * Undefined compression method error
  */

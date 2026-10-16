@@ -930,9 +930,17 @@ The Unix owner id to write in the Unix extra field or as part of the external at
 
 > `optional` **uncompressedSize?**: `number`
 
-The uncompressed size of the entry. This option is ignored if the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option is unset
-or `false`. It is required when it is set to `true` or to `"compressed"`, since the size cannot be derived from data which is not
-decompressed.
+The uncompressed size of the entry. It is required when the [ZipWriterConstructorOptions#passThrough](ZipWriterConstructorOptions.md#passthrough) option is set to
+`true` or to `"compressed"`, since the size cannot be derived from data which is not decompressed.
+
+#### Remarks
+
+Without `passThrough`, it is read only when the reader has no `size`, e.g. a `ReadableStream`, and it then stands for the
+size the reader is expected to have: the entry is laid out like one read from a reader of that size, so it is not written in
+Zip64 format below 4 GB and, with [ZipWriterConstructorOptions#bufferedWrite](ZipWriterConstructorOptions.md#bufferedwrite), it needs no data descriptor. The sizes
+written in the entry are the ones measured while writing it, so a wrong value is harmless unless the data crosses 4 GB, which
+throws [ERR\_UNSUPPORTED\_FORMAT](../variables/ERR_UNSUPPORTED_FORMAT.md). A value which is not a non-negative integer throws
+[ERR\_INVALID\_UNCOMPRESSED\_SIZE\_OPTION](../variables/ERR_INVALID_UNCOMPRESSED_SIZE_OPTION.md).
 
 #### Inherited from
 
