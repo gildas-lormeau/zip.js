@@ -36,8 +36,8 @@ class BinaryStringReader extends Reader {
 
 Reading a file on the filesystem with random access does not always require a custom Reader:
 on runtimes exposing files as lazily-read `Blob` instances, the `Blob` returned by
-`await fs.openAsBlob(path)` on Node.js or `Bun.file(path)` on Bun can be passed directly to
-[ZipReader](ZipReader.md). Deno has no equivalent API yet, see https://github.com/denoland/deno/issues/32316.
+`await fs.openAsBlob(path)` on Node.js or `Bun.file(path)` on Bun can be wrapped in a [BlobReader](BlobReader.md),
+which reads it by byte ranges. Deno has no equivalent API yet, see https://github.com/denoland/deno/issues/32316.
 The class below reads a
 `Deno.FsFile` with random access instead of buffering it entirely in memory. The `seek()` and `read()`
 calls are serialized in a queue because zip.js can read multiple byte ranges concurrently:
@@ -164,13 +164,13 @@ The `ReadableStream` instance.
 
 ### init()?
 
-> `optional` **init**(): `Promise`\<`void`\>
+> `optional` **init**(): `void` \| `Promise`\<`void`\>
 
-Initializes the instance asynchronously
+Initializes the instance, synchronously or asynchronously
 
 #### Returns
 
-`Promise`\<`void`\>
+`void` \| `Promise`\<`void`\>
 
 #### Implementation of
 
@@ -180,7 +180,7 @@ Initializes the instance asynchronously
 
 ### readUint8Array()
 
-> **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+> **readUint8Array**(`index`, `length`): `Uint8Array`\<`ArrayBufferLike`\> \| `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
 Reads a chunk of data
 
@@ -200,6 +200,6 @@ The length of the data to read in bytes.
 
 #### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Uint8Array`\<`ArrayBufferLike`\> \| `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-A promise resolving to a chunk of data. The data must be trucated to the remaining size if the requested length is larger than the remaining size.
+The chunk of data, or a promise resolving to it. The data must be truncated to the remaining size if the requested length is larger than the remaining size.

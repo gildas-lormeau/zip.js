@@ -10,7 +10,7 @@ Represents configuration passed to [configure](../functions/configure.md), the c
 
 ## Remarks
 
-The three options below are read as truthy values, they are not converted. Any non-empty string is therefore
+The two options below are read as truthy values, they are not converted. Any non-empty string is therefore
 `true`, `"false"` and `"0"` included. This is deliberate, so that an expression such as
 `useWebWorkers: supported && enabled` keeps working, but it differs from the numeric options, which do accept
 the string a form control, a query string or an environment variable yields. A boolean read from one of those

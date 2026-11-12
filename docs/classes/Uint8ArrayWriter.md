@@ -71,15 +71,15 @@ The `WritableStream` instance.
 
 ### getData()
 
-> **getData**(): `Promise`\<`Uint8Array`\<`ArrayBuffer`\>\>
+> **getData**(): `Uint8Array`\<`ArrayBuffer`\> \| `Promise`\<`Uint8Array`\<`ArrayBuffer`\>\>
 
 Retrieves all the written data
 
 #### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBuffer`\>\>
+`Uint8Array`\<`ArrayBuffer`\> \| `Promise`\<`Uint8Array`\<`ArrayBuffer`\>\>
 
-A promise resolving to the written data.
+The written data, or a promise resolving to it.
 
 #### Inherited from
 
@@ -89,9 +89,9 @@ A promise resolving to the written data.
 
 ### init()?
 
-> `optional` **init**(`size?`): `Promise`\<`void`\>
+> `optional` **init**(`size?`): `void` \| `Promise`\<`void`\>
 
-Initializes the instance asynchronously
+Initializes the instance, synchronously or asynchronously
 
 #### Parameters
 
@@ -103,7 +103,7 @@ the total size of the written data in bytes.
 
 #### Returns
 
-`Promise`\<`void`\>
+`void` \| `Promise`\<`void`\>
 
 #### Inherited from
 
@@ -113,9 +113,9 @@ the total size of the written data in bytes.
 
 ### writeUint8Array()
 
-> **writeUint8Array**(`array`): `Promise`\<`void`\>
+> **writeUint8Array**(`array`): `void` \| `Promise`\<`void`\>
 
-Appends a chunk of data
+Appends a chunk of data, synchronously or asynchronously
 
 #### Parameters
 
@@ -127,7 +127,7 @@ The chunk data to append.
 
 #### Returns
 
-`Promise`\<`void`\>
+`void` \| `Promise`\<`void`\>
 
 #### Inherited from
 

@@ -18,6 +18,7 @@ const readable = ReadableStream.from((function* () {
 })())
 
 readable
+  .pipeThrough(new TextEncoderStream())
   .pipeThrough(new ZipWriterStream().transform('numbers.txt'))
   .pipeTo((await Deno.create('numbers.txt.zip')).writable)
 ```
@@ -36,10 +37,13 @@ const readable2 = ReadableStream.from((function* () {
 
 const zipper = new ZipWriterStream()
 zipper.readable.pipeTo((await Deno.create('Archive.zip')).writable)
-readable1.pipeTo(zipper.writable('numbers.txt'))
-readable2.pipeTo(zipper.writable('letters.txt'))
+readable1.pipeThrough(new TextEncoderStream()).pipeTo(zipper.writable('numbers.txt'))
+readable2.pipeThrough(new TextEncoderStream()).pipeTo(zipper.writable('letters.txt'))
 zipper.close()
 ```
+
+The streams piped into the instance must carry `Uint8Array` chunks: a stream of strings must go through a
+`TextEncoderStream` first, as above.
 
 ## Constructors
 
@@ -115,15 +119,9 @@ of the thrown error contains the errors of all the failed entries.
 
 ### transform()
 
-> **transform**\<`T`\>(`path`): `object`
+> **transform**(`path`): `object`
 
 Returns an object containing a readable and writable property for the .pipeThrough method
-
-#### Type Parameters
-
-##### T
-
-`T`
 
 #### Parameters
 
@@ -138,29 +136,24 @@ separator (see [ZipWriter#add](ZipWriter.md#add)).
 
 `object`
 
-An object containing readable and writable properties
+An object containing readable and writable properties: the writable side accepts the `Uint8Array`
+chunks of the entry, the readable side is the zipped stream, i.e. [ZipWriterStream#readable](#readable).
 
 ##### readable
 
-> **readable**: `ReadableStream`\<`T`\>
+> **readable**: `ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
 ##### writable
 
-> **writable**: `WritableStream`\<`T`\>
+> **writable**: `WritableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
 ***
 
 ### writable()
 
-> **writable**\<`T`\>(`path`): `WritableStream`\<`T`\>
+> **writable**(`path`): `WritableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
 Returns a WritableStream for the .pipeTo method
-
-#### Type Parameters
-
-##### T
-
-`T`
 
 #### Parameters
 
@@ -173,6 +166,6 @@ must use forward slashes ("/") as separator (see [ZipWriter#add](ZipWriter.md#ad
 
 #### Returns
 
-`WritableStream`\<`T`\>
+`WritableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-A WritableStream.
+A WritableStream accepting the `Uint8Array` chunks of the entry.

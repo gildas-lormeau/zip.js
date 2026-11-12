@@ -99,13 +99,13 @@ The `ReadableStream` instance.
 
 ### init()?
 
-> `optional` **init**(): `Promise`\<`void`\>
+> `optional` **init**(): `void` \| `Promise`\<`void`\>
 
-Initializes the instance asynchronously
+Initializes the instance, synchronously or asynchronously
 
 #### Returns
 
-`Promise`\<`void`\>
+`void` \| `Promise`\<`void`\>
 
 #### Inherited from
 
@@ -115,7 +115,7 @@ Initializes the instance asynchronously
 
 ### readUint8Array()
 
-> **readUint8Array**(`index`, `length`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+> **readUint8Array**(`index`, `length`): `Uint8Array`\<`ArrayBufferLike`\> \| `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
 Reads a chunk of data
 
@@ -135,9 +135,9 @@ The length of the data to read in bytes.
 
 #### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Uint8Array`\<`ArrayBufferLike`\> \| `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-A promise resolving to a chunk of data. The data must be trucated to the remaining size if the requested length is larger than the remaining size.
+The chunk of data, or a promise resolving to it. The data must be truncated to the remaining size if the requested length is larger than the remaining size.
 
 #### Inherited from
 

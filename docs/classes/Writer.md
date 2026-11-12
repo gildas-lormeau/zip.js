@@ -85,23 +85,23 @@ The `WritableStream` instance.
 
 ### getData()
 
-> **getData**(): `Promise`\<`Type`\>
+> **getData**(): `Type` \| `Promise`\<`Type`\>
 
 Retrieves all the written data
 
 #### Returns
 
-`Promise`\<`Type`\>
+`Type` \| `Promise`\<`Type`\>
 
-A promise resolving to the written data.
+The written data, or a promise resolving to it.
 
 ***
 
 ### init()?
 
-> `optional` **init**(`size?`): `Promise`\<`void`\>
+> `optional` **init**(`size?`): `void` \| `Promise`\<`void`\>
 
-Initializes the instance asynchronously
+Initializes the instance, synchronously or asynchronously
 
 #### Parameters
 
@@ -113,7 +113,7 @@ the total size of the written data in bytes.
 
 #### Returns
 
-`Promise`\<`void`\>
+`void` \| `Promise`\<`void`\>
 
 #### Implementation of
 
@@ -123,9 +123,9 @@ the total size of the written data in bytes.
 
 ### writeUint8Array()
 
-> **writeUint8Array**(`array`): `Promise`\<`void`\>
+> **writeUint8Array**(`array`): `void` \| `Promise`\<`void`\>
 
-Appends a chunk of data
+Appends a chunk of data, synchronously or asynchronously
 
 #### Parameters
 
@@ -137,4 +137,4 @@ The chunk data to append.
 
 #### Returns
 
-`Promise`\<`void`\>
+`void` \| `Promise`\<`void`\>

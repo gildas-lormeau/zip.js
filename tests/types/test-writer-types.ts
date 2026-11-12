@@ -32,8 +32,8 @@ const contentTypes: (string | undefined)[] = [blobWriter.contentType, data64URIW
 new TextWriter().writeUint8Array(new Uint8Array());
 // @ts-expect-error BlobWriter has no writeUint8Array
 blobWriter.writeUint8Array(new Uint8Array());
-// the writers that do extend Writer keep it
-const writeResults: Promise<void>[] = [
+// the writers that do extend Writer keep it, and may return synchronously
+const writeResults: (Promise<void> | void)[] = [
 	data64URIWriter.writeUint8Array(new Uint8Array()),
 	new Uint8ArrayWriter().writeUint8Array(new Uint8Array())
 ];

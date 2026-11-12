@@ -688,8 +688,9 @@ correct encoding: when it is set to `false`, the names are still encoded in UTF-
 [ZipWriterConstructorOptions#encodeText](#encodetext) option is also set to encode them in the intended code page.
 Setting it to `false` alone therefore produces an archive whose file names are mislabeled, holding UTF-8
 bytes announced as Code Page 437: the names holding characters outside of ASCII are decoded incorrectly
-by the readers honoring the flag, including [ZipReader](../classes/ZipReader.md) unless
-[GetEntriesOptions#filenameEncoding](GetEntriesOptions.md#filenameencoding) is set to `"utf-8"`.
+by the readers trusting the flag, e.g. Python `zipfile` and Info-ZIP `unzip`. [ZipReader](../classes/ZipReader.md) decodes
+them correctly because it detects valid UTF-8 names when the flag is clear, unless
+[GetEntriesOptions#filenameEncoding](GetEntriesOptions.md#filenameencoding) forces another encoding.
 
 #### Default Value
 

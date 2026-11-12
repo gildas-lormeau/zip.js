@@ -26,7 +26,7 @@ selected by [IsZipFileOptions#strictness](#strictness), with the same semantics 
 
 The tolerance of the probe, with the same semantics and default as
 [ZipReaderConstructorOptions#strictness](ZipReaderOptions.md#strictness): it selects the default amount of tolerated appended data
-(0 for `"strict"`, 65536 bytes for `"balanced"`, unlimited for `"tolerant"`) and `"strict"` also returns
+(0 for `"strict"`, 65535 bytes for `"balanced"`, unlimited for `"tolerant"`) and `"strict"` also returns
 `false` when multiple end of central directory records reach the end of the data.
 
 #### Default Value

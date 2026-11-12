@@ -664,7 +664,7 @@ The options.
 
 `Promise`\<`WritableStream`\<`any`\>\>
 
-A promise resolving to the `Uint8Array` instance.
+A promise resolving to the `WritableStream` instance.
 
 ***
 

@@ -242,9 +242,11 @@ The [ZipReaderOptions#checkAuthenticationCode](ZipReaderOptions.md#checkauthenti
 [ZipReaderOptions#checkCrc32](ZipReaderOptions.md#checkcrc32) option does not, since the CRC32 of the entry describes its
 content and the content is not decompressed.
 
-Two entries holding the same content encrypted with two different passwords have no bytes in common when
-they are read with `true`, because the salt is drawn per entry. Read with `"compressed"` they are identical,
-which is what makes it possible to compare the content of encrypted entries without decompressing them.
+Two entries holding the same content encrypted with two different passwords differ when they are read with
+`true`, because the salt is drawn per entry. Read with `"compressed"` they are identical when the content was
+compressed identically, i.e. with the same engine, the same compression level and the same options, which
+is what makes it possible to detect duplicate encrypted entries without decompressing them. Equal
+compressed data implies equal content, but different compressed data does not imply different content.
 
 A value which is neither a boolean, `"compressed"` nor unset throws an [ERR\_INVALID\_PASS\_THROUGH\_VALUE](../variables/ERR_INVALID_PASS_THROUGH_VALUE.md)
 error. The filesystem API copies entries verbatim and only accepts a boolean, see
@@ -317,7 +319,7 @@ false
 
 > `optional` **rawPassword?**: `Uint8Array`\<`ArrayBufferLike`\>
 
-The password used to encrypt the content of the entry (raw).
+The password used to decrypt the content of the entry (raw).
 
 #### Inherited from
 

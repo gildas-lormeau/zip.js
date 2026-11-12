@@ -750,7 +750,7 @@ false, and `true` when [HttpOptions#useRangeHeader](HttpOptions.md#userangeheade
 
 > `optional` **rawPassword?**: `Uint8Array`\<`ArrayBufferLike`\>
 
-The password used to encrypt the content of the entry (raw).
+The password used to decrypt the content of the entry (raw).
 
 #### Inherited from
 

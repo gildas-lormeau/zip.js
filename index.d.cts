@@ -18,7 +18,7 @@
  *   TextWriter,
  *   ZipReader,
  *   ZipWriter,
- * } from from "@zip-js/zip-js";
+ * } from "@zip.js/zip.js";
  *
  * // ----
  * // Write the zip file
@@ -71,7 +71,7 @@
  *   BlobReader,
  *   ZipReader,
  *   ZipWriter,
- * } from "@zip-js/zip-js";
+ * } from "@zip.js/zip.js";
  *
  * // ----
  * // Write the zip file
@@ -131,7 +131,7 @@
  *   HttpReader,
  *   TextReader,
  *   ZipWriter,
- * } from "@zip-js/zip-js";
+ * } from "@zip.js/zip.js";
  *
  * const README_URL = "https://unpkg.com/@zip.js/zip.js/README.md";
  * getZipFileBlob()
@@ -614,7 +614,7 @@ export interface Configuration extends WorkerConfiguration {
  * Represents configuration passed to {@link configure}, the constructor of {@link ZipReader}, {@link FileEntry#getData}, the constructor of {@link ZipWriter}, and {@link ZipWriter#add}.
  *
  * @remarks
- * The three options below are read as truthy values, they are not converted. Any non-empty string is therefore
+ * The two options below are read as truthy values, they are not converted. Any non-empty string is therefore
  * `true`, `"false"` and `"0"` included. This is deliberate, so that an expression such as
  * `useWebWorkers: supported && enabled` keeps working, but it differs from the numeric options, which do accept
  * the string a form control, a query string or an environment variable yields. A boolean read from one of those
@@ -820,9 +820,9 @@ export function createSyncAccessHandleTempStream(options?: OPFSTempStreamOptions
  */
 export interface Initializable {
   /**
-   * Initializes the instance asynchronously
+   * Initializes the instance, synchronously or asynchronously
    */
-  init?(): Promise<void>;
+  init?(): Promise<void> | void;
   /**
    * `true` if the instance is initialized.
    */
@@ -870,8 +870,8 @@ export interface ReadableReader {
  * @example
  * Reading a file on the filesystem with random access does not always require a custom {@link Reader}:
  * on runtimes exposing files as lazily-read `Blob` instances, the `Blob` returned by
- * `await fs.openAsBlob(path)` on Node.js or `Bun.file(path)` on Bun can be passed directly to
- * {@link ZipReader}. Deno has no equivalent API yet, see https://github.com/denoland/deno/issues/32316.
+ * `await fs.openAsBlob(path)` on Node.js or `Bun.file(path)` on Bun can be wrapped in a {@link BlobReader},
+ * which reads it by byte ranges. Deno has no equivalent API yet, see https://github.com/denoland/deno/issues/32316.
  * The class below reads a
  * `Deno.FsFile` with random access instead of buffering it entirely in memory. The `seek()` and `read()`
  * calls are serialized in a queue because zip.js can read multiple byte ranges concurrently:
@@ -925,9 +925,9 @@ export class Reader<Type> implements Initializable, ReadableReader {
    */
   size: number;
   /**
-   * Initializes the instance asynchronously
+   * Initializes the instance, synchronously or asynchronously
    */
-  init?(): Promise<void>;
+  init?(): Promise<void> | void;
   /**
    * Creates a `ReadableStream` of the data, optionally restricted to a byte range.
    *
@@ -943,9 +943,9 @@ export class Reader<Type> implements Initializable, ReadableReader {
    *
    * @param index The byte index of the data to read.
    * @param length The length of the data to read in bytes.
-   * @returns A promise resolving to a chunk of data. The data must be trucated to the remaining size if the requested length is larger than the remaining size.
+   * @returns The chunk of data, or a promise resolving to it. The data must be truncated to the remaining size if the requested length is larger than the remaining size.
    */
-  readUint8Array(index: number, length: number): Promise<Uint8Array>;
+  readUint8Array(index: number, length: number): Promise<Uint8Array> | Uint8Array;
 }
 
 /**
@@ -1192,25 +1192,25 @@ export class Writer<Type> implements Initializable, WritableWriter {
    */
   size: number;
   /**
-   * Initializes the instance asynchronously
+   * Initializes the instance, synchronously or asynchronously
    *
    * @param size the total size of the written data in bytes.
    */
-  init?(size?: number): Promise<void>;
+  init?(size?: number): Promise<void> | void;
   /**
-   * Appends a chunk of data
+   * Appends a chunk of data, synchronously or asynchronously
    *
    * @param array The chunk data to append.
    *
    * @virtual
    */
-  writeUint8Array(array: Uint8Array): Promise<void>;
+  writeUint8Array(array: Uint8Array): Promise<void> | void;
   /**
    * Retrieves all the written data
    *
-   * @returns A promise resolving to the written data.
+   * @returns The written data, or a promise resolving to it.
    */
-  getData(): Promise<Type>;
+  getData(): Promise<Type> | Type;
 }
 
 /**
@@ -1464,9 +1464,9 @@ export class ZipReader<Type> {
    * file is read first. A `ReadableStream` instance, or an object providing only a `readable` property
    * (e.g. a file handle), is therefore buffered entirely in memory when the instance is initialized. To
    * read a large seekable resource without buffering it, pass a custom {@link Reader} implementation
-   * that reads the requested byte ranges directly, or a lazily-read `Blob` instance when the runtime
-   * provides one, e.g. `await fs.openAsBlob(path)` on Node.js or `Bun.file(path)` on Bun. See
-   * {@link Reader} for an example reading a `Deno.FsFile` with random access.
+   * that reads the requested byte ranges directly, or a {@link BlobReader} wrapping a lazily-read `Blob`
+   * instance when the runtime provides one, e.g. `await fs.openAsBlob(path)` on Node.js or `Bun.file(path)`
+   * on Bun. See {@link Reader} for an example reading a `Deno.FsFile` with random access.
    *
    * @param reader The {@link Reader} instance used to read data.
    * @param options The options.
@@ -1630,7 +1630,7 @@ export interface IsZipFileOptions {
   /**
    * The tolerance of the probe, with the same semantics and default as
    * {@link ZipReaderConstructorOptions#strictness}: it selects the default amount of tolerated appended data
-   * (0 for `"strict"`, 65536 bytes for `"balanced"`, unlimited for `"tolerant"`) and `"strict"` also returns
+   * (0 for `"strict"`, 65535 bytes for `"balanced"`, unlimited for `"tolerant"`) and `"strict"` also returns
    * `false` when multiple end of central directory records reach the end of the data.
    *
    * @defaultValue "balanced"
@@ -2005,9 +2005,11 @@ export interface ZipReaderOptions {
    * {@link ZipReaderOptions#checkCrc32} option does not, since the CRC32 of the entry describes its
    * content and the content is not decompressed.
    *
-   * Two entries holding the same content encrypted with two different passwords have no bytes in common when
-   * they are read with `true`, because the salt is drawn per entry. Read with `"compressed"` they are identical,
-   * which is what makes it possible to compare the content of encrypted entries without decompressing them.
+   * Two entries holding the same content encrypted with two different passwords differ when they are read with
+   * `true`, because the salt is drawn per entry. Read with `"compressed"` they are identical when the content was
+   * compressed identically, i.e. with the same engine, the same compression level and the same options, which
+   * is what makes it possible to detect duplicate encrypted entries without decompressing them. Equal
+   * compressed data implies equal content, but different compressed data does not imply different content.
    *
    * A value which is neither a boolean, `"compressed"` nor unset throws an {@link ERR_INVALID_PASS_THROUGH_VALUE}
    * error. The filesystem API copies entries verbatim and only accepts a boolean, see
@@ -2015,7 +2017,7 @@ export interface ZipReaderOptions {
    */
   passThrough?: boolean | "compressed";
   /**
-   * The password used to encrypt the content of the entry (raw).
+   * The password used to decrypt the content of the entry (raw).
    */
   rawPassword?: Uint8Array;
   /**
@@ -2939,6 +2941,7 @@ export interface ZipFileEntryGetDataOptions
  * })())
  *
  * readable
+ *   .pipeThrough(new TextEncoderStream())
  *   .pipeThrough(new ZipWriterStream().transform('numbers.txt'))
  *   .pipeTo((await Deno.create('numbers.txt.zip')).writable)
  * ```
@@ -2958,10 +2961,13 @@ export interface ZipFileEntryGetDataOptions
  *
  * const zipper = new ZipWriterStream()
  * zipper.readable.pipeTo((await Deno.create('Archive.zip')).writable)
- * readable1.pipeTo(zipper.writable('numbers.txt'))
- * readable2.pipeTo(zipper.writable('letters.txt'))
+ * readable1.pipeThrough(new TextEncoderStream()).pipeTo(zipper.writable('numbers.txt'))
+ * readable2.pipeThrough(new TextEncoderStream()).pipeTo(zipper.writable('letters.txt'))
  * zipper.close()
  * ```
+ *
+ * The streams piped into the instance must carry `Uint8Array` chunks: a stream of strings must go through a
+ * `TextEncoderStream` first, as above.
  */
 export class ZipWriterStream {
   /**
@@ -2986,11 +2992,12 @@ export class ZipWriterStream {
    *
    * @param path The name of the stream when unzipped. Paths must use forward slashes ("/") as
    * separator (see {@link ZipWriter#add}).
-   * @returns An object containing readable and writable properties
+   * @returns An object containing readable and writable properties: the writable side accepts the `Uint8Array`
+   * chunks of the entry, the readable side is the zipped stream, i.e. {@link ZipWriterStream#readable}.
    */
-  transform<T>(path: string): {
-    readable: ReadableStream<T>;
-    writable: WritableStream<T>;
+  transform(path: string): {
+    readable: ReadableStream<Uint8Array>;
+    writable: WritableStream<Uint8Array>;
   };
 
   /**
@@ -2998,9 +3005,9 @@ export class ZipWriterStream {
    *
    * @param path The directory path of where the stream should exist in the zipped stream. Paths
    * must use forward slashes ("/") as separator (see {@link ZipWriter#add}).
-   * @returns A WritableStream.
+   * @returns A WritableStream accepting the `Uint8Array` chunks of the entry.
    */
-  writable<T>(path: string): WritableStream<T>;
+  writable(path: string): WritableStream<Uint8Array>;
 
   /**
    * Writes the entries directory, writes the global comment, and returns the content of the zipped file.
@@ -3666,8 +3673,9 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * {@link ZipWriterConstructorOptions#encodeText} option is also set to encode them in the intended code page.
    * Setting it to `false` alone therefore produces an archive whose file names are mislabeled, holding UTF-8
    * bytes announced as Code Page 437: the names holding characters outside of ASCII are decoded incorrectly
-   * by the readers honoring the flag, including {@link ZipReader} unless
-   * {@link GetEntriesOptions#filenameEncoding} is set to `"utf-8"`.
+   * by the readers trusting the flag, e.g. Python `zipfile` and Info-ZIP `unzip`. {@link ZipReader} decodes
+   * them correctly because it detects valid UTF-8 names when the flag is clear, unless
+   * {@link GetEntriesOptions#filenameEncoding} forces another encoding.
    *
    * @defaultValue `true` when the encoded name or comment holds a byte outside ASCII, `false` otherwise
    */
@@ -4543,7 +4551,7 @@ export class ZipDirectoryEntry extends ZipEntry {
    *
    * @param writable The `WritableStream` instance.
    * @param options  The options.
-   * @returns A promise resolving to the `Uint8Array` instance.
+   * @returns A promise resolving to the `WritableStream` instance.
    */
   exportWritable(
     writable?: WritableStream,

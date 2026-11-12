@@ -23,10 +23,10 @@ The classes inheriting from [Reader](../classes/Reader.md) help to read data fro
 
 ### init()?
 
-> `optional` **init**(): `Promise`\<`void`\>
+> `optional` **init**(): `void` \| `Promise`\<`void`\>
 
-Initializes the instance asynchronously
+Initializes the instance, synchronously or asynchronously
 
 #### Returns
 
-`Promise`\<`void`\>
+`void` \| `Promise`\<`void`\>
