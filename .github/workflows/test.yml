@@ -148,19 +148,22 @@ jobs:
           - os: windows-latest
             browser: chrome
             version: 'latest'
-          - os: windows-latest
+          # chrome 76, chrome 87 and firefox 102 stopped starting on windows-2025 with the runner image
+          # released after 20261007.264: chrome times out at session creation, firefox after 300 s.
+          # they still run on windows-2022
+          - os: windows-2022
             browser: chrome
             version: '87.0.4279.4'
             position: '811961'
             search: 'maxParallelTests=4'
-          - os: windows-latest
+          - os: windows-2022
             browser: chrome
             version: '76.0.3808.4'
             position: '664573'
           - os: windows-latest
             browser: firefox
             version: 'latest'
-          - os: windows-latest
+          - os: windows-2022
             browser: firefox
             version: '102.0.1'
           - os: windows-latest
@@ -175,18 +178,18 @@ jobs:
             version: 'latest'
 
           # native build
-          - os: windows-latest
+          - os: windows-2022
             browser: chrome
             version: '87.0.4279.4'
             position: '811961'
             search: 'maxParallelTests=4'
             build: 'native'
-          - os: windows-latest
+          - os: windows-2022
             browser: chrome
             version: '76.0.3808.4'
             position: '664573'
             build: 'native'
-          - os: windows-latest
+          - os: windows-2022
             browser: firefox
             version: '102.0.1'
             build: 'native'
