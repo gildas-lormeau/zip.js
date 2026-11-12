@@ -3707,6 +3707,11 @@ export interface ZipWriterConstructorOptions extends WorkerConfiguration {
    * MS-DOS platform. Without this option, they extract folder entries as zero-length files, which can then
    * prevent extracting the files stored below the folders.
    *
+   * Conversely, Info-ZIP `unzip` builds without Unicode support, e.g. the one shipped with macOS, translate the
+   * filenames of entries declaring the MS-DOS platform from CP437 whatever the language encoding flag says.
+   * They fail to extract entries with non-ASCII filenames written with this option, whereas the default Unix
+   * platform leaves the filenames untouched.
+   *
    * @defaultValue false
    */
   msDosCompatible?: boolean;
