@@ -86,6 +86,7 @@ const MANGLED_PROPERTY_NAMES = [
 	"passThroughOptions",
 	"pendingAddFileCalls",
 	"pendingCharacters",
+	"pendingClose",
 	"pendingErrors",
 	"pendingInput",
 	"pendingPrompt",

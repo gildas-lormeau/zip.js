@@ -270,6 +270,7 @@ zip file without the failed entries.
 
 Once the zip file has been finalized, calling this method again does nothing and returns the same
 content. Only a call that threw can be retried, which is what makes the salvage above possible.
+Concurrent calls share the same finalization and resolve to the same content.
 
 ***
 
