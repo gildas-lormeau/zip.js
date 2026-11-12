@@ -848,3 +848,10 @@ The options.
 `Promise`\<`Type`\>
 
 A promise resolving to the type to data associated to `writer`.
+
+#### Remarks
+
+The sizes declared in the zip file are not verified before the content is read. When the zip file comes from an
+untrusted source, check [EntryMetaData#uncompressedSize](EntryMetaData.md#uncompressedsize) against the limit your application accepts before
+calling this method, and avoid extracting all the entries concurrently. This matters most with
+[Uint8ArrayWriter](../classes/Uint8ArrayWriter.md), which allocates its buffer from the declared size.

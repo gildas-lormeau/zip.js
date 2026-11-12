@@ -15,6 +15,10 @@ See https://gildas-lormeau.github.io/zip-manager
 
 See here for more info: https://gildas-lormeau.github.io/zip.js/
 
+# Reading untrusted zip files
+
+The sizes declared in a zip file are not verified before the entry is read. A crafted entry can declare a large `uncompressedSize`, and valid deflate data can expand up to 1032 times its compressed size. Before extracting an entry from an untrusted source, check `entry.uncompressedSize` against the limit your application accepts, and avoid extracting all the entries concurrently. `Uint8ArrayWriter` allocates its buffer from the declared size, up to 1032 times `entry.compressedSize`, so this check matters most when the content is read into memory. Writers which deliver the content progressively, e.g. `BlobWriter` or a `WritableStream`, grow with the data actually produced.
+
 # Examples
 
 ## Hello world

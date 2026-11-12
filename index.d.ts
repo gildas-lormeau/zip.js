@@ -1352,6 +1352,12 @@ export class SplitDataWriter implements Initializable, WritableWriter {
 
 /**
  * Represents a {@link Writer} instance used to retrieve the written data as a `Uint8Array` instance.
+ *
+ * @remarks
+ * When reading an entry, the buffer is allocated upfront from the declared {@link EntryMetaData#uncompressedSize},
+ * capped at 1032 times {@link EntryMetaData#compressedSize} (the maximum expansion ratio of deflate). The declared size
+ * is not verified before the allocation, so check it against the limit your application accepts when the zip file
+ * comes from an untrusted source.
  */
 export class Uint8ArrayWriter extends Writer<Uint8Array<ArrayBuffer>> {
   /**
@@ -2849,6 +2855,12 @@ export interface FileEntry extends EntryMetaData {
   directory: false;
   /**
    * Returns the content of the entry
+   *
+   * @remarks
+   * The sizes declared in the zip file are not verified before the content is read. When the zip file comes from an
+   * untrusted source, check {@link EntryMetaData#uncompressedSize} against the limit your application accepts before
+   * calling this method, and avoid extracting all the entries concurrently. This matters most with
+   * {@link Uint8ArrayWriter}, which allocates its buffer from the declared size.
    *
    * @param writer The {@link Writer} instance used to write the content of the entry.
    * @param options The options.

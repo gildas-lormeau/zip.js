@@ -8,6 +8,13 @@
 
 Represents a [Writer](Writer.md) instance used to retrieve the written data as a `Uint8Array` instance.
 
+## Remarks
+
+When reading an entry, the buffer is allocated upfront from the declared [EntryMetaData#uncompressedSize](../interfaces/EntryMetaData.md#uncompressedsize),
+capped at 1032 times [EntryMetaData#compressedSize](../interfaces/EntryMetaData.md#compressedsize) (the maximum expansion ratio of deflate). The declared size
+is not verified before the allocation, so check it against the limit your application accepts when the zip file
+comes from an untrusted source.
+
 ## Extends
 
 - [`Writer`](Writer.md)\<`Uint8Array`\<`ArrayBuffer`\>\>
